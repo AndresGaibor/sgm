@@ -51,9 +51,13 @@ def test_dataset_sin_esquema_no_inventa_columnas():
 
 
 def test_load_schemas_marca_sin_tipo_como_desconocido(tmp_path):
-    archivo = tmp_path / "schemas.json"
+    archivo = tmp_path / "ejemplo_lz.json"
     archivo.write_text(
-        json.dumps({"ejemplo_lz.x": [{"name": "a"}, {"name": "b", "type": "String"}]})
+        json.dumps({"tables": {"x": [{"name": "a"}, {"name": "b", "type": "String"}]}})
     )
-    columnas = load_schemas(archivo)["ejemplo_lz.x"]
+    columnas = load_schemas(tmp_path)["ejemplo_lz.x"]
     assert [c.type for c in columnas] == [None, "String"]
+
+
+def test_carpeta_inexistente_no_da_esquemas(tmp_path):
+    assert load_schemas(tmp_path / "no-existe") == {}

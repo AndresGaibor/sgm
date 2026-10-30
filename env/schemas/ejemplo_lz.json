@@ -1,0 +1,45 @@
+{
+  "schema": "ejemplo_lz",
+  "source": "ejemplo sintético para pruebas",
+  "_nota": "Ejemplo para pruebas. Las tablas con prefijo ejemplo_ son inventadas; no son del cliente.",
+  "tables": {
+    "clientes": [
+      {
+        "name": "cliente_id",
+        "type": "Integer"
+      },
+      {
+        "name": "nombre",
+        "type": "String",
+        "length": 60
+      },
+      {
+        "name": "saldo",
+        "type": "Double"
+      },
+      {
+        "name": "fecha_alta",
+        "type": "Date"
+      }
+    ],
+    "cuentas": [
+      {
+        "name": "cuenta_id",
+        "type": "Long"
+      },
+      {
+        "name": "cliente_id",
+        "type": "Integer"
+      },
+      {
+        "name": "tipo",
+        "type": "String",
+        "length": 10
+      },
+      {
+        "name": "activa",
+        "type": "Boolean"
+      }
+    ]
+  }
+}

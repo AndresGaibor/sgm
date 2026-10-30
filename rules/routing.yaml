@@ -1,0 +1,49 @@
+id: routing
+kind: routing
+version: 1
+status: soportado
+description: "Dueño de cada motivo de hueco, qué archivo lo cierra y el tipo de regla que sugiere `sgm rules new`."
+owners:
+  PARSE_ERROR: joseph
+  SENTENCIA_NO_SOPORTADA: joseph
+  PROC_NO_SOPORTADO: joseph
+  MACRO_DINAMICA: joseph
+  INCLUDE_EXTERNO: byron
+  FUNCION_NO_MAPEADA: joseph
+  TIPO_DESCONOCIDO: byron
+  COMPONENTE_NO_CATALOGADO: byron
+  SEMANTICA_DUDOSA: andres
+  INTRINSECO_PARCIAL: joseph
+  COMANDO_SISTEMA: joseph
+  MACRO_NO_EXPANDIDA: joseph
+  SQL_NO_SOPORTADO: joseph
+fix_with:
+  PARSE_ERROR: "corrección del parser y caso de prueba"
+  SENTENCIA_NO_SOPORTADA: "rules/sas/statements/"
+  PROC_NO_SOPORTADO: "rules/sas/procs/"
+  MACRO_DINAMICA: "mejora del expansor o decisión del usuario"
+  INCLUDE_EXTERNO: "env/externals/ o env/externals.json"
+  FUNCION_NO_MAPEADA: "rules/sas/functions/"
+  TIPO_DESCONOCIDO: "env/schemas/ o rules/sas/informats.yaml"
+  COMPONENTE_NO_CATALOGADO: "rules/mapping/"
+  SEMANTICA_DUDOSA: "alternativas en la regla y decisión del usuario"
+  INTRINSECO_PARCIAL: "rules/sas/intrinsics/"
+  COMANDO_SISTEMA: "regla de sentencia de sistema (pendiente de contrato)"
+  MACRO_NO_EXPANDIDA: "mejora del expansor (pendiente de contrato)"
+  SQL_NO_SOPORTADO: "regla de sentencia SQL (pendiente de contrato)"
+# Tipo de regla que sugiere `sgm rules new <tipo> --from-gap`. Sin entrada: no hay regla que crear.
+tipo_regla:
+  PROC_NO_SOPORTADO: proc
+  SENTENCIA_NO_SOPORTADA: statement
+  FUNCION_NO_MAPEADA: function
+  TIPO_DESCONOCIDO: informats
+  INTRINSECO_PARCIAL: intrinsic
+  COMPONENTE_NO_CATALOGADO: mapping
+# Motivos que todavía no están en la lista cerrada del contrato (05-contratos.md, sección 3).
+# Cambiar esta lista es un cambio de contrato: lo acuerdan Andres, Joseph y Byron.
+contrato_pendiente:
+  - COMANDO_SISTEMA
+  - MACRO_NO_EXPANDIDA
+  - SQL_NO_SOPORTADO
+tests:
+  - tests/cases/routing

@@ -6,3 +6,6 @@ __pycache__/
 .cache/
 out/
 *.sqlite
+
+corpus/*
+!corpus/README.md

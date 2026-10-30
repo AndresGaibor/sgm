@@ -1,7 +1,7 @@
 """Caché de salidas en `out/.cache/`.
 
 La clave es el hash de los textos de entrada y el de las reglas. Si nada cambió (ni un fuente, ni
-`rules/`, ni `env/schemas.json`, ni la versión de sgm), la salida guardada se copia tal cual.
+`rules/`, ni `env/schemas/`, ni la versión de sgm), la salida guardada se copia tal cual.
 La caché es por proyecto: un cambio en cualquier archivo invalida todo, porque las macros se
 comparten entre archivos.
 """
@@ -18,7 +18,7 @@ from sgm.compile import ROOT_DIR, RULES_DIR, SCHEMAS_PATH
 
 def rules_hash() -> str:
     digest = hashlib.sha256(__version__.encode("utf-8"))
-    for path in sorted(RULES_DIR.rglob("*")) + [SCHEMAS_PATH]:
+    for path in sorted(RULES_DIR.rglob("*")) + sorted(SCHEMAS_PATH.rglob("*")):
         if path.is_file():
             digest.update(path.relative_to(ROOT_DIR).as_posix().encode("utf-8"))
             digest.update(path.read_bytes())

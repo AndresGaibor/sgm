@@ -1,0 +1,7 @@
+description: "Dos huecos de motivos distintos: el ruteo los asigna a su dueño y arreglo."
+input: input.sas
+env: default
+expect:
+  gaps:
+    - INCLUDE_EXTERNO
+    - PROC_NO_SOPORTADO

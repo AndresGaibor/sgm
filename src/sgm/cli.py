@@ -9,9 +9,12 @@ from typing import Annotated
 
 import typer
 
-from sgm import cache, trinquete
+from sgm import cache, generadores, trinquete
 from sgm import decisions as decisions_mod
 from sgm import diagnostics as diagnostics_mod
+from sgm import explain as explain_mod
+from sgm.catalog import describe as describe_mod
+from sgm import intake as intake_mod
 from sgm import lineage as lineage_mod
 from sgm import metrics as metrics_mod
 from sgm import rules_validate as rules_validate_mod
@@ -19,7 +22,7 @@ from sgm.batch import compile_batch
 from sgm.catalog.config import ConfigError, Env, load_env
 from sgm.emit.guide_md import render_guide
 from sgm.emit.plan_json import plan_to_dict
-from sgm.ingest.importer import looks_like_sas
+from sgm.ingest.importer import ImportError_, looks_like_sas
 from sgm.store import gaps as gap_store
 from sgm.store import overrides as override_store
 from sgm.store.db import Store
@@ -32,9 +35,11 @@ decisions_app = typer.Typer(
 )
 gaps_app = typer.Typer(help="Inventario de huecos.", no_args_is_help=True)
 rules_app = typer.Typer(help="Reglas, casos y configuración.", no_args_is_help=True)
+case_app = typer.Typer(help="Casos de prueba declarativos.", no_args_is_help=True)
 app.add_typer(decisions_app, name="decisions")
 app.add_typer(gaps_app, name="gaps")
 app.add_typer(rules_app, name="rules")
+app.add_typer(case_app, name="case")
 
 
 @app.callback()
@@ -251,18 +256,116 @@ def decisions_set(
 @gaps_app.command("list")
 def gaps_list(
     top: Annotated[int, typer.Option("--top", help="Cuántos huecos mostrar.")] = 20,
+    owner: Annotated[str | None, typer.Option("--owner", help="Solo los de este dueño.")] = None,
+    file: Annotated[
+        str | None,
+        typer.Option("--file", help="Solo los que aparecen en un archivo con este texto."),
+    ] = None,
 ) -> None:
-    """Huecos ordenados por archivos y ocurrencias."""
+    """Huecos ordenados por archivos y ocurrencias, con dueño, arreglo y comando sugerido."""
     with Store() as store:
-        rows = gap_store.top(store, top)
+        rows = gap_store.top(store, top, owner=owner, file=file)
     if not rows:
-        typer.echo("No hay huecos guardados. Compila primero con `sgm compile`.")
+        typer.echo("No hay huecos que mostrar. Compila primero con `sgm compile`.")
         return
     for row in rows:
+        example = row["example"] or {}
         typer.echo(
-            f"{row['signature']}  {row['reason']}  archivos={len(row['files'])}  "
-            f"ocurrencias={row['occurrences']}"
+            f"{row['signature']}  {row['reason']}  dueño={row['owner']}  "
+            f"archivos={len(row['files'])}  ocurrencias={row['occurrences']}"
         )
+        if example:
+            typer.echo(
+                f"  ejemplo: {example['file']}:{example['line_start']}-{example['line_end']}"
+                f"  {example['texto']}"
+            )
+        typer.echo(f"  se cierra con: {row['fix_with'] or 'sin arreglo registrado'}")
+        typer.echo(f"  comando: {row['comando']}")
+
+
+env_app = typer.Typer(help="Entorno: esquemas de las bases.", no_args_is_help=True)
+app.add_typer(env_app, name="env")
+
+
+@env_app.command("import-describe")
+def env_import_describe(
+    archivo: Annotated[Path, typer.Argument(help="Salida de texto de DESCRIBE de Impala.")],
+    schema: Annotated[str, typer.Option("--schema", help="Nombre del esquema, en minúsculas.")],
+) -> None:
+    """Escribe env/schemas/<esquema>.json con las tablas de la salida de DESCRIBE."""
+    try:
+        ruta, tablas = describe_mod.importar(archivo, schema)
+    except (ValueError, FileNotFoundError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(f"Esquema escrito: {ruta} ({len(tablas)} tablas)")
+    for tabla, columnas in sorted(tablas.items()):
+        sin_tipo = sum(1 for c in columnas if c.type is None)
+        typer.echo(f"  {tabla}: {len(columnas)} columnas, {sin_tipo} sin tipo traducible")
+
+
+@app.command()
+def explain(
+    ref: Annotated[str, typer.Argument(help="Archivo y línea, por ejemplo programa.sas:120.")],
+) -> None:
+    """Qué operadores, pasadas, huecos y notas tiene una línea del programa."""
+    archivo, _, linea = ref.rpartition(":")
+    if not archivo or not linea.isdigit():
+        raise typer.BadParameter("usa archivo:línea, por ejemplo programa.sas:120")
+    try:
+        typer.echo(explain_mod.explicar(Path(archivo), int(linea), env=_env()))
+    except (FileNotFoundError, ValueError) as error:
+        raise typer.BadParameter(str(error)) from error
+
+
+@app.command()
+def intake(
+    source: Annotated[Path, typer.Argument(help="Carpeta, ZIP o archivo SAS a importar.")],
+) -> None:
+    """Importa un lote a corpus/inbox: UTF-8, sin secretos, compilado y con sus huecos."""
+    try:
+        resultado = intake_mod.intake(source, env=_env())
+    except (ImportError_, FileNotFoundError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(
+        f"Lote: {resultado.carpeta}\n"
+        f"  archivos={resultado.archivos} omitidos={resultado.omitidos} "
+        f"programas={resultado.programas}\n"
+        f"  líneas con secretos redactadas={resultado.lineas_redactadas}\n"
+        f"  codificaciones convertidas a UTF-8={resultado.codificaciones or 'ninguna'}\n"
+        f"  huecos registrados={resultado.huecos}"
+    )
+
+
+@case_app.command("new")
+def case_new(
+    from_gap: Annotated[str, typer.Option("--from-gap", help="Firma del hueco.")],
+    fuente: Annotated[
+        Path, typer.Option("--fuente", help="Programa o carpeta donde está el hueco.")
+    ],
+) -> None:
+    """Crea tests/cases/<firma>/ con el fragmento anonimizado del hueco y su estado actual."""
+    try:
+        carpeta = generadores.crear_caso(from_gap, fuente)
+    except (ValueError, FileExistsError, FileNotFoundError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(f"Caso creado: {carpeta}")
+
+
+@rules_app.command("new")
+def rules_new(
+    tipo: Annotated[str, typer.Argument(help="proc, statement, function, intrinsic o mapping.")],
+    from_gap: Annotated[str, typer.Option("--from-gap", help="Firma del hueco.")],
+    fuente: Annotated[
+        Path | None,
+        typer.Option("--fuente", help="Programa o carpeta; hace falta si el caso no existe."),
+    ] = None,
+) -> None:
+    """Crea el archivo de reglas prellenado (status parcial) y apunta a su caso."""
+    try:
+        destino = generadores.crear_regla(tipo, from_gap, fuente)
+    except (ValueError, FileExistsError, FileNotFoundError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(f"Regla creada: {destino}. Complétala y corre `sgm rules validate`.")
 
 
 @rules_app.command("validate")

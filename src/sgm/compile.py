@@ -24,7 +24,7 @@ from sgm.redaction import redact
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 RULES_DIR = ROOT_DIR / "rules"
-SCHEMAS_PATH = ROOT_DIR / "env" / "schemas.json"
+SCHEMAS_PATH = ROOT_DIR / "env" / "schemas"
 
 
 @dataclass
