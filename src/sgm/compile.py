@@ -12,6 +12,7 @@ from pathlib import Path
 
 from sgm.catalog.config import Env
 from sgm.catalog.schemas import load_schemas
+from sgm.catalog.talend import component_names
 from sgm.emit.conventions.naming import DEFAULT_NAME_TEMPLATE, render_job_name
 from sgm.frontend.program import ProgramAnalysis, analyze_program
 from sgm.frontend.selectors import SelectorUse
@@ -122,8 +123,28 @@ def compile_file(analysis: ProgramAnalysis, program: str, ctx_base: dict) -> Com
         project=ctx_base["project"],
     )
     logs = run_passes(ctx)
-    plan.gaps = build_gaps(plan.graph) + plan.gaps
+    plan.gaps = build_gaps(plan.graph) + plan.gaps + _catalog_and_intrinsic_gaps(plan.graph)
     return Compiled(plan, logs)
+
+
+def _catalog_and_intrinsic_gaps(graph: Graph) -> list[Gap]:
+    """Huecos que no nacen de un operador `hueco`: componentes fuera del catálogo y cargas
+    de región que quedaron parciales (F1.1)."""
+    known = component_names()
+    found: dict[str, Gap] = {}
+    for op in graph.operators():
+        name = (op.component or {}).get("name")
+        if name and name != "none" and name not in known:
+            signature = f"COMPONENTE_NO_CATALOGADO:{name}"
+            reason, text = "COMPONENTE_NO_CATALOGADO", f"componente {name} fuera del catálogo"
+        elif op.kind == "external_load" and op.status == "parcial" and op.params.get("absorbed"):
+            signature = f"INTRINSECO_PARCIAL:{op.signature}"
+            reason, text = "INTRINSECO_PARCIAL", "carga externa de región parcial: revisar"
+        else:
+            continue
+        gap = found.setdefault(signature, Gap(signature, reason, [], text))
+        gap.evidence.extend(ev for ev in op.evidence if ev not in gap.evidence)
+    return list(found.values())
 
 
 def project_base(library_engines: dict[str, str] | None = None, env: Env | None = None) -> dict:

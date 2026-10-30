@@ -731,3 +731,13 @@ No se hizo `git push`. No se activó MCP. El repositorio tiene un remoto `origin
 - Qué se hizo: `metrics/baseline.json` con las cifras del corpus (189 programas). `sgm metrics --check` compara con la línea base y falla si una métrica empeora (módulo `sgm/trinquete.py`). Nuevas métricas: `tjava_sql`, `excepciones`, `huecos_por_motivo`, `lineas_sin_cubrir`, `tiempo_compilacion_s` (margen de 20 %). `--write-baseline` exige `--razon`. La comparación exige el mismo número de programas.
 - Pruebas: `tests/unit/test_trinquete.py` (9 casos). Suite: 279 pasan, 1 se salta. Ruff limpio. `--check` sobre el corpus: pasa.
 - Deuda visible: `lineas_sin_cubrir` = 11 349. La meta de `06-calidad.md` es 0. El trinquete solo impide que empeore. Pendiente: revisar qué líneas quedan sin evidencia (sospecha: cuerpos de macros definidas y no llamadas).
+
+## Fase 1, F1.1. Motivos completos y guardias (dueño: Joseph en la guardia de estados; Byron en el catálogo)
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `src/sgm/motivos.py`: registro de motivos con dueño y marca de contrato. Los diez de la lista del contrato más `COMPONENTE_NO_CATALOGADO` e `INTRINSECO_PARCIAL`. Quedan fuera del contrato, pendientes de que los tres acuerden: `COMANDO_SISTEMA`, `MACRO_NO_EXPANDIDA`, `SQL_NO_SOPORTADO`. Los que no son huecos (`CONFIGURACION`, `CONEXION_SQL`, `INCLUDE_DECLARADO`, `REPORTE`) van aparte.
+  - `src/sgm/catalog/talend.py`: fuente única del catálogo de componentes.
+  - `compile.py`: un componente fuera del catálogo genera hueco `COMPONENTE_NO_CATALOGADO`. Una carga de región parcial genera `INTRINSECO_PARCIAL`. Ninguno cambia el estado del operador.
+- Pruebas: `tests/unit/test_motivos.py` (6 casos). Todo motivo emitido está registrado; ningún operador sin estado; los tres motivos de la fase; los fuera de contrato se marcan; las dos reglas de hueco nuevas. Suite: 285 pasan. Las referencias doradas no cambian.
+- Pendiente: los motivos fuera de contrato requieren acuerdo de Andres, Joseph y Byron. Las cifras del trinquete cambian por las dos reglas nuevas; la línea base se recalcula con `--razon` cuando el cambio se acepte.
