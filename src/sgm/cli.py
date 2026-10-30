@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
-from sgm import cache
+from sgm import cache, trinquete
 from sgm import decisions as decisions_mod
 from sgm import diagnostics as diagnostics_mod
 from sgm import lineage as lineage_mod
@@ -120,14 +121,44 @@ def compile(
 def metrics(
     source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
+    check: Annotated[
+        bool, typer.Option("--check", help="Falla si una métrica empeora frente a la línea base.")
+    ] = False,
+    baseline: Annotated[Path, typer.Option("--baseline", help="Archivo de la línea base.")] = Path(
+        "metrics"
+    )
+    / "baseline.json",
+    write_baseline: Annotated[
+        bool, typer.Option("--write-baseline", help="Guarda estas cifras como línea base.")
+    ] = False,
+    razon: Annotated[
+        str, typer.Option("--razon", help="Motivo escrito al cambiar la línea base.")
+    ] = "",
 ) -> None:
     """Imprime las métricas y las guarda en `out/metrics.json` y `out/diagnostico.md`."""
     files = _collect(source)
     if not files:
         typer.echo("No hay programas SAS en la fuente.")
         raise typer.Exit(code=1)
+    started = time.perf_counter()
     compiled, analysis = compile_batch(files, env=_env())
     report = metrics_mod.compute(compiled, files, analysis)
+    report["total"]["tiempo_compilacion_s"] = round(time.perf_counter() - started, 1)
+    if write_baseline:
+        if not razon:
+            raise typer.BadParameter("cambiar la línea base exige --razon")
+        baseline.parent.mkdir(parents=True, exist_ok=True)
+        saved = {"razon": razon, "total": report["total"]}
+        baseline.write_text(json.dumps(saved, ensure_ascii=False, indent=2), encoding="utf-8")
+        typer.echo(f"Línea base guardada en {baseline}")
+    if check:
+        problems = trinquete.check(report, json.loads(baseline.read_text(encoding="utf-8")))
+        if problems:
+            typer.echo("Trinquete: una métrica empeora:")
+            for problem in problems:
+                typer.echo(f"  - {problem}")
+            raise typer.Exit(code=1)
+        typer.echo("Trinquete: ninguna métrica empeora frente a la línea base.")
     out.mkdir(parents=True, exist_ok=True)
     (out / "metrics.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"

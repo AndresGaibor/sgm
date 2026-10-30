@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections import Counter
 
+from sgm import trinquete
 from sgm.compile import Compiled
 from sgm.frontend.program import ProgramAnalysis
 from sgm.frontend.splitter import split_nodes
@@ -89,6 +90,7 @@ def compute(
     )
     java = sum(p["componentes_por_nombre"].get("tJava", 0) for p in programs.values())
     total["pct_tjava"] = round(100 * java / componentes, 1) if componentes else 0.0
+    total.update(trinquete.extras(compiled, files))
     return {"total": total, "programas": programs, "top_huecos": top_gaps(compiled)}
 
 

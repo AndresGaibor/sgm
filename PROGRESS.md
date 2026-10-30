@@ -724,3 +724,10 @@ No se hizo `git push`. No se activó MCP. El repositorio tiene un remoto `origin
 - Causa: el traductor en línea no traduce `input(x, w.)` ni `left`/`substrn`. Lo hace el motor de rutinas de Talend (`expressions/talend_translator.py`), que está **apagado por defecto** (`SGM_TALEND_EXPRESSIONS=1`). Su propia documentación lo reserva hasta comprobar en Studio que el Java que emite compila (`talend_job_verify`).
 - Medición con el motor encendido (corpus, `out/talend_on/`): los cinco primeros huecos (685 ocurrencias de `input(...)` y `COMPRESS(input(...))`) desaparecen del top. Componentes (1 328), subjobs (750), `tJava` (0,0 %) y decisiones no cambian. Pasan a dominar `INCLUDE_EXTERNO` (70), `TIPO_DESCONOCIDO` (30) y `PROC DOWNLOAD` (26).
 - Decisión: no se enciende por defecto. Hacerlo pondría en las guías como traducido código que aún no se ha compilado en Studio. Próximo paso: validar el Java de esas expresiones en Studio; si compila, se puede cambiar el valor por defecto.
+
+## Fase 1, F1.0. Línea base y trinquete (A0.2, A1.5)
+
+- Fecha: 2026-10-30
+- Qué se hizo: `metrics/baseline.json` con las cifras del corpus (189 programas). `sgm metrics --check` compara con la línea base y falla si una métrica empeora (módulo `sgm/trinquete.py`). Nuevas métricas: `tjava_sql`, `excepciones`, `huecos_por_motivo`, `lineas_sin_cubrir`, `tiempo_compilacion_s` (margen de 20 %). `--write-baseline` exige `--razon`. La comparación exige el mismo número de programas.
+- Pruebas: `tests/unit/test_trinquete.py` (9 casos). Suite: 279 pasan, 1 se salta. Ruff limpio. `--check` sobre el corpus: pasa.
+- Deuda visible: `lineas_sin_cubrir` = 11 349. La meta de `06-calidad.md` es 0. El trinquete solo impide que empeore. Pendiente: revisar qué líneas quedan sin evidencia (sospecha: cuerpos de macros definidas y no llamadas).

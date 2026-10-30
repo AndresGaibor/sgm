@@ -1,0 +1,32 @@
+{
+  "razon": "línea base de la ronda 2 (F1.0, A0.2); recalculada tras corregir el conteo de líneas con código",
+  "total": {
+    "programas": 189,
+    "nodos_sas": 629,
+    "pasos_sas": 8532,
+    "componentes": 1328,
+    "jobs": 189,
+    "subjobs": 750,
+    "pasos_sin_pendientes": 1061,
+    "decisiones_pendientes": 886,
+    "firmas_de_decision": 306,
+    "nodos_por_componente": 0.474,
+    "pasos_por_componente": 6.425,
+    "pct_tjava": 0.0,
+    "tjava_sql": 0,
+    "excepciones": 0,
+    "huecos_por_motivo": {
+      "FUNCION_NO_MAPEADA": 394,
+      "INCLUDE_EXTERNO": 24,
+      "MACRO_DINAMICA": 18,
+      "MACRO_NO_EXPANDIDA": 75,
+      "PARSE_ERROR": 42,
+      "PROC_NO_SOPORTADO": 205,
+      "SENTENCIA_NO_SOPORTADA": 97,
+      "SQL_NO_SOPORTADO": 4,
+      "TIPO_DESCONOCIDO": 182
+    },
+    "lineas_sin_cubrir": 11349,
+    "tiempo_compilacion_s": 18.7
+  }
+}
