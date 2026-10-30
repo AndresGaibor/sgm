@@ -39,4 +39,10 @@ def redact_other(text: str) -> str:
 
 
 def redact(text: str, path: str) -> str:
-    return redact_sas(text) if path.lower().endswith(".sas") else redact_other(text)
+    """Enmascara credenciales de cualquier texto, sin fiarse de la extensión.
+
+    Un programa SAS puede llegar como `.txt` (pasa en los lotes del cliente), así que se aplican
+    ambos redactores: el de sentencias SAS y el genérico. `path` se conserva por compatibilidad.
+    """
+    del path
+    return redact_other(redact_sas(text))

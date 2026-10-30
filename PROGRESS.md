@@ -841,3 +841,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Bloqueos que requieren datos externos: `TIPO_DESCONOCIDO` (salida real de DESCRIBE de Impala), `INCLUDE_EXTERNO` del corpus (archivos de Grid no incluidos en el repo).
 - Decisiones de diseño tomadas sin consultar: `PROC DELETE` como fontanería; reclasificación de macros dentro de `PROC SQL`; el inventario de huecos se reemplaza en cada `intake`; el trinquete se actualiza con razón cuando cambia la distribución por motivo.
 - Commits locales de esta sesión (sin push): `581fa5a`, `5d63209`, `cd722ad`, `65d7930`, `53f3d79`, `8ca4388`, `9c513b5`, `4fd6938`, `af1187d`, `a2fef41`.
+
+## Lote del cliente: Cod1.txt y Cod2.txt (intake)
+
+- Fecha: 2026-10-30
+- Qué se hizo: `sgm intake` sobre los dos archivos. Cod1: 15 huecos, sin secretos. Cod2: 139 huecos, 1 valor redactado (el `proc pwencode`).
+- Corrección de seguridad: la redacción elegía el redactor de SAS por la extensión `.sas`. Cod2 es un `.txt` con código SAS, así que sus `connect ... pass="..."` quedaron en claro en la copia guardada (27 líneas). Ahora `redaction.redact` aplica ambos redactores a todo texto. Prueba: `tests/unit/test_redaction_txt.py`. La copia anterior se borró y se volvió a generar; las 26 apariciones que quedan son referencias a macro (`pass="&..."`), no credenciales literales.
+- Corrección de lotes: cada `intake` reemplazaba toda la base de huecos y borraba los del lote anterior. Ahora la base es la unión de los `huecos.json` de todos los lotes. Y la carpeta del lote incluye el nombre del archivo en su huella (dos archivos con el mismo texto chocaban). Prueba: `tests/unit/test_intake.py` (dos lotes).
+- Medido, no activado: con `SGM_TALEND_EXPRESSIONS=1`, Cod2 pasa de 236 a 119 huecos (`FUNCION_NO_MAPEADA` 123 → 6). Sigue apagado por defecto hasta validar en Studio el Java que emite.
+- Pendiente, con decisión: 34 `PARSE_ERROR` en Cod2 (dueño Joseph). Son `OUTER UNION CORR` (SAS alinea por nombre; reescribirlo como `UNION ALL` cambia el resultado si el orden de columnas difiere) y `CASE` con formas que `sqlglot` no acepta. Hace falta decidir si `OUTER UNION CORR` pasa a `SEMANTICA_DUDOSA`.
+- Pendiente: 73 `TIPO_DESCONOCIDO` (dueño Byron), que necesitan la salida de DESCRIBE de las tablas que leen esos programas.
+- Verificación: suite 365 pasan, 1 se salta; ruff limpio; trinquete sin empeorar.

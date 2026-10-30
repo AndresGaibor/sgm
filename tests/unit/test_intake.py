@@ -76,3 +76,18 @@ def test_un_archivo_suelto_tambien_entra(base):
 def test_fuente_inexistente_falla_con_mensaje(base):
     with pytest.raises(FileNotFoundError):
         intake(base / "no-existe", env=Env(), inbox=base / "inbox")
+
+
+def test_dos_lotes_conservan_los_huecos_de_ambos(base):
+    primero = base / "uno"
+    primero.mkdir()
+    (primero / "uno.sas").write_bytes(PROGRAMA)
+    segundo = base / "dos"
+    segundo.mkdir()
+    (segundo / "dos.sas").write_bytes(PROGRAMA.replace(b"set b;", b"set otra;"))
+    intake(primero, env=Env(), inbox=base / "inbox")
+    intake(segundo, env=Env(), inbox=base / "inbox")
+    with Store() as store:
+        archivos = {f for fila in gap_store.top(store, 500) for f in fila["files"]}
+    assert any("uno.sas" in f for f in archivos)
+    assert any("dos.sas" in f for f in archivos)

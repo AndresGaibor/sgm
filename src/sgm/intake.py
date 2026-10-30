@@ -90,6 +90,32 @@ def _escribir_salida(carpeta: Path, compiled: dict) -> None:
         )
 
 
+def _inventario_de_lotes(inbox: Path) -> list[dict]:
+    """Huecos de todos los lotes del inbox, unidos por firma y motivo.
+
+    Así un lote nuevo no borra los huecos de los anteriores: se suman las ocurrencias y se unen
+    los archivos.
+    """
+    unidos: dict[tuple[str, str], dict] = {}
+    for ruta in sorted(inbox.glob("*/huecos.json")):
+        for fila in json.loads(ruta.read_text(encoding="utf-8")):
+            clave = (fila["signature"], fila["reason"])
+            if clave not in unidos:
+                unidos[clave] = {
+                    "signature": fila["signature"],
+                    "reason": fila["reason"],
+                    "files": [],
+                    "occurrences": 0,
+                    "example": fila["example"],
+                }
+            acumulado = unidos[clave]
+            acumulado["files"] = sorted(set(acumulado["files"]) | set(fila["files"]))
+            acumulado["occurrences"] += fila["occurrences"]
+    return sorted(
+        unidos.values(), key=lambda r: (-len(r["files"]), -r["occurrences"], r["signature"])
+    )
+
+
 def intake(
     source: Path,
     env: Env | None = None,
@@ -112,7 +138,10 @@ def intake(
             fuente = source
         importado = Path(tmp) / "importado"
         archivos, omitidos = import_source(fuente, importado, limits)
-        digest = hashlib.sha256("".join(a.sha256 for a in archivos).encode()).hexdigest()[:8]
+        # el nombre entra en la huella: dos archivos con el mismo texto son lotes distintos
+        digest = hashlib.sha256(
+            "".join(f"{a.path}:{a.sha256}" for a in archivos).encode()
+        ).hexdigest()[:8]
         carpeta = inbox / f"{dt.date.today().isoformat()}-{digest}"
         if carpeta.exists():  # mismo contenido: se rehace desde cero
             shutil.rmtree(carpeta)
@@ -131,11 +160,12 @@ def intake(
     with Store() as store:
         for result in compiled.values():
             override_store.apply(result.plan, store, carpeta.name)
-        inventario = gap_store.inventory([r.plan for r in compiled.values()])
-        gap_store.save(store, inventario)
+    inventario = gap_store.inventory([r.plan for r in compiled.values()])
     (carpeta / "huecos.json").write_text(
         json.dumps(inventario, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    with Store() as store:
+        gap_store.save(store, _inventario_de_lotes(inbox))
     return Resultado(
         carpeta=carpeta,
         archivos=len(archivos),
