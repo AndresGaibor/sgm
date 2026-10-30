@@ -8,7 +8,10 @@ from typing import Annotated
 
 import typer
 
-from sgm.compile import compile_project
+from sgm import cache
+from sgm import lineage as lineage_mod
+from sgm import metrics as metrics_mod
+from sgm.batch import compile_batch
 from sgm.emit.guide_md import render_guide
 from sgm.emit.plan_json import plan_to_dict
 from sgm.ingest.importer import looks_like_sas
@@ -50,10 +53,26 @@ def _project_name(source: Path) -> str:
     return source.stem if source.is_file() else source.name
 
 
+def _write_outputs(out: Path, compiled: dict) -> list[str]:
+    """Escribe guía y plan de cada programa. Devuelve los nombres escritos."""
+    names: list[str] = []
+    for program, result in compiled.items():
+        stem = Path(program).with_suffix("").as_posix().replace("/", "__")
+        guide = f"{stem}.guide.md"
+        plan = f"{stem}.plan.json"
+        (out / guide).write_text(render_guide(result.plan), encoding="utf-8")
+        payload = plan_to_dict(result.plan)
+        (out / plan).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        names += [guide, plan]
+    return names
+
+
 @app.command()
 def compile(
     source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
+    workers: Annotated[int, typer.Option("--workers", help="Programas en paralelo.")] = 1,
+    no_cache: Annotated[bool, typer.Option("--no-cache", help="No usar la caché.")] = False,
 ) -> None:
     """Escribe `<programa>.guide.md` y `<programa>.plan.json` por cada programa."""
     if not source.exists():
@@ -63,24 +82,65 @@ def compile(
         typer.echo("No hay programas SAS en la fuente.")
         raise typer.Exit(code=1)
     out.mkdir(parents=True, exist_ok=True)
-    compiled, _ = compile_project(files)
+    key = cache.project_key(files)
+    if not no_cache:
+        restored = cache.restore(out, key)
+        if restored:
+            typer.echo(f"Caché: {len(restored)} archivos recuperados sin recalcular.")
+            return
+    compiled, _ = compile_batch(files, workers=workers)
     project = _project_name(source)
     with Store() as store:
         for result in compiled.values():
             override_store.apply(result.plan, store, project)
         gap_store.save(store, gap_store.inventory([r.plan for r in compiled.values()]))
+    names = _write_outputs(out, compiled)
     for program, result in compiled.items():
-        stem = Path(program).with_suffix("").as_posix().replace("/", "__")
-        (out / f"{stem}.guide.md").write_text(render_guide(result.plan), encoding="utf-8")
-        payload = plan_to_dict(result.plan)
-        (out / f"{stem}.plan.json").write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
         typer.echo(
             f"{program}: {len(result.plan.graph)} operadores, "
             f"{len(result.plan.gaps)} firmas con hueco"
         )
+    cache.save(out, key, names)
     typer.echo(f"Salida en {out}")
+
+
+@app.command()
+def metrics(
+    source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
+    out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
+) -> None:
+    """Imprime las métricas y las guarda en `out/metrics.json`."""
+    files = _collect(source)
+    if not files:
+        typer.echo("No hay programas SAS en la fuente.")
+        raise typer.Exit(code=1)
+    compiled, _ = compile_batch(files)
+    report = metrics_mod.compute(compiled, files)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "metrics.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    total = report["total"]
+    typer.echo(
+        f"Programas {total['programas']}, nodos SAS {total['nodos_sas']}, "
+        f"componentes {total['componentes']}, nodos por componente "
+        f"{total['nodos_por_componente']}, tJava {total['pct_tjava']} %"
+    )
+    typer.echo(f"Métricas en {out / 'metrics.json'}")
+
+
+@app.command()
+def lineage(
+    source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
+) -> None:
+    """Propone oleadas de ejecución según las tablas permanentes que escribe y lee cada programa."""
+    files = _collect(source)
+    if not files:
+        typer.echo("No hay programas SAS en la fuente.")
+        raise typer.Exit(code=1)
+    compiled, _ = compile_batch(files)
+    for number, wave in enumerate(lineage_mod.waves(compiled), 1):
+        typer.echo(f"Oleada {number}: " + ", ".join(wave))
 
 
 @decisions_app.command("list")
@@ -132,3 +192,7 @@ def gaps_list(
             f"{row['signature']}  {row['reason']}  archivos={len(row['files'])}  "
             f"ocurrencias={row['occurrences']}"
         )
+
+
+if __name__ == "__main__":
+    app()

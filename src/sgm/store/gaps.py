@@ -29,6 +29,7 @@ def inventory(plans: list[Plan]) -> list[dict]:
                 occurrences[gap.signature] += 1
                 if entry["example"] is None:
                     entry["example"] = {
+                        "texto": gap.text,
                         "file": ev.file,
                         "line_start": ev.line_start,
                         "line_end": ev.line_end,

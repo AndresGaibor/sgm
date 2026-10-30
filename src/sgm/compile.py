@@ -46,7 +46,8 @@ def build_gaps(graph: Graph) -> list[Gap]:
         if op.status != "hueco":
             continue
         reason = str(op.params.get("reason", "SIN_MOTIVO"))
-        gap = by_signature.setdefault(op.signature, Gap(op.signature, reason, []))
+        text = str(op.params.get("statement") or op.params.get("sql") or op.kind)
+        gap = by_signature.setdefault(op.signature, Gap(op.signature, reason, [], text[:120]))
         for ev in op.evidence:
             if ev not in gap.evidence:
                 gap.evidence.append(ev)

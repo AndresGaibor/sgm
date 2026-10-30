@@ -250,6 +250,7 @@ class Gap:
     signature: str
     reason: str
     evidence: list[Evidence]
+    text: str = ""  # sentencia que causa el hueco, recortada
 
 
 @dataclass
