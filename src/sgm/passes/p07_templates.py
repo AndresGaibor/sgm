@@ -17,6 +17,8 @@ import hashlib
 import json
 from collections import defaultdict
 
+import networkx as nx
+
 from sgm.ir.builder import Builder
 from sgm.ir.models import Graph, Job, Operator
 from sgm.ir.signature import signature
@@ -79,6 +81,54 @@ def _names(ordered: list[Operator]) -> list[str]:
     return names
 
 
+def _acyclic_after(graph: Graph, members: list[str]) -> bool:
+    """Si el grafo sigue siendo acíclico al contraer `members` en un solo nodo.
+
+    Las instancias de una plantilla no tienen aristas entre sí, pero sí pueden depender de un
+    operador común: en ese caso colapsarlas crearía un ciclo.
+    """
+    group = set(members)
+    contracted = nx.DiGraph()
+    for edge in graph.edges():
+        src = "grupo" if edge.src in group else edge.src
+        dst = "grupo" if edge.dst in group else edge.dst
+        if src != dst:
+            contracted.add_edge(src, dst)
+    return nx.is_directed_acyclic_graph(contracted)
+
+
+def _replace_with_iterate(
+    graph: Graph,
+    builder: Builder,
+    log: PassLog,
+    template: str,
+    label: str | None,
+    ops: list[Operator],
+    contexts: list[dict],
+) -> None:
+    """Sustituye `ops` por un `iterate` que llama a la plantilla con `contexts`."""
+    evidence = []
+    for op in ops:
+        for ev in op.evidence:
+            if ev not in evidence:
+                evidence.append(ev)
+    params = {"template": template, "instancias": contexts}
+    iterate = Operator(
+        id=builder.next_id(),
+        kind="iterate",
+        params=params,
+        placement="flow",
+        evidence=evidence,
+        status="parcial" if any(o.status == "parcial" for o in ops) else "soportado",
+        signature=signature("iterate", params),
+        notes=[f"{len(contexts)} instancias de la plantilla {template} (etiqueta: {label})"],
+    )
+    members = [op.id for op in ops]
+    graph.replace(members, iterate)
+    log.created.append(iterate.id)
+    log.merged += members
+
+
 def run(graph: Graph, ctx: PassContext) -> PassLog:
     log = PassLog(NAME)
     builder = Builder(graph)
@@ -107,27 +157,15 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
         )
         if ctx.plan.jobs:
             ctx.plan.jobs[0].children.append(job)
-        for ordered, names in instances:
-            context = {f"parametro_{k}": names[k] for k in varying}
-            evidence = []
-            for op in ordered:
-                for ev in op.evidence:
-                    if ev not in evidence:
-                        evidence.append(ev)
-            params = {"template": template, "context": context}
-            iterate = Operator(
-                id=builder.next_id(),
-                kind="iterate",
-                params=params,
-                placement="flow",
-                evidence=evidence,
-                status="parcial" if any(o.status == "parcial" for o in ordered) else "soportado",
-                signature=signature("iterate", params),
-                notes=[f"instancia de la plantilla {template} (etiqueta: {label})"],
-            )
-            graph.replace([op.id for op in ordered], iterate)
-            log.created.append(iterate.id)
-            log.merged += [op.id for op in ordered]
+        contexts = [{f"parametro_{k}": names[k] for k in varying} for _, names in instances]
+        every = [op for ordered, _ in instances for op in ordered]
+        if _acyclic_after(graph, [op.id for op in every]):
+            # Una llamada en bucle (tFlowToIterate) con la lista de contextos de las instancias.
+            _replace_with_iterate(graph, builder, log, template, label, every, contexts)
+        else:
+            # Colapsar rompería el orden (una instancia depende de otra): una llamada por instancia.
+            for (ordered, _), context in zip(instances, contexts, strict=True):
+                _replace_with_iterate(graph, builder, log, template, label, ordered, [context])
         log.notes.append(
             f"plantilla {template}: {len(instances)} instancias, {len(varying)} parámetros"
         )

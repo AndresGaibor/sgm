@@ -9,6 +9,7 @@ from typing import Annotated
 import typer
 
 from sgm import cache
+from sgm import decisions as decisions_mod
 from sgm import diagnostics as diagnostics_mod
 from sgm import lineage as lineage_mod
 from sgm import metrics as metrics_mod
@@ -156,6 +157,27 @@ def lineage(
     compiled, _ = compile_batch(files, env=_env())
     for number, wave in enumerate(lineage_mod.waves(compiled), 1):
         typer.echo(f"Oleada {number}: " + ", ".join(wave))
+
+
+@decisions_app.command("pendientes")
+def decisions_pending(
+    source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
+    top: Annotated[int, typer.Option("--top", help="Cuántas firmas mostrar.")] = 30,
+) -> None:
+    """Decisiones pendientes agrupadas por firma: cuántos operadores y archivos la comparten."""
+    files = _collect(source)
+    if not files:
+        typer.echo("No hay programas SAS en la fuente.")
+        raise typer.Exit(code=1)
+    compiled, _ = compile_batch(files, env=_env())
+    totals = decisions_mod.totals(compiled)
+    typer.echo(f"{totals['decisiones']} decisiones, {totals['firmas']} firmas únicas")
+    for group in decisions_mod.group(compiled)[:top]:
+        options = ", ".join(group.options)
+        typer.echo(
+            f"{group.signature}  operadores={group.operators}  archivos={len(group.files)}  "
+            f"opciones=[{options}]  por_defecto={group.default}"
+        )
 
 
 @decisions_app.command("list")

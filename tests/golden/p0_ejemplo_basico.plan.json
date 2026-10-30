@@ -252,11 +252,8 @@
       "name": "job_p0_ejemplo_basico",
       "subjobs": [
         [
-          "op00001",
           "op00006",
-          "op00004",
-          "op00005",
-          "w00002"
+          "op00005"
         ]
       ],
       "contexts": {},

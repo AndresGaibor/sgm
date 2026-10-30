@@ -81,12 +81,13 @@ def test_p07_tres_ramas_iguales_salvo_el_sufijo_producen_una_plantilla_con_tres_
         "data r_C; set src_C; where x > 1; y = x; run;\n"
     )
     plan = _plan(text)
-    instancias = _kind(plan, "iterate")
-    assert len(instancias) == 3
+    llamadas = _kind(plan, "iterate")
+    # Una sola llamada en bucle con los tres contextos (tFlowToIterate).
+    assert len(llamadas) == 1
     (job,) = plan.jobs[0].children
     assert job.contexts["instancias"] == 3
-    assert {i.params["template"] for i in instancias} == {job.name}
-    valores = sorted(i.params["context"]["parametro_0"] for i in instancias)
+    assert {i.params["template"] for i in llamadas} == {job.name}
+    valores = sorted(c["parametro_0"] for c in llamadas[0].params["instancias"])
     assert valores == ["WORK.src_a", "WORK.src_b", "WORK.src_c"]
 
 
@@ -100,9 +101,11 @@ def test_p07_ramas_distintas_no_forman_plantilla():
 
 
 def test_p08_cadena_lineal_no_se_corta():
+    """Una cadena de filas es un solo subjob. Los read y write de flujo solo unen (no ocupan)."""
     plan = _plan("data a; set s; where x > 1; y = x; run;")
     assert len(plan.jobs[0].subjobs) == 1
-    assert len(plan.jobs[0].subjobs[0]) == len(plan.graph)
+    kinds = [plan.graph.operator(op).kind for op in plan.jobs[0].subjobs[0]]
+    assert {"filter", "map"} & set(kinds)  # el filtro (o el map que lo funde)
 
 
 def test_p08_agregado_que_vuelve_a_unirse_con_su_detalle_materializa_la_arista():

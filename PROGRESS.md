@@ -573,3 +573,43 @@ Tipar no cambia la agrupación; cambia la calidad del esquema y lo que queda dec
 - Un `derive` o un `map` sin esquema de entrada conservan las columnas que el código tipa. Así las derivaciones de un DATA step se tipan aunque la lectura de origen no tenga esquema. Las demás columnas siguen sin tipo.
 - `COMPRESS`, `SUBSTR`, `CAT` y similares dan `String`, y `INT`, `ROUND`, `SUM` y similares dan `Double`. Son reglas de SAS, no suposiciones sobre los datos.
 - Un informat de fecha o de hora da `Date`, sin distinguir `date` de `datetime`. El plan lo pide así.
+
+## R8. Partición por componente conexo
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `passes/p08_partition.py`: un subjob es un componente conexo de conexiones de filas. Ya no hay un subjob por nodo ni por etiqueta: la etiqueta es solo la del componente. Los operadores de control (`exec_sql`, `external_load`, `iterate`) van cada uno en su propio subjob, ordenados por OnSubjobOk. Un operador sin componente (configuración, huecos, pasos reemplazados, y los `read`/`write` de flujo que solo traspasan un dataset WORK) no ocupa subjob y une a sus vecinos. Un componente que supera `max_components_per_job` (`env/project.json`, 200) se parte en trozos en orden topológico, con el motivo `tamano_maximo`.
+  - `passes/p07_templates.py`: las instancias de una misma plantilla se sustituyen por **una sola** llamada en bucle (`iterate` con `params.instancias`, la alternativa `tFlowToIterate`). Solo si el grafo sigue siendo acíclico al contraerlas (`networkx`); si una instancia depende de un operador común, se mantiene una llamada por instancia.
+  - Defectos corregidos durante la prueba: un `iterate` colapsado sin comprobar aciclicidad creaba ciclos (fallaban `compile` y `test_compile_outputs`).
+- Pruebas: `tests/unit/test_subjobs.py` (5 casos: dos flujos de distinta forma son dos subjobs; una cadena de filas es uno; una sentencia de base es su propio subjob; el límite de componentes parte en trozos, construido sobre el grafo; el orden es topológico). `test_fusion_partition` se actualizó: una sola llamada en bucle para las tres ramas iguales, y la cadena lineal se comprueba por su contenido. Goldens regenerados (solo cambian subjobs e `iterate`). Total: 270 pasan, 1 se salta. `ruff check .` limpio.
+
+### Criterio de salida: subjobs ≤ 198 en `client_large.sas` — **cumplido**
+
+| Métrica | R7 | R8 |
+|---|---|---|
+| `client_large.sas`: subjobs | 284 (ronda 1: 397) | **196** |
+| `client_large.sas`: `tRunJob` | 107 | 53 |
+| `client_large.sas`: componentes | 457 | 403 |
+| `client_large.sas`: subjobs por motivo | — | componente conexo 91, `exec_sql` 21, `external_load` 31, `iterate` 53 |
+| `client_poc.sas`: subjobs | 8 | 10 (1 componente de 29 operadores + 9 de control) |
+| Corpus: subjobs | 779 | 750 |
+| Corpus: componentes | 1 475 | 1 328 |
+| Corpus: `tJava` | 0,0 % | 0,0 % |
+
+- La cifra de componentes del corpus baja (1 475 → 1 328) porque los `read`/`write` de flujo sin componente ya no cuentan como componentes candidatos, y las plantillas comparten una sola llamada.
+- Los `iterate` restantes (53) son las plantillas que el grafo permite colapsar; las demás siguen con una llamada por instancia.
+
+## Decisiones (R8)
+
+- Un `read` o `write` de flujo (que solo referencia un dataset WORK) **no** ocupa subjob. Su componente es `none`, así que contarlo inflaba el número de subjobs con piezas de un solo operador.
+- El colapso de plantillas se comprueba con aciclicidad del grafo contraído. Un colapso que rompiera el orden se rechaza, y se mantienen las llamadas por instancia.
+- Los `exec_sql`, `external_load` e `iterate` son subjobs propios: en Talend un `tRunJob` o una sentencia de base no comparten subjob con filas sin un trigger.
+
+# R9. Decisiones agrupadas
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `sgm/decisions.py` (nuevo): agrupa las decisiones pendientes por firma (operadores que la comparten, archivos distintos, opciones y valor por defecto), y calcula decisiones totales y firmas únicas.
+  - `sgm decisions pendientes <fuente>` (nuevo comando): muestra el total de decisiones y de firmas únicas, y la lista por firma de la más frecuente a la menos frecuente. `sgm metrics` ya reporta ambas cifras.
+- Pruebas: `tests/unit/test_decisiones.py` (3 casos: una firma compartida por dos archivos cuenta un operador por archivo; los totales distinguen decisiones de firmas; sin alternativas no hay decisiones).
+- Uso real (`client/`): 316 decisiones pendientes, 58 firmas únicas. La firma más frecuente (`temp_table` frente a `hash`) tiene 58 operadores: se elige una vez, no 58.
