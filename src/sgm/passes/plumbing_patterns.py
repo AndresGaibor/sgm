@@ -1,18 +1,26 @@
-"""Patrones de fontanería de SAS que no se migran a Talend, como datos.
+"""Patrones de fontanería de SAS que no se migran a Talend, como datos (F1.4).
 
 Fontanería es lo que sirve al propio SAS para orquestar, esperar, medir o limpiar: shell auxiliar,
 sondeo de procesos, mensajes, tiempos, variables de control, borrado de temporales, troceo por lotes.
 Talend resuelve esas necesidades con otros mecanismos (triggers, tStatCatcher, tDie, Batch size).
 
-Este módulo solo declara los patrones. La pasada `p02_plumbing` los aplica al texto de cada paso y
-registra cada coincidencia en `plan.not_migrated` con su equivalente. La clasificación es por FORMA
-(qué hace la operación), no por el nombre de la macro que la contiene.
+Los patrones viven en `rules/sas/plumbing.yaml`. Este módulo solo los carga. La pasada
+`p02_plumbing` los aplica al texto de cada paso y registra cada coincidencia en `plan.not_migrated`
+con su equivalente. La clasificación es por FORMA (qué hace la operación), no por el nombre de la
+macro que la contiene.
 """
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parents[3]
+PLUMBING_YAML = ROOT / "rules" / "sas" / "plumbing.yaml"
+_BANDERAS = {"i": re.IGNORECASE}
 
 
 @dataclass(frozen=True)
@@ -24,114 +32,27 @@ class PlumbingPattern:
     pattern: re.Pattern[str]
 
 
-PLUMBING_PATTERNS: tuple[PlumbingPattern, ...] = (
-    PlumbingPattern(
-        "espera",
-        "sondeo de procesos con sleep/until del shell",
-        "Espera a que terminen procesos del sistema; no transforma datos.",
-        "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
-        re.compile(r"\b(sleep|until|wait|ps\s+-|while)\b|\bsleep\s*\(", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "shell_auxiliar",
-        "comando del sistema operativo auxiliar",
-        "El comando del shell no transforma filas; solo orquesta el SAS.",
-        "tSystem solo si el comando es imprescindible; si no, el orden lo marca el Job.",
-        # `x "comando";` (la sentencia X lleva el comando entre comillas o una macro), no `x = 1;`.
-        re.compile(r"^\s*(x\s+[\"'&]|%sysexec\b|systask\b)", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "conexion",
-        "apertura o cierre de la sesión con la base de datos",
-        "Gestiona la sesión del motor; no transforma datos.",
-        "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
-        re.compile(r"^\s*(connect|disconnect)\b", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "limpieza_tablas",
-        "borrado de una tabla de la base antes de cargar (DROP TABLE)",
-        "Elimina la tabla de trabajo para reiniciar la carga; no transforma filas.",
-        "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
-        re.compile(r"\bdrop\s+table\b", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "control_macro",
-        "bucle o condicional del lenguaje macro (%do, %if, %to)",
-        "Controla qué código se genera; no transforma filas.",
-        "No hace falta: el orden y las repeticiones los marca el Job.",
-        re.compile(r"^\s*%(do|if|to)\b", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "mensajes",
-        "%put de traza",
-        "Escribe en el log; no transforma datos.",
-        "tLogRow o los logs de ejecución del Job.",
-        re.compile(r"^\s*%put\b", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "variables_control",
-        "variable de macro calculada en un paso de datos (call symputx)",
-        "Pasa un valor a una macro variable de SAS; no transforma filas.",
-        "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
-        re.compile(r"\bcall\s+symputx?\s*\(", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "medicion",
-        "cálculo de la duración del programa (datetime)",
-        "Calcula duraciones con datetime(); no transforma datos.",
-        "tStatCatcher registra la duración de la ejecución del Job.",
-        re.compile(r"\bdatetime\(\)", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "troceado_lotes",
-        "troceado de un dataset por rangos de observaciones",
-        "Reparte la carga en trozos para que el SAS no se quede sin memoria; no es lógica de negocio.",
-        "Talend carga el conjunto completo: el componente de salida usa Batch size o escritura por bloques.",
-        re.compile(r"\bnlobs\b|\bfirstobs\s*=\s*[&%]|\bobs\s*=\s*[&%]", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "visor_studio",
-        "macro auxiliar del visor de SAS Studio (prefijo web_)",
-        "Dibuja o consulta tablas en el visor de resultados de Studio; no transforma datos.",
-        "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
-        re.compile(r"^\s*%web_\w+", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "presentacion",
-        "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
-        "Da formato al listado de salida; no transforma datos.",
-        "No hay componente: el título va en la documentación del Job.",
-        re.compile(r"^\s*(title|footnote)\d*\b", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "configuracion_macro",
-        "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
-        "Declara o devuelve valores de macro; no transforma filas.",
-        "Variables de contexto del Job.",
-        re.compile(r"^\s*%(global|local|return|syslput)\b", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "remoto",
-        "ejecución remota de SAS/CONNECT (RSUBMIT, SIGNON, SIGNOFF, WAITFOR)",
-        "Lanza código en otra sesión de SAS; el Job corre en Talend.",
-        "No hace falta: el Job se ejecuta en Talend.",
-        re.compile(r"^\s*(rsubmit|endrsubmit|signon|signoff|waitfor)\b", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "fin_de_paso",
-        "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
-        "Solo marca el final del paso; no transforma datos.",
-        "El orden de los componentes lo marca el Job.",
-        re.compile(r"^\s*(quit|run)\s*$", re.IGNORECASE),
-    ),
-    PlumbingPattern(
-        "conteo",
-        "conteo de registros impreso en el log",
-        "Solo muestra el número de filas en el log; no transforma datos.",
-        "tStatCatcher registra los conteos de filas del Job.",
-        re.compile(r"\bselect\s+count\s*\(\s*\*\s*\)\s+into\s*:", re.IGNORECASE),
-    ),
-)
+def cargar(path: Path = PLUMBING_YAML) -> tuple[PlumbingPattern, ...]:
+    """Patrones de `plumbing.yaml`, en el orden del archivo (el primero que coincide gana)."""
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    patrones = []
+    for entrada in data["entries"]:
+        banderas = 0
+        for letra in entrada.get("flags", []):
+            banderas |= _BANDERAS[letra]
+        patrones.append(
+            PlumbingPattern(
+                category=entrada["id"],
+                what=entrada["what"],
+                reason=entrada["reason"],
+                talend=entrada["talend"],
+                pattern=re.compile(entrada["pattern"], banderas),
+            )
+        )
+    return tuple(patrones)
+
+
+PLUMBING_PATTERNS: tuple[PlumbingPattern, ...] = cargar()
 
 
 def match_plumbing(statement: str) -> PlumbingPattern | None:

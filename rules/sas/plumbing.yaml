@@ -1,0 +1,113 @@
+id: plumbing
+kind: plumbing
+version: 1
+status: soportado
+description: Patrones de fontanería de SAS que no se migran a Talend. Se aplican al texto de cada paso (pasada 2).
+entries:
+- id: espera
+  what: sondeo de procesos con sleep/until del shell
+  reason: Espera a que terminen procesos del sistema; no transforma datos.
+  talend: Talend continúa con OnSubjobOk cuando el paso anterior termina.
+  pattern: \b(sleep|until|wait|ps\s+-|while)\b|\bsleep\s*\(
+  flags:
+  - i
+- id: shell_auxiliar
+  what: comando del sistema operativo auxiliar
+  reason: El comando del shell no transforma filas; solo orquesta el SAS.
+  talend: tSystem solo si el comando es imprescindible; si no, el orden lo marca el Job.
+  pattern: ^\s*(x\s+[\"'&]|%sysexec\b|systask\b)
+  flags:
+  - i
+- id: conexion
+  what: apertura o cierre de la sesión con la base de datos
+  reason: Gestiona la sesión del motor; no transforma datos.
+  talend: La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.
+  pattern: ^\s*(connect|disconnect)\b
+  flags:
+  - i
+- id: limpieza_tablas
+  what: borrado de una tabla de la base antes de cargar (DROP TABLE)
+  reason: Elimina la tabla de trabajo para reiniciar la carga; no transforma filas.
+  talend: La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.
+  pattern: \bdrop\s+table\b
+  flags:
+  - i
+- id: control_macro
+  what: bucle o condicional del lenguaje macro (%do, %if, %to)
+  reason: Controla qué código se genera; no transforma filas.
+  talend: 'No hace falta: el orden y las repeticiones los marca el Job.'
+  pattern: ^\s*%(do|if|to)\b
+  flags:
+  - i
+- id: mensajes
+  what: '%put de traza'
+  reason: Escribe en el log; no transforma datos.
+  talend: tLogRow o los logs de ejecución del Job.
+  pattern: ^\s*%put\b
+  flags:
+  - i
+- id: variables_control
+  what: variable de macro calculada en un paso de datos (call symputx)
+  reason: Pasa un valor a una macro variable de SAS; no transforma filas.
+  talend: Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.
+  pattern: \bcall\s+symputx?\s*\(
+  flags:
+  - i
+- id: medicion
+  what: cálculo de la duración del programa (datetime)
+  reason: Calcula duraciones con datetime(); no transforma datos.
+  talend: tStatCatcher registra la duración de la ejecución del Job.
+  pattern: \bdatetime\(\)
+  flags:
+  - i
+- id: troceado_lotes
+  what: troceado de un dataset por rangos de observaciones
+  reason: Reparte la carga en trozos para que el SAS no se quede sin memoria; no es lógica de negocio.
+  talend: 'Talend carga el conjunto completo: el componente de salida usa Batch size o escritura por bloques.'
+  pattern: \bnlobs\b|\bfirstobs\s*=\s*[&%]|\bobs\s*=\s*[&%]
+  flags:
+  - i
+- id: visor_studio
+  what: macro auxiliar del visor de SAS Studio (prefijo web_)
+  reason: Dibuja o consulta tablas en el visor de resultados de Studio; no transforma datos.
+  talend: 'No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.'
+  pattern: ^\s*%web_\w+
+  flags:
+  - i
+- id: presentacion
+  what: título o nota de pie del reporte SAS (TITLE, FOOTNOTE)
+  reason: Da formato al listado de salida; no transforma datos.
+  talend: 'No hay componente: el título va en la documentación del Job.'
+  pattern: ^\s*(title|footnote)\d*\b
+  flags:
+  - i
+- id: configuracion_macro
+  what: variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)
+  reason: Declara o devuelve valores de macro; no transforma filas.
+  talend: Variables de contexto del Job.
+  pattern: ^\s*%(global|local|return|syslput)\b
+  flags:
+  - i
+- id: remoto
+  what: ejecución remota de SAS/CONNECT (RSUBMIT, SIGNON, SIGNOFF, WAITFOR)
+  reason: Lanza código en otra sesión de SAS; el Job corre en Talend.
+  talend: 'No hace falta: el Job se ejecuta en Talend.'
+  pattern: ^\s*(rsubmit|endrsubmit|signon|signoff|waitfor)\b
+  flags:
+  - i
+- id: fin_de_paso
+  what: cierre de un PROC o de un DATA step (QUIT o RUN sueltos)
+  reason: Solo marca el final del paso; no transforma datos.
+  talend: El orden de los componentes lo marca el Job.
+  pattern: ^\s*(quit|run)\s*$
+  flags:
+  - i
+- id: conteo
+  what: conteo de registros impreso en el log
+  reason: Solo muestra el número de filas en el log; no transforma datos.
+  talend: tStatCatcher registra los conteos de filas del Job.
+  pattern: '\bselect\s+count\s*\(\s*\*\s*\)\s+into\s*:'
+  flags:
+  - i
+tests:
+- tests/cases/plumbing
