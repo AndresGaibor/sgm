@@ -266,7 +266,10 @@ def gaps_list(
     with Store() as store:
         rows = gap_store.top(store, top, owner=owner, file=file)
     if not rows:
-        typer.echo("No hay huecos que mostrar. Compila primero con `sgm compile`.")
+        if owner or file:
+            typer.echo("No hay huecos con esos filtros.")
+        else:
+            typer.echo("No hay huecos guardados. Compila primero con `sgm compile`.")
         return
     for row in rows:
         example = row["example"] or {}

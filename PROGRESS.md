@@ -823,3 +823,21 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Línea base del trinquete reescrita con razón, según el plan (sección de ciclo de huecos: si una métrica por motivo cambia, se justifica por escrito y se actualiza). Revisar si el criterio es el que quieren.
 - Verificación: suite 360 pasan, 1 se salta; ruff limpio; `metrics --check` sin empeorar.
 - Nota: el trinquete mide por motivo, no solo por total. Un movimiento entre motivos del mismo dueño dispara la alarma aunque el total baje o se mantenga; por eso se documenta aquí.
+
+## Entrega final de la fase 1 (estado al cierre de esta sesión)
+
+- Fecha: 2026-10-30
+- Hitos: F1.0, F1.1, F1.2, F1.3, F1.5, F1.6, F1.7, F1.8, F1.9 terminados. F1.4 parcial (fontanería, informats, funciones de una línea, intrínseco `external-load`, PROC append/means/summary/freq); quedan `sort`, `print`/`import`/`export`, sentencias globales y el resto de funciones con lógica. F1.10 parcial (ver abajo).
+- Pruebas: 361 pasan, 1 se salta. Ruff limpio. `rules validate` limpio. `metrics --check` sin empeorar frente a la línea base de la sesión.
+- Golden: sin cambios salvo las reclasificaciones registradas con razón (fontanería PROC DELETE/PRINTTO/SYSECHO; llamadas de macro dentro de PROC SQL).
+- Huecos cerrados en F1.10 y archivo creado para cada uno:
+  - `INCLUDE_EXTERNO` (caso sintético): `env/externals/helpers_ejemplo.sas`, caso `tests/cases/include-externo`.
+  - `PROC_NO_SOPORTADO` de `PROC DELETE`, `PRINTTO` y `SYSECHO`: entradas en `rules/sas/plumbing.yaml` (25 huecos del corpus).
+  - `PROC_NO_SOPORTADO` de `PROC APPEND`, `MEANS`, `SUMMARY`, `FREQ`: `rules/sas/procs/*.yaml`, con casos en `tests/cases/proc-*`.
+- Top huecos por dueño (corpus, `sgm gaps list`):
+  - Byron: `TIPO_DESCONOCIDO` (30 ocurrencias, 18 archivos), `INCLUDE_EXTERNO` (70, 17), `INCLUDE_EXTERNO` (10, 5).
+  - Joseph: `MACRO_NO_EXPANDIDA` (13, 8), `SENTENCIA_NO_SOPORTADA` (10, 7), `MACRO_NO_EXPANDIDA` (17, 5), `SENTENCIA_NO_SOPORTADA` (10, 5), `SENTENCIA_NO_SOPORTADA` (6, 5).
+  - Andres: ninguno (`SEMANTICA_DUDOSA` no se emite en el corpus).
+- Bloqueos que requieren datos externos: `TIPO_DESCONOCIDO` (salida real de DESCRIBE de Impala), `INCLUDE_EXTERNO` del corpus (archivos de Grid no incluidos en el repo).
+- Decisiones de diseño tomadas sin consultar: `PROC DELETE` como fontanería; reclasificación de macros dentro de `PROC SQL`; el inventario de huecos se reemplaza en cada `intake`; el trinquete se actualiza con razón cuando cambia la distribución por motivo.
+- Commits locales: `ffd`… ver `git log` (sin push).
