@@ -17,7 +17,16 @@ from typing import Any
 
 #: Tipos de Talend admitidos en una columna del catálogo.
 TALEND_TYPES = frozenset(
-    {"id_String", "id_Integer", "id_Long", "id_Double", "id_Float", "id_BigDecimal", "id_Date", "id_Boolean"}
+    {
+        "id_String",
+        "id_Integer",
+        "id_Long",
+        "id_Double",
+        "id_Float",
+        "id_BigDecimal",
+        "id_Date",
+        "id_Boolean",
+    }
 )
 #: Cómo se lee cada tipo de dataset.
 DATASET_KINDS = frozenset({"table", "delimited", "positional", "excel", "sas7bdat"})
@@ -94,7 +103,11 @@ class EnvironmentCatalog:
         """Dataset por la ruta física (para `PROC IMPORT` y `INFILE` de un archivo del catálogo)."""
         target = path.replace("\\", "/").casefold()
         return next(
-            (item for item in self.datasets if item.physical.replace("\\", "/").casefold() == target),
+            (
+                item
+                for item in self.datasets
+                if item.physical.replace("\\", "/").casefold() == target
+            ),
             None,
         )
 
@@ -174,12 +187,18 @@ def validate(catalog: EnvironmentCatalog, engines: set[str]) -> EnvironmentCatal
     for dataset in catalog.datasets:
         key = (dataset.library.casefold(), dataset.name.casefold())
         if key in keys:
-            raise CatalogError(f"dataset duplicado en el catálogo: {dataset.library}.{dataset.name}")
+            raise CatalogError(
+                f"dataset duplicado en el catálogo: {dataset.library}.{dataset.name}"
+            )
         keys.add(key)
         if catalog.library(dataset.library) is None:
-            raise CatalogError(f"dataset {dataset.library}.{dataset.name}: la librería no está declarada")
+            raise CatalogError(
+                f"dataset {dataset.library}.{dataset.name}: la librería no está declarada"
+            )
         if dataset.kind not in DATASET_KINDS:
-            raise CatalogError(f"dataset {dataset.library}.{dataset.name}: tipo {dataset.kind!r} no admitido")
+            raise CatalogError(
+                f"dataset {dataset.library}.{dataset.name}: tipo {dataset.kind!r} no admitido"
+            )
         if dataset.kind == "delimited" and not dataset.delimiter:
             raise CatalogError(f"dataset {dataset.library}.{dataset.name}: falta el delimitador")
         for column in dataset.columns:

@@ -128,7 +128,10 @@ def _lower(stmt: Stmt) -> str:
 
 def _is_boundary(stmt: Stmt) -> bool:
     low = _lower(stmt)
-    return low.startswith(("data ", "data;", "proc ", "%macro ", "%mend")) or low in ("data", "proc")
+    return low.startswith(("data ", "data;", "proc ", "%macro ", "%mend")) or low in (
+        "data",
+        "proc",
+    )
 
 
 def _parse_data(stmts: list[Stmt], i: int) -> tuple[object, int]:
@@ -224,8 +227,12 @@ def _parse_macro_def(stmts: list[Stmt], i: int) -> tuple[object, int]:
     head = stmts[i]
     m = re.match(r"(?is)^%macro\s+(\w+)\s*(?:\((.*)\))?\s*$", head.text.strip())
     if not m:
-        return Unparsed(head.text, "cabecera de %macro no reconocida", head.line, head.end_line), i + 1
-    params = [p.split("=")[0].strip().lstrip("&") for p in (m.group(2) or "").split(",") if p.strip()]
+        return Unparsed(
+            head.text, "cabecera de %macro no reconocida", head.line, head.end_line
+        ), i + 1
+    params = [
+        p.split("=")[0].strip().lstrip("&") for p in (m.group(2) or "").split(",") if p.strip()
+    ]
     body, j = parse_steps(stmts, i + 1, stop_at_mend=True)
     end = stmts[j] if j < len(stmts) else stmts[-1]
     return MacroDef(m.group(1), params, body, head.line, end.end_line, head.text), j + 1
@@ -245,13 +252,15 @@ def _parse_single(stmt: Stmt) -> object:
     if m := re.match(r"(?is)^libname\s+(\w+)\s*(.*)$", text):
         return Libname(m.group(1), m.group(2).strip(), stmt.line, stmt.end_line, text)
     if low.startswith("options"):
-        return Options(text[len("options"):].strip(), stmt.line, stmt.end_line)
+        return Options(text[len("options") :].strip(), stmt.line, stmt.end_line)
     if re.match(r"(?i)^x(\s|$)", text):
         return XCommand(text[1:].strip().strip("'\""), stmt.line, stmt.end_line, text)
     return Global(text, stmt.line, stmt.end_line)
 
 
-def parse_steps(stmts: list[Stmt], i: int = 0, stop_at_mend: bool = False) -> tuple[list[object], int]:
+def parse_steps(
+    stmts: list[Stmt], i: int = 0, stop_at_mend: bool = False
+) -> tuple[list[object], int]:
     """Agrupa sentencias en pasos desde `i`. Devuelve (pasos, índice donde se paró)."""
     steps: list[object] = []
     j = i
@@ -274,7 +283,10 @@ def parse_steps(stmts: list[Stmt], i: int = 0, stop_at_mend: bool = False) -> tu
             else:
                 step, j = _parse_single(s), j + 1
         except Exception as error:  # un paso malo no detiene el nodo
-            step, j = Unparsed(s.text, f"{type(error).__name__}: {error}", s.line, s.end_line), j + 1
+            step, j = (
+                Unparsed(s.text, f"{type(error).__name__}: {error}", s.line, s.end_line),
+                j + 1,
+            )
         steps.append(step)
     return steps, j
 

@@ -149,7 +149,9 @@ def _int(text: str) -> int | None:
     if not _INT_EXPR.match(expr):
         return int(expr) if re.fullmatch(r"[+-]?\d+", expr) else None
     try:
-        value = eval(expr, {"__builtins__": {}}, {})  # solo dígitos y operadores aritméticos (ver _INT_EXPR)
+        value = eval(
+            expr, {"__builtins__": {}}, {}
+        )  # solo dígitos y operadores aritméticos (ver _INT_EXPR)
     except (SyntaxError, ZeroDivisionError):
         return None
     return int(value) if isinstance(value, (int, float)) else None
@@ -220,7 +222,11 @@ class Expander:
                 i += 1
                 continue
             call = _CALL.match(s.text.strip())
-            if call and call.group(1).lower() not in MACRO_KEYWORDS and self.index.get(call.group(1)):
+            if (
+                call
+                and call.group(1).lower() not in MACRO_KEYWORDS
+                and self.index.get(call.group(1))
+            ):
                 out += self._call(call, s, env, depth)
                 i += 1
                 continue
@@ -272,17 +278,29 @@ class Expander:
         else:
             left, right = left.lower(), right.lower()
         ops = {
-            "=": lambda x, y: x == y, "eq": lambda x, y: x == y,
-            "^=": lambda x, y: x != y, "~=": lambda x, y: x != y, "ne": lambda x, y: x != y, "<>": lambda x, y: x != y,
-            ">": lambda x, y: x > y, "gt": lambda x, y: x > y, "<": lambda x, y: x < y, "lt": lambda x, y: x < y,
-            ">=": lambda x, y: x >= y, "ge": lambda x, y: x >= y, "<=": lambda x, y: x <= y, "le": lambda x, y: x <= y,
+            "=": lambda x, y: x == y,
+            "eq": lambda x, y: x == y,
+            "^=": lambda x, y: x != y,
+            "~=": lambda x, y: x != y,
+            "ne": lambda x, y: x != y,
+            "<>": lambda x, y: x != y,
+            ">": lambda x, y: x > y,
+            "gt": lambda x, y: x > y,
+            "<": lambda x, y: x < y,
+            "lt": lambda x, y: x < y,
+            ">=": lambda x, y: x >= y,
+            "ge": lambda x, y: x >= y,
+            "<=": lambda x, y: x <= y,
+            "le": lambda x, y: x <= y,
         }
         try:
             return bool(ops[op](left, right))
         except TypeError:
             return None
 
-    def _branch(self, stmts: list[Stmt], i: int, rest: str, file: str, env: dict, depth: int) -> tuple[list[object], int]:
+    def _branch(
+        self, stmts: list[Stmt], i: int, rest: str, file: str, env: dict, depth: int
+    ) -> tuple[list[object], int]:
         """Rama de `%if`/`%else` que empieza en stmts[i] con el texto `rest` tras %then/%else.
 
         Devuelve (salida, índice donde sigue el código). Un `%do` consume su `%end`.
@@ -300,7 +318,9 @@ class Expander:
         items, _ = self._block([replace(stmts[i], text=rest)], 0, file, env, depth, nested=False)
         return items, i + 1
 
-    def _if(self, stmts: list[Stmt], i: int, file: str, env: dict, depth: int) -> tuple[list[object], int]:
+    def _if(
+        self, stmts: list[Stmt], i: int, file: str, env: dict, depth: int
+    ) -> tuple[list[object], int]:
         s = stmts[i]
         m = _IF.match(s.text.strip())
         if not m:
@@ -319,7 +339,9 @@ class Expander:
         env.update(chosen_env)
         return (then_items if verdict else else_items), j
 
-    def _do(self, stmts: list[Stmt], i: int, file: str, env: dict, depth: int) -> tuple[list[object], int]:
+    def _do(
+        self, stmts: list[Stmt], i: int, file: str, env: dict, depth: int
+    ) -> tuple[list[object], int]:
         s = stmts[i]
         text = s.text.strip()
         if text.lower() == "%do":
@@ -339,7 +361,9 @@ class Expander:
         values = range(lo, hi + 1, step) if step > 0 else range(lo, hi - 1, step)
         if len(values) > MAX_ITERATIONS:
             _, end = self._block(stmts, i + 1, file, dict(env), depth, nested=True)
-            return [self._dynamic(s, f"%do con más de {MAX_ITERATIONS} iteraciones")], min(end + 1, len(stmts))
+            return [self._dynamic(s, f"%do con más de {MAX_ITERATIONS} iteraciones")], min(
+                end + 1, len(stmts)
+            )
         out: list[object] = []
         end = len(stmts)
         for value in values:

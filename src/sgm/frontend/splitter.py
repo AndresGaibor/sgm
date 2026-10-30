@@ -35,7 +35,7 @@ def split_nodes(source: str) -> list[Node]:
         nodes.append(_node(None, text, 0, labels[0].start(), head))
     for index, match in enumerate(labels):
         end = labels[index + 1].start() if index + 1 < len(labels) else len(text)
-        body = text[match.end(): end]
+        body = text[match.end() : end]
         nodes.append(_node(match.group(1).strip(), text, match.start(), end, body))
     return nodes
 

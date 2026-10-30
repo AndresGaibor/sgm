@@ -19,9 +19,7 @@ def test_let_constante_se_sustituye():
 
 
 def test_do_con_limites_constantes_se_despliega():
-    text = (
-        "%macro m;\n%do i = 1 %to 3;\ndata t&i; set s; run;\n%end;\n%mend;\n%m;\n"
-    )
+    text = "%macro m;\n%do i = 1 %to 3;\ndata t&i; set s; run;\n%end;\n%mend;\n%m;\n"
     assert _outputs({"p.sas": text}) == ["t1", "t2", "t3"]
 
 

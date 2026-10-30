@@ -55,8 +55,13 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
         target, query = m.group(1), m.group(2)
         if pt := _PASSTHROUGH.search(query):
             return SqlStatement(
-                "select_passthrough", body, line, target=target, engine=pt.group(1),
-                inner_sql=pt.group(2).strip(), fields={"query": query},
+                "select_passthrough",
+                body,
+                line,
+                target=target,
+                engine=pt.group(1),
+                inner_sql=pt.group(2).strip(),
+                fields={"query": query},
             )
         return SqlStatement("create_table", body, line, target=target, sources=_sources(query))
     if _CREATE_LIKE.match(body):
@@ -64,7 +69,11 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
     if body.lower().startswith("select") or body.lower().startswith("("):
         if pt := _PASSTHROUGH.search(body):
             return SqlStatement(
-                "select_passthrough", body, line, engine=pt.group(1), inner_sql=pt.group(2).strip(),
+                "select_passthrough",
+                body,
+                line,
+                engine=pt.group(1),
+                inner_sql=pt.group(2).strip(),
             )
         return SqlStatement("select", body, line, sources=_sources(body))
     if m := _INSERT.match(body):

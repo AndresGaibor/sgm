@@ -48,11 +48,47 @@ def infra_plan(engine: str | None | bool) -> list[dict[str, str]]:
     steps: list[dict[str, str]] = []
     if engine is not False:
         if engine:
-            steps.append({"role": "Compartida", "component": f"t{engine}Connection", "why": "Conexión única a la base de datos; evita abrir y cerrar sesiones por cada tabla."})
-            steps.append({"role": "Cierre", "component": f"t{engine}Close", "why": "Cierra la conexión compartida al terminar el flujo."})
+            steps.append(
+                {
+                    "role": "Compartida",
+                    "component": f"t{engine}Connection",
+                    "why": "Conexión única a la base de datos; evita abrir y cerrar sesiones por cada tabla.",
+                }
+            )
+            steps.append(
+                {
+                    "role": "Cierre",
+                    "component": f"t{engine}Close",
+                    "why": "Cierra la conexión compartida al terminar el flujo.",
+                }
+            )
         else:
-            steps.append({"role": "Compartida", "component": "por_determinar", "why": "Hay accesos a base de datos, pero el motor no está claro en el SAS."})
-            steps.append({"role": "Cierre", "component": "por_determinar", "why": "Cerrar la sesión con el mecanismo que indique el administrador."})
-    steps.append({"role": "Error", "component": ERROR_COMPONENT, "why": "Detiene el Job ante un error de componente, igual que el ABORT o el error de SAS."})
-    steps.append({"role": "Conteos", "component": COUNT_COMPONENT, "why": "Muestra el conteo de registros; el SAS compara conteos y se verifica en la ejecución."})
+            steps.append(
+                {
+                    "role": "Compartida",
+                    "component": "por_determinar",
+                    "why": "Hay accesos a base de datos, pero el motor no está claro en el SAS.",
+                }
+            )
+            steps.append(
+                {
+                    "role": "Cierre",
+                    "component": "por_determinar",
+                    "why": "Cerrar la sesión con el mecanismo que indique el administrador.",
+                }
+            )
+    steps.append(
+        {
+            "role": "Error",
+            "component": ERROR_COMPONENT,
+            "why": "Detiene el Job ante un error de componente, igual que el ABORT o el error de SAS.",
+        }
+    )
+    steps.append(
+        {
+            "role": "Conteos",
+            "component": COUNT_COMPONENT,
+            "why": "Muestra el conteo de registros; el SAS compara conteos y se verifica en la ejecución.",
+        }
+    )
     return steps

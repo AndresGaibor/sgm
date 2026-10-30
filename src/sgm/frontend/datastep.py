@@ -73,13 +73,17 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
     if head == "merge":
         return DsStatement("merge", body, line, {"sources": _dataset_refs(body[5:])})
     if head == "by":
-        return DsStatement("by", body, line, {"names": [n.strip() for n in body[2:].split() if n.strip()]})
+        return DsStatement(
+            "by", body, line, {"names": [n.strip() for n in body[2:].split() if n.strip()]}
+        )
     if head == "where":
         return DsStatement("where", body, line, {"expression": body[5:].strip()})
     if head == "output":
-        return DsStatement("output", body, line, {"target": _names(body[6:])[0] if _names(body[6:]) else None})
+        return DsStatement(
+            "output", body, line, {"target": _names(body[6:])[0] if _names(body[6:]) else None}
+        )
     if head in ("keep", "drop"):
-        return DsStatement(head, body, line, {"names": _names(body[len(head):])})
+        return DsStatement(head, body, line, {"names": _names(body[len(head) :])})
     if head == "rename":
         return DsStatement("rename", body, line, {"pairs": _RENAME_PAIR.findall(body[6:])})
     if head == "retain":
