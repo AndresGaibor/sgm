@@ -18,6 +18,7 @@ import re
 from sgm.ir.builder import Builder
 from sgm.ir.models import Graph, Operator
 from sgm.ir.signature import signature
+from sgm.passes import db_push
 from sgm.passes.base import PassContext, PassLog
 
 NAME = "p04_placement"
@@ -80,6 +81,8 @@ def _boundary(src: Operator, dst: Operator, dataset: str, to_db: bool, op_id: st
 
 
 def run(graph: Graph, ctx: PassContext) -> PassLog:
+    if ctx.project.placement_strategy == "push_to_db":
+        return _push_to_db(graph, ctx)
     log = PassLog(NAME)
     for op_id in graph.topological():
         op = graph.operator(op_id)
@@ -108,6 +111,30 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
     )
     log.notes.append(f"{crossings['to_flow']} cruces base→flujo y {crossings['to_db']} flujo→base")
     return log
+
+
+def _push_to_db(graph: Graph, ctx: PassContext) -> PassLog:
+    """Estrategia "cargar una vez, calcular en la base": cadenas de SQL en la base, el resto en
+    flujo, y las fronteras entre ambos con su `read` o `write` (ver `db_push`)."""
+    builder = Builder(graph)
+    log = db_push.place(graph, ctx, builder)
+    for op in graph.operators():
+        if op.placement is None:
+            op.placement = "flow"
+    crossings = _cut_crossings(graph, log, builder)
+    log.metrics.update(
+        {
+            "operadores_en_base": sum(1 for o in graph.operators() if _in_db(o)),
+            "operadores_en_flujo": sum(1 for o in graph.operators() if not _in_db(o)),
+            "cruces_base_a_flujo": crossings["to_flow"],
+            "cruces_flujo_a_base": crossings["to_db"],
+        }
+    )
+    return log
+
+
+def _in_db(op: Operator) -> bool:
+    return bool(op.placement and op.placement.startswith("db:"))
 
 
 def _same_db(preds: list[Operator]) -> bool:

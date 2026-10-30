@@ -207,12 +207,14 @@ class Graph:
             if pred == keep:
                 continue
             for data in list(self._g[pred][drop].values()):
-                self._g.add_edge(pred, keep, edge=data["edge"])
+                old = data["edge"]
+                self._g.add_edge(pred, keep, edge=Edge(pred, keep, old.dataset, old.materialize))
         for succ in list(self._g.successors(drop)):
             if succ == keep:
                 continue
             for data in list(self._g[drop][succ].values()):
-                self._g.add_edge(keep, succ, edge=data["edge"])
+                old = data["edge"]
+                self._g.add_edge(keep, succ, edge=Edge(keep, succ, old.dataset, old.materialize))
         self._g.remove_node(drop)
 
     def subgraph_ids(self) -> Iterator[list[str]]:

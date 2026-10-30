@@ -163,6 +163,7 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
                 signature=f"{op.signature}/{name}",
                 reason="FUNCION_NO_MAPEADA",
                 evidence=list(op.evidence),
+                text=" ".join(text.split())[:120],
             )
         )
         op.notes.append(f"expresión sin equivalente Talend: {text.strip()[:80]}")

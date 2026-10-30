@@ -21,6 +21,7 @@ import re
 from sgm.ir.builder import Builder
 from sgm.ir.models import Graph, Operator, Pending
 from sgm.ir.signature import signature
+from sgm.passes import db_push
 from sgm.passes.base import PassContext, PassLog
 
 NAME = "p05_sql_fusion"
@@ -132,6 +133,11 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
             fused = True
             break
     log.metrics["fusiones_sql"] = len(log.created)
+    if ctx.project.placement_strategy == "push_to_db":
+        base = db_push.fuse(graph, ctx)
+        log.created += base.created
+        log.merged += base.merged
+        log.metrics["cadenas_en_base"] = base.metrics.get("cadenas_en_base", 0)
     return log
 
 

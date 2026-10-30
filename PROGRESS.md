@@ -469,3 +469,49 @@ De los 520 "creados por pasada", 372 son `tRunJob` de plantillas (`iterate`).
 - SQL de SAS que `sqlglot` no lee se normaliza antes (`sql_normalize.py`), y cada quita se anota.
 - Ninguna consulta sobre WORK se queda como `exec_sql` opaco. Lo que no se puede analizar es `PARSE_ERROR`; lo que se analiza pero no se traduce es un operador de flujo con una expresión pendiente.
 - `IS NULL`/`IS NOT NULL` se escriben como `missing(x)` (la forma que el traductor sí acepta).
+
+## R5. Estrategia de ubicación "cargar una vez, calcular en la base"
+
+- Fecha: 2026-10-30
+- Qué se hizo (con `placement_strategy = "push_to_db"`; con `flow` el comportamiento es el de R4):
+  - `passes/db_sql.py` (nuevo): qué se puede ejecutar en la base. Solo entran `filter` (WHERE), `derive`, `aggregate` (GROUP BY), `sort` (ORDER BY) y `dedup` sin claves (DISTINCT), en cadena lineal. `sas_to_sql` pasa la expresión de SAS a SQL (`missing(x)` → `x IS NULL`, `^=` → `<>`) y comprueba con `sqlglot` que se puede leer. Una expresión con macro variable, o que no se lee como SQL, no entra.
+  - `passes/db_push.py` (nuevo): `place` (pasada 4) ubica en la base las cadenas candidatas; cada `read_file` que las alimenta se convierte en **una sola** carga (`external_load` a la tabla `sgm_<firma corta>`, nunca el nombre del script); las lecturas de WORK con un único productor se quitan (son solo referencias). `fuse` (pasada 5) sustituye cada cadena por un `exec_sql` con su `CREATE TABLE ... AS` en dialecto Hive. La fuente (carga o lectura de base) se queda fuera del reemplazo.
+  - `passes/p04_placement.py`: rama `_push_to_db`. Los cruces base↔flujo siguen con sus `read`/`write` de frontera.
+  - `passes/p05_sql_fusion.py`: llama a `fuse` en modo push.
+  - `graph.merge` (`ir/models.py`): **defecto corregido**. Las aristas fusionadas conservaban el extremo antiguo (`src`/`dst` de un nodo eliminado), lo que rompía los cruces.
+- Pruebas: `tests/unit/test_push_db.py` (5 casos). El caso del plan: CSV → WHERE y columna calculada en SQL → exportación a CSV. Con `push_to_db`: una carga (`tImpalaOutput`), un `exec_sql` fusionado (`tImpalaRow`) con el filtro y la columna calculada en el SQL, y un `write_file` en el flujo con su `read` de frontera; ningún `tJava`. Con `flow`: `tFileInputDelimited`, `tFileOutputDelimited` y ningún componente de base. Total: 245 pasan, 1 se salta. `ruff check .` limpio.
+
+### Números (`sgm metrics` con `env/`, `push_to_db`)
+
+| Métrica | R4 | R5 |
+|---|---|---|
+| Componentes (corpus) | 1 663 | 1 475 |
+| `tJava` (corpus) | 0,0 % | 0,0 % |
+| `client_large.sas`: componentes | 606 | 457 |
+| `client_large.sas`: subjobs | 537 | 284 |
+| `client_large.sas`: `tImpalaRow` / `tImpalaOutput` / `tImpalaInput` | 1 / 30 / 17 | 21 / 31 / 17 |
+| `client_large.sas`: cadenas fusionadas | 0 | 20 (todas de 2 pasos) |
+| `client_poc.sas`: componentes | 34 | 37 |
+
+### Criterio de salida: "cadenas largas de SQL fusionado" — **no cumplido**
+
+Las cadenas fusionadas de `client_large.sas` tienen 2 pasos (20 cadenas). Lo que lo impide, medido sobre los operadores de SQL que quedan en flujo (130):
+
+- **`aggregate` en flujo (39)**: se alimentan de tablas WORK que produce un DATA step (flujo), o de dos entradas (un `join`, que queda en flujo). Una cadena de base empieza solo en una carga o una lectura de base.
+- **`derive` y `filter` con funciones de SAS sin equivalente SQL (~60)**: `compress`, `input`, `left`, `substr`, etc. No hay traducción de funciones a SQL. Hace falta la tabla de funciones de `rules/sas/sql-functions.json` aplicada a la expresión, y los tipos (R7) para `input`.
+- **Comparaciones de igualdad con columnas de tipo desconocido**: el traductor no las acepta (ver R4). Lo resuelven los tipos de R7.
+
+Es decir, el cuello de botella de la ubicación en base no es la pasada 4 sino la falta de tipos y de traducción de funciones. Se deja anotado para la ronda siguiente, en vez de forzar cadenas que no son exactas.
+
+### Lo que sí se cumple
+
+- Una carga única por archivo: las lecturas repetidas del mismo archivo (el mismo destino) se fusionan en la primera (`client_large`: `sgm_fb09f3a9` aparecía 4 veces; ahora una).
+- Ninguna tabla de trabajo lleva el nombre de un script: `sgm_<firma corta>`.
+- Ningún `tJava` en la base; un SQL de base sin SQL no existe (la candidatura comprueba `sas_to_sql` antes de ubicar).
+
+## Decisiones (R5)
+
+- Los `join` y `union` no entran en la base: sin esquemas no se califican las columnas. Quedan en flujo y su entrada desde base se corta con un `read` de frontera.
+- `dedup` solo se ejecuta en base sin claves (DISTINCT). Con claves haría falta `ROW_NUMBER` y un esquema.
+- Las tablas de trabajo llevan el prefijo `sgm_` fijo. El plan pide un prefijo configurable; queda como mejora (no hay campo en `env/project.json`).
+- Una cadena que produce una tabla que lee el flujo tiene como nombre de salida el dataset de su arista (sin `WORK.` y sin `.`), para que el `read` de frontera encuentre la misma tabla.
