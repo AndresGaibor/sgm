@@ -840,4 +840,4 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - Andres: ninguno (`SEMANTICA_DUDOSA` no se emite en el corpus).
 - Bloqueos que requieren datos externos: `TIPO_DESCONOCIDO` (salida real de DESCRIBE de Impala), `INCLUDE_EXTERNO` del corpus (archivos de Grid no incluidos en el repo).
 - Decisiones de diseño tomadas sin consultar: `PROC DELETE` como fontanería; reclasificación de macros dentro de `PROC SQL`; el inventario de huecos se reemplaza en cada `intake`; el trinquete se actualiza con razón cuando cambia la distribución por motivo.
-- Commits locales: `ffd`… ver `git log` (sin push).
+- Commits locales de esta sesión (sin push): `581fa5a`, `5d63209`, `cd722ad`, `65d7930`, `53f3d79`, `8ca4388`, `9c513b5`, `4fd6938`, `af1187d`, `a2fef41`.
