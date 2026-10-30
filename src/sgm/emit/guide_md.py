@@ -82,6 +82,38 @@ def _group_rows(operators: list[Operator]) -> list[tuple[list[Operator], int]]:
     return [(members, len(members)) for members in groups.values()]
 
 
+def _stages(plan: Plan) -> list[str]:
+    """Etapas del Job: un subjob por fila, con sus componentes, etiquetas y líneas de origen."""
+    if not plan.jobs or not plan.jobs[0].subjobs:
+        return []
+    rows = [
+        "## Etapas",
+        "",
+        "Un subjob por fila, en orden. Un componente de control (carga, SQL de base, llamada a "
+        "plantilla) va solo en su subjob.",
+        "",
+        "| # | tipo | componentes | etiquetas | líneas |",
+        "|---|---|---|---|---|",
+    ]
+    for number, subjob in enumerate(plan.jobs[0].subjobs, 1):
+        ops = [plan.graph.operator(op_id) for op_id in subjob]
+        control = len(ops) == 1 and ops[0].kind in ("exec_sql", "external_load", "iterate")
+        names = Counter(
+            op.component["name"] for op in ops if op.component and op.component["name"] != "none"
+        )
+        labels = list(dict.fromkeys(_label(op) for op in ops))
+        shown = ", ".join(labels[:3]) + (f" (+{len(labels) - 3})" if len(labels) > 3 else "")
+        lines_of = [e.line_start for op in ops for e in op.evidence]
+        span = f"{min(lines_of)}-{max(lines_of)}" if lines_of else "—"
+        components = ", ".join(f"{k} {v}" for k, v in names.most_common(4)) or "—"
+        rows.append(
+            f"| {number} | {'control' if control else 'flujo'} | {_cell(components)} "
+            f"| {_cell(shown)} | {span} |"
+        )
+    rows.append("")
+    return rows
+
+
 def render_guide(plan: Plan) -> str:
     operators = sorted(plan.graph.operators(), key=lambda o: o.id)
     by_status = Counter(op.status for op in operators)
@@ -102,6 +134,7 @@ def render_guide(plan: Plan) -> str:
         f"- Huecos: {len(plan.gaps)} firmas",
         f"- Pendientes de decisión: {len(plan.pending)}",
         "",
+        *_stages(plan),
         "## Operadores por nodo",
     ]
     by_label: dict[str, list[Operator]] = {}
