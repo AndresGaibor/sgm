@@ -23,54 +23,6 @@
       "notes": []
     },
     {
-      "id": "op00002",
-      "kind": "filter",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "e41c04144c347a11",
-      "params": {
-        "expression": "age >= 13"
-      },
-      "evidence": [
-        {
-          "file": "p0_ejemplo_basico.sas",
-          "line_start": 4,
-          "line_end": 8,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00003",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "8e928bb9919db388",
-      "params": {
-        "assignments": [
-          {
-            "target": "estatura_cm",
-            "expression": "height * 2.54"
-          }
-        ],
-        "outputs": [
-          "WORK.personas_filtradas"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "p0_ejemplo_basico.sas",
-          "line_start": 4,
-          "line_end": 8,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00004",
       "kind": "exec_sql",
       "status": "parcial",
@@ -99,6 +51,52 @@
       ]
     },
     {
+      "id": "op00005",
+      "kind": "map",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "c397fddd49302c35",
+      "params": {
+        "steps": [
+          {
+            "kind": "filter",
+            "params": {
+              "expression": "age >= 13"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "estatura_cm",
+                  "expression": "height * 2.54"
+                }
+              ],
+              "outputs": [
+                "WORK.personas_filtradas"
+              ]
+            }
+          }
+        ],
+        "outputs": [
+          "WORK.personas_filtradas"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 4,
+          "line_end": 8,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "2 operadores de flujo unidos en un tMap (pasada 6)"
+      ]
+    },
+    {
       "id": "w00002",
       "kind": "write",
       "status": "soportado",
@@ -124,26 +122,20 @@
   "edges": [
     {
       "src": "op00001",
-      "dst": "op00002",
+      "dst": "op00005",
       "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00002",
-      "dst": "op00003",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00003",
-      "dst": "op00004",
-      "dataset": "WORK.personas_filtradas",
       "materialize": null
     },
     {
       "src": "op00004",
       "dst": "w00002",
       "dataset": "WORK.resumen",
+      "materialize": null
+    },
+    {
+      "src": "op00005",
+      "dst": "op00004",
+      "dataset": "WORK.personas_filtradas",
       "materialize": null
     }
   ],
@@ -153,7 +145,14 @@
   "jobs": [
     {
       "name": "job_p0_ejemplo_basico",
-      "subjobs": [],
+      "subjobs": [
+        [
+          "op00001",
+          "op00005",
+          "op00004",
+          "w00002"
+        ]
+      ],
       "contexts": {},
       "children": []
     }

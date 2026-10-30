@@ -4,7 +4,8 @@
 - Si un dataset se reescribe, la versión nueva se marca con `@vN` (`WORK.x@v2`), y las lecturas
   posteriores se conectan a esa versión.
 - Un dataset permanente (biblioteca distinta de WORK) leído sin productor es un `read` fuente.
-- Un dataset escrito que nadie lee, o que pertenece a una biblioteca permanente, termina en `write`.
+- Un dataset escrito que nadie lee termina en `write`. Un dataset permanente que el programa
+  lee es un intermedio: no se escribe aquí (la pasada 5 decide si se funde).
 """
 
 from __future__ import annotations
@@ -60,11 +61,9 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
             current[dataset] = (op.id, version)
             final.append((op.id, version, dataset))
 
-    last_version = {dataset: version for _, version, dataset in final}
-    for number, (producer_id, version, dataset) in enumerate(final, 1):
-        if version in consumed_versions and not (
-            _is_permanent(dataset) and last_version[dataset] == version
-        ):
+    for number, (producer_id, version, _dataset) in enumerate(final, 1):
+        # Un dato con lector dentro del programa no es salida final.
+        if version in consumed_versions:
             continue
         producer = graph.operator(producer_id)
         sink = Operator(

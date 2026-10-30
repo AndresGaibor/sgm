@@ -31,6 +31,7 @@ class PassContext:
     plan: Plan
     sql_portable: frozenset[str] = frozenset()
     library_engines: dict[str, str] = field(default_factory=dict)  # biblioteca -> motor
+    schemas: dict[str, list] = field(default_factory=dict)  # esquemas de env/schemas.json
 
 
 Pass = Callable[[Graph, PassContext], PassLog]

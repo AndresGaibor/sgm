@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
-from sgm.passes import p01_graph, p02_plumbing, p03_intrinsics, p04_placement
+from sgm.passes import (
+    p01_graph,
+    p02_plumbing,
+    p03_intrinsics,
+    p04_placement,
+    p05_sql_fusion,
+    p06_flow_fusion,
+    p07_templates,
+    p08_partition,
+    p09_schemas,
+)
 from sgm.passes.base import PassContext, PassLog
 
 
@@ -12,4 +22,9 @@ def run_passes(ctx: PassContext) -> list[PassLog]:
     logs.append(p02_plumbing.mark(graph, ctx))
     logs.append(p03_intrinsics.run(graph, ctx))
     logs.append(p04_placement.run(graph, ctx))
+    logs.append(p05_sql_fusion.run(graph, ctx))
+    logs.append(p06_flow_fusion.run(graph, ctx))
+    logs.append(p07_templates.run(graph, ctx))
+    logs.append(p08_partition.run(graph, ctx))
+    logs.append(p09_schemas.run(graph, ctx, ctx.schemas))
     return logs

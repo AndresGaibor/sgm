@@ -32,7 +32,10 @@ def op_text(op: Operator) -> str:
     """Texto completo del operador: sentencia principal más sentencias no traducidas y asignaciones.
     Texto completo del operador: sentencia principal más sentencias no traducidas y asignaciones."""
     extra = list(op.params.get("untranslated", []))
-    extra += [str(a.get("expression", "")) for a in op.params.get("assignments", [])]
+    extra += [
+        f"{a.get('target', '')} = {a.get('expression', '')}"
+        for a in op.params.get("assignments", [])
+    ]
     return "\n".join([primary_text(op), *extra])
 
 

@@ -94,178 +94,6 @@
       "notes": []
     },
     {
-      "id": "op00005",
-      "kind": "filter",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "d66f87221fdf268b",
-      "params": {
-        "expression": "cantidad > 0 and not missing(precio)"
-      },
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": [
-        "declaración sin efecto en la lógica: length prefijo $3"
-      ]
-    },
-    {
-      "id": "op00006",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "f48300eef4f749a9",
-      "params": {
-        "assignments": [
-          {
-            "target": "prefijo",
-            "expression": "substr(producto, 1, 3)"
-          },
-          {
-            "target": "importe",
-            "expression": "round(cantidad * precio, 0.01)"
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00007",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "a91d00faff09a205",
-      "params": {
-        "conditional": "if canal = 'WEB' then descuento = 0.05"
-      },
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": [
-        "asignación condicional: traducir como expresión condicional"
-      ]
-    },
-    {
-      "id": "op00008",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "9afc9ce2682709b4",
-      "params": {
-        "conditional": "else if canal = 'TIENDA' then descuento = 0.02"
-      },
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": [
-        "asignación condicional: traducir como expresión condicional"
-      ]
-    },
-    {
-      "id": "op00009",
-      "kind": "filter",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "269cfdb0db10d702",
-      "params": {
-        "expression": "else descuento = 0"
-      },
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00010",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "fce8b50ac6c816fe",
-      "params": {
-        "assignments": [
-          {
-            "target": "importe_neto",
-            "expression": "importe * (1 - descuento)"
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00011",
-      "kind": "rename",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "46240139a7b12c2f",
-      "params": {
-        "pairs": [
-          [
-            "cliente",
-            "cod_cliente"
-          ],
-          [
-            "producto",
-            "cod_producto"
-          ]
-        ],
-        "outputs": [
-          "WORK.pedidos_ok"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00012",
       "kind": "sort",
       "status": "soportado",
@@ -511,6 +339,100 @@
         }
       ],
       "notes": []
+    },
+    {
+      "id": "op00022",
+      "kind": "map",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "4527bcb498cbba5f",
+      "params": {
+        "steps": [
+          {
+            "kind": "filter",
+            "params": {
+              "expression": "cantidad > 0 and not missing(precio)"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "prefijo",
+                  "expression": "substr(producto, 1, 3)"
+                },
+                {
+                  "target": "importe",
+                  "expression": "round(cantidad * precio, 0.01)"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "conditional": "if canal = 'WEB' then descuento = 0.05"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "conditional": "else if canal = 'TIENDA' then descuento = 0.02"
+            }
+          },
+          {
+            "kind": "filter",
+            "params": {
+              "expression": "else descuento = 0"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "importe_neto",
+                  "expression": "importe * (1 - descuento)"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "rename",
+            "params": {
+              "pairs": [
+                [
+                  "cliente",
+                  "cod_cliente"
+                ],
+                [
+                  "producto",
+                  "cod_producto"
+                ]
+              ],
+              "outputs": [
+                "WORK.pedidos_ok"
+              ]
+            }
+          }
+        ],
+        "outputs": [
+          "WORK.pedidos_ok"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "7 operadores de flujo unidos en un tMap (pasada 6)"
+      ]
     }
   ],
   "edges": [
@@ -522,50 +444,8 @@
     },
     {
       "src": "op00004",
-      "dst": "op00005",
+      "dst": "op00022",
       "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00005",
-      "dst": "op00006",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00006",
-      "dst": "op00007",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00007",
-      "dst": "op00008",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00008",
-      "dst": "op00009",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00009",
-      "dst": "op00010",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00010",
-      "dst": "op00011",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00011",
-      "dst": "op00012",
-      "dataset": "WORK.pedidos_ok",
       "materialize": null
     },
     {
@@ -633,6 +513,12 @@
       "dst": "op00021",
       "dataset": "WORK.pedidos_region",
       "materialize": null
+    },
+    {
+      "src": "op00022",
+      "dst": "op00012",
+      "dataset": "WORK.pedidos_ok",
+      "materialize": null
     }
   ],
   "not_migrated": [],
@@ -641,7 +527,25 @@
   "jobs": [
     {
       "name": "job_etl_archivos_simple",
-      "subjobs": [],
+      "subjobs": [
+        [
+          "op00001",
+          "op00002",
+          "op00003",
+          "op00014",
+          "op00004",
+          "op00015",
+          "op00022",
+          "op00018",
+          "op00012",
+          "op00013",
+          "op00016",
+          "op00017",
+          "op00019",
+          "op00020",
+          "op00021"
+        ]
+      ],
       "contexts": {},
       "children": []
     }

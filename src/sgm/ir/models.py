@@ -139,24 +139,32 @@ class Graph:
                         self._g.add_edge(pred, succ, edge=Edge(pred, succ, data["edge"].dataset))
         self._g.remove_node(op_id)
 
+    def _add_once(self, edge: Edge) -> None:
+        """Añade una arista salvo que ya exista una igual (mismos extremos y dataset)."""
+        if edge.dst in self._g[edge.src] and any(
+            d["edge"].dataset == edge.dataset for d in self._g[edge.src][edge.dst].values()
+        ):
+            return
+        self.add_edge(edge)
+
     def replace(self, op_ids: list[str], new: Operator) -> None:
         """Sustituye un conjunto de operadores por `new`, reconectando las aristas que cruzan el
         borde."""
         group = set(op_ids)
+        self.add_operator(new)  # antes de las aristas: el nodo nuevo tiene que existir
         for op_id in op_ids:
             for pred in list(self._g.predecessors(op_id)):
                 if pred in group:
                     continue
                 for data in list(self._g[pred][op_id].values()):
-                    self._g.add_edge(pred, new.id, edge=Edge(pred, new.id, data["edge"].dataset))
+                    self._add_once(Edge(pred, new.id, data["edge"].dataset))
             for succ in list(self._g.successors(op_id)):
                 if succ in group:
                     continue
                 for data in list(self._g[op_id][succ].values()):
-                    self._g.add_edge(new.id, succ, edge=Edge(new.id, succ, data["edge"].dataset))
+                    self._add_once(Edge(new.id, succ, data["edge"].dataset))
         for op_id in op_ids:
             self._g.remove_node(op_id)
-        self.add_operator(new)
 
     def topological(self) -> list[str]:
         """Ids en orden topológico (productores antes que consumidores)."""
@@ -173,6 +181,12 @@ class Graph:
         self.add_operator(new)
         self.add_edge(Edge(src, new.id, dataset))
         self.add_edge(Edge(new.id, dst, dataset))
+
+    def ancestors(self, op_id: str) -> set[str]:
+        return set(nx.ancestors(self._g, op_id))
+
+    def reaches(self, src: str, dst: str) -> bool:
+        return nx.has_path(self._g, src, dst)
 
     def successors(self, op_id: str) -> list[str]:
         return list(self._g.successors(op_id))

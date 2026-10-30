@@ -2531,87 +2531,6 @@
       ]
     },
     {
-      "id": "op00173",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "ed7a88f610578787",
-      "params": {
-        "assignments": [
-          {
-            "target": "filelog",
-            "expression": "scan(outcmd, 1, \":\")"
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00174",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "7bbcca026f262c57",
-      "params": {
-        "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "asignación condicional: traducir como expresión condicional"
-      ]
-    },
-    {
-      "id": "op00175",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "46eee278a638db02",
-      "params": {
-        "assignments": [
-          {
-            "target": "deserr",
-            "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
-          }
-        ],
-        "untranslated": [
-          "put filelog",
-          "put deserr"
-        ],
-        "outputs": []
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "sentencia sin traducción: put filelog",
-        "sentencia sin traducción: put deserr",
-        "salida _NULL_: no escribe dataset"
-      ]
-    },
-    {
       "id": "op00177",
       "kind": "unsupported",
       "status": "hueco",
@@ -4822,29 +4741,6 @@
       ]
     },
     {
-      "id": "op00314",
-      "kind": "read_file",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "fb09f3a905678830",
-      "params": {
-        "datafile": "\"/data/Programas_SAS/source/grid_errors_write_lz.txt\"",
-        "outputs": [
-          "WORK.param_err_lz"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 701,
-          "line_end": 705,
-          "label": "ACURA",
-          "call": "1531:mainProgram"
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00318",
       "kind": "unsupported",
       "status": "hueco",
@@ -5524,57 +5420,6 @@
       ]
     },
     {
-      "id": "op00361",
-      "kind": "sort",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "33ff0b09871c96b4",
-      "params": {
-        "by": [
-          "memname"
-        ],
-        "inputs": [
-          "WORK.contents"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00362",
-      "kind": "dedup",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "bc68e0a3e6746cf8",
-      "params": {
-        "by": [
-          "memname"
-        ],
-        "keep": "first",
-        "outputs": [
-          "WORK.members"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00363",
       "kind": "unsupported",
       "status": "hueco",
@@ -5904,87 +5749,6 @@
       ],
       "notes": [
         "declaración sin efecto en la lógica: length MaxLen filelog deserr $ &MaxLen."
-      ]
-    },
-    {
-      "id": "op00410",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "ed7a88f610578787",
-      "params": {
-        "assignments": [
-          {
-            "target": "filelog",
-            "expression": "scan(outcmd, 1, \":\")"
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00411",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "7bbcca026f262c57",
-      "params": {
-        "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "asignación condicional: traducir como expresión condicional"
-      ]
-    },
-    {
-      "id": "op00412",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "46eee278a638db02",
-      "params": {
-        "assignments": [
-          {
-            "target": "deserr",
-            "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
-          }
-        ],
-        "untranslated": [
-          "put filelog",
-          "put deserr"
-        ],
-        "outputs": []
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "sentencia sin traducción: put filelog",
-        "sentencia sin traducción: put deserr",
-        "salida _NULL_: no escribe dataset"
       ]
     },
     {
@@ -7407,29 +7171,6 @@
       ]
     },
     {
-      "id": "op00515",
-      "kind": "read_file",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "fb09f3a905678830",
-      "params": {
-        "datafile": "\"/data/Programas_SAS/source/grid_errors_write_lz.txt\"",
-        "outputs": [
-          "WORK.param_err_lz"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 701,
-          "line_end": 705,
-          "label": "ACURA",
-          "call": "2245:mainProgram"
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00519",
       "kind": "unsupported",
       "status": "hueco",
@@ -8109,57 +7850,6 @@
       ]
     },
     {
-      "id": "op00562",
-      "kind": "sort",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "33ff0b09871c96b4",
-      "params": {
-        "by": [
-          "memname"
-        ],
-        "inputs": [
-          "WORK.contents"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00563",
-      "kind": "dedup",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "bc68e0a3e6746cf8",
-      "params": {
-        "by": [
-          "memname"
-        ],
-        "keep": "first",
-        "outputs": [
-          "WORK.members"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00564",
       "kind": "unsupported",
       "status": "hueco",
@@ -8489,87 +8179,6 @@
       ],
       "notes": [
         "declaración sin efecto en la lógica: length MaxLen filelog deserr $ &MaxLen."
-      ]
-    },
-    {
-      "id": "op00611",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "ed7a88f610578787",
-      "params": {
-        "assignments": [
-          {
-            "target": "filelog",
-            "expression": "scan(outcmd, 1, \":\")"
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00612",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "7bbcca026f262c57",
-      "params": {
-        "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "asignación condicional: traducir como expresión condicional"
-      ]
-    },
-    {
-      "id": "op00613",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "46eee278a638db02",
-      "params": {
-        "assignments": [
-          {
-            "target": "deserr",
-            "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
-          }
-        ],
-        "untranslated": [
-          "put filelog",
-          "put deserr"
-        ],
-        "outputs": []
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "sentencia sin traducción: put filelog",
-        "sentencia sin traducción: put deserr",
-        "salida _NULL_: no escribe dataset"
       ]
     },
     {
@@ -9739,29 +9348,6 @@
       ]
     },
     {
-      "id": "op00695",
-      "kind": "read_file",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "fb09f3a905678830",
-      "params": {
-        "datafile": "\"/data/Programas_SAS/source/grid_errors_write_lz.txt\"",
-        "outputs": [
-          "WORK.param_err_lz"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 701,
-          "line_end": 705,
-          "label": "ACURA",
-          "call": "2895:mainProgram"
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00699",
       "kind": "unsupported",
       "status": "hueco",
@@ -10441,57 +10027,6 @@
       ]
     },
     {
-      "id": "op00742",
-      "kind": "sort",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "33ff0b09871c96b4",
-      "params": {
-        "by": [
-          "memname"
-        ],
-        "inputs": [
-          "WORK.contents"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00743",
-      "kind": "dedup",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "bc68e0a3e6746cf8",
-      "params": {
-        "by": [
-          "memname"
-        ],
-        "keep": "first",
-        "outputs": [
-          "WORK.members"
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00744",
       "kind": "unsupported",
       "status": "hueco",
@@ -10821,87 +10356,6 @@
       ],
       "notes": [
         "declaración sin efecto en la lógica: length MaxLen filelog deserr $ &MaxLen."
-      ]
-    },
-    {
-      "id": "op00791",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "ed7a88f610578787",
-      "params": {
-        "assignments": [
-          {
-            "target": "filelog",
-            "expression": "scan(outcmd, 1, \":\")"
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "id": "op00792",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "7bbcca026f262c57",
-      "params": {
-        "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "asignación condicional: traducir como expresión condicional"
-      ]
-    },
-    {
-      "id": "op00793",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "46eee278a638db02",
-      "params": {
-        "assignments": [
-          {
-            "target": "deserr",
-            "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
-          }
-        ],
-        "untranslated": [
-          "put filelog",
-          "put deserr"
-        ],
-        "outputs": []
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 573,
-          "line_end": 582,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        }
-      ],
-      "notes": [
-        "sentencia sin traducción: put filelog",
-        "sentencia sin traducción: put deserr",
-        "salida _NULL_: no escribe dataset"
       ]
     },
     {
@@ -11483,6 +10937,380 @@
       ]
     },
     {
+      "id": "op00837",
+      "kind": "map",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "7f0b5d025d013df0",
+      "params": {
+        "steps": [
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "filelog",
+                  "expression": "scan(outcmd, 1, \":\")"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "deserr",
+                  "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
+                }
+              ],
+              "untranslated": [
+                "put filelog",
+                "put deserr"
+              ],
+              "outputs": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ],
+      "notes": [
+        "3 operadores de flujo unidos en un tMap (pasada 6)"
+      ]
+    },
+    {
+      "id": "op00838",
+      "kind": "map",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "7f0b5d025d013df0",
+      "params": {
+        "steps": [
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "filelog",
+                  "expression": "scan(outcmd, 1, \":\")"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "deserr",
+                  "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
+                }
+              ],
+              "untranslated": [
+                "put filelog",
+                "put deserr"
+              ],
+              "outputs": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ],
+      "notes": [
+        "3 operadores de flujo unidos en un tMap (pasada 6)"
+      ]
+    },
+    {
+      "id": "op00839",
+      "kind": "map",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "7f0b5d025d013df0",
+      "params": {
+        "steps": [
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "filelog",
+                  "expression": "scan(outcmd, 1, \":\")"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "deserr",
+                  "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
+                }
+              ],
+              "untranslated": [
+                "put filelog",
+                "put deserr"
+              ],
+              "outputs": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ],
+      "notes": [
+        "3 operadores de flujo unidos en un tMap (pasada 6)"
+      ]
+    },
+    {
+      "id": "op00840",
+      "kind": "map",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "7f0b5d025d013df0",
+      "params": {
+        "steps": [
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "filelog",
+                  "expression": "scan(outcmd, 1, \":\")"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "conditional": "if index(outcmd, \"ERROR:\") gt 0 then\ndo"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "deserr",
+                  "expression": "substr(outcmd, index(outcmd, \"ERROR:\"))"
+                }
+              ],
+              "untranslated": [
+                "put filelog",
+                "put deserr"
+              ],
+              "outputs": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ],
+      "notes": [
+        "3 operadores de flujo unidos en un tMap (pasada 6)"
+      ]
+    },
+    {
+      "id": "op00841",
+      "kind": "iterate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "e9a6b3326b25b667",
+      "params": {
+        "template": "tpl_e0f4ae92",
+        "context": {
+          "parametro_1": "WORK.param_err_lz@v2"
+        }
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 701,
+          "line_end": 705,
+          "label": "ACURA",
+          "call": "1531:mainProgram"
+        }
+      ],
+      "notes": [
+        "instancia de la plantilla tpl_e0f4ae92 (etiqueta: ACURA)"
+      ]
+    },
+    {
+      "id": "op00842",
+      "kind": "iterate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "e9a6b3326b25b667",
+      "params": {
+        "template": "tpl_e0f4ae92",
+        "context": {
+          "parametro_1": "WORK.param_err_lz@v3"
+        }
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 701,
+          "line_end": 705,
+          "label": "ACURA",
+          "call": "2245:mainProgram"
+        }
+      ],
+      "notes": [
+        "instancia de la plantilla tpl_e0f4ae92 (etiqueta: ACURA)"
+      ]
+    },
+    {
+      "id": "op00843",
+      "kind": "iterate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "e9a6b3326b25b667",
+      "params": {
+        "template": "tpl_e0f4ae92",
+        "context": {
+          "parametro_1": "WORK.param_err_lz@v4"
+        }
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 701,
+          "line_end": 705,
+          "label": "ACURA",
+          "call": "2895:mainProgram"
+        }
+      ],
+      "notes": [
+        "instancia de la plantilla tpl_e0f4ae92 (etiqueta: ACURA)"
+      ]
+    },
+    {
+      "id": "op00844",
+      "kind": "iterate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6ad750cc4528151b",
+      "params": {
+        "template": "tpl_e4582e24",
+        "context": {
+          "parametro_2": "WORK.members@v2"
+        }
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 346,
+          "line_end": 348,
+          "label": "ACURA",
+          "call": "740:split3"
+        }
+      ],
+      "notes": [
+        "instancia de la plantilla tpl_e4582e24 (etiqueta: ACURA)"
+      ]
+    },
+    {
+      "id": "op00845",
+      "kind": "iterate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6ad750cc4528151b",
+      "params": {
+        "template": "tpl_e4582e24",
+        "context": {
+          "parametro_2": "WORK.members@v3"
+        }
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 346,
+          "line_end": 348,
+          "label": "ACURA",
+          "call": "740:split3"
+        }
+      ],
+      "notes": [
+        "instancia de la plantilla tpl_e4582e24 (etiqueta: ACURA)"
+      ]
+    },
+    {
+      "id": "op00846",
+      "kind": "iterate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6ad750cc4528151b",
+      "params": {
+        "template": "tpl_e4582e24",
+        "context": {
+          "parametro_2": "WORK.members@v4"
+        }
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 346,
+          "line_end": 348,
+          "label": "ACURA",
+          "call": "740:split3"
+        }
+      ],
+      "notes": [
+        "instancia de la plantilla tpl_e4582e24 (etiqueta: ACURA)"
+      ]
+    },
+    {
       "id": "w00006",
       "kind": "write",
       "status": "soportado",
@@ -11549,28 +11377,6 @@
       ]
     },
     {
-      "id": "w00012",
-      "kind": "write",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "7c57b97a16b714e0",
-      "params": {
-        "dataset": "WORK.param_err_lz@v2"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 701,
-          "line_end": 705,
-          "label": "ACURA",
-          "call": "1531:mainProgram"
-        }
-      ],
-      "notes": [
-        "salida final o de biblioteca permanente"
-      ]
-    },
-    {
       "id": "w00013",
       "kind": "write",
       "status": "soportado",
@@ -11586,50 +11392,6 @@
           "line_end": 338,
           "label": "ACURA",
           "call": "740:split3"
-        }
-      ],
-      "notes": [
-        "salida final o de biblioteca permanente"
-      ]
-    },
-    {
-      "id": "w00014",
-      "kind": "write",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "7c57b97a16b714e0",
-      "params": {
-        "dataset": "WORK.members@v2"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": [
-        "salida final o de biblioteca permanente"
-      ]
-    },
-    {
-      "id": "w00018",
-      "kind": "write",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "7c57b97a16b714e0",
-      "params": {
-        "dataset": "WORK.param_err_lz@v3"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 701,
-          "line_end": 705,
-          "label": "ACURA",
-          "call": "2245:mainProgram"
         }
       ],
       "notes": [
@@ -11659,50 +11421,6 @@
       ]
     },
     {
-      "id": "w00020",
-      "kind": "write",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "7c57b97a16b714e0",
-      "params": {
-        "dataset": "WORK.members@v3"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": [
-        "salida final o de biblioteca permanente"
-      ]
-    },
-    {
-      "id": "w00024",
-      "kind": "write",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "7c57b97a16b714e0",
-      "params": {
-        "dataset": "WORK.param_err_lz@v4"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 701,
-          "line_end": 705,
-          "label": "ACURA",
-          "call": "2895:mainProgram"
-        }
-      ],
-      "notes": [
-        "salida final o de biblioteca permanente"
-      ]
-    },
-    {
       "id": "w00025",
       "kind": "write",
       "status": "soportado",
@@ -11716,28 +11434,6 @@
           "file": "client/client_poc.sas",
           "line_start": 334,
           "line_end": 338,
-          "label": "ACURA",
-          "call": "740:split3"
-        }
-      ],
-      "notes": [
-        "salida final o de biblioteca permanente"
-      ]
-    },
-    {
-      "id": "w00026",
-      "kind": "write",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "7c57b97a16b714e0",
-      "params": {
-        "dataset": "WORK.members@v4"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 346,
-          "line_end": 348,
           "label": "ACURA",
           "call": "740:split3"
         }
@@ -12044,26 +11740,8 @@
     },
     {
       "src": "op00172",
-      "dst": "op00173",
+      "dst": "op00837",
       "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00173",
-      "dst": "op00174",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00174",
-      "dst": "op00175",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00314",
-      "dst": "w00012",
-      "dataset": "WORK.param_err_lz@v2",
       "materialize": null
     },
     {
@@ -12079,18 +11757,6 @@
       "materialize": null
     },
     {
-      "src": "op00361",
-      "dst": "op00362",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00362",
-      "dst": "w00014",
-      "dataset": "WORK.members@v2",
-      "materialize": null
-    },
-    {
       "src": "op00402",
       "dst": "op00409",
       "dataset": "WORK.saserror@v2",
@@ -12098,26 +11764,8 @@
     },
     {
       "src": "op00409",
-      "dst": "op00410",
+      "dst": "op00838",
       "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00410",
-      "dst": "op00411",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00411",
-      "dst": "op00412",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00515",
-      "dst": "w00018",
-      "dataset": "WORK.param_err_lz@v3",
       "materialize": null
     },
     {
@@ -12133,18 +11781,6 @@
       "materialize": null
     },
     {
-      "src": "op00562",
-      "dst": "op00563",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00563",
-      "dst": "w00020",
-      "dataset": "WORK.members@v3",
-      "materialize": null
-    },
-    {
       "src": "op00603",
       "dst": "op00610",
       "dataset": "WORK.saserror@v3",
@@ -12152,26 +11788,8 @@
     },
     {
       "src": "op00610",
-      "dst": "op00611",
+      "dst": "op00839",
       "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00611",
-      "dst": "op00612",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00612",
-      "dst": "op00613",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00695",
-      "dst": "w00024",
-      "dataset": "WORK.param_err_lz@v4",
       "materialize": null
     },
     {
@@ -12187,18 +11805,6 @@
       "materialize": null
     },
     {
-      "src": "op00742",
-      "dst": "op00743",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00743",
-      "dst": "w00026",
-      "dataset": "WORK.members@v4",
-      "materialize": null
-    },
-    {
       "src": "op00783",
       "dst": "op00790",
       "dataset": "WORK.saserror@v4",
@@ -12206,19 +11812,7 @@
     },
     {
       "src": "op00790",
-      "dst": "op00791",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00791",
-      "dst": "op00792",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00792",
-      "dst": "op00793",
+      "dst": "op00840",
       "dataset": "(interno)",
       "materialize": null
     }
@@ -16768,9 +16362,518 @@
   "jobs": [
     {
       "name": "job_client_poc",
-      "subjobs": [],
+      "subjobs": [
+        [
+          "op00002",
+          "op00003",
+          "op00004",
+          "op00037",
+          "op00038",
+          "op00039",
+          "op00040",
+          "op00041",
+          "op00042",
+          "op00043",
+          "op00044",
+          "op00045",
+          "op00046",
+          "op00047",
+          "op00048",
+          "op00050",
+          "op00052",
+          "op00054",
+          "op00055",
+          "op00057",
+          "op00058",
+          "op00059",
+          "op00060",
+          "op00061",
+          "op00062",
+          "op00063",
+          "op00064",
+          "op00065",
+          "op00066",
+          "op00067",
+          "op00068",
+          "op00069",
+          "op00070",
+          "op00071",
+          "op00072",
+          "op00073",
+          "op00074",
+          "op00077",
+          "op00081",
+          "op00082",
+          "op00085",
+          "op00086",
+          "op00087",
+          "op00089",
+          "op00090",
+          "op00092",
+          "op00093",
+          "op00095",
+          "op00096",
+          "op00097",
+          "op00098",
+          "op00100",
+          "op00101",
+          "op00102",
+          "op00103",
+          "op00104",
+          "op00105",
+          "op00106",
+          "op00107",
+          "op00111",
+          "op00112",
+          "op00117",
+          "op00118",
+          "op00120",
+          "op00123",
+          "op00124",
+          "op00126",
+          "op00127",
+          "op00128",
+          "op00159",
+          "op00160",
+          "op00161",
+          "op00163",
+          "op00164",
+          "op00165",
+          "op00166",
+          "op00167",
+          "op00170",
+          "op00171",
+          "op00177",
+          "op00178",
+          "op00179",
+          "op00180",
+          "op00182",
+          "op00183",
+          "op00186",
+          "op00191",
+          "op00196",
+          "op00198",
+          "op00199",
+          "op00201",
+          "op00204",
+          "op00205",
+          "op00207",
+          "op00216",
+          "op00217",
+          "op00218",
+          "op00219",
+          "op00220",
+          "op00222",
+          "op00224",
+          "op00226",
+          "op00228",
+          "op00229",
+          "op00230",
+          "op00231",
+          "op00232",
+          "op00233",
+          "op00234",
+          "op00235",
+          "op00236",
+          "op00237",
+          "op00238",
+          "op00239",
+          "op00240",
+          "op00241",
+          "op00242",
+          "op00243",
+          "op00244",
+          "op00245",
+          "op00246",
+          "op00247",
+          "op00248",
+          "op00249",
+          "op00250",
+          "op00251",
+          "op00252",
+          "op00253",
+          "op00254",
+          "op00255",
+          "op00256",
+          "op00257",
+          "op00258",
+          "op00259",
+          "op00260",
+          "op00261",
+          "op00262",
+          "op00263",
+          "op00265",
+          "op00273",
+          "op00274",
+          "op00275",
+          "op00276",
+          "op00277",
+          "op00278",
+          "op00279",
+          "op00280",
+          "op00281",
+          "op00282",
+          "op00283",
+          "op00284",
+          "op00285",
+          "op00287",
+          "op00289",
+          "op00291",
+          "op00292",
+          "op00294",
+          "op00295",
+          "op00296",
+          "op00297",
+          "op00298",
+          "op00299",
+          "op00300",
+          "op00301",
+          "op00302",
+          "op00303",
+          "op00304",
+          "op00305",
+          "op00306",
+          "op00307",
+          "op00308",
+          "op00309",
+          "op00310",
+          "op00311",
+          "op00318",
+          "op00319",
+          "op00322",
+          "op00323",
+          "op00324",
+          "op00326",
+          "op00327",
+          "op00329",
+          "op00330",
+          "op00332",
+          "op00333",
+          "op00334",
+          "op00335",
+          "op00337",
+          "op00338",
+          "op00339",
+          "op00340",
+          "op00341",
+          "op00342",
+          "op00343",
+          "op00344",
+          "op00348",
+          "op00349",
+          "op00354",
+          "op00355",
+          "op00357"
+        ],
+        [
+          "op00360",
+          "op00363",
+          "op00364",
+          "op00365",
+          "op00396",
+          "op00397",
+          "op00398",
+          "op00400",
+          "op00401",
+          "op00402",
+          "op00403",
+          "op00404",
+          "op00407",
+          "op00408",
+          "op00414",
+          "op00415",
+          "op00416",
+          "op00417",
+          "op00419",
+          "op00420",
+          "op00423",
+          "op00428",
+          "op00433",
+          "op00435",
+          "op00436",
+          "op00438",
+          "op00441",
+          "op00442",
+          "op00444",
+          "op00453",
+          "op00454",
+          "op00455",
+          "op00456",
+          "op00457",
+          "op00459",
+          "op00461",
+          "op00463",
+          "op00465",
+          "op00466",
+          "op00467",
+          "op00474",
+          "op00475",
+          "op00476",
+          "op00477",
+          "op00478",
+          "op00479",
+          "op00480",
+          "op00481",
+          "op00482",
+          "op00483",
+          "op00484",
+          "op00485",
+          "op00486",
+          "op00488",
+          "op00490",
+          "op00492",
+          "op00493",
+          "op00495",
+          "op00496",
+          "op00497",
+          "op00498",
+          "op00499",
+          "op00500",
+          "op00501",
+          "op00502",
+          "op00503",
+          "op00504",
+          "op00505",
+          "op00506",
+          "op00507",
+          "op00508",
+          "op00509",
+          "op00510",
+          "op00511",
+          "op00512",
+          "op00519",
+          "op00520",
+          "op00523",
+          "op00524",
+          "op00525",
+          "op00527",
+          "op00528",
+          "op00530",
+          "op00531",
+          "op00533",
+          "op00534",
+          "op00535",
+          "op00536",
+          "op00538",
+          "op00539",
+          "op00540",
+          "op00541",
+          "op00542",
+          "op00543",
+          "op00544",
+          "op00545",
+          "op00549",
+          "op00550",
+          "op00555",
+          "op00556",
+          "op00558",
+          "op00561",
+          "op00564",
+          "op00565",
+          "op00566",
+          "op00597",
+          "op00598",
+          "op00599",
+          "op00601",
+          "op00602",
+          "op00603",
+          "op00604",
+          "op00605",
+          "op00608",
+          "op00609",
+          "op00615",
+          "op00616",
+          "op00617",
+          "op00618",
+          "op00620",
+          "op00621",
+          "op00624",
+          "op00629",
+          "op00634",
+          "op00636",
+          "op00637",
+          "op00639",
+          "op00642",
+          "op00643",
+          "op00645",
+          "op00654",
+          "op00655",
+          "op00656",
+          "op00657",
+          "op00658",
+          "op00659",
+          "op00660",
+          "op00661",
+          "op00662",
+          "op00663",
+          "op00664",
+          "op00665",
+          "op00666",
+          "op00668",
+          "op00670",
+          "op00672",
+          "op00673",
+          "op00675",
+          "op00676",
+          "op00677",
+          "op00678",
+          "op00679",
+          "op00680",
+          "op00681",
+          "op00682",
+          "op00683",
+          "op00684",
+          "op00685",
+          "op00686",
+          "op00687",
+          "op00688",
+          "op00689",
+          "op00690",
+          "op00691",
+          "op00692",
+          "op00699",
+          "op00700",
+          "op00703",
+          "op00704",
+          "op00705",
+          "op00707",
+          "op00708",
+          "op00710",
+          "op00711",
+          "op00713",
+          "op00714",
+          "op00715",
+          "op00716",
+          "op00718",
+          "op00719",
+          "op00720",
+          "op00721",
+          "op00722",
+          "op00723",
+          "op00724",
+          "op00725",
+          "op00729",
+          "op00730",
+          "op00735",
+          "op00736",
+          "op00738",
+          "op00741",
+          "op00744",
+          "op00745",
+          "op00746",
+          "op00777",
+          "op00778",
+          "op00779",
+          "op00781",
+          "op00782"
+        ],
+        [
+          "op00783",
+          "op00784",
+          "op00785",
+          "op00788",
+          "op00789",
+          "op00795",
+          "op00796",
+          "op00797",
+          "op00798",
+          "op00800",
+          "op00801",
+          "op00804",
+          "op00809",
+          "op00814",
+          "op00816",
+          "op00817",
+          "op00819",
+          "op00822",
+          "op00823",
+          "op00825",
+          "op00834",
+          "op00836"
+        ],
+        [
+          "op00841"
+        ],
+        [
+          "op00842"
+        ],
+        [
+          "op00843"
+        ],
+        [
+          "op00844"
+        ],
+        [
+          "op00845"
+        ],
+        [
+          "op00846"
+        ],
+        [
+          "op00005",
+          "op00006",
+          "op00007",
+          "op00008",
+          "op00009",
+          "op00010",
+          "op00011",
+          "op00012",
+          "op00013",
+          "op00014",
+          "op00015",
+          "op00016",
+          "op00017",
+          "op00018",
+          "op00019",
+          "op00020",
+          "op00022",
+          "op00025",
+          "op00028",
+          "op00033",
+          "w00006"
+        ],
+        [
+          "op00083",
+          "op00125",
+          "op00172",
+          "op00320",
+          "op00409",
+          "op00521",
+          "op00610",
+          "op00701",
+          "op00790",
+          "op00030",
+          "op00122",
+          "op00359",
+          "op00560",
+          "op00740",
+          "op00036",
+          "op00031",
+          "op00035",
+          "w00008"
+        ],
+        [
+          "op00837",
+          "op00838",
+          "op00839",
+          "op00840",
+          "w00007"
+        ],
+        [
+          "w00013"
+        ],
+        [
+          "w00019"
+        ],
+        [
+          "w00025"
+        ]
+      ],
       "contexts": {},
-      "children": []
+      "children": [
+        "tpl_e0f4ae92",
+        "tpl_e4582e24"
+      ]
     }
   ]
 }

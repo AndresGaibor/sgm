@@ -223,61 +223,6 @@
       ]
     },
     {
-      "id": "op00010",
-      "kind": "derive",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "0363cc9eba7c069d",
-      "params": {
-        "conditional": "if missing(monto) then flag_sin_pago = 1"
-      },
-      "evidence": [
-        {
-          "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": [
-        "asignación condicional: traducir como expresión condicional"
-      ]
-    },
-    {
-      "id": "op00011",
-      "kind": "derive",
-      "status": "soportado",
-      "placement": "flow",
-      "signature": "f98f4f5afddc47d1",
-      "params": {
-        "assignments": [
-          {
-            "target": "dias",
-            "expression": "intck('day', fecha_pago, today())"
-          },
-          {
-            "target": "mes_pago",
-            "expression": "put(fecha_pago, yymmn6.)"
-          },
-          {
-            "target": "tramo",
-            "expression": "put(edad, tramo.)"
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
-          "label": null,
-          "call": null
-        }
-      ],
-      "notes": []
-    },
-    {
       "id": "op00012",
       "kind": "stateful_row",
       "status": "parcial",
@@ -301,6 +246,54 @@
       ],
       "notes": [
         "lógica de grupo por first./last.: revisar"
+      ]
+    },
+    {
+      "id": "op00013",
+      "kind": "map",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "fd0e7150b6f1f34c",
+      "params": {
+        "steps": [
+          {
+            "kind": "derive",
+            "params": {
+              "conditional": "if missing(monto) then flag_sin_pago = 1"
+            }
+          },
+          {
+            "kind": "derive",
+            "params": {
+              "assignments": [
+                {
+                  "target": "dias",
+                  "expression": "intck('day', fecha_pago, today())"
+                },
+                {
+                  "target": "mes_pago",
+                  "expression": "put(fecha_pago, yymmn6.)"
+                },
+                {
+                  "target": "tramo",
+                  "expression": "put(edad, tramo.)"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "2 operadores de flujo unidos en un tMap (pasada 6)"
       ]
     },
     {
@@ -383,19 +376,7 @@
     },
     {
       "src": "op00009",
-      "dst": "op00010",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00010",
-      "dst": "op00011",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00011",
-      "dst": "op00012",
+      "dst": "op00013",
       "dataset": "(interno)",
       "materialize": null
     },
@@ -403,6 +384,12 @@
       "src": "op00012",
       "dst": "w00003",
       "dataset": "WORK.pagos_cliente",
+      "materialize": null
+    },
+    {
+      "src": "op00013",
+      "dst": "op00012",
+      "dataset": "(interno)",
       "materialize": null
     }
   ],
@@ -426,7 +413,22 @@
   "jobs": [
     {
       "name": "job_p1_merge_first_last",
-      "subjobs": [],
+      "subjobs": [
+        [
+          "op00001",
+          "op00002",
+          "op00003",
+          "op00005",
+          "op00004",
+          "op00006",
+          "op00007",
+          "op00008",
+          "op00009",
+          "op00013",
+          "op00012",
+          "w00003"
+        ]
+      ],
       "contexts": {},
       "children": []
     }

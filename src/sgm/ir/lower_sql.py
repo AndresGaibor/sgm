@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from sgm.frontend.sql import SqlStatement
+from sgm.frontend.sql import SqlStatement, parse_sql_statement
 from sgm.frontend.steps import ProcSql
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence
@@ -30,7 +30,12 @@ def _lower_statement(st: SqlStatement, ev: Evidence, b: Builder) -> None:
         b.op("read", params, ev, placement=f"db:{(st.engine or '').lower()}")
     elif kind == "execute":
         created = _CREATE_TARGET.match(st.inner_sql or "")
-        params = {"sql": st.inner_sql, "engine": st.engine}
+        inner = parse_sql_statement(st.inner_sql or "", ev.line_start)
+        params = {
+            "sql": st.inner_sql,
+            "engine": st.engine,
+            "inputs": [_base_name(st.engine or "", s) for s in inner.sources],
+        }
         if created:
             params["outputs"] = [_base_name(st.engine or "", created.group(1))]
         b.op("exec_sql", params, ev, placement=f"db:{(st.engine or '').lower()}")

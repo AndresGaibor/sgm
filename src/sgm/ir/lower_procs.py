@@ -45,6 +45,7 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
             "inputs": [qualify(data)] if data else [],
             "class": _names(step.clauses.get("class")),
             "var": _names(step.clauses.get("var")),
+            "outputs": [qualify(out)] if out else [],
         }
         b.op("aggregate", params, ev)
     else:
