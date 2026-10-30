@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "env/engines.json",
+  "type": "object",
+  "required": [
+    "dsn",
+    "libraries",
+    "db_schemas"
+  ],
+  "properties": {
+    "dsn": {
+      "type": "object"
+    },
+    "libraries": {
+      "type": "object"
+    },
+    "db_schemas": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

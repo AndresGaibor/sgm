@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Intrínseco",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "version",
+    "status",
+    "implementation",
+    "tests"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "soportado",
+        "parcial",
+        "reemplazado",
+        "hueco"
+      ]
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^tests/cases/"
+      }
+    },
+    "implementation": {
+      "type": "string",
+      "pattern": "^sgm\\."
+    }
+  },
+  "additionalProperties": true
+}

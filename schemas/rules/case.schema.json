@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Caso de prueba",
+  "type": "object",
+  "required": [
+    "description",
+    "env",
+    "expect"
+  ],
+  "oneOf": [
+    {
+      "required": [
+        "input"
+      ]
+    },
+    {
+      "required": [
+        "ir"
+      ]
+    }
+  ],
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "env": {
+      "enum": [
+        "default",
+        "push_to_db",
+        "reports_log",
+        "flow"
+      ]
+    },
+    "input": {
+      "type": "string"
+    },
+    "ir": {
+      "type": "object"
+    },
+    "expect": {
+      "type": "object"
+    }
+  }
+}

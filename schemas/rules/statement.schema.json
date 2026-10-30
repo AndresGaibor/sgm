@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sentencia global",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "version",
+    "status",
+    "statement",
+    "action",
+    "tests"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "soportado",
+        "parcial",
+        "reemplazado",
+        "hueco"
+      ]
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^tests/cases/"
+      }
+    },
+    "statement": {
+      "type": "string"
+    },
+    "action": {
+      "enum": [
+        "plumbing",
+        "context",
+        "set_variable",
+        "unsupported"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

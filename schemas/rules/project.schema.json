@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "env/project.json",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "placement_strategy": {
+      "enum": [
+        "push_to_db",
+        "flow"
+      ]
+    },
+    "target_engine": {
+      "type": "string"
+    },
+    "reports": {
+      "enum": [
+        "discard",
+        "log",
+        "csv"
+      ]
+    },
+    "max_components_per_job": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": true
+}

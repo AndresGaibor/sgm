@@ -14,6 +14,7 @@ from sgm import decisions as decisions_mod
 from sgm import diagnostics as diagnostics_mod
 from sgm import lineage as lineage_mod
 from sgm import metrics as metrics_mod
+from sgm import rules_validate as rules_validate_mod
 from sgm.batch import compile_batch
 from sgm.catalog.config import ConfigError, Env, load_env
 from sgm.emit.guide_md import render_guide
@@ -30,8 +31,10 @@ decisions_app = typer.Typer(
     help="Decisiones del usuario por firma y alcance.", no_args_is_help=True
 )
 gaps_app = typer.Typer(help="Inventario de huecos.", no_args_is_help=True)
+rules_app = typer.Typer(help="Reglas, casos y configuración.", no_args_is_help=True)
 app.add_typer(decisions_app, name="decisions")
 app.add_typer(gaps_app, name="gaps")
+app.add_typer(rules_app, name="rules")
 
 
 @app.callback()
@@ -260,6 +263,18 @@ def gaps_list(
             f"{row['signature']}  {row['reason']}  archivos={len(row['files'])}  "
             f"ocurrencias={row['occurrences']}"
         )
+
+
+@rules_app.command("validate")
+def rules_validate() -> None:
+    """Valida reglas, casos y configuración contra sus esquemas. Sale con 1 si hay errores."""
+    problems = rules_validate_mod.validate()
+    for problem in problems:
+        typer.echo(str(problem))
+    if problems:
+        typer.echo(f"{len(problems)} problemas.")
+        raise typer.Exit(code=1)
+    typer.echo("Reglas, casos y configuración válidos.")
 
 
 if __name__ == "__main__":
