@@ -7,6 +7,7 @@ import re
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.types_code import declared_types
 
 _HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
 
@@ -86,6 +87,24 @@ def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator |
 
 
 def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
+    """Pasos de un DATA step a operadores. Las declaraciones de tipo (length, format,
+    informat) se guardan en las derivaciones del paso (`declared`), para la pasada 9."""
+    start = len(b.created)
+    _lower_data_steps(step, ev, b)
+    declarations = [
+        (s.fields["declaration"], s.text.split(None, 1)[1] if " " in s.text else "")
+        for s in step.statements
+        if s.kind == "declare"
+    ]
+    declared = declared_types(declarations)
+    if declared:
+        for op in b.created[start:]:
+            if op.kind == "derive":
+                op.params["declared"] = {k: [v.type, v.length] for k, v in declared.items()}
+                b.refresh(op)
+
+
+def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     stmts = step.statements
     reads, current = _lower_sources(stmts, ev, b)
     if current is None:

@@ -2,9 +2,13 @@
 
 Fuentes de esquema:
 - `env/schemas.json` para las lecturas de un dataset del entorno (origen `catalog`).
-- Derivación: `derive` añade columnas (origen `derived`, tipo desconocido salvo que se declare);
+- Código (origen `code`, R7): una derivación cuyo tipo fija el propio código (`input`, `put`,
+  `cast`, literales, aritmética, o `length`/`format` del DATA step) recibe ese tipo.
+- Derivación: `derive` añade columnas (origen `derived`, tipo desconocido si el código no lo fija);
   `select` las reduce; `rename` las renombra; `join` y `union` las unen; un agregado no conoce sus
   columnas de salida.
+
+Prioridad: catálogo, encabezado, código, derivado. Una columna que ya tiene tipo no se cambia.
 
 Una columna sin tipo queda con `type=None` y `source="unknown"`; genera un hueco
 `TIPO_DESCONOCIDO` con la firma del operador que la introduce. Nunca se inventa un tipo.
@@ -13,9 +17,38 @@ Una columna sin tipo queda con `type=None` y `source="unknown"`; genera un hueco
 from __future__ import annotations
 
 from sgm.ir.models import Column, Gap, Graph, Operator
+from sgm.ir.types_code import CodeType, expression_type
 from sgm.passes.base import PassContext, PassLog
 
 NAME = "p09_schemas"
+
+
+def _derived_column(target: str, expression: str, declared: dict) -> Column:
+    """Columna que deja una asignación: el tipo que el código demuestra, o desconocido."""
+    if target in declared:
+        found = CodeType(declared[target][0], declared[target][1])
+    else:
+        found = expression_type(expression) if expression else None
+    if found is None:
+        return Column(target, None, None, "derived")
+    return Column(target, found.type, found.length, "code")
+
+
+def _with_derived(base: list[Column], assignments: list[dict], declared: dict) -> list[Column]:
+    """Esquema tras las asignaciones de un `derive`: columnas nuevas y tipos que faltaban."""
+    columns = _copy(base) or []
+    index = {c.name: i for i, c in enumerate(columns)}
+    for assignment in assignments:
+        target = str(assignment.get("target", "")).lower()
+        if not target:
+            continue
+        derived = _derived_column(target, str(assignment.get("expression", "")), declared)
+        if target not in index:
+            columns.append(derived)
+            index[target] = len(columns) - 1
+        elif columns[index[target]].type is None:
+            columns[index[target]] = derived
+    return columns
 
 
 def _copy(columns: list[Column] | None) -> list[Column] | None:
@@ -46,14 +79,7 @@ def _apply(kind: str, params: dict, base: list[Column] | None) -> list[Column] |
     if base is None:
         return None
     if kind == "derive":
-        columns = _copy(base)
-        names = {c.name for c in columns}
-        for assignment in params.get("assignments", []):
-            target = str(assignment.get("target", "")).lower()
-            if target and target not in names:
-                columns.append(Column(target, None, None, "derived"))
-                names.add(target)
-        return columns
+        return _with_derived(base, params.get("assignments", []), params.get("declared", {}))
     if kind == "select":
         listed = set(params.get("names", []))
         keep = params.get("mode") == "keep"
@@ -70,21 +96,15 @@ def _schema_of(graph: Graph, op: Operator, schemas: dict[str, list[Column]]) -> 
     if op.kind in ("filter", "sort", "dedup", "write", "split", "iterate", "external_load"):
         return _from_inputs(graph, op)
     if op.kind == "map" and "steps" in op.params:
-        columns = _from_inputs(graph, op)
+        # Sin esquema de entrada, las derivaciones que el código tipa siguen siendo ciertas.
+        columns = _from_inputs(graph, op) or []
         for step in op.params["steps"]:
             columns = _apply(step["kind"], step["params"], columns)
         return columns
     if op.kind == "derive":
-        base = _from_inputs(graph, op)
-        if base is None:
-            return None
-        names = {c.name for c in base}
-        for assignment in op.params.get("assignments", []):
-            target = str(assignment.get("target", "")).lower()
-            if target and target not in names:
-                base.append(Column(target, None, None, "derived"))
-                names.add(target)
-        return base
+        # Sin esquema de entrada, las columnas que el código tipa igual son ciertas: se conservan.
+        base = _from_inputs(graph, op) or []
+        return _with_derived(base, op.params.get("assignments", []), op.params.get("declared", {}))
     if op.kind == "select":
         base = _from_inputs(graph, op)
         if base is None:

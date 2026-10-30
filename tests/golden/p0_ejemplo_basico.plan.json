@@ -232,7 +232,21 @@
       "occurrences": 1
     }
   ],
-  "gaps": [],
+  "gaps": [
+    {
+      "signature": "c397fddd49302c35",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 4,
+          "line_end": 8,
+          "label": null,
+          "call": null
+        }
+      ]
+    }
+  ],
   "jobs": [
     {
       "name": "job_p0_ejemplo_basico",

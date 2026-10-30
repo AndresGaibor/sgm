@@ -81,7 +81,11 @@ def test_case_when_queda_como_expresion_pendiente_y_no_es_tjava():
     """El traductor de expresiones no tiene CASE: la expresión queda pendiente, el componente no."""
     program = _sql("create table t as select case when x = 1 then 'a' else 'b' end as c from s;")
     compiled, _ = compile_project({"p.sas": program})
-    assert {g.reason for g in compiled["p.sas"].plan.gaps} <= {"FUNCION_NO_MAPEADA"}
+    # El tipo de la columna `c` no lo fija el código: queda como TIPO_DESCONOCIDO (R7).
+    assert {g.reason for g in compiled["p.sas"].plan.gaps} <= {
+        "FUNCION_NO_MAPEADA",
+        "TIPO_DESCONOCIDO",
+    }
     assert not any(name == "tJava" for _, name in _components(program))
 
 

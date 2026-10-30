@@ -1092,7 +1092,7 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "params": {
         "assignments": [
           {
@@ -1100,7 +1100,13 @@
             "expression": "byte(int(65+26*ranuni(0)))"
           }
         ],
-        "outputs": []
+        "outputs": [],
+        "declared": {
+          "pidexecution": [
+            "String",
+            10
+          ]
+        }
       },
       "evidence": [
         {
@@ -2095,7 +2101,7 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "c3b2e929176ccf79",
+      "signature": "27425832bc7e612a",
       "params": {
         "assignments": [
           {
@@ -2107,7 +2113,13 @@
             "expression": "compress(v, ' ')"
           }
         ],
-        "outputs": []
+        "outputs": [],
+        "declared": {
+          "v": [
+            "String",
+            32767
+          ]
+        }
       },
       "evidence": [
         {
@@ -2357,7 +2369,7 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "params": {
         "assignments": [
           {
@@ -2365,7 +2377,13 @@
             "expression": "byte(int(65+26*ranuni(0)))"
           }
         ],
-        "outputs": []
+        "outputs": [],
+        "declared": {
+          "pidexecution": [
+            "String",
+            10
+          ]
+        }
       },
       "evidence": [
         {
@@ -2808,7 +2826,7 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "params": {
         "assignments": [
           {
@@ -2816,7 +2834,13 @@
             "expression": "byte(int(65+26*ranuni(0)))"
           }
         ],
-        "outputs": []
+        "outputs": [],
+        "declared": {
+          "pidexecution": [
+            "String",
+            10
+          ]
+        }
       },
       "evidence": [
         {
@@ -3043,7 +3067,7 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "params": {
         "assignments": [
           {
@@ -3051,7 +3075,13 @@
             "expression": "byte(int(65+26*ranuni(0)))"
           }
         ],
-        "outputs": []
+        "outputs": [],
+        "declared": {
+          "pidexecution": [
+            "String",
+            10
+          ]
+        }
       },
       "evidence": [
         {
@@ -8670,7 +8700,7 @@
       "occurrences": 1
     },
     {
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "options": [
         {
           "opcion": "tMap",
@@ -8687,7 +8717,7 @@
       "occurrences": 1
     },
     {
-      "signature": "c3b2e929176ccf79",
+      "signature": "27425832bc7e612a",
       "options": [
         {
           "opcion": "tMap",
@@ -8704,7 +8734,7 @@
       "occurrences": 1
     },
     {
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "options": [
         {
           "opcion": "tMap",
@@ -8721,7 +8751,7 @@
       "occurrences": 1
     },
     {
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "options": [
         {
           "opcion": "tMap",
@@ -8738,7 +8768,7 @@
       "occurrences": 1
     },
     {
-      "signature": "ad7354eb5044a9df",
+      "signature": "c7e5947edb164199",
       "options": [
         {
           "opcion": "tMap",
@@ -9124,7 +9154,59 @@
       ]
     },
     {
-      "signature": "ad7354eb5044a9df/byte",
+      "signature": "c7e5947edb164199",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 656,
+          "line_end": 666,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "c7e5947edb164199",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1419,
+          "line_end": 1429,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "c7e5947edb164199",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2132,
+          "line_end": 2142,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "c7e5947edb164199",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2782,
+          "line_end": 2792,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "c7e5947edb164199/byte",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -9137,7 +9219,7 @@
       ]
     },
     {
-      "signature": "c3b2e929176ccf79/symget",
+      "signature": "27425832bc7e612a/symget",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -9150,7 +9232,7 @@
       ]
     },
     {
-      "signature": "c3b2e929176ccf79/compress",
+      "signature": "27425832bc7e612a/compress",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -9163,7 +9245,7 @@
       ]
     },
     {
-      "signature": "ad7354eb5044a9df/byte",
+      "signature": "c7e5947edb164199/byte",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -9176,7 +9258,7 @@
       ]
     },
     {
-      "signature": "ad7354eb5044a9df/byte",
+      "signature": "c7e5947edb164199/byte",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -9189,7 +9271,7 @@
       ]
     },
     {
-      "signature": "ad7354eb5044a9df/byte",
+      "signature": "c7e5947edb164199/byte",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {

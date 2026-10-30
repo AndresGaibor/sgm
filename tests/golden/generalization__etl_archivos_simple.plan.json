@@ -469,7 +469,7 @@
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
-      "signature": "4527bcb498cbba5f",
+      "signature": "da3cbf8b4adac2a2",
       "params": {
         "steps": [
           {
@@ -490,19 +490,37 @@
                   "target": "importe",
                   "expression": "round(cantidad * precio, 0.01)"
                 }
-              ]
+              ],
+              "declared": {
+                "prefijo": [
+                  "String",
+                  3
+                ]
+              }
             }
           },
           {
             "kind": "derive",
             "params": {
-              "conditional": "if canal = 'WEB' then descuento = 0.05"
+              "conditional": "if canal = 'WEB' then descuento = 0.05",
+              "declared": {
+                "prefijo": [
+                  "String",
+                  3
+                ]
+              }
             }
           },
           {
             "kind": "derive",
             "params": {
-              "conditional": "else if canal = 'TIENDA' then descuento = 0.02"
+              "conditional": "else if canal = 'TIENDA' then descuento = 0.02",
+              "declared": {
+                "prefijo": [
+                  "String",
+                  3
+                ]
+              }
             }
           },
           {
@@ -519,7 +537,13 @@
                   "target": "importe_neto",
                   "expression": "importe * (1 - descuento)"
                 }
-              ]
+              ],
+              "declared": {
+                "prefijo": [
+                  "String",
+                  3
+                ]
+              }
             }
           },
           {
@@ -780,7 +804,59 @@
   ],
   "gaps": [
     {
-      "signature": "4527bcb498cbba5f/else descuento = 0",
+      "signature": "da3cbf8b4adac2a2",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "5e2d4e16bd7ea5e4",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 27,
+          "line_end": 29,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "253e97bb004bb320",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 27,
+          "line_end": 29,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "6bc64a5c23a1373a",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 40,
+          "line_end": 42,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "da3cbf8b4adac2a2/else descuento = 0",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {

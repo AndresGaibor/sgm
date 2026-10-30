@@ -645,6 +645,19 @@
       ]
     },
     {
+      "signature": "fd0e7150b6f1f34c",
+      "reason": "TIPO_DESCONOCIDO",
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
       "signature": "fd0e7150b6f1f34c/put",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [

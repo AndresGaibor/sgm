@@ -538,3 +538,38 @@ El top de huecos ahora lo ocupan las expresiones `input(...)` y `COMPRESS(input(
 
 - Un `PROC CONTENTS` con `OUT=` no es un reporte: produce un dataset que otros pasos leen. Se queda como hueco.
 - Un reporte de `log` o `csv` se convierte en la pasada 2 (con la política), y no en el lowering, que no conoce la configuración.
+
+## R7. Tipos desde el propio código
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `ir/types_code.py` (nuevo): tipos que el código fija sin ambigüedad. `input(x, w.)` y `input(x, w.d)`: `Long` si no hay decimales y `w <= 18`, `BigDecimal` con decimales, `Double` en otro caso. Informats de fecha u hora: `Date`. `put(x, w.)`: `String` de longitud `w`. `cast(x as T)`: el tipo del cast. Literales: entero `Long`, decimal `Double`, texto `String`. Aritmética sobre números: `Double`. Funciones de SAS de carácter (`compress`, `substrn`, `cats`, `left`...) y numéricas (`int`, `round`, `sum`...), cuando la llamada es la expresión completa. Declaraciones del DATA step: `length v $ n`, `length v n`, `format` e `informat`.
+  - `ir/lower_data.py`: las declaraciones del DATA step se guardan en sus derivaciones (`params.declared`).
+  - `passes/p09_schemas.py`: origen `code`. Prioridad catálogo, encabezado, código, derivado: una columna que ya tiene tipo no se cambia. Una derivación sin esquema de entrada (o un `map`) sigue dando tipo a las columnas que el código fija.
+- Pruebas: `tests/unit/test_tipos_codigo.py` (11 casos): reglas de informat, `input`/`put`/`cast`, literales y aritmética, funciones, declaraciones, prioridad del catálogo, derivada sin tipo que sigue desconocida, y un DATA step que tipa sus columnas. `test_sql_flujo`: el `CASE` (sin traducción) ahora da también `TIPO_DESCONOCIDO` para su columna, que es lo correcto. Goldens regenerados: en las referencias solo cambian los huecos de tipo; las firmas de operadores no cambian. Total: 261 pasan, 1 se salta. `ruff check .` limpio.
+
+### Criterio de salida: el DATA step de tipado de `VARn` produce tipo para las columnas que convierte — **cumplido, con una excepción**
+
+- En `client_large.sas` hay 21 columnas convertidas con `input(...)` dentro de DATA steps. **20 reciben tipo** (`Long`, `Double` o `String` según el informat o la función). La restante (`sum_pesos`) mezcla `input(...)` con operandos sin tipo: sigue desconocida, como debe.
+- Antes de R7 solo 1 de 21 tenía tipo. La causa era que sin esquema de entrada no se calculaba la derivación, ni dentro de un `map` fusionado.
+
+### Cifras (`sgm metrics`)
+
+| Métrica | R6 | R7 |
+|---|---|---|
+| Componentes (corpus) | 1 475 | 1 475 (sin cambio) |
+| Subjobs (corpus) | 779 | 779 (sin cambio) |
+| Decisiones (corpus) | 1 033 totales, 292 firmas | 1 033 totales, 294 firmas |
+| Huecos `TIPO_DESCONOCIDO` | 0 en el top | Visibles: 4 en `client_poc`, 41 en `client_large` (antes ocultos) |
+
+Tipar no cambia la agrupación; cambia la calidad del esquema y lo que queda declarado como desconocido.
+
+### Lo que sigue en el top de huecos (no es tipado)
+
+- `input(left(VAR7), 30.)` y `COMPRESS(input(...))`: **220, 160, 150, 80 y 75** ocurrencias. El tipo ya se conoce, pero el traductor de expresiones no sabe convertir `input` a Java. Es el siguiente hueco más caro: traducir `input` (numérico y texto) en el traductor.
+
+## Decisiones (R7)
+
+- Un `derive` o un `map` sin esquema de entrada conservan las columnas que el código tipa. Así las derivaciones de un DATA step se tipan aunque la lectura de origen no tenga esquema. Las demás columnas siguen sin tipo.
+- `COMPRESS`, `SUBSTR`, `CAT` y similares dan `String`, y `INT`, `ROUND`, `SUM` y similares dan `Double`. Son reglas de SAS, no suposiciones sobre los datos.
+- Un informat de fecha o de hora da `Date`, sin distinguir `date` de `datetime`. El plan lo pide así.
