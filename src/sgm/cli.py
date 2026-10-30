@@ -13,12 +13,12 @@ from sgm import cache, generadores, trinquete
 from sgm import decisions as decisions_mod
 from sgm import diagnostics as diagnostics_mod
 from sgm import explain as explain_mod
-from sgm.catalog import describe as describe_mod
 from sgm import intake as intake_mod
 from sgm import lineage as lineage_mod
 from sgm import metrics as metrics_mod
 from sgm import rules_validate as rules_validate_mod
 from sgm.batch import compile_batch
+from sgm.catalog import describe as describe_mod
 from sgm.catalog.config import ConfigError, Env, load_env
 from sgm.emit.guide_md import render_guide
 from sgm.emit.plan_json import plan_to_dict

@@ -1,0 +1,5 @@
+description: "INCLUDE_EXTERNO cerrado: el archivo está en env/externals/ y su macro se expande."
+input: input.sas
+env: default
+expect:
+  gaps: []

@@ -771,3 +771,18 @@ Fecha: 2026-10-30. Se agruparon en un commit porque comparten `cli.py` y no hay 
 - Incidente: el test de CLI de `import-describe` sobrescribió `env/schemas/ejemplo_lz.json` por un valor por defecto fijado al importar. Restaurado desde `HEAD:env/schemas.json`, corregido el valor por defecto y comprobado que el contenido vuelve a coincidir.
 
 Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, informats, funciones, procs, intrínsecos) y F1.10 (ciclo completo con un hueco de cada motivo).
+
+## Fase 1, F1.4 (parcial): fontanería desde YAML
+
+- Fecha: 2026-10-30
+- Qué se hizo: `rules/sas/plumbing.yaml` tiene los 15 patrones de fontanería (regex idénticas a las del código, generadas desde él). `src/sgm/passes/plumbing_patterns.py` solo carga el archivo. Pruebas: `tests/unit/test_plumbing_yaml.py` (9); caso `tests/cases/plumbing`.
+- Golden: sin cambios (la suite de golden pasa). Trinquete: `metrics tests/fixtures/sas --check` sin empeorar.
+- Pendiente de F1.4: funciones SAS (`rules/sas/functions/`, sale de `expressions.py`), informats (`rules/sas/informats.yaml`, sale de `types_code.py`), sentencias globales (`rules/sas/statements/`), PROC genéricos (`rules/sas/procs/` con un intérprete de `bind`/`ops`; sort, append, means, summary, freq viven hoy en `lower_procs.py`) e intrínsecos (`rules/sas/intrinsics/`). Cada uno cambia el lugar donde se decide un motivo, así que va en su propio commit con golden.
+
+## Fase 1, F1.10 (parcial): ciclo de huecos de punta a punta
+
+- Fecha: 2026-10-30
+- Hueco cerrado: `INCLUDE_EXTERNO` (`tests/cases/include-externo`). Antes: `INCLUDE_EXTERNO` y `MACRO_NO_EXPANDIDA` para un `%include` de un archivo fuera del repo. Se cerró solo tocando `env/externals/helpers_ejemplo.sas` (contenido sintético: una macro). Después: sin huecos. Usa solo `env/` y `tests/cases/`, como pide el plan.
+- Corrección encontrada en el camino: `cache.rules_hash` solo miraba `rules/` y `env/schemas/`; un cambio en `env/externals/` no invalidaba la caché. Ahora cubre todo `env/`.
+- Huecos de otros motivos no cerrados en este ciclo, con motivo: `PROC_NO_SOPORTADO` (necesita el intérprete de PROC de F1.4), `FUNCION_NO_MAPEADA` (necesita `rules/sas/functions/` de F1.4), `TIPO_DESCONOCIDO` (necesita informats de F1.4 o `env/schemas/` con tipos), `PARSE_ERROR`, `MACRO_DINAMICA`, `INTRINSECO_PARCIAL`, `SEMANTICA_DUDOSA` (código o decisión del usuario, no reglas), `COMPONENTE_NO_CATALOGADO` (no se da con el catálogo actual), `COMANDO_SISTEMA`, `MACRO_NO_EXPANDIDA`, `SQL_NO_SOPORTADO` (fuera de contrato).
+- Verificación: `rules validate` sin problemas; suite 339 pasan, 1 se salta; ruff limpio; `metrics --check` sin empeorar.

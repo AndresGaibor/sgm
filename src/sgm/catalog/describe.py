@@ -1,4 +1,4 @@
-"""`sgm env import-describe` (F1.9): salida de texto de `DESCRIBE <tabla>` de Impala a `env/schemas/`.
+"""`sgm env import-describe` (F1.9): salida de `DESCRIBE <tabla>` de Impala a `env/schemas/`.
 
 El archivo puede traer varias tablas. Cada tabla empieza con una línea que solo tiene su nombre
 (`clientes` o `esquema.clientes`). Debajo va la salida de DESCRIBE, en tabla con barras
@@ -65,7 +65,7 @@ def traducir(tipo_impala: str) -> tuple[str | None, int | None]:
     m = _TIPO.match(tipo_impala.lower())
     if not m:
         return None, None
-    base, longitud, escala = m.group(1), m.group(2), m.group(3)
+    base, longitud = m.group(1), m.group(2)
     if base == "decimal":
         return "BigDecimal", None
     tipo = TIPOS.get(base)
@@ -77,7 +77,10 @@ def traducir(tipo_impala: str) -> tuple[str | None, int | None]:
 
 
 def _filas(texto: str) -> list[tuple[str, list[str]]]:
-    """Por cada línea útil: ('tabla', [nombre]) o ('columna', [nombre, tipo]). Bordes y cabeceras, fuera."""
+    """Líneas útiles: ('tabla', [nombre]) o ('columna', [nombre, tipo]).
+
+    Los bordes y las cabeceras no entran.
+    """
     filas: list[tuple[str, list[str]]] = []
     for linea in texto.splitlines():
         if not linea.strip() or _BORDE.match(linea):

@@ -13,12 +13,18 @@ import shutil
 from pathlib import Path
 
 from sgm import __version__
-from sgm.compile import ROOT_DIR, RULES_DIR, SCHEMAS_PATH
+from sgm.compile import ROOT_DIR, RULES_DIR
+
+ENV_DIR = ROOT_DIR / "env"
 
 
 def rules_hash() -> str:
+    """Huella de todo lo que cambia una salida además del código fuente: `rules/` y `env/`.
+
+    `env/` incluye los esquemas, los externos y la configuración del proyecto.
+    """
     digest = hashlib.sha256(__version__.encode("utf-8"))
-    for path in sorted(RULES_DIR.rglob("*")) + sorted(SCHEMAS_PATH.rglob("*")):
+    for path in sorted(RULES_DIR.rglob("*")) + sorted(ENV_DIR.rglob("*")):
         if path.is_file():
             digest.update(path.relative_to(ROOT_DIR).as_posix().encode("utf-8"))
             digest.update(path.read_bytes())
