@@ -182,6 +182,11 @@ def split_statements(src: str) -> list[Stmt]:
                 term = ";;;;" if m.group(2) else ";"
                 first = line
                 rows: list[str] = []
+                # El resto de la línea de `datalines;` no es una fila si solo tiene espacios.
+                eol = src.find("\n", i)
+                if eol >= 0 and not src[i:eol].strip():
+                    line += 1
+                    i = eol + 1
                 while i < n:
                     j = src.find("\n", i)
                     j = n if j < 0 else j
