@@ -613,3 +613,108 @@ Tipar no cambia la agrupación; cambia la calidad del esquema y lo que queda dec
   - `sgm decisions pendientes <fuente>` (nuevo comando): muestra el total de decisiones y de firmas únicas, y la lista por firma de la más frecuente a la menos frecuente. `sgm metrics` ya reporta ambas cifras.
 - Pruebas: `tests/unit/test_decisiones.py` (3 casos: una firma compartida por dos archivos cuenta un operador por archivo; los totales distinguen decisiones de firmas; sin alternativas no hay decisiones).
 - Uso real (`client/`): 316 decisiones pendientes, 58 firmas únicas. La firma más frecuente (`temp_table` frente a `hash`) tiene 58 operadores: se elige una vez, no 58.
+
+## R10. Verificación y entrega (ronda 2)
+
+- Fecha: 2026-10-30
+- Verificación:
+  - `uv run pytest`: 270 pasan, 1 se salta (un symlink que Windows no permite crear). `ruff check .` limpio.
+  - `sgm compile tests/fixtures/sas --out out --no-cache`: sale con código 0; 189 programas, todas las guías y planes escritos.
+  - `sgm metrics tests/fixtures/sas`: `out/metrics.json` y `out/diagnostico.md` con el estado final.
+  - Secretos: `pwencode` sin enmascarar, en `out/` ni en `tests/`: ninguno (la coincidencia de `grep` es `pwencode in='***'`). Ningún `pass=` en claro.
+  - Guía de `client_large.sas`: se añadió la sección `## Etapas` (una fila por subjob). Son **196 etapas**: cumple el criterio numérico, pero no se lee como "pocas etapas". Queda como deuda (ver abajo).
+
+### Metas de la ronda 2 (`client_large.sas`)
+
+| Métrica | Ronda 1 | Meta | Alcanzado |
+|---|---|---|---|
+| `tJava` | 49,8 % | 10 % o menos | **0,0 %** |
+| `tJava` con origen PROC SQL | sin medir | 0 | **0** (corpus: 0) |
+| Componentes frente a pasos SAS | más componentes que nodos | menos componentes que pasos SAS | **403 componentes frente a 4 808 pasos** (pasos por componente 11,9) |
+| Subjobs | 397 | 198 o menos | **196** |
+| Huecos de la maquinaria de carga | 6 firmas en el top 10 | 0 | **0** (`WORKPATH`, `COUNTW`, `SYSEVALF`, `sessio&i`, `PROC CONTENTS ... _ALL_`). Quedan 10 `SELECT ... INTO` de año, mes y día, que no son de conteo. |
+| Decisiones | 293 totales | reportar firmas únicas | **302 totales, 55 firmas únicas** (`sgm decisions pendientes`) |
+
+- `client_poc.sas`: componentes 67 → 37; `tJava` 13,4 % → **0,0 %**; subjobs 14 → 10.
+- Corpus (189 programas): componentes 1 690 → **1 328**; `tJava` 25,7 % → **0,0 %**; subjobs 958 → **750**; decisiones 976 (256 firmas) → 886 (306 firmas).
+
+### Desglose de R0, antes y después (componentes por origen SAS, corpus)
+
+| Origen | Ronda 1 (R0) | Ronda 2 (R10) | `tJava` antes | `tJava` después |
+|---|---|---|---|---|
+| `proc_sql_work` | 418 (24,7 %) | 362 (27,3 %) | 406 | **0** |
+| `creado_por_pasada` (fusiones, plantillas, cargas) | 520 (30,8 %) | 346 (26,1 %) | 29 | 0 |
+| `data_step` | 434 (25,7 %) | 345 (26,0 %) | 0 | 0 |
+| `proc_sort`, `proc_import`, `proc_export`, `proc_means`, `proc_append`, `proc_freq` | 287 | 244 | 0 | 0 |
+
+- Los `tJava` que quedaban en R0 eran 435 (25,7 %). Ahora son **0**. El `tJavaRow` (64 en `data_step`) es el componente de estado entre filas, que la escalera mantiene a propósito: no es `tJava`.
+
+### Top 10 de huecos (corpus, ronda 2)
+
+| # | Ocurrencias | Motivo | Firma (sentencia) |
+|---|---|---|---|
+| 1 | 220 | `FUNCION_NO_MAPEADA` | `input(left(VAL_CRED_MES_old), 20.)` |
+| 2 | 160 | `FUNCION_NO_MAPEADA` | `COMPRESS(input(left(VAR12), 30.))` |
+| 3 | 150 | `FUNCION_NO_MAPEADA` | `COMPRESS(input(left(VAR12), 30.))` |
+| 4 | 80 | `FUNCION_NO_MAPEADA` | `input(left(VAR7), 30.)` |
+| 5 | 75 | `FUNCION_NO_MAPEADA` | `input(left(VAR7), 30.)` |
+| 6 | 70 | `INCLUDE_EXTERNO` | `%include "/data/Programas_SAS/sascode/grid_util.sas"` |
+| 7 | 30 | `TIPO_DESCONOCIDO` | columnas derivadas sin tipo que el código no fija |
+| 8 | 26 | `PROC_NO_SOPORTADO` | `PROC DOWNLOAD INFILE=...` (transferencia de entrada) |
+| 9 | 24 | `FUNCION_NO_MAPEADA` | `SUBSTRN(CATS(NOMBRE_SIN_ESP), 1, CNLFN1)` |
+| 10 | 23 | `INCLUDE_EXTERNO` | `%include "&prog_path./000_bsf_macros.sas"` |
+
+- Los puestos 1 a 5 (685 ocurrencias) son `input(...)` y funciones de carácter sin traducción al lenguaje de Talend. Sus tipos ya los fija R7; falta la traducción en el traductor. Es el siguiente paso con más efecto.
+- Los `TIPO_DESCONOCIDO` no traen texto en la guía: la firma identifica al operador.
+
+### Lo que no se cumplió, dicho sin rodeos
+
+1. **"Pocas etapas" en la guía**: 196 subjobs. El criterio numérico se cumple (≤198), pero una guía con 196 filas no es una lectura de pocas etapas. Lo que lo reduciría: fusionar lecturas de base de una sola fila (`tImpalaInput` solo) con la etapa que las consume, y bajar las 53 llamadas `tRunJob`.
+2. **Cadenas de SQL fusionado de 2 pasos** (criterio R5 "cadenas largas"): no se cumple. Lo impiden las lecturas WORK producidas por DATA steps en flujo, las funciones de SAS sin SQL, y los `join` que quedan en flujo.
+3. **Traducción de `input()` y de funciones de carácter** en el traductor: los puestos 1 a 5 del top.
+4. **34 PROC SQL que `sqlglot` no parsea** (`PARSE_ERROR`): no se revisaron uno a uno.
+
+## Bloqueos abiertos (lo que hace falta del usuario)
+
+1. **Esquemas reales del entorno** (`env/schemas.json` solo tiene ejemplos). Los tipos que el código fija (R7) ya cubren 20 de 21 columnas convertidas; los esquemas darían el resto.
+2. **Motores por biblioteca** (`env/engines.json`, `libraries` vacío). Sin eso, las bibliotecas LZ no se ubican en base.
+3. **`%include` externos** no declarados: `grid_util.sas` (70 ocurrencias) y `000_bsf_macros.sas` (23). Si se declaran en `env/externals.json`, dejan de ser hueco.
+4. **Decisión sobre `input()`**: traducirla a conversiones Java (numérica o de texto) en el traductor, o dejarla como revisión manual.
+5. **Prefijo de tablas de trabajo** (`sgm_`): el plan lo pide configurable; no hay campo en `env/project.json`.
+
+## Decisiones de diseño de la ronda 2 (resumen; el detalle está en cada hito)
+
+- `sqlglot` 30.27.0 como única dependencia nueva (R4). Dialecto `hive` porque `sqlglot` no tiene `impala`.
+- La regla de último recurso (`05`) solo la aplica `_tjava` (R4). Era un defecto de la ronda 1.
+- Un `read` o `write` de flujo sin componente no ocupa subjob (R8).
+- Plantillas en una llamada en bucle solo si la contracción sigue siendo acíclica (R8).
+- `reports = discard` por defecto; `csv` y `log` solo cambian el destino (R6).
+- Ningún `join` ni `union` entra en la base sin esquemas (R5).
+
+## Commits (ronda 2, local; no se hizo `push`)
+
+- `1be6181` docs: plan de la ronda 2 guardado tal cual
+- `0f927eb` R0: diagnóstico de agrupación
+- `8599d8d` R1: env/ validado; `%include` declarado no es hueco
+- `4afd5e7` R2: selectores de ambiente; `b0e1f58` corrige cifras del registro
+- `8ff0a25` R3: región de carga externa absorbe preparación, troceo y limpieza
+- `9f41fa4` R4: PROC SQL a operadores de flujo (sqlglot), `set_variable`, SQL Hive
+- `c655861` R5: `push_to_db` (carga única, cadenas de base, frontera)
+- `944f883` R6: reportes según `reports`
+- `7129a45` R7: tipos que fija el código
+- `e0c17d0` R8: subjob por componente conexo; R9: decisiones agrupadas
+- `88c84cf` chore: quita el archivo vacío `1`
+- `69560a6` R10: sección de etapas en la guía
+
+## Entrega final (resumen)
+
+1. Hitos: R0 a R10 terminados. Ninguno bloqueado. Dos metas quedan parciales (pocas etapas en la guía; cadenas largas de SQL en base), con su motivo arriba.
+2. Pruebas: 270 pasan, 1 se salta. `ruff check .` limpio.
+3. Metas: ver la tabla de R10.
+4. Desglose R0 antes y después: ver arriba.
+5. Top 10 de huecos: ver arriba.
+6. Decisiones de diseño: ver arriba y en cada hito.
+7. Lo que se necesita del usuario: bloqueos 1 a 5.
+8. Commits locales: lista arriba.
+
+No se hizo `git push`. No se activó MCP. El repositorio tiene un remoto `origin` configurado (github.com/AndresGaibor/sgm) que no añadí yo: conviene revisarlo antes de cualquier envío.
