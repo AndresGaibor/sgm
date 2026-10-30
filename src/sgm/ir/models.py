@@ -38,6 +38,7 @@ OPERATOR_KINDS = frozenset(
         "iterate",
         "map",
         "set_variable",
+        "report",
         "unsupported",
     }
 )

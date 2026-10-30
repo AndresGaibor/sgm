@@ -515,3 +515,26 @@ Es decir, el cuello de botella de la ubicación en base no es la pasada 4 sino l
 - `dedup` solo se ejecuta en base sin claves (DISTINCT). Con claves haría falta `ROW_NUMBER` y un esquema.
 - Las tablas de trabajo llevan el prefijo `sgm_` fijo. El plan pide un prefijo configurable; queda como mejora (no hay campo en `env/project.json`).
 - Una cadena que produce una tabla que lee el flujo tiene como nombre de salida el dataset de su arista (sin `WORK.` y sin `.`), para que el `read` de frontera encuentre la misma tabla.
+
+## R6. Reportes y PROC CONTENTS
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `ir/lower_procs.py`: `PROC PRINT`, `PROC REPORT` y `PROC CONTENTS` sin `OUT=` pasan a un hueco de tipo `REPORTE` (con su dataset de entrada). Con `OUT=` (dataset que otros pasos leen) siguen como hueco `PROC_NO_SOPORTADO`.
+  - `passes/p02_plumbing.py`: la política `reports` de `env/project.json` decide. `discard` (por defecto): no migrado, con la nota "reporte de diagnóstico, no se migra". `log`: un `report` que va a `tLogRow` (`rules/mapping/02-report-log.yaml`, tipo nuevo `report`). `csv`: un `write_file` con `outfile = contexto.ruta_<procedimiento>`, de modo que la ruta es un contexto del Job.
+- Pruebas: `tests/unit/test_reportes.py` (5 casos: `discard` no migra y no es hueco; `log` usa `tLogRow`; `csv` escribe con la ruta como contexto; `OUT=` sigue siendo hueco; en el cliente con `discard`, desaparecen `PROC PRINT` y `PROC CONTENTS` de los huecos). `test_ir_rules` usaba `proc print` como ejemplo de procedimiento sin regla: ahora usa `proc univariate`. Total: 251 pasan, 1 se salta. `ruff check .` limpio.
+
+### Criterio de salida: con `discard`, PROC PRINT y PROC CONTENTS fuera del top de huecos — **cumplido**
+
+| Firma en el top de huecos (corpus) | Antes (R5) | Después (R6) |
+|---|---|---|
+| `proc contents data=Mozart.Test_Scores ...` | 86 | fuera del top |
+| `proc print data=Veg...` | 31 | fuera del top |
+| `proc contents data=work._all_ ...` (no absorbido) | 31 | fuera del top |
+
+El top de huecos ahora lo ocupan las expresiones `input(...)` y `COMPRESS(input(...))` sin traducción (220, 160, 150, 80, 75 ocurrencias): es el trabajo de R7 (tipos) y de traducción de `input`.
+
+## Decisiones (R6)
+
+- Un `PROC CONTENTS` con `OUT=` no es un reporte: produce un dataset que otros pasos leen. Se queda como hueco.
+- Un reporte de `log` o `csv` se convierte en la pasada 2 (con la política), y no en el lowering, que no conoce la configuración.

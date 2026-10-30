@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 
 from sgm.ir.models import Graph, NotMigrated, Operator
+from sgm.ir.signature import signature
 from sgm.passes.base import PassContext, PassLog
 from sgm.passes.plumbing_patterns import match_plumbing
 
@@ -68,11 +69,48 @@ def classify(op: Operator) -> tuple[str, str, str] | None:
     return found.category, found.what, found.talend
 
 
+def _report(op: Operator, ctx: PassContext) -> bool:
+    """Reporte impreso (PROC PRINT, REPORT, CONTENTS sin OUT=) según `reports` del proyecto.
+
+    `discard`: no se migra (queda en no migrados). `log`: un `report` que va a `tLogRow`.
+    `csv`: un `write_file` a un fichero cuya ruta es un contexto del Job.
+    """
+    if op.params.get("reason") != "REPORTE":
+        return False
+    policy = ctx.project.reports
+    procedure = str(op.params.get("procedure", "")).upper()
+    inputs = list(op.params.get("inputs", []))
+    if policy == "discard":
+        op.status = "reemplazado"
+        op.params["plumbing"] = "reporte_diagnostico"
+        ctx.plan.not_migrated.append(
+            NotMigrated(
+                op.id,
+                f"PROC {procedure} de diagnóstico: reporte impreso",
+                "No se migra: reporte de diagnóstico (reports = discard)",
+                list(op.evidence),
+            )
+        )
+    elif policy == "log":
+        op.kind = "report"
+        op.status = "soportado"
+        op.params = {"procedure": procedure.lower(), "inputs": inputs}
+    else:
+        op.kind = "write_file"
+        op.status = "soportado"
+        op.params = {"inputs": inputs, "outfile": f"contexto.ruta_{procedure.lower()}"}
+    op.signature = signature(op.kind, op.params)
+    return True
+
+
 def mark(graph: Graph, ctx: PassContext) -> PassLog:
     """Marca los operadores de fontanería y los registra con su equivalente. No los quita todavía.
-    Marca los operadores de fontanería y los registra con su equivalente. No los quita todavía."""
+    Los reportes impresos los decide la política `reports` (ver `_report`)."""
     log = PassLog(NAME)
     for op in graph.operators():
+        if _report(op, ctx):
+            log.metrics["reportes"] = log.metrics.get("reportes", 0) + 1
+            continue
         found = classify(op)
         if found is None:
             continue

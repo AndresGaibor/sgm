@@ -131,7 +131,7 @@ def test_sql_sobre_work_se_traduce_a_flujo_sin_exec_sql():
 
 
 def test_proc_sin_regla_es_hueco_con_motivo():
-    (op,) = _ops("proc print data=x; run;")
+    (op,) = _ops("proc univariate data=x; var a; run;")
     assert op.status == "hueco" and op.params["reason"] == "PROC_NO_SOPORTADO"
 
 

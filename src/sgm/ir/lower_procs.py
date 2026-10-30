@@ -15,11 +15,34 @@ def _names(clause: str | None) -> list[str]:
     return [w.lower() for w in words.replace(";", " ").split() if w]
 
 
+REPORT_PROCS = frozenset({"print", "report", "contents"})
+
+
+def _report(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
+    """Reporte impreso de un dataset. Su destino lo decide la política `reports` (pasada 2)."""
+    statement = "; ".join([step.text, *step.body])
+    params = {
+        "statement": statement,
+        "procedure": step.name,
+        "reason": "REPORTE",
+        "inputs": [qualify(data)] if data else [],
+    }
+    b.op(
+        "unsupported",
+        params,
+        ev,
+        status="hueco",
+        notes=["reporte impreso: lo decide la política reports de env/project.json"],
+    )
+
+
 def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
     name = step.name
     data = step.options.get("data")
     out = step.options.get("out")
-    if name == "sort":
+    if name in REPORT_PROCS and not out:  # con OUT= produce un dataset que otros pasos leen
+        _report(step, ev, b, data)
+    elif name == "sort":
         _sort(step, ev, b, data, out)
     elif name == "append":
         base, data_option = step.options.get("base"), step.options.get("data")
