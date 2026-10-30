@@ -1,0 +1,11 @@
+id: external-load
+kind: intrinsic
+version: 1
+status: parcial
+description: "Carga externa reconocida por estructura: lanzamiento en segundo plano y espera por conteo de procesos (pasada 3)."
+implementation: sgm.passes.p03_intrinsics._external_load
+features_required:
+  - system_command_background
+  - process_wait_loop
+tests:
+  - tests/cases/external-load-parcial

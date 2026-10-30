@@ -1,0 +1,9 @@
+description: "Carga externa sintética: el intrínseco queda parcial y su componente es tJava (último recurso)."
+input: input.sas
+env: default
+expect:
+  operators:
+    - { kind: external_load, component: tJava }
+  gaps:
+    - INTRINSECO_PARCIAL
+  max_tjava: 1

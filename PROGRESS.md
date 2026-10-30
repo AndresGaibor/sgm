@@ -786,3 +786,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Corrección encontrada en el camino: `cache.rules_hash` solo miraba `rules/` y `env/schemas/`; un cambio en `env/externals/` no invalidaba la caché. Ahora cubre todo `env/`.
 - Huecos de otros motivos no cerrados en este ciclo, con motivo: `PROC_NO_SOPORTADO` (necesita el intérprete de PROC de F1.4), `FUNCION_NO_MAPEADA` (necesita `rules/sas/functions/` de F1.4), `TIPO_DESCONOCIDO` (necesita informats de F1.4 o `env/schemas/` con tipos), `PARSE_ERROR`, `MACRO_DINAMICA`, `INTRINSECO_PARCIAL`, `SEMANTICA_DUDOSA` (código o decisión del usuario, no reglas), `COMPONENTE_NO_CATALOGADO` (no se da con el catálogo actual), `COMANDO_SISTEMA`, `MACRO_NO_EXPANDIDA`, `SQL_NO_SOPORTADO` (fuera de contrato).
 - Verificación: `rules validate` sin problemas; suite 339 pasan, 1 se salta; ruff limpio; `metrics --check` sin empeorar.
+
+## Fase 1, F1.4 (continuación): informats, funciones e intrínsecos
+
+- Fecha: 2026-10-30
+- Informats: `rules/sas/informats.yaml` tiene los nombres de fecha, la marca de carácter y los umbrales numéricos. `src/sgm/ir/types_code.py` los lee. Salida idéntica en 34 especificaciones de muestra (comparación antes/después). Caso `tests/cases/informats-basicos` (con `input()` y `put()` como `FUNCION_NO_MAPEADA`, porque el traductor de Talend está apagado). Pruebas: `tests/unit/test_informats_yaml.py` (3).
+- Funciones: `rules/sas/functions/fn-{upcase,lowcase,strip,trim}.yaml` con la plantilla Java y el aviso de nulos. `expressions.py` las lee. Salida idéntica en cinco muestras. Un caso por función (`tests/cases/fn-*`). Las demás funciones (`substr`, `input`, `put`, fechas...) siguen en código: pasan a YAML cuando se pueda cambiar su implementación con golden.
+- Intrínsecos: `rules/sas/intrinsics/external-load.yaml` declara la carga externa con su `implementation`. Caso `tests/cases/external-load-parcial` (queda parcial y su componente es `tJava`). Prueba: `tests/unit/test_intrinsecos_yaml.py` (el `implementation` existe).
+- Pendiente de F1.4: sentencias globales (todas caen en un único motivo de respaldo, no hay nada que mover sin cambiar salida), y PROC genéricos (`sort`, `append`, `means`, `summary`, `freq`), que necesitan un intérprete de `bind`/`ops` con equivalencia probada.
+- Verificación: suite 349 pasan, 1 se salta; ruff limpio; `rules validate` limpio; `metrics --check` sin empeorar.
