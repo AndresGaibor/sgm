@@ -20,11 +20,26 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
+
+# Los nombres de fecha, la marca de carácter y los umbrales numéricos viven en
+# `rules/sas/informats.yaml` (F1.4). Aquí solo se interpretan.
+INFORMATS_YAML = Path(__file__).resolve().parents[3] / "rules" / "sas" / "informats.yaml"
+
+
+def _entrada(id_: str) -> dict:
+    entries = yaml.safe_load(INFORMATS_YAML.read_text(encoding="utf-8"))["entries"]
+    return next(e for e in entries if e["id"] == id_)
+
+
+_FECHA = _entrada("fecha")
+_CARACTER = _entrada("caracter")
+_NUMERICO = _entrada("numerico")
 
 _INFORMAT = re.compile(r"(?i)^(\$?)([a-z]*)(\d*)\.(\d*)$")  # `$10.`, `8.`, `dollar18.2`, `comma12.`
-_DATE = re.compile(
-    r"(?i)^(yymmdd|ddmmyy|mmddyy|date|datetime|time|monyy|yyq|julian|dtdate|dtmonyy)\d*\.$"
-)
+_DATE = re.compile(r"(?i)^(" + "|".join(_FECHA["names"]) + r")\d*\.$")
 _CALL = re.compile(r"(?i)^(input|put)\s*\(\s*(.+?)\s*,\s*(\$?[a-z]*\d*\.\d*)\s*\)$")
 _CAST = re.compile(r"(?i)^cast\s*\(.*\bas\s+(\w+)\s*(?:\(\s*(\d+)[^)]*\))?\s*\)$")
 _ARITHMETIC = re.compile(r"^[\d\s.+\-*/()]+$")
@@ -87,24 +102,24 @@ class CodeType:
 def numeric_type(width: int, decimals: int) -> CodeType:
     """Tipo de un informat numérico de ancho `width` y `decimals` decimales."""
     if decimals > 0:
-        return CodeType("BigDecimal")
-    if width <= 18:
-        return CodeType("Long")
-    return CodeType("Double")
+        return CodeType(_NUMERICO["decimals_type"])
+    if width <= _NUMERICO["long_max_width"]:
+        return CodeType(_NUMERICO["long_type"])
+    return CodeType(_NUMERICO["wide_type"])
 
 
 def informat_type(spec: str) -> CodeType | None:
     """Tipo que fija un informat o formato (`8.`, `30.2`, `$10.`, `yymmdd8.`). None si no fija."""
     text = spec.strip().lower()
     if _DATE.match(text):
-        return CodeType("Date")
+        return CodeType(_FECHA["type"])
     match = _INFORMAT.match(text)
     if not match:
         return None
     dollar, name, width_text, decimals_text = match.groups()
     width = int(width_text or 0)
-    if dollar or name.startswith("char"):
-        return CodeType("String", width or None)
+    if dollar or name.startswith(_CARACTER["prefix"]):
+        return CodeType(_CARACTER["type"], width or None)
     return numeric_type(width, int(decimals_text or 0))
 
 

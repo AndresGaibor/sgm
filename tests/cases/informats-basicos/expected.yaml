@@ -1,0 +1,7 @@
+description: "Informats que fijan tipo. input() y put() quedan como FUNCION_NO_MAPEADA mientras SGM_TALEND_EXPRESSIONS esté apagado (ver PROGRESS)."
+input: input.sas
+env: default
+expect:
+  gaps:
+    - FUNCION_NO_MAPEADA
+    - FUNCION_NO_MAPEADA

@@ -1,0 +1,23 @@
+id: informats
+kind: informats
+version: 1
+status: soportado
+description: "Tipo que fija un informat o formato de SAS. Lo lee src/sgm/ir/types_code.py (R7)."
+entries:
+  # Informats de fecha u hora: `yymmdd8.`, `ddmmyy10.`, `datetime20.`. Tipo Date.
+  - id: fecha
+    names: [yymmdd, ddmmyy, mmddyy, date, datetime, time, monyy, yyq, julian, dtdate, dtmonyy]
+    type: Date
+  # `$w.` o `charw.`: texto de longitud w. Tipo String.
+  - id: caracter
+    marker: "$"
+    prefix: char
+    type: String
+  # Numérico `w.d`: con decimales, BigDecimal; sin ellos, Long si w <= long_max_width, Double si no.
+  - id: numerico
+    decimals_type: BigDecimal
+    long_max_width: 18
+    long_type: Long
+    wide_type: Double
+tests:
+  - tests/cases/informats-basicos
