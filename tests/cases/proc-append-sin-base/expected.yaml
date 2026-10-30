@@ -1,0 +1,6 @@
+description: "PROC APPEND sin BASE=: no se migra y queda como hueco."
+input: input.sas
+env: default
+expect:
+  gaps:
+    - PROC_NO_SOPORTADO

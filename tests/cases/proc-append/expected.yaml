@@ -1,0 +1,7 @@
+description: "PROC APPEND con BASE= y DATA=: unión tUnite."
+input: input.sas
+env: default
+expect:
+  operators:
+    - { kind: union, component: tUnite }
+  gaps: []

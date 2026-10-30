@@ -1,0 +1,17 @@
+id: proc-means
+kind: proc
+version: 1
+status: soportado
+proc: means
+description: "PROC MEANS: agregación de CLASS y VAR a un dataset de salida."
+when_options: []
+ops:
+  - kind: aggregate
+    params:
+      procedure: "{proc}"
+      inputs: "{data}"
+      class: "{clause:class}"
+      var: "{clause:var}"
+      outputs: "{out}"
+tests:
+  - tests/cases/proc-means

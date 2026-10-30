@@ -1,0 +1,17 @@
+id: proc-append
+kind: proc
+version: 1
+status: soportado
+proc: append
+description: "PROC APPEND: une el dataset DATA= al final de BASE=. Sin BASE= o DATA= no se migra."
+when_options: [base, data]
+ops:
+  - kind: union
+    params:
+      sources: ["{qualified:base}", "{qualified:data}"]
+fallback:
+  reason: PROC_NO_SOPORTADO
+  note: "PROC APPEND sin BASE= y DATA="
+tests:
+  - tests/cases/proc-append
+  - tests/cases/proc-append-sin-base

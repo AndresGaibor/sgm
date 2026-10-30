@@ -795,3 +795,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Intrínsecos: `rules/sas/intrinsics/external-load.yaml` declara la carga externa con su `implementation`. Caso `tests/cases/external-load-parcial` (queda parcial y su componente es `tJava`). Prueba: `tests/unit/test_intrinsecos_yaml.py` (el `implementation` existe).
 - Pendiente de F1.4: sentencias globales (todas caen en un único motivo de respaldo, no hay nada que mover sin cambiar salida), y PROC genéricos (`sort`, `append`, `means`, `summary`, `freq`), que necesitan un intérprete de `bind`/`ops` con equivalencia probada.
 - Verificación: suite 349 pasan, 1 se salta; ruff limpio; `rules validate` limpio; `metrics --check` sin empeorar.
+
+## Fase 1, F1.4 (PROC): append, means, summary y freq desde YAML
+
+- Fecha: 2026-10-30
+- Qué se hizo: `rules/sas/procs/proc-{append,means,summary,freq}.yaml` declaran los operadores que emiten. `src/sgm/ir/proc_rules.py` es el intérprete: resuelve `{data}`, `{out}`, `{proc}`, `{clause:...}` y `{qualified:...}`, comprueba `when_options` y usa el `fallback` cuando faltan opciones. `lower_procs.py` lo consulta antes de su cadena de `elif`.
+- Equivalencia: huella del plan (hash del JSON completo) de los 189 programas de `tests/fixtures/sas` idéntica antes y después. Ese corpus tiene 95 apariciones de estos PROC en 22 archivos, así que la comparación sí los ejercita.
+- Casos: `tests/cases/proc-{means,summary,freq,append,append-sin-base}`. Pruebas: `tests/unit/test_proc_rules.py` (3).
+- Pendiente: `sort` sigue en código (su estado depende de si hay BY y añade `dedup` con NODUP). Otros PROC (`print`, `import`, `export`) también siguen en código.
+- Verificación: suite 357 pasan, 1 se salta; ruff limpio; `rules validate` limpio; `metrics --check` sin empeorar.

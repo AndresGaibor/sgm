@@ -1,0 +1,17 @@
+id: proc-freq
+kind: proc
+version: 1
+status: soportado
+proc: freq
+description: "PROC FREQ: frecuencias; se migra como agregación."
+when_options: []
+ops:
+  - kind: aggregate
+    params:
+      procedure: "{proc}"
+      inputs: "{data}"
+      class: "{clause:class}"
+      var: "{clause:var}"
+      outputs: "{out}"
+tests:
+  - tests/cases/proc-freq

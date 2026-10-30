@@ -1,0 +1,7 @@
+description: "PROC FREQ: se migra como agregación tAggregateRow."
+input: input.sas
+env: default
+expect:
+  operators:
+    - { kind: aggregate, component: tAggregateRow }
+  gaps: []

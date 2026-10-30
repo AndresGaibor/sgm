@@ -1,0 +1,7 @@
+description: "PROC SUMMARY con CLASS y VAR: agregación."
+input: input.sas
+env: default
+expect:
+  operators:
+    - { kind: aggregate, component: tAggregateRow }
+  gaps: []
