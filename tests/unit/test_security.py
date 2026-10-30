@@ -43,8 +43,8 @@ def test_redact_shell_and_dispatch():
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PWENCODE_STATEMENT = re.compile(r"(?i)proc\s+pwencode\b[^;]*")
-PWENCODE_MASKED = re.compile(r"(?i)proc\s+pwencode\s+in\s*=\s*'\*\*\*'")
+# Lo que sigue a `pwencode in=`: el valor. Acepta '***' (fuentes) y *** (máscara de la redacción).
+PWENCODE_VALUE = re.compile(r"(?i)pwencode\s+in\s*=\s*([^\s;|]*)")
 TEXT_SUFFIXES = {".sas", ".txt", ".sh", ".md", ".json", ".log", ".csv"}
 
 
@@ -76,7 +76,8 @@ def test_pwencode_en_fixtures_y_salidas_solo_con_asteriscos():
     """Un `proc pwencode` con cualquier valor distinto de '***' es una contraseña en claro: falla."""
     bad = []
     for name, text in _text_blobs():
-        for match in PWENCODE_STATEMENT.finditer(text):
-            if not PWENCODE_MASKED.fullmatch(match.group(0).strip()):
+        for match in PWENCODE_VALUE.finditer(text):
+            value = match.group(1).strip("'\"`,")
+            if value not in ("***", ""):
                 bad.append(f"{name}: {text.count(chr(10), 0, match.start()) + 1}")
     assert not bad, "pwencode sin enmascarar (usar in='***'): " + ", ".join(bad)
