@@ -83,7 +83,7 @@ def load_engines(path: Path = ENGINES_PATH) -> dict[str, dict[str, str]]:
 
 
 def _file_format(op: Operator) -> str:
-    datafile = str(op.params.get("datafile") or "").lower()
+    datafile = str(op.params.get("datafile") or "").strip("\"' ").lower()
     return "excel" if datafile.endswith((".xlsx", ".xls")) else "delimited"
 
 
