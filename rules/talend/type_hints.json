@@ -1,0 +1,10 @@
+{
+  "type_hints": {
+    "character": "String",
+    "numeric": "Double (o BigDecimal/Integer si es monetario/entero)",
+    "date": "Date (SAS cuenta días desde 1960-01-01; Talend usa epoch 1970)",
+    "datetime": "Date (SAS cuenta segundos desde 1960-01-01)",
+    "missing_numeric": "null",
+    "missing_character": "cadena vacía o null (decidir; SAS no distingue)"
+  }
+}

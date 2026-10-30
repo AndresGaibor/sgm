@@ -1,0 +1,4 @@
+report_month;customer_id;customer_name;region;total_amount;transaction_count;debt_ratio;utilization_ratio;risk_score;risk_level
+202609;1001;Ana Torres;Norte;900.00;4;0.1300;0.2200;0;LOW
+202609;1005;Elena Paz;Norte;1100.00;3;0.1400;0.8500;65;HIGH
+202609;1008;Hugo Vega;Occidente;275.00;2;0.2800;0.5000;35;MEDIUM

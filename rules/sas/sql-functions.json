@@ -1,0 +1,40 @@
+{
+  "_doc": "Funciones que pueden aparecer en una sentencia PROC SQL y su tratamiento al componer consultas (migration_planner/sql_compose.py). status: portable = sintaxis SQL estándar que todos los motores aceptan; translated = equivalente dialectal claro por motor (engines); sas_only = no existe en SQL: la sentencia que la usa NO se compone. Las palabras clave de SQL (select, in, between, case...) no están aquí: el compositor las reconoce aparte.",
+  "functions": {
+    "sum": {"status": "portable"},
+    "count": {"status": "portable"},
+    "avg": {"status": "portable"},
+    "min": {"status": "portable"},
+    "max": {"status": "portable"},
+    "coalesce": {"status": "portable"},
+    "cast": {"status": "portable"},
+    "substr": {"status": "portable"},
+    "upper": {"status": "portable"},
+    "lower": {"status": "portable"},
+    "trim": {"status": "portable"},
+    "concat": {"status": "portable"},
+    "round": {"status": "portable"},
+    "abs": {"status": "portable"},
+    "substrn": {
+      "status": "translated",
+      "engines": {"oracle": "substr", "impala": "substr", "postgres": "substr", "teradata": "substr"},
+      "note": "SAS SUBSTRN no lanza error fuera de rango; el equivalente SUBSTR de cada motor sí puede hacerlo en algunos casos."
+    },
+    "cats": {"status": "sas_only", "note": "Concatenación con recorte de blancos a la derecha de SAS; no hay equivalente verificado."},
+    "cat": {"status": "sas_only"},
+    "catt": {"status": "sas_only"},
+    "catx": {"status": "sas_only"},
+    "input": {"status": "sas_only", "note": "Conversión con informato SAS."},
+    "put": {"status": "sas_only", "note": "Conversión con formato SAS."},
+    "ifn": {"status": "sas_only"},
+    "ifc": {"status": "sas_only"},
+    "intnx": {"status": "sas_only", "note": "Aritmética de fechas con calendario SAS."},
+    "intck": {"status": "sas_only"},
+    "mdy": {"status": "sas_only"},
+    "today": {"status": "sas_only"},
+    "datetime": {"status": "sas_only"},
+    "monotonic": {"status": "sas_only", "note": "Contador de filas SAS dentro del PROC SQL."},
+    "sysfunc": {"status": "sas_only"},
+    "calculated": {"status": "sas_only", "note": "Referencia a un alias calculado en el mismo SELECT: SQL estándar no lo admite."}
+  }
+}

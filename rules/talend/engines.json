@@ -1,0 +1,71 @@
+{
+  "engines": {
+    "oracle": {
+      "input": "tOracleInput",
+      "output": "tOracleOutput",
+      "row": "tOracleRow"
+    },
+    "teradata": {
+      "input": "tTeradataInput",
+      "output": "tTeradataOutput",
+      "row": "tTeradataRow"
+    },
+    "db2": {
+      "input": "tDB2Input",
+      "output": "tDB2Output",
+      "row": "tDB2Row"
+    },
+    "impala": {
+      "input": "tImpalaInput",
+      "output": "tImpalaOutput",
+      "row": "tImpalaRow"
+    },
+    "odbc": {
+      "input": "",
+      "output": ""
+    },
+    "postgres": {
+      "input": "tPostgresqlInput",
+      "output": "tPostgresqlOutput",
+      "row": "tPostgresqlRow"
+    },
+    "sqlsvr": {
+      "input": "tMSSqlInput",
+      "output": "tMSSqlOutput",
+      "row": "tMSSqlRow"
+    },
+    "mysql": {
+      "input": "tMysqlInput",
+      "output": "tMysqlOutput",
+      "row": "tMysqlRow"
+    },
+    "redshift": {
+      "input": "tRedshiftInput",
+      "output": "tRedshiftOutput",
+      "row": "tRedshiftRow"
+    },
+    "greenplm": {
+      "input": "tGreenplumInput",
+      "output": "tGreenplumOutput",
+      "row": "tGreenplumRow"
+    },
+    "netezza": {
+      "input": "tNetezzaInput",
+      "output": "tNetezzaOutput",
+      "row": "tNetezzaRow"
+    },
+    "aster": {
+      "input": "",
+      "output": ""
+    },
+    "hawq": {
+      "input": "",
+      "output": ""
+    }
+  },
+  "engine_notes": {
+    "odbc": "ODBC no tiene componente propio en el Studio instalado. Elige el conector del motor de origen o el genérico que trae la edición de Studio en uso.",
+    "aster": "Aster no tiene componente propio en el Studio instalado. Elige el conector del motor o el genérico que trae la edición de Studio en uso.",
+    "hawq": "HAWQ no tiene componente propio en el Studio instalado. Elige el conector del motor o el genérico que trae la edición de Studio en uso."
+  }
+}

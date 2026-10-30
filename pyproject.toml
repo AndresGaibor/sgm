@@ -34,3 +34,15 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B"]
+
+# Decisión: E501 se tolera solo en código con mensajes de usuario en español y patrones largos (portados
+# o de datos). El resto del código respeta line-length = 100. Ver PROGRESS.md, "Decisiones".
+[tool.ruff.lint.per-file-ignores]
+"src/sgm/catalog/environment.py" = ["E501"]
+"src/sgm/emit/conventions/*.py" = ["E501"]
+"src/sgm/expressions/*.py" = ["E501"]
+"src/sgm/ingest/importer.py" = ["E501"]
+"src/sgm/redaction.py" = ["E501"]
+"src/sgm/passes/plumbing_patterns.py" = ["E501"]
+"src/sgm/frontend/*.py" = ["E501"]
+"tests/**/*.py" = ["E501"]
