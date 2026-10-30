@@ -14,8 +14,9 @@ from sgm.catalog.config import Env
 from sgm.catalog.schemas import load_schemas
 from sgm.emit.conventions.naming import DEFAULT_NAME_TEMPLATE, render_job_name
 from sgm.frontend.program import ProgramAnalysis, analyze_program
+from sgm.frontend.selectors import SelectorUse
 from sgm.ir.lower import lower_items
-from sgm.ir.models import Gap, Graph, Job, NotMigrated, Plan
+from sgm.ir.models import Evidence, Gap, Graph, Job, NotMigrated, Plan
 from sgm.passes.base import PassContext, PassLog
 from sgm.passes.pipeline import run_passes
 from sgm.redaction import redact
@@ -75,6 +76,29 @@ def _declared_contexts(plan: Plan, job: Job) -> None:
         )
 
 
+def _selector_groups(plan: Plan, job: Job, uses: list[SelectorUse]) -> None:
+    """Cada macro de ambiente invocada es un grupo de contexto: una variable por cada `Y`, un
+    contexto por cada literal de `X`. Sus ramas no son código, así que no generan operadores."""
+    for use in uses:
+        sel = use.selector
+        if sel.name in job.context_groups:
+            continue
+        job.context_groups[sel.name] = {
+            "selector": sel.variable,
+            "variables": sel.variables,
+            "contextos": {literal: dict(values) for literal, values in sel.contexts.items()},
+        }
+        plan.not_migrated.append(
+            NotMigrated(
+                f"selector:{sel.name}",
+                f"macro de ambiente %{sel.name}: elige {', '.join(sel.variables)} "
+                f"según &{sel.variable}",
+                f"Grupo de contexto del Job ({len(sel.contexts)} contextos)",
+                [Evidence(use.file, use.line, use.line, label=None)],
+            )
+        )
+
+
 def compile_file(analysis: ProgramAnalysis, program: str, ctx_base: dict) -> Compiled:
     """Plan de un programa a partir del análisis del proyecto (solo sus pasos)."""
     plan = Plan(program=program)
@@ -83,6 +107,7 @@ def compile_file(analysis: ProgramAnalysis, program: str, ctx_base: dict) -> Com
     job = Job(name=render_job_name(DEFAULT_NAME_TEMPLATE, project="proyecto", program=program))
     plan.jobs = [job]
     _declared_contexts(plan, job)
+    _selector_groups(plan, job, [u for u in analysis.selector_uses if u.file == program])
     ctx = PassContext(
         plan=plan,
         sql_portable=ctx_base["sql_portable"],

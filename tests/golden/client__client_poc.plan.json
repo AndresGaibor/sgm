@@ -1104,79 +1104,7 @@
       "component": null
     },
     {
-      "id": "op00050",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALA",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 155,
-          "line_end": 155,
-          "label": "ACURA",
-          "call": "171:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00052",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAC",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 161,
-          "line_end": 161,
-          "label": "ACURA",
-          "call": "171:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00054",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAP",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 167,
-          "line_end": 167,
-          "label": "ACURA",
-          "call": "171:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00055",
+      "id": "op00049",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -1219,7 +1147,7 @@
       }
     },
     {
-      "id": "op00058",
+      "id": "op00052",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1243,7 +1171,7 @@
       "component": null
     },
     {
-      "id": "op00059",
+      "id": "op00053",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1268,7 +1196,7 @@
       "component": null
     },
     {
-      "id": "op00060",
+      "id": "op00054",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1292,7 +1220,7 @@
       "component": null
     },
     {
-      "id": "op00061",
+      "id": "op00055",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1316,7 +1244,7 @@
       "component": null
     },
     {
-      "id": "op00062",
+      "id": "op00056",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1340,7 +1268,7 @@
       "component": null
     },
     {
-      "id": "op00063",
+      "id": "op00057",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1364,7 +1292,7 @@
       "component": null
     },
     {
-      "id": "op00064",
+      "id": "op00058",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1388,7 +1316,7 @@
       "component": null
     },
     {
-      "id": "op00065",
+      "id": "op00059",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1412,7 +1340,7 @@
       "component": null
     },
     {
-      "id": "op00066",
+      "id": "op00060",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1436,7 +1364,7 @@
       "component": null
     },
     {
-      "id": "op00067",
+      "id": "op00061",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1460,7 +1388,7 @@
       "component": null
     },
     {
-      "id": "op00068",
+      "id": "op00062",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1484,7 +1412,7 @@
       "component": null
     },
     {
-      "id": "op00069",
+      "id": "op00063",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1508,7 +1436,7 @@
       "component": null
     },
     {
-      "id": "op00070",
+      "id": "op00064",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1532,7 +1460,7 @@
       "component": null
     },
     {
-      "id": "op00071",
+      "id": "op00065",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1556,7 +1484,7 @@
       "component": null
     },
     {
-      "id": "op00072",
+      "id": "op00066",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1580,7 +1508,7 @@
       "component": null
     },
     {
-      "id": "op00073",
+      "id": "op00067",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1604,7 +1532,7 @@
       "component": null
     },
     {
-      "id": "op00074",
+      "id": "op00068",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1628,7 +1556,7 @@
       "component": null
     },
     {
-      "id": "op00077",
+      "id": "op00071",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -1663,7 +1591,7 @@
       }
     },
     {
-      "id": "op00081",
+      "id": "op00075",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1687,7 +1615,7 @@
       "component": null
     },
     {
-      "id": "op00082",
+      "id": "op00076",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -1720,7 +1648,7 @@
       }
     },
     {
-      "id": "op00083",
+      "id": "op00077",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -1756,7 +1684,7 @@
       }
     },
     {
-      "id": "op00085",
+      "id": "op00079",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1780,7 +1708,7 @@
       "component": null
     },
     {
-      "id": "op00086",
+      "id": "op00080",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1804,7 +1732,7 @@
       "component": null
     },
     {
-      "id": "op00089",
+      "id": "op00083",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1828,7 +1756,7 @@
       "component": null
     },
     {
-      "id": "op00090",
+      "id": "op00084",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1852,7 +1780,7 @@
       "component": null
     },
     {
-      "id": "op00092",
+      "id": "op00086",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1876,7 +1804,7 @@
       "component": null
     },
     {
-      "id": "op00095",
+      "id": "op00089",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1901,7 +1829,7 @@
       "component": null
     },
     {
-      "id": "op00097",
+      "id": "op00091",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1925,7 +1853,7 @@
       "component": null
     },
     {
-      "id": "op00098",
+      "id": "op00092",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -1965,7 +1893,7 @@
       }
     },
     {
-      "id": "op00101",
+      "id": "op00095",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1989,7 +1917,7 @@
       "component": null
     },
     {
-      "id": "op00102",
+      "id": "op00096",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2013,7 +1941,7 @@
       "component": null
     },
     {
-      "id": "op00103",
+      "id": "op00097",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2037,7 +1965,7 @@
       "component": null
     },
     {
-      "id": "op00106",
+      "id": "op00100",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2062,7 +1990,7 @@
       "component": null
     },
     {
-      "id": "op00107",
+      "id": "op00101",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2087,7 +2015,7 @@
       "component": null
     },
     {
-      "id": "op00111",
+      "id": "op00105",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2111,7 +2039,7 @@
       "component": null
     },
     {
-      "id": "op00112",
+      "id": "op00106",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2136,7 +2064,7 @@
       "component": null
     },
     {
-      "id": "op00117",
+      "id": "op00111",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2161,7 +2089,7 @@
       "component": null
     },
     {
-      "id": "op00118",
+      "id": "op00112",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2186,7 +2114,7 @@
       "component": null
     },
     {
-      "id": "op00120",
+      "id": "op00114",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2210,7 +2138,7 @@
       "component": null
     },
     {
-      "id": "op00122",
+      "id": "op00116",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -2240,7 +2168,7 @@
       }
     },
     {
-      "id": "op00123",
+      "id": "op00117",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2265,7 +2193,7 @@
       "component": null
     },
     {
-      "id": "op00124",
+      "id": "op00118",
       "kind": "sort",
       "status": "soportado",
       "placement": "flow",
@@ -2302,7 +2230,7 @@
       }
     },
     {
-      "id": "op00125",
+      "id": "op00119",
       "kind": "dedup",
       "status": "soportado",
       "placement": "flow",
@@ -2338,7 +2266,7 @@
       }
     },
     {
-      "id": "op00126",
+      "id": "op00120",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2363,7 +2291,7 @@
       "component": null
     },
     {
-      "id": "op00128",
+      "id": "op00122",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2387,7 +2315,7 @@
       "component": null
     },
     {
-      "id": "op00159",
+      "id": "op00153",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2411,7 +2339,7 @@
       "component": null
     },
     {
-      "id": "op00160",
+      "id": "op00154",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2435,7 +2363,7 @@
       "component": null
     },
     {
-      "id": "op00161",
+      "id": "op00155",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -2475,7 +2403,7 @@
       }
     },
     {
-      "id": "op00164",
+      "id": "op00158",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2499,7 +2427,7 @@
       "component": null
     },
     {
-      "id": "op00165",
+      "id": "op00159",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -2536,7 +2464,7 @@
       }
     },
     {
-      "id": "op00166",
+      "id": "op00160",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2561,7 +2489,7 @@
       "component": null
     },
     {
-      "id": "op00170",
+      "id": "op00164",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2586,7 +2514,7 @@
       "component": null
     },
     {
-      "id": "op00172",
+      "id": "op00166",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -2615,7 +2543,7 @@
       }
     },
     {
-      "id": "op00177",
+      "id": "op00171",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2639,7 +2567,7 @@
       "component": null
     },
     {
-      "id": "op00179",
+      "id": "op00173",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2663,7 +2591,7 @@
       "component": null
     },
     {
-      "id": "op00180",
+      "id": "op00174",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2687,7 +2615,7 @@
       "component": null
     },
     {
-      "id": "op00182",
+      "id": "op00176",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2712,7 +2640,7 @@
       "component": null
     },
     {
-      "id": "op00183",
+      "id": "op00177",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2736,7 +2664,7 @@
       "component": null
     },
     {
-      "id": "op00186",
+      "id": "op00180",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2760,7 +2688,7 @@
       "component": null
     },
     {
-      "id": "op00191",
+      "id": "op00185",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2784,7 +2712,7 @@
       "component": null
     },
     {
-      "id": "op00196",
+      "id": "op00190",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2808,7 +2736,7 @@
       "component": null
     },
     {
-      "id": "op00198",
+      "id": "op00192",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2832,7 +2760,7 @@
       "component": null
     },
     {
-      "id": "op00199",
+      "id": "op00193",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2856,7 +2784,7 @@
       "component": null
     },
     {
-      "id": "op00201",
+      "id": "op00195",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2880,7 +2808,7 @@
       "component": null
     },
     {
-      "id": "op00205",
+      "id": "op00199",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2904,7 +2832,7 @@
       "component": null
     },
     {
-      "id": "op00207",
+      "id": "op00201",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2929,7 +2857,7 @@
       "component": null
     },
     {
-      "id": "op00216",
+      "id": "op00210",
       "kind": "read_file",
       "status": "parcial",
       "placement": "flow",
@@ -2969,7 +2897,7 @@
       }
     },
     {
-      "id": "op00217",
+      "id": "op00211",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2993,7 +2921,7 @@
       "component": null
     },
     {
-      "id": "op00219",
+      "id": "op00213",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3017,7 +2945,7 @@
       "component": null
     },
     {
-      "id": "op00222",
+      "id": "op00216",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3041,7 +2969,7 @@
       "component": null
     },
     {
-      "id": "op00224",
+      "id": "op00218",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3065,7 +2993,7 @@
       "component": null
     },
     {
-      "id": "op00226",
+      "id": "op00220",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3089,7 +3017,7 @@
       "component": null
     },
     {
-      "id": "op00228",
+      "id": "op00222",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3113,7 +3041,7 @@
       "component": null
     },
     {
-      "id": "op00229",
+      "id": "op00223",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3137,7 +3065,7 @@
       "component": null
     },
     {
-      "id": "op00230",
+      "id": "op00224",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3161,7 +3089,7 @@
       "component": null
     },
     {
-      "id": "op00231",
+      "id": "op00225",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3185,7 +3113,7 @@
       "component": null
     },
     {
-      "id": "op00232",
+      "id": "op00226",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3209,7 +3137,7 @@
       "component": null
     },
     {
-      "id": "op00233",
+      "id": "op00227",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3233,7 +3161,7 @@
       "component": null
     },
     {
-      "id": "op00234",
+      "id": "op00228",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3257,7 +3185,7 @@
       "component": null
     },
     {
-      "id": "op00235",
+      "id": "op00229",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3281,7 +3209,7 @@
       "component": null
     },
     {
-      "id": "op00236",
+      "id": "op00230",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3305,7 +3233,7 @@
       "component": null
     },
     {
-      "id": "op00237",
+      "id": "op00231",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3329,7 +3257,7 @@
       "component": null
     },
     {
-      "id": "op00238",
+      "id": "op00232",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3353,7 +3281,7 @@
       "component": null
     },
     {
-      "id": "op00239",
+      "id": "op00233",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3377,7 +3305,7 @@
       "component": null
     },
     {
-      "id": "op00240",
+      "id": "op00234",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3401,7 +3329,7 @@
       "component": null
     },
     {
-      "id": "op00241",
+      "id": "op00235",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3425,7 +3353,7 @@
       "component": null
     },
     {
-      "id": "op00242",
+      "id": "op00236",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3449,7 +3377,7 @@
       "component": null
     },
     {
-      "id": "op00243",
+      "id": "op00237",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3473,7 +3401,7 @@
       "component": null
     },
     {
-      "id": "op00244",
+      "id": "op00238",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3497,7 +3425,7 @@
       "component": null
     },
     {
-      "id": "op00245",
+      "id": "op00239",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3521,7 +3449,7 @@
       "component": null
     },
     {
-      "id": "op00246",
+      "id": "op00240",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3545,7 +3473,7 @@
       "component": null
     },
     {
-      "id": "op00247",
+      "id": "op00241",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3569,7 +3497,7 @@
       "component": null
     },
     {
-      "id": "op00248",
+      "id": "op00242",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3593,7 +3521,7 @@
       "component": null
     },
     {
-      "id": "op00249",
+      "id": "op00243",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3617,7 +3545,7 @@
       "component": null
     },
     {
-      "id": "op00250",
+      "id": "op00244",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3641,7 +3569,7 @@
       "component": null
     },
     {
-      "id": "op00251",
+      "id": "op00245",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3665,7 +3593,7 @@
       "component": null
     },
     {
-      "id": "op00252",
+      "id": "op00246",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3689,7 +3617,7 @@
       "component": null
     },
     {
-      "id": "op00253",
+      "id": "op00247",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3713,7 +3641,7 @@
       "component": null
     },
     {
-      "id": "op00254",
+      "id": "op00248",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3737,7 +3665,7 @@
       "component": null
     },
     {
-      "id": "op00255",
+      "id": "op00249",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3761,7 +3689,7 @@
       "component": null
     },
     {
-      "id": "op00256",
+      "id": "op00250",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3785,7 +3713,7 @@
       "component": null
     },
     {
-      "id": "op00257",
+      "id": "op00251",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3809,7 +3737,7 @@
       "component": null
     },
     {
-      "id": "op00258",
+      "id": "op00252",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3833,7 +3761,7 @@
       "component": null
     },
     {
-      "id": "op00259",
+      "id": "op00253",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3857,7 +3785,7 @@
       "component": null
     },
     {
-      "id": "op00260",
+      "id": "op00254",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3881,7 +3809,7 @@
       "component": null
     },
     {
-      "id": "op00261",
+      "id": "op00255",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3905,7 +3833,7 @@
       "component": null
     },
     {
-      "id": "op00262",
+      "id": "op00256",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3929,7 +3857,7 @@
       "component": null
     },
     {
-      "id": "op00263",
+      "id": "op00257",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -3975,7 +3903,7 @@
       }
     },
     {
-      "id": "op00273",
+      "id": "op00267",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3999,7 +3927,7 @@
       "component": null
     },
     {
-      "id": "op00277",
+      "id": "op00271",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4023,7 +3951,7 @@
       "component": null
     },
     {
-      "id": "op00278",
+      "id": "op00272",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4047,7 +3975,7 @@
       "component": null
     },
     {
-      "id": "op00279",
+      "id": "op00273",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4071,7 +3999,7 @@
       "component": null
     },
     {
-      "id": "op00280",
+      "id": "op00274",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4095,7 +4023,7 @@
       "component": null
     },
     {
-      "id": "op00281",
+      "id": "op00275",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4119,7 +4047,7 @@
       "component": null
     },
     {
-      "id": "op00282",
+      "id": "op00276",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4143,7 +4071,7 @@
       "component": null
     },
     {
-      "id": "op00283",
+      "id": "op00277",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4167,7 +4095,7 @@
       "component": null
     },
     {
-      "id": "op00284",
+      "id": "op00278",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4191,79 +4119,7 @@
       "component": null
     },
     {
-      "id": "op00287",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALA",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 155,
-          "line_end": 155,
-          "label": "ACURA",
-          "call": "934:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00289",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAC",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 161,
-          "line_end": 161,
-          "label": "ACURA",
-          "call": "934:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00291",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAP",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 167,
-          "line_end": 167,
-          "label": "ACURA",
-          "call": "934:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00292",
+      "id": "op00280",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -4306,7 +4162,7 @@
       }
     },
     {
-      "id": "op00295",
+      "id": "op00283",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4330,7 +4186,7 @@
       "component": null
     },
     {
-      "id": "op00296",
+      "id": "op00284",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4355,7 +4211,7 @@
       "component": null
     },
     {
-      "id": "op00297",
+      "id": "op00285",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4379,7 +4235,7 @@
       "component": null
     },
     {
-      "id": "op00298",
+      "id": "op00286",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4403,7 +4259,7 @@
       "component": null
     },
     {
-      "id": "op00299",
+      "id": "op00287",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4427,7 +4283,7 @@
       "component": null
     },
     {
-      "id": "op00300",
+      "id": "op00288",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4451,7 +4307,7 @@
       "component": null
     },
     {
-      "id": "op00301",
+      "id": "op00289",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4475,7 +4331,7 @@
       "component": null
     },
     {
-      "id": "op00302",
+      "id": "op00290",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4499,7 +4355,7 @@
       "component": null
     },
     {
-      "id": "op00303",
+      "id": "op00291",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4523,7 +4379,7 @@
       "component": null
     },
     {
-      "id": "op00304",
+      "id": "op00292",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4547,7 +4403,7 @@
       "component": null
     },
     {
-      "id": "op00305",
+      "id": "op00293",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4571,7 +4427,7 @@
       "component": null
     },
     {
-      "id": "op00306",
+      "id": "op00294",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4595,7 +4451,7 @@
       "component": null
     },
     {
-      "id": "op00307",
+      "id": "op00295",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4619,7 +4475,7 @@
       "component": null
     },
     {
-      "id": "op00308",
+      "id": "op00296",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4643,7 +4499,7 @@
       "component": null
     },
     {
-      "id": "op00309",
+      "id": "op00297",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4667,7 +4523,7 @@
       "component": null
     },
     {
-      "id": "op00310",
+      "id": "op00298",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4691,7 +4547,7 @@
       "component": null
     },
     {
-      "id": "op00311",
+      "id": "op00299",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4715,7 +4571,7 @@
       "component": null
     },
     {
-      "id": "op00318",
+      "id": "op00306",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4739,7 +4595,7 @@
       "component": null
     },
     {
-      "id": "op00319",
+      "id": "op00307",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -4772,7 +4628,7 @@
       }
     },
     {
-      "id": "op00320",
+      "id": "op00308",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -4808,7 +4664,7 @@
       }
     },
     {
-      "id": "op00322",
+      "id": "op00310",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4832,7 +4688,7 @@
       "component": null
     },
     {
-      "id": "op00323",
+      "id": "op00311",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4856,7 +4712,7 @@
       "component": null
     },
     {
-      "id": "op00326",
+      "id": "op00314",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4880,7 +4736,7 @@
       "component": null
     },
     {
-      "id": "op00327",
+      "id": "op00315",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4904,7 +4760,7 @@
       "component": null
     },
     {
-      "id": "op00329",
+      "id": "op00317",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4928,7 +4784,7 @@
       "component": null
     },
     {
-      "id": "op00332",
+      "id": "op00320",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -4953,7 +4809,7 @@
       "component": null
     },
     {
-      "id": "op00334",
+      "id": "op00322",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -4977,7 +4833,7 @@
       "component": null
     },
     {
-      "id": "op00335",
+      "id": "op00323",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -5017,7 +4873,7 @@
       }
     },
     {
-      "id": "op00338",
+      "id": "op00326",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5041,7 +4897,7 @@
       "component": null
     },
     {
-      "id": "op00339",
+      "id": "op00327",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5065,7 +4921,7 @@
       "component": null
     },
     {
-      "id": "op00340",
+      "id": "op00328",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5089,7 +4945,7 @@
       "component": null
     },
     {
-      "id": "op00343",
+      "id": "op00331",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5114,7 +4970,7 @@
       "component": null
     },
     {
-      "id": "op00344",
+      "id": "op00332",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5139,7 +4995,7 @@
       "component": null
     },
     {
-      "id": "op00348",
+      "id": "op00336",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5163,7 +5019,7 @@
       "component": null
     },
     {
-      "id": "op00349",
+      "id": "op00337",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5188,7 +5044,7 @@
       "component": null
     },
     {
-      "id": "op00354",
+      "id": "op00342",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5213,7 +5069,7 @@
       "component": null
     },
     {
-      "id": "op00355",
+      "id": "op00343",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5238,7 +5094,7 @@
       "component": null
     },
     {
-      "id": "op00357",
+      "id": "op00345",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5262,7 +5118,7 @@
       "component": null
     },
     {
-      "id": "op00359",
+      "id": "op00347",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -5292,7 +5148,7 @@
       }
     },
     {
-      "id": "op00360",
+      "id": "op00348",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5317,7 +5173,7 @@
       "component": null
     },
     {
-      "id": "op00363",
+      "id": "op00351",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5342,7 +5198,7 @@
       "component": null
     },
     {
-      "id": "op00365",
+      "id": "op00353",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5366,7 +5222,7 @@
       "component": null
     },
     {
-      "id": "op00396",
+      "id": "op00384",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5390,7 +5246,7 @@
       "component": null
     },
     {
-      "id": "op00397",
+      "id": "op00385",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5414,7 +5270,7 @@
       "component": null
     },
     {
-      "id": "op00398",
+      "id": "op00386",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -5454,7 +5310,7 @@
       }
     },
     {
-      "id": "op00401",
+      "id": "op00389",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5478,7 +5334,7 @@
       "component": null
     },
     {
-      "id": "op00402",
+      "id": "op00390",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -5515,7 +5371,7 @@
       }
     },
     {
-      "id": "op00403",
+      "id": "op00391",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5540,7 +5396,7 @@
       "component": null
     },
     {
-      "id": "op00407",
+      "id": "op00395",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5565,7 +5421,7 @@
       "component": null
     },
     {
-      "id": "op00409",
+      "id": "op00397",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -5594,7 +5450,7 @@
       }
     },
     {
-      "id": "op00414",
+      "id": "op00402",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5618,7 +5474,7 @@
       "component": null
     },
     {
-      "id": "op00416",
+      "id": "op00404",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5642,7 +5498,7 @@
       "component": null
     },
     {
-      "id": "op00417",
+      "id": "op00405",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5666,7 +5522,7 @@
       "component": null
     },
     {
-      "id": "op00419",
+      "id": "op00407",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5691,7 +5547,7 @@
       "component": null
     },
     {
-      "id": "op00420",
+      "id": "op00408",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5715,7 +5571,7 @@
       "component": null
     },
     {
-      "id": "op00423",
+      "id": "op00411",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5739,7 +5595,7 @@
       "component": null
     },
     {
-      "id": "op00428",
+      "id": "op00416",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5763,7 +5619,7 @@
       "component": null
     },
     {
-      "id": "op00433",
+      "id": "op00421",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5787,7 +5643,7 @@
       "component": null
     },
     {
-      "id": "op00435",
+      "id": "op00423",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5811,7 +5667,7 @@
       "component": null
     },
     {
-      "id": "op00436",
+      "id": "op00424",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5835,7 +5691,7 @@
       "component": null
     },
     {
-      "id": "op00438",
+      "id": "op00426",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5859,7 +5715,7 @@
       "component": null
     },
     {
-      "id": "op00442",
+      "id": "op00430",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5883,7 +5739,7 @@
       "component": null
     },
     {
-      "id": "op00444",
+      "id": "op00432",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5908,7 +5764,7 @@
       "component": null
     },
     {
-      "id": "op00453",
+      "id": "op00441",
       "kind": "read_file",
       "status": "parcial",
       "placement": "flow",
@@ -5948,7 +5804,7 @@
       }
     },
     {
-      "id": "op00454",
+      "id": "op00442",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -5972,7 +5828,7 @@
       "component": null
     },
     {
-      "id": "op00456",
+      "id": "op00444",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -5996,7 +5852,7 @@
       "component": null
     },
     {
-      "id": "op00459",
+      "id": "op00447",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6020,7 +5876,7 @@
       "component": null
     },
     {
-      "id": "op00461",
+      "id": "op00449",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6044,7 +5900,7 @@
       "component": null
     },
     {
-      "id": "op00463",
+      "id": "op00451",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6068,7 +5924,7 @@
       "component": null
     },
     {
-      "id": "op00465",
+      "id": "op00453",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6092,7 +5948,7 @@
       "component": null
     },
     {
-      "id": "op00466",
+      "id": "op00454",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6116,7 +5972,7 @@
       "component": null
     },
     {
-      "id": "op00467",
+      "id": "op00455",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6140,7 +5996,7 @@
       "component": null
     },
     {
-      "id": "op00474",
+      "id": "op00462",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6164,7 +6020,7 @@
       "component": null
     },
     {
-      "id": "op00478",
+      "id": "op00466",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6188,7 +6044,7 @@
       "component": null
     },
     {
-      "id": "op00479",
+      "id": "op00467",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6212,7 +6068,7 @@
       "component": null
     },
     {
-      "id": "op00480",
+      "id": "op00468",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6236,7 +6092,7 @@
       "component": null
     },
     {
-      "id": "op00481",
+      "id": "op00469",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6260,7 +6116,7 @@
       "component": null
     },
     {
-      "id": "op00482",
+      "id": "op00470",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6284,7 +6140,7 @@
       "component": null
     },
     {
-      "id": "op00483",
+      "id": "op00471",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6308,7 +6164,7 @@
       "component": null
     },
     {
-      "id": "op00484",
+      "id": "op00472",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6332,7 +6188,7 @@
       "component": null
     },
     {
-      "id": "op00485",
+      "id": "op00473",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6356,79 +6212,7 @@
       "component": null
     },
     {
-      "id": "op00488",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALA",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 155,
-          "line_end": 155,
-          "label": "ACURA",
-          "call": "1647:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00490",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAC",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 161,
-          "line_end": 161,
-          "label": "ACURA",
-          "call": "1647:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00492",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAP",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 167,
-          "line_end": 167,
-          "label": "ACURA",
-          "call": "1647:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00493",
+      "id": "op00475",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -6471,7 +6255,7 @@
       }
     },
     {
-      "id": "op00496",
+      "id": "op00478",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6495,7 +6279,7 @@
       "component": null
     },
     {
-      "id": "op00497",
+      "id": "op00479",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6520,7 +6304,7 @@
       "component": null
     },
     {
-      "id": "op00498",
+      "id": "op00480",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6544,7 +6328,7 @@
       "component": null
     },
     {
-      "id": "op00499",
+      "id": "op00481",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6568,7 +6352,7 @@
       "component": null
     },
     {
-      "id": "op00500",
+      "id": "op00482",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6592,7 +6376,7 @@
       "component": null
     },
     {
-      "id": "op00501",
+      "id": "op00483",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6616,7 +6400,7 @@
       "component": null
     },
     {
-      "id": "op00502",
+      "id": "op00484",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6640,7 +6424,7 @@
       "component": null
     },
     {
-      "id": "op00503",
+      "id": "op00485",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6664,7 +6448,7 @@
       "component": null
     },
     {
-      "id": "op00504",
+      "id": "op00486",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6688,7 +6472,7 @@
       "component": null
     },
     {
-      "id": "op00505",
+      "id": "op00487",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6712,7 +6496,7 @@
       "component": null
     },
     {
-      "id": "op00506",
+      "id": "op00488",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6736,7 +6520,7 @@
       "component": null
     },
     {
-      "id": "op00507",
+      "id": "op00489",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6760,7 +6544,7 @@
       "component": null
     },
     {
-      "id": "op00508",
+      "id": "op00490",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6784,7 +6568,7 @@
       "component": null
     },
     {
-      "id": "op00509",
+      "id": "op00491",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6808,7 +6592,7 @@
       "component": null
     },
     {
-      "id": "op00510",
+      "id": "op00492",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6832,7 +6616,7 @@
       "component": null
     },
     {
-      "id": "op00511",
+      "id": "op00493",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -6856,7 +6640,7 @@
       "component": null
     },
     {
-      "id": "op00512",
+      "id": "op00494",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6880,7 +6664,7 @@
       "component": null
     },
     {
-      "id": "op00519",
+      "id": "op00501",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6904,7 +6688,7 @@
       "component": null
     },
     {
-      "id": "op00520",
+      "id": "op00502",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -6937,7 +6721,7 @@
       }
     },
     {
-      "id": "op00521",
+      "id": "op00503",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -6973,7 +6757,7 @@
       }
     },
     {
-      "id": "op00523",
+      "id": "op00505",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -6997,7 +6781,7 @@
       "component": null
     },
     {
-      "id": "op00524",
+      "id": "op00506",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7021,7 +6805,7 @@
       "component": null
     },
     {
-      "id": "op00527",
+      "id": "op00509",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7045,7 +6829,7 @@
       "component": null
     },
     {
-      "id": "op00528",
+      "id": "op00510",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7069,7 +6853,7 @@
       "component": null
     },
     {
-      "id": "op00530",
+      "id": "op00512",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7093,7 +6877,7 @@
       "component": null
     },
     {
-      "id": "op00533",
+      "id": "op00515",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7118,7 +6902,7 @@
       "component": null
     },
     {
-      "id": "op00535",
+      "id": "op00517",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7142,7 +6926,7 @@
       "component": null
     },
     {
-      "id": "op00536",
+      "id": "op00518",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -7182,7 +6966,7 @@
       }
     },
     {
-      "id": "op00539",
+      "id": "op00521",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7206,7 +6990,7 @@
       "component": null
     },
     {
-      "id": "op00540",
+      "id": "op00522",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7230,7 +7014,7 @@
       "component": null
     },
     {
-      "id": "op00541",
+      "id": "op00523",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7254,7 +7038,7 @@
       "component": null
     },
     {
-      "id": "op00544",
+      "id": "op00526",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7279,7 +7063,7 @@
       "component": null
     },
     {
-      "id": "op00545",
+      "id": "op00527",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7304,7 +7088,7 @@
       "component": null
     },
     {
-      "id": "op00549",
+      "id": "op00531",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7328,7 +7112,7 @@
       "component": null
     },
     {
-      "id": "op00550",
+      "id": "op00532",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7353,7 +7137,7 @@
       "component": null
     },
     {
-      "id": "op00555",
+      "id": "op00537",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7378,7 +7162,7 @@
       "component": null
     },
     {
-      "id": "op00556",
+      "id": "op00538",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7403,7 +7187,7 @@
       "component": null
     },
     {
-      "id": "op00558",
+      "id": "op00540",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7427,7 +7211,7 @@
       "component": null
     },
     {
-      "id": "op00560",
+      "id": "op00542",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -7457,7 +7241,7 @@
       }
     },
     {
-      "id": "op00561",
+      "id": "op00543",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7482,7 +7266,7 @@
       "component": null
     },
     {
-      "id": "op00564",
+      "id": "op00546",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7507,7 +7291,7 @@
       "component": null
     },
     {
-      "id": "op00566",
+      "id": "op00548",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7531,7 +7315,7 @@
       "component": null
     },
     {
-      "id": "op00597",
+      "id": "op00579",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7555,7 +7339,7 @@
       "component": null
     },
     {
-      "id": "op00598",
+      "id": "op00580",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7579,7 +7363,7 @@
       "component": null
     },
     {
-      "id": "op00599",
+      "id": "op00581",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -7619,7 +7403,7 @@
       }
     },
     {
-      "id": "op00602",
+      "id": "op00584",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7643,7 +7427,7 @@
       "component": null
     },
     {
-      "id": "op00603",
+      "id": "op00585",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -7680,7 +7464,7 @@
       }
     },
     {
-      "id": "op00604",
+      "id": "op00586",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7705,7 +7489,7 @@
       "component": null
     },
     {
-      "id": "op00608",
+      "id": "op00590",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7730,7 +7514,7 @@
       "component": null
     },
     {
-      "id": "op00610",
+      "id": "op00592",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -7759,7 +7543,7 @@
       }
     },
     {
-      "id": "op00615",
+      "id": "op00597",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7783,7 +7567,7 @@
       "component": null
     },
     {
-      "id": "op00617",
+      "id": "op00599",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7807,7 +7591,7 @@
       "component": null
     },
     {
-      "id": "op00618",
+      "id": "op00600",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7831,7 +7615,7 @@
       "component": null
     },
     {
-      "id": "op00620",
+      "id": "op00602",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -7856,7 +7640,7 @@
       "component": null
     },
     {
-      "id": "op00621",
+      "id": "op00603",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7880,7 +7664,7 @@
       "component": null
     },
     {
-      "id": "op00624",
+      "id": "op00606",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7904,7 +7688,7 @@
       "component": null
     },
     {
-      "id": "op00629",
+      "id": "op00611",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7928,7 +7712,7 @@
       "component": null
     },
     {
-      "id": "op00634",
+      "id": "op00616",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7952,7 +7736,7 @@
       "component": null
     },
     {
-      "id": "op00636",
+      "id": "op00618",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -7976,7 +7760,7 @@
       "component": null
     },
     {
-      "id": "op00637",
+      "id": "op00619",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8000,7 +7784,7 @@
       "component": null
     },
     {
-      "id": "op00639",
+      "id": "op00621",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8024,7 +7808,7 @@
       "component": null
     },
     {
-      "id": "op00643",
+      "id": "op00625",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8048,7 +7832,7 @@
       "component": null
     },
     {
-      "id": "op00645",
+      "id": "op00627",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8073,7 +7857,7 @@
       "component": null
     },
     {
-      "id": "op00654",
+      "id": "op00636",
       "kind": "read_file",
       "status": "parcial",
       "placement": "flow",
@@ -8113,7 +7897,7 @@
       }
     },
     {
-      "id": "op00658",
+      "id": "op00640",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8137,7 +7921,7 @@
       "component": null
     },
     {
-      "id": "op00659",
+      "id": "op00641",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8161,7 +7945,7 @@
       "component": null
     },
     {
-      "id": "op00660",
+      "id": "op00642",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8185,7 +7969,7 @@
       "component": null
     },
     {
-      "id": "op00661",
+      "id": "op00643",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8209,7 +7993,7 @@
       "component": null
     },
     {
-      "id": "op00662",
+      "id": "op00644",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8233,7 +8017,7 @@
       "component": null
     },
     {
-      "id": "op00663",
+      "id": "op00645",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8257,7 +8041,7 @@
       "component": null
     },
     {
-      "id": "op00664",
+      "id": "op00646",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8281,7 +8065,7 @@
       "component": null
     },
     {
-      "id": "op00665",
+      "id": "op00647",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8305,79 +8089,7 @@
       "component": null
     },
     {
-      "id": "op00668",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALA",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 155,
-          "line_end": 155,
-          "label": "ACURA",
-          "call": "2297:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00670",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAC",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 161,
-          "line_end": 161,
-          "label": "ACURA",
-          "call": "2297:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00672",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "5adb1870788de34c",
-      "params": {
-        "statement": "%let lz_dsn = IMPALAP",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 167,
-          "line_end": 167,
-          "label": "ACURA",
-          "call": "2297:ambiente"
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00673",
+      "id": "op00649",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -8420,7 +8132,7 @@
       }
     },
     {
-      "id": "op00676",
+      "id": "op00652",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8444,7 +8156,7 @@
       "component": null
     },
     {
-      "id": "op00677",
+      "id": "op00653",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8469,7 +8181,7 @@
       "component": null
     },
     {
-      "id": "op00678",
+      "id": "op00654",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8493,7 +8205,7 @@
       "component": null
     },
     {
-      "id": "op00679",
+      "id": "op00655",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8517,7 +8229,7 @@
       "component": null
     },
     {
-      "id": "op00680",
+      "id": "op00656",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8541,7 +8253,7 @@
       "component": null
     },
     {
-      "id": "op00681",
+      "id": "op00657",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8565,7 +8277,7 @@
       "component": null
     },
     {
-      "id": "op00682",
+      "id": "op00658",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8589,7 +8301,7 @@
       "component": null
     },
     {
-      "id": "op00683",
+      "id": "op00659",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8613,7 +8325,7 @@
       "component": null
     },
     {
-      "id": "op00684",
+      "id": "op00660",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8637,7 +8349,7 @@
       "component": null
     },
     {
-      "id": "op00685",
+      "id": "op00661",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8661,7 +8373,7 @@
       "component": null
     },
     {
-      "id": "op00686",
+      "id": "op00662",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8685,7 +8397,7 @@
       "component": null
     },
     {
-      "id": "op00687",
+      "id": "op00663",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8709,7 +8421,7 @@
       "component": null
     },
     {
-      "id": "op00688",
+      "id": "op00664",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8733,7 +8445,7 @@
       "component": null
     },
     {
-      "id": "op00689",
+      "id": "op00665",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8757,7 +8469,7 @@
       "component": null
     },
     {
-      "id": "op00690",
+      "id": "op00666",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8781,7 +8493,7 @@
       "component": null
     },
     {
-      "id": "op00691",
+      "id": "op00667",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8805,7 +8517,7 @@
       "component": null
     },
     {
-      "id": "op00692",
+      "id": "op00668",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8829,7 +8541,7 @@
       "component": null
     },
     {
-      "id": "op00699",
+      "id": "op00675",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8853,7 +8565,7 @@
       "component": null
     },
     {
-      "id": "op00700",
+      "id": "op00676",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -8886,7 +8598,7 @@
       }
     },
     {
-      "id": "op00701",
+      "id": "op00677",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -8922,7 +8634,7 @@
       }
     },
     {
-      "id": "op00703",
+      "id": "op00679",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8946,7 +8658,7 @@
       "component": null
     },
     {
-      "id": "op00704",
+      "id": "op00680",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -8970,7 +8682,7 @@
       "component": null
     },
     {
-      "id": "op00707",
+      "id": "op00683",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -8994,7 +8706,7 @@
       "component": null
     },
     {
-      "id": "op00708",
+      "id": "op00684",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9018,7 +8730,7 @@
       "component": null
     },
     {
-      "id": "op00710",
+      "id": "op00686",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9042,7 +8754,7 @@
       "component": null
     },
     {
-      "id": "op00713",
+      "id": "op00689",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9067,7 +8779,7 @@
       "component": null
     },
     {
-      "id": "op00715",
+      "id": "op00691",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9091,7 +8803,7 @@
       "component": null
     },
     {
-      "id": "op00716",
+      "id": "op00692",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -9131,7 +8843,7 @@
       }
     },
     {
-      "id": "op00719",
+      "id": "op00695",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9155,7 +8867,7 @@
       "component": null
     },
     {
-      "id": "op00720",
+      "id": "op00696",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9179,7 +8891,7 @@
       "component": null
     },
     {
-      "id": "op00721",
+      "id": "op00697",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9203,7 +8915,7 @@
       "component": null
     },
     {
-      "id": "op00724",
+      "id": "op00700",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9228,7 +8940,7 @@
       "component": null
     },
     {
-      "id": "op00725",
+      "id": "op00701",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9253,7 +8965,7 @@
       "component": null
     },
     {
-      "id": "op00729",
+      "id": "op00705",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9277,7 +8989,7 @@
       "component": null
     },
     {
-      "id": "op00730",
+      "id": "op00706",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9302,7 +9014,7 @@
       "component": null
     },
     {
-      "id": "op00735",
+      "id": "op00711",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9327,7 +9039,7 @@
       "component": null
     },
     {
-      "id": "op00736",
+      "id": "op00712",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9352,7 +9064,7 @@
       "component": null
     },
     {
-      "id": "op00738",
+      "id": "op00714",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9376,7 +9088,7 @@
       "component": null
     },
     {
-      "id": "op00740",
+      "id": "op00716",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -9406,7 +9118,7 @@
       }
     },
     {
-      "id": "op00741",
+      "id": "op00717",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9431,7 +9143,7 @@
       "component": null
     },
     {
-      "id": "op00744",
+      "id": "op00720",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9456,7 +9168,7 @@
       "component": null
     },
     {
-      "id": "op00746",
+      "id": "op00722",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9480,7 +9192,7 @@
       "component": null
     },
     {
-      "id": "op00777",
+      "id": "op00753",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9504,7 +9216,7 @@
       "component": null
     },
     {
-      "id": "op00778",
+      "id": "op00754",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9528,7 +9240,7 @@
       "component": null
     },
     {
-      "id": "op00779",
+      "id": "op00755",
       "kind": "derive",
       "status": "soportado",
       "placement": "flow",
@@ -9568,7 +9280,7 @@
       }
     },
     {
-      "id": "op00782",
+      "id": "op00758",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9592,7 +9304,7 @@
       "component": null
     },
     {
-      "id": "op00783",
+      "id": "op00759",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -9629,7 +9341,7 @@
       }
     },
     {
-      "id": "op00784",
+      "id": "op00760",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9654,7 +9366,7 @@
       "component": null
     },
     {
-      "id": "op00788",
+      "id": "op00764",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9679,7 +9391,7 @@
       "component": null
     },
     {
-      "id": "op00790",
+      "id": "op00766",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -9708,7 +9420,7 @@
       }
     },
     {
-      "id": "op00795",
+      "id": "op00771",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9732,7 +9444,7 @@
       "component": null
     },
     {
-      "id": "op00797",
+      "id": "op00773",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9756,7 +9468,7 @@
       "component": null
     },
     {
-      "id": "op00798",
+      "id": "op00774",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9780,7 +9492,7 @@
       "component": null
     },
     {
-      "id": "op00800",
+      "id": "op00776",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9805,7 +9517,7 @@
       "component": null
     },
     {
-      "id": "op00801",
+      "id": "op00777",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9829,7 +9541,7 @@
       "component": null
     },
     {
-      "id": "op00804",
+      "id": "op00780",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9853,7 +9565,7 @@
       "component": null
     },
     {
-      "id": "op00809",
+      "id": "op00785",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9877,7 +9589,7 @@
       "component": null
     },
     {
-      "id": "op00814",
+      "id": "op00790",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9901,7 +9613,7 @@
       "component": null
     },
     {
-      "id": "op00816",
+      "id": "op00792",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9925,7 +9637,7 @@
       "component": null
     },
     {
-      "id": "op00817",
+      "id": "op00793",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9949,7 +9661,7 @@
       "component": null
     },
     {
-      "id": "op00819",
+      "id": "op00795",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -9973,7 +9685,7 @@
       "component": null
     },
     {
-      "id": "op00823",
+      "id": "op00799",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -9997,7 +9709,7 @@
       "component": null
     },
     {
-      "id": "op00825",
+      "id": "op00801",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -10022,7 +9734,7 @@
       "component": null
     },
     {
-      "id": "op00834",
+      "id": "op00810",
       "kind": "read_file",
       "status": "parcial",
       "placement": "flow",
@@ -10062,7 +9774,7 @@
       }
     },
     {
-      "id": "op00836",
+      "id": "op00812",
       "kind": "external_load",
       "status": "parcial",
       "placement": "db:impala",
@@ -10275,7 +9987,7 @@
       }
     },
     {
-      "id": "op00837",
+      "id": "op00813",
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
@@ -10343,7 +10055,7 @@
       }
     },
     {
-      "id": "op00838",
+      "id": "op00814",
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
@@ -10411,7 +10123,7 @@
       }
     },
     {
-      "id": "op00839",
+      "id": "op00815",
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
@@ -10479,7 +10191,7 @@
       }
     },
     {
-      "id": "op00840",
+      "id": "op00816",
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
@@ -10547,7 +10259,7 @@
       }
     },
     {
-      "id": "op00841",
+      "id": "op00817",
       "kind": "iterate",
       "status": "soportado",
       "placement": "flow",
@@ -10584,7 +10296,7 @@
       }
     },
     {
-      "id": "op00842",
+      "id": "op00818",
       "kind": "iterate",
       "status": "soportado",
       "placement": "flow",
@@ -10621,7 +10333,7 @@
       }
     },
     {
-      "id": "op00843",
+      "id": "op00819",
       "kind": "iterate",
       "status": "soportado",
       "placement": "flow",
@@ -10658,7 +10370,7 @@
       }
     },
     {
-      "id": "op00844",
+      "id": "op00820",
       "kind": "iterate",
       "status": "soportado",
       "placement": "flow",
@@ -10695,7 +10407,7 @@
       }
     },
     {
-      "id": "op00845",
+      "id": "op00821",
       "kind": "iterate",
       "status": "soportado",
       "placement": "flow",
@@ -10732,7 +10444,7 @@
       }
     },
     {
-      "id": "op00846",
+      "id": "op00822",
       "kind": "iterate",
       "status": "soportado",
       "placement": "flow",
@@ -11156,25 +10868,25 @@
     },
     {
       "src": "op00022",
-      "dst": "op00122",
+      "dst": "op00116",
       "dataset": "WORK.acura",
       "materialize": null
     },
     {
       "src": "op00022",
-      "dst": "op00359",
+      "dst": "op00347",
       "dataset": "WORK.acura",
       "materialize": null
     },
     {
       "src": "op00022",
-      "dst": "op00560",
+      "dst": "op00542",
       "dataset": "WORK.acura",
       "materialize": null
     },
     {
       "src": "op00022",
-      "dst": "op00740",
+      "dst": "op00716",
       "dataset": "WORK.acura",
       "materialize": null
     },
@@ -11197,121 +10909,135 @@
       "materialize": null
     },
     {
-      "src": "op00077",
+      "src": "op00071",
       "dst": "w00006",
       "dataset": "WORK.param_err_lz",
       "materialize": null
     },
     {
-      "src": "op00082",
-      "dst": "op00083",
+      "src": "op00076",
+      "dst": "op00077",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00122",
+      "src": "op00116",
       "dst": "w00007",
       "dataset": "WORK.&prefix.&i",
       "materialize": null
     },
     {
-      "src": "op00124",
-      "dst": "op00125",
+      "src": "op00118",
+      "dst": "op00119",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00125",
+      "src": "op00119",
       "dst": "w00008",
       "dataset": "WORK.members",
       "materialize": null
     },
     {
-      "src": "op00165",
-      "dst": "op00172",
+      "src": "op00159",
+      "dst": "op00166",
       "dataset": "WORK.saserror",
       "materialize": null
     },
     {
-      "src": "op00172",
-      "dst": "op00837",
+      "src": "op00166",
+      "dst": "op00813",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00319",
-      "dst": "op00320",
+      "src": "op00307",
+      "dst": "op00308",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00359",
+      "src": "op00347",
       "dst": "w00013",
       "dataset": "WORK.&prefix.&i@v2",
       "materialize": null
     },
     {
-      "src": "op00402",
-      "dst": "op00409",
+      "src": "op00390",
+      "dst": "op00397",
       "dataset": "WORK.saserror@v2",
       "materialize": null
     },
     {
-      "src": "op00409",
-      "dst": "op00838",
+      "src": "op00397",
+      "dst": "op00814",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00520",
-      "dst": "op00521",
+      "src": "op00502",
+      "dst": "op00503",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00560",
+      "src": "op00542",
       "dst": "w00019",
       "dataset": "WORK.&prefix.&i@v3",
       "materialize": null
     },
     {
-      "src": "op00603",
-      "dst": "op00610",
+      "src": "op00585",
+      "dst": "op00592",
       "dataset": "WORK.saserror@v3",
       "materialize": null
     },
     {
-      "src": "op00610",
-      "dst": "op00839",
+      "src": "op00592",
+      "dst": "op00815",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00700",
-      "dst": "op00701",
+      "src": "op00676",
+      "dst": "op00677",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00740",
+      "src": "op00716",
       "dst": "w00025",
       "dataset": "WORK.&prefix.&i@v4",
       "materialize": null
     },
     {
-      "src": "op00783",
-      "dst": "op00790",
+      "src": "op00759",
+      "dst": "op00766",
       "dataset": "WORK.saserror@v4",
       "materialize": null
     },
     {
-      "src": "op00790",
-      "dst": "op00840",
+      "src": "op00766",
+      "dst": "op00816",
       "dataset": "(interno)",
       "materialize": null
     }
   ],
   "not_migrated": [
+    {
+      "op": "selector:ambiente",
+      "what": "macro de ambiente %ambiente: elige lz_dsn según &m_ambiente",
+      "talend": "Grupo de contexto del Job (3 contextos)",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 171,
+          "line_end": 171,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
     {
       "op": "op00001",
       "what": "cálculo de la duración del programa (datetime)",
@@ -11495,49 +11221,7 @@
       ]
     },
     {
-      "op": "op00049",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 151,
-          "line_end": 152,
-          "label": "ACURA",
-          "call": "171:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00051",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 157,
-          "line_end": 158,
-          "label": "ACURA",
-          "call": "171:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00053",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 163,
-          "line_end": 164,
-          "label": "ACURA",
-          "call": "171:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00056",
+      "op": "op00050",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -11551,7 +11235,7 @@
       ]
     },
     {
-      "op": "op00057",
+      "op": "op00051",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -11565,7 +11249,7 @@
       ]
     },
     {
-      "op": "op00075",
+      "op": "op00069",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11579,7 +11263,7 @@
       ]
     },
     {
-      "op": "op00076",
+      "op": "op00070",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11593,7 +11277,7 @@
       ]
     },
     {
-      "op": "op00078",
+      "op": "op00072",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11607,7 +11291,7 @@
       ]
     },
     {
-      "op": "op00079",
+      "op": "op00073",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -11621,7 +11305,7 @@
       ]
     },
     {
-      "op": "op00080",
+      "op": "op00074",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11635,7 +11319,7 @@
       ]
     },
     {
-      "op": "op00084",
+      "op": "op00078",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -11649,7 +11333,7 @@
       ]
     },
     {
-      "op": "op00087",
+      "op": "op00081",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -11663,7 +11347,7 @@
       ]
     },
     {
-      "op": "op00088",
+      "op": "op00082",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11677,7 +11361,7 @@
       ]
     },
     {
-      "op": "op00091",
+      "op": "op00085",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11691,7 +11375,7 @@
       ]
     },
     {
-      "op": "op00093",
+      "op": "op00087",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -11705,7 +11389,7 @@
       ]
     },
     {
-      "op": "op00094",
+      "op": "op00088",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11719,7 +11403,7 @@
       ]
     },
     {
-      "op": "op00096",
+      "op": "op00090",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -11733,7 +11417,7 @@
       ]
     },
     {
-      "op": "op00099",
+      "op": "op00093",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -11747,7 +11431,7 @@
       ]
     },
     {
-      "op": "op00100",
+      "op": "op00094",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -11761,7 +11445,7 @@
       ]
     },
     {
-      "op": "op00104",
+      "op": "op00098",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -11775,7 +11459,7 @@
       ]
     },
     {
-      "op": "op00105",
+      "op": "op00099",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -11789,7 +11473,7 @@
       ]
     },
     {
-      "op": "op00108",
+      "op": "op00102",
       "what": "troceado de un dataset por rangos de observaciones",
       "talend": "Talend carga el conjunto completo: el componente de salida usa Batch size o escritura por bloques.",
       "evidence": [
@@ -11803,7 +11487,7 @@
       ]
     },
     {
-      "op": "op00109",
+      "op": "op00103",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11817,7 +11501,7 @@
       ]
     },
     {
-      "op": "op00110",
+      "op": "op00104",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11831,7 +11515,7 @@
       ]
     },
     {
-      "op": "op00113",
+      "op": "op00107",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11845,7 +11529,7 @@
       ]
     },
     {
-      "op": "op00114",
+      "op": "op00108",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11859,7 +11543,7 @@
       ]
     },
     {
-      "op": "op00115",
+      "op": "op00109",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11873,7 +11557,7 @@
       ]
     },
     {
-      "op": "op00116",
+      "op": "op00110",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11887,7 +11571,7 @@
       ]
     },
     {
-      "op": "op00119",
+      "op": "op00113",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -11901,7 +11585,7 @@
       ]
     },
     {
-      "op": "op00121",
+      "op": "op00115",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11915,7 +11599,7 @@
       ]
     },
     {
-      "op": "op00127",
+      "op": "op00121",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -11929,7 +11613,7 @@
       ]
     },
     {
-      "op": "op00129",
+      "op": "op00123",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -11943,7 +11627,7 @@
       ]
     },
     {
-      "op": "op00146",
+      "op": "op00140",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -11957,7 +11641,7 @@
       ]
     },
     {
-      "op": "op00162",
+      "op": "op00156",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -11971,7 +11655,7 @@
       ]
     },
     {
-      "op": "op00163",
+      "op": "op00157",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -11985,7 +11669,7 @@
       ]
     },
     {
-      "op": "op00167",
+      "op": "op00161",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -11999,7 +11683,7 @@
       ]
     },
     {
-      "op": "op00168",
+      "op": "op00162",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12013,7 +11697,7 @@
       ]
     },
     {
-      "op": "op00169",
+      "op": "op00163",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12027,7 +11711,7 @@
       ]
     },
     {
-      "op": "op00171",
+      "op": "op00165",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -12041,7 +11725,7 @@
       ]
     },
     {
-      "op": "op00176",
+      "op": "op00170",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -12055,7 +11739,7 @@
       ]
     },
     {
-      "op": "op00178",
+      "op": "op00172",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -12069,7 +11753,7 @@
       ]
     },
     {
-      "op": "op00181",
+      "op": "op00175",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12083,7 +11767,7 @@
       ]
     },
     {
-      "op": "op00184",
+      "op": "op00178",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12097,7 +11781,7 @@
       ]
     },
     {
-      "op": "op00185",
+      "op": "op00179",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -12111,7 +11795,7 @@
       ]
     },
     {
-      "op": "op00187",
+      "op": "op00181",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -12125,7 +11809,7 @@
       ]
     },
     {
-      "op": "op00188",
+      "op": "op00182",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -12139,7 +11823,7 @@
       ]
     },
     {
-      "op": "op00189",
+      "op": "op00183",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -12153,7 +11837,7 @@
       ]
     },
     {
-      "op": "op00190",
+      "op": "op00184",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -12167,7 +11851,7 @@
       ]
     },
     {
-      "op": "op00192",
+      "op": "op00186",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12181,7 +11865,7 @@
       ]
     },
     {
-      "op": "op00193",
+      "op": "op00187",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -12195,7 +11879,7 @@
       ]
     },
     {
-      "op": "op00194",
+      "op": "op00188",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -12209,7 +11893,7 @@
       ]
     },
     {
-      "op": "op00195",
+      "op": "op00189",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -12223,7 +11907,7 @@
       ]
     },
     {
-      "op": "op00197",
+      "op": "op00191",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -12237,7 +11921,7 @@
       ]
     },
     {
-      "op": "op00200",
+      "op": "op00194",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12251,7 +11935,7 @@
       ]
     },
     {
-      "op": "op00202",
+      "op": "op00196",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12265,7 +11949,7 @@
       ]
     },
     {
-      "op": "op00203",
+      "op": "op00197",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12279,7 +11963,7 @@
       ]
     },
     {
-      "op": "op00204",
+      "op": "op00198",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -12293,7 +11977,7 @@
       ]
     },
     {
-      "op": "op00206",
+      "op": "op00200",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -12307,7 +11991,7 @@
       ]
     },
     {
-      "op": "op00208",
+      "op": "op00202",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12321,7 +12005,7 @@
       ]
     },
     {
-      "op": "op00209",
+      "op": "op00203",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12335,7 +12019,7 @@
       ]
     },
     {
-      "op": "op00210",
+      "op": "op00204",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12349,7 +12033,7 @@
       ]
     },
     {
-      "op": "op00211",
+      "op": "op00205",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12363,7 +12047,7 @@
       ]
     },
     {
-      "op": "op00212",
+      "op": "op00206",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12377,7 +12061,7 @@
       ]
     },
     {
-      "op": "op00213",
+      "op": "op00207",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12391,7 +12075,7 @@
       ]
     },
     {
-      "op": "op00214",
+      "op": "op00208",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12405,7 +12089,7 @@
       ]
     },
     {
-      "op": "op00215",
+      "op": "op00209",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12419,7 +12103,7 @@
       ]
     },
     {
-      "op": "op00218",
+      "op": "op00212",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -12433,7 +12117,7 @@
       ]
     },
     {
-      "op": "op00220",
+      "op": "op00214",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -12447,7 +12131,7 @@
       ]
     },
     {
-      "op": "op00221",
+      "op": "op00215",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12461,7 +12145,7 @@
       ]
     },
     {
-      "op": "op00223",
+      "op": "op00217",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12475,7 +12159,7 @@
       ]
     },
     {
-      "op": "op00225",
+      "op": "op00219",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12489,7 +12173,7 @@
       ]
     },
     {
-      "op": "op00227",
+      "op": "op00221",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12503,7 +12187,7 @@
       ]
     },
     {
-      "op": "op00264",
+      "op": "op00258",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -12517,7 +12201,7 @@
       ]
     },
     {
-      "op": "op00265",
+      "op": "op00259",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -12531,7 +12215,7 @@
       ]
     },
     {
-      "op": "op00266",
+      "op": "op00260",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12545,7 +12229,7 @@
       ]
     },
     {
-      "op": "op00267",
+      "op": "op00261",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12559,7 +12243,7 @@
       ]
     },
     {
-      "op": "op00268",
+      "op": "op00262",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12573,7 +12257,7 @@
       ]
     },
     {
-      "op": "op00269",
+      "op": "op00263",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12587,7 +12271,7 @@
       ]
     },
     {
-      "op": "op00270",
+      "op": "op00264",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12601,7 +12285,7 @@
       ]
     },
     {
-      "op": "op00271",
+      "op": "op00265",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12615,7 +12299,7 @@
       ]
     },
     {
-      "op": "op00272",
+      "op": "op00266",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12629,7 +12313,7 @@
       ]
     },
     {
-      "op": "op00274",
+      "op": "op00268",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -12643,7 +12327,7 @@
       ]
     },
     {
-      "op": "op00275",
+      "op": "op00269",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -12657,7 +12341,7 @@
       ]
     },
     {
-      "op": "op00276",
+      "op": "op00270",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -12671,7 +12355,7 @@
       ]
     },
     {
-      "op": "op00285",
+      "op": "op00279",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -12685,49 +12369,7 @@
       ]
     },
     {
-      "op": "op00286",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 151,
-          "line_end": 152,
-          "label": "ACURA",
-          "call": "934:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00288",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 157,
-          "line_end": 158,
-          "label": "ACURA",
-          "call": "934:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00290",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 163,
-          "line_end": 164,
-          "label": "ACURA",
-          "call": "934:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00293",
+      "op": "op00281",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -12741,7 +12383,7 @@
       ]
     },
     {
-      "op": "op00294",
+      "op": "op00282",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -12755,7 +12397,7 @@
       ]
     },
     {
-      "op": "op00312",
+      "op": "op00300",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12769,7 +12411,7 @@
       ]
     },
     {
-      "op": "op00313",
+      "op": "op00301",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12783,7 +12425,7 @@
       ]
     },
     {
-      "op": "op00315",
+      "op": "op00303",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -12797,7 +12439,7 @@
       ]
     },
     {
-      "op": "op00316",
+      "op": "op00304",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -12811,7 +12453,7 @@
       ]
     },
     {
-      "op": "op00317",
+      "op": "op00305",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12825,7 +12467,7 @@
       ]
     },
     {
-      "op": "op00321",
+      "op": "op00309",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -12839,7 +12481,7 @@
       ]
     },
     {
-      "op": "op00324",
+      "op": "op00312",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -12853,7 +12495,7 @@
       ]
     },
     {
-      "op": "op00325",
+      "op": "op00313",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12867,7 +12509,7 @@
       ]
     },
     {
-      "op": "op00328",
+      "op": "op00316",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12881,7 +12523,7 @@
       ]
     },
     {
-      "op": "op00330",
+      "op": "op00318",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -12895,7 +12537,7 @@
       ]
     },
     {
-      "op": "op00331",
+      "op": "op00319",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -12909,7 +12551,7 @@
       ]
     },
     {
-      "op": "op00333",
+      "op": "op00321",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -12923,7 +12565,7 @@
       ]
     },
     {
-      "op": "op00336",
+      "op": "op00324",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -12937,7 +12579,7 @@
       ]
     },
     {
-      "op": "op00337",
+      "op": "op00325",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -12951,7 +12593,7 @@
       ]
     },
     {
-      "op": "op00341",
+      "op": "op00329",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -12965,7 +12607,7 @@
       ]
     },
     {
-      "op": "op00342",
+      "op": "op00330",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -12979,7 +12621,7 @@
       ]
     },
     {
-      "op": "op00345",
+      "op": "op00333",
       "what": "troceado de un dataset por rangos de observaciones",
       "talend": "Talend carga el conjunto completo: el componente de salida usa Batch size o escritura por bloques.",
       "evidence": [
@@ -12993,7 +12635,7 @@
       ]
     },
     {
-      "op": "op00346",
+      "op": "op00334",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13007,7 +12649,7 @@
       ]
     },
     {
-      "op": "op00347",
+      "op": "op00335",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13021,7 +12663,7 @@
       ]
     },
     {
-      "op": "op00350",
+      "op": "op00338",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13035,7 +12677,7 @@
       ]
     },
     {
-      "op": "op00351",
+      "op": "op00339",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13049,7 +12691,7 @@
       ]
     },
     {
-      "op": "op00352",
+      "op": "op00340",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13063,7 +12705,7 @@
       ]
     },
     {
-      "op": "op00353",
+      "op": "op00341",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13077,7 +12719,7 @@
       ]
     },
     {
-      "op": "op00356",
+      "op": "op00344",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13091,7 +12733,7 @@
       ]
     },
     {
-      "op": "op00358",
+      "op": "op00346",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13105,7 +12747,7 @@
       ]
     },
     {
-      "op": "op00364",
+      "op": "op00352",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -13119,7 +12761,7 @@
       ]
     },
     {
-      "op": "op00366",
+      "op": "op00354",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13133,7 +12775,7 @@
       ]
     },
     {
-      "op": "op00383",
+      "op": "op00371",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -13147,7 +12789,7 @@
       ]
     },
     {
-      "op": "op00399",
+      "op": "op00387",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -13161,7 +12803,7 @@
       ]
     },
     {
-      "op": "op00400",
+      "op": "op00388",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -13175,7 +12817,7 @@
       ]
     },
     {
-      "op": "op00404",
+      "op": "op00392",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -13189,7 +12831,7 @@
       ]
     },
     {
-      "op": "op00405",
+      "op": "op00393",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13203,7 +12845,7 @@
       ]
     },
     {
-      "op": "op00406",
+      "op": "op00394",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13217,7 +12859,7 @@
       ]
     },
     {
-      "op": "op00408",
+      "op": "op00396",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -13231,7 +12873,7 @@
       ]
     },
     {
-      "op": "op00413",
+      "op": "op00401",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -13245,7 +12887,7 @@
       ]
     },
     {
-      "op": "op00415",
+      "op": "op00403",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -13259,7 +12901,7 @@
       ]
     },
     {
-      "op": "op00418",
+      "op": "op00406",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13273,7 +12915,7 @@
       ]
     },
     {
-      "op": "op00421",
+      "op": "op00409",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13287,7 +12929,7 @@
       ]
     },
     {
-      "op": "op00422",
+      "op": "op00410",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -13301,7 +12943,7 @@
       ]
     },
     {
-      "op": "op00424",
+      "op": "op00412",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -13315,7 +12957,7 @@
       ]
     },
     {
-      "op": "op00425",
+      "op": "op00413",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -13329,7 +12971,7 @@
       ]
     },
     {
-      "op": "op00426",
+      "op": "op00414",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -13343,7 +12985,7 @@
       ]
     },
     {
-      "op": "op00427",
+      "op": "op00415",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -13357,7 +12999,7 @@
       ]
     },
     {
-      "op": "op00429",
+      "op": "op00417",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13371,7 +13013,7 @@
       ]
     },
     {
-      "op": "op00430",
+      "op": "op00418",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -13385,7 +13027,7 @@
       ]
     },
     {
-      "op": "op00431",
+      "op": "op00419",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -13399,7 +13041,7 @@
       ]
     },
     {
-      "op": "op00432",
+      "op": "op00420",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -13413,7 +13055,7 @@
       ]
     },
     {
-      "op": "op00434",
+      "op": "op00422",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -13427,7 +13069,7 @@
       ]
     },
     {
-      "op": "op00437",
+      "op": "op00425",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13441,7 +13083,7 @@
       ]
     },
     {
-      "op": "op00439",
+      "op": "op00427",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13455,7 +13097,7 @@
       ]
     },
     {
-      "op": "op00440",
+      "op": "op00428",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13469,7 +13111,7 @@
       ]
     },
     {
-      "op": "op00441",
+      "op": "op00429",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -13483,7 +13125,7 @@
       ]
     },
     {
-      "op": "op00443",
+      "op": "op00431",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -13497,7 +13139,7 @@
       ]
     },
     {
-      "op": "op00445",
+      "op": "op00433",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13511,7 +13153,7 @@
       ]
     },
     {
-      "op": "op00446",
+      "op": "op00434",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13525,7 +13167,7 @@
       ]
     },
     {
-      "op": "op00447",
+      "op": "op00435",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13539,7 +13181,7 @@
       ]
     },
     {
-      "op": "op00448",
+      "op": "op00436",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13553,7 +13195,7 @@
       ]
     },
     {
-      "op": "op00449",
+      "op": "op00437",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13567,7 +13209,7 @@
       ]
     },
     {
-      "op": "op00450",
+      "op": "op00438",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13581,7 +13223,7 @@
       ]
     },
     {
-      "op": "op00451",
+      "op": "op00439",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13595,7 +13237,7 @@
       ]
     },
     {
-      "op": "op00452",
+      "op": "op00440",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13609,7 +13251,7 @@
       ]
     },
     {
-      "op": "op00455",
+      "op": "op00443",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -13623,7 +13265,7 @@
       ]
     },
     {
-      "op": "op00457",
+      "op": "op00445",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -13637,7 +13279,7 @@
       ]
     },
     {
-      "op": "op00458",
+      "op": "op00446",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13651,7 +13293,7 @@
       ]
     },
     {
-      "op": "op00460",
+      "op": "op00448",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13665,7 +13307,7 @@
       ]
     },
     {
-      "op": "op00462",
+      "op": "op00450",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13679,7 +13321,7 @@
       ]
     },
     {
-      "op": "op00464",
+      "op": "op00452",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13693,7 +13335,7 @@
       ]
     },
     {
-      "op": "op00468",
+      "op": "op00456",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13707,7 +13349,7 @@
       ]
     },
     {
-      "op": "op00469",
+      "op": "op00457",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13721,7 +13363,7 @@
       ]
     },
     {
-      "op": "op00470",
+      "op": "op00458",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13735,7 +13377,7 @@
       ]
     },
     {
-      "op": "op00471",
+      "op": "op00459",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13749,7 +13391,7 @@
       ]
     },
     {
-      "op": "op00472",
+      "op": "op00460",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13763,7 +13405,7 @@
       ]
     },
     {
-      "op": "op00473",
+      "op": "op00461",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13777,7 +13419,7 @@
       ]
     },
     {
-      "op": "op00475",
+      "op": "op00463",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -13791,7 +13433,7 @@
       ]
     },
     {
-      "op": "op00476",
+      "op": "op00464",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -13805,7 +13447,7 @@
       ]
     },
     {
-      "op": "op00477",
+      "op": "op00465",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -13819,7 +13461,7 @@
       ]
     },
     {
-      "op": "op00486",
+      "op": "op00474",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -13833,49 +13475,7 @@
       ]
     },
     {
-      "op": "op00487",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 151,
-          "line_end": 152,
-          "label": "ACURA",
-          "call": "1647:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00489",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 157,
-          "line_end": 158,
-          "label": "ACURA",
-          "call": "1647:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00491",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 163,
-          "line_end": 164,
-          "label": "ACURA",
-          "call": "1647:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00494",
+      "op": "op00476",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -13889,7 +13489,7 @@
       ]
     },
     {
-      "op": "op00495",
+      "op": "op00477",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -13903,7 +13503,7 @@
       ]
     },
     {
-      "op": "op00513",
+      "op": "op00495",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13917,7 +13517,7 @@
       ]
     },
     {
-      "op": "op00514",
+      "op": "op00496",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13931,7 +13531,7 @@
       ]
     },
     {
-      "op": "op00516",
+      "op": "op00498",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -13945,7 +13545,7 @@
       ]
     },
     {
-      "op": "op00517",
+      "op": "op00499",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -13959,7 +13559,7 @@
       ]
     },
     {
-      "op": "op00518",
+      "op": "op00500",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -13973,7 +13573,7 @@
       ]
     },
     {
-      "op": "op00522",
+      "op": "op00504",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -13987,7 +13587,7 @@
       ]
     },
     {
-      "op": "op00525",
+      "op": "op00507",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14001,7 +13601,7 @@
       ]
     },
     {
-      "op": "op00526",
+      "op": "op00508",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14015,7 +13615,7 @@
       ]
     },
     {
-      "op": "op00529",
+      "op": "op00511",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14029,7 +13629,7 @@
       ]
     },
     {
-      "op": "op00531",
+      "op": "op00513",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -14043,7 +13643,7 @@
       ]
     },
     {
-      "op": "op00532",
+      "op": "op00514",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14057,7 +13657,7 @@
       ]
     },
     {
-      "op": "op00534",
+      "op": "op00516",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14071,7 +13671,7 @@
       ]
     },
     {
-      "op": "op00537",
+      "op": "op00519",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -14085,7 +13685,7 @@
       ]
     },
     {
-      "op": "op00538",
+      "op": "op00520",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14099,7 +13699,7 @@
       ]
     },
     {
-      "op": "op00542",
+      "op": "op00524",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -14113,7 +13713,7 @@
       ]
     },
     {
-      "op": "op00543",
+      "op": "op00525",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -14127,7 +13727,7 @@
       ]
     },
     {
-      "op": "op00546",
+      "op": "op00528",
       "what": "troceado de un dataset por rangos de observaciones",
       "talend": "Talend carga el conjunto completo: el componente de salida usa Batch size o escritura por bloques.",
       "evidence": [
@@ -14141,7 +13741,7 @@
       ]
     },
     {
-      "op": "op00547",
+      "op": "op00529",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14155,7 +13755,7 @@
       ]
     },
     {
-      "op": "op00548",
+      "op": "op00530",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14169,7 +13769,7 @@
       ]
     },
     {
-      "op": "op00551",
+      "op": "op00533",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14183,7 +13783,7 @@
       ]
     },
     {
-      "op": "op00552",
+      "op": "op00534",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14197,7 +13797,7 @@
       ]
     },
     {
-      "op": "op00553",
+      "op": "op00535",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14211,7 +13811,7 @@
       ]
     },
     {
-      "op": "op00554",
+      "op": "op00536",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14225,7 +13825,7 @@
       ]
     },
     {
-      "op": "op00557",
+      "op": "op00539",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14239,7 +13839,7 @@
       ]
     },
     {
-      "op": "op00559",
+      "op": "op00541",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14253,7 +13853,7 @@
       ]
     },
     {
-      "op": "op00565",
+      "op": "op00547",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14267,7 +13867,7 @@
       ]
     },
     {
-      "op": "op00567",
+      "op": "op00549",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14281,7 +13881,7 @@
       ]
     },
     {
-      "op": "op00584",
+      "op": "op00566",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -14295,7 +13895,7 @@
       ]
     },
     {
-      "op": "op00600",
+      "op": "op00582",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -14309,7 +13909,7 @@
       ]
     },
     {
-      "op": "op00601",
+      "op": "op00583",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14323,7 +13923,7 @@
       ]
     },
     {
-      "op": "op00605",
+      "op": "op00587",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14337,7 +13937,7 @@
       ]
     },
     {
-      "op": "op00606",
+      "op": "op00588",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14351,7 +13951,7 @@
       ]
     },
     {
-      "op": "op00607",
+      "op": "op00589",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14365,7 +13965,7 @@
       ]
     },
     {
-      "op": "op00609",
+      "op": "op00591",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14379,7 +13979,7 @@
       ]
     },
     {
-      "op": "op00614",
+      "op": "op00596",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -14393,7 +13993,7 @@
       ]
     },
     {
-      "op": "op00616",
+      "op": "op00598",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14407,7 +14007,7 @@
       ]
     },
     {
-      "op": "op00619",
+      "op": "op00601",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14421,7 +14021,7 @@
       ]
     },
     {
-      "op": "op00622",
+      "op": "op00604",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14435,7 +14035,7 @@
       ]
     },
     {
-      "op": "op00623",
+      "op": "op00605",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -14449,7 +14049,7 @@
       ]
     },
     {
-      "op": "op00625",
+      "op": "op00607",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -14463,7 +14063,7 @@
       ]
     },
     {
-      "op": "op00626",
+      "op": "op00608",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -14477,7 +14077,7 @@
       ]
     },
     {
-      "op": "op00627",
+      "op": "op00609",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -14491,7 +14091,7 @@
       ]
     },
     {
-      "op": "op00628",
+      "op": "op00610",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -14505,7 +14105,7 @@
       ]
     },
     {
-      "op": "op00630",
+      "op": "op00612",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14519,7 +14119,7 @@
       ]
     },
     {
-      "op": "op00631",
+      "op": "op00613",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -14533,7 +14133,7 @@
       ]
     },
     {
-      "op": "op00632",
+      "op": "op00614",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -14547,7 +14147,7 @@
       ]
     },
     {
-      "op": "op00633",
+      "op": "op00615",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -14561,7 +14161,7 @@
       ]
     },
     {
-      "op": "op00635",
+      "op": "op00617",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -14575,7 +14175,7 @@
       ]
     },
     {
-      "op": "op00638",
+      "op": "op00620",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14589,7 +14189,7 @@
       ]
     },
     {
-      "op": "op00640",
+      "op": "op00622",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14603,7 +14203,7 @@
       ]
     },
     {
-      "op": "op00641",
+      "op": "op00623",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14617,7 +14217,7 @@
       ]
     },
     {
-      "op": "op00642",
+      "op": "op00624",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -14631,7 +14231,7 @@
       ]
     },
     {
-      "op": "op00644",
+      "op": "op00626",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -14645,7 +14245,7 @@
       ]
     },
     {
-      "op": "op00646",
+      "op": "op00628",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14659,7 +14259,7 @@
       ]
     },
     {
-      "op": "op00647",
+      "op": "op00629",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14673,7 +14273,7 @@
       ]
     },
     {
-      "op": "op00648",
+      "op": "op00630",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14687,7 +14287,7 @@
       ]
     },
     {
-      "op": "op00649",
+      "op": "op00631",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14701,7 +14301,7 @@
       ]
     },
     {
-      "op": "op00650",
+      "op": "op00632",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14715,7 +14315,7 @@
       ]
     },
     {
-      "op": "op00651",
+      "op": "op00633",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14729,7 +14329,7 @@
       ]
     },
     {
-      "op": "op00652",
+      "op": "op00634",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14743,7 +14343,7 @@
       ]
     },
     {
-      "op": "op00653",
+      "op": "op00635",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14757,7 +14357,7 @@
       ]
     },
     {
-      "op": "op00655",
+      "op": "op00637",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -14771,7 +14371,7 @@
       ]
     },
     {
-      "op": "op00656",
+      "op": "op00638",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -14785,7 +14385,7 @@
       ]
     },
     {
-      "op": "op00657",
+      "op": "op00639",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -14799,7 +14399,7 @@
       ]
     },
     {
-      "op": "op00666",
+      "op": "op00648",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -14813,49 +14413,7 @@
       ]
     },
     {
-      "op": "op00667",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 151,
-          "line_end": 152,
-          "label": "ACURA",
-          "call": "2297:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00669",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 157,
-          "line_end": 158,
-          "label": "ACURA",
-          "call": "2297:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00671",
-      "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
-      "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 163,
-          "line_end": 164,
-          "label": "ACURA",
-          "call": "2297:ambiente"
-        }
-      ]
-    },
-    {
-      "op": "op00674",
+      "op": "op00650",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -14869,7 +14427,7 @@
       ]
     },
     {
-      "op": "op00675",
+      "op": "op00651",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14883,7 +14441,7 @@
       ]
     },
     {
-      "op": "op00693",
+      "op": "op00669",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14897,7 +14455,7 @@
       ]
     },
     {
-      "op": "op00694",
+      "op": "op00670",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14911,7 +14469,7 @@
       ]
     },
     {
-      "op": "op00696",
+      "op": "op00672",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -14925,7 +14483,7 @@
       ]
     },
     {
-      "op": "op00697",
+      "op": "op00673",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -14939,7 +14497,7 @@
       ]
     },
     {
-      "op": "op00698",
+      "op": "op00674",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14953,7 +14511,7 @@
       ]
     },
     {
-      "op": "op00702",
+      "op": "op00678",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -14967,7 +14525,7 @@
       ]
     },
     {
-      "op": "op00705",
+      "op": "op00681",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -14981,7 +14539,7 @@
       ]
     },
     {
-      "op": "op00706",
+      "op": "op00682",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -14995,7 +14553,7 @@
       ]
     },
     {
-      "op": "op00709",
+      "op": "op00685",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15009,7 +14567,7 @@
       ]
     },
     {
-      "op": "op00711",
+      "op": "op00687",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -15023,7 +14581,7 @@
       ]
     },
     {
-      "op": "op00712",
+      "op": "op00688",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15037,7 +14595,7 @@
       ]
     },
     {
-      "op": "op00714",
+      "op": "op00690",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -15051,7 +14609,7 @@
       ]
     },
     {
-      "op": "op00717",
+      "op": "op00693",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -15065,7 +14623,7 @@
       ]
     },
     {
-      "op": "op00718",
+      "op": "op00694",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -15079,7 +14637,7 @@
       ]
     },
     {
-      "op": "op00722",
+      "op": "op00698",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -15093,7 +14651,7 @@
       ]
     },
     {
-      "op": "op00723",
+      "op": "op00699",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -15107,7 +14665,7 @@
       ]
     },
     {
-      "op": "op00726",
+      "op": "op00702",
       "what": "troceado de un dataset por rangos de observaciones",
       "talend": "Talend carga el conjunto completo: el componente de salida usa Batch size o escritura por bloques.",
       "evidence": [
@@ -15121,7 +14679,7 @@
       ]
     },
     {
-      "op": "op00727",
+      "op": "op00703",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15135,7 +14693,7 @@
       ]
     },
     {
-      "op": "op00728",
+      "op": "op00704",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15149,7 +14707,7 @@
       ]
     },
     {
-      "op": "op00731",
+      "op": "op00707",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15163,7 +14721,7 @@
       ]
     },
     {
-      "op": "op00732",
+      "op": "op00708",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15177,7 +14735,7 @@
       ]
     },
     {
-      "op": "op00733",
+      "op": "op00709",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15191,7 +14749,7 @@
       ]
     },
     {
-      "op": "op00734",
+      "op": "op00710",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15205,7 +14763,7 @@
       ]
     },
     {
-      "op": "op00737",
+      "op": "op00713",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15219,7 +14777,7 @@
       ]
     },
     {
-      "op": "op00739",
+      "op": "op00715",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15233,7 +14791,7 @@
       ]
     },
     {
-      "op": "op00745",
+      "op": "op00721",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -15247,7 +14805,7 @@
       ]
     },
     {
-      "op": "op00747",
+      "op": "op00723",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15261,7 +14819,7 @@
       ]
     },
     {
-      "op": "op00764",
+      "op": "op00740",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -15275,7 +14833,7 @@
       ]
     },
     {
-      "op": "op00780",
+      "op": "op00756",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -15289,7 +14847,7 @@
       ]
     },
     {
-      "op": "op00781",
+      "op": "op00757",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -15303,7 +14861,7 @@
       ]
     },
     {
-      "op": "op00785",
+      "op": "op00761",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -15317,7 +14875,7 @@
       ]
     },
     {
-      "op": "op00786",
+      "op": "op00762",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15331,7 +14889,7 @@
       ]
     },
     {
-      "op": "op00787",
+      "op": "op00763",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15345,7 +14903,7 @@
       ]
     },
     {
-      "op": "op00789",
+      "op": "op00765",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -15359,7 +14917,7 @@
       ]
     },
     {
-      "op": "op00794",
+      "op": "op00770",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -15373,7 +14931,7 @@
       ]
     },
     {
-      "op": "op00796",
+      "op": "op00772",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -15387,7 +14945,7 @@
       ]
     },
     {
-      "op": "op00799",
+      "op": "op00775",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15401,7 +14959,7 @@
       ]
     },
     {
-      "op": "op00802",
+      "op": "op00778",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15415,7 +14973,7 @@
       ]
     },
     {
-      "op": "op00803",
+      "op": "op00779",
       "what": "sondeo de procesos con sleep/until del shell",
       "talend": "Talend continúa con OnSubjobOk cuando el paso anterior termina.",
       "evidence": [
@@ -15429,7 +14987,7 @@
       ]
     },
     {
-      "op": "op00805",
+      "op": "op00781",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -15443,7 +15001,7 @@
       ]
     },
     {
-      "op": "op00806",
+      "op": "op00782",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -15457,7 +15015,7 @@
       ]
     },
     {
-      "op": "op00807",
+      "op": "op00783",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -15471,7 +15029,7 @@
       ]
     },
     {
-      "op": "op00808",
+      "op": "op00784",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -15485,7 +15043,7 @@
       ]
     },
     {
-      "op": "op00810",
+      "op": "op00786",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15499,7 +15057,7 @@
       ]
     },
     {
-      "op": "op00811",
+      "op": "op00787",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -15513,7 +15071,7 @@
       ]
     },
     {
-      "op": "op00812",
+      "op": "op00788",
       "what": "borrado de una tabla de la base antes de cargar (DROP TABLE)",
       "talend": "La acción de tabla del componente de salida (DROP_CREATE/CLEAR) reemplaza la tabla.",
       "evidence": [
@@ -15527,7 +15085,7 @@
       ]
     },
     {
-      "op": "op00813",
+      "op": "op00789",
       "what": "apertura o cierre de la sesión con la base de datos",
       "talend": "La conexión compartida del Job (tipo Connection) y su cierre los pone la estructura.",
       "evidence": [
@@ -15541,7 +15099,7 @@
       ]
     },
     {
-      "op": "op00815",
+      "op": "op00791",
       "what": "borrado de datasets temporales de WORK (PROC DELETE o PROC DATASETS)",
       "talend": "La salida y las tablas temporales no existen en Talend: el flujo no las necesita.",
       "evidence": [
@@ -15555,7 +15113,7 @@
       ]
     },
     {
-      "op": "op00818",
+      "op": "op00794",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15569,7 +15127,7 @@
       ]
     },
     {
-      "op": "op00820",
+      "op": "op00796",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -15583,7 +15141,7 @@
       ]
     },
     {
-      "op": "op00821",
+      "op": "op00797",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15597,7 +15155,7 @@
       ]
     },
     {
-      "op": "op00822",
+      "op": "op00798",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -15611,7 +15169,7 @@
       ]
     },
     {
-      "op": "op00824",
+      "op": "op00800",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -15625,7 +15183,7 @@
       ]
     },
     {
-      "op": "op00826",
+      "op": "op00802",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15639,7 +15197,7 @@
       ]
     },
     {
-      "op": "op00827",
+      "op": "op00803",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15653,7 +15211,7 @@
       ]
     },
     {
-      "op": "op00828",
+      "op": "op00804",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15667,7 +15225,7 @@
       ]
     },
     {
-      "op": "op00829",
+      "op": "op00805",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15681,7 +15239,7 @@
       ]
     },
     {
-      "op": "op00830",
+      "op": "op00806",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15695,7 +15253,7 @@
       ]
     },
     {
-      "op": "op00831",
+      "op": "op00807",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15709,7 +15267,7 @@
       ]
     },
     {
-      "op": "op00832",
+      "op": "op00808",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15723,7 +15281,7 @@
       ]
     },
     {
-      "op": "op00833",
+      "op": "op00809",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -15737,7 +15295,7 @@
       ]
     },
     {
-      "op": "op00835",
+      "op": "op00811",
       "what": "cálculo de la duración del programa (datetime)",
       "talend": "tStatCatcher registra la duración de la ejecución del Job.",
       "evidence": [
@@ -17381,10 +16939,13 @@
           "op00045",
           "op00046",
           "op00047",
-          "op00050",
+          "op00049",
           "op00052",
+          "op00053",
           "op00054",
           "op00055",
+          "op00056",
+          "op00057",
           "op00058",
           "op00059",
           "op00060",
@@ -17396,63 +16957,63 @@
           "op00066",
           "op00067",
           "op00068",
-          "op00069",
-          "op00070",
           "op00071",
-          "op00072",
-          "op00073",
-          "op00074",
-          "op00077",
-          "op00081",
-          "op00082",
-          "op00085",
+          "op00075",
+          "op00076",
+          "op00079",
+          "op00080",
+          "op00083",
+          "op00084",
           "op00086",
           "op00089",
-          "op00090",
+          "op00091",
           "op00092",
           "op00095",
+          "op00096",
           "op00097",
-          "op00098",
+          "op00100",
           "op00101",
-          "op00102",
-          "op00103",
+          "op00105",
           "op00106",
-          "op00107",
           "op00111",
           "op00112",
+          "op00114",
           "op00117",
           "op00118",
           "op00120",
-          "op00123",
-          "op00124",
-          "op00126",
-          "op00128",
+          "op00122",
+          "op00153",
+          "op00154",
+          "op00155",
+          "op00158",
           "op00159",
           "op00160",
-          "op00161",
           "op00164",
-          "op00165",
-          "op00166",
-          "op00170",
+          "op00171",
+          "op00173",
+          "op00174",
+          "op00176",
           "op00177",
-          "op00179",
           "op00180",
-          "op00182",
-          "op00183",
-          "op00186",
-          "op00191",
-          "op00196",
-          "op00198",
+          "op00185",
+          "op00190",
+          "op00192",
+          "op00193",
+          "op00195",
           "op00199",
           "op00201",
-          "op00205",
-          "op00207",
+          "op00210",
+          "op00211",
+          "op00213",
           "op00216",
-          "op00217",
-          "op00219",
+          "op00218",
+          "op00220",
           "op00222",
+          "op00223",
           "op00224",
+          "op00225",
           "op00226",
+          "op00227",
           "op00228",
           "op00229",
           "op00230",
@@ -17483,97 +17044,97 @@
           "op00255",
           "op00256",
           "op00257",
-          "op00258",
-          "op00259",
-          "op00260",
-          "op00261",
-          "op00262",
-          "op00263",
+          "op00267",
+          "op00271",
+          "op00272",
           "op00273",
+          "op00274",
+          "op00275",
+          "op00276",
           "op00277",
           "op00278",
-          "op00279",
           "op00280",
-          "op00281",
-          "op00282",
           "op00283",
           "op00284",
+          "op00285",
+          "op00286",
           "op00287",
+          "op00288",
           "op00289",
+          "op00290",
           "op00291",
           "op00292",
+          "op00293",
+          "op00294",
           "op00295",
           "op00296",
           "op00297",
           "op00298",
           "op00299",
-          "op00300",
-          "op00301",
-          "op00302",
-          "op00303",
-          "op00304",
-          "op00305",
           "op00306",
           "op00307",
-          "op00308",
-          "op00309",
           "op00310",
           "op00311",
-          "op00318",
-          "op00319",
+          "op00314",
+          "op00315",
+          "op00317",
+          "op00320",
           "op00322",
           "op00323",
           "op00326",
           "op00327",
-          "op00329",
+          "op00328",
+          "op00331",
           "op00332",
-          "op00334",
-          "op00335",
-          "op00338",
-          "op00339",
-          "op00340",
+          "op00336",
+          "op00337",
+          "op00342",
           "op00343",
-          "op00344",
+          "op00345",
           "op00348",
-          "op00349",
-          "op00354",
-          "op00355",
-          "op00357",
-          "op00360",
-          "op00363",
-          "op00365",
-          "op00396",
-          "op00397",
-          "op00398",
-          "op00401",
+          "op00351",
+          "op00353",
+          "op00384",
+          "op00385",
+          "op00386",
+          "op00389",
+          "op00390",
+          "op00391",
+          "op00395",
           "op00402",
-          "op00403",
+          "op00404",
+          "op00405",
           "op00407",
-          "op00414",
+          "op00408",
+          "op00411",
           "op00416",
-          "op00417",
-          "op00419",
-          "op00420",
+          "op00421",
           "op00423",
-          "op00428",
-          "op00433",
-          "op00435",
-          "op00436",
-          "op00438",
+          "op00424",
+          "op00426",
+          "op00430",
+          "op00432",
+          "op00441",
           "op00442",
           "op00444",
+          "op00447",
+          "op00449",
+          "op00451",
           "op00453",
           "op00454",
-          "op00456",
-          "op00459",
-          "op00461",
-          "op00463",
-          "op00465",
-          "op00466"
+          "op00455",
+          "op00462",
+          "op00466",
+          "op00467",
+          "op00468",
+          "op00469"
         ],
         [
-          "op00467",
-          "op00474",
+          "op00470",
+          "op00471",
+          "op00472",
+          "op00473",
+          "op00475",
           "op00478",
           "op00479",
           "op00480",
@@ -17582,71 +17143,74 @@
           "op00483",
           "op00484",
           "op00485",
+          "op00486",
+          "op00487",
           "op00488",
+          "op00489",
           "op00490",
+          "op00491",
           "op00492",
           "op00493",
-          "op00496",
-          "op00497",
-          "op00498",
-          "op00499",
-          "op00500",
+          "op00494",
           "op00501",
           "op00502",
-          "op00503",
-          "op00504",
           "op00505",
           "op00506",
-          "op00507",
-          "op00508",
           "op00509",
           "op00510",
-          "op00511",
           "op00512",
-          "op00519",
-          "op00520",
+          "op00515",
+          "op00517",
+          "op00518",
+          "op00521",
+          "op00522",
           "op00523",
-          "op00524",
+          "op00526",
           "op00527",
-          "op00528",
-          "op00530",
-          "op00533",
-          "op00535",
-          "op00536",
-          "op00539",
+          "op00531",
+          "op00532",
+          "op00537",
+          "op00538",
           "op00540",
-          "op00541",
-          "op00544",
-          "op00545",
-          "op00549",
-          "op00550",
-          "op00555",
-          "op00556",
-          "op00558",
-          "op00561",
-          "op00564",
-          "op00566",
+          "op00543",
+          "op00546",
+          "op00548",
+          "op00579",
+          "op00580",
+          "op00581",
+          "op00584",
+          "op00585",
+          "op00586",
+          "op00590",
           "op00597",
-          "op00598",
           "op00599",
+          "op00600",
           "op00602",
           "op00603",
-          "op00604",
-          "op00608",
-          "op00615",
-          "op00617",
+          "op00606",
+          "op00611",
+          "op00616",
           "op00618",
-          "op00620",
+          "op00619",
           "op00621",
-          "op00624",
-          "op00629",
-          "op00634",
+          "op00625",
+          "op00627",
           "op00636",
-          "op00637",
-          "op00639",
+          "op00640",
+          "op00641",
+          "op00642",
           "op00643",
+          "op00644",
           "op00645",
+          "op00646",
+          "op00647",
+          "op00649",
+          "op00652",
+          "op00653",
           "op00654",
+          "op00655",
+          "op00656",
+          "op00657",
           "op00658",
           "op00659",
           "op00660",
@@ -17655,90 +17219,72 @@
           "op00663",
           "op00664",
           "op00665",
+          "op00666",
+          "op00667",
           "op00668",
-          "op00670",
-          "op00672",
-          "op00673",
+          "op00675",
           "op00676",
-          "op00677",
-          "op00678",
           "op00679",
           "op00680",
-          "op00681",
-          "op00682",
           "op00683",
           "op00684",
-          "op00685",
           "op00686",
-          "op00687",
-          "op00688",
           "op00689",
-          "op00690",
           "op00691",
           "op00692",
-          "op00699",
+          "op00695",
+          "op00696",
+          "op00697",
           "op00700",
-          "op00703",
-          "op00704",
-          "op00707",
-          "op00708",
-          "op00710",
-          "op00713",
-          "op00715",
-          "op00716",
-          "op00719",
+          "op00701",
+          "op00705",
+          "op00706",
+          "op00711",
+          "op00712",
+          "op00714",
+          "op00717",
           "op00720",
-          "op00721",
-          "op00724",
-          "op00725",
-          "op00729",
-          "op00730",
-          "op00735",
-          "op00736",
-          "op00738",
-          "op00741",
-          "op00744",
-          "op00746",
+          "op00722",
+          "op00753",
+          "op00754",
+          "op00755",
+          "op00758",
+          "op00759",
+          "op00760",
+          "op00764",
+          "op00771",
+          "op00773",
+          "op00774",
+          "op00776",
           "op00777",
-          "op00778",
-          "op00779",
-          "op00782",
-          "op00783",
-          "op00784",
-          "op00788",
+          "op00780",
+          "op00785",
+          "op00790",
+          "op00792",
+          "op00793",
           "op00795",
-          "op00797",
-          "op00798",
-          "op00800",
+          "op00799",
           "op00801",
-          "op00804",
-          "op00809",
-          "op00814",
-          "op00816",
-          "op00817",
-          "op00819",
-          "op00823",
-          "op00825",
-          "op00834",
-          "op00836"
+          "op00810",
+          "op00812"
         ],
         [
-          "op00841"
+          "op00817"
         ],
         [
-          "op00842"
+          "op00818"
         ],
         [
-          "op00843"
+          "op00819"
         ],
         [
-          "op00844"
+          "op00820"
         ],
         [
-          "op00845"
+          "op00821"
         ],
         [
-          "op00846"
+          "op00822"
         ],
         [
           "op00005",
@@ -17764,30 +17310,30 @@
           "w00006"
         ],
         [
-          "op00083",
-          "op00125",
-          "op00172",
-          "op00320",
-          "op00409",
-          "op00521",
-          "op00610",
-          "op00701",
-          "op00790",
+          "op00077",
+          "op00119",
+          "op00166",
+          "op00308",
+          "op00397",
+          "op00503",
+          "op00592",
+          "op00677",
+          "op00766",
           "op00030",
-          "op00122",
-          "op00359",
-          "op00560",
-          "op00740",
+          "op00116",
+          "op00347",
+          "op00542",
+          "op00716",
           "op00036",
           "op00031",
           "op00035",
           "w00008"
         ],
         [
-          "op00837",
-          "op00838",
-          "op00839",
-          "op00840",
+          "op00813",
+          "op00814",
+          "op00815",
+          "op00816",
           "w00007"
         ],
         [
@@ -17801,6 +17347,25 @@
         ]
       ],
       "contexts": {},
+      "context_groups": {
+        "ambiente": {
+          "selector": "m_ambiente",
+          "variables": [
+            "lz_dsn"
+          ],
+          "contextos": {
+            "D": {
+              "lz_dsn": "IMPALA"
+            },
+            "C": {
+              "lz_dsn": "IMPALAC"
+            },
+            "P": {
+              "lz_dsn": "IMPALAP"
+            }
+          }
+        }
+      },
       "children": [
         "tpl_e0f4ae92",
         "tpl_e4582e24"

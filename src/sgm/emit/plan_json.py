@@ -71,6 +71,7 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
                 "name": j.name,
                 "subjobs": j.subjobs,
                 "contexts": j.contexts,
+                "context_groups": j.context_groups,
                 "children": [c.name for c in j.children],
             }
             for j in plan.jobs

@@ -17,6 +17,7 @@ from dataclasses import dataclass, field, replace
 
 from sgm.frontend.lexer import MACRO_KEYWORDS, Stmt
 from sgm.frontend.macro_index import PathIndex, PathMatch, resolve_path, substitute
+from sgm.frontend.selectors import Selector, SelectorUse, detect
 
 MAX_DEPTH = 20
 MAX_ITERATIONS = 1000
@@ -183,6 +184,8 @@ class Expander:
         self.files = files
         self.paths = PathIndex(files.keys())
         self.externals = externals  # archivos de env/externals: se casan por nombre de archivo
+        self.selectors = _selectors(index)  # macros de ambiente: sus ramas son contextos
+        self.selector_uses: list[SelectorUse] = []
         self.dynamics: list[MacroDynamic] = []
         self.trace: list[str] = []
         self.unresolved_includes: list[tuple[str, str, str]] = []
@@ -242,7 +245,7 @@ class Expander:
                 and call.group(1).lower() not in MACRO_KEYWORDS
                 and self.index.get(call.group(1))
             ):
-                out += self._call(call, s, env, depth)
+                out += self._call(call, s, env, depth, file)
                 i += 1
                 continue
             out += self._ordinary(s, env)
@@ -400,11 +403,16 @@ class Expander:
             _, end = self._block(stmts, i + 1, file, dict(env), depth, nested=True)
         return out, min(end + 1, len(stmts))
 
-    def _call(self, call: re.Match, s: Stmt, env: dict, depth: int) -> list[object]:
+    def _call(self, call: re.Match, s: Stmt, env: dict, depth: int, file: str) -> list[object]:
         entry = self.index.get(call.group(1))
         assert entry is not None
         if depth >= MAX_DEPTH:
             return [self._dynamic(s, f"recursión de macros al llamar %{entry.name}")]
+        selector = self.selectors.get(entry.name.lower())
+        if selector is not None:
+            # Un selector de ambiente no se expande: sus ramas son contextos (grupo del Job).
+            self.selector_uses.append(SelectorUse(file, s.line, selector))
+            return [Expanded(entry.name, f"{s.line}:{entry.name}", [])]
         args = split_top(call.group(2) or "")
         keywords = {}
         positional = []
@@ -448,6 +456,17 @@ class Expander:
             return [s]
         items, _ = self._block(self.files[match.file], 0, match.file, env, depth + 1, nested=False)
         return items
+
+
+def _selectors(index: MacroIndex) -> dict[str, Selector]:
+    """Macros del proyecto con forma de selector de ambiente, por nombre en minúsculas."""
+    found: dict[str, Selector] = {}
+    for name, variants in index.entries.items():
+        for entry in variants:
+            selector = detect(entry.name, entry.body)
+            if selector is not None:
+                found[name] = selector
+    return found
 
 
 def _eval_call(text: str) -> int | None:

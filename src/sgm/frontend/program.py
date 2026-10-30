@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 
 from sgm.frontend.lexer import Stmt, split_statements
 from sgm.frontend.macros import Expanded, Expander, MacroDynamic, MacroIndex, index_file
+from sgm.frontend.selectors import SelectorUse
 from sgm.frontend.splitter import ZERO_WIDTH, Node, split_nodes
 from sgm.frontend.steps import Unparsed, parse_steps
 
@@ -36,6 +37,7 @@ class ProgramAnalysis:
     index: MacroIndex = field(default_factory=MacroIndex)
     unresolved_includes: list[tuple[str, str, str]] = field(default_factory=list)
     nodes: dict[str, list[Node]] = field(default_factory=dict)
+    selector_uses: list[SelectorUse] = field(default_factory=list)  # macros de ambiente invocadas
 
     @property
     def dynamics(self) -> list[ProgramItem]:
@@ -117,4 +119,5 @@ def analyze_program(
     for path in sorted(files):
         _collect(path, result.nodes[path], expander.expand_file(path), result)
     result.unresolved_includes = list(expander.unresolved_includes)
+    result.selector_uses = list(expander.selector_uses)
     return result

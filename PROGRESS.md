@@ -348,3 +348,28 @@ De los 520 "creados por pasada", 372 son `tRunJob` de plantillas (`iterate`).
 - `%include` declarado sin `as_context` queda `parcial` y no crea contextos. Así no se inventa que sus variables son contexto.
 - Un archivo de `env/externals/` gana sobre la declaración de `externals.json`: si está presente, se lee el contenido real y no se usan las variables declaradas.
 - Los valores que el código no demuestra no se agregan. `libraries` queda vacío porque ninguna biblioteca LZ tiene motor demostrado (bloqueo 2 de la ronda 1).
+
+## R2. Contextos desde macros de ambiente
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `frontend/selectors.py`: `detect(name, body)` reconoce por estructura un selector: una cadena `%if &X eq <lit> %then %do; %let Y=<valor>; %end;` seguida de una o más ramas `%else %if &X eq <lit> ...`, y como mucho un `%put`. Exige al menos dos literales y la misma variable `X` en todas las ramas. No mira nombres.
+  - `frontend/macros.py`: el expansor detecta los selectores al indexar. Una invocación de selector no expande sus ramas: registra un `SelectorUse` y devuelve un `Expanded` vacío.
+  - `ir/models.py` y `emit/plan_json.py`: `Job.context_groups`, con `selector`, `variables` y `contextos` (literal -> {variable: valor}).
+  - `compile.py`: cada selector invocado en el programa crea su grupo y un `NotMigrated` con id `selector:<nombre>`.
+- Pruebas: `tests/unit/test_selectors.py` (7 casos). Detección con nombres aleatorios; un solo literal, rama sin literal, variables distintas o código extra no son selector; el programa con selector no genera operadores; el selector real de `client_poc.sas` da `ambiente` con `lz_dsn` y D→IMPALA, C→IMPALAC, P→IMPALAP.
+- Golden: se regeneraron las cuatro referencias. Las tres sencillas solo cambian por la clave nueva `context_groups`. `client__client_poc` pierde 12 operadores `CONFIGURACION` que salían de expandir las ramas del selector. Sus componentes siguen en 82.
+- Pruebas totales: 208 pasan, 1 se salta. `ruff check .` limpio.
+
+### Efecto medido (con `env/`)
+
+- Corpus: pasos SAS 8 960 → 8 722 (238 pasos de ramas de selector ya no cuentan como pasos). Componentes 1 690 sin cambio. Pasos por componente 5,302 → 5,161 (por el denominador). Subjobs 958 → 957.
+- `client_large.sas`: pasos 5 152 → 4 914 (mismo motivo). Pasos por componente 7,782 → 7,465. Componentes 662 sin cambio.
+- `client_poc.sas`: pasos por componente 11,388 → 10,97. Componentes 67 sin cambio.
+- El cambio de la métrica de pasos viene de cómo se cuentan los pasos, no de agrupar mejor. Los componentes no cambian en R2.
+
+## Decisiones (R2)
+
+- La detección exige al menos dos literales. Con uno solo, no hay elección de ambiente y el `%if` se trata como antes.
+- Un selector se detecta por macro, no por archivo: un selector definido en otro archivo del proyecto también vale.
+- El grupo de contexto se guarda por nombre de macro (`ambiente`), y no por variable, porque una macro puede tener varias variables Y.

@@ -227,6 +227,9 @@ class Job:
         default_factory=list
     )  # cada subjob: ids de operadores en orden
     contexts: dict[str, Any] = field(default_factory=dict)
+    context_groups: dict[str, dict[str, Any]] = field(
+        default_factory=dict
+    )  # selectores de ambiente
     children: list[Job] = field(default_factory=list)
 
 
