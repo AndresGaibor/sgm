@@ -27,13 +27,13 @@ def _lower_statement(st: SqlStatement, ev: Evidence, b: Builder) -> None:
         params = {"sql": st.inner_sql, "engine": st.engine}
         if st.target:
             params["outputs"] = [_base_name(st.engine or "", st.target)]
-        b.op("read", params, ev, placement=f"db:{st.engine}")
+        b.op("read", params, ev, placement=f"db:{(st.engine or '').lower()}")
     elif kind == "execute":
         created = _CREATE_TARGET.match(st.inner_sql or "")
         params = {"sql": st.inner_sql, "engine": st.engine}
         if created:
             params["outputs"] = [_base_name(st.engine or "", created.group(1))]
-        b.op("exec_sql", params, ev, placement=f"db:{st.engine}")
+        b.op("exec_sql", params, ev, placement=f"db:{(st.engine or '').lower()}")
     elif kind == "create_table":
         b.op(
             "exec_sql",

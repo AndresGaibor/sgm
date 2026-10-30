@@ -29,7 +29,9 @@ def _evidence(item) -> Evidence:
     step = item.item
     start = getattr(step, "line", item.line)
     end = getattr(step, "end_line", start)
-    return Evidence(file=item.file, line_start=start, line_end=end, label=item.label)
+    return Evidence(
+        file=item.file, line_start=start, line_end=end, label=item.label, call=item.call
+    )
 
 
 def _config(step, ev: Evidence, b: Builder, what: str) -> None:

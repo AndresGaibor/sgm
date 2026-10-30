@@ -79,9 +79,10 @@ def _sort(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str | Non
 
 
 def _unsupported(step: Proc, ev: Evidence, b: Builder, note: str) -> None:
+    statement = "; ".join([step.text, *step.body])
     b.op(
         "unsupported",
-        {"statement": step.text, "procedure": step.name, "reason": "PROC_NO_SOPORTADO"},
+        {"statement": statement, "procedure": step.name, "reason": "PROC_NO_SOPORTADO"},
         ev,
         status="hueco",
         notes=[note],

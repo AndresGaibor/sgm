@@ -91,6 +91,7 @@ def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
     if current is None:
         current = _read_file(stmts, ev, b) or (reads[0] if reads else None)
     pending_derive: Operator | None = None
+    loose: list[str] = []
     prev: DsStatement | None = None
     for s in stmts:
         kind = s.kind
@@ -119,6 +120,11 @@ def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
         new = _statement_op(s, kind, before, ev, b)
         if new is None:
             _note(current, f"sentencia sin traducción: {s.text}", status="parcial")
+            if current is not None:
+                current.params.setdefault("untranslated", []).append(s.text)
+                b.refresh(current)
+            else:
+                loose.append(s.text)  # sin operador aún: se adjunta al operador final
             continue
         if current is not None:
             b.link(current, new)
@@ -132,6 +138,9 @@ def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
             status="parcial",
             notes=["DATA step sin entradas ni sentencias traducibles"],
         )
+    if loose:
+        current.params.setdefault("untranslated", []).extend(loose)
+        b.refresh(current)
     if "_null_" in [o.lower() for o in outputs]:
         current.notes.append("salida _NULL_: no escribe dataset")
     current.params["outputs"] = [qualify(o) for o in outputs if o.lower() != "_null_"]

@@ -1,0 +1,649 @@
+{
+  "program": "generalization/etl_archivos_simple.sas",
+  "operators": [
+    {
+      "id": "op00001",
+      "kind": "unsupported",
+      "status": "reemplazado",
+      "placement": "flow",
+      "signature": "c4986b0f6123d71c",
+      "params": {
+        "statement": "%let dir_in = C:\\datos\\entrada",
+        "reason": "CONFIGURACION"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 2,
+          "line_end": 2,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "configuración de sesión o de macro: se resuelve en el contexto del Job"
+      ]
+    },
+    {
+      "id": "op00002",
+      "kind": "unsupported",
+      "status": "reemplazado",
+      "placement": "flow",
+      "signature": "c4986b0f6123d71c",
+      "params": {
+        "statement": "%let dir_out = C:\\datos\\salida",
+        "reason": "CONFIGURACION"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 3,
+          "line_end": 3,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "configuración de sesión o de macro: se resuelve en el contexto del Job"
+      ]
+    },
+    {
+      "id": "op00003",
+      "kind": "read_file",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "f7d83a49f36cd2a2",
+      "params": {
+        "outputs": [
+          "WORK.pedidos_raw"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 6,
+          "line_end": 10,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "lectura de archivo o de datos en línea del DATA step",
+        "declaración sin efecto en la lógica: length cliente $12 producto $20 canal $8 fecha_txt $10"
+      ]
+    },
+    {
+      "id": "op00004",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6ed56d33179adc70",
+      "params": {
+        "dataset": "WORK.pedidos_raw",
+        "in": null
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00005",
+      "kind": "filter",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "d66f87221fdf268b",
+      "params": {
+        "expression": "cantidad > 0 and not missing(precio)"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "declaración sin efecto en la lógica: length prefijo $3"
+      ]
+    },
+    {
+      "id": "op00006",
+      "kind": "derive",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "f48300eef4f749a9",
+      "params": {
+        "assignments": [
+          {
+            "target": "prefijo",
+            "expression": "substr(producto, 1, 3)"
+          },
+          {
+            "target": "importe",
+            "expression": "round(cantidad * precio, 0.01)"
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00007",
+      "kind": "derive",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "a91d00faff09a205",
+      "params": {
+        "conditional": "if canal = 'WEB' then descuento = 0.05"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "asignación condicional: traducir como expresión condicional"
+      ]
+    },
+    {
+      "id": "op00008",
+      "kind": "derive",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "9afc9ce2682709b4",
+      "params": {
+        "conditional": "else if canal = 'TIENDA' then descuento = 0.02"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "asignación condicional: traducir como expresión condicional"
+      ]
+    },
+    {
+      "id": "op00009",
+      "kind": "filter",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "269cfdb0db10d702",
+      "params": {
+        "expression": "else descuento = 0"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00010",
+      "kind": "derive",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "fce8b50ac6c816fe",
+      "params": {
+        "assignments": [
+          {
+            "target": "importe_neto",
+            "expression": "importe * (1 - descuento)"
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00011",
+      "kind": "rename",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "46240139a7b12c2f",
+      "params": {
+        "pairs": [
+          [
+            "cliente",
+            "cod_cliente"
+          ],
+          [
+            "producto",
+            "cod_producto"
+          ]
+        ],
+        "outputs": [
+          "WORK.pedidos_ok"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00012",
+      "kind": "sort",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "5e2d4e16bd7ea5e4",
+      "params": {
+        "by": [
+          "cod_cliente",
+          "cod_producto"
+        ],
+        "inputs": [
+          "WORK.pedidos_ok"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 27,
+          "line_end": 29,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00013",
+      "kind": "dedup",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "253e97bb004bb320",
+      "params": {
+        "by": [
+          "cod_cliente",
+          "cod_producto"
+        ],
+        "keep": "first",
+        "outputs": [
+          "WORK.pedidos_dedup"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 27,
+          "line_end": 29,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00014",
+      "kind": "read_file",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "fb09f3a905678830",
+      "params": {
+        "datafile": "\"C:\\datos\\entrada\\clientes.csv\"",
+        "outputs": [
+          "WORK.clientes"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 32,
+          "line_end": 34,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00015",
+      "kind": "sort",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6bc64a5c23a1373a",
+      "params": {
+        "by": [
+          "cod_cliente"
+        ],
+        "inputs": [
+          "WORK.clientes"
+        ],
+        "outputs": [
+          "WORK.clientes"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 36,
+          "line_end": 38,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00016",
+      "kind": "sort",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6bc64a5c23a1373a",
+      "params": {
+        "by": [
+          "cod_cliente"
+        ],
+        "inputs": [
+          "WORK.pedidos_dedup"
+        ],
+        "outputs": [
+          "WORK.pedidos_dedup"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 40,
+          "line_end": 42,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00017",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "dfdc0883052b8e64",
+      "params": {
+        "dataset": "WORK.pedidos_dedup",
+        "in": "p"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 45,
+          "line_end": 49,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00018",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "dfdc0883052b8e64",
+      "params": {
+        "dataset": "WORK.clientes",
+        "in": "c"
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 45,
+          "line_end": 49,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00019",
+      "kind": "join",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "44d008969994ad79",
+      "params": {
+        "by": [
+          "cod_cliente"
+        ],
+        "join_type": "inner",
+        "sources": [
+          "WORK.pedidos_dedup",
+          "WORK.clientes"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 45,
+          "line_end": 49,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00020",
+      "kind": "filter",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "d70923192f65b5a9",
+      "params": {
+        "expression": "p and c",
+        "outputs": [
+          "WORK.pedidos_region"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 45,
+          "line_end": 49,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00021",
+      "kind": "write_file",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "a6534b409c7e21b9",
+      "params": {
+        "inputs": [
+          "WORK.pedidos_region"
+        ],
+        "outfile": "\"C:\\datos\\salida\\pedidos_region.csv\""
+      },
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 52,
+          "line_end": 55,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "edges": [
+    {
+      "src": "op00003",
+      "dst": "op00004",
+      "dataset": "WORK.pedidos_raw",
+      "materialize": null
+    },
+    {
+      "src": "op00004",
+      "dst": "op00005",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00005",
+      "dst": "op00006",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00006",
+      "dst": "op00007",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00007",
+      "dst": "op00008",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00008",
+      "dst": "op00009",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00009",
+      "dst": "op00010",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00010",
+      "dst": "op00011",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00011",
+      "dst": "op00012",
+      "dataset": "WORK.pedidos_ok",
+      "materialize": null
+    },
+    {
+      "src": "op00012",
+      "dst": "op00013",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00013",
+      "dst": "op00016",
+      "dataset": "WORK.pedidos_dedup",
+      "materialize": null
+    },
+    {
+      "src": "op00014",
+      "dst": "op00015",
+      "dataset": "WORK.clientes",
+      "materialize": null
+    },
+    {
+      "src": "op00015",
+      "dst": "op00018",
+      "dataset": "WORK.clientes@v2",
+      "materialize": null
+    },
+    {
+      "src": "op00015",
+      "dst": "op00019",
+      "dataset": "WORK.clientes@v2",
+      "materialize": null
+    },
+    {
+      "src": "op00016",
+      "dst": "op00017",
+      "dataset": "WORK.pedidos_dedup@v2",
+      "materialize": null
+    },
+    {
+      "src": "op00016",
+      "dst": "op00019",
+      "dataset": "WORK.pedidos_dedup@v2",
+      "materialize": null
+    },
+    {
+      "src": "op00017",
+      "dst": "op00019",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00018",
+      "dst": "op00019",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00019",
+      "dst": "op00020",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00020",
+      "dst": "op00021",
+      "dataset": "WORK.pedidos_region",
+      "materialize": null
+    }
+  ],
+  "not_migrated": [],
+  "pending": [],
+  "gaps": [],
+  "jobs": [
+    {
+      "name": "job_etl_archivos_simple",
+      "subjobs": [],
+      "contexts": {},
+      "children": []
+    }
+  ]
+}

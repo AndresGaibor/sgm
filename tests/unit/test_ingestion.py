@@ -66,7 +66,8 @@ def test_a_txt_file_with_sas_code_is_imported_as_sas(tmp_path):
     src.mkdir()
     (src / "Cod1.txt").write_text(SAS_EN_TXT, encoding="utf-8")
     (src / "notas.txt").write_text(
-        "Reunion del lunes.\nTema: data lake y proc de compras.\nrun de pruebas el viernes.\n", encoding="utf-8"
+        "Reunion del lunes.\nTema: data lake y proc de compras.\nrun de pruebas el viernes.\n",
+        encoding="utf-8",
     )
     (src / "LEEME.md").write_text(SAS_EN_TXT, encoding="utf-8")
 
@@ -138,5 +139,3 @@ def test_global_limits_reject_batch(tmp_path):
         import_source(src, tmp_path / "dest", cfg(tmp_path, max_files=2))
     with pytest.raises(ImportError_):
         import_source(tmp_path / "nope", tmp_path / "dest", cfg(tmp_path))
-
-

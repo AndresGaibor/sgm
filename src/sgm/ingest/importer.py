@@ -160,7 +160,9 @@ def import_source(
                 raise ImportError_(f"más de {limits.max_total_bytes} bytes en total")
             suffix = PurePosixPath(rel).suffix.lower()
             kind = KIND_BY_SUFFIX.get(suffix, FileKind.OTHER)
-            if suffix == ".txt" and looks_like_sas(data.decode(detect_encoding(data) or "utf-8", errors="replace")):
+            if suffix == ".txt" and looks_like_sas(
+                data.decode(detect_encoding(data) or "utf-8", errors="replace")
+            ):
                 kind = FileKind.SAS
             target = staged / rel
             target.parent.mkdir(parents=True, exist_ok=True)

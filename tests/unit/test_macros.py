@@ -59,11 +59,20 @@ def test_macro_dinamica_se_marca_con_su_texto_y_motivo():
     assert "call symput" in details and "sysfunc" in details and "límites" in details
 
 
-def test_condicion_no_constante_marca_dinamico_y_no_adivina_la_rama():
+def test_condicion_no_constante_se_marca_y_expande_ambas_ramas():
+    """No se adivina la rama, pero el código de las dos ramas no se pierde."""
     text = "%if &desconocida = 1 %then %do;\ndata a; set s; run;\n%end;\n"
     result = analyze_program({"p.sas": text})
-    assert not _outputs({"p.sas": text})
+    dynamics = [i.item for i in result.items if isinstance(i.item, MacroDynamic)]
+    assert len(dynamics) == 1 and "no constante" in dynamics[0].detail
+    assert _outputs({"p.sas": text}) == ["a"]
+
+
+def test_do_no_constante_muestra_el_cuerpo_una_vez():
+    text = "%macro m;\n%do i = 1 %to &n;\ndata t&i; set s; run;\n%end;\n%mend;\n%m;"
+    result = analyze_program({"p.sas": text})
     assert any(isinstance(i.item, MacroDynamic) for i in result.items)
+    assert _outputs({"p.sas": text}) == ["t&i"]
 
 
 def test_definiciones_identicas_se_indexan_una_vez():

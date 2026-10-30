@@ -89,6 +89,13 @@ PLUMBING_PATTERNS: tuple[PlumbingPattern, ...] = (
         re.compile(r"\bnlobs\b|\bfirstobs\s*=\s*[&%]|\bobs\s*=\s*[&%]", re.IGNORECASE),
     ),
     PlumbingPattern(
+        "visor_studio",
+        "macro auxiliar del visor de SAS Studio (prefijo web_)",
+        "Dibuja o consulta tablas en el visor de resultados de Studio; no transforma datos.",
+        "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
+        re.compile(r"^\s*%web_\w+", re.IGNORECASE),
+    ),
+    PlumbingPattern(
         "conteo",
         "conteo de registros impreso en el log",
         "Solo muestra el número de filas en el log; no transforma datos.",

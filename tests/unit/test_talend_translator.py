@@ -70,7 +70,7 @@ def test_concatenacion_respeta_el_perdido():
         '((input_row.a == null ? "" : input_row.a) + (input_row.b == null ? "" : input_row.b))'
     )
     assert java("cats(a,b)") == (
-        "(StringHandling.TRIM((input_row.a == null ? \"\" : input_row.a))"
+        '(StringHandling.TRIM((input_row.a == null ? "" : input_row.a))'
         ' + StringHandling.TRIM((input_row.b == null ? "" : input_row.b)))'
     )
     assert java("catx('-',a,b)") == (
@@ -85,14 +85,19 @@ def test_recorte_de_texto():
     assert java("substr(x,1,3)") == (
         "(input_row.x == null ? null : input_row.x.substring((int) 1 - 1, (int) (1 - 1 + 3)))"
     )
-    assert java("substr(x,2)") == "(input_row.x == null ? null : input_row.x.substring((int) 2 - 1))"
+    assert (
+        java("substr(x,2)") == "(input_row.x == null ? null : input_row.x.substring((int) 2 - 1))"
+    )
     assert java("compress(x)") == (
         '(input_row.x == null ? null : StringHandling.CHANGE(input_row.x, " ", ""))'
     )
     assert java("compress(x,'kd')") == (
         '(input_row.x == null ? null : StringHandling.EREPLACE(input_row.x, "[kd]", ""))'
     )
-    assert java("compbl(x)") == '(input_row.x == null ? null : StringHandling.EREPLACE(input_row.x, " +", " "))'
+    assert (
+        java("compbl(x)")
+        == '(input_row.x == null ? null : StringHandling.EREPLACE(input_row.x, " +", " "))'
+    )
     assert java("reverse(x)") == (
         "(input_row.x == null ? null : new StringBuilder(input_row.x).reverse().toString())"
     )
@@ -102,7 +107,9 @@ def test_scan_advierte_los_delimitadores_consecutivos():
     result = translate_to_talend("scan(x,2)")
     assert 'replaceAll("^[\\\\s,;]+", "")' in result.java
     assert '.split("[\\\\s,;]+")' in result.java
-    assert result.java.endswith(".length >= 2 ? input_row.x.replaceAll(\"^[\\\\s,;]+\", \"\").split(\"[\\\\s,;]+\")[1] : null))")
+    assert result.java.endswith(
+        '.length >= 2 ? input_row.x.replaceAll("^[\\\\s,;]+", "").split("[\\\\s,;]+")[1] : null))'
+    )
     assert any("delimitadores" in w for w in result.warnings)
 
 
@@ -136,7 +143,10 @@ def test_matematicas_usan_la_rutina_matematica():
     assert java("abs(a)") == (
         "(input_row.a == null ? null : Double.valueOf(Math.abs(((Number) input_row.a).doubleValue())))"
     )
-    assert java("int(a)") == "(input_row.a == null ? null : Long.valueOf(((Number) input_row.a).longValue()))"
+    assert (
+        java("int(a)")
+        == "(input_row.a == null ? null : Long.valueOf(((Number) input_row.a).longValue()))"
+    )
 
 
 def test_agregados_ignoran_perdidos_y_el_maximo_vacio_es_perdido():
@@ -196,7 +206,10 @@ def test_fechas_usan_talenddate():
     assert java("'01JAN2020'd") == 'TalendDate.parseDateLocale("ddMMMyyyy", "01JAN2020", "en")'
     assert java("input(f,yymmdd10.)") == 'TalendDate.parseDate("yyyy-MM-dd", input_row.f)'
     assert java("put(d,yymmdd10.)") == 'TalendDate.formatDate("yyyy-MM-dd", input_row.d)'
-    assert java("year(d)") == '(input_row.d == null ? null : (TalendDate.getPartOfDate("YEAR", input_row.d)))'
+    assert (
+        java("year(d)")
+        == '(input_row.d == null ? null : (TalendDate.getPartOfDate("YEAR", input_row.d)))'
+    )
     assert java("month(d)") == (
         '(input_row.d == null ? null : (TalendDate.getPartOfDate("MONTH", input_row.d) + 1))'
     )

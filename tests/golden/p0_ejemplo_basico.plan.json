@@ -1,0 +1,161 @@
+{
+  "program": "p0_ejemplo_basico.sas",
+  "operators": [
+    {
+      "id": "op00001",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6ed56d33179adc70",
+      "params": {
+        "dataset": "SASHELP.class",
+        "in": null
+      },
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 4,
+          "line_end": 8,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00002",
+      "kind": "filter",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "e41c04144c347a11",
+      "params": {
+        "expression": "age >= 13"
+      },
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 4,
+          "line_end": 8,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00003",
+      "kind": "derive",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "8e928bb9919db388",
+      "params": {
+        "assignments": [
+          {
+            "target": "estatura_cm",
+            "expression": "height * 2.54"
+          }
+        ],
+        "outputs": [
+          "WORK.personas_filtradas"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 4,
+          "line_end": 8,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00004",
+      "kind": "exec_sql",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "3c30fc0c57bc3ad7",
+      "params": {
+        "sql": "create table work.resumen as\n  select sex,\n         count(*) as personas,\n         avg(estatura_cm) as promedio_estatura_cm\n  from work.personas_filtradas\n  group by sex",
+        "inputs": [
+          "WORK.personas_filtradas"
+        ],
+        "outputs": [
+          "WORK.resumen"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 10,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
+      ]
+    },
+    {
+      "id": "w00002",
+      "kind": "write",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "e44ad48c771b2b10",
+      "params": {
+        "dataset": "WORK.resumen"
+      },
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 10,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "salida final o de biblioteca permanente"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "src": "op00001",
+      "dst": "op00002",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00002",
+      "dst": "op00003",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00003",
+      "dst": "op00004",
+      "dataset": "WORK.personas_filtradas",
+      "materialize": null
+    },
+    {
+      "src": "op00004",
+      "dst": "w00002",
+      "dataset": "WORK.resumen",
+      "materialize": null
+    }
+  ],
+  "not_migrated": [],
+  "pending": [],
+  "gaps": [],
+  "jobs": [
+    {
+      "name": "job_p0_ejemplo_basico",
+      "subjobs": [],
+      "contexts": {},
+      "children": []
+    }
+  ]
+}

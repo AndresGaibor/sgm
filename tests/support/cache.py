@@ -53,12 +53,16 @@ def cache_enabled() -> bool:
 def _files(globs: list[tuple[str, str]]) -> list[Path]:
     found: list[Path] = []
     for base, pattern in globs:
-        found.extend(p for p in (REPO / base).rglob(pattern) if p.is_file() and "__pycache__" not in p.parts)
+        found.extend(
+            p for p in (REPO / base).rglob(pattern) if p.is_file() and "__pycache__" not in p.parts
+        )
     return sorted(set(found))
 
 
 def _digest(paths: list[Path], root: Path | None = None) -> str:
-    root = root or REPO  # en tiempo de ejecución: así un REPO redefinido (tests del propio helper) también vale
+    root = (
+        root or REPO
+    )  # en tiempo de ejecución: así un REPO redefinido (tests del propio helper) también vale
     digest = hashlib.sha256()
     for path in paths:
         digest.update(path.relative_to(root).as_posix().encode("utf-8"))
@@ -133,7 +137,9 @@ def cached_json(namespace: str, payload: Any, compute: Callable[[], Any]) -> Any
     """
     if not cache_enabled():
         return compute()
-    text = json.dumps([CACHE_VERSION, code_fingerprint(), namespace, payload], sort_keys=True, default=_jsonable)
+    text = json.dumps(
+        [CACHE_VERSION, code_fingerprint(), namespace, payload], sort_keys=True, default=_jsonable
+    )
     target = CACHE_ROOT / namespace / f"{hashlib.sha256(text.encode('utf-8')).hexdigest()}.json"
     lock = target.with_suffix(".lock")
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -143,7 +149,9 @@ def cached_json(namespace: str, payload: Any, compute: Callable[[], Any]) -> Any
             return hit
         if _try_lock(lock):
             try:
-                hit = _read(target)  # otro worker pudo terminar justo antes de que obtuviéramos el lock
+                hit = _read(
+                    target
+                )  # otro worker pudo terminar justo antes de que obtuviéramos el lock
                 if hit is not None:
                     return hit
                 value = compute()
@@ -167,7 +175,9 @@ def _source_fingerprint(source: Path | str) -> dict[str, str]:
     return {"tree": tree_fingerprint(source)}
 
 
-def cached_planset(source: Path | str, *, settings: dict[str, Any] | None = None, **plan_options: Any):
+def cached_planset(
+    source: Path | str, *, settings: dict[str, Any] | None = None, **plan_options: Any
+):
     """`PlanSet` de un SAS (texto), de un archivo o de una carpeta, desde la caché de disco.
 
     Cada llamada usa un proyecto temporal nuevo; el resultado se devuelve como `PlanSet` validado

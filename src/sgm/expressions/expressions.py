@@ -23,7 +23,9 @@ class Translation:
     simple: list[dict] | None = None  # condiciones tFilterRow (modo simple)
     logical: str | None = None  # "&&" | "||" para el modo simple
     warnings: list[str] = field(default_factory=list)
-    engine: str = "inline"  # "inline" (traductor original) | "talend" (rutinas de sistema de Talend)
+    engine: str = (
+        "inline"  # "inline" (traductor original) | "talend" (rutinas de sistema de Talend)
+    )
     kind: str = "any"  # num | str | bool | date | any: tipo que el Java emitido produce
 
 
@@ -42,7 +44,9 @@ _TOKEN = re.compile(
     )""",
     re.VERBOSE,
 )
-_ARITHMETIC_TOKEN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*|\d+(?:\.\d+)?|[()+*/-]")
+_ARITHMETIC_TOKEN = re.compile(
+    r"[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*|\d+(?:\.\d+)?|[()+*/-]"
+)
 _CMP = {"=": "==", "eq": "==", "^=": "!=", "~=": "!=", "<>": "!=", "ne": "!=", ">": ">", "gt": ">",
         "<": "<", "lt": "<", ">=": ">=", "ge": ">=", "<=": "<=", "le": "<="}  # fmt: skip
 _FUNCS = {
@@ -188,7 +192,9 @@ def _f_datepart(args: list[str]) -> str:
     if len(args) != 1:
         raise _Unsupported("datepart() con más de un argumento (solo la parte de fecha)")
     value = args[0]
-    return _guard(value, f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-MM-dd", {value}))')
+    return _guard(
+        value, f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-MM-dd", {value}))'
+    )
 
 
 def _f_intnx(args: list[str]) -> str:
@@ -284,29 +290,53 @@ _FUNCTIONS = {
     "cat": _f_cats,
 }
 _FUNCTION_WARNINGS = {
-    "today": ["today(): en SAS es días desde 1960; en Talend es un Date: validar al comparar con fechas SAS"],
-    "year": ["year/month/day(): sobre un Date de Talend; con fecha SAS numérica validar la conversión de época"],
-    "month": ["year/month/day(): sobre un Date de Talend; con fecha SAS numérica validar la conversión de época"],
-    "day": ["year/month/day(): sobre un Date de Talend; con fecha SAS numérica validar la conversión de época"],
+    "today": [
+        "today(): en SAS es días desde 1960; en Talend es un Date: validar al comparar con fechas SAS"
+    ],
+    "year": [
+        "year/month/day(): sobre un Date de Talend; con fecha SAS numérica validar la conversión de época"
+    ],
+    "month": [
+        "year/month/day(): sobre un Date de Talend; con fecha SAS numérica validar la conversión de época"
+    ],
+    "day": [
+        "year/month/day(): sobre un Date de Talend; con fecha SAS numérica validar la conversión de época"
+    ],
     "mdy": ["mdy(): devuelve un Date de Talend; con missing en mes, día o año devuelve null"],
-    "datepart": ["datepart(): quita la hora; validar con datetimes SAS (época 1960 frente a Date de Talend)"],
-    "intnx": ["intnx(): alineación same/begin; end no se traduce. Validar la unidad con datos reales"],
-    "intck": ["intck(): cuenta fronteras de unidad como SAS; diffDate devuelve la diferencia de la unidad, validar el signo"],
-    "input": ["input(): convierte texto con el formato indicado; un texto no válido lanza excepción"],
+    "datepart": [
+        "datepart(): quita la hora; validar con datetimes SAS (época 1960 frente a Date de Talend)"
+    ],
+    "intnx": [
+        "intnx(): alineación same/begin; end no se traduce. Validar la unidad con datos reales"
+    ],
+    "intck": [
+        "intck(): cuenta fronteras de unidad como SAS; diffDate devuelve la diferencia de la unidad, validar el signo"
+    ],
+    "input": [
+        "input(): convierte texto con el formato indicado; un texto no válido lanza excepción"
+    ],
     "put": ["put(): convierte un valor con el formato indicado a texto"],
     "min": ["min()/max(): con missing en Java el resultado es null; SAS ignora el missing"],
     "max": ["min()/max(): con missing en Java el resultado es null; SAS ignora el missing"],
     "coalesce": ["coalesce(): el orden de los argumentos se conserva"],
     "compress": ["compress(): quita solo blancos (espacios, tabuladores, saltos)"],
     "index": ["index(): 0 si la subcadena no aparece, como en SAS"],
-    "ifn": ["ifn()/ifc(): con missing en la condición Java la evalúa como falsa; validar con datos"],
-    "ifc": ["ifn()/ifc(): con missing en la condición Java la evalúa como falsa; validar con datos"],
+    "ifn": [
+        "ifn()/ifc(): con missing en la condición Java la evalúa como falsa; validar con datos"
+    ],
+    "ifc": [
+        "ifn()/ifc(): con missing en la condición Java la evalúa como falsa; validar con datos"
+    ],
     "substr": ["substr(): posición de 1 base convertida a 0; con cadena más corta puede fallar"],
     "round": ["round(): redondeo al múltiplo indicado (la mitad sube, como en SAS)"],
     "length": ["length(): en SAS los blancos finales cuentan; revisar con datos reales"],
     "int": ["int(): trunca hacia cero, como en SAS"],
-    "cats": ["cats()/cat(): no quita blancos finales; los numéricos se convierten con String.valueOf"],
-    "cat": ["cats()/cat(): no quita blancos finales; los numéricos se convierten con String.valueOf"],
+    "cats": [
+        "cats()/cat(): no quita blancos finales; los numéricos se convierten con String.valueOf"
+    ],
+    "cat": [
+        "cats()/cat(): no quita blancos finales; los numéricos se convierten con String.valueOf"
+    ],
 }
 
 
@@ -316,7 +346,7 @@ TEXT_TYPE_WARNING = "tipo no confirmado: se asumió texto; confirmar con el esqu
 def _text_is(column: str, literal: str) -> str:
     """Igualdad null-safe de una columna con un literal de texto (SAS: ausente equivale a blanco)."""
     if literal == '""':
-        return f'({column} == null || {column}.trim().isEmpty())'
+        return f"({column} == null || {column}.trim().isEmpty())"
     return f"{literal}.equals({column})"
 
 
@@ -422,7 +452,11 @@ class _Parser:
         if left_column or right_column:
             other = right if left_column else left
             column = left if left_column else right
-            if op in ("==", "!=") and other.startswith('"') and not _NUMBER.fullmatch(other.strip('"')):
+            if (
+                op in ("==", "!=")
+                and other.startswith('"')
+                and not _NUMBER.fullmatch(other.strip('"'))
+            ):
                 # Igualdad con texto: la columna se asume texto; el paso se valida con el esquema real.
                 self.warnings.append(TEXT_TYPE_WARNING)
                 text_expr = _text_is(column, other)
@@ -549,7 +583,12 @@ def talend_expressions_enabled() -> bool:
     Apagado por defecto hasta comprobar en Studio que el Java que emite compila (`talend_job_verify`); no necesita nada
     instalado: solo usa rutinas de sistema de Talend y Java nativo.
     """
-    return os.environ.get("SGM_TALEND_EXPRESSIONS", "").strip().lower() in {"1", "true", "yes", "on"}
+    return os.environ.get("SGM_TALEND_EXPRESSIONS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
 def translate(sas: str) -> Translation:
@@ -570,7 +609,12 @@ def translate(sas: str) -> Translation:
     except Unsupported as error:
         t.warnings.append(f"Sin traducción con rutinas de Talend: {error}")
         return t
-    t.talend, t.columns, t.warnings, t.engine = result.java, result.columns, result.warnings, "talend"
+    t.talend, t.columns, t.warnings, t.engine = (
+        result.java,
+        result.columns,
+        result.warnings,
+        "talend",
+    )
     t.kind = result.kind
     return t
 

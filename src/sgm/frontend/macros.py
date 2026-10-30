@@ -48,6 +48,15 @@ class MacroDynamic:
 
 
 @dataclass
+class Expanded:
+    """Salida de una llamada de macro expandida. `key` identifica la invocación ("archivo:línea:nombre")."""
+
+    name: str
+    key: str
+    items: list[object]
+
+
+@dataclass
 class MacroEntry:
     name: str
     params: list[tuple[str, str | None]]  # (nombre, valor por defecto o None)
@@ -334,7 +343,13 @@ class Expander:
             erest = stmts[j].text.strip()[len("%else") :].strip()
             else_items, j = self._branch(stmts, j, erest, file, else_env, depth)
         if verdict is None:
-            return [self._dynamic(s, f"condición no constante: {cond.strip()}")], j
+            # Condición no constante: se marca, pero las dos ramas se expanden para no perder el código.
+            # Las variables que alguna rama cambia quedan desconocidas.
+            for key in set(then_env) | set(else_env) | set(env):
+                if then_env.get(key) != env.get(key) or else_env.get(key) != env.get(key):
+                    env[key] = None
+            dyn = self._dynamic(s, f"condición no constante: {cond.strip()}")
+            return [dyn, *then_items, *else_items], j
         chosen_env = then_env if verdict else else_env
         env.update(chosen_env)
         return (then_items if verdict else else_items), j
@@ -348,16 +363,19 @@ class Expander:
             items, end = self._block(stmts, i + 1, file, env, depth, nested=True)
             return items, min(end + 1, len(stmts))
         m = _DO_TO.match(text)
-        if not m:
-            _, end = self._block(stmts, i + 1, file, dict(env), depth, nested=True)
-            return [self._dynamic(s, "%do con condición no constante")], min(end + 1, len(stmts))
+        if not m:  # %do %while / %until: el cuerpo se muestra una vez
+            items, end = self._block(stmts, i + 1, file, dict(env), depth, nested=True)
+            dyn = self._dynamic(s, "%do con condición no constante: el cuerpo se muestra una vez")
+            return [dyn, *items], min(end + 1, len(stmts))
         var = m.group(1).lower()
         lo = _int(self._subst(m.group(2), env))
         hi = _int(self._subst(m.group(3), env))
         step = _int(self._subst(m.group(4), env)) if m.group(4) else 1
         if lo is None or hi is None or not step:
-            _, end = self._block(stmts, i + 1, file, dict(env), depth, nested=True)
-            return [self._dynamic(s, "%do con límites no constantes")], min(end + 1, len(stmts))
+            body_env = {**env, var: None}
+            items, end = self._block(stmts, i + 1, file, body_env, depth, nested=True)
+            dyn = self._dynamic(s, "%do con límites no constantes: el cuerpo se muestra una vez")
+            return [dyn, *items], min(end + 1, len(stmts))
         values = range(lo, hi + 1, step) if step > 0 else range(lo, hi - 1, step)
         if len(values) > MAX_ITERATIONS:
             _, end = self._block(stmts, i + 1, file, dict(env), depth, nested=True)
@@ -406,7 +424,7 @@ class Expander:
             local[key] = None if ("&" in value or "%" in value) else value
         self.trace.append(entry.name)
         items, _ = self._block(entry.body, 0, entry.file, local, depth + 1, nested=False)
-        return items
+        return [Expanded(entry.name, f"{s.line}:{entry.name}", items)]
 
     def _include(self, s: Stmt, file: str, env: dict, depth: int) -> list[object]:
         found = _INCLUDE_PATH.search(s.text)

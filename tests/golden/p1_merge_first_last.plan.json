@@ -1,0 +1,434 @@
+{
+  "program": "p1_merge_first_last.sas",
+  "operators": [
+    {
+      "id": "op00001",
+      "kind": "unsupported",
+      "status": "hueco",
+      "placement": "flow",
+      "signature": "4f1a74160ba1651b",
+      "params": {
+        "statement": "proc format; value $tramo low-<30='Joven' 30-<60='Adulto' 60-high='Mayor'",
+        "procedure": "format",
+        "reason": "PROC_NO_SOPORTADO"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 2,
+          "line_end": 4,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "PROC FORMAT sin regla de migración"
+      ]
+    },
+    {
+      "id": "op00002",
+      "kind": "sort",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "7adb03c4f0c46410",
+      "params": {
+        "by": [
+          "cliente_id",
+          "fecha_pago"
+        ],
+        "inputs": [
+          "WORK.pagos"
+        ],
+        "outputs": [
+          "WORK.pagos"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 6,
+          "line_end": 6,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00003",
+      "kind": "sort",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "6bc64a5c23a1373a",
+      "params": {
+        "by": [
+          "cliente_id"
+        ],
+        "inputs": [
+          "WORK.clientes"
+        ],
+        "outputs": [
+          "WORK.clientes"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 7,
+          "line_end": 7,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00004",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "dfdc0883052b8e64",
+      "params": {
+        "dataset": "WORK.clientes",
+        "in": "a"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00005",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "dfdc0883052b8e64",
+      "params": {
+        "dataset": "WORK.pagos",
+        "in": "b"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00006",
+      "kind": "join",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "fd875572c3274573",
+      "params": {
+        "by": [
+          "cliente_id"
+        ],
+        "join_type": "left",
+        "sources": [
+          "WORK.clientes",
+          "WORK.pagos"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00007",
+      "kind": "filter",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "4188de0614a8a949",
+      "params": {
+        "expression": "a"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00008",
+      "kind": "stateful_row",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "bfa577264feec877",
+      "params": {
+        "reason": "retain",
+        "text": "retain acumulado 0"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "estado entre filas: en Talend requiere tJavaRow o tMap con variables",
+        "array no traducido: revisar el bucle o el arreglo"
+      ]
+    },
+    {
+      "id": "op00009",
+      "kind": "stateful_row",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "1cfbde066a0f6469",
+      "params": {
+        "reason": "first_last",
+        "text": "if first.cliente_id then acumulado = 0",
+        "untranslated": [
+          "acumulado + coalesce(monto, 0)"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "lógica de grupo por first./last.: revisar",
+        "sentencia sin traducción: acumulado + coalesce(monto, 0)"
+      ]
+    },
+    {
+      "id": "op00010",
+      "kind": "derive",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "0363cc9eba7c069d",
+      "params": {
+        "conditional": "if missing(monto) then flag_sin_pago = 1"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "asignación condicional: traducir como expresión condicional"
+      ]
+    },
+    {
+      "id": "op00011",
+      "kind": "derive",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "f98f4f5afddc47d1",
+      "params": {
+        "assignments": [
+          {
+            "target": "dias",
+            "expression": "intck('day', fecha_pago, today())"
+          },
+          {
+            "target": "mes_pago",
+            "expression": "put(fecha_pago, yymmn6.)"
+          },
+          {
+            "target": "tramo",
+            "expression": "put(edad, tramo.)"
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "op00012",
+      "kind": "stateful_row",
+      "status": "parcial",
+      "placement": "flow",
+      "signature": "184f6cda65206008",
+      "params": {
+        "reason": "first_last",
+        "text": "if last.cliente_id then output",
+        "outputs": [
+          "WORK.pagos_cliente"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "lógica de grupo por first./last.: revisar"
+      ]
+    },
+    {
+      "id": "w00003",
+      "kind": "write",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "e44ad48c771b2b10",
+      "params": {
+        "dataset": "WORK.pagos_cliente"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "salida final o de biblioteca permanente"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "src": "op00002",
+      "dst": "op00005",
+      "dataset": "WORK.pagos",
+      "materialize": null
+    },
+    {
+      "src": "op00002",
+      "dst": "op00006",
+      "dataset": "WORK.pagos",
+      "materialize": null
+    },
+    {
+      "src": "op00003",
+      "dst": "op00004",
+      "dataset": "WORK.clientes",
+      "materialize": null
+    },
+    {
+      "src": "op00003",
+      "dst": "op00006",
+      "dataset": "WORK.clientes",
+      "materialize": null
+    },
+    {
+      "src": "op00004",
+      "dst": "op00006",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00005",
+      "dst": "op00006",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00006",
+      "dst": "op00007",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00007",
+      "dst": "op00008",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00008",
+      "dst": "op00009",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00009",
+      "dst": "op00010",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00010",
+      "dst": "op00011",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00011",
+      "dst": "op00012",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00012",
+      "dst": "w00003",
+      "dataset": "WORK.pagos_cliente",
+      "materialize": null
+    }
+  ],
+  "not_migrated": [],
+  "pending": [],
+  "gaps": [
+    {
+      "signature": "4f1a74160ba1651b",
+      "reason": "PROC_NO_SOPORTADO",
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 2,
+          "line_end": 4,
+          "label": null,
+          "call": null
+        }
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "name": "job_p1_merge_first_last",
+      "subjobs": [],
+      "contexts": {},
+      "children": []
+    }
+  ]
+}

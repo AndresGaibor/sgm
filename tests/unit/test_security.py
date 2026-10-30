@@ -42,8 +42,6 @@ def test_redact_shell_and_dispatch():
     assert redact("x.sh", "x.sh") == "x.sh" and "***" in redact("libname a db2 pw=a;", "k.sas")
 
 
-
-
 ROOT = Path(__file__).resolve().parents[2]
 PWENCODE_STATEMENT = re.compile(r"(?i)proc\s+pwencode\b[^;]*")
 PWENCODE_MASKED = re.compile(r"(?i)proc\s+pwencode\s+in\s*=\s*'\*\*\*'")
@@ -54,7 +52,10 @@ def _text_blobs():
     """Texto de cada fixture y de cada miembro de texto de los ZIP, y de la salida `out/` si existe."""
     for path in sorted((ROOT / "tests").rglob("*")):
         if path.suffix.lower() in TEXT_SUFFIXES and path.is_file():
-            yield path.relative_to(ROOT).as_posix(), path.read_text(encoding="utf-8", errors="replace")
+            yield (
+                path.relative_to(ROOT).as_posix(),
+                path.read_text(encoding="utf-8", errors="replace"),
+            )
         elif path.suffix.lower() == ".zip" and path.is_file():
             with zipfile.ZipFile(path) as archive:
                 for member in archive.namelist():
@@ -65,7 +66,10 @@ def _text_blobs():
     if out.exists():
         for path in sorted(out.rglob("*")):
             if path.is_file() and path.suffix.lower() in TEXT_SUFFIXES:
-                yield path.relative_to(ROOT).as_posix(), path.read_text(encoding="utf-8", errors="replace")
+                yield (
+                    path.relative_to(ROOT).as_posix(),
+                    path.read_text(encoding="utf-8", errors="replace"),
+                )
 
 
 def test_pwencode_en_fixtures_y_salidas_solo_con_asteriscos():

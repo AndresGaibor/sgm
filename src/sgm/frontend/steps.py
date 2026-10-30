@@ -37,6 +37,7 @@ class Proc:
     line: int
     end_line: int
     text: str
+    body: list[str] = field(default_factory=list)  # todas las sentencias del cuerpo, tal cual
 
 
 @dataclass
@@ -171,6 +172,7 @@ def _parse_proc(stmts: list[Stmt], i: int) -> tuple[object, int]:
     j = i + 1
     last = head
     clauses: dict[str, str] = {}
+    body: list[str] = []
     sql: list[SqlStatement] = []
     pending: _Pending | None = None
     while j < len(stmts):
@@ -183,6 +185,7 @@ def _parse_proc(stmts: list[Stmt], i: int) -> tuple[object, int]:
         if _is_boundary(s):
             break
         last = s
+        body.append(s.text.strip())
         if name == "sql":
             pending = _join_sql(pending, s, sql)
         else:
@@ -194,7 +197,7 @@ def _parse_proc(stmts: list[Stmt], i: int) -> tuple[object, int]:
         if pending is not None:
             sql.append(parse_sql_statement(pending.text, pending.line))
         return ProcSql(sql, head.line, last.end_line, head.text), j
-    return Proc(name, options, flags, clauses, head.line, last.end_line, head.text), j
+    return Proc(name, options, flags, clauses, head.line, last.end_line, head.text, body), j
 
 
 @dataclass

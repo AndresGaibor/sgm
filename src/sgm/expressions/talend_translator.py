@@ -23,7 +23,15 @@ DATE_FORMATS = {
     "e8601da": "yyyy-MM-dd", "e8601dt": "yyyy-MM-dd'T'HH:mm:ss", "monyy7": "MMMyyyy", "year4": "yyyy",
     "mmyy": "MM/yyyy", "yymmn6": "yyyyMM", "ddmmyyn8": "ddMMyyyy",
 }  # fmt: skip
-_UNIT = {"day": "dd", "month": "MM", "year": "yyyy", "week": "dd", "hour": "HH", "minute": "mm", "second": "ss"}
+_UNIT = {
+    "day": "dd",
+    "month": "MM",
+    "year": "yyyy",
+    "week": "dd",
+    "hour": "HH",
+    "minute": "mm",
+    "second": "ss",
+}
 _PART = {"year": "YEAR", "month": "MONTH", "day": "DAY_OF_MONTH", "weekday": "DAY_OF_WEEK"}
 _CMP = {"=": "eq", "eq": "eq", "^=": "ne", "~=": "ne", "¬=": "ne", "ne": "ne", "<>": "ne", ">": "gt", "gt": "gt",
         "<": "lt", "lt": "lt", ">=": "ge", "ge": "ge", "<=": "le", "le": "le"}  # fmt: skip
@@ -85,13 +93,15 @@ def _num(e: E) -> str:
 
 def _str(e: E) -> str:
     """La expresión como cadena, con el perdido de SAS (null) como cadena vacía."""
-    return e.java if e.kind == "str" else f"({e.java} == null ? \"\" : {e.java})"
+    return e.java if e.kind == "str" else f'({e.java} == null ? "" : {e.java})'
 
 
 def _guard(parts: list[E], expr: str) -> str:
     """`expr` si ningún operando es perdido; si no, null (un perdido propaga)."""
     nulls = [p.java for p in parts if p.kind not in ("num", "str")]
-    return f"({' || '.join(f'{n} == null' for n in nulls)} ? null : {expr})" if nulls else f"({expr})"
+    return (
+        f"({' || '.join(f'{n} == null' for n in nulls)} ? null : {expr})" if nulls else f"({expr})"
+    )
 
 
 def _truth(e: E) -> str:
@@ -111,7 +121,11 @@ def _compare(op: str, a: E, b: E) -> E:
             core = f"{lit.java}.equals({other.java})"
         elif "num" in (a.kind, b.kind):
             lit, other = (a, b) if a.kind == "num" else (b, a)
-            core = f"({lit.java} == {other.java})" if other.kind == "num" else f"({other.java} != null && {_num(other)} == {lit.java})"
+            core = (
+                f"({lit.java} == {other.java})"
+                if other.kind == "num"
+                else f"({other.java} != null && {_num(other)} == {lit.java})"
+            )
         else:
             core = f"java.util.Objects.equals({a.java}, {b.java})"
         return E(core if op == "eq" else f"(!{core})", "bool")
@@ -275,14 +289,22 @@ class _P:
         if self.peek()[1] == "**":
             self.take()
             exponent = self.pow()
-            return E(_guard([base, exponent], f"Double.valueOf(Math.pow({_num(base)}, {_num(exponent)}))"))
+            return E(
+                _guard(
+                    [base, exponent], f"Double.valueOf(Math.pow({_num(base)}, {_num(exponent)}))"
+                )
+            )
         return base
 
     def unary(self) -> E:
         if self.peek()[1] == "-":
             self.take()
             inner = self.unary()
-            return E(f"-{inner.java}", "num") if inner.kind == "num" else E(_guard([inner], f"Double.valueOf(-{_num(inner)})"))
+            return (
+                E(f"-{inner.java}", "num")
+                if inner.kind == "num"
+                else E(_guard([inner], f"Double.valueOf(-{_num(inner)})"))
+            )
         if self.peek()[1] == "+":
             self.take()
             return self.unary()
@@ -301,7 +323,9 @@ class _P:
             return E(_jstr(f"'{v}'"), "str")
         if k == "mvar":
             name = v.lstrip("&").rstrip(".")
-            self.warnings.add(f"Macrovariable &{name} -> context.sas_param_{name} (crear la variable de contexto)")
+            self.warnings.add(
+                f"Macrovariable &{name} -> context.sas_param_{name} (crear la variable de contexto)"
+            )
             return E(f"context.sas_param_{name}")
         if k == "name":
             return self.column(re.search(r"'([^']+)'[nN]$", v).group(1))
@@ -356,7 +380,9 @@ class _P:
         args: list[E] = []
         if self.peek()[1] != ")":
             while True:
-                args.append(self.raw_format() if name in _FORMAT_ARGS and len(args) == 1 else self.expr())
+                args.append(
+                    self.raw_format() if name in _FORMAT_ARGS and len(args) == 1 else self.expr()
+                )
                 if self.peek()[1] != ",":
                     break
                 self.take()
@@ -419,8 +445,14 @@ def _cat(trim: bool, sep: bool = False):
             glue, items = E('""', "str"), args
         parts = [f"StringHandling.TRIM({_str(i)})" if trim else _str(i) for i in items]
         if sep:  # catx omite los vacíos
-            return E("String.join(" + glue.java + ", java.util.stream.Stream.of(" + ", ".join(parts)
-                     + ").filter(s -> !s.isEmpty()).toArray(String[]::new))", "str")
+            return E(
+                "String.join("
+                + glue.java
+                + ", java.util.stream.Stream.of("
+                + ", ".join(parts)
+                + ").filter(s -> !s.isEmpty()).toArray(String[]::new))",
+                "str",
+            )
         return E("(" + " + ".join(parts) + ")", "str")
 
     return build
@@ -430,7 +462,9 @@ def _substr(_p: _P, args: list[E]) -> E:
     _need(args, 2, 3, "substr")
     s, start = args[0], args[1]
     end = f", {_num(start)} - 1 + {_num(args[2])}" if len(args) == 3 else ""
-    body = f"{s.java}.substring((int) {_num(start)} - 1{(', (int) (' + end[2:] + ')') if end else ''})"
+    body = (
+        f"{s.java}.substring((int) {_num(start)} - 1{(', (int) (' + end[2:] + ')') if end else ''})"
+    )
     return E(_guard([s], body), "str")
 
 
@@ -451,8 +485,17 @@ def _compress(p: _P, args: list[E]) -> E:
     if len(args) == 2 and args[1].kind != "str":
         raise Unsupported("compress con caracteres que no son literales")
     if len(chars) == 1:
-        return E(_guard([args[0]], f"StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + chars + chr(39))}, \"\")"), "str")
-    return E(_guard([args[0]], f"StringHandling.EREPLACE({args[0].java}, \"[{re.escape(chars)}]\", \"\")"), "str")
+        return E(
+            _guard(
+                [args[0]],
+                f'StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + chars + chr(39))}, "")',
+            ),
+            "str",
+        )
+    return E(
+        _guard([args[0]], f'StringHandling.EREPLACE({args[0].java}, "[{re.escape(chars)}]", "")'),
+        "str",
+    )
 
 
 def _round(_p: _P, args: list[E]) -> E:
@@ -461,12 +504,15 @@ def _round(_p: _P, args: list[E]) -> E:
     x = args[0]
     if len(args) == 1:
         v = _num(x)
-        return E(_guard([x], f"Double.valueOf({v} < 0 ? -Math.round(-{v}) : Math.round({v}))"), "num")
+        return E(
+            _guard([x], f"Double.valueOf({v} < 0 ? -Math.round(-{v}) : Math.round({v}))"), "num"
+        )
     unit = args[1]
     v, u = _num(x), _num(unit)
     q = f"({v} / {u})"
     return E(
-        _guard([x, unit], f"Double.valueOf(({q} < 0 ? -Math.round(-{q}) : Math.round({q})) * {u})"), "num"
+        _guard([x, unit], f"Double.valueOf(({q} < 0 ? -Math.round(-{q}) : Math.round({q})) * {u})"),
+        "num",
     )
 
 
@@ -504,7 +550,11 @@ def _aggregate(kind: str):
             test = "!=" if kind == "n" else "=="
             return E("(" + " + ".join(f"({a.java} {test} null ? 1 : 0)" for a in present) + ")")
         if kind == "sum":  # SUM ignora los perdidos
-            return E("Double.valueOf(" + " + ".join(f"({a.java} == null ? 0 : {_num(a)})" for a in present) + ")")
+            return E(
+                "Double.valueOf("
+                + " + ".join(f"({a.java} == null ? 0 : {_num(a)})" for a in present)
+                + ")"
+            )
         if kind == "mean":
             vals = " + ".join(f"({a.java} == null ? 0 : {_num(a)})" for a in present)
             count = " + ".join(f"({a.java} == null ? 0 : 1)" for a in present)
@@ -525,10 +575,14 @@ def _input(p: _P, args: list[E]) -> E:
     fmt = args[1].java.strip("\"'").lower().rstrip(".")
     pattern = _date_pattern(fmt)
     if pattern:
-        return E(f"TalendDate.parseDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "date")
+        return E(
+            f"TalendDate.parseDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "date"
+        )
     if fmt.startswith(("$", "char")):
         return E(args[0].java, "str")
-    p.warnings.add("input numérico: el valor se convierte con Mathematical.REAL; comprobar el informato")
+    p.warnings.add(
+        "input numérico: el valor se convierte con Mathematical.REAL; comprobar el informato"
+    )
     return E(_guard(args[:1], f"Mathematical.REAL(StringHandling.TRIM({args[0].java}))"))
 
 
@@ -537,10 +591,14 @@ def _put(p: _P, args: list[E]) -> E:
     fmt = args[1].java.strip("\"'").lower().rstrip(".")
     pattern = _date_pattern(fmt)
     if pattern:
-        return E(f"TalendDate.formatDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "str")
+        return E(
+            f"TalendDate.formatDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "str"
+        )
     zero = re.fullmatch(r"z(\d+)", fmt)
     if zero:
-        return E(f'StringHandling.LPAD(String.valueOf({args[0].java}), {zero.group(1)}, "0")', "str")
+        return E(
+            f'StringHandling.LPAD(String.valueOf({args[0].java}), {zero.group(1)}, "0")', "str"
+        )
     if re.fullmatch(r"\$?\d*", fmt) or fmt.startswith("$"):
         return E(f"String.valueOf({args[0].java})", "str")
     raise Unsupported(f"put con el formato {fmt}.")
@@ -567,7 +625,12 @@ def _intck(_p: _P, args: list[E]) -> E:
     unit = args[0].java.strip('"').lower()
     if args[0].kind != "str" or unit not in _UNIT:
         raise Unsupported("intck con un intervalo que no es literal o no está soportado")
-    return E(_guard(args[1:], f'Long.valueOf(TalendDate.diffDate({args[2].java}, {args[1].java}, "{_UNIT[unit]}"))'))
+    return E(
+        _guard(
+            args[1:],
+            f'Long.valueOf(TalendDate.diffDate({args[2].java}, {args[1].java}, "{_UNIT[unit]}"))',
+        )
+    )
 
 
 def _part(name: str):
@@ -588,7 +651,13 @@ def _mdy(_p: _P, args: list[E]) -> E:
 
 def _datepart(_p: _P, args: list[E]) -> E:
     _need(args, 1, 1, "datepart")
-    return E(_guard(args, f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-MM-dd", {args[0].java}))'), "date")
+    return E(
+        _guard(
+            args,
+            f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-MM-dd", {args[0].java}))',
+        ),
+        "date",
+    )
 
 
 _FUNCTIONS = {
@@ -623,7 +692,9 @@ def _clean(text: str) -> str:
     text = re.sub(r"\s+", " ", text).strip()
     text = re.sub(r"(?i)^(on|where|having)\s+", "", text)
     text = re.sub(r"(?i)^distinct\s+", "", text)
-    text = re.sub(r"(?i)\s+(label|format|informat|length)\s*=\s*(\"[^\"]*\"|'[^']*'|\S+)\s*$", "", text)
+    text = re.sub(
+        r"(?i)\s+(label|format|informat|length)\s*=\s*(\"[^\"]*\"|'[^']*'|\S+)\s*$", "", text
+    )
     text = re.sub(r"(?i)\s+as\s+\w+\s*$", "", text)
     return text.strip()
 

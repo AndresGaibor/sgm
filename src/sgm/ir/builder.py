@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from sgm.ir.models import Edge, Evidence, Graph, Operator
 from sgm.ir.signature import signature
 
 INTERNAL = "(interno)"
+_ID = re.compile(r"^op(\d+)$")
 
 
 def qualify(name: str) -> str:
@@ -24,7 +26,13 @@ class Builder:
 
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
-        self._count = 0
+        self._count = max(
+            (int(m.group(1)) for m in (_ID.match(o.id) for o in graph.operators()) if m), default=0
+        )
+
+    def next_id(self) -> str:
+        self._count += 1
+        return f"op{self._count:05d}"
 
     def op(
         self,
@@ -36,9 +44,8 @@ class Builder:
         notes: list[str] | None = None,
         placement: str | None = None,
     ) -> Operator:
-        self._count += 1
         operator = Operator(
-            id=f"op{self._count:05d}",
+            id=self.next_id(),
             kind=kind,
             params=params,
             placement=placement,

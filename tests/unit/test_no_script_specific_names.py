@@ -38,7 +38,9 @@ SEARCH_GLOBS = [
 
 
 def _pattern() -> re.Pattern[str]:
-    alternatives = "|".join(re.escape(name.lower()) for name in sorted(FORBIDDEN_NAMES, key=len, reverse=True))
+    alternatives = "|".join(
+        re.escape(name.lower()) for name in sorted(FORBIDDEN_NAMES, key=len, reverse=True)
+    )
     return re.compile(r"(?<![a-z0-9])(?:" + alternatives + r")(?![a-z0-9])")
 
 
@@ -68,8 +70,7 @@ def test_no_script_specific_names_in_code_or_rules():
     hits = _matches()
     assert not hits, (
         f"{len(hits)} coincidencias con nombres propios de los scripts del cliente "
-        "(generalizar: quitar el nombre y tratar el patrón de forma genérica):\n"
-        + "\n".join(hits)
+        "(generalizar: quitar el nombre y tratar el patrón de forma genérica):\n" + "\n".join(hits)
     )
 
 

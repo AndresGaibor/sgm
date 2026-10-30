@@ -50,6 +50,8 @@ class Evidence:
     line_start: int
     line_end: int
     label: str | None
+    call: str | None = None
+    # invocación de macro de origen (la más externa), "archivo:línea:nombre"
 
 
 @dataclass
@@ -126,6 +128,51 @@ class Graph:
                 )
                 return
         raise KeyError(f"arista no encontrada: {edge.src}->{edge.dst} {edge.dataset}")
+
+    def bypass(self, op_id: str) -> None:
+        """Quita un operador y conecta cada predecesor con cada sucesor (con el dataset de entrada).
+        Quita un operador y conecta cada predecesor con cada sucesor (con el dataset de entrada)."""
+        for pred in list(self._g.predecessors(op_id)):
+            for data in list(self._g[pred][op_id].values()):
+                for succ in list(self._g.successors(op_id)):
+                    if succ != pred:
+                        self._g.add_edge(pred, succ, edge=Edge(pred, succ, data["edge"].dataset))
+        self._g.remove_node(op_id)
+
+    def replace(self, op_ids: list[str], new: Operator) -> None:
+        """Sustituye un conjunto de operadores por `new`, reconectando las aristas que cruzan el
+        borde."""
+        group = set(op_ids)
+        for op_id in op_ids:
+            for pred in list(self._g.predecessors(op_id)):
+                if pred in group:
+                    continue
+                for data in list(self._g[pred][op_id].values()):
+                    self._g.add_edge(pred, new.id, edge=Edge(pred, new.id, data["edge"].dataset))
+            for succ in list(self._g.successors(op_id)):
+                if succ in group:
+                    continue
+                for data in list(self._g[op_id][succ].values()):
+                    self._g.add_edge(new.id, succ, edge=Edge(new.id, succ, data["edge"].dataset))
+        for op_id in op_ids:
+            self._g.remove_node(op_id)
+        self.add_operator(new)
+
+    def topological(self) -> list[str]:
+        """Ids en orden topológico (productores antes que consumidores)."""
+        return list(nx.topological_sort(self._g))
+
+    def split_edge(self, src: str, dst: str, dataset: str, new: Operator) -> None:
+        """Inserta `new` entre `src` y `dst`: la arista con ese dataset pasa por `new`."""
+        for key, data in list(self._g[src][dst].items()):
+            if data["edge"].dataset == dataset:
+                self._g.remove_edge(src, dst, key=key)
+                break
+        else:
+            raise KeyError(f"arista no encontrada: {src}->{dst} {dataset}")
+        self.add_operator(new)
+        self.add_edge(Edge(src, new.id, dataset))
+        self.add_edge(Edge(new.id, dst, dataset))
 
     def successors(self, op_id: str) -> list[str]:
         return list(self._g.successors(op_id))
