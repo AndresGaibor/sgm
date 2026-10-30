@@ -42,12 +42,13 @@ def test_cada_etiqueta_del_cliente_grande_aparece_en_evidencia_o_no_migrado():
     assert len(labels) >= 300  # hay más de 300 textos de etiqueta distintos
 
 
-def test_la_carga_externa_del_cliente_se_detecta_como_un_solo_operador():
+def test_cada_tabla_del_cliente_poc_es_una_carga_externa():
     compiled, _ = compile_project({"client_poc.sas": _text(CLIENT / "client_poc.sas")})
     plan = compiled["client_poc.sas"].plan
     loads = [o for o in plan.graph.operators() if o.kind == "external_load"]
-    assert len(loads) == 1
-    assert loads[0].placement == "db:impala"
+    # Un bloque de escritura a la LZ por tabla: ACURA, BMW, CHEVROLET y JAGUAR.
+    assert len(loads) == 4
+    assert all(o.placement == "db:impala" for o in loads)
 
 
 def test_guia_y_json_no_contienen_secretos_sin_enmascarar():

@@ -373,3 +373,57 @@ De los 520 "creados por pasada", 372 son `tRunJob` de plantillas (`iterate`).
 - La detección exige al menos dos literales. Con uno solo, no hay elección de ambiente y el `%if` se trata como antes.
 - Un selector se detecta por macro, no por archivo: un selector definido en otro archivo del proyecto también vale.
 - El grupo de contexto se guarda por nombre de macro (`ambiente`), y no por variable, porque una macro puede tener varias variables Y.
+
+## R3. La pasada 3 absorbe toda la maquinaria de carga
+
+- Fecha: 2026-10-30
+- Causa confirmada antes de cambiar nada (R0 con el grafo de operadores antes de p03): en el primer bloque de `client_large.sas`, la preparación (`%let` con `pathname`, `%sysevalf`, `%sysfunc(open/close)`), el troceo (`%split2`: `signon`, `%syslput`, `rsubmit wait=no`, `waitfor`, `sessio&i`), la lista de tablas (`proc contents ... _all_`, `select ... into :`, `countw`) y la limpieza están **antes** del lanzamiento o **después** de la espera. La versión anterior de p03 solo tomaba el tramo entre ambos. Por eso los huecos de la maquinaria salían 30 veces (una por bloque).
+- Qué se hizo:
+  - `passes/region.py` (nuevo): reconocimiento de la región. `FactBook` calcula por operador si es lanzamiento, espera, qué macro variables y datasets define y usa, si es fontanería o configuración, y a qué invocación de macro pertenece. `Flow` mira la liveness: una definición solo tiene como consumidores los usos antes de su siguiente redefinición (los bloques repetidos reutilizan los mismos nombres). `grow` amplía la región hacia atrás y hacia delante por unidades, y un vecino lejano entra con todo lo que hay en medio.
+  - `passes/p03_intrinsics.py`: el `external_load` absorbe la región entera. Añade `params.verify_count` (hay un `select count(*)` dentro) y `params.absorbed` (operadores absorbidos).
+  - `passes/base.py` y `compile.py`: `PassContext.macro_params`, con los parámetros de cada macro. Al empezar una invocación, sus parámetros toman valor del llamador.
+  - `passes/plumbing_patterns.py`: corrección. `x\s` marcaba como comando de shell cualquier sentencia `x = ...;` de un DATA step. Ahora solo `x "..."`, `x '...'` o `x &...`.
+- Pruebas: `tests/unit/test_carga_externa.py` (6 casos). La maquinaria completa con nombres aleatorios queda en un único `external_load` con la evidencia de todas sus líneas; no quedan huecos de troceo ni de preparación; una variable usada por un DATA step posterior a la carga no entra; sin lanzamiento no hay carga; dos bloques dan dos regiones; `x = ...;` no es comando.
+- Golden: `client__client_poc` cambia (cuatro cargas, ver abajo). `test_compile_outputs` pasa de esperar 1 carga a 4 (un bloque de escritura por tabla: ACURA, BMW, CHEVROLET, JAGUAR). Pruebas totales: 214 pasan, 1 se salta. `ruff check .` limpio.
+
+### Criterios de salida de R3 (con `env/`)
+
+| Firma de hueco | `client_large.sas` antes | después | `client_poc.sas` antes | después |
+|---|---|---|---|---|
+| `%let workpath=%sysfunc(cat(%sysfunc(pathname(work))...` | 30 | 0 | 1 | 0 |
+| `%sysfunc(countw(...))` | 30 | 0 | — | 0 |
+| `%sysevalf(...)` | 30 | 0 | 3 | 0 |
+| `sessio&i %end` | 30 | 0 | — | 0 |
+| `proc contents data=work._all_` | 30 | 0 | 1 | 0 |
+| `select ... into :` de conteo | — | 0 | — | 0 |
+
+- En `client_large.sas` quedan 10 `SELECT ... INTO` de año, mes y día (`validacion_fecha`). No son de conteo y no pertenecen a la región.
+- En `client_large.sas` quedan 26 `PROC DOWNLOAD` (transferencia desde un recurso compartido). Están antes de los bloques de carga, en la preparación de entrada. No entran en la región; es un hueco de entrada aparte.
+
+### Cifras (`sgm metrics` sobre el corpus, con `env/`)
+
+| Métrica | Antes de R3 (con `env/` de R1–R2) | Después de R3 |
+|---|---|---|
+| Componentes (corpus) | 1 690 | 1 605 |
+| Pasos SAS por componente (corpus) | 5,161 | 5,434 |
+| tJava (corpus) | 25,7 % | 25,2 % |
+| `client_large.sas`: componentes | 662 | 603 |
+| `client_large.sas`: `tRunJob` | 249 | 188 |
+| `client_large.sas`: cargas externas | 30 (parciales, tJava) | 30 (`tImpalaOutput`) |
+| `client_large.sas`: subjobs | 397 | 425 |
+| `client_large.sas`: tJava | 49,8 % | 49,8 % |
+| `client_large.sas`: decisiones | 293 totales, 31 firmas | 230 totales, 26 firmas |
+| `client_poc.sas`: componentes | 67 | 37 |
+| `client_poc.sas`: tJava | 13,4 % | 24,3 % |
+
+- Lectura honesta: R3 quita componentes (los de la maquinaria y las plantillas de carga), no quita `tJava`. El `tJava` de `client_large` viene del SQL (`proc_sql_work`), que es R4. En `client_poc` el porcentaje sube porque bajan los componentes totales; los nueve `tJava` siguen ahí.
+- Los subjobs de `client_large` **suben** (397 → 425). El corte tras cada escritura pasa de 35 a 132: ahora la región absorbe a los bloques completos y sus escrituras ya no se reparten entre bloques más pequeños. R8 (partición por componente conexo) es el hito que lo corrige. Se registra aquí en vez de ocultarlo.
+
+## Decisiones (R3)
+
+- La región se detecta por estructura (lanzamiento en segundo plano, espera con conteo de procesos). Nunca por nombres de macro.
+- Una definición la lee la región si su siguiente uso está en la región y antes de la siguiente redefinición. No se cuentan usos de otros bloques que reutilizan el mismo nombre.
+- Un dataset que la región lee es la **entrada** de la carga: su productor no entra. Solo entran macro variables de preparación, fontanería, configuración, y pasos de la misma invocación de macro que la región.
+- Dentro de `rsubmit ... endrsubmit` los datasets no son locales (corren en otra sesión): solo cuentan las macro variables.
+- Los parámetros de una macro se tratan como definidos al empezar cada invocación (así `%syslput tabla_origen` no se confunde con el valor del bloque siguiente).
+- `PROC DOWNLOAD` no se absorbe: no está entre los criterios de R3 y ocurre antes del bloque de carga.

@@ -108,11 +108,17 @@ def compile_file(analysis: ProgramAnalysis, program: str, ctx_base: dict) -> Com
     plan.jobs = [job]
     _declared_contexts(plan, job)
     _selector_groups(plan, job, [u for u in analysis.selector_uses if u.file == program])
+    macro_params = {
+        name: [p.lower() for p, _ in entries[0].params]
+        for name, entries in analysis.index.entries.items()
+        if entries
+    }
     ctx = PassContext(
         plan=plan,
         sql_portable=ctx_base["sql_portable"],
         library_engines=ctx_base["library_engines"],
         schemas=ctx_base["schemas"],
+        macro_params=macro_params,
         project=ctx_base["project"],
     )
     logs = run_passes(ctx)

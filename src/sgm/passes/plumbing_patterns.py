@@ -37,7 +37,8 @@ PLUMBING_PATTERNS: tuple[PlumbingPattern, ...] = (
         "comando del sistema operativo auxiliar",
         "El comando del shell no transforma filas; solo orquesta el SAS.",
         "tSystem solo si el comando es imprescindible; si no, el orden lo marca el Job.",
-        re.compile(r"^\s*(x\s|%sysexec\b|systask\b)", re.IGNORECASE),
+        # `x "comando";` (la sentencia X lleva el comando entre comillas o una macro), no `x = 1;`.
+        re.compile(r"^\s*(x\s+[\"'&]|%sysexec\b|systask\b)", re.IGNORECASE),
     ),
     PlumbingPattern(
         "conexion",

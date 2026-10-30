@@ -34,6 +34,7 @@ class PassContext:
     library_engines: dict[str, str] = field(default_factory=dict)  # biblioteca -> motor
     schemas: dict[str, list] = field(default_factory=dict)  # esquemas de env/schemas.json
     project: Project = field(default_factory=Project)  # políticas de env/project.json
+    macro_params: dict[str, list[str]] = field(default_factory=dict)  # macro -> parámetros
 
 
 Pass = Callable[[Graph, PassContext], PassLog]
