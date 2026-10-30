@@ -1,0 +1,12 @@
+id: 02-set-variable
+version: 1
+rung: 2
+description: "SELECT ... INTO :variable: el valor se guarda en una variable de contexto del Job."
+match:
+  kind: "set_variable"
+emit:
+  component: "tSetGlobalVar"
+confidence: media
+alternatives: ["tFlowToIterate"]
+tests:
+  - {"kind": "set_variable", "expect": "tSetGlobalVar"}

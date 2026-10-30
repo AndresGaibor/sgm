@@ -427,3 +427,45 @@ De los 520 "creados por pasada", 372 son `tRunJob` de plantillas (`iterate`).
 - Dentro de `rsubmit ... endrsubmit` los datasets no son locales (corren en otra sesión): solo cuentan las macro variables.
 - Los parámetros de una macro se tratan como definidos al empezar cada invocación (así `%syslput tabla_origen` no se confunde con el valor del bloque siguiente).
 - `PROC DOWNLOAD` no se absorbe: no está entre los criterios de R3 y ocurre antes del bloque de carga.
+
+## R4. PROC SQL nunca termina en tJava
+
+- Fecha: 2026-10-30
+- Dependencia nueva: `sqlglot` 30.27.0 (`uv add sqlglot`). Anotada en "Decisiones".
+- Qué se hizo:
+  - `frontend/sql_normalize.py` (nuevo): normaliza el SQL de SAS antes de parsearlo. Quita `into :var [separated by]` (lo guarda), sustituye `&macro` por `mv_macro` (con la vuelta atrás), `%funcion(` por `fn_funcion(`, convierte `eq ne gt lt ge le`, `contains`, `is [not] missing`, `calculated x`, comillas dobles de texto, literales de fecha `"..."d`, `format=`/`informat=` y opciones de dataset `(where=..)`, `(obs=..)`. Cada quita queda anotada en `notes`.
+  - `ir/sql_tree.py` (nuevo): parsea con `sqlglot` y extrae la estructura: fuentes, uniones (`JoinSpec` con pares de clave y el `ON` completo), `SELECT` (expresiones y alias), `WHERE`, `GROUP BY`, `HAVING`, `DISTINCT`, `ORDER BY`, `UNION`/`UNION ALL`, subconsultas y funciones de ventana. Un texto que no parsea lanza `SqlParseError` (PARSE_ERROR). Una sentencia que no es consulta lanza `SqlNotSelect`.
+  - `ir/lower_sql_flow.py` (nuevo): convierte la consulta en cadena de operadores de flujo, en orden lógico de SQL: `read` y `join` → `filter` (WHERE) → `aggregate` (GROUP BY y funciones de agregado) → `filter` (HAVING, con la agregación sustituida por su alias) → `derive` (expresiones con alias) → `dedup` (DISTINCT) → `sort` (ORDER BY). Un UNION une las ramas con `union`. El destino va en `outputs` (p01 añade la escritura). `SELECT ... INTO :var` va a `set_variable`.
+  - `ir/lower_sql.py`: `create table` y `select` usan ese camino. `insert`, `delete`, `create like` y `drop` quedan como hueco `SQL_NO_SOPORTADO` (o plumbing si son limpieza). Ya no se crea ningún `exec_sql` sobre WORK.
+  - `ir/sql_render.py` (nuevo): genera SQL de base en dialecto Hive desde el árbol. `sqlglot` no tiene dialecto de Impala; Hive es el más cercano. Un nombre con macro variable no se escribe (`ValueError`). Lo usará R5.
+  - `ir/models.py` y `rules/mapping/02-set-variable.yaml`: nuevo tipo de operador `set_variable` → componente `tSetGlobalVar`.
+  - `frontend/macros.py`: un `select ... into :var` ya no es `MACRO_DINAMICA`: llega al analizador de SQL.
+  - `passes/p10_components.py`: **defecto de la ronda 1 corregido**. La regla de último recurso (`05`, con `kind: "*"`) se aplicaba a cualquier operador antes que la excepción de `_tjava`. Así una lectura de un motor no declarado caía en `tJava`. Ahora el peldaño 5 solo lo aplica `_tjava`. La excepción se acota a lo que va a la base: un SQL de **flujo** sin regla sí es `tJava`.
+- Pruebas: `tests/unit/test_sql_flujo.py` (una prueba por construcción de la lista del plan, más función no traducida, texto no parseable, `IS MISSING`, `CONTAINS`, `INTO` con separador, macros, opciones de dataset, y un caso del cliente sin `tJava` de origen SQL), `tests/unit/test_sql_render.py` (SQL Hive válido, UNION ALL, macro en destino rechazada, fecha de SAS, `format=`). `test_ir_rules` y `test_components` se actualizaron al comportamiento nuevo. Golden: `p0_ejemplo_basico` (un `exec_sql` tJava pasa a `read` + `tAggregateRow`) y `client__client_poc`. Total: 240 pasan, 1 se salta. `ruff check .` limpio.
+
+### Criterios de salida de R4
+
+- **0 `tJava` cuyo origen sea PROC SQL en todo el corpus: cumplido** (antes 405 en el corpus, 301 en `client_large`).
+- Corpus (`sgm metrics`): `tJava` 25,2 % → **0,0 %**. Componentes 1 605 → 1 663 (las consultas ahora son varios operadores de flujo).
+- `client_large.sas`: `tJava` 49,8 % → **0,0 %**. Componentes 603 → 606. `tAggregateRow` 24, `tFilterRow` 16, `tMap` 148, `tSetGlobalVar` 12.
+- `client_poc.sas`: `tJava` 24,3 % → 0,0 %. Componentes 37 → 34.
+
+### Lo que sube y se registra (no se oculta)
+
+- **Subjobs**: `client_large` 425 → 537. Cada consulta que crea una tabla termina en una escritura, y la partición corta después de cada escritura. R8 corta por componente conexo y lo corrige.
+- **Decisiones**: `client_large` 293 → 520 totales y 31 → 70 firmas (corpus: 885 → 1 339 totales, 251 → 352 firmas). Cada operador de flujo con alternativas (`tMap` frente a `tFilterRow`, etc.) genera una decisión. R9 las agrupa por firma.
+- **Ronda 1, peor de lo que parecía**: el `tJava` de SQL no venía solo de `exec_sql`. La regla 05 también capturaba lecturas de motores no declarados. Corregido.
+
+### Límites que quedan (honestos)
+
+- El traductor de expresiones (copiado de la ronda 1) **no traduce comparaciones de igualdad con columnas de tipo desconocido** (`x = 1` sobre una columna sin tipo: "validar conversión"), y no tiene `CASE`. Esas expresiones quedan pendientes (`FUNCION_NO_MAPEADA`) y el componente no cambia. R7 (tipos desde el código) resuelve la primera; `CASE` necesita trabajo en el traductor.
+- `sqlglot` avisa por el log cuando cae a un comando. Se silencia en `sql_tree.py`.
+- Las consultas en la base (pass-through) se siguen generando como antes. El SQL de Hive (`sql_render.render`) existe y tiene pruebas, pero la pasada 4 **no** lo usa todavía: decidir que una consulta de flujo se ejecute en la base es R5.
+
+## Decisiones (R4)
+
+- `sqlglot` (30.27.0) para parsear el SQL. Es la única dependencia nueva de la ronda 2.
+- No hay dialecto `impala` en `sqlglot`: se usa `hive`, como indica el plan.
+- SQL de SAS que `sqlglot` no lee se normaliza antes (`sql_normalize.py`), y cada quita se anota.
+- Ninguna consulta sobre WORK se queda como `exec_sql` opaco. Lo que no se puede analizar es `PARSE_ERROR`; lo que se analiza pero no se traduce es un operador de flujo con una expresión pendiente.
+- `IS NULL`/`IS NOT NULL` se escriben como `missing(x)` (la forma que el traductor sí acepta).

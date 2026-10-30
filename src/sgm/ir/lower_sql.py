@@ -5,9 +5,12 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.sql import SqlStatement, parse_sql_statement
+from sgm.frontend.sql_normalize import normalize
 from sgm.frontend.steps import ProcSql
-from sgm.ir.builder import Builder, qualify
+from sgm.ir.builder import Builder
+from sgm.ir.lower_sql_flow import lower_query
 from sgm.ir.models import Evidence
+from sgm.ir.sql_tree import SqlNotSelect, SqlParseError, build
 
 _CREATE_TARGET = re.compile(r"(?is)^create\s+table\s+([\w.&]+)")
 
@@ -39,30 +42,15 @@ def _lower_statement(st: SqlStatement, ev: Evidence, b: Builder) -> None:
         if created:
             params["outputs"] = [_base_name(st.engine or "", created.group(1))]
         b.op("exec_sql", params, ev, placement=f"db:{(st.engine or '').lower()}")
-    elif kind == "create_table":
+    elif kind in ("create_table", "select"):
+        _lower_query(st, ev, b)
+    elif kind in ("insert", "delete", "drop_table", "create_like"):
         b.op(
-            "exec_sql",
-            {
-                "sql": st.text,
-                "inputs": [qualify(s) for s in st.sources],
-                "outputs": [qualify(st.target or "")],
-            },
+            "unsupported",
+            {"statement": st.text, "reason": "SQL_NO_SOPORTADO", "sql": st.text},
             ev,
-            status="parcial",
-            notes=[
-                "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-            ],
-        )
-    elif kind in ("select", "insert", "delete", "drop_table", "create_like"):
-        params = {"sql": st.text, "inputs": [qualify(s) for s in st.sources]}
-        if st.target:
-            params["outputs"] = [qualify(st.target)]
-        b.op(
-            "exec_sql",
-            params,
-            ev,
-            status="parcial",
-            notes=[f"sentencia {kind} de PROC SQL sobre WORK: pendiente de traducción"],
+            status="hueco",
+            notes=[f"sentencia {kind} de PROC SQL: no es una consulta, no se traduce"],
         )
     elif kind in ("connect", "disconnect"):
         b.op(
@@ -80,3 +68,29 @@ def _lower_statement(st: SqlStatement, ev: Evidence, b: Builder) -> None:
             status="hueco",
             notes=[f"sentencia SQL no reconocida: {st.text[:60]}"],
         )
+
+
+def _lower_query(st: SqlStatement, ev: Evidence, b: Builder) -> None:
+    """Consulta de PROC SQL sobre flujo. Un texto que `sqlglot` no lee es PARSE_ERROR."""
+    normalized = normalize(st.text)
+    try:
+        tree = build(normalized.text)
+    except SqlParseError as error:
+        b.op(
+            "unsupported",
+            {"statement": st.text, "reason": "PARSE_ERROR", "sql": st.text},
+            ev,
+            status="hueco",
+            notes=[f"PROC SQL que no se puede analizar: {str(error)[:80]}"],
+        )
+        return
+    except SqlNotSelect as error:
+        b.op(
+            "unsupported",
+            {"statement": st.text, "reason": "SENTENCIA_NO_SOPORTADA", "sql": st.text},
+            ev,
+            status="hueco",
+            notes=[f"consulta fuera de SELECT: {error}"],
+        )
+        return
+    lower_query(tree, normalized, ev, b)

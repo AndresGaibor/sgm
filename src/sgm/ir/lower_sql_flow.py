@@ -1,0 +1,180 @@
+"""PROC SQL sobre datasets de flujo (WORK, o bibliotecas sin motor) a operadores lógicos.
+
+Cada consulta se convierte en una cadena de operadores de flujo, en el orden lógico de SQL:
+lecturas y uniones, filtro (WHERE), agregado (GROUP BY y funciones de agregado), filtro del
+agregado (HAVING), expresiones calculadas (derive), deduplicado (DISTINCT) y orden (ORDER BY).
+Un UNION une las ramas. Así el SQL nunca se queda como `exec_sql` opaco, que la escalera
+traduciría a `tJava`.
+
+Las expresiones se guardan como texto SQL (con las macro variables restauradas). Si una función no
+tiene equivalente Talend, la pasada 10 la deja pendiente (`FUNCION_NO_MAPEADA`) sin cambiar el
+componente.
+"""
+
+from __future__ import annotations
+
+import re
+
+from sgm.frontend.sql_normalize import NormalizedSql
+from sgm.ir.builder import Builder, qualify
+from sgm.ir.models import Evidence, Operator
+from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
+
+_AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
+_DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
+
+
+def _restore(text: str, normalized: NormalizedSql) -> str:
+    """Devuelve las macro variables a su forma SAS (`mv_x` -> `&x`) en un texto."""
+    for placeholder, original in normalized.macros.items():
+        text = re.sub(rf"\b{re.escape(placeholder)}\b", original, text)
+    return text
+
+
+_NOT_NULL = re.compile(r"(?i)\bNOT\s+([\w.]+)\s+IS\s+NULL\b")
+_IS_NOT_NULL = re.compile(r"(?i)\b([\w.]+)\s+IS\s+NOT\s+NULL\b")
+_IS_NULL = re.compile(r"(?i)\b([\w.]+)\s+IS\s+NULL\b")
+
+
+def _null_tests(text: str) -> str:
+    """`x IS NULL` y `x IS NOT NULL` (como los escribe sqlglot) a `missing(x)`, la forma SAS."""
+    text = _NOT_NULL.sub(lambda m: f"NOT missing({m.group(1)})", text)
+    text = _IS_NOT_NULL.sub(lambda m: f"NOT missing({m.group(1)})", text)
+    return _IS_NULL.sub(lambda m: f"missing({m.group(1)})", text)
+
+
+def _column(text: str, aliases: set[str]) -> str:
+    """Nombre de columna de una referencia (`a.k` -> `k`) si el prefijo es un alias de fuente."""
+    return _null_tests(
+        _DOTTED.sub(lambda m: m.group(2) if m.group(1).lower() in aliases else m.group(0), text)
+    )
+
+
+class _Chain:
+    """Constructor de la cadena de una rama: cada paso se enlaza con el anterior."""
+
+    def __init__(self, ev: Evidence, b: Builder, normalized: NormalizedSql) -> None:
+        self.ev = ev
+        self.b = b
+        self.normalized = normalized
+
+    def read(self, source: Source) -> Operator:
+        name = qualify(_restore(source.name, self.normalized))
+        return self.b.op("read", {"dataset": name}, self.ev)
+
+    def step(
+        self, kind: str, params: dict, previous: Operator, status: str = "soportado"
+    ) -> Operator:
+        op = self.b.op(kind, params, self.ev, status=status)
+        self.b.link(previous, op)
+        return op
+
+
+def _target_name(expression: str) -> str:
+    """Nombre de columna para una expresión sin alias: su texto, sin signos, en minúsculas."""
+    name = re.sub(r"\W+", "_", expression).strip("_").lower()
+    return name or "expr"
+
+
+def _names(items) -> list[str]:
+    """Nombres de salida de los elementos del SELECT (alias o columna); `*` no tiene nombre."""
+    return [it.alias or it.column for it in items if not it.star and (it.alias or it.column)]
+
+
+def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
+    """Operadores de una rama de SELECT, en el orden lógico de SQL. Devuelve el último."""
+    aliases = {s.alias.lower() for s in [spec.base] if s and s.alias}
+    aliases |= {j.source.alias.lower() for j in spec.joins if j.source.alias}
+    if spec.base is None:
+        current = chain.b.op("derive", {"assignments": []}, chain.ev)
+    else:
+        current = chain.read(spec.base)
+    for join in spec.joins:
+        right = chain.read(join.source)
+        keys = [[left, right_key] for left, right_key in join.keys]
+        params = {
+            "by": [left for left, _ in join.keys],
+            "keys": keys,
+            "join_type": join.kind,
+            "sources": [qualify(_restore(spec.base.name, normalized))] if spec.base else [],
+            "condition": _restore(join.condition, normalized) if join.condition else None,
+        }
+        status = "soportado" if join.keys or join.kind == "cross" else "parcial"
+        op = chain.b.op("join", params, chain.ev, status=status)
+        chain.b.link(current, op)
+        chain.b.link(right, op)
+        current = op
+    if spec.where:
+        current = chain.step(
+            "filter",
+            {"expression": _restore(_column(spec.where, aliases), normalized)},
+            current,
+            status="parcial" if spec.subqueries else "soportado",
+        )
+    aggregates = [it for it in spec.items if not it.star and _AGGREGATE.search(it.expression)]
+    if spec.group_by or aggregates:
+        params = {
+            "group_by": [_column(g, aliases) for g in spec.group_by],
+            "aggregations": [
+                {
+                    "expression": _restore(_column(it.expression, aliases), normalized),
+                    "alias": it.alias or it.column or it.expression,
+                }
+                for it in aggregates
+            ],
+        }
+        current = chain.step("aggregate", params, current)
+        if spec.having:
+            having = _column(spec.having, aliases)
+            for it in aggregates:
+                having = having.replace(_column(it.expression, aliases), it.alias or it.expression)
+            current = chain.step(
+                "filter",
+                {"expression": _restore(_null_tests(having), normalized)},
+                current,
+            )
+    assignments = [
+        {
+            "target": it.alias or _target_name(it.expression),
+            "expression": _restore(_column(it.expression, aliases), normalized),
+        }
+        for it in spec.items
+        if not it.star and it not in aggregates and (it.alias or it.column is None)
+    ]
+    if assignments or current.kind == "read" or current.kind == "join":
+        current = chain.step(
+            "derive",
+            {"assignments": assignments},
+            current,
+            status="parcial" if spec.windows else "soportado",
+        )
+    if spec.distinct:
+        current = chain.step("dedup", {"by": _names(spec.items), "keep": "first"}, current)
+    if spec.order_by:
+        by = [_column(expr, aliases) for expr, _ in spec.order_by]
+        desc = [desc for _, desc in spec.order_by]
+        current = chain.step("sort", {"by": by, "descending": desc}, current)
+    return current
+
+
+def lower_query(tree: SqlTree, normalized: NormalizedSql, ev: Evidence, b: Builder) -> None:
+    """Operadores de una consulta (CREATE TABLE ... AS SELECT o SELECT) en flujo."""
+    chain = _Chain(ev, b, normalized)
+    ends = [_branch(spec, chain, normalized) for spec in tree.selects]
+    if len(ends) > 1:
+        final = b.op("union", {"sources": [], "all": tree.union_all}, ev)
+        for end in ends:
+            b.link(end, final)
+    else:
+        final = ends[0]
+    if tree.target:
+        final.params["outputs"] = [qualify(_restore(tree.target, normalized))]
+        b.refresh(final)
+    for variable, separator in normalized.into_vars:
+        output = _names(tree.selects[0].items)
+        params = {
+            "variable": variable,
+            "separator": separator,
+            "column": output[0] if output else None,
+        }
+        chain.step("set_variable", params, final)

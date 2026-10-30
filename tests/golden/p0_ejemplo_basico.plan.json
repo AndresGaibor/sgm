@@ -30,19 +30,12 @@
     },
     {
       "id": "op00004",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "kind": "read",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "3c30fc0c57bc3ad7",
+      "signature": "4e7f30eb1983f903",
       "params": {
-        "sql": "create table work.resumen as\n  select sex,\n         count(*) as personas,\n         avg(estatura_cm) as promedio_estatura_cm\n  from work.personas_filtradas\n  group by sex",
-        "inputs": [
-          "WORK.personas_filtradas"
-        ],
-        "outputs": [
-          "WORK.resumen"
-        ],
-        "sas_source": "3c30fc0c57bc3ad7"
+        "dataset": "WORK.personas_filtradas"
       },
       "evidence": [
         {
@@ -53,22 +46,63 @@
           "call": null
         }
       ],
-      "notes": [
-        "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
       }
     },
     {
       "id": "op00005",
+      "kind": "aggregate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "08499c40f4aeaff9",
+      "params": {
+        "group_by": [
+          "sex"
+        ],
+        "aggregations": [
+          {
+            "expression": "COUNT(*)",
+            "alias": "personas"
+          },
+          {
+            "expression": "AVG(estatura_cm)",
+            "alias": "promedio_estatura_cm"
+          }
+        ],
+        "outputs": [
+          "WORK.resumen"
+        ]
+      },
+      "evidence": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 10,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [],
+      "component": {
+        "name": "tAggregateRow",
+        "rung": 2,
+        "rule": "02-aggregate",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
+    },
+    {
+      "id": "op00006",
       "kind": "map",
       "status": "soportado",
       "placement": "flow",
@@ -155,25 +189,49 @@
   "edges": [
     {
       "src": "op00001",
-      "dst": "op00005",
+      "dst": "op00006",
       "dataset": "(interno)",
       "materialize": null
     },
     {
       "src": "op00004",
+      "dst": "op00005",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00005",
       "dst": "w00002",
       "dataset": "WORK.resumen",
       "materialize": null
     },
     {
-      "src": "op00005",
+      "src": "op00006",
       "dst": "op00004",
       "dataset": "WORK.personas_filtradas",
       "materialize": null
     }
   ],
   "not_migrated": [],
-  "pending": [],
+  "pending": [
+    {
+      "signature": "08499c40f4aeaff9",
+      "options": [
+        {
+          "opcion": "tAggregateRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        }
+      ],
+      "default": "tAggregateRow",
+      "occurrences": 1
+    }
+  ],
   "gaps": [],
   "jobs": [
     {
@@ -181,8 +239,9 @@
       "subjobs": [
         [
           "op00001",
-          "op00005",
+          "op00006",
           "op00004",
+          "op00005",
           "w00002"
         ]
       ],

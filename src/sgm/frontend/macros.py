@@ -32,6 +32,7 @@ _COMPARE = re.compile(r"(?i)^(.+?)\s*(=|eq|\^=|~=|ne|<>|>=|<=|>|<|gt|lt|ge|le)\s
 _DYNAMIC_FN = re.compile(r"(?i)%(sysfunc|qsysfunc|sysevalf|sysget|sysmacexist)\b")
 _SYMPUT = re.compile(r"(?i)\bcall\s+symputx?\s*\(")
 _INTO = re.compile(r"(?i)\binto\s*:")
+_SQL_SELECT = re.compile(r"(?is)^\s*select\b")
 _INT_EXPR = re.compile(r"^[\d\s+\-*/()]+$")
 _KEYWORD_ARG = re.compile(r"^\s*(\w+)\s*=(.*)$", re.DOTALL)
 _INCLUDE_PATH = re.compile(r"""['"]([^'"]+)['"]""")
@@ -276,7 +277,8 @@ class Expander:
         text = s.text
         if _SYMPUT.search(text):
             return [self._dynamic(s, "call symput: el valor se calcula al ejecutar")]
-        if _INTO.search(text):
+        if _INTO.search(text) and not _SQL_SELECT.match(text):
+            # `select ... into :var` de PROC SQL lo traduce el lowering de SQL (set_variable).
             return [self._dynamic(s, "into :variable: el valor sale de los datos")]
         if _DYNAMIC_FN.search(text):
             return [self._dynamic(s, "%sysfunc sobre datos o valores de ejecución")]

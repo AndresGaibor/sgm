@@ -121,10 +121,13 @@ def test_execute_by_es_exec_sql_en_la_base_y_salida_si_crea_tabla():
     assert op.params["outputs"] == ["IMPALA.lz.t"]
 
 
-def test_sql_sobre_work_queda_parcial_con_entradas():
+def test_sql_sobre_work_se_traduce_a_flujo_sin_exec_sql():
+    """Ningún SQL sobre WORK queda como exec_sql opaco (la escalera lo mandaría a tJava)."""
     ops = _ops("proc sql;\n create table t as select a from s join r on s.k = r.k;\nquit;")
-    (op,) = _by_kind(ops, "exec_sql")
-    assert op.status == "parcial" and op.params["inputs"] == ["WORK.s", "WORK.r"]
+    assert not _by_kind(ops, "exec_sql")
+    (join,) = _by_kind(ops, "join")
+    assert join.params["by"] == ["k"] and join.params["join_type"] == "inner"
+    assert {op.params["dataset"] for op in _by_kind(ops, "read")} == {"WORK.s", "WORK.r"}
 
 
 def test_proc_sin_regla_es_hueco_con_motivo():

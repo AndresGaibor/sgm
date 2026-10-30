@@ -24,6 +24,14 @@ NAME = "p03_intrinsics"
 _COUNT = re.compile(r"(?i)\bcount\s*\(\s*\*\s*\)")
 
 
+def _counts(op: Operator) -> bool:
+    """Si el paso cuenta filas: `select count(*)` de PROC SQL (un agregado) o el texto del paso."""
+    aggregated = any(
+        _COUNT.search(str(a.get("expression", ""))) for a in op.params.get("aggregations", [])
+    )
+    return aggregated or bool(_COUNT.search(p02_plumbing.op_text(op)))
+
+
 def _engine(block: list[Operator]) -> str | None:
     engines: dict[str, int] = {}
     for op in block:
@@ -51,7 +59,7 @@ def _external_load(block: list[Operator], builder: Builder, facts: region.FactBo
         "destination": destinations[-1] if destinations else None,
         "launch": "comandos de sistema en segundo plano (&)",
         "wait": "bucle de espera por procesos (until, ps, wc -l)",
-        "verify_count": any(_COUNT.search(p02_plumbing.op_text(op)) for op in block),
+        "verify_count": any(_counts(op) for op in block),
         "absorbed": len(block),
     }
     notes = ["reemplaza la región de carga externa detectada por estructura"]

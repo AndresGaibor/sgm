@@ -577,16 +577,12 @@
     },
     {
       "id": "op00020",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "kind": "read",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "c488677650dbd041",
+      "signature": "4e7f30eb1983f903",
       "params": {
-        "sql": "select count (*) from WORK.cars_poc",
-        "inputs": [
-          "WORK.cars_poc"
-        ],
-        "sas_source": "c488677650dbd041"
+        "dataset": "WORK.cars_poc"
       },
       "evidence": [
         {
@@ -597,149 +593,60 @@
           "call": null
         }
       ],
-      "notes": [
-        "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
       }
     },
     {
-      "id": "op00022",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "id": "op00021",
+      "kind": "aggregate",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "dce12f5531fa6871",
+      "signature": "584b31fdb8099257",
       "params": {
-        "sql": "CREATE TABLE WORK.ACURA \nAS \nSELECT CARS_POC.Make, CARS_POC.Model, CARS_POC.Type, CARS_POC.Origin, CARS_POC.DriveTrain, CARS_POC.MSRP, CARS_POC.Invoice, CARS_POC.EngineSize, CARS_POC.Cylinders, CARS_POC.Horsepower, CARS_POC.MPG_City, CARS_POC.MPG_Highway, CARS_POC.Weight, CARS_POC.Wheelbase, CARS_POC.Length \nFROM WORK.CARS_POC CARS_POC \nWHERE \n   ( CARS_POC.Make = 'Acura' )",
-        "inputs": [
-          "WORK.cars_poc"
-        ],
-        "outputs": [
-          "WORK.acura"
-        ],
-        "sas_source": "dce12f5531fa6871"
+        "group_by": [],
+        "aggregations": [
+          {
+            "expression": "COUNT(*)",
+            "alias": "COUNT(*)"
+          }
+        ]
       },
       "evidence": [
         {
           "file": "client/client_poc.sas",
-          "line_start": 42,
-          "line_end": 49,
-          "label": "ACURA",
+          "line_start": 32,
+          "line_end": 34,
+          "label": "Ciclo_Append",
           "call": null
         }
       ],
-      "notes": [
-        "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
+        "name": "tAggregateRow",
+        "rung": 2,
+        "rule": "02-aggregate",
         "version": 1,
-        "confidence": "baja",
+        "confidence": "media",
         "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
       }
     },
     {
-      "id": "op00025",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "id": "op00034",
+      "kind": "read",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "dce12f5531fa6871",
+      "signature": "4e7f30eb1983f903",
       "params": {
-        "sql": "CREATE TABLE WORK.JAGUAR \nAS \nSELECT CARS_POC.Make, CARS_POC.Model, CARS_POC.Type, CARS_POC.Origin, CARS_POC.DriveTrain, CARS_POC.MSRP, CARS_POC.Invoice, CARS_POC.EngineSize, CARS_POC.Cylinders, CARS_POC.Horsepower, CARS_POC.MPG_City, CARS_POC.MPG_Highway, CARS_POC.Weight, CARS_POC.Wheelbase, CARS_POC.Length \nFROM WORK.CARS_POC CARS_POC \nWHERE \n   ( CARS_POC.Make = 'Jaguar' )",
-        "inputs": [
-          "WORK.cars_poc"
-        ],
-        "outputs": [
-          "WORK.jaguar"
-        ],
-        "sas_source": "dce12f5531fa6871"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 58,
-          "line_end": 65,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ],
-      "notes": [
-        "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ],
-      "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
-      }
-    },
-    {
-      "id": "op00028",
-      "kind": "exec_sql",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "dce12f5531fa6871",
-      "params": {
-        "sql": "CREATE TABLE WORK.BMW \nAS \nSELECT CARS_POC.Make, CARS_POC.Model, CARS_POC.Type, CARS_POC.Origin, CARS_POC.DriveTrain, CARS_POC.MSRP, CARS_POC.Invoice, CARS_POC.EngineSize, CARS_POC.Cylinders, CARS_POC.Horsepower, CARS_POC.MPG_City, CARS_POC.MPG_Highway, CARS_POC.Weight, CARS_POC.Wheelbase, CARS_POC.Length \nFROM WORK.CARS_POC CARS_POC \nWHERE \n   ( CARS_POC.Make = 'BMW' )",
-        "inputs": [
-          "WORK.cars_poc"
-        ],
-        "outputs": [
-          "WORK.bmw"
-        ],
-        "sas_source": "dce12f5531fa6871"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 74,
-          "line_end": 81,
-          "label": "BMW",
-          "call": null
-        }
-      ],
-      "notes": [
-        "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ],
-      "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
-      }
-    },
-    {
-      "id": "op00030",
-      "kind": "exec_sql",
-      "status": "parcial",
-      "placement": "flow",
-      "signature": "c488677650dbd041",
-      "params": {
-        "sql": "select count (*) from WORK.ACURA",
-        "inputs": [
-          "WORK.acura"
-        ],
-        "sas_source": "c488677650dbd041"
+        "dataset": "WORK.acura"
       },
       "evidence": [
         {
@@ -750,32 +657,60 @@
           "call": null
         }
       ],
-      "notes": [
-        "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
       }
     },
     {
-      "id": "op00031",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "id": "op00035",
+      "kind": "aggregate",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "c488677650dbd041",
+      "signature": "584b31fdb8099257",
       "params": {
-        "sql": "select count (*) from WORK.BMW",
-        "inputs": [
-          "WORK.bmw"
-        ],
-        "sas_source": "c488677650dbd041"
+        "group_by": [],
+        "aggregations": [
+          {
+            "expression": "COUNT(*)",
+            "alias": "COUNT(*)"
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 86,
+          "line_end": 88,
+          "label": "CONTADOR_ACURA",
+          "call": null
+        }
+      ],
+      "notes": [],
+      "component": {
+        "name": "tAggregateRow",
+        "rung": 2,
+        "rule": "02-aggregate",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
+    },
+    {
+      "id": "op00036",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "4e7f30eb1983f903",
+      "params": {
+        "dataset": "WORK.bmw"
       },
       "evidence": [
         {
@@ -786,71 +721,60 @@
           "call": null
         }
       ],
-      "notes": [
-        "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
       }
     },
     {
-      "id": "op00033",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "id": "op00037",
+      "kind": "aggregate",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "dce12f5531fa6871",
+      "signature": "584b31fdb8099257",
       "params": {
-        "sql": "CREATE TABLE WORK.CHEVROLET \nAS \nSELECT CARS_POC.Make, CARS_POC.Model, CARS_POC.Type, CARS_POC.Origin, CARS_POC.DriveTrain, CARS_POC.MSRP, CARS_POC.Invoice, CARS_POC.EngineSize, CARS_POC.Cylinders, CARS_POC.Horsepower, CARS_POC.MPG_City, CARS_POC.MPG_Highway, CARS_POC.Weight, CARS_POC.Wheelbase, CARS_POC.Length \nFROM WORK.CARS_POC CARS_POC \nWHERE \n   ( CARS_POC.Make = 'Chevrolet' )",
-        "inputs": [
-          "WORK.cars_poc"
-        ],
-        "outputs": [
-          "WORK.chevrolet"
-        ],
-        "sas_source": "dce12f5531fa6871"
+        "group_by": [],
+        "aggregations": [
+          {
+            "expression": "COUNT(*)",
+            "alias": "COUNT(*)"
+          }
+        ]
       },
       "evidence": [
         {
           "file": "client/client_poc.sas",
-          "line_start": 100,
-          "line_end": 107,
-          "label": "CHEVROLET",
+          "line_start": 91,
+          "line_end": 93,
+          "label": "CONTADOR_BMW",
           "call": null
         }
       ],
-      "notes": [
-        "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
+        "name": "tAggregateRow",
+        "rung": 2,
+        "rule": "02-aggregate",
         "version": 1,
-        "confidence": "baja",
+        "confidence": "media",
         "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
       }
     },
     {
-      "id": "op00035",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "id": "op00042",
+      "kind": "read",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "c488677650dbd041",
+      "signature": "4e7f30eb1983f903",
       "params": {
-        "sql": "select count (*) from WORK.CHEVROLET",
-        "inputs": [
-          "WORK.chevrolet"
-        ],
-        "sas_source": "c488677650dbd041"
+        "dataset": "WORK.chevrolet"
       },
       "evidence": [
         {
@@ -861,32 +785,60 @@
           "call": null
         }
       ],
-      "notes": [
-        "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
       }
     },
     {
-      "id": "op00036",
-      "kind": "exec_sql",
-      "status": "parcial",
+      "id": "op00043",
+      "kind": "aggregate",
+      "status": "soportado",
       "placement": "flow",
-      "signature": "c488677650dbd041",
+      "signature": "584b31fdb8099257",
       "params": {
-        "sql": "select count (*) from WORK.JAGUAR",
-        "inputs": [
-          "WORK.jaguar"
-        ],
-        "sas_source": "c488677650dbd041"
+        "group_by": [],
+        "aggregations": [
+          {
+            "expression": "COUNT(*)",
+            "alias": "COUNT(*)"
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 112,
+          "line_end": 114,
+          "label": "CONTADOR_CHEVROLET",
+          "call": null
+        }
+      ],
+      "notes": [],
+      "component": {
+        "name": "tAggregateRow",
+        "rung": 2,
+        "rule": "02-aggregate",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
+    },
+    {
+      "id": "op00044",
+      "kind": "read",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "4e7f30eb1983f903",
+      "params": {
+        "dataset": "WORK.jaguar"
       },
       "evidence": [
         {
@@ -897,22 +849,54 @@
           "call": null
         }
       ],
-      "notes": [
-        "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ],
+      "notes": [],
       "component": {
-        "name": "tJava",
-        "rung": 5,
-        "rule": "05-tjava-last-resort",
-        "version": 1,
-        "confidence": "baja",
-        "status": "candidato",
-        "needs_review": true,
-        "alternatives": []
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
       }
     },
     {
-      "id": "op00040",
+      "id": "op00045",
+      "kind": "aggregate",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "584b31fdb8099257",
+      "params": {
+        "group_by": [],
+        "aggregations": [
+          {
+            "expression": "COUNT(*)",
+            "alias": "COUNT(*)"
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 117,
+          "line_end": 119,
+          "label": "CONTADOR_JAGUAR",
+          "call": null
+        }
+      ],
+      "notes": [],
+      "component": {
+        "name": "tAggregateRow",
+        "rung": 2,
+        "rule": "02-aggregate",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
+    },
+    {
+      "id": "op00049",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -936,7 +920,7 @@
       "component": null
     },
     {
-      "id": "op00041",
+      "id": "op00050",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -960,7 +944,7 @@
       "component": null
     },
     {
-      "id": "op00042",
+      "id": "op00051",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -984,7 +968,7 @@
       "component": null
     },
     {
-      "id": "op00043",
+      "id": "op00052",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1008,7 +992,7 @@
       "component": null
     },
     {
-      "id": "op00044",
+      "id": "op00053",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1032,7 +1016,7 @@
       "component": null
     },
     {
-      "id": "op00045",
+      "id": "op00054",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1056,7 +1040,7 @@
       "component": null
     },
     {
-      "id": "op00046",
+      "id": "op00055",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1080,7 +1064,7 @@
       "component": null
     },
     {
-      "id": "op00047",
+      "id": "op00056",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1104,7 +1088,7 @@
       "component": null
     },
     {
-      "id": "op00049",
+      "id": "op00058",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -1147,7 +1131,7 @@
       }
     },
     {
-      "id": "op00211",
+      "id": "op00225",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1171,7 +1155,7 @@
       "component": null
     },
     {
-      "id": "op00213",
+      "id": "op00227",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1195,7 +1179,7 @@
       "component": null
     },
     {
-      "id": "op00216",
+      "id": "op00230",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1219,7 +1203,7 @@
       "component": null
     },
     {
-      "id": "op00218",
+      "id": "op00232",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1243,7 +1227,7 @@
       "component": null
     },
     {
-      "id": "op00220",
+      "id": "op00234",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1267,7 +1251,7 @@
       "component": null
     },
     {
-      "id": "op00222",
+      "id": "op00236",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1291,7 +1275,7 @@
       "component": null
     },
     {
-      "id": "op00223",
+      "id": "op00237",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -1315,7 +1299,7 @@
       "component": null
     },
     {
-      "id": "op00224",
+      "id": "op00238",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1339,7 +1323,7 @@
       "component": null
     },
     {
-      "id": "op00225",
+      "id": "op00239",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1363,7 +1347,7 @@
       "component": null
     },
     {
-      "id": "op00226",
+      "id": "op00240",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1387,7 +1371,7 @@
       "component": null
     },
     {
-      "id": "op00227",
+      "id": "op00241",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1411,7 +1395,7 @@
       "component": null
     },
     {
-      "id": "op00228",
+      "id": "op00242",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1435,7 +1419,7 @@
       "component": null
     },
     {
-      "id": "op00229",
+      "id": "op00243",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1459,7 +1443,7 @@
       "component": null
     },
     {
-      "id": "op00230",
+      "id": "op00244",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1483,7 +1467,7 @@
       "component": null
     },
     {
-      "id": "op00231",
+      "id": "op00245",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1507,7 +1491,7 @@
       "component": null
     },
     {
-      "id": "op00232",
+      "id": "op00246",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1531,7 +1515,7 @@
       "component": null
     },
     {
-      "id": "op00233",
+      "id": "op00247",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1555,7 +1539,7 @@
       "component": null
     },
     {
-      "id": "op00234",
+      "id": "op00248",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1579,7 +1563,7 @@
       "component": null
     },
     {
-      "id": "op00235",
+      "id": "op00249",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1603,7 +1587,7 @@
       "component": null
     },
     {
-      "id": "op00236",
+      "id": "op00250",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1627,7 +1611,7 @@
       "component": null
     },
     {
-      "id": "op00237",
+      "id": "op00251",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1651,7 +1635,7 @@
       "component": null
     },
     {
-      "id": "op00238",
+      "id": "op00252",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1675,7 +1659,7 @@
       "component": null
     },
     {
-      "id": "op00239",
+      "id": "op00253",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1699,7 +1683,7 @@
       "component": null
     },
     {
-      "id": "op00240",
+      "id": "op00254",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1723,7 +1707,7 @@
       "component": null
     },
     {
-      "id": "op00241",
+      "id": "op00255",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1747,7 +1731,7 @@
       "component": null
     },
     {
-      "id": "op00242",
+      "id": "op00256",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1771,7 +1755,7 @@
       "component": null
     },
     {
-      "id": "op00243",
+      "id": "op00257",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1795,7 +1779,7 @@
       "component": null
     },
     {
-      "id": "op00244",
+      "id": "op00258",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1819,7 +1803,7 @@
       "component": null
     },
     {
-      "id": "op00245",
+      "id": "op00259",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1843,7 +1827,7 @@
       "component": null
     },
     {
-      "id": "op00246",
+      "id": "op00260",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1867,7 +1851,7 @@
       "component": null
     },
     {
-      "id": "op00247",
+      "id": "op00261",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1891,7 +1875,7 @@
       "component": null
     },
     {
-      "id": "op00248",
+      "id": "op00262",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1915,7 +1899,7 @@
       "component": null
     },
     {
-      "id": "op00249",
+      "id": "op00263",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1939,7 +1923,7 @@
       "component": null
     },
     {
-      "id": "op00250",
+      "id": "op00264",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1963,7 +1947,7 @@
       "component": null
     },
     {
-      "id": "op00251",
+      "id": "op00265",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -1987,7 +1971,7 @@
       "component": null
     },
     {
-      "id": "op00252",
+      "id": "op00266",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2011,7 +1995,7 @@
       "component": null
     },
     {
-      "id": "op00253",
+      "id": "op00267",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2035,7 +2019,7 @@
       "component": null
     },
     {
-      "id": "op00254",
+      "id": "op00268",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2059,7 +2043,7 @@
       "component": null
     },
     {
-      "id": "op00255",
+      "id": "op00269",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2083,7 +2067,7 @@
       "component": null
     },
     {
-      "id": "op00256",
+      "id": "op00270",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2107,7 +2091,7 @@
       "component": null
     },
     {
-      "id": "op00257",
+      "id": "op00271",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -2153,7 +2137,7 @@
       }
     },
     {
-      "id": "op00267",
+      "id": "op00281",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2177,7 +2161,7 @@
       "component": null
     },
     {
-      "id": "op00271",
+      "id": "op00285",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2201,7 +2185,7 @@
       "component": null
     },
     {
-      "id": "op00272",
+      "id": "op00286",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2225,7 +2209,7 @@
       "component": null
     },
     {
-      "id": "op00273",
+      "id": "op00287",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2249,7 +2233,7 @@
       "component": null
     },
     {
-      "id": "op00274",
+      "id": "op00288",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2273,7 +2257,7 @@
       "component": null
     },
     {
-      "id": "op00275",
+      "id": "op00289",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2297,7 +2281,7 @@
       "component": null
     },
     {
-      "id": "op00276",
+      "id": "op00290",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2321,7 +2305,7 @@
       "component": null
     },
     {
-      "id": "op00277",
+      "id": "op00291",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2345,7 +2329,7 @@
       "component": null
     },
     {
-      "id": "op00278",
+      "id": "op00292",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2369,7 +2353,7 @@
       "component": null
     },
     {
-      "id": "op00280",
+      "id": "op00294",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -2412,7 +2396,7 @@
       }
     },
     {
-      "id": "op00442",
+      "id": "op00461",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2436,7 +2420,7 @@
       "component": null
     },
     {
-      "id": "op00444",
+      "id": "op00463",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2460,7 +2444,7 @@
       "component": null
     },
     {
-      "id": "op00447",
+      "id": "op00466",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2484,7 +2468,7 @@
       "component": null
     },
     {
-      "id": "op00449",
+      "id": "op00468",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2508,7 +2492,7 @@
       "component": null
     },
     {
-      "id": "op00451",
+      "id": "op00470",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2532,7 +2516,7 @@
       "component": null
     },
     {
-      "id": "op00453",
+      "id": "op00472",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2556,7 +2540,7 @@
       "component": null
     },
     {
-      "id": "op00454",
+      "id": "op00473",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2580,7 +2564,7 @@
       "component": null
     },
     {
-      "id": "op00455",
+      "id": "op00474",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2604,7 +2588,7 @@
       "component": null
     },
     {
-      "id": "op00462",
+      "id": "op00481",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2628,7 +2612,7 @@
       "component": null
     },
     {
-      "id": "op00466",
+      "id": "op00485",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2652,7 +2636,7 @@
       "component": null
     },
     {
-      "id": "op00467",
+      "id": "op00486",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2676,7 +2660,7 @@
       "component": null
     },
     {
-      "id": "op00468",
+      "id": "op00487",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2700,7 +2684,7 @@
       "component": null
     },
     {
-      "id": "op00469",
+      "id": "op00488",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2724,7 +2708,7 @@
       "component": null
     },
     {
-      "id": "op00470",
+      "id": "op00489",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2748,7 +2732,7 @@
       "component": null
     },
     {
-      "id": "op00471",
+      "id": "op00490",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -2772,7 +2756,7 @@
       "component": null
     },
     {
-      "id": "op00472",
+      "id": "op00491",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2796,7 +2780,7 @@
       "component": null
     },
     {
-      "id": "op00473",
+      "id": "op00492",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2820,7 +2804,7 @@
       "component": null
     },
     {
-      "id": "op00475",
+      "id": "op00494",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -2863,7 +2847,7 @@
       }
     },
     {
-      "id": "op00640",
+      "id": "op00664",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2887,7 +2871,7 @@
       "component": null
     },
     {
-      "id": "op00641",
+      "id": "op00665",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2911,7 +2895,7 @@
       "component": null
     },
     {
-      "id": "op00642",
+      "id": "op00666",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2935,7 +2919,7 @@
       "component": null
     },
     {
-      "id": "op00643",
+      "id": "op00667",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2959,7 +2943,7 @@
       "component": null
     },
     {
-      "id": "op00644",
+      "id": "op00668",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -2983,7 +2967,7 @@
       "component": null
     },
     {
-      "id": "op00645",
+      "id": "op00669",
       "kind": "unsupported",
       "status": "reemplazado",
       "placement": "flow",
@@ -3007,7 +2991,7 @@
       "component": null
     },
     {
-      "id": "op00646",
+      "id": "op00670",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3031,7 +3015,7 @@
       "component": null
     },
     {
-      "id": "op00647",
+      "id": "op00671",
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
@@ -3055,7 +3039,7 @@
       "component": null
     },
     {
-      "id": "op00649",
+      "id": "op00673",
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
@@ -3098,18 +3082,18 @@
       }
     },
     {
-      "id": "op00812",
+      "id": "op00841",
       "kind": "external_load",
       "status": "soportado",
       "placement": "db:impala",
-      "signature": "f440f13efa84bab9",
+      "signature": "08199e61acfd999d",
       "params": {
         "input": "",
         "destination": "param_err_lz",
         "launch": "comandos de sistema en segundo plano (&)",
         "wait": "bucle de espera por procesos (until, ps, wc -l)",
         "verify_count": false,
-        "absorbed": 161
+        "absorbed": 166
       },
       "evidence": [
         {
@@ -3380,14 +3364,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 607,
-          "line_end": 608,
-          "label": "ACURA",
-          "call": "739:capturaCampos"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 609,
+          "line_start": 606,
           "line_end": 609,
           "label": "ACURA",
           "call": "739:capturaCampos"
@@ -3590,14 +3567,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 351,
-          "line_end": 352,
-          "label": "ACURA",
-          "call": "740:split3"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 353,
+          "line_start": 350,
           "line_end": 353,
           "label": "ACURA",
           "call": "740:split3"
@@ -3856,14 +3826,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 558,
-          "line_end": 558,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 559,
+          "line_start": 557,
           "line_end": 559,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -3884,14 +3847,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 570,
-          "line_end": 570,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 571,
+          "line_start": 569,
           "line_end": 571,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -4178,18 +4134,18 @@
       }
     },
     {
-      "id": "op00813",
+      "id": "op00842",
       "kind": "external_load",
       "status": "soportado",
       "placement": "db:impala",
-      "signature": "f440f13efa84bab9",
+      "signature": "08199e61acfd999d",
       "params": {
         "input": "",
         "destination": "param_err_lz",
         "launch": "comandos de sistema en segundo plano (&)",
         "wait": "bucle de espera por procesos (until, ps, wc -l)",
         "verify_count": false,
-        "absorbed": 161
+        "absorbed": 166
       },
       "evidence": [
         {
@@ -4460,14 +4416,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 607,
-          "line_end": 608,
-          "label": "ACURA",
-          "call": "739:capturaCampos"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 609,
+          "line_start": 606,
           "line_end": 609,
           "label": "ACURA",
           "call": "739:capturaCampos"
@@ -4670,14 +4619,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 351,
-          "line_end": 352,
-          "label": "ACURA",
-          "call": "740:split3"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 353,
+          "line_start": 350,
           "line_end": 353,
           "label": "ACURA",
           "call": "740:split3"
@@ -4936,14 +4878,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 558,
-          "line_end": 558,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 559,
+          "line_start": 557,
           "line_end": 559,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -4964,14 +4899,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 570,
-          "line_end": 570,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 571,
+          "line_start": 569,
           "line_end": 571,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -5258,18 +5186,18 @@
       }
     },
     {
-      "id": "op00814",
+      "id": "op00843",
       "kind": "external_load",
       "status": "soportado",
       "placement": "db:impala",
-      "signature": "1de785dde4ff78a9",
+      "signature": "ddb027094cb9b68e",
       "params": {
         "input": "",
         "destination": "param_err_lz",
         "launch": "comandos de sistema en segundo plano (&)",
         "wait": "bucle de espera por procesos (until, ps, wc -l)",
         "verify_count": false,
-        "absorbed": 164
+        "absorbed": 169
       },
       "evidence": [
         {
@@ -5540,14 +5468,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 607,
-          "line_end": 608,
-          "label": "ACURA",
-          "call": "739:capturaCampos"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 609,
+          "line_start": 606,
           "line_end": 609,
           "label": "ACURA",
           "call": "739:capturaCampos"
@@ -5750,14 +5671,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 351,
-          "line_end": 352,
-          "label": "ACURA",
-          "call": "740:split3"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 353,
+          "line_start": 350,
           "line_end": 353,
           "label": "ACURA",
           "call": "740:split3"
@@ -6016,14 +5930,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 558,
-          "line_end": 558,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 559,
+          "line_start": 557,
           "line_end": 559,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -6044,14 +5951,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 570,
-          "line_end": 570,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 571,
+          "line_start": 569,
           "line_end": 571,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -6359,18 +6259,18 @@
       }
     },
     {
-      "id": "op00815",
+      "id": "op00844",
       "kind": "external_load",
       "status": "soportado",
       "placement": "db:impala",
-      "signature": "9e5bcd504b5edba2",
+      "signature": "88d893ff88a43dcf",
       "params": {
         "input": "",
         "destination": "param_err_lz@v4",
         "launch": "comandos de sistema en segundo plano (&)",
         "wait": "bucle de espera por procesos (until, ps, wc -l)",
         "verify_count": false,
-        "absorbed": 178
+        "absorbed": 175
       },
       "evidence": [
         {
@@ -6641,14 +6541,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 607,
-          "line_end": 608,
-          "label": "ACURA",
-          "call": "739:capturaCampos"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 609,
+          "line_start": 606,
           "line_end": 609,
           "label": "ACURA",
           "call": "739:capturaCampos"
@@ -6851,14 +6744,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 351,
-          "line_end": 352,
-          "label": "ACURA",
-          "call": "740:split3"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 353,
+          "line_start": 350,
           "line_end": 353,
           "label": "ACURA",
           "call": "740:split3"
@@ -7117,14 +7003,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 558,
-          "line_end": 558,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 559,
+          "line_start": 557,
           "line_end": 559,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -7145,14 +7024,7 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 570,
-          "line_end": 570,
-          "label": "ACURA",
-          "call": "749:checkForErrors"
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 571,
+          "line_start": 569,
           "line_end": 571,
           "label": "ACURA",
           "call": "749:checkForErrors"
@@ -7467,7 +7339,7 @@
       }
     },
     {
-      "id": "op00816",
+      "id": "op00845",
       "kind": "write",
       "status": "soportado",
       "placement": "db:impala",
@@ -7500,7 +7372,7 @@
       }
     },
     {
-      "id": "op00817",
+      "id": "op00846",
       "kind": "write",
       "status": "soportado",
       "placement": "db:impala",
@@ -7533,7 +7405,7 @@
       }
     },
     {
-      "id": "op00818",
+      "id": "op00847",
       "kind": "write",
       "status": "soportado",
       "placement": "db:impala",
@@ -7566,7 +7438,7 @@
       }
     },
     {
-      "id": "op00819",
+      "id": "op00848",
       "kind": "write",
       "status": "soportado",
       "placement": "db:impala",
@@ -7591,6 +7463,84 @@
         "name": "tImpalaOutput",
         "rung": 1,
         "rule": "01-engine-write",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
+    },
+    {
+      "id": "op00849",
+      "kind": "map",
+      "status": "soportado",
+      "placement": "flow",
+      "signature": "403c800c1b265bdd",
+      "params": {
+        "branches": [
+          {
+            "expression": "(Make = 'Acura')",
+            "outputs": [
+              "WORK.acura"
+            ]
+          },
+          {
+            "expression": "(Make = 'Jaguar')",
+            "outputs": [
+              "WORK.jaguar"
+            ]
+          },
+          {
+            "expression": "(Make = 'BMW')",
+            "outputs": [
+              "WORK.bmw"
+            ]
+          },
+          {
+            "expression": "(Make = 'Chevrolet')",
+            "outputs": [
+              "WORK.chevrolet"
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 42,
+          "line_end": 49,
+          "label": "ACURA",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 58,
+          "line_end": 65,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 74,
+          "line_end": 81,
+          "label": "BMW",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 100,
+          "line_end": 107,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ],
+      "notes": [
+        "4 ramas filtradas de un mismo dataset en un tMap (pasada 6)"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
         "version": 1,
         "confidence": "alta",
         "status": "candidato",
@@ -7788,169 +7738,145 @@
     },
     {
       "src": "op00004",
-      "dst": "op00022",
+      "dst": "op00849",
       "dataset": "WORK.cars_poc",
       "materialize": null
     },
     {
-      "src": "op00004",
-      "dst": "op00025",
-      "dataset": "WORK.cars_poc",
+      "src": "op00020",
+      "dst": "op00021",
+      "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00004",
-      "dst": "op00028",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00033",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00022",
-      "dst": "op00030",
-      "dataset": "WORK.acura",
-      "materialize": null
-    },
-    {
-      "src": "op00022",
-      "dst": "op00816",
-      "dataset": "WORK.acura",
-      "materialize": null
-    },
-    {
-      "src": "op00022",
-      "dst": "op00817",
-      "dataset": "WORK.acura",
-      "materialize": null
-    },
-    {
-      "src": "op00022",
-      "dst": "op00818",
-      "dataset": "WORK.acura",
-      "materialize": null
-    },
-    {
-      "src": "op00022",
-      "dst": "op00819",
-      "dataset": "WORK.acura",
-      "materialize": null
-    },
-    {
-      "src": "op00025",
-      "dst": "op00036",
-      "dataset": "WORK.jaguar",
-      "materialize": null
-    },
-    {
-      "src": "op00028",
-      "dst": "op00031",
-      "dataset": "WORK.bmw",
-      "materialize": null
-    },
-    {
-      "src": "op00033",
+      "src": "op00034",
       "dst": "op00035",
-      "dataset": "WORK.chevrolet",
+      "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00812",
-      "dst": "op00815",
-      "dataset": "&CMDT.",
+      "src": "op00036",
+      "dst": "op00037",
+      "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00812",
-      "dst": "op00815",
+      "src": "op00042",
+      "dst": "op00043",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00044",
+      "dst": "op00045",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00841",
+      "dst": "op00844",
       "dataset": "WORK.&prefix.&i",
       "materialize": null
     },
     {
-      "src": "op00812",
-      "dst": "op00815",
-      "dataset": "WORK.members",
-      "materialize": null
-    },
-    {
-      "src": "op00812",
-      "dst": "op00815",
+      "src": "op00841",
+      "dst": "op00844",
       "dataset": "WORK.param_err_lz",
       "materialize": null
     },
     {
-      "src": "op00813",
-      "dst": "op00815",
-      "dataset": "&CMDT.@v3",
-      "materialize": null
-    },
-    {
-      "src": "op00813",
-      "dst": "op00815",
+      "src": "op00842",
+      "dst": "op00844",
       "dataset": "WORK.&prefix.&i@v2",
       "materialize": null
     },
     {
-      "src": "op00813",
-      "dst": "op00815",
-      "dataset": "WORK.members@v2",
-      "materialize": null
-    },
-    {
-      "src": "op00813",
-      "dst": "op00815",
+      "src": "op00842",
+      "dst": "op00844",
       "dataset": "WORK.param_err_lz@v2",
       "materialize": null
     },
     {
-      "src": "op00814",
-      "dst": "op00815",
-      "dataset": "&CMDT.@v5",
-      "materialize": null
-    },
-    {
-      "src": "op00814",
-      "dst": "op00815",
+      "src": "op00843",
+      "dst": "op00844",
       "dataset": "WORK.&prefix.&i@v3",
       "materialize": null
     },
     {
-      "src": "op00814",
-      "dst": "op00815",
-      "dataset": "WORK.members@v3",
-      "materialize": null
-    },
-    {
-      "src": "op00814",
-      "dst": "op00815",
+      "src": "op00843",
+      "dst": "op00844",
       "dataset": "WORK.param_err_lz@v3",
       "materialize": null
     },
     {
-      "src": "op00816",
-      "dst": "op00812",
+      "src": "op00845",
+      "dst": "op00841",
       "dataset": "WORK.acura",
       "materialize": null
     },
     {
-      "src": "op00817",
-      "dst": "op00813",
+      "src": "op00846",
+      "dst": "op00842",
       "dataset": "WORK.acura",
       "materialize": null
     },
     {
-      "src": "op00818",
-      "dst": "op00814",
+      "src": "op00847",
+      "dst": "op00843",
       "dataset": "WORK.acura",
       "materialize": null
     },
     {
-      "src": "op00819",
-      "dst": "op00815",
+      "src": "op00848",
+      "dst": "op00844",
+      "dataset": "WORK.acura",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00034",
+      "dataset": "WORK.acura",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00036",
+      "dataset": "WORK.bmw",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00042",
+      "dataset": "WORK.chevrolet",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00044",
+      "dataset": "WORK.jaguar",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00845",
+      "dataset": "WORK.acura",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00846",
+      "dataset": "WORK.acura",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00847",
+      "dataset": "WORK.acura",
+      "materialize": null
+    },
+    {
+      "src": "op00849",
+      "dst": "op00848",
       "dataset": "WORK.acura",
       "materialize": null
     }
@@ -7985,7 +7911,7 @@
       ]
     },
     {
-      "op": "op00021",
+      "op": "op00022",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -7999,7 +7925,7 @@
       ]
     },
     {
-      "op": "op00023",
+      "op": "op00025",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -8013,7 +7939,7 @@
       ]
     },
     {
-      "op": "op00024",
+      "op": "op00026",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -8027,7 +7953,7 @@
       ]
     },
     {
-      "op": "op00026",
+      "op": "op00029",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -8041,7 +7967,7 @@
       ]
     },
     {
-      "op": "op00027",
+      "op": "op00030",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -8055,7 +7981,7 @@
       ]
     },
     {
-      "op": "op00029",
+      "op": "op00033",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -8069,7 +7995,7 @@
       ]
     },
     {
-      "op": "op00032",
+      "op": "op00038",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -8083,7 +8009,7 @@
       ]
     },
     {
-      "op": "op00034",
+      "op": "op00041",
       "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
@@ -8097,7 +8023,7 @@
       ]
     },
     {
-      "op": "op00037",
+      "op": "op00046",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8111,7 +8037,7 @@
       ]
     },
     {
-      "op": "op00038",
+      "op": "op00047",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8125,7 +8051,7 @@
       ]
     },
     {
-      "op": "op00039",
+      "op": "op00048",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8139,7 +8065,7 @@
       ]
     },
     {
-      "op": "op00048",
+      "op": "op00057",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8153,7 +8079,7 @@
       ]
     },
     {
-      "op": "op00212",
+      "op": "op00226",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8167,7 +8093,7 @@
       ]
     },
     {
-      "op": "op00214",
+      "op": "op00228",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8181,7 +8107,7 @@
       ]
     },
     {
-      "op": "op00215",
+      "op": "op00229",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8195,7 +8121,7 @@
       ]
     },
     {
-      "op": "op00217",
+      "op": "op00231",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8209,7 +8135,7 @@
       ]
     },
     {
-      "op": "op00219",
+      "op": "op00233",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8223,7 +8149,7 @@
       ]
     },
     {
-      "op": "op00221",
+      "op": "op00235",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8237,7 +8163,7 @@
       ]
     },
     {
-      "op": "op00258",
+      "op": "op00272",
       "what": "variable de macro calculada en un paso de datos (call symputx)",
       "talend": "Variable de contexto del Job, o tJava si el valor se calcula en tiempo de ejecución.",
       "evidence": [
@@ -8251,7 +8177,7 @@
       ]
     },
     {
-      "op": "op00259",
+      "op": "op00273",
       "what": "cierre de un PROC o de un DATA step (QUIT o RUN sueltos)",
       "talend": "El orden de los componentes lo marca el Job.",
       "evidence": [
@@ -8265,7 +8191,7 @@
       ]
     },
     {
-      "op": "op00260",
+      "op": "op00274",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8279,7 +8205,7 @@
       ]
     },
     {
-      "op": "op00261",
+      "op": "op00275",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8293,7 +8219,7 @@
       ]
     },
     {
-      "op": "op00262",
+      "op": "op00276",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8307,7 +8233,7 @@
       ]
     },
     {
-      "op": "op00263",
+      "op": "op00277",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8321,7 +8247,7 @@
       ]
     },
     {
-      "op": "op00264",
+      "op": "op00278",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8335,7 +8261,7 @@
       ]
     },
     {
-      "op": "op00265",
+      "op": "op00279",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8349,7 +8275,7 @@
       ]
     },
     {
-      "op": "op00266",
+      "op": "op00280",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8363,7 +8289,7 @@
       ]
     },
     {
-      "op": "op00268",
+      "op": "op00282",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8377,7 +8303,7 @@
       ]
     },
     {
-      "op": "op00269",
+      "op": "op00283",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8391,7 +8317,7 @@
       ]
     },
     {
-      "op": "op00270",
+      "op": "op00284",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8405,7 +8331,7 @@
       ]
     },
     {
-      "op": "op00279",
+      "op": "op00293",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8419,7 +8345,7 @@
       ]
     },
     {
-      "op": "op00443",
+      "op": "op00462",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8433,7 +8359,7 @@
       ]
     },
     {
-      "op": "op00445",
+      "op": "op00464",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8447,7 +8373,7 @@
       ]
     },
     {
-      "op": "op00446",
+      "op": "op00465",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8461,7 +8387,7 @@
       ]
     },
     {
-      "op": "op00448",
+      "op": "op00467",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8475,7 +8401,7 @@
       ]
     },
     {
-      "op": "op00450",
+      "op": "op00469",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8489,7 +8415,7 @@
       ]
     },
     {
-      "op": "op00452",
+      "op": "op00471",
       "what": "bucle o condicional del lenguaje macro (%do, %if, %to)",
       "talend": "No hace falta: el orden y las repeticiones los marca el Job.",
       "evidence": [
@@ -8503,7 +8429,7 @@
       ]
     },
     {
-      "op": "op00456",
+      "op": "op00475",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8517,7 +8443,7 @@
       ]
     },
     {
-      "op": "op00457",
+      "op": "op00476",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8531,7 +8457,7 @@
       ]
     },
     {
-      "op": "op00458",
+      "op": "op00477",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8545,7 +8471,7 @@
       ]
     },
     {
-      "op": "op00459",
+      "op": "op00478",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8559,7 +8485,7 @@
       ]
     },
     {
-      "op": "op00460",
+      "op": "op00479",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8573,7 +8499,7 @@
       ]
     },
     {
-      "op": "op00461",
+      "op": "op00480",
       "what": "%put de traza",
       "talend": "tLogRow o los logs de ejecución del Job.",
       "evidence": [
@@ -8587,7 +8513,7 @@
       ]
     },
     {
-      "op": "op00463",
+      "op": "op00482",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8601,7 +8527,7 @@
       ]
     },
     {
-      "op": "op00464",
+      "op": "op00483",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8615,7 +8541,7 @@
       ]
     },
     {
-      "op": "op00465",
+      "op": "op00484",
       "what": "título o nota de pie del reporte SAS (TITLE, FOOTNOTE)",
       "talend": "No hay componente: el título va en la documentación del Job.",
       "evidence": [
@@ -8629,7 +8555,7 @@
       ]
     },
     {
-      "op": "op00474",
+      "op": "op00493",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8643,7 +8569,7 @@
       ]
     },
     {
-      "op": "op00648",
+      "op": "op00672",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
       "evidence": [
@@ -8658,6 +8584,91 @@
     }
   ],
   "pending": [
+    {
+      "signature": "584b31fdb8099257",
+      "options": [
+        {
+          "opcion": "tAggregateRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        }
+      ],
+      "default": "tAggregateRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "584b31fdb8099257",
+      "options": [
+        {
+          "opcion": "tAggregateRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        }
+      ],
+      "default": "tAggregateRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "584b31fdb8099257",
+      "options": [
+        {
+          "opcion": "tAggregateRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        }
+      ],
+      "default": "tAggregateRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "584b31fdb8099257",
+      "options": [
+        {
+          "opcion": "tAggregateRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        }
+      ],
+      "default": "tAggregateRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "584b31fdb8099257",
+      "options": [
+        {
+          "opcion": "tAggregateRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tAggregateRow"
+        }
+      ],
+      "default": "tAggregateRow",
+      "occurrences": 1
+    },
     {
       "signature": "ad7354eb5044a9df",
       "options": [
@@ -9199,34 +9210,20 @@
           "op00002",
           "op00003",
           "op00004",
-          "op00040",
-          "op00041",
-          "op00042",
-          "op00043",
-          "op00044",
-          "op00045",
-          "op00046",
-          "op00047",
           "op00049",
-          "op00211",
-          "op00213",
-          "op00216",
-          "op00218",
-          "op00220",
-          "op00222",
-          "op00223",
-          "op00224",
+          "op00050",
+          "op00051",
+          "op00052",
+          "op00053",
+          "op00054",
+          "op00055",
+          "op00056",
+          "op00058",
           "op00225",
-          "op00226",
           "op00227",
-          "op00228",
-          "op00229",
           "op00230",
-          "op00231",
           "op00232",
-          "op00233",
           "op00234",
-          "op00235",
           "op00236",
           "op00237",
           "op00238",
@@ -9249,43 +9246,57 @@
           "op00255",
           "op00256",
           "op00257",
+          "op00258",
+          "op00259",
+          "op00260",
+          "op00261",
+          "op00262",
+          "op00263",
+          "op00264",
+          "op00265",
+          "op00266",
           "op00267",
+          "op00268",
+          "op00269",
+          "op00270",
           "op00271",
-          "op00272",
-          "op00273",
-          "op00274",
-          "op00275",
-          "op00276",
-          "op00277",
-          "op00278",
-          "op00280",
-          "op00442",
-          "op00444",
-          "op00447",
-          "op00449",
-          "op00451",
-          "op00453",
-          "op00454",
-          "op00455",
-          "op00462",
+          "op00281",
+          "op00285",
+          "op00286",
+          "op00287",
+          "op00288",
+          "op00289",
+          "op00290",
+          "op00291",
+          "op00292",
+          "op00294",
+          "op00461",
+          "op00463",
           "op00466",
-          "op00467",
           "op00468",
-          "op00469",
           "op00470",
-          "op00471",
           "op00472",
           "op00473",
-          "op00475",
-          "op00640",
-          "op00641",
-          "op00642",
-          "op00643",
-          "op00644",
-          "op00645",
-          "op00646",
-          "op00647",
-          "op00649",
+          "op00474",
+          "op00481",
+          "op00485",
+          "op00486",
+          "op00487",
+          "op00488",
+          "op00489",
+          "op00490",
+          "op00491",
+          "op00492",
+          "op00494",
+          "op00664",
+          "op00665",
+          "op00666",
+          "op00667",
+          "op00668",
+          "op00669",
+          "op00670",
+          "op00671",
+          "op00673",
           "op00005",
           "op00006",
           "op00007",
@@ -9302,36 +9313,38 @@
           "op00018",
           "op00019",
           "op00020",
-          "op00022",
-          "op00025",
-          "op00028",
-          "op00033",
-          "op00030",
-          "op00816"
+          "op00849",
+          "op00021",
+          "op00034",
+          "op00845"
         ],
         [
-          "op00817"
+          "op00846"
         ],
         [
-          "op00818"
+          "op00847"
         ],
         [
-          "op00819"
+          "op00848"
         ],
         [
+          "op00044",
           "op00036",
-          "op00031",
+          "op00042",
           "op00035",
-          "op00812"
+          "op00841"
         ],
         [
-          "op00813"
+          "op00842"
         ],
         [
-          "op00814"
+          "op00843"
         ],
         [
-          "op00815"
+          "op00045",
+          "op00037",
+          "op00043",
+          "op00844"
         ]
       ],
       "contexts": {},

@@ -7,7 +7,7 @@ import yaml
 
 from sgm.compile import compile_project
 from sgm.ir.models import Operator
-from sgm.passes.p10_components import ROOT, choose, load_engines, load_rules
+from sgm.passes.p10_components import ROOT, _tjava, choose, load_engines, load_rules
 
 FIXTURES = ROOT / "tests" / "fixtures" / "sas"
 RULES = load_rules()
@@ -28,7 +28,7 @@ def _op(kind: str, placement: str | None = None, **params) -> Operator:
 
 
 def _component(op: Operator) -> str | None:
-    found = choose(op, RULES, ENGINES)
+    found = choose(op, RULES, ENGINES) or _tjava(op, RULES)
     return found[1] if found else None
 
 

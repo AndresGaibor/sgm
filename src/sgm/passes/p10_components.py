@@ -117,9 +117,13 @@ def _resolve(rule: Rule, op: Operator, engines: dict[str, dict[str, str]]) -> st
 def choose(
     op: Operator, rules: list[Rule], engines: dict[str, dict[str, str]]
 ) -> tuple[Rule, str] | None:
-    """Primera regla de la escalera que aplica al operador, con su componente; None si ninguna."""
+    """Primera regla de la escalera que aplica al operador, con su componente; None si ninguna.
+
+    El peldaño 5 (último recurso) no entra aquí: lo aplica `_tjava`, que respeta las excepciones
+    (una lectura o una consulta soportadas no son tJava).
+    """
     for rule in rules:
-        if not _matches(rule, op):
+        if rule.rung >= 5 or not _matches(rule, op):
             continue
         component = _resolve(rule, op, engines)
         if component:
@@ -226,8 +230,13 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
 
 
 def _tjava(op: Operator, rules: list[Rule]) -> tuple[Rule, str] | None:
-    """Último peldaño: `tJava` solo si el operador es de flujo con datos y ninguna regla aplica."""
-    if op.status == "soportado" and op.kind in ("read", "exec_sql"):
+    """Último peldaño: `tJava` solo si el operador es de flujo con datos y ninguna regla aplica.
+
+    Una lectura o un SQL soportados que van a la base no son tJava: su motor los resuelve (o, si el
+    motor no está declarado, no tienen componente). Un SQL de flujo sin regla sí es tJava.
+    """
+    in_base = (op.placement or "").startswith("db:")
+    if op.status == "soportado" and op.kind in ("read", "exec_sql") and in_base:
         return None
     for rule in rules:
         if rule.rung == 5 and _matches(rule, op):

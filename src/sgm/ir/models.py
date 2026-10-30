@@ -37,6 +37,7 @@ OPERATOR_KINDS = frozenset(
         "stateful_row",
         "iterate",
         "map",
+        "set_variable",
         "unsupported",
     }
 )
