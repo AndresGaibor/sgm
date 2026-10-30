@@ -1,0 +1,36 @@
+[project]
+name = "sgm"
+version = "0.2.0"
+description = "Compilador de programas SAS a una guía de migración a Talend Studio 8.0.1"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "networkx>=3.3",
+    "typer>=0.12",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+sgm = "sgm.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.12.24,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.5",
+    "ruff>=0.5",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-n auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
