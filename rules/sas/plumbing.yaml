@@ -109,5 +109,27 @@ entries:
   pattern: '\bselect\s+count\s*\(\s*\*\s*\)\s+into\s*:'
   flags:
   - i
+- id: borrado_datasets
+  what: PROC DELETE de un dataset de trabajo o de una tabla de la base
+  reason: Elimina datasets temporales antes de reescribirlos; Talend no materializa WORK.
+  talend: No aplica para WORK. Para una tabla de la base, la acción de tabla del componente de salida (DROP_CREATE/CLEAR)
+    la reemplaza.
+  pattern: ^\s*proc\s+delete\b
+  flags:
+  - i
+- id: redireccion_log
+  what: 'PROC PRINTTO: redirige el log o la salida de SAS'
+  reason: Cambia el destino del log de SAS; no transforma datos.
+  talend: tLogRow o los logs de ejecución del Job.
+  pattern: ^\s*proc\s+printto\b
+  flags:
+  - i
+- id: mensajes_sistema
+  what: 'SYSECHO: escribe un mensaje en el log de SAS'
+  reason: Solo escribe en el log; no transforma datos.
+  talend: tLogRow o los logs de ejecución del Job.
+  pattern: ^\s*sysecho\b
+  flags:
+  - i
 tests:
 - tests/cases/plumbing

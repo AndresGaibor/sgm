@@ -5,8 +5,8 @@ import pytest
 from sgm.passes.plumbing_patterns import PLUMBING_PATTERNS, PLUMBING_YAML, cargar, match_plumbing
 
 
-def test_el_yaml_trae_las_quince_categorias():
-    assert len(cargar(PLUMBING_YAML)) == len(PLUMBING_PATTERNS) == 15
+def test_el_yaml_trae_las_dieciocho_categorias():
+    assert len(cargar(PLUMBING_YAML)) == len(PLUMBING_PATTERNS) == 18
 
 
 @pytest.mark.parametrize(
@@ -16,7 +16,10 @@ def test_el_yaml_trae_las_quince_categorias():
         ('x "ls -l";', "shell_auxiliar"),
         ("%put traza;", "mensajes"),
         ('title "Reporte";', "presentacion"),
-        ("proc delete data=work.x;", None),
+        ("proc delete data=work.x;", "borrado_datasets"),
+        ('proc printto log="x" new;', "redireccion_log"),
+        ('sysecho "en lectura";', "mensajes_sistema"),
+        ('filename entrada "x.txt";', None),  # FILENAME en un DATA step es fuente, no fontanería
         ("x = 1;", None),
     ],
 )

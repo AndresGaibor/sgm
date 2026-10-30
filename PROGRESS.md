@@ -804,3 +804,13 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Casos: `tests/cases/proc-{means,summary,freq,append,append-sin-base}`. Pruebas: `tests/unit/test_proc_rules.py` (3).
 - Pendiente: `sort` sigue en código (su estado depende de si hay BY y añade `dedup` con NODUP). Otros PROC (`print`, `import`, `export`) también siguen en código.
 - Verificación: suite 357 pasan, 1 se salta; ruff limpio; `rules validate` limpio; `metrics --check` sin empeorar.
+
+## Fase 1, cierre de huecos de fontanería (PROC DELETE, PRINTTO, SYSECHO)
+
+- Fecha: 2026-10-30
+- Qué se hizo: se añadieron a `rules/sas/plumbing.yaml` tres patrones (`borrado_datasets`, `redireccion_log`, `mensajes_sistema`). Cierran 25 huecos `PROC_NO_SOPORTADO` del corpus (205 → 180) como `not_migrated`. Componentes sin cambio (1328). Línea base del trinquete reescrita con razón.
+- Por qué: el plan de fontanería ya declara "borrado de temporales" y los mensajes de log. Talend no materializa WORK, y para tablas de la base la acción del componente de salida reemplaza la tabla. Si alguien piensa que `proc delete` sobre una tabla de la base debe seguir como hueco, se quita la entrada y se vuelve a la línea base.
+- Falso positivo encontrado y descartado: un patrón `^\s*filename` cerraba también el `FILENAME` que define la fuente de un `INFILE` dentro de un DATA step. Eso era un componente real (194 → 195 en `Solutions_to_Odd_Numbered_problems.sas`). Se quitó el patrón: `FILENAME` sigue como hueco.
+- Hallazgo sin resolver: `%JOB_CONTROL_RD(...)`, `%JOB_CONTROL_UPDT(...)` y `%TMSIS_CONNECT` aparecen como `PROC_NO_SOPORTADO` en `001_batch_bsf.sas`. Son llamadas de macro, no PROC: el paso de frontend las clasifica mal. Pendiente de revisar en el parser de pasos; cambiarlo cambia la clasificación de motivos.
+- Pruebas: `tests/unit/test_plumbing_yaml.py` ahora cubre los tres patrones nuevos y el falso positivo del `FILENAME`.
+- Verificación: suite 360 pasan, 1 se salta; ruff limpio; `rules validate` limpio; `metrics --check` sin empeorar; línea base actualizada con razón.
