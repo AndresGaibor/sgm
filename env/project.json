@@ -1,0 +1,6 @@
+{
+  "placement_strategy": "push_to_db",
+  "target_engine": "impala",
+  "reports": "discard",
+  "max_components_per_job": 200
+}

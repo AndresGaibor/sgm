@@ -1,0 +1,9 @@
+{
+  "dsn": { "IMPALA": "impala", "IMPALAC": "impala", "IMPALAP": "impala" },
+  "libraries": {},
+  "db_schemas": {
+    "proceso_vspc_finanzas": "impala",
+    "resultados_vspc_clientes": "impala",
+    "s_canales": "impala"
+  }
+}

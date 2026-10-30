@@ -321,3 +321,30 @@ De los 520 "creados por pasada", 372 son `tRunJob` de plantillas (`iterate`).
 ### Lo que dice el diagnóstico de decisiones
 
 - Corpus: 976 decisiones y 256 firmas. `client_large.sas`: 293 decisiones y 31 firmas. Cada firma aparece varias veces: el usuario elige 31 veces, no 293 (se trata en R9).
+
+## R1. Configuración de entorno y proyecto
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `env/engines.json`, `env/project.json` y `env/externals.json` con los valores del prompt. Cada DSN y esquema se comprobó en el código: `IMPALA`, `IMPALAC` e `IMPALAP` aparecen en `connect`; `proceso_vspc_finanzas`, `resultados_vspc_clientes` y `s_canales` aparecen en el código del cliente. No se añadió ningún otro.
+  - `env/externals/` con su README. Un `.sas` ahí se lee como fuente y sus macros se expanden.
+  - `catalog/config.py`: carga y validación de los tres archivos (`load_env`). Cada error nombra el archivo y el campo. Un archivo ausente usa sus valores por defecto. Sin dependencias nuevas.
+  - `frontend/program.py` y `frontend/macros.py`: los archivos de `env/externals/` se indexan y se expanden, pero no son programas. Un `%include` se casa con ellos por nombre de archivo.
+  - `ir/lower.py`: un `%include` declarado genera un operador `INCLUDE_DECLARADO` con estado `reemplazado` (o `parcial` si `as_context` es falso). No es hueco. `compile.py` lo registra en `not_migrated` y, si `as_context`, sus variables pasan a `Job.contexts`.
+  - `compile_batch` y `compile_project` reciben `env`. El CLI carga `env/` una vez y, si hay un error de configuración, sale con código 2 y el mensaje.
+- Pruebas: `tests/unit/test_config.py` con 20 casos: validación de cada archivo, valores del repositorio, `%include` declarado (no hueco, contextos, no migrado), no declarado (sigue siendo hueco), `as_context: false` (sin contextos), archivo presente en `externals/` (se expande), y que un externo no se compila como programa. Total: 201 pasan, 1 se salta. `ruff check .` limpio.
+- Efecto medido (`sgm metrics` con `env/`):
+  - Corpus: `INCLUDE_EXTERNO` de `activenodelzcode.sas` desaparece (30 ocurrencias en `client_large`). Quedan 70 `INCLUDE_EXTERNO` de otros archivos.
+  - Pasos, componentes, tJava, subjobs y decisiones no cambian: R1 no toca la ubicación ni la partición.
+- Lo que R1 valida pero aún no ejecuta (se activa en su hito):
+  - `placement_strategy` (`push_to_db`): lo usa R5. Hoy no cambia la ubicación.
+  - `reports`: lo usa R6.
+  - `max_components_per_job`: lo usa R8. Hoy `p08` sigue con 200 fijo.
+  - `dsn` de `engines.json`: solo referencia. Lo usa R2 para el contexto `lz_dsn`.
+- Bloqueos abiertos: ninguno nuevo. Los esquemas reales siguen pendientes (bloqueo 1 de la ronda 1).
+
+## Decisiones (R1)
+
+- `%include` declarado sin `as_context` queda `parcial` y no crea contextos. Así no se inventa que sus variables son contexto.
+- Un archivo de `env/externals/` gana sobre la declaración de `externals.json`: si está presente, se lee el contenido real y no se usan las variables declaradas.
+- Los valores que el código no demuestra no se agregan. `libraries` queda vacío porque ninguna biblioteca LZ tiene motor demostrado (bloqueo 2 de la ronda 1).

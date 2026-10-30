@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from pathlib import PurePosixPath
 
+from sgm.catalog.config import External
 from sgm.frontend.datastep import DataStep
 from sgm.frontend.macros import MacroDynamic
 from sgm.frontend.steps import (
@@ -65,16 +67,41 @@ def origin_of(step) -> str:
     return names.get(type(step), "configuracion")
 
 
-def lower_item(item, b: Builder) -> None:
+def _declared(path: str | None, externals: dict[str, External]) -> External | None:
+    """Declaración de `externals.json` para un `%include`, por nombre de archivo."""
+    if not path or not externals:
+        return None
+    return externals.get(PurePosixPath(path.replace("\\", "/")).name.lower())
+
+
+def _declared_include(step: Include, spec: External, ev: Evidence, b: Builder) -> None:
+    """`%include` de un archivo declarado fuera del repositorio: no es hueco. Sus variables son
+    contexto del Job (`as_context`); si no lo son, queda parcial."""
+    b.op(
+        "unsupported",
+        {
+            "statement": step.text,
+            "reason": "INCLUDE_DECLARADO",
+            "file": spec.name,
+            "defines": list(spec.defines),
+            "as_context": spec.as_context,
+        },
+        ev,
+        status="reemplazado" if spec.as_context else "parcial",
+        notes=[f"%include de {spec.name} declarado en env/externals.json"],
+    )
+
+
+def lower_item(item, b: Builder, externals: dict[str, External] | None = None) -> None:
     """Convierte un elemento del programa (paso o dinámico) en operadores y marca su origen."""
     start = len(b.created)
-    _lower_step(item, b)
+    _lower_step(item, b, externals or {})
     origin = origin_of(item.item)
     for op in b.created[start:]:
         op.origin = origin
 
 
-def _lower_step(item, b: Builder) -> None:
+def _lower_step(item, b: Builder, externals: dict[str, External]) -> None:
     ev = _evidence(item)
     step = item.item
     if isinstance(step, DataStep):
@@ -108,13 +135,17 @@ def _lower_step(item, b: Builder) -> None:
             notes=[f"llamada a %{step.name} que no se pudo expandir"],
         )
     elif isinstance(step, Include):
-        b.op(
-            "unsupported",
-            {"statement": step.text, "reason": "INCLUDE_EXTERNO"},
-            ev,
-            status="hueco",
-            notes=["%INCLUDE fuera del proyecto: el contenido no se conoce"],
-        )
+        spec = _declared(step.path, externals)
+        if spec is not None:
+            _declared_include(step, spec, ev, b)
+        else:
+            b.op(
+                "unsupported",
+                {"statement": step.text, "reason": "INCLUDE_EXTERNO"},
+                ev,
+                status="hueco",
+                notes=["%INCLUDE fuera del proyecto: el contenido no se conoce"],
+            )
     elif isinstance(step, XCommand):
         b.op(
             "unsupported",
@@ -137,9 +168,11 @@ def _lower_step(item, b: Builder) -> None:
         )
 
 
-def lower_items(items: Iterable, graph: Graph) -> Builder:
+def lower_items(
+    items: Iterable, graph: Graph, externals: dict[str, External] | None = None
+) -> Builder:
     """Lowering de todo un programa. Devuelve el constructor para seguir numerando operadores."""
     builder = Builder(graph)
     for item in items:
-        lower_item(item, builder)
+        lower_item(item, builder, externals)
     return builder

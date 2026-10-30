@@ -10,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from sgm.catalog.config import Project
 from sgm.ir.models import Graph, Plan
 
 
@@ -32,6 +33,7 @@ class PassContext:
     sql_portable: frozenset[str] = frozenset()
     library_engines: dict[str, str] = field(default_factory=dict)  # biblioteca -> motor
     schemas: dict[str, list] = field(default_factory=dict)  # esquemas de env/schemas.json
+    project: Project = field(default_factory=Project)  # políticas de env/project.json
 
 
 Pass = Callable[[Graph, PassContext], PassLog]

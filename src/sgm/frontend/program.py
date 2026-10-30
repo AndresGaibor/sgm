@@ -94,17 +94,26 @@ def _collect(path: str, nodes: list[Node], expanded: list[object], result: Progr
     flush_pending(pending_call)
 
 
-def analyze_program(files: dict[str, str]) -> ProgramAnalysis:
-    """Analiza un proyecto completo. `files` es {ruta relativa: texto}."""
+def analyze_program(
+    files: dict[str, str], external_files: dict[str, str] | None = None
+) -> ProgramAnalysis:
+    """Analiza un proyecto completo. `files` es {ruta relativa: texto}.
+
+    `external_files` son archivos de `env/externals/`: sirven para expandir `%include` y sus macros
+    se indexan, pero no son programas: no generan pasos ni guía propia.
+    """
     result = ProgramAnalysis()
+    extras = external_files or {}
+    everything = {**extras, **files}
     file_stmts: dict[str, list[Stmt]] = {}
-    for path in sorted(files):
-        text = files[path].replace(ZERO_WIDTH, "")
+    for path in sorted(everything):
+        text = everything[path].replace(ZERO_WIDTH, "")
         file_stmts[path] = split_statements(text)
-        result.nodes[path] = split_nodes(text)
-    for path in sorted(files):
+        if path in files:
+            result.nodes[path] = split_nodes(text)
+    for path in sorted(everything):
         index_file(path, file_stmts[path], result.index)
-    expander = Expander(result.index, file_stmts)
+    expander = Expander(result.index, file_stmts, externals=frozenset(extras))
     for path in sorted(files):
         _collect(path, result.nodes[path], expander.expand_file(path), result)
     result.unresolved_includes = list(expander.unresolved_includes)

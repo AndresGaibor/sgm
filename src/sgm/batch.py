@@ -1,11 +1,9 @@
 """Compilación por lotes: orden por inclusiones, paralelismo por programa y aislamiento de errores.
 
 El análisis del proyecto (macros, expansión) se hace una vez, en el proceso principal, porque las
-macros se
-comparten entre archivos. Después cada programa se compila en su propio proceso
-(`ProcessPoolExecutor`). Si un
-programa falla, no detiene a los demás: su error queda en el inventario como `PARSE_ERROR` del
-archivo.
+macros se comparten entre archivos. Después cada programa se compila en su propio proceso
+(`ProcessPoolExecutor`). Si un programa falla, no detiene a los demás: su error queda en el
+inventario como `PARSE_ERROR` del archivo.
 """
 
 from __future__ import annotations
@@ -13,8 +11,8 @@ from __future__ import annotations
 import re
 from concurrent.futures import ProcessPoolExecutor
 
-from sgm.catalog.schemas import load_schemas
-from sgm.compile import SCHEMAS_PATH, Compiled, compile_file, load_sql_portable
+from sgm.catalog.config import Env
+from sgm.compile import Compiled, compile_file, project_base
 from sgm.frontend.macro_index import PathIndex, resolve_path
 from sgm.frontend.program import ProgramAnalysis, analyze_program
 from sgm.ir.models import Evidence, Gap, Plan
@@ -57,16 +55,19 @@ def _compile_one(analysis: ProgramAnalysis, program: str, base: dict) -> Compile
 
 
 def compile_batch(
-    files: dict[str, str], library_engines: dict[str, str] | None = None, workers: int = 1
+    files: dict[str, str],
+    library_engines: dict[str, str] | None = None,
+    workers: int = 1,
+    env: Env | None = None,
 ) -> tuple[dict[str, Compiled], ProgramAnalysis]:
-    """Compila todos los programas. `workers` > 1 reparte los programas entre procesos."""
+    """Compila todos los programas. `workers` > 1 reparte los programas entre procesos.
+
+    `env` es `env/` ya cargado (motores, políticas, externos). Sin él, valores por defecto.
+    """
     clean = {path: redact(text, path) for path, text in files.items()}
-    analysis = analyze_program(clean)
-    base = {
-        "sql_portable": load_sql_portable(),
-        "library_engines": library_engines or {},
-        "schemas": load_schemas(SCHEMAS_PATH),
-    }
+    base = project_base(library_engines, env)
+    externals = {path: redact(text, path) for path, text in base["external_files"].items()}
+    analysis = analyze_program(clean, externals)
     order = include_order(clean)
     if workers <= 1:
         compiled = {program: _compile_one(analysis, program, base) for program in order}

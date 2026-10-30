@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass, field, replace
 
 from sgm.frontend.lexer import MACRO_KEYWORDS, Stmt
-from sgm.frontend.macro_index import PathIndex, resolve_path, substitute
+from sgm.frontend.macro_index import PathIndex, PathMatch, resolve_path, substitute
 
 MAX_DEPTH = 20
 MAX_ITERATIONS = 1000
@@ -173,10 +173,16 @@ def _unquote(text: str) -> str:
 class Expander:
     """Expande un proyecto archivo por archivo. Guarda lo dinámico y lo que no se pudo resolver."""
 
-    def __init__(self, index: MacroIndex, files: dict[str, list[Stmt]]):
+    def __init__(
+        self,
+        index: MacroIndex,
+        files: dict[str, list[Stmt]],
+        externals: frozenset[str] = frozenset(),
+    ):
         self.index = index
         self.files = files
         self.paths = PathIndex(files.keys())
+        self.externals = externals  # archivos de env/externals: se casan por nombre de archivo
         self.dynamics: list[MacroDynamic] = []
         self.trace: list[str] = []
         self.unresolved_includes: list[tuple[str, str, str]] = []
@@ -434,6 +440,9 @@ class Expander:
             self.unresolved_includes.append((file, raw, "dinámico"))
             return [s]
         match = resolve_path(target, self.paths)
+        if match.status == "candidate" and match.file in self.externals:
+            # Un archivo de env/externals con ese nombre: basta con el nombre para enlazarlo.
+            match = PathMatch("resolved", match.file)
         if match.status != "resolved" or match.file is None or depth >= MAX_DEPTH:
             self.unresolved_includes.append((file, raw, match.status))
             return [s]

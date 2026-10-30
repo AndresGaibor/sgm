@@ -13,6 +13,7 @@ from sgm import diagnostics as diagnostics_mod
 from sgm import lineage as lineage_mod
 from sgm import metrics as metrics_mod
 from sgm.batch import compile_batch
+from sgm.catalog.config import ConfigError, Env, load_env
 from sgm.emit.guide_md import render_guide
 from sgm.emit.plan_json import plan_to_dict
 from sgm.ingest.importer import looks_like_sas
@@ -48,6 +49,15 @@ def _collect(path: Path) -> dict[str, str]:
         if candidate.suffix.lower() == ".sas" or looks_like_sas(text):
             files[candidate.relative_to(path).as_posix()] = text
     return files
+
+
+def _env() -> Env:
+    """`env/` cargado y validado. Un archivo mal formado detiene el comando con su mensaje."""
+    try:
+        return load_env()
+    except ConfigError as error:
+        typer.echo(f"Configuración no válida: {error}", err=True)
+        raise typer.Exit(code=2) from error
 
 
 def _project_name(source: Path) -> str:
@@ -89,7 +99,7 @@ def compile(
         if restored:
             typer.echo(f"Caché: {len(restored)} archivos recuperados sin recalcular.")
             return
-    compiled, _ = compile_batch(files, workers=workers)
+    compiled, _ = compile_batch(files, workers=workers, env=_env())
     project = _project_name(source)
     with Store() as store:
         for result in compiled.values():
@@ -115,7 +125,7 @@ def metrics(
     if not files:
         typer.echo("No hay programas SAS en la fuente.")
         raise typer.Exit(code=1)
-    compiled, analysis = compile_batch(files)
+    compiled, analysis = compile_batch(files, env=_env())
     report = metrics_mod.compute(compiled, files, analysis)
     out.mkdir(parents=True, exist_ok=True)
     (out / "metrics.json").write_text(
@@ -143,7 +153,7 @@ def lineage(
     if not files:
         typer.echo("No hay programas SAS en la fuente.")
         raise typer.Exit(code=1)
-    compiled, _ = compile_batch(files)
+    compiled, _ = compile_batch(files, env=_env())
     for number, wave in enumerate(lineage_mod.waves(compiled), 1):
         typer.echo(f"Oleada {number}: " + ", ".join(wave))
 
