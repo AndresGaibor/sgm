@@ -1,0 +1,6 @@
+description: Unión de dos datasets con PROC APPEND.
+env: default
+input: input.sas
+expect:
+  components:
+  - tUnite

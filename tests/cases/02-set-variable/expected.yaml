@@ -1,0 +1,6 @@
+description: 'SELECT ... INTO :variable: el valor va a una variable de contexto.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tSetGlobalVar

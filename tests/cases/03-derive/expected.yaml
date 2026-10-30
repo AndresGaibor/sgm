@@ -1,0 +1,6 @@
+description: 'Columna calculada en un DATA step: tMap.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tMap

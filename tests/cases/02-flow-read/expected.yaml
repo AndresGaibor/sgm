@@ -1,0 +1,7 @@
+description: 'Lectura de un dataset de flujo: no necesita componente propio.'
+env: default
+input: input.sas
+expect:
+  operators:
+  - kind: read
+    component: none

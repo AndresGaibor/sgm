@@ -10,4 +10,4 @@ description: "Escritura de un dataset intermedio del flujo: no necesita componen
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "write", "expect": null}
+  - tests/cases/02-flow-write

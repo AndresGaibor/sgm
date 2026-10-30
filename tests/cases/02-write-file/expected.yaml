@@ -1,0 +1,6 @@
+description: Exportación a CSV con PROC EXPORT.
+env: default
+input: input.sas
+expect:
+  components:
+  - tFileOutputDelimited

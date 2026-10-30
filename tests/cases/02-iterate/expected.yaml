@@ -1,0 +1,6 @@
+description: 'Tres ramas iguales salvo el nombre: una llamada en bucle a la plantilla.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tRunJob

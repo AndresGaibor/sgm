@@ -1,0 +1,6 @@
+description: Escritura de un dataset de biblioteca permanente en la base.
+env: default
+input: input.sas
+expect:
+  components:
+  - tImpalaOutput

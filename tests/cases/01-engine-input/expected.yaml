@@ -1,0 +1,7 @@
+description: 'Lectura de base de datos por pass-through: componente de entrada del
+  motor.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tImpalaInput

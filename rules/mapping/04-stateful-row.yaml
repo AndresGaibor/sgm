@@ -10,4 +10,4 @@ emit:
 confidence: baja
 alternatives: ["tMap"]
 tests:
-  - {"kind": "stateful_row", "expect": "tJavaRow"}
+  - tests/cases/04-stateful-row

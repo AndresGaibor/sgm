@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "union", "placement": "flow", "expect": "tUnite"}
+  - tests/cases/02-union

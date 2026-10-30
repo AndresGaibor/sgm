@@ -1,0 +1,6 @@
+description: 'Carga única de un archivo a la base: componente de salida del motor.'
+env: push_to_db
+input: input.sas
+expect:
+  components:
+  - tImpalaOutput

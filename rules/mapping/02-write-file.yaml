@@ -9,4 +9,4 @@ emit:
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "write_file", "expect": "tFileOutputDelimited"}
+  - tests/cases/02-write-file

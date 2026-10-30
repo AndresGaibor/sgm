@@ -1,0 +1,6 @@
+description: Deduplicado por clave (NODUPKEY).
+env: default
+input: input.sas
+expect:
+  components:
+  - tUniqRow

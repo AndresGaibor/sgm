@@ -1,0 +1,6 @@
+description: Agregado por grupo en flujo.
+env: default
+input: input.sas
+expect:
+  components:
+  - tAggregateRow

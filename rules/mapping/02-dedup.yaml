@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "dedup", "placement": "flow", "expect": "tUniqRow"}
+  - tests/cases/02-dedup

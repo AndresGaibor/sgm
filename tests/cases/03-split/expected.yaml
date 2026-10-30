@@ -1,0 +1,6 @@
+description: 'Salida condicionada a dos datasets: tMap.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tMap

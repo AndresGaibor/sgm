@@ -741,3 +741,20 @@ No se hizo `git push`. No se activó MCP. El repositorio tiene un remoto `origin
   - `compile.py`: un componente fuera del catálogo genera hueco `COMPONENTE_NO_CATALOGADO`. Una carga de región parcial genera `INTRINSECO_PARCIAL`. Ninguno cambia el estado del operador.
 - Pruebas: `tests/unit/test_motivos.py` (6 casos). Todo motivo emitido está registrado; ningún operador sin estado; los tres motivos de la fase; los fuera de contrato se marcan; las dos reglas de hueco nuevas. Suite: 285 pasan. Las referencias doradas no cambian.
 - Pendiente: los motivos fuera de contrato requieren acuerdo de Andres, Joseph y Byron. Las cifras del trinquete cambian por las dos reglas nuevas; la línea base se recalcula con `--razon` cuando el cambio se acepte.
+
+## Fase 1, F1.2. Validador de reglas y configuración (`sgm rules validate`)
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `schemas/rules/*.schema.json`: un esquema por tipo (mapping, proc, statement, function, informats, plumbing, intrinsic, routing, case, engines, project, externals). Dependencia `jsonschema`.
+  - `src/sgm/rules_validate.py`: valida cada archivo con su esquema. Además comprueba que el nombre del archivo sea el `id`, que cada `tests:` apunte a una carpeta de `tests/cases/` con `expected.yaml`, y que cada `emit.component` exista en el catálogo (salvo `engine:...` y `none`). Cada problema sale con archivo, ruta del campo y línea.
+  - `sgm rules validate`: sale con 1 si hay errores.
+- Pruebas: `tests/unit/test_rules_validate.py` (7). Un árbol temporal con errores a propósito (componente inventado, caso inexistente, nombre distinto del id, campo obligatorio faltante) y el repositorio real, que valida sin problemas.
+- Retirado: `test_components.py::test_ejemplos_de_cada_regla_dan_su_componente`. Leía los ejemplos inline `raw["tests"]`, que ya no existen. Su cobertura la sustituyen `tests/cases/` (F1.3, con compilación completa) y el validador.
+
+## Fase 1, F1.3. Casos declarativos por regla
+
+- Fecha: 2026-10-30
+- Qué se hizo: cada regla de `rules/mapping/` tiene su carpeta en `tests/cases/<id>/` con `input.sas` (o `ir:` para la regla de último recurso) y `expected.yaml` (entorno, componentes esperados, operadores, huecos y `max_tjava`). Las `tests:` de las 24 reglas apuntan a esas carpetas. El generador de los casos está en `out/casos/generate.py`.
+- Pruebas: `tests/unit/test_casos.py` (una prueba por caso, 24). Validador: sin problemas en el repositorio.
+- Cobertura: un caso por regla. El caso no prueba cada ejemplo que tenía el YAML antes; si se detecta una regla sin cubrir, se añade un caso con `sgm case new` (F1.6).

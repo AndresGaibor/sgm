@@ -1,0 +1,6 @@
+description: 'Filtro y columna calculada fusionados en un solo mapa: tMap.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tMap

@@ -1,0 +1,10 @@
+description: 'Operador de flujo sin ninguna regla: último recurso tJava (caso de IR,
+  sin SAS).'
+env: default
+ir:
+  kind: exec_sql
+  placement: flow
+  status: soportado
+expect:
+  components:
+  - tJava

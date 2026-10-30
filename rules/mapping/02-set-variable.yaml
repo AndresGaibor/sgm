@@ -9,4 +9,4 @@ emit:
 confidence: media
 alternatives: ["tFlowToIterate"]
 tests:
-  - {"kind": "set_variable", "expect": "tSetGlobalVar"}
+  - tests/cases/02-set-variable

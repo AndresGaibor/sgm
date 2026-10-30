@@ -1,0 +1,15 @@
+data a_A;
+  set src_A;
+  where x > 1;
+  y = x;
+run;
+data a_B;
+  set src_B;
+  where x > 1;
+  y = x;
+run;
+data a_C;
+  set src_C;
+  where x > 1;
+  y = x;
+run;

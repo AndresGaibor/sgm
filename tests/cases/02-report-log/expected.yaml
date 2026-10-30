@@ -1,0 +1,6 @@
+description: 'Reporte impreso con la política reports = log: tLogRow.'
+env: reports_log
+input: input.sas
+expect:
+  components:
+  - tLogRow

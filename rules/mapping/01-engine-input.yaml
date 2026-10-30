@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "read", "placement": "db:impala", "expect": "tImpalaInput"}
+  - tests/cases/01-engine-input

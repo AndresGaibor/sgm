@@ -10,4 +10,4 @@ description: "Escritura de un dataset permanente en base: componente de salida d
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "write", "expect": null}
+  - tests/cases/01-engine-write

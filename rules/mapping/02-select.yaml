@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "select", "placement": "flow", "expect": "tFilterColumns"}
+  - tests/cases/02-select

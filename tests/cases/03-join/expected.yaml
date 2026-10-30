@@ -1,0 +1,6 @@
+description: 'Unión por clave con MERGE: tMap.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tMap

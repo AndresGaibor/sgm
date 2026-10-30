@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: ["tFileInputDelimited"]
 tests:
-  - {"kind": "read_file", "file_format": "excel", "expect": "tFileInputExcel"}
+  - tests/cases/02-read-file-excel

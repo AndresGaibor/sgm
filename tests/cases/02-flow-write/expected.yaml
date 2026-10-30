@@ -1,0 +1,7 @@
+description: 'Escritura de un dataset intermedio de flujo: sin componente propio.'
+env: default
+input: input.sas
+expect:
+  operators:
+  - kind: write
+    component: none

@@ -10,4 +10,4 @@ emit:
 confidence: media
 alternatives: []
 tests:
-  - {"kind": "external_load", "placement": "db:impala", "expect": "tImpalaOutput"}
+  - tests/cases/01-engine-output

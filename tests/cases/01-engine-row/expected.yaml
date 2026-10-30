@@ -1,0 +1,6 @@
+description: 'SQL ejecutado en la base: componente de fila del motor.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tImpalaRow

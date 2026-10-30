@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: ["tMap"]
 tests:
-  - {"kind": "filter", "placement": "flow", "expect": "tFilterRow"}
+  - tests/cases/02-filter

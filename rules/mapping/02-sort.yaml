@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: ["tMap"]
 tests:
-  - {"kind": "sort", "placement": "flow", "expect": "tSortRow"}
+  - tests/cases/02-sort

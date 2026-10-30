@@ -1,0 +1,6 @@
+description: 'Estado entre filas (RETAIN): tJavaRow con revisión.'
+env: default
+input: input.sas
+expect:
+  components:
+  - tJavaRow

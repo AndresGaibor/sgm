@@ -11,4 +11,4 @@ emit:
 confidence: baja
 alternatives: []
 tests:
-  - {"kind": "unsupported", "expect": null}
+  - tests/cases/05-tjava-last-resort

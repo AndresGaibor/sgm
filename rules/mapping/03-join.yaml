@@ -10,4 +10,4 @@ emit:
 confidence: media
 alternatives: ["tJoin"]
 tests:
-  - {"kind": "join", "placement": "flow", "expect": "tMap"}
+  - tests/cases/03-join

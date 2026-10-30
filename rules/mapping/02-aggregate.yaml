@@ -10,4 +10,4 @@ emit:
 confidence: media
 alternatives: ["tMap"]
 tests:
-  - {"kind": "aggregate", "placement": "flow", "expect": "tAggregateRow"}
+  - tests/cases/02-aggregate

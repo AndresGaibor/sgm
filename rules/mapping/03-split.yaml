@@ -10,4 +10,4 @@ emit:
 confidence: media
 alternatives: []
 tests:
-  - {"kind": "split", "placement": "flow", "expect": "tMap"}
+  - tests/cases/03-split

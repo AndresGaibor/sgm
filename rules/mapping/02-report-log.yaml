@@ -9,4 +9,4 @@ emit:
 confidence: media
 alternatives: []
 tests:
-  - {"kind": "report", "expect": "tLogRow"}
+  - tests/cases/02-report-log

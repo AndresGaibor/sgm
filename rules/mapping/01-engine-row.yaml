@@ -10,4 +10,4 @@ emit:
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "exec_sql", "placement": "db:impala", "expect": "tImpalaRow"}
+  - tests/cases/01-engine-row

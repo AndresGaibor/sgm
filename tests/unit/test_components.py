@@ -2,9 +2,6 @@
 
 import json
 
-import pytest
-import yaml
-
 from sgm.compile import compile_project
 from sgm.ir.models import Operator
 from sgm.passes.p10_components import ROOT, _tjava, choose, load_engines, load_rules
@@ -35,22 +32,6 @@ def _component(op: Operator) -> str | None:
 def _plan(text: str):
     compiled, _ = compile_project({"p.sas": text})
     return compiled["p.sas"].plan
-
-
-@pytest.mark.parametrize("rule", RULES, ids=lambda r: r.id)
-def test_ejemplos_de_cada_regla_dan_su_componente(rule):
-    """Los ejemplos del YAML son la especificación de la regla: cada uno debe elegirla."""
-    raw = yaml.safe_load((ROOT / "rules/mapping" / f"{rule.id}.yaml").read_text(encoding="utf-8"))
-    for example in raw["tests"]:
-        if example.get("expect") is None:
-            continue
-        params = {}
-        if example.get("file_format") == "excel":
-            params = {"datafile": "x.xlsx"}
-        elif example.get("file_format") == "delimited":
-            params = {"datafile": "x.csv"}
-        op = _op(example["kind"], example.get("placement"), **params)
-        assert _component(op) == example["expect"], rule.id
 
 
 def test_reglas_tienen_forma_y_ids_unicos():

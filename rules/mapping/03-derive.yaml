@@ -10,4 +10,4 @@ emit:
 confidence: media
 alternatives: ["tJavaRow"]
 tests:
-  - {"kind": "derive", "placement": "flow", "expect": "tMap"}
+  - tests/cases/03-derive

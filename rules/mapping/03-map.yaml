@@ -9,4 +9,4 @@ emit:
 confidence: alta
 alternatives: []
 tests:
-  - {"kind": "map", "expect": "tMap"}
+  - tests/cases/03-map

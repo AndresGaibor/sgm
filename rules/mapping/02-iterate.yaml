@@ -9,4 +9,4 @@ emit:
 confidence: alta
 alternatives: ["tFlowToIterate"]
 tests:
-  - {"kind": "iterate", "expect": "tRunJob"}
+  - tests/cases/02-iterate
