@@ -60,6 +60,14 @@ def _lower_statement(st: SqlStatement, ev: Evidence, b: Builder) -> None:
             status="hueco",
             notes=["conexión a motor: lo resuelve la pasada de particiones y de plomería"],
         )
+    elif st.text.lstrip().startswith("%"):  # llamada de macro dentro de PROC SQL, no un PROC
+        b.op(
+            "unsupported",
+            {"statement": st.text, "reason": "MACRO_NO_EXPANDIDA"},
+            ev,
+            status="hueco",
+            notes=[f"llamada de macro dentro de PROC SQL: {st.text[:60]}"],
+        )
     else:
         b.op(
             "unsupported",

@@ -1,5 +1,5 @@
 {
-  "razon": "F1.4 fontanería: proc delete, proc printto y sysecho pasan a not_migrated; cierran 25 huecos PROC_NO_SOPORTADO; componentes sin cambio",
+  "razon": "PROC SQL: las llamadas de macro dentro de PROC SQL pasan de PROC_NO_SOPORTADO a MACRO_NO_EXPANDIDA (56 huecos, mismo dueño). El total de huecos y los componentes no cambian.",
   "total": {
     "programas": 189,
     "nodos_sas": 629,
@@ -19,14 +19,14 @@
       "FUNCION_NO_MAPEADA": 394,
       "INCLUDE_EXTERNO": 24,
       "MACRO_DINAMICA": 18,
-      "MACRO_NO_EXPANDIDA": 75,
+      "MACRO_NO_EXPANDIDA": 131,
       "PARSE_ERROR": 42,
-      "PROC_NO_SOPORTADO": 180,
+      "PROC_NO_SOPORTADO": 124,
       "SENTENCIA_NO_SOPORTADA": 97,
       "SQL_NO_SOPORTADO": 4,
       "TIPO_DESCONOCIDO": 182
     },
     "lineas_sin_cubrir": 11349,
-    "tiempo_compilacion_s": 14.3
+    "tiempo_compilacion_s": 15.9
   }
 }

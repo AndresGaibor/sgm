@@ -1,0 +1,6 @@
+description: "Una llamada de macro dentro de PROC SQL es MACRO_NO_EXPANDIDA, no PROC_NO_SOPORTADO."
+input: input.sas
+env: default
+expect:
+  gaps:
+    - MACRO_NO_EXPANDIDA

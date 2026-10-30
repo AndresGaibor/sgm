@@ -814,3 +814,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Hallazgo sin resolver: `%JOB_CONTROL_RD(...)`, `%JOB_CONTROL_UPDT(...)` y `%TMSIS_CONNECT` aparecen como `PROC_NO_SOPORTADO` en `001_batch_bsf.sas`. Son llamadas de macro, no PROC: el paso de frontend las clasifica mal. Pendiente de revisar en el parser de pasos; cambiarlo cambia la clasificación de motivos.
 - Pruebas: `tests/unit/test_plumbing_yaml.py` ahora cubre los tres patrones nuevos y el falso positivo del `FILENAME`.
 - Verificación: suite 360 pasan, 1 se salta; ruff limpio; `rules validate` limpio; `metrics --check` sin empeorar; línea base actualizada con razón.
+
+## Fase 1, reclasificación: llamadas de macro dentro de PROC SQL
+
+- Fecha: 2026-10-30
+- Qué se hizo: en `src/sgm/ir/lower_sql.py`, una sentencia de PROC SQL que empieza por `%` es `MACRO_NO_EXPANDIDA`, no `PROC_NO_SOPORTADO`. Caso `tests/cases/proc-sql-macro`.
+- Efecto medido sobre el corpus (cuenta directa, sin caché): `PROC_NO_SOPORTADO` 180 → 124 y `MACRO_NO_EXPANDIDA` 75 → 131. El total de huecos no cambia (56 pasan de una clase a otra), ni los componentes (1328). Mismo dueño (joseph) en ambos motivos.
+- Línea base del trinquete reescrita con razón, según el plan (sección de ciclo de huecos: si una métrica por motivo cambia, se justifica por escrito y se actualiza). Revisar si el criterio es el que quieren.
+- Verificación: suite 360 pasan, 1 se salta; ruff limpio; `metrics --check` sin empeorar.
+- Nota: el trinquete mide por motivo, no solo por total. Un movimiento entre motivos del mismo dueño dispara la alarma aunque el total baje o se mantenga; por eso se documenta aquí.
