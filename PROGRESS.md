@@ -364,8 +364,8 @@ De los 520 "creados por pasada", 372 son `tRunJob` de plantillas (`iterate`).
 ### Efecto medido (con `env/`)
 
 - Corpus: pasos SAS 8 960 → 8 722 (238 pasos de ramas de selector ya no cuentan como pasos). Componentes 1 690 sin cambio. Pasos por componente 5,302 → 5,161 (por el denominador). Subjobs 958 → 957.
-- `client_large.sas`: pasos 5 152 → 4 914 (mismo motivo). Pasos por componente 7,782 → 7,465. Componentes 662 sin cambio.
-- `client_poc.sas`: pasos por componente 11,388 → 10,97. Componentes 67 sin cambio.
+- `client_large.sas`: pasos 5 152 → 4 942 (210 pasos de ramas de selector). Pasos por componente 7,782 → 7,465. Componentes 662 sin cambio.
+- `client_poc.sas`: pasos 763 → 735 (28 pasos de ramas de selector). Pasos por componente 11,388 → 10,97. Componentes 67 sin cambio.
 - El cambio de la métrica de pasos viene de cómo se cuentan los pasos, no de agrupar mejor. Los componentes no cambian en R2.
 
 ## Decisiones (R2)
