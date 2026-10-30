@@ -74,6 +74,7 @@ class Operator:
     signature: str = ""
     notes: list[str] = field(default_factory=list)
     component: dict[str, Any] | None = None  # componente Talend candidato (pasada 10)
+    origin: str | None = None  # constructo SAS de origen (diagnóstico; no entra en la firma)
 
 
 @dataclass(frozen=True)

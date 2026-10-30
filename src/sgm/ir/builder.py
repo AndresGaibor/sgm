@@ -26,6 +26,7 @@ class Builder:
 
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
+        self.created: list[Operator] = []  # en orden de creación; el lowering marca su origen
         self._count = max(
             (int(m.group(1)) for m in (_ID.match(o.id) for o in graph.operators()) if m), default=0
         )
@@ -55,6 +56,7 @@ class Builder:
             notes=list(notes or []),
         )
         self.graph.add_operator(operator)
+        self.created.append(operator)
         return operator
 
     def link(self, src: Operator, dst: Operator, dataset: str = INTERNAL) -> None:

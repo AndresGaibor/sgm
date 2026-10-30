@@ -68,35 +68,42 @@ def _materialize(graph: Graph, ctx: PassContext, log: PassLog) -> None:
                 break
 
 
-def _subjobs(graph: Graph) -> list[list[str]]:
+def _subjobs(graph: Graph) -> tuple[list[list[str]], list[str]]:
+    """Subjobs en orden topológico, y el motivo de cada corte (para el diagnóstico)."""
     subjobs: list[list[str]] = []
+    cuts: list[str] = []
     current: list[str] = []
 
-    def flush() -> None:
+    def flush(reason: str) -> None:
         if current:
             subjobs.append(list(current))
             current.clear()
+            cuts.append(reason)
 
     for op_id in graph.topological():
         op: Operator = graph.operator(op_id)
         if op.kind in _CUT_BEFORE_AND_AFTER:
-            flush()
+            flush("antes_de_iterate")
             subjobs.append([op_id])
+            cuts.append("iterate")
             continue
         current.append(op_id)
-        if op.kind in _CUT_AFTER or len(current) >= MAX_COMPONENTS:
-            flush()
-    flush()
-    return subjobs
+        if op.kind in _CUT_AFTER:
+            flush(f"despues_de_{op.kind}")
+        elif len(current) >= MAX_COMPONENTS:
+            flush("tamano_maximo")
+    flush("fin_del_programa")
+    return subjobs, cuts
 
 
 def run(graph: Graph, ctx: PassContext) -> PassLog:
     log = PassLog(NAME)
     _materialize(graph, ctx, log)
-    subjobs = _subjobs(graph)
+    subjobs, cuts = _subjobs(graph)
     if not ctx.plan.jobs:
         ctx.plan.jobs = [Job(name=ctx.plan.program)]
     ctx.plan.jobs[0].subjobs = subjobs
     log.metrics["subjobs"] = len(subjobs)
     log.metrics["operadores_maximo_por_subjob"] = max((len(s) for s in subjobs), default=0)
+    log.metrics["cortes"] = {reason: cuts.count(reason) for reason in sorted(set(cuts))}
     return log

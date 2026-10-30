@@ -56,8 +56,8 @@ def test_linaje_ignora_work_que_es_local_a_cada_programa():
 
 def test_metricas_por_programa_y_total(tmp_path):
     files = {"a.sas": "/* Etiqueta: Carga */\n" + PROGRAMA_A, "b.sas": PROGRAMA_B}
-    compiled, _ = batch.compile_batch(files, workers=1)
-    report = metrics.compute(compiled, files)
+    compiled, analysis = batch.compile_batch(files, workers=1)
+    report = metrics.compute(compiled, files, analysis)
     assert report["total"]["programas"] == 2
     assert report["programas"]["a.sas"]["nodos_sas"] == 1
     assert 0 <= report["total"]["pct_tjava"] <= 100

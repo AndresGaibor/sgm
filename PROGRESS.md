@@ -272,3 +272,52 @@
 7. Commits locales: lista arriba.
 
 No se hizo `git push`. No se activó MCP.
+
+# Ronda 2: agrupación real
+
+Plan guardado en `docs/ronda2.md`. Regla de la ronda: `sgm metrics` antes y después de cada pasada, con los números anotados aquí.
+
+## R0. Diagnóstico (sin cambiar comportamiento)
+
+- Fecha: 2026-10-30
+- Qué se hizo:
+  - `ir/models.py` y `ir/builder.py`: cada operador lleva `origin` (constructo SAS de origen). No entra en la firma, así que las firmas, las decisiones y la caché no cambian. `Builder.created` guarda los operadores en orden de creación.
+  - `ir/lower.py`: `origin_of` asigna el origen: `data_step`, `proc_sql_work`, `proc_sql_db`, `proc_<nombre>`, `macro_dinamica`, `include`, etc.
+  - `passes/p08_partition.py`: registra el motivo de cada corte de subjob (`despues_de_write`, `iterate`, `antes_de_iterate`, `tamano_maximo`, `fin_del_programa`).
+  - `metrics.py`: métrica principal `pasos_por_componente` (pasos del programa expandido, `ProgramItem`). Se conserva `nodos_por_componente`. Añade `cortes_de_subjob`, `firmas_de_decision`.
+  - `diagnostics.py` (nuevo): `out/diagnostico.md` con componentes y tJava por origen, operadores por pasada (creados, fusionados, quitados), cortes de subjob y decisiones por firma. `sgm metrics` lo escribe.
+- Pruebas: 181 pasan, 1 se salta. `ruff check .` limpio. Ningún número de compilación cambió (la línea base del corpus coincide con la ronda 1).
+
+### Números antes (ronda 1, corpus de 189 programas)
+
+- Pasos SAS 8 960; nodos SAS 629; componentes 1 690.
+- Pasos por componente 5,302; nodos por componente 0,372.
+- tJava 25,7 %; subjobs 958; decisiones 976 totales, 256 firmas únicas.
+- `client_large.sas`: 5 152 pasos; 662 componentes; pasos por componente 7,782; 397 subjobs; tJava 49,8 %; decisiones 293 totales, 31 firmas únicas.
+- `client_poc.sas`: 763 pasos; 67 componentes; pasos por componente 11,388; 14 subjobs; tJava 13,4 %; decisiones 37 totales, 12 firmas únicas.
+
+### Desglose de componentes por origen (corpus)
+
+| origen | componentes | tJava |
+|---|---|---|
+| `proc_sql_work` | 418 (24,7 %) | 406 |
+| `data_step` | 434 (25,7 %) | 0 |
+| creado por pasada (fusiones, plantillas, cargas) | 520 (30,8 %) | 29 |
+| `proc_sort`, `proc_import`, `proc_export`, `proc_means`, `proc_append`, `proc_freq` | 287 (17 %) | 0 |
+
+De los 520 "creados por pasada", 372 son `tRunJob` de plantillas (`iterate`).
+
+### Causas confirmadas (con números)
+
+1. **PROC SQL sobre WORK termina en tJava. Confirmada.** `client_large.sas` tiene 301 sentencias `CREATE TABLE ... AS SELECT` como `exec_sql` con estado `parcial` (sin análisis de SQL). La regla de último recurso (`05-tjava-last-resort`) las manda a `tJava`. En el corpus son 406 de los 435 `tJava` (93 %).
+2. **Nada se ubica en la base. Confirmada.** `client_large.sas` tiene 77 lecturas: 68 de `WORK`, 8 de `db:impala` y 1 de `WLIBORG`. La pasada 4 deja 69 en flujo. Las lecturas de WORK vienen de DATA steps y de `proc import`/`read_file`, no solo de CSV: el origen real es mixto.
+3. **La maquinaria de carga no se absorbe. Confirmada en los huecos.** En `client_large.sas` cada una de estas firmas aparece 30 veces o más: `%sysevalf`, `%sysfunc(pathname(...))`, `select ... into:`, `sessio&i %end`, `proc contents ... _all_`, `%sysfunc(open/close)`, `%sysfunc(countw)`, `%include` externo. Por qué p03 no las absorbe: se confirma en R3 (hipótesis: están fuera del tramo entre el primer grupo de lanzamiento y el de espera).
+4. **Los subjobs no se cortan por nodo, se cortan por escritura y por plantilla. Parcialmente distinta de la hipótesis.** En el corpus, los cortes son: `despues_de_write` 403, `iterate` 372, `antes_de_iterate` 80, `fin_del_programa` 62, `despues_de_external_load` 31, `tamano_maximo` 10. En `client_large.sas`: `iterate` 249, `antes_de_iterate` 75, `despues_de_external_load` 30, `despues_de_write` 35.
+
+### Causa no prevista en el plan
+
+- **`tRunJob` por instancia de plantilla.** En `client_large.sas`, 249 de 662 componentes (38 %) son `tRunJob`, uno por instancia de la plantilla de `iterate` (p07). Cada llamada a una macro de carga por tabla se convierte en un Job hijo. Es el mayor bloque de componentes del caso grande y no estaba en las cuatro causas. Se atiende en R3 (absorción de la maquinaria) y R8 (partición).
+
+### Lo que dice el diagnóstico de decisiones
+
+- Corpus: 976 decisiones y 256 firmas. `client_large.sas`: 293 decisiones y 31 firmas. Cada firma aparece varias veces: el usuario elige 31 veces, no 293 (se trata en R9).

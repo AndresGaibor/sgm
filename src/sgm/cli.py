@@ -9,6 +9,7 @@ from typing import Annotated
 import typer
 
 from sgm import cache
+from sgm import diagnostics as diagnostics_mod
 from sgm import lineage as lineage_mod
 from sgm import metrics as metrics_mod
 from sgm.batch import compile_batch
@@ -109,24 +110,28 @@ def metrics(
     source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
 ) -> None:
-    """Imprime las métricas y las guarda en `out/metrics.json`."""
+    """Imprime las métricas y las guarda en `out/metrics.json` y `out/diagnostico.md`."""
     files = _collect(source)
     if not files:
         typer.echo("No hay programas SAS en la fuente.")
         raise typer.Exit(code=1)
-    compiled, _ = compile_batch(files)
-    report = metrics_mod.compute(compiled, files)
+    compiled, analysis = compile_batch(files)
+    report = metrics_mod.compute(compiled, files, analysis)
     out.mkdir(parents=True, exist_ok=True)
     (out / "metrics.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    (out / "diagnostico.md").write_text(
+        diagnostics_mod.render(diagnostics_mod.build(compiled), report), encoding="utf-8"
+    )
     total = report["total"]
     typer.echo(
-        f"Programas {total['programas']}, nodos SAS {total['nodos_sas']}, "
-        f"componentes {total['componentes']}, nodos por componente "
-        f"{total['nodos_por_componente']}, tJava {total['pct_tjava']} %"
+        f"Programas {total['programas']}, pasos SAS {total['pasos_sas']}, "
+        f"nodos SAS {total['nodos_sas']}, componentes {total['componentes']}, "
+        f"pasos por componente {total['pasos_por_componente']}, "
+        f"nodos por componente {total['nodos_por_componente']}, tJava {total['pct_tjava']} %"
     )
-    typer.echo(f"Métricas en {out / 'metrics.json'}")
+    typer.echo(f"Métricas en {out / 'metrics.json'} y diagnóstico en {out / 'diagnostico.md'}")
 
 
 @app.command()

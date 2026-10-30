@@ -45,8 +45,36 @@ def _config(step, ev: Evidence, b: Builder, what: str) -> None:
     )
 
 
+def origin_of(step) -> str:
+    """Constructo SAS de origen de un paso, para el diagnóstico (`proc_sql_work`, `data_step`)."""
+    if isinstance(step, DataStep):
+        return "data_step"
+    if isinstance(step, ProcSql):
+        passthrough = all(st.kind in ("select_passthrough", "execute") for st in step.statements)
+        return "proc_sql_db" if passthrough else "proc_sql_work"
+    if isinstance(step, Proc):
+        return f"proc_{step.name.lower()}"
+    names = {
+        MacroDynamic: "macro_dinamica",
+        Unparsed: "no_analizado",
+        MacroCall: "llamada_macro",
+        Include: "include",
+        XCommand: "comando_sistema",
+        Global: "sentencia_global",
+    }
+    return names.get(type(step), "configuracion")
+
+
 def lower_item(item, b: Builder) -> None:
-    """Convierte un elemento del programa (paso o dinámico) en operadores."""
+    """Convierte un elemento del programa (paso o dinámico) en operadores y marca su origen."""
+    start = len(b.created)
+    _lower_step(item, b)
+    origin = origin_of(item.item)
+    for op in b.created[start:]:
+        op.origin = origin
+
+
+def _lower_step(item, b: Builder) -> None:
     ev = _evidence(item)
     step = item.item
     if isinstance(step, DataStep):
