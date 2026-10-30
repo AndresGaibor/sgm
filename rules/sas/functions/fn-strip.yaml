@@ -1,0 +1,12 @@
+id: fn-strip
+kind: function
+version: 1
+status: soportado
+sas: strip
+args:
+  - { name: text, type: String }
+returns: String
+java: "{0}.trim()"
+warning: "comprobar nulos antes de invocar el método"
+tests:
+  - tests/cases/fn-strip

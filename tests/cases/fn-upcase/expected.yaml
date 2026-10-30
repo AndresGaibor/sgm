@@ -1,0 +1,5 @@
+description: "upcase() se traduce a método Java en tMap; aviso de nulos."
+input: input.sas
+env: default
+expect:
+  gaps: []

@@ -1,0 +1,12 @@
+id: fn-upcase
+kind: function
+version: 1
+status: soportado
+sas: upcase
+args:
+  - { name: text, type: String }
+returns: String
+java: "{0}.toUpperCase()"
+warning: "comprobar nulos antes de invocar el método"
+tests:
+  - tests/cases/fn-upcase

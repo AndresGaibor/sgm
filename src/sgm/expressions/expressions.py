@@ -8,11 +8,28 @@ Cada resultado debe validarse semánticamente (missing, mayúsculas, tipos).
 import os
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
+
+import yaml
 
 from sgm.expressions.talend_translator import (
     Unsupported,
     translate_to_talend,
 )
+
+FUNCTIONS_DIR = Path(__file__).resolve().parents[3] / "rules" / "sas" / "functions"
+
+
+def _plantillas() -> tuple[dict[str, str], dict[str, str]]:
+    """Plantillas Java de las funciones simples y su aviso, leídas de `rules/sas/functions/`."""
+    plantillas: dict[str, str] = {}
+    avisos: dict[str, str] = {}
+    for path in sorted(FUNCTIONS_DIR.glob("*.yaml")):
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        if "java" in data:
+            plantillas[data["sas"]] = data["java"]
+            avisos[data["sas"]] = data.get("warning", "")
+    return plantillas, avisos
 
 
 @dataclass
@@ -49,12 +66,8 @@ _ARITHMETIC_TOKEN = re.compile(
 )
 _CMP = {"=": "==", "eq": "==", "^=": "!=", "~=": "!=", "<>": "!=", "ne": "!=", ">": ">", "gt": ">",
         "<": "<", "lt": "<", ">=": ">=", "ge": ">=", "<=": "<=", "le": "<="}  # fmt: skip
-_FUNCS = {
-    "upcase": "{0}.toUpperCase()",
-    "lowcase": "{0}.toLowerCase()",
-    "strip": "{0}.trim()",
-    "trim": "{0}.trim()",
-}
+# Funciones de una línea (`rules/sas/functions/`, F1.4): plantilla Java y aviso de nulos.
+_FUNCS, _FUNCS_AVISO = _plantillas()
 
 
 _NUMBER = re.compile(r"-?\d+(?:\.\d+)?")
@@ -502,7 +515,7 @@ class _Parser:
     def function(self, name: str, args: list[str]) -> str:
         """Llamada a función SAS con argumentos ya traducidos. Sin equivalente claro: `_Unsupported`."""
         if name in _FUNCS and len(args) == 1:
-            self.warnings.append(f"{name}(): comprobar nulos antes de invocar el método")
+            self.warnings.append(f"{name}(): {_FUNCS_AVISO[name]}")
             return _FUNCS[name].format(args[0])
         handler = _FUNCTIONS.get(name)
         if handler is None:

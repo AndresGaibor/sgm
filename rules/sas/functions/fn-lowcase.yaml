@@ -1,0 +1,12 @@
+id: fn-lowcase
+kind: function
+version: 1
+status: soportado
+sas: lowcase
+args:
+  - { name: text, type: String }
+returns: String
+java: "{0}.toLowerCase()"
+warning: "comprobar nulos antes de invocar el método"
+tests:
+  - tests/cases/fn-lowcase
