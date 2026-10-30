@@ -718,3 +718,9 @@ Tipar no cambia la agrupación; cambia la calidad del esquema y lo que queda dec
 8. Commits locales: lista arriba.
 
 No se hizo `git push`. No se activó MCP. El repositorio tiene un remoto `origin` configurado (github.com/AndresGaibor/sgm) que no añadí yo: conviene revisarlo antes de cualquier envío.
+
+## Seguimiento: traducción de `input()` y funciones de carácter
+
+- Causa: el traductor en línea no traduce `input(x, w.)` ni `left`/`substrn`. Lo hace el motor de rutinas de Talend (`expressions/talend_translator.py`), que está **apagado por defecto** (`SGM_TALEND_EXPRESSIONS=1`). Su propia documentación lo reserva hasta comprobar en Studio que el Java que emite compila (`talend_job_verify`).
+- Medición con el motor encendido (corpus, `out/talend_on/`): los cinco primeros huecos (685 ocurrencias de `input(...)` y `COMPRESS(input(...))`) desaparecen del top. Componentes (1 328), subjobs (750), `tJava` (0,0 %) y decisiones no cambian. Pasan a dominar `INCLUDE_EXTERNO` (70), `TIPO_DESCONOCIDO` (30) y `PROC DOWNLOAD` (26).
+- Decisión: no se enciende por defecto. Hacerlo pondría en las guías como traducido código que aún no se ha compilado en Studio. Próximo paso: validar el Java de esas expresiones en Studio; si compila, se puede cambiar el valor por defecto.
