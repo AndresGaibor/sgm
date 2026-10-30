@@ -1,0 +1,13 @@
+id: 02-aggregate
+version: 1
+rung: 2
+description: "Agregados por grupo."
+match:
+  kind: "aggregate"
+  placement: "flow"
+emit:
+  component: "tAggregateRow"
+confidence: media
+alternatives: ["tMap"]
+tests:
+  - {"kind": "aggregate", "placement": "flow", "expect": "tAggregateRow"}

@@ -1,0 +1,13 @@
+id: 02-read-file-excel
+version: 1
+rung: 2
+description: "Lectura de archivo Excel."
+match:
+  kind: "read_file"
+  file_format: "excel"
+emit:
+  component: "tFileInputExcel"
+confidence: alta
+alternatives: ["tFileInputDelimited"]
+tests:
+  - {"kind": "read_file", "file_format": "excel", "expect": "tFileInputExcel"}

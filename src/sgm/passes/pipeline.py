@@ -12,6 +12,7 @@ from sgm.passes import (
     p07_templates,
     p08_partition,
     p09_schemas,
+    p10_components,
 )
 from sgm.passes.base import PassContext, PassLog
 
@@ -27,4 +28,5 @@ def run_passes(ctx: PassContext) -> list[PassLog]:
     logs.append(p07_templates.run(graph, ctx))
     logs.append(p08_partition.run(graph, ctx))
     logs.append(p09_schemas.run(graph, ctx, ctx.schemas))
+    logs.append(p10_components.run(graph, ctx))
     return logs

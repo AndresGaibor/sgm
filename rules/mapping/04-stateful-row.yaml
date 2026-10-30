@@ -1,0 +1,13 @@
+id: 04-stateful-row
+version: 1
+rung: 4
+description: "Estado entre filas (retain, lag, first./last.)."
+match:
+  kind: "stateful_row"
+emit:
+  component: "tJavaRow"
+  needs_review: true
+confidence: baja
+alternatives: ["tMap"]
+tests:
+  - {"kind": "stateful_row", "expect": "tJavaRow"}

@@ -1,0 +1,13 @@
+id: 02-filter
+version: 1
+rung: 2
+description: "Filtro simple en flujo."
+match:
+  kind: "filter"
+  placement: "flow"
+emit:
+  component: "tFilterRow"
+confidence: alta
+alternatives: ["tMap"]
+tests:
+  - {"kind": "filter", "placement": "flow", "expect": "tFilterRow"}

@@ -1,0 +1,12 @@
+id: 02-write-file
+version: 1
+rung: 2
+description: "Escritura a archivo delimitado."
+match:
+  kind: "write_file"
+emit:
+  component: "tFileOutputDelimited"
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "write_file", "expect": "tFileOutputDelimited"}

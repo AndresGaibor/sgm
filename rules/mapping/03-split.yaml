@@ -1,0 +1,13 @@
+id: 03-split
+version: 1
+rung: 3
+description: "Salidas condicionadas."
+match:
+  kind: "split"
+  placement: "flow"
+emit:
+  component: "tMap"
+confidence: media
+alternatives: []
+tests:
+  - {"kind": "split", "placement": "flow", "expect": "tMap"}

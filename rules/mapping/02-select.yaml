@@ -1,0 +1,13 @@
+id: 02-select
+version: 1
+rung: 2
+description: "Selección o descarte de columnas."
+match:
+  kind: "select"
+  placement: "flow"
+emit:
+  component: "tFilterColumns"
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "select", "placement": "flow", "expect": "tFilterColumns"}

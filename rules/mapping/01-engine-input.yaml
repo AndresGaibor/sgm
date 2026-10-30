@@ -1,0 +1,13 @@
+id: 01-engine-input
+version: 1
+rung: 1
+description: "Lectura desde base de datos: componente de entrada del motor."
+match:
+  kind: "read"
+  placement: "db"
+emit:
+  component: "engine:input"
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "read", "placement": "db:impala", "expect": "tImpalaInput"}

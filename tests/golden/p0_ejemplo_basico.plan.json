@@ -20,7 +20,13 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00004",
@@ -35,7 +41,8 @@
         ],
         "outputs": [
           "WORK.resumen"
-        ]
+        ],
+        "sas_source": "3c30fc0c57bc3ad7"
       },
       "evidence": [
         {
@@ -48,7 +55,17 @@
       ],
       "notes": [
         "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00005",
@@ -94,7 +111,17 @@
       ],
       "notes": [
         "2 operadores de flujo unidos en un tMap (pasada 6)"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "w00002",
@@ -116,7 +143,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     }
   ],
   "edges": [

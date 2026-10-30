@@ -22,7 +22,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00003",
@@ -46,7 +47,8 @@
       ],
       "notes": [
         "PROC DATASETS sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00004",
@@ -70,7 +72,13 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00005",
@@ -93,7 +101,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00006",
@@ -116,7 +134,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00007",
@@ -139,7 +167,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00008",
@@ -162,7 +200,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00009",
@@ -185,7 +233,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00010",
@@ -208,7 +266,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00011",
@@ -231,7 +299,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00012",
@@ -254,7 +332,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00013",
@@ -277,7 +365,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00014",
@@ -300,7 +398,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00015",
@@ -323,7 +431,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00016",
@@ -346,7 +464,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00017",
@@ -369,7 +497,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00018",
@@ -392,7 +530,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00019",
@@ -415,7 +563,17 @@
           "call": "30:append_all"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUnite",
+        "rung": 2,
+        "rule": "02-union",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00020",
@@ -427,7 +585,8 @@
         "sql": "select count (*) from WORK.cars_poc",
         "inputs": [
           "WORK.cars_poc"
-        ]
+        ],
+        "sas_source": "c488677650dbd041"
       },
       "evidence": [
         {
@@ -440,7 +599,17 @@
       ],
       "notes": [
         "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00022",
@@ -455,7 +624,8 @@
         ],
         "outputs": [
           "WORK.acura"
-        ]
+        ],
+        "sas_source": "dce12f5531fa6871"
       },
       "evidence": [
         {
@@ -468,7 +638,17 @@
       ],
       "notes": [
         "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00025",
@@ -483,7 +663,8 @@
         ],
         "outputs": [
           "WORK.jaguar"
-        ]
+        ],
+        "sas_source": "dce12f5531fa6871"
       },
       "evidence": [
         {
@@ -496,7 +677,17 @@
       ],
       "notes": [
         "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00028",
@@ -511,7 +702,8 @@
         ],
         "outputs": [
           "WORK.bmw"
-        ]
+        ],
+        "sas_source": "dce12f5531fa6871"
       },
       "evidence": [
         {
@@ -524,7 +716,17 @@
       ],
       "notes": [
         "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00030",
@@ -536,7 +738,8 @@
         "sql": "select count (*) from WORK.ACURA",
         "inputs": [
           "WORK.acura"
-        ]
+        ],
+        "sas_source": "c488677650dbd041"
       },
       "evidence": [
         {
@@ -549,7 +752,17 @@
       ],
       "notes": [
         "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00031",
@@ -561,7 +774,8 @@
         "sql": "select count (*) from WORK.BMW",
         "inputs": [
           "WORK.bmw"
-        ]
+        ],
+        "sas_source": "c488677650dbd041"
       },
       "evidence": [
         {
@@ -574,7 +788,17 @@
       ],
       "notes": [
         "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00033",
@@ -589,7 +813,8 @@
         ],
         "outputs": [
           "WORK.chevrolet"
-        ]
+        ],
+        "sas_source": "dce12f5531fa6871"
       },
       "evidence": [
         {
@@ -602,7 +827,17 @@
       ],
       "notes": [
         "SQL sobre datasets de WORK: se traduce en las pasadas de fusión SQL o de flujo"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00035",
@@ -614,7 +849,8 @@
         "sql": "select count (*) from WORK.CHEVROLET",
         "inputs": [
           "WORK.chevrolet"
-        ]
+        ],
+        "sas_source": "c488677650dbd041"
       },
       "evidence": [
         {
@@ -627,7 +863,17 @@
       ],
       "notes": [
         "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00036",
@@ -639,7 +885,8 @@
         "sql": "select count (*) from WORK.JAGUAR",
         "inputs": [
           "WORK.jaguar"
-        ]
+        ],
+        "sas_source": "c488677650dbd041"
       },
       "evidence": [
         {
@@ -652,7 +899,17 @@
       ],
       "notes": [
         "sentencia select de PROC SQL sobre WORK: pendiente de traducción"
-      ]
+      ],
+      "component": {
+        "name": "tJava",
+        "rung": 5,
+        "rule": "05-tjava-last-resort",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00037",
@@ -675,7 +932,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00038",
@@ -698,7 +956,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00039",
@@ -722,7 +981,8 @@
       ],
       "notes": [
         "%sysfunc sobre datos o valores de ejecución"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00040",
@@ -745,7 +1005,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00041",
@@ -768,7 +1029,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00042",
@@ -791,7 +1053,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00043",
@@ -814,7 +1077,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00044",
@@ -837,7 +1101,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00045",
@@ -860,7 +1125,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00046",
@@ -883,7 +1149,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00047",
@@ -906,7 +1173,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00048",
@@ -929,7 +1197,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00050",
@@ -952,7 +1221,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00052",
@@ -975,7 +1245,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00054",
@@ -998,7 +1269,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00055",
@@ -1027,8 +1299,21 @@
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
         "end no traducido: revisar el bucle o el arreglo",
-        "salida _NULL_: no escribe dataset"
-      ]
+        "salida _NULL_: no escribe dataset",
+        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00057",
@@ -1051,7 +1336,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00058",
@@ -1074,7 +1360,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00059",
@@ -1098,7 +1385,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: wpathdata"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00060",
@@ -1121,7 +1409,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00061",
@@ -1144,7 +1433,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00062",
@@ -1167,7 +1457,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00063",
@@ -1190,7 +1481,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00064",
@@ -1213,7 +1505,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00065",
@@ -1236,7 +1529,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00066",
@@ -1259,7 +1553,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00067",
@@ -1282,7 +1577,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00068",
@@ -1305,7 +1601,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00069",
@@ -1328,7 +1625,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00070",
@@ -1351,7 +1649,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00071",
@@ -1374,7 +1673,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00072",
@@ -1397,7 +1697,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00073",
@@ -1420,7 +1721,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00074",
@@ -1443,7 +1745,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00077",
@@ -1466,7 +1769,19 @@
           "call": "769:mainProgram"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00081",
@@ -1489,7 +1804,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00082",
@@ -1510,7 +1826,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 5000"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00083",
@@ -1534,7 +1862,19 @@
       "notes": [
         "asignación condicional: traducir como expresión condicional",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00085",
@@ -1557,7 +1897,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00086",
@@ -1580,7 +1921,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00087",
@@ -1603,7 +1945,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00089",
@@ -1626,7 +1969,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00090",
@@ -1649,7 +1993,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00092",
@@ -1672,7 +2017,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00093",
@@ -1695,7 +2041,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00095",
@@ -1719,7 +2066,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00096",
@@ -1742,7 +2090,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00097",
@@ -1765,7 +2114,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00098",
@@ -1793,7 +2143,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00100",
@@ -1816,7 +2178,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00101",
@@ -1839,7 +2202,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00102",
@@ -1862,7 +2226,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00103",
@@ -1885,7 +2250,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00104",
@@ -1908,7 +2274,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00105",
@@ -1931,7 +2298,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00106",
@@ -1955,7 +2323,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: workpath"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00107",
@@ -1979,7 +2348,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: dsid"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00111",
@@ -2002,7 +2372,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00112",
@@ -2026,7 +2397,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: num_chunks"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00117",
@@ -2050,7 +2422,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: inicio"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00118",
@@ -2074,7 +2447,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: fin"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00120",
@@ -2097,7 +2471,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00122",
@@ -2121,7 +2496,13 @@
           "call": "740:split3"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00123",
@@ -2145,7 +2526,8 @@
       ],
       "notes": [
         "PROC CONTENTS sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00124",
@@ -2170,7 +2552,19 @@
           "call": "740:split3"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tSortRow",
+        "rung": 2,
+        "rule": "02-sort",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00125",
@@ -2196,7 +2590,17 @@
           "call": "740:split3"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUniqRow",
+        "rung": 2,
+        "rule": "02-dedup",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00126",
@@ -2220,7 +2624,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00127",
@@ -2243,7 +2648,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00128",
@@ -2266,7 +2672,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00159",
@@ -2289,7 +2696,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00160",
@@ -2312,7 +2720,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00161",
@@ -2340,7 +2749,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00163",
@@ -2363,7 +2784,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00164",
@@ -2386,7 +2808,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00165",
@@ -2411,7 +2834,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 32767"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00166",
@@ -2435,7 +2870,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00167",
@@ -2458,7 +2894,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00170",
@@ -2482,7 +2919,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00171",
@@ -2505,7 +2943,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00172",
@@ -2528,7 +2967,13 @@
       ],
       "notes": [
         "declaración sin efecto en la lógica: length MaxLen filelog deserr $ &MaxLen."
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00177",
@@ -2551,7 +2996,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00178",
@@ -2574,7 +3020,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00179",
@@ -2597,7 +3044,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00180",
@@ -2620,7 +3068,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00182",
@@ -2644,7 +3093,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: nt"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00183",
@@ -2667,7 +3117,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00186",
@@ -2690,7 +3141,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00191",
@@ -2713,7 +3165,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00196",
@@ -2736,7 +3189,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00198",
@@ -2759,7 +3213,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00199",
@@ -2782,7 +3237,8 @@
       ],
       "notes": [
         "llamada a %countTableSas que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00201",
@@ -2805,7 +3261,8 @@
       ],
       "notes": [
         "llamada a %countTableLz que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00204",
@@ -2828,7 +3285,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00205",
@@ -2851,7 +3309,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00207",
@@ -2875,7 +3334,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: diferencia"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00216",
@@ -2903,7 +3363,19 @@
         "declaración sin efecto en la lógica: length outcmd $ 5000",
         "sentencia sin traducción: putlog \" >>>>>>>>> \" outcmd",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00217",
@@ -2926,7 +3398,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00218",
@@ -2949,7 +3422,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00219",
@@ -2972,7 +3446,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00220",
@@ -2995,7 +3470,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00222",
@@ -3018,7 +3494,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00224",
@@ -3041,7 +3518,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00226",
@@ -3064,7 +3542,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00228",
@@ -3087,7 +3566,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00229",
@@ -3110,7 +3590,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00230",
@@ -3133,7 +3614,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00231",
@@ -3156,7 +3638,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00232",
@@ -3179,7 +3662,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00233",
@@ -3202,7 +3686,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00234",
@@ -3225,7 +3710,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00235",
@@ -3248,7 +3734,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00236",
@@ -3271,7 +3758,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00237",
@@ -3294,7 +3782,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00238",
@@ -3317,7 +3806,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00239",
@@ -3340,7 +3830,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00240",
@@ -3363,7 +3854,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00241",
@@ -3386,7 +3878,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00242",
@@ -3409,7 +3902,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00243",
@@ -3432,7 +3926,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00244",
@@ -3455,7 +3950,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00245",
@@ -3478,7 +3974,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00246",
@@ -3501,7 +3998,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00247",
@@ -3524,7 +4022,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00248",
@@ -3547,7 +4046,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00249",
@@ -3570,7 +4070,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00250",
@@ -3593,7 +4094,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00251",
@@ -3616,7 +4118,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00252",
@@ -3639,7 +4142,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00253",
@@ -3662,7 +4166,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00254",
@@ -3685,7 +4190,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00255",
@@ -3708,7 +4214,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00256",
@@ -3731,7 +4238,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00257",
@@ -3754,7 +4262,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00258",
@@ -3777,7 +4286,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00259",
@@ -3800,7 +4310,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00260",
@@ -3823,7 +4334,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00261",
@@ -3846,7 +4358,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00262",
@@ -3869,12 +4382,13 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00263",
       "kind": "derive",
-      "status": "soportado",
+      "status": "parcial",
       "placement": "flow",
       "signature": "c3b2e929176ccf79",
       "params": {
@@ -3900,8 +4414,22 @@
         }
       ],
       "notes": [
-        "salida _NULL_: no escribe dataset"
-      ]
+        "salida _NULL_: no escribe dataset",
+        "expresión sin equivalente Talend: symget('cols_unlocked')",
+        "expresión sin equivalente Talend: compress(v, ' ')"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00265",
@@ -3924,7 +4452,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00273",
@@ -3947,7 +4476,8 @@
       ],
       "notes": [
         "llamada a %exportar_s3 que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00274",
@@ -3970,7 +4500,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00275",
@@ -3993,7 +4524,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00276",
@@ -4017,7 +4549,8 @@
       ],
       "notes": [
         "%sysfunc sobre datos o valores de ejecución"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00277",
@@ -4040,7 +4573,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00278",
@@ -4063,7 +4597,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00279",
@@ -4086,7 +4621,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00280",
@@ -4109,7 +4645,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00281",
@@ -4132,7 +4669,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00282",
@@ -4155,7 +4693,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00283",
@@ -4178,7 +4717,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00284",
@@ -4201,7 +4741,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00285",
@@ -4224,7 +4765,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00287",
@@ -4247,7 +4789,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00289",
@@ -4270,7 +4813,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00291",
@@ -4293,7 +4837,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00292",
@@ -4322,8 +4867,21 @@
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
         "end no traducido: revisar el bucle o el arreglo",
-        "salida _NULL_: no escribe dataset"
-      ]
+        "salida _NULL_: no escribe dataset",
+        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00294",
@@ -4346,7 +4904,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00295",
@@ -4369,7 +4928,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00296",
@@ -4393,7 +4953,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: wpathdata"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00297",
@@ -4416,7 +4977,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00298",
@@ -4439,7 +5001,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00299",
@@ -4462,7 +5025,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00300",
@@ -4485,7 +5049,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00301",
@@ -4508,7 +5073,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00302",
@@ -4531,7 +5097,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00303",
@@ -4554,7 +5121,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00304",
@@ -4577,7 +5145,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00305",
@@ -4600,7 +5169,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00306",
@@ -4623,7 +5193,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00307",
@@ -4646,7 +5217,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00308",
@@ -4669,7 +5241,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00309",
@@ -4692,7 +5265,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00310",
@@ -4715,7 +5289,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00311",
@@ -4738,7 +5313,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00318",
@@ -4761,7 +5337,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00319",
@@ -4782,7 +5359,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 5000"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00320",
@@ -4806,7 +5395,19 @@
       "notes": [
         "asignación condicional: traducir como expresión condicional",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00322",
@@ -4829,7 +5430,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00323",
@@ -4852,7 +5454,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00324",
@@ -4875,7 +5478,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00326",
@@ -4898,7 +5502,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00327",
@@ -4921,7 +5526,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00329",
@@ -4944,7 +5550,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00330",
@@ -4967,7 +5574,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00332",
@@ -4991,7 +5599,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00333",
@@ -5014,7 +5623,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00334",
@@ -5037,7 +5647,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00335",
@@ -5065,7 +5676,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00337",
@@ -5088,7 +5711,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00338",
@@ -5111,7 +5735,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00339",
@@ -5134,7 +5759,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00340",
@@ -5157,7 +5783,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00341",
@@ -5180,7 +5807,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00342",
@@ -5203,7 +5831,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00343",
@@ -5227,7 +5856,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: workpath"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00344",
@@ -5251,7 +5881,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: dsid"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00348",
@@ -5274,7 +5905,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00349",
@@ -5298,7 +5930,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: num_chunks"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00354",
@@ -5322,7 +5955,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: inicio"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00355",
@@ -5346,7 +5980,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: fin"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00357",
@@ -5369,7 +6004,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00359",
@@ -5393,7 +6029,13 @@
           "call": "740:split3"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00360",
@@ -5417,7 +6059,8 @@
       ],
       "notes": [
         "PROC CONTENTS sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00363",
@@ -5441,7 +6084,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00364",
@@ -5464,7 +6108,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00365",
@@ -5487,7 +6132,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00396",
@@ -5510,7 +6156,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00397",
@@ -5533,7 +6180,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00398",
@@ -5561,7 +6209,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00400",
@@ -5584,7 +6244,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00401",
@@ -5607,7 +6268,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00402",
@@ -5632,7 +6294,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 32767"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00403",
@@ -5656,7 +6330,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00404",
@@ -5679,7 +6354,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00407",
@@ -5703,7 +6379,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00408",
@@ -5726,7 +6403,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00409",
@@ -5749,7 +6427,13 @@
       ],
       "notes": [
         "declaración sin efecto en la lógica: length MaxLen filelog deserr $ &MaxLen."
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00414",
@@ -5772,7 +6456,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00415",
@@ -5795,7 +6480,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00416",
@@ -5818,7 +6504,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00417",
@@ -5841,7 +6528,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00419",
@@ -5865,7 +6553,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: nt"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00420",
@@ -5888,7 +6577,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00423",
@@ -5911,7 +6601,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00428",
@@ -5934,7 +6625,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00433",
@@ -5957,7 +6649,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00435",
@@ -5980,7 +6673,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00436",
@@ -6003,7 +6697,8 @@
       ],
       "notes": [
         "llamada a %countTableSas que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00438",
@@ -6026,7 +6721,8 @@
       ],
       "notes": [
         "llamada a %countTableLz que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00441",
@@ -6049,7 +6745,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00442",
@@ -6072,7 +6769,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00444",
@@ -6096,7 +6794,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: diferencia"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00453",
@@ -6124,7 +6823,19 @@
         "declaración sin efecto en la lógica: length outcmd $ 5000",
         "sentencia sin traducción: putlog \" >>>>>>>>> \" outcmd",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00454",
@@ -6147,7 +6858,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00455",
@@ -6170,7 +6882,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00456",
@@ -6193,7 +6906,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00457",
@@ -6216,7 +6930,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00459",
@@ -6239,7 +6954,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00461",
@@ -6262,7 +6978,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00463",
@@ -6285,7 +7002,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00465",
@@ -6308,7 +7026,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00466",
@@ -6331,7 +7050,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00467",
@@ -6354,7 +7074,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00474",
@@ -6377,7 +7098,8 @@
       ],
       "notes": [
         "llamada a %importar_s3 que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00475",
@@ -6400,7 +7122,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00476",
@@ -6423,7 +7146,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00477",
@@ -6447,7 +7171,8 @@
       ],
       "notes": [
         "%sysfunc sobre datos o valores de ejecución"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00478",
@@ -6470,7 +7195,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00479",
@@ -6493,7 +7219,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00480",
@@ -6516,7 +7243,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00481",
@@ -6539,7 +7267,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00482",
@@ -6562,7 +7291,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00483",
@@ -6585,7 +7315,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00484",
@@ -6608,7 +7339,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00485",
@@ -6631,7 +7363,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00486",
@@ -6654,7 +7387,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00488",
@@ -6677,7 +7411,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00490",
@@ -6700,7 +7435,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00492",
@@ -6723,7 +7459,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00493",
@@ -6752,8 +7489,21 @@
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
         "end no traducido: revisar el bucle o el arreglo",
-        "salida _NULL_: no escribe dataset"
-      ]
+        "salida _NULL_: no escribe dataset",
+        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00495",
@@ -6776,7 +7526,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00496",
@@ -6799,7 +7550,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00497",
@@ -6823,7 +7575,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: wpathdata"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00498",
@@ -6846,7 +7599,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00499",
@@ -6869,7 +7623,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00500",
@@ -6892,7 +7647,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00501",
@@ -6915,7 +7671,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00502",
@@ -6938,7 +7695,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00503",
@@ -6961,7 +7719,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00504",
@@ -6984,7 +7743,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00505",
@@ -7007,7 +7767,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00506",
@@ -7030,7 +7791,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00507",
@@ -7053,7 +7815,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00508",
@@ -7076,7 +7839,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00509",
@@ -7099,7 +7863,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00510",
@@ -7122,7 +7887,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00511",
@@ -7145,7 +7911,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00512",
@@ -7168,7 +7935,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00519",
@@ -7191,7 +7959,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00520",
@@ -7212,7 +7981,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 5000"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00521",
@@ -7236,7 +8017,19 @@
       "notes": [
         "asignación condicional: traducir como expresión condicional",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00523",
@@ -7259,7 +8052,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00524",
@@ -7282,7 +8076,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00525",
@@ -7305,7 +8100,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00527",
@@ -7328,7 +8124,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00528",
@@ -7351,7 +8148,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00530",
@@ -7374,7 +8172,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00531",
@@ -7397,7 +8196,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00533",
@@ -7421,7 +8221,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00534",
@@ -7444,7 +8245,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00535",
@@ -7467,7 +8269,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00536",
@@ -7495,7 +8298,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00538",
@@ -7518,7 +8333,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00539",
@@ -7541,7 +8357,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00540",
@@ -7564,7 +8381,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00541",
@@ -7587,7 +8405,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00542",
@@ -7610,7 +8429,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00543",
@@ -7633,7 +8453,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00544",
@@ -7657,7 +8478,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: workpath"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00545",
@@ -7681,7 +8503,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: dsid"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00549",
@@ -7704,7 +8527,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00550",
@@ -7728,7 +8552,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: num_chunks"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00555",
@@ -7752,7 +8577,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: inicio"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00556",
@@ -7776,7 +8602,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: fin"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00558",
@@ -7799,7 +8626,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00560",
@@ -7823,7 +8651,13 @@
           "call": "740:split3"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00561",
@@ -7847,7 +8681,8 @@
       ],
       "notes": [
         "PROC CONTENTS sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00564",
@@ -7871,7 +8706,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00565",
@@ -7894,7 +8730,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00566",
@@ -7917,7 +8754,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00597",
@@ -7940,7 +8778,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00598",
@@ -7963,7 +8802,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00599",
@@ -7991,7 +8831,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00601",
@@ -8014,7 +8866,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00602",
@@ -8037,7 +8890,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00603",
@@ -8062,7 +8916,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 32767"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00604",
@@ -8086,7 +8952,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00605",
@@ -8109,7 +8976,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00608",
@@ -8133,7 +9001,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00609",
@@ -8156,7 +9025,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00610",
@@ -8179,7 +9049,13 @@
       ],
       "notes": [
         "declaración sin efecto en la lógica: length MaxLen filelog deserr $ &MaxLen."
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00615",
@@ -8202,7 +9078,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00616",
@@ -8225,7 +9102,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00617",
@@ -8248,7 +9126,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00618",
@@ -8271,7 +9150,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00620",
@@ -8295,7 +9175,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: nt"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00621",
@@ -8318,7 +9199,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00624",
@@ -8341,7 +9223,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00629",
@@ -8364,7 +9247,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00634",
@@ -8387,7 +9271,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00636",
@@ -8410,7 +9295,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00637",
@@ -8433,7 +9319,8 @@
       ],
       "notes": [
         "llamada a %countTableSas que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00639",
@@ -8456,7 +9343,8 @@
       ],
       "notes": [
         "llamada a %countTableLz que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00642",
@@ -8479,7 +9367,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00643",
@@ -8502,7 +9391,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00645",
@@ -8526,7 +9416,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: diferencia"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00654",
@@ -8554,7 +9445,19 @@
         "declaración sin efecto en la lógica: length outcmd $ 5000",
         "sentencia sin traducción: putlog \" >>>>>>>>> \" outcmd",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00655",
@@ -8577,7 +9480,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00656",
@@ -8600,7 +9504,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00657",
@@ -8624,7 +9529,8 @@
       ],
       "notes": [
         "%sysfunc sobre datos o valores de ejecución"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00658",
@@ -8647,7 +9553,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00659",
@@ -8670,7 +9577,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00660",
@@ -8693,7 +9601,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00661",
@@ -8716,7 +9625,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00662",
@@ -8739,7 +9649,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00663",
@@ -8762,7 +9673,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00664",
@@ -8785,7 +9697,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00665",
@@ -8808,7 +9721,8 @@
       ],
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00666",
@@ -8831,7 +9745,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00668",
@@ -8854,7 +9769,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00670",
@@ -8877,7 +9793,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00672",
@@ -8900,7 +9817,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00673",
@@ -8929,8 +9847,21 @@
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
         "end no traducido: revisar el bucle o el arreglo",
-        "salida _NULL_: no escribe dataset"
-      ]
+        "salida _NULL_: no escribe dataset",
+        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00675",
@@ -8953,7 +9884,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00676",
@@ -8976,7 +9908,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00677",
@@ -9000,7 +9933,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: wpathdata"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00678",
@@ -9023,7 +9957,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00679",
@@ -9046,7 +9981,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00680",
@@ -9069,7 +10005,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00681",
@@ -9092,7 +10029,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00682",
@@ -9115,7 +10053,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00683",
@@ -9138,7 +10077,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00684",
@@ -9161,7 +10101,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00685",
@@ -9184,7 +10125,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00686",
@@ -9207,7 +10149,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00687",
@@ -9230,7 +10173,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00688",
@@ -9253,7 +10197,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00689",
@@ -9276,7 +10221,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00690",
@@ -9299,7 +10245,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00691",
@@ -9322,7 +10269,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00692",
@@ -9345,7 +10293,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00699",
@@ -9368,7 +10317,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00700",
@@ -9389,7 +10339,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 5000"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00701",
@@ -9413,7 +10375,19 @@
       "notes": [
         "asignación condicional: traducir como expresión condicional",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00703",
@@ -9436,7 +10410,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00704",
@@ -9459,7 +10434,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00705",
@@ -9482,7 +10458,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00707",
@@ -9505,7 +10482,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00708",
@@ -9528,7 +10506,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00710",
@@ -9551,7 +10530,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00711",
@@ -9574,7 +10554,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00713",
@@ -9598,7 +10579,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00714",
@@ -9621,7 +10603,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00715",
@@ -9644,7 +10627,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00716",
@@ -9672,7 +10656,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00718",
@@ -9695,7 +10691,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00719",
@@ -9718,7 +10715,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00720",
@@ -9741,7 +10739,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00721",
@@ -9764,7 +10763,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00722",
@@ -9787,7 +10787,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00723",
@@ -9810,7 +10811,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00724",
@@ -9834,7 +10836,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: workpath"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00725",
@@ -9858,7 +10861,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: dsid"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00729",
@@ -9881,7 +10885,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00730",
@@ -9905,7 +10910,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: num_chunks"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00735",
@@ -9929,7 +10935,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: inicio"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00736",
@@ -9953,7 +10960,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: fin"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00738",
@@ -9976,7 +10984,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00740",
@@ -10000,7 +11009,13 @@
           "call": "740:split3"
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00741",
@@ -10024,7 +11039,8 @@
       ],
       "notes": [
         "PROC CONTENTS sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00744",
@@ -10048,7 +11064,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00745",
@@ -10071,7 +11088,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00746",
@@ -10094,7 +11112,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00777",
@@ -10117,7 +11136,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00778",
@@ -10140,7 +11160,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00779",
@@ -10168,7 +11189,19 @@
       ],
       "notes": [
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-derive",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJavaRow"
+        ]
+      }
     },
     {
       "id": "op00781",
@@ -10191,7 +11224,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00782",
@@ -10214,7 +11248,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00783",
@@ -10239,7 +11274,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length outcmd $ 32767"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00784",
@@ -10263,7 +11310,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00785",
@@ -10286,7 +11334,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00788",
@@ -10310,7 +11359,8 @@
       ],
       "notes": [
         "into :variable: el valor sale de los datos"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00789",
@@ -10333,7 +11383,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00790",
@@ -10356,7 +11407,13 @@
       ],
       "notes": [
         "declaración sin efecto en la lógica: length MaxLen filelog deserr $ &MaxLen."
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00795",
@@ -10379,7 +11436,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00796",
@@ -10402,7 +11460,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00797",
@@ -10425,7 +11484,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00798",
@@ -10448,7 +11508,8 @@
       ],
       "notes": [
         "llamada a %showMessage que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00800",
@@ -10472,7 +11533,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: nt"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00801",
@@ -10495,7 +11557,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00804",
@@ -10518,7 +11581,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00809",
@@ -10541,7 +11605,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00814",
@@ -10564,7 +11629,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00816",
@@ -10587,7 +11653,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00817",
@@ -10610,7 +11677,8 @@
       ],
       "notes": [
         "llamada a %countTableSas que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00819",
@@ -10633,7 +11701,8 @@
       ],
       "notes": [
         "llamada a %countTableLz que no se pudo expandir"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00822",
@@ -10656,7 +11725,8 @@
       ],
       "notes": [
         "sentencia global sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00823",
@@ -10679,7 +11749,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00825",
@@ -10703,7 +11774,8 @@
       ],
       "notes": [
         "%let con %sysfunc o similar: diferencia"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00834",
@@ -10731,7 +11803,19 @@
         "declaración sin efecto en la lógica: length outcmd $ 5000",
         "sentencia sin traducción: putlog \" >>>>>>>>> \" outcmd",
         "salida _NULL_: no escribe dataset"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00836",
@@ -10934,7 +12018,17 @@
         "reemplaza el bloque de carga externa detectado por estructura",
         "entrada no declarada en el bloque: la define el programa anterior",
         "tabla destino no declarada en el SAS: se toma del comando externo"
-      ]
+      ],
+      "component": {
+        "name": "tImpalaOutput",
+        "rung": 1,
+        "rule": "01-engine-output",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00837",
@@ -10989,8 +12083,20 @@
         }
       ],
       "notes": [
-        "3 operadores de flujo unidos en un tMap (pasada 6)"
-      ]
+        "3 operadores de flujo unidos en un tMap (pasada 6)",
+        "expresión sin equivalente Talend: scan(outcmd, 1, \":\")",
+        "expresión sin equivalente Talend: substr(outcmd, index(outcmd, \"ERROR:\"))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00838",
@@ -11045,8 +12151,20 @@
         }
       ],
       "notes": [
-        "3 operadores de flujo unidos en un tMap (pasada 6)"
-      ]
+        "3 operadores de flujo unidos en un tMap (pasada 6)",
+        "expresión sin equivalente Talend: scan(outcmd, 1, \":\")",
+        "expresión sin equivalente Talend: substr(outcmd, index(outcmd, \"ERROR:\"))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00839",
@@ -11101,8 +12219,20 @@
         }
       ],
       "notes": [
-        "3 operadores de flujo unidos en un tMap (pasada 6)"
-      ]
+        "3 operadores de flujo unidos en un tMap (pasada 6)",
+        "expresión sin equivalente Talend: scan(outcmd, 1, \":\")",
+        "expresión sin equivalente Talend: substr(outcmd, index(outcmd, \"ERROR:\"))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00840",
@@ -11157,8 +12287,20 @@
         }
       ],
       "notes": [
-        "3 operadores de flujo unidos en un tMap (pasada 6)"
-      ]
+        "3 operadores de flujo unidos en un tMap (pasada 6)",
+        "expresión sin equivalente Talend: scan(outcmd, 1, \":\")",
+        "expresión sin equivalente Talend: substr(outcmd, index(outcmd, \"ERROR:\"))"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "op00841",
@@ -11183,7 +12325,19 @@
       ],
       "notes": [
         "instancia de la plantilla tpl_e0f4ae92 (etiqueta: ACURA)"
-      ]
+      ],
+      "component": {
+        "name": "tRunJob",
+        "rung": 2,
+        "rule": "02-iterate",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFlowToIterate"
+        ]
+      }
     },
     {
       "id": "op00842",
@@ -11208,7 +12362,19 @@
       ],
       "notes": [
         "instancia de la plantilla tpl_e0f4ae92 (etiqueta: ACURA)"
-      ]
+      ],
+      "component": {
+        "name": "tRunJob",
+        "rung": 2,
+        "rule": "02-iterate",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFlowToIterate"
+        ]
+      }
     },
     {
       "id": "op00843",
@@ -11233,7 +12399,19 @@
       ],
       "notes": [
         "instancia de la plantilla tpl_e0f4ae92 (etiqueta: ACURA)"
-      ]
+      ],
+      "component": {
+        "name": "tRunJob",
+        "rung": 2,
+        "rule": "02-iterate",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFlowToIterate"
+        ]
+      }
     },
     {
       "id": "op00844",
@@ -11258,7 +12436,19 @@
       ],
       "notes": [
         "instancia de la plantilla tpl_e4582e24 (etiqueta: ACURA)"
-      ]
+      ],
+      "component": {
+        "name": "tRunJob",
+        "rung": 2,
+        "rule": "02-iterate",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFlowToIterate"
+        ]
+      }
     },
     {
       "id": "op00845",
@@ -11283,7 +12473,19 @@
       ],
       "notes": [
         "instancia de la plantilla tpl_e4582e24 (etiqueta: ACURA)"
-      ]
+      ],
+      "component": {
+        "name": "tRunJob",
+        "rung": 2,
+        "rule": "02-iterate",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFlowToIterate"
+        ]
+      }
     },
     {
       "id": "op00846",
@@ -11308,7 +12510,19 @@
       ],
       "notes": [
         "instancia de la plantilla tpl_e4582e24 (etiqueta: ACURA)"
-      ]
+      ],
+      "component": {
+        "name": "tRunJob",
+        "rung": 2,
+        "rule": "02-iterate",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFlowToIterate"
+        ]
+      }
     },
     {
       "id": "w00006",
@@ -11330,7 +12544,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     },
     {
       "id": "w00007",
@@ -11352,7 +12572,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     },
     {
       "id": "w00008",
@@ -11374,7 +12600,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     },
     {
       "id": "w00013",
@@ -11396,7 +12628,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     },
     {
       "id": "w00019",
@@ -11418,7 +12656,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     },
     {
       "id": "w00025",
@@ -11440,7 +12684,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     }
   ],
   "edges": [
@@ -15235,7 +16485,637 @@
       ]
     }
   ],
-  "pending": [],
+  "pending": [
+    {
+      "signature": "ad7354eb5044a9df",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "fb09f3a905678830",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "f59ed64c9f823ff2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "940f07971757e6e2",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "fb66f1315cf9cd0e",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "33ff0b09871c96b4",
+      "options": [
+        {
+          "opcion": "tSortRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        }
+      ],
+      "default": "tSortRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "6e08e799d2083734",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "f7d83a49f36cd2a2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "0292a3308dd322be",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "c3b2e929176ccf79",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "ad7354eb5044a9df",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "f59ed64c9f823ff2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "940f07971757e6e2",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "fb66f1315cf9cd0e",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "6e08e799d2083734",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "f7d83a49f36cd2a2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "0292a3308dd322be",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "ad7354eb5044a9df",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "f59ed64c9f823ff2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "940f07971757e6e2",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "fb66f1315cf9cd0e",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "6e08e799d2083734",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "f7d83a49f36cd2a2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "0292a3308dd322be",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "ad7354eb5044a9df",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "f59ed64c9f823ff2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "940f07971757e6e2",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "fb66f1315cf9cd0e",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "6e08e799d2083734",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "f7d83a49f36cd2a2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "0292a3308dd322be",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "e9a6b3326b25b667",
+      "options": [
+        {
+          "opcion": "tRunJob",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        },
+        {
+          "opcion": "tFlowToIterate",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        }
+      ],
+      "default": "tRunJob",
+      "occurrences": 1
+    },
+    {
+      "signature": "e9a6b3326b25b667",
+      "options": [
+        {
+          "opcion": "tRunJob",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        },
+        {
+          "opcion": "tFlowToIterate",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        }
+      ],
+      "default": "tRunJob",
+      "occurrences": 1
+    },
+    {
+      "signature": "e9a6b3326b25b667",
+      "options": [
+        {
+          "opcion": "tRunJob",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        },
+        {
+          "opcion": "tFlowToIterate",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        }
+      ],
+      "default": "tRunJob",
+      "occurrences": 1
+    },
+    {
+      "signature": "6ad750cc4528151b",
+      "options": [
+        {
+          "opcion": "tRunJob",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        },
+        {
+          "opcion": "tFlowToIterate",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        }
+      ],
+      "default": "tRunJob",
+      "occurrences": 1
+    },
+    {
+      "signature": "6ad750cc4528151b",
+      "options": [
+        {
+          "opcion": "tRunJob",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        },
+        {
+          "opcion": "tFlowToIterate",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        }
+      ],
+      "default": "tRunJob",
+      "occurrences": 1
+    },
+    {
+      "signature": "6ad750cc4528151b",
+      "options": [
+        {
+          "opcion": "tRunJob",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        },
+        {
+          "opcion": "tFlowToIterate",
+          "confianza": "media",
+          "supuesto": "alternativa a tRunJob"
+        }
+      ],
+      "default": "tRunJob",
+      "occurrences": 1
+    }
+  ],
   "gaps": [
     {
       "signature": "f3bbf4970b5d8468",
@@ -16355,6 +18235,188 @@
           "line_end": 1595,
           "label": "Importar Bucket S3",
           "call": null
+        }
+      ]
+    },
+    {
+      "signature": "ad7354eb5044a9df/byte",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 656,
+          "line_end": 666,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "c3b2e929176ccf79/symget",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 862,
+          "line_end": 865,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "c3b2e929176ccf79/compress",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 862,
+          "line_end": 865,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "ad7354eb5044a9df/byte",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1419,
+          "line_end": 1429,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "ad7354eb5044a9df/byte",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2132,
+          "line_end": 2142,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "ad7354eb5044a9df/byte",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2782,
+          "line_end": 2792,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/scan",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/substr",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/scan",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/substr",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/scan",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/substr",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/scan",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
+        }
+      ]
+    },
+    {
+      "signature": "7f0b5d025d013df0/substr",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 573,
+          "line_end": 582,
+          "label": "ACURA",
+          "call": "749:checkForErrors"
         }
       ]
     }

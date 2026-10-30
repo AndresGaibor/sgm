@@ -23,7 +23,8 @@
       ],
       "notes": [
         "PROC FORMAT sin regla de migración"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00002",
@@ -52,7 +53,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tSortRow",
+        "rung": 2,
+        "rule": "02-sort",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00003",
@@ -80,7 +93,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tSortRow",
+        "rung": 2,
+        "rule": "02-sort",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00004",
@@ -101,7 +126,13 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00005",
@@ -122,7 +153,13 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00006",
@@ -149,7 +186,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-join",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJoin"
+        ]
+      }
     },
     {
       "id": "op00007",
@@ -169,7 +218,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tFilterRow",
+        "rung": 2,
+        "rule": "02-filter",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00008",
@@ -193,7 +254,19 @@
       "notes": [
         "estado entre filas: en Talend requiere tJavaRow o tMap con variables",
         "array no traducido: revisar el bucle o el arreglo"
-      ]
+      ],
+      "component": {
+        "name": "tJavaRow",
+        "rung": 4,
+        "rule": "04-stateful-row",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00009",
@@ -220,7 +293,19 @@
       "notes": [
         "lógica de grupo por first./last.: revisar",
         "sentencia sin traducción: acumulado + coalesce(monto, 0)"
-      ]
+      ],
+      "component": {
+        "name": "tJavaRow",
+        "rung": 4,
+        "rule": "04-stateful-row",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00012",
@@ -246,7 +331,19 @@
       ],
       "notes": [
         "lógica de grupo por first./last.: revisar"
-      ]
+      ],
+      "component": {
+        "name": "tJavaRow",
+        "rung": 4,
+        "rule": "04-stateful-row",
+        "version": 1,
+        "confidence": "baja",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00013",
@@ -293,8 +390,20 @@
         }
       ],
       "notes": [
-        "2 operadores de flujo unidos en un tMap (pasada 6)"
-      ]
+        "2 operadores de flujo unidos en un tMap (pasada 6)",
+        "expresión sin equivalente Talend: put(fecha_pago, yymmn6.)",
+        "expresión sin equivalente Talend: put(edad, tramo.)"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     },
     {
       "id": "w00003",
@@ -316,7 +425,13 @@
       ],
       "notes": [
         "salida final o de biblioteca permanente"
-      ]
+      ],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-write",
+        "status": "candidato"
+      }
     }
   ],
   "edges": [
@@ -394,7 +509,127 @@
     }
   ],
   "not_migrated": [],
-  "pending": [],
+  "pending": [
+    {
+      "signature": "7adb03c4f0c46410",
+      "options": [
+        {
+          "opcion": "tSortRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        }
+      ],
+      "default": "tSortRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "6bc64a5c23a1373a",
+      "options": [
+        {
+          "opcion": "tSortRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        }
+      ],
+      "default": "tSortRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "fd875572c3274573",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJoin",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "4188de0614a8a949",
+      "options": [
+        {
+          "opcion": "tFilterRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tFilterRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tFilterRow"
+        }
+      ],
+      "default": "tFilterRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "bfa577264feec877",
+      "options": [
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tJavaRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tJavaRow"
+        }
+      ],
+      "default": "tJavaRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "1cfbde066a0f6469",
+      "options": [
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tJavaRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tJavaRow"
+        }
+      ],
+      "default": "tJavaRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "184f6cda65206008",
+      "options": [
+        {
+          "opcion": "tJavaRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tJavaRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tJavaRow"
+        }
+      ],
+      "default": "tJavaRow",
+      "occurrences": 1
+    }
+  ],
   "gaps": [
     {
       "signature": "4f1a74160ba1651b",
@@ -404,6 +639,32 @@
           "file": "p1_merge_first_last.sas",
           "line_start": 2,
           "line_end": 4,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "fd0e7150b6f1f34c/put",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "fd0e7150b6f1f34c/put",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
           "label": null,
           "call": null
         }

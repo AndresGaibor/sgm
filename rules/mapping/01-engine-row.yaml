@@ -1,0 +1,13 @@
+id: 01-engine-row
+version: 1
+rung: 1
+description: "SQL ejecutado en la base: componente de fila del motor."
+match:
+  kind: "exec_sql"
+  placement: "db"
+emit:
+  component: "engine:row"
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "exec_sql", "placement": "db:impala", "expect": "tImpalaRow"}

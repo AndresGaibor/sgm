@@ -1,0 +1,13 @@
+id: 02-read-file-delimited
+version: 1
+rung: 2
+description: "Lectura de archivo de texto delimitado."
+match:
+  kind: "read_file"
+  file_format: "delimited"
+emit:
+  component: "tFileInputDelimited"
+confidence: alta
+alternatives: ["tFileInputExcel"]
+tests:
+  - {"kind": "read_file", "file_format": "delimited", "expect": "tFileInputDelimited"}

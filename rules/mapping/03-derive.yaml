@@ -1,0 +1,13 @@
+id: 03-derive
+version: 1
+rung: 3
+description: "Derivación de columnas con expresiones."
+match:
+  kind: "derive"
+  placement: "flow"
+emit:
+  component: "tMap"
+confidence: media
+alternatives: ["tJavaRow"]
+tests:
+  - {"kind": "derive", "placement": "flow", "expect": "tMap"}

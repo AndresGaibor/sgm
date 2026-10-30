@@ -1,0 +1,13 @@
+id: 01-engine-write
+version: 1
+rung: 1
+match:
+  kind: "write"
+  placement: "db"
+emit:
+  component: "engine:output"
+description: "Escritura de un dataset permanente en base: componente de salida del motor."
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "write", "expect": null}

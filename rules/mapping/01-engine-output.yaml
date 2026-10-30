@@ -1,0 +1,13 @@
+id: 01-engine-output
+version: 1
+rung: 1
+description: "Carga a la base: componente de salida del motor."
+match:
+  kind: "external_load"
+  placement: "db"
+emit:
+  component: "engine:output"
+confidence: media
+alternatives: []
+tests:
+  - {"kind": "external_load", "placement": "db:impala", "expect": "tImpalaOutput"}

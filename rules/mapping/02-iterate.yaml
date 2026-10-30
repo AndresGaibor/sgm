@@ -1,0 +1,12 @@
+id: 02-iterate
+version: 1
+rung: 2
+description: "Llamada a Job hijo por instancia de plantilla."
+match:
+  kind: "iterate"
+emit:
+  component: "tRunJob"
+confidence: alta
+alternatives: ["tFlowToIterate"]
+tests:
+  - {"kind": "iterate", "expect": "tRunJob"}

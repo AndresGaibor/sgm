@@ -22,7 +22,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00002",
@@ -45,7 +46,8 @@
       ],
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ]
+      ],
+      "component": null
     },
     {
       "id": "op00003",
@@ -70,7 +72,19 @@
       "notes": [
         "lectura de archivo o de datos en línea del DATA step",
         "declaración sin efecto en la lógica: length cliente $12 producto $20 canal $8 fecha_txt $10"
-      ]
+      ],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00004",
@@ -91,7 +105,13 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00012",
@@ -117,7 +137,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tSortRow",
+        "rung": 2,
+        "rule": "02-sort",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00013",
@@ -144,7 +176,17 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tUniqRow",
+        "rung": 2,
+        "rule": "02-dedup",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00014",
@@ -167,7 +209,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tFileInputDelimited",
+        "rung": 2,
+        "rule": "02-read-file-delimited",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tFileInputExcel"
+        ]
+      }
     },
     {
       "id": "op00015",
@@ -195,7 +249,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tSortRow",
+        "rung": 2,
+        "rule": "02-sort",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00016",
@@ -223,7 +289,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tSortRow",
+        "rung": 2,
+        "rule": "02-sort",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00017",
@@ -244,7 +322,13 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00018",
@@ -265,7 +349,13 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "none",
+        "rung": 2,
+        "rule": "02-flow-read",
+        "status": "candidato"
+      }
     },
     {
       "id": "op00019",
@@ -292,7 +382,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-join",
+        "version": 1,
+        "confidence": "media",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tJoin"
+        ]
+      }
     },
     {
       "id": "op00020",
@@ -315,7 +417,19 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tFilterRow",
+        "rung": 2,
+        "rule": "02-filter",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": [
+          "tMap"
+        ]
+      }
     },
     {
       "id": "op00021",
@@ -338,7 +452,17 @@
           "call": null
         }
       ],
-      "notes": []
+      "notes": [],
+      "component": {
+        "name": "tFileOutputDelimited",
+        "rung": 2,
+        "rule": "02-write-file",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": false,
+        "alternatives": []
+      }
     },
     {
       "id": "op00022",
@@ -431,8 +555,19 @@
         }
       ],
       "notes": [
-        "7 operadores de flujo unidos en un tMap (pasada 6)"
-      ]
+        "7 operadores de flujo unidos en un tMap (pasada 6)",
+        "expresión sin equivalente Talend: else descuento = 0"
+      ],
+      "component": {
+        "name": "tMap",
+        "rung": 3,
+        "rule": "03-map",
+        "version": 1,
+        "confidence": "alta",
+        "status": "candidato",
+        "needs_review": true,
+        "alternatives": []
+      }
     }
   ],
   "edges": [
@@ -522,8 +657,142 @@
     }
   ],
   "not_migrated": [],
-  "pending": [],
-  "gaps": [],
+  "pending": [
+    {
+      "signature": "f7d83a49f36cd2a2",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "5e2d4e16bd7ea5e4",
+      "options": [
+        {
+          "opcion": "tSortRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        }
+      ],
+      "default": "tSortRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "fb09f3a905678830",
+      "options": [
+        {
+          "opcion": "tFileInputDelimited",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        },
+        {
+          "opcion": "tFileInputExcel",
+          "confianza": "media",
+          "supuesto": "alternativa a tFileInputDelimited"
+        }
+      ],
+      "default": "tFileInputDelimited",
+      "occurrences": 1
+    },
+    {
+      "signature": "6bc64a5c23a1373a",
+      "options": [
+        {
+          "opcion": "tSortRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        }
+      ],
+      "default": "tSortRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "6bc64a5c23a1373a",
+      "options": [
+        {
+          "opcion": "tSortRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tSortRow"
+        }
+      ],
+      "default": "tSortRow",
+      "occurrences": 1
+    },
+    {
+      "signature": "44d008969994ad79",
+      "options": [
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        },
+        {
+          "opcion": "tJoin",
+          "confianza": "media",
+          "supuesto": "alternativa a tMap"
+        }
+      ],
+      "default": "tMap",
+      "occurrences": 1
+    },
+    {
+      "signature": "d70923192f65b5a9",
+      "options": [
+        {
+          "opcion": "tFilterRow",
+          "confianza": "media",
+          "supuesto": "alternativa a tFilterRow"
+        },
+        {
+          "opcion": "tMap",
+          "confianza": "media",
+          "supuesto": "alternativa a tFilterRow"
+        }
+      ],
+      "default": "tFilterRow",
+      "occurrences": 1
+    }
+  ],
+  "gaps": [
+    {
+      "signature": "4527bcb498cbba5f/else descuento = 0",
+      "reason": "FUNCION_NO_MAPEADA",
+      "evidence": [
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 13,
+          "line_end": 24,
+          "label": null,
+          "call": null
+        }
+      ]
+    }
+  ],
   "jobs": [
     {
       "name": "job_etl_archivos_simple",

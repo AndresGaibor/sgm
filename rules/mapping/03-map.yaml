@@ -1,0 +1,12 @@
+id: 03-map
+version: 1
+rung: 3
+description: "Mapa de varias salidas o con expresiones."
+match:
+  kind: "map"
+emit:
+  component: "tMap"
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "map", "expect": "tMap"}

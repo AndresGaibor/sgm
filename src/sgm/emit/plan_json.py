@@ -36,6 +36,7 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
                 "params": op.params,
                 "evidence": _evidence(op.evidence),
                 "notes": op.notes,
+                "component": op.component,
             }
             for op in operators
         ],

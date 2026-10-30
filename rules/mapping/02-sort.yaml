@@ -1,0 +1,13 @@
+id: 02-sort
+version: 1
+rung: 2
+description: "Ordenación en flujo."
+match:
+  kind: "sort"
+  placement: "flow"
+emit:
+  component: "tSortRow"
+confidence: alta
+alternatives: ["tMap"]
+tests:
+  - {"kind": "sort", "placement": "flow", "expect": "tSortRow"}

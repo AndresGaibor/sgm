@@ -1,0 +1,13 @@
+id: 02-dedup
+version: 1
+rung: 2
+description: "Deduplicación por clave."
+match:
+  kind: "dedup"
+  placement: "flow"
+emit:
+  component: "tUniqRow"
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "dedup", "placement": "flow", "expect": "tUniqRow"}

@@ -73,6 +73,7 @@ class Operator:
     status: str = "soportado"
     signature: str = ""
     notes: list[str] = field(default_factory=list)
+    component: dict[str, Any] | None = None  # componente Talend candidato (pasada 10)
 
 
 @dataclass(frozen=True)

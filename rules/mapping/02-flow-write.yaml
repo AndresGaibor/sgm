@@ -1,0 +1,13 @@
+id: 02-flow-write
+version: 1
+rung: 2
+match:
+  kind: "write"
+  placement: "flow"
+emit:
+  component: "none"
+description: "Escritura de un dataset intermedio del flujo: no necesita componente propio."
+confidence: alta
+alternatives: []
+tests:
+  - {"kind": "write", "expect": null}
