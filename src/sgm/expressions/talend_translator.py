@@ -158,8 +158,9 @@ def _date_pattern(fmt: str) -> str | None:
 
 
 class _P:
-    def __init__(self, tokens: list[tuple[str, str]]):
+    def __init__(self, tokens: list[tuple[str, str]], entrada: str = "input_row"):
         self.t, self.i = tokens, 0
+        self.entrada = entrada
         self.cols: list[str] = []
         self.warnings: set[str] = set()
 
@@ -350,7 +351,7 @@ class _P:
 
     def column(self, name: str) -> E:
         self.cols.append(name)
-        return E(f"input_row.{name}")
+        return E(f"{self.entrada}.{name}")
 
     def case(self) -> E:
         branches: list[tuple[E, E]] = []
@@ -699,12 +700,18 @@ def _clean(text: str) -> str:
     return text.strip()
 
 
-def translate_to_talend(sas: str) -> Result:
-    """Traduce una expresión SAS a Java con rutinas de Talend; `Unsupported` si no hay traducción segura."""
+def translate_to_talend(sas: str, entrada: str = "input_row") -> Result:
+    """Traduce una expresión SAS a Java con rutinas de Talend; `Unsupported` si no hay traducción segura.
+
+    `entrada` es el nombre de la variable de la conexión de entrada del tMap (`row1`, `row_origen_a_map`...). En Studio
+    no existe `input_row`: el llamador pasa el nombre real.
+    """
     text = _clean(sas)
     if not text:
         raise Unsupported("expresión vacía")
-    parser = _P(_tokens(text))
+    if not re.fullmatch(r"[A-Za-z_]\w*", entrada):
+        raise Unsupported(f"nombre de conexión no válido: {entrada!r}")
+    parser = _P(_tokens(text), entrada)
     result = parser.expr()
     if parser.i != len(parser.t):
         raise Unsupported(f"texto sobrante: {parser.peek()[1]!r}")

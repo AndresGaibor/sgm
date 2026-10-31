@@ -313,3 +313,16 @@ def test_solo_se_emiten_rutinas_de_sistema_de_studio():
                 f"{sas} emite {owner}.{method}, que no esta en Studio 8.0"
             )
         assert "SasFunctions" not in java(sas)
+
+
+def test_la_entrada_del_tmap_usa_el_nombre_real_de_la_conexion():
+    # En Studio la variable de entrada es el nombre de la conexión (row1, row_origen_a_map...), no `input_row`.
+    r = translate_to_talend("upcase(campo_txt)", entrada="row_origen_a_map")
+    assert "row_origen_a_map.campo_txt" in r.java
+    assert "input_row" not in r.java
+    assert r.columns == ["campo_txt"]
+
+
+def test_el_nombre_de_conexion_invalido_se_rechaza():
+    with pytest.raises(Unsupported):
+        translate_to_talend("upcase(campo_txt)", entrada="row 1; x")
