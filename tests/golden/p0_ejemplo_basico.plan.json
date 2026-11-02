@@ -104,7 +104,7 @@
     {
       "id": "op00006",
       "kind": "map",
-      "status": "soportado",
+      "status": "parcial",
       "placement": "flow",
       "signature": "c397fddd49302c35",
       "params": {
@@ -144,7 +144,8 @@
         }
       ],
       "notes": [
-        "2 operadores de flujo unidos en un tMap (pasada 6)"
+        "2 operadores de flujo unidos en un tMap (pasada 6)",
+        "tipo no confirmado: el tipo numérico se infiere del literal de la comparación; validar que la columna es numérica"
       ],
       "component": {
         "name": "tMap",
@@ -153,7 +154,7 @@
         "version": 1,
         "confidence": "alta",
         "status": "candidato",
-        "needs_review": false,
+        "needs_review": true,
         "alternatives": []
       }
     },

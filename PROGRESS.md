@@ -864,3 +864,13 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - No se automatiza `FILENAME _ALL_ CLEAR` ni `PROC DATASETS` sobre una biblioteca permanente: hace falta confirmar su efecto y dependencia en el flujo.
 - Verificación: `uv run pytest -q`: 370 pasan, 1 se salta; `uv run ruff check .`: limpio; `sgm rules validate`: válido; `sgm metrics tests/fixtures/sas --check`: trinquete sin empeorar.
 - Decisión: las salidas ODS se consideran descartables solo bajo la política explícita `reports=discard`; una política distinta no debe eliminar ese paso sin una regla probada.
+
+## Hito 13. Traducciones Talend de expresiones como candidatas
+
+- Fecha: 2026-11-02
+- Qué se hizo: el traductor de expresiones SAS con rutinas Talend queda activo por defecto; `SGM_TALEND_EXPRESSIONS=0` lo desactiva explícitamente. Las traducciones de ese motor agregan una nota de validación en Studio 8.0.1, copian sus advertencias semánticas y dejan el operador como `parcial` con `needs_review: true`. Las funciones que no tienen traducción demostrada siguen como huecos.
+- Referencias: se actualizaron cuatro planes golden y el caso `informats-basicos` para reflejar el comportamiento predeterminado. Pruebas unitarias cubren activación, opt-out, estado parcial y advertencias.
+- Efecto en `client_poc.sas`, con `env/` local: 106 operadores; 17 firmas con hueco (18 al cierre del hito 12); el total del corpus conserva 160 huecos `FUNCION_NO_MAPEADA` en 189 programas.
+- Verificación: `uv run pytest -q`: 372 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar. Una primera medición concurrente excedió el umbral solo en tiempo de compilación; la repetición aislada quedó dentro del umbral.
+- Limitación: no se puede comprobar compilación ni semántica real de rutinas en Studio desde el SGM; la instalación disponible carece del JAR de rutinas utilizable. Se debe validar cada candidato allí antes de convertirlo en migración confirmada.
+- Decisión: se aceptan traducciones experimentales en la guía/plan para permitir trabajo incremental, siempre identificadas como parciales y sujetas a revisión. La versión de Studio se registra en la nota para indicar el entorno pendiente.

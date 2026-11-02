@@ -150,11 +150,20 @@ def _expressions(op: Operator) -> list[str]:
 
 
 def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
-    """Registra un hueco por cada expresión sin equivalente Talend. True si hubo alguno."""
+    """Registra huecos y advertencias de expresiones. True si algo requiere revisión."""
     found = False
     for text in _expressions(op):
         result = translate(text)
         if result.talend is not None:
+            for warning in result.warnings:
+                if warning not in op.notes:
+                    op.notes.append(warning)
+            if result.engine == "talend":
+                note = "Traducción candidata con rutinas de Talend; falta validar en Studio 8.0.1."
+                if note not in op.notes:
+                    op.notes.append(note)
+                found = True
+            found = found or bool(result.warnings)
             continue
         functions = _FUNCTION.findall(text)
         name = functions[0] if functions else text.strip()[:40]

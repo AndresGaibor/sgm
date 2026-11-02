@@ -591,16 +591,16 @@ class _Parser:
 
 
 def talend_expressions_enabled() -> bool:
-    """Interruptor del traductor con rutinas de Talend: `SGM_TALEND_EXPRESSIONS=1`.
+    """Interruptor del traductor con rutinas de Talend, activo por defecto.
 
-    Apagado por defecto hasta comprobar en Studio que el Java que emite compila (`talend_job_verify`); no necesita nada
-    instalado: solo usa rutinas de sistema de Talend y Java nativo.
+    Se puede apagar con `SGM_TALEND_EXPRESSIONS=0`. Las expresiones nuevas quedan parciales y requieren
+    revisión hasta comprobar en Studio que el Java que emiten compila (`talend_job_verify`).
     """
-    return os.environ.get("SGM_TALEND_EXPRESSIONS", "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
+    return os.environ.get("SGM_TALEND_EXPRESSIONS", "1").strip().lower() not in {
+        "0",
+        "false",
+        "no",
+        "off",
     }
 
 

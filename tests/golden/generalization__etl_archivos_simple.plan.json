@@ -580,6 +580,10 @@
       ],
       "notes": [
         "7 operadores de flujo unidos en un tMap (pasada 6)",
+        "missing(): null (y cadena vacía si es texto) en Java",
+        "tipo no confirmado: el tipo numérico se infiere del literal de la comparación; validar que la columna es numérica",
+        "substr(): posición de 1 base convertida a 0; con cadena más corta puede fallar",
+        "round(): redondeo al múltiplo indicado (la mitad sube, como en SAS)",
         "expresión sin equivalente Talend: else descuento = 0"
       ],
       "component": {

@@ -391,7 +391,9 @@
       ],
       "notes": [
         "2 operadores de flujo unidos en un tMap (pasada 6)",
-        "expresión sin equivalente Talend: put(fecha_pago, yymmn6.)",
+        "intck(): cuenta fronteras de unidad como SAS; diffDate devuelve la diferencia de la unidad, validar el signo",
+        "today(): en SAS es días desde 1960; en Talend es un Date: validar al comparar con fechas SAS",
+        "Traducción candidata con rutinas de Talend; falta validar en Studio 8.0.1.",
         "expresión sin equivalente Talend: put(edad, tramo.)"
       ],
       "component": {
@@ -647,19 +649,6 @@
     {
       "signature": "fd0e7150b6f1f34c",
       "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
-          "label": null,
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "fd0e7150b6f1f34c/put",
-      "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",

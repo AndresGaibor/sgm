@@ -2037,7 +2037,7 @@
       "notes": [
         "salida _NULL_: no escribe dataset",
         "expresión sin equivalente Talend: symget('cols_unlocked')",
-        "expresión sin equivalente Talend: compress(v, ' ')"
+        "Traducción candidata con rutinas de Talend; falta validar en Studio 8.0.1."
       ],
       "component": {
         "name": "tMap",
@@ -7119,7 +7119,7 @@
     {
       "id": "op00849",
       "kind": "map",
-      "status": "soportado",
+      "status": "parcial",
       "placement": "flow",
       "signature": "403c800c1b265bdd",
       "params": {
@@ -7181,7 +7181,8 @@
         }
       ],
       "notes": [
-        "4 ramas filtradas de un mismo dataset en un tMap (pasada 6)"
+        "4 ramas filtradas de un mismo dataset en un tMap (pasada 6)",
+        "tipo no confirmado: se asumió texto; confirmar con el esquema real"
       ],
       "component": {
         "name": "tMap",
@@ -7190,7 +7191,7 @@
         "version": 1,
         "confidence": "alta",
         "status": "candidato",
-        "needs_review": false,
+        "needs_review": true,
         "alternatives": []
       }
     }
@@ -8930,19 +8931,6 @@
     },
     {
       "signature": "27425832bc7e612a/symget",
-      "reason": "FUNCION_NO_MAPEADA",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 862,
-          "line_end": 865,
-          "label": "Exportar Bucket S3 Version 2",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "27425832bc7e612a/compress",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {

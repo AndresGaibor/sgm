@@ -77,6 +77,26 @@ def test_funcion_sin_equivalente_queda_como_hueco_con_la_funcion_en_la_firma():
     assert gaps and any("fn_inventada" in g.signature for g in gaps)
 
 
+def test_traductor_talend_activo_por_defecto_y_advertencias_revisables(monkeypatch):
+    monkeypatch.delenv("SGM_TALEND_EXPRESSIONS", raising=False)
+    plan = _plan("data a; set s; z = scan(x, 2); run;")
+    op = next(
+        o
+        for o in plan.graph.operators()
+        if o.kind == "derive" and "scan" in o.params["assignments"][0]["expression"]
+    )
+    assert op.status == "parcial"
+    assert op.component["needs_review"] is True
+    assert any("delimitadores consecutivos" in note for note in op.notes)
+    assert any("Studio" in note for note in op.notes)
+
+
+def test_traductor_talend_se_puede_desactivar_expresamente(monkeypatch):
+    monkeypatch.setenv("SGM_TALEND_EXPRESSIONS", "0")
+    plan = _plan("data a; set s; z = scan(x, 2); run;")
+    assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+
+
 def test_todos_los_componentes_usados_existen_en_el_catalogo():
     """Prueba obligatoria: cada componente que sale de la compilación está en el catálogo copiado."""
     names = _catalog_names()
