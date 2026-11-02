@@ -900,3 +900,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Prueba: un programa con `scan()` comprueba conteos por programa y total, además del texto del diagnóstico.
 - Verificación: `uv run pytest -q`: 375 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
 - Decisión: tratar la cantidad de candidatas como indicador de revisión pendiente, no como mejora o regresión automática.
+
+## Hito 17. Priorizar programas para validación Talend
+
+- Fecha: 2026-11-02
+- Qué se hizo: el diagnóstico lista los programas que tienen expresiones Talend candidatas, ordenados por expresiones y operadores; los empates quedan ordenados por ruta. Solo aparece la sección si hay candidatas por revisar.
+- Prioridad observada: `client/client_large.sas` concentra 117 expresiones en 59 operadores; los siguientes programas del corpus tienen 31 y 30 expresiones.
+- Prueba: dos programas sintéticos verifican el orden por cantidad, el total y los conteos por operador.
+- Verificación: `uv run pytest -q`: 375 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
+- Decisión: mostrar todos los programas con candidatas, sin límite de filas, para no esconder trabajo pendiente.

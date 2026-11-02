@@ -79,6 +79,18 @@ def build(compiled: dict[str, Compiled]) -> dict:
 def render(data: dict, report: dict) -> str:
     """Markdown del diagnóstico. `report` es el resultado de `sgm.metrics.compute`."""
     total = report["total"]
+    candidate_programs = sorted(
+        (
+            (name, metrics)
+            for name, metrics in report["programas"].items()
+            if metrics["expresiones_talend_candidatas"]
+        ),
+        key=lambda item: (
+            -item[1]["expresiones_talend_candidatas"],
+            -item[1]["operadores_con_expresiones_talend"],
+            item[0],
+        ),
+    )
     lines = [
         "# Diagnóstico de agrupación",
         "",
@@ -97,6 +109,23 @@ def render(data: dict, report: dict) -> str:
         f"- Candidatas Talend pendientes de validar en Studio: "
         f"{total['expresiones_talend_candidatas']} en "
         f"{total['operadores_con_expresiones_talend']} operadores",
+        "",
+    ]
+    if candidate_programs:
+        lines += [
+            "## Programas con candidatas Talend pendientes",
+            "",
+            "| programa | expresiones candidatas | operadores |",
+            "|---|---:|---:|",
+        ]
+        for name, program_metrics in candidate_programs:
+            safe_name = name.replace("|", "\\|")
+            lines.append(
+                f"| {safe_name} | "
+                f"{program_metrics['expresiones_talend_candidatas']} | "
+                f"{program_metrics['operadores_con_expresiones_talend']} |"
+            )
+    lines += [
         "",
         "## Componentes por constructo de origen",
         "",
