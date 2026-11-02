@@ -852,3 +852,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pendiente, con decisión: 34 `PARSE_ERROR` en Cod2 (dueño Joseph). Son `OUTER UNION CORR` (SAS alinea por nombre; reescribirlo como `UNION ALL` cambia el resultado si el orden de columnas difiere) y `CASE` con formas que `sqlglot` no acepta. Hace falta decidir si `OUTER UNION CORR` pasa a `SEMANTICA_DUDOSA`.
 - Pendiente: 73 `TIPO_DESCONOCIDO` (dueño Byron), que necesitan la salida de DESCRIBE de las tablas que leen esos programas.
 - Verificación: suite 365 pasan, 1 se salta; ruff limpio; trinquete sin empeorar.
+
+## Hito 12. Cierres ODS cuando los reportes se descartan
+
+- Fecha: 2026-11-02
+- Qué se hizo:
+  - `rules/sas/plumbing.yaml` reconoce el cierre de destinos ODS HTML, HTML5, RTF y PDF como limpieza de presentación; la versión de la regla sube a 2.
+  - `p02_plumbing` solo clasifica esos cierres como fontanería si `reports=discard`. Si se pide conservar reportes (`log` o `csv`), la sentencia sigue como hueco hasta definir su equivalencia.
+  - El caso declarativo `tests/cases/plumbing` y pruebas unitarias cubren ambos comportamientos.
+- Efecto en `client_poc.sas`, con `env/` local: 122 → 106 operadores, 21 → 18 firmas con hueco y 16 cierres ODS registrados como fontanería.
+- No se automatiza `FILENAME _ALL_ CLEAR` ni `PROC DATASETS` sobre una biblioteca permanente: hace falta confirmar su efecto y dependencia en el flujo.
+- Verificación: `uv run pytest -q`: 370 pasan, 1 se salta; `uv run ruff check .`: limpio; `sgm rules validate`: válido; `sgm metrics tests/fixtures/sas --check`: trinquete sin empeorar.
+- Decisión: las salidas ODS se consideran descartables solo bajo la política explícita `reports=discard`; una política distinta no debe eliminar ese paso sin una regla probada.

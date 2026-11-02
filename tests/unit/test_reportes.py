@@ -58,3 +58,14 @@ def test_con_discard_desaparecen_proc_print_y_proc_contents_del_cliente():
     gaps = compiled["client_poc.sas"].plan.gaps
     texts = [g.text.lower() for g in gaps]
     assert not any(t.startswith("proc print") or t.startswith("proc contents") for t in texts)
+
+
+def test_discard_reemplaza_el_cierre_ods_por_fontaneria():
+    plan = _plan("ods html close;\nods rtf (id=web) close;\n", "discard")
+    assert not [g for g in plan.gaps if g.reason == "SENTENCIA_NO_SOPORTADA"]
+    assert any("ODS" in item.what for item in plan.not_migrated)
+
+
+def test_log_conserva_cierre_ods_como_pendiente():
+    plan = _plan("ods html close;\n", "log")
+    assert any(g.reason == "SENTENCIA_NO_SOPORTADA" for g in plan.gaps)

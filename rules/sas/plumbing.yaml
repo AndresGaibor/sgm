@@ -1,6 +1,6 @@
 id: plumbing
 kind: plumbing
-version: 1
+version: 2
 status: soportado
 description: Patrones de fontanería de SAS que no se migran a Talend. Se aplican al texto de cada paso (pasada 2).
 entries:
@@ -129,6 +129,13 @@ entries:
   reason: Solo escribe en el log; no transforma datos.
   talend: tLogRow o los logs de ejecución del Job.
   pattern: ^\s*sysecho\b
+  flags:
+  - i
+- id: ods_close
+  what: cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)
+  reason: Cierra una salida de presentación que se descarta con reports=discard; no modifica datos.
+  talend: No hace falta; el Job no mantiene destinos ODS de SAS.
+  pattern: ^\s*ods\s+(html5?|rtf|pdf)\b.*\bclose\b
   flags:
   - i
 tests:

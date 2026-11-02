@@ -53,7 +53,7 @@ def _work_cleanup(statement: str) -> bool:
     return library is None or library.group(1).lower().startswith("work")
 
 
-def classify(op: Operator) -> tuple[str, str, str] | None:
+def classify(op: Operator, report_policy: str = "discard") -> tuple[str, str, str] | None:
     """(categoría, qué hace, equivalente en Talend) si el operador es fontanería; None si no."""
     if op.status == "reemplazado" and op.params.get("reason") == "CONFIGURACION":
         return None
@@ -65,6 +65,8 @@ def classify(op: Operator) -> tuple[str, str, str] | None:
         )
     found = match_plumbing(primary_text(op)) or match_plumbing(op_text(op))
     if found is None:
+        return None
+    if found.category == "ods_close" and report_policy != "discard":
         return None
     return found.category, found.what, found.talend
 
@@ -111,7 +113,7 @@ def mark(graph: Graph, ctx: PassContext) -> PassLog:
         if _report(op, ctx):
             log.metrics["reportes"] = log.metrics.get("reportes", 0) + 1
             continue
-        found = classify(op)
+        found = classify(op, ctx.project.reports)
         if found is None:
             continue
         category, what, talend = found

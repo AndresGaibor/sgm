@@ -1,4 +1,4 @@
-description: "Fontanería: título y %put no generan hueco ni componente; el paso de datos sí."
+description: "La limpieza de salida del reporte no genera hueco; el paso de datos sí."
 input: input.sas
 env: default
 expect:

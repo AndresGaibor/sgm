@@ -920,102 +920,6 @@
       "component": null
     },
     {
-      "id": "op00050",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "182a39a32afa607d",
-      "params": {
-        "statement": "ods html close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 141,
-          "line_end": 141,
-          "label": "ACURA",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00051",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "0d8f1d87469e0e70",
-      "params": {
-        "statement": "ods html5 (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 142,
-          "line_end": 142,
-          "label": "ACURA",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00052",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "d5017b52c289ebd1",
-      "params": {
-        "statement": "ods rtf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 143,
-          "line_end": 143,
-          "label": "ACURA",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00053",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "b2b4cf5664658bd1",
-      "params": {
-        "statement": "ods pdf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 144,
-          "line_end": 144,
-          "label": "ACURA",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
       "id": "op00054",
       "kind": "unsupported",
       "status": "reemplazado",
@@ -2197,102 +2101,6 @@
       "component": null
     },
     {
-      "id": "op00286",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "182a39a32afa607d",
-      "params": {
-        "statement": "ods html close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 904,
-          "line_end": 904,
-          "label": "BMW",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00287",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "0d8f1d87469e0e70",
-      "params": {
-        "statement": "ods html5 (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 905,
-          "line_end": 905,
-          "label": "BMW",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00288",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "d5017b52c289ebd1",
-      "params": {
-        "statement": "ods rtf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 906,
-          "line_end": 906,
-          "label": "BMW",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00289",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "b2b4cf5664658bd1",
-      "params": {
-        "statement": "ods pdf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 907,
-          "line_end": 907,
-          "label": "BMW",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
       "id": "op00290",
       "kind": "unsupported",
       "status": "reemplazado",
@@ -2654,102 +2462,6 @@
       "component": null
     },
     {
-      "id": "op00486",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "182a39a32afa607d",
-      "params": {
-        "statement": "ods html close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1617,
-          "line_end": 1617,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00487",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "0d8f1d87469e0e70",
-      "params": {
-        "statement": "ods html5 (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1618,
-          "line_end": 1618,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00488",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "d5017b52c289ebd1",
-      "params": {
-        "statement": "ods rtf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1619,
-          "line_end": 1619,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00489",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "b2b4cf5664658bd1",
-      "params": {
-        "statement": "ods pdf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1620,
-          "line_end": 1620,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
       "id": "op00490",
       "kind": "unsupported",
       "status": "reemplazado",
@@ -2885,102 +2597,6 @@
           "file": "client/client_poc.sas",
           "line_start": 2266,
           "line_end": 2266,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00665",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "182a39a32afa607d",
-      "params": {
-        "statement": "ods html close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2267,
-          "line_end": 2267,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00666",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "0d8f1d87469e0e70",
-      "params": {
-        "statement": "ods html5 (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2268,
-          "line_end": 2268,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00667",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "d5017b52c289ebd1",
-      "params": {
-        "statement": "ods rtf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2269,
-          "line_end": 2269,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null
-    },
-    {
-      "id": "op00668",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "b2b4cf5664658bd1",
-      "params": {
-        "statement": "ods pdf (id=web) close",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2270,
-          "line_end": 2270,
           "label": "JAGUAR",
           "call": null
         }
@@ -8095,6 +7711,62 @@
       ]
     },
     {
+      "op": "op00050",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 141,
+          "line_end": 141,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00051",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 142,
+          "line_end": 142,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00052",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 143,
+          "line_end": 143,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00053",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 144,
+          "line_end": 144,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
       "op": "op00057",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
@@ -8361,6 +8033,62 @@
       ]
     },
     {
+      "op": "op00286",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 904,
+          "line_end": 904,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00287",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 905,
+          "line_end": 905,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00288",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 906,
+          "line_end": 906,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00289",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 907,
+          "line_end": 907,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
       "op": "op00293",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
@@ -8585,6 +8313,62 @@
       ]
     },
     {
+      "op": "op00486",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1617,
+          "line_end": 1617,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00487",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1618,
+          "line_end": 1618,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00488",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1619,
+          "line_end": 1619,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00489",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1620,
+          "line_end": 1620,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
       "op": "op00493",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
@@ -8594,6 +8378,62 @@
           "line_start": 1624,
           "line_end": 1624,
           "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00665",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2267,
+          "line_end": 2267,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00666",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2268,
+          "line_end": 2268,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00667",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2269,
+          "line_end": 2269,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "op": "op00668",
+      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
+      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2270,
+          "line_end": 2270,
+          "label": "JAGUAR",
           "call": null
         }
       ]
@@ -8812,22 +8652,8 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 141,
-          "line_end": 141,
-          "label": "ACURA",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
           "line_start": 903,
           "line_end": 903,
-          "label": "BMW",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 904,
-          "line_end": 904,
           "label": "BMW",
           "call": null
         },
@@ -8840,124 +8666,8 @@
         },
         {
           "file": "client/client_poc.sas",
-          "line_start": 1617,
-          "line_end": 1617,
-          "label": "CHEVROLET",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
           "line_start": 2266,
           "line_end": 2266,
-          "label": "JAGUAR",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2267,
-          "line_end": 2267,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "0d8f1d87469e0e70",
-      "reason": "SENTENCIA_NO_SOPORTADA",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 142,
-          "line_end": 142,
-          "label": "ACURA",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 905,
-          "line_end": 905,
-          "label": "BMW",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1618,
-          "line_end": 1618,
-          "label": "CHEVROLET",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2268,
-          "line_end": 2268,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "d5017b52c289ebd1",
-      "reason": "SENTENCIA_NO_SOPORTADA",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 143,
-          "line_end": 143,
-          "label": "ACURA",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 906,
-          "line_end": 906,
-          "label": "BMW",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1619,
-          "line_end": 1619,
-          "label": "CHEVROLET",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2269,
-          "line_end": 2269,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "b2b4cf5664658bd1",
-      "reason": "SENTENCIA_NO_SOPORTADA",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 144,
-          "line_end": 144,
-          "label": "ACURA",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 907,
-          "line_end": 907,
-          "label": "BMW",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1620,
-          "line_end": 1620,
-          "label": "CHEVROLET",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2270,
-          "line_end": 2270,
           "label": "JAGUAR",
           "call": null
         }
