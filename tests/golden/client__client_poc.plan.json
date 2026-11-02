@@ -2031,6 +2031,9 @@
             "columns": [
               "v"
             ],
+            "functions": [
+              "compress"
+            ],
             "warnings": [],
             "row_context": "input_row es marcador; reemplazar por el enlace real de fila en Talend."
           }

@@ -163,6 +163,7 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
                     "source": text,
                     "java": result.talend,
                     "columns": result.columns,
+                    "functions": result.functions,
                     "warnings": result.warnings,
                     "row_context": (
                         "input_row es marcador; reemplazar por el enlace real de fila en Talend."

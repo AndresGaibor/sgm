@@ -8,6 +8,7 @@
 - Operadores por estado; componentes por peldaño de la escalera; porcentaje de tJava.
 - Pasos sin pendientes; decisiones pendientes, totales y firmas únicas.
 - Expresiones Talend candidatas pendientes de validación en Studio.
+- Funciones SAS presentes en candidatas, para agrupar las pruebas de equivalencia.
 - Las 10 firmas de huecos con más ocurrencias.
 El desglose por origen SAS va en `out/diagnostico.md` (ver `sgm.diagnostics`).
 """
@@ -42,6 +43,12 @@ def _program_metrics(compiled: Compiled, nodes: int, steps: int) -> dict:
     candidate_expressions = sum(
         len(op.params.get("talend_expression_candidates", [])) for op in candidate_operators
     )
+    candidate_functions: Counter[str] = Counter(
+        function
+        for op in candidate_operators
+        for candidate in op.params.get("talend_expression_candidates", [])
+        for function in candidate.get("functions", [])
+    )
     rungs = Counter(c["rung"] for c in components)
     java = sum(1 for c in components if c["name"] == "tJava")
     cuts: Counter[str] = Counter()
@@ -62,6 +69,7 @@ def _program_metrics(compiled: Compiled, nodes: int, steps: int) -> dict:
         "componentes_por_peldano": {str(k): v for k, v in sorted(rungs.items())},
         "pct_tjava": round(100 * java / len(components), 1) if components else 0.0,
         "pasos_sin_pendientes": sum(1 for c in components if not c.get("needs_review")),
+        "funciones_sas_candidatas": dict(sorted(candidate_functions.items())),
         "operadores_con_expresiones_talend": len(candidate_operators),
         "expresiones_talend_candidatas": candidate_expressions,
         "decisiones_pendientes": len(plan.pending),
@@ -96,6 +104,10 @@ def compute(
         "decisiones_pendientes": sum(p["decisiones_pendientes"] for p in programs.values()),
         "firmas_de_decision": len({p.signature for r in compiled.values() for p in r.plan.pending}),
     }
+    candidate_functions: Counter[str] = Counter()
+    for program in programs.values():
+        candidate_functions.update(program["funciones_sas_candidatas"])
+    total["funciones_sas_candidatas"] = dict(sorted(candidate_functions.items()))
     componentes = total["componentes"]
     total["nodos_por_componente"] = (
         round(total["nodos_sas"] / componentes, 3) if componentes else 0.0

@@ -93,6 +93,8 @@ def test_traductor_talend_activo_por_defecto_y_advertencias_revisables(monkeypat
     assert candidate["source"] == "scan(x, 2)"
     assert "input_row.x" in candidate["java"]
     assert candidate["columns"] == ["x"]
+    assert candidate["functions"] == ["scan"]
+    assert candidate["functions"] == ["scan"]
     assert candidate["warnings"] == [
         "scan: los delimitadores consecutivos cuentan como uno, como en SAS"
     ]

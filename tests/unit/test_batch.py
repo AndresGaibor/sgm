@@ -69,7 +69,7 @@ def test_metricas_y_diagnostico_cuentan_candidatas_talend():
         "mas_candidatas.sas": (
             "data a; set s; z = scan(x, 2); q = scan(y, 1); run;"
         ),
-        "una_candidata.sas": "data b; set s; z = scan(x, 2); run;",
+        "una_candidata.sas": "data b; set s; z = strip(scan(x, 2)); run;",
     }
     compiled, analysis = batch.compile_batch(files, workers=1)
 
@@ -78,12 +78,16 @@ def test_metricas_y_diagnostico_cuentan_candidatas_talend():
 
     assert program["expresiones_talend_candidatas"] == 2
     assert program["operadores_con_expresiones_talend"] == 1
+    assert program["funciones_sas_candidatas"] == {"scan": 2}
     assert report["total"]["expresiones_talend_candidatas"] == 3
     assert report["total"]["operadores_con_expresiones_talend"] == 2
+    assert report["total"]["funciones_sas_candidatas"] == {"scan": 3, "strip": 1}
     diagnosis = diagnostics.render(diagnostics.build(compiled), report)
     assert "Candidatas Talend pendientes de validar en Studio: 3 en 2 operadores" in diagnosis
     assert "| mas_candidatas.sas | 2 | 1 |" in diagnosis
     assert diagnosis.index("mas_candidatas.sas") < diagnosis.index("una_candidata.sas")
+    assert "| scan | 3 |" in diagnosis
+    assert "| strip | 1 |" in diagnosis
 
 
 def test_cli_compile_usa_la_cache_y_se_invalida_al_cambiar_un_archivo(tmp_path, monkeypatch):

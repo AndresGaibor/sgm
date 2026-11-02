@@ -65,8 +65,18 @@ class E:
 
 
 class Result:
-    def __init__(self, java: str, columns: list[str], warnings: list[str], kind: str = "any"):
+    """Java candidato y metadatos extraídos al analizar la expresión SAS."""
+
+    def __init__(
+        self,
+        java: str,
+        columns: list[str],
+        warnings: list[str],
+        kind: str = "any",
+        functions: list[str] | None = None,
+    ):
         self.java, self.columns, self.warnings, self.kind = java, columns, warnings, kind
+        self.functions = functions or []
 
 
 def _tokens(text: str) -> list[tuple[str, str]]:
@@ -163,6 +173,7 @@ class _P:
         self.entrada = entrada
         self.cols: list[str] = []
         self.warnings: set[str] = set()
+        self.functions: set[str] = set()
 
     def peek(self, offset: int = 0) -> tuple[str, str]:
         j = self.i + offset
@@ -391,6 +402,7 @@ class _P:
         builder = _FUNCTIONS.get(name)
         if builder is None:
             raise Unsupported(f"función {name}")
+        self.functions.add(name)
         return builder(self, args)
 
     def raw_format(self) -> E:
@@ -715,4 +727,10 @@ def translate_to_talend(sas: str, entrada: str = "input_row") -> Result:
     result = parser.expr()
     if parser.i != len(parser.t):
         raise Unsupported(f"texto sobrante: {parser.peek()[1]!r}")
-    return Result(result.java, sorted(set(parser.cols)), sorted(parser.warnings), result.kind)
+    return Result(
+        result.java,
+        sorted(set(parser.cols)),
+        sorted(parser.warnings),
+        result.kind,
+        sorted(parser.functions),
+    )

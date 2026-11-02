@@ -386,6 +386,9 @@
             "columns": [
               "fecha_pago"
             ],
+            "functions": [
+              "put"
+            ],
             "warnings": [],
             "row_context": "input_row es marcador; reemplazar por el enlace real de fila en Talend."
           }

@@ -125,6 +125,20 @@ def render(data: dict, report: dict) -> str:
                 f"{program_metrics['expresiones_talend_candidatas']} | "
                 f"{program_metrics['operadores_con_expresiones_talend']} |"
             )
+    candidate_functions = sorted(
+        total["funciones_sas_candidatas"].items(), key=lambda item: (-item[1], item[0])
+    )
+    if candidate_functions:
+        lines += [
+            "",
+            "## Funciones SAS en candidatas Talend",
+            "",
+            "Una expresión puede incluir más de una función.",
+            "",
+            "| función SAS | expresiones que la usan |",
+            "|---|---:|",
+        ]
+        lines += [f"| {name} | {count} |" for name, count in candidate_functions]
     lines += [
         "",
         "## Componentes por constructo de origen",

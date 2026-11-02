@@ -249,6 +249,12 @@ def test_columnas_leidas_se_devuelven_para_el_esquema():
     assert translate_to_talend("cats(a, b) = 'X'").columns == ["a", "b"]
 
 
+def test_funciones_sas_de_la_expresion_se_devuelven_sin_duplicados():
+    result = translate_to_talend("strip(scan(x, 2)) + length(x)")
+
+    assert result.functions == ["length", "scan", "strip"]
+
+
 @pytest.mark.parametrize(
     "sas",
     [

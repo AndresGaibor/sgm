@@ -909,3 +909,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Prueba: dos programas sintéticos verifican el orden por cantidad, el total y los conteos por operador.
 - Verificación: `uv run pytest -q`: 375 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
 - Decisión: mostrar todos los programas con candidatas, sin límite de filas, para no esconder trabajo pendiente.
+
+## Hito 18. Agrupar candidatas por función SAS
+
+- Fecha: 2026-11-02
+- Qué se hizo: el parser de expresiones conserva los nombres de función SAS encontrados en cada candidata, incluidas las llamadas anidadas y sin repetir nombres dentro de la misma expresión. `metrics.json` agrega el conteo por programa y total; el diagnóstico Markdown lista las funciones por frecuencia.
+- Prioridad medida en el corpus: `input` (81 expresiones), `left` (65), `compress` (24), `put` (22) y `catx` (19). Una expresión anidada puede contribuir a más de una función.
+- Pruebas: una expresión con `strip(scan(...))` verifica detección, orden y deduplicación; las métricas verifican el conteo y su orden.
+- Verificación: `uv run pytest -q`: 376 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
+- Decisión: el inventario se calcula desde el árbol analizado por el traductor, no buscando palabras en el Java generado ni en cadenas literales SAS.

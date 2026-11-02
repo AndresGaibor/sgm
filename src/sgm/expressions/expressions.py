@@ -40,6 +40,7 @@ class Translation:
     simple: list[dict] | None = None  # condiciones tFilterRow (modo simple)
     logical: str | None = None  # "&&" | "||" para el modo simple
     warnings: list[str] = field(default_factory=list)
+    functions: list[str] = field(default_factory=list)  # llamadas SAS encontradas por el parser
     engine: str = (
         "inline"  # "inline" (traductor original) | "talend" (rutinas de sistema de Talend)
     )
@@ -622,10 +623,11 @@ def translate(sas: str) -> Translation:
     except Unsupported as error:
         t.warnings.append(f"Sin traducción con rutinas de Talend: {error}")
         return t
-    t.talend, t.columns, t.warnings, t.engine = (
+    t.talend, t.columns, t.warnings, t.functions, t.engine = (
         result.java,
         result.columns,
         result.warnings,
+        result.functions,
         "talend",
     )
     t.kind = result.kind
