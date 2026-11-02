@@ -874,3 +874,11 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Verificación: `uv run pytest -q`: 372 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar. Una primera medición concurrente excedió el umbral solo en tiempo de compilación; la repetición aislada quedó dentro del umbral.
 - Limitación: no se puede comprobar compilación ni semántica real de rutinas en Studio desde el SGM; la instalación disponible carece del JAR de rutinas utilizable. Se debe validar cada candidato allí antes de convertirlo en migración confirmada.
 - Decisión: se aceptan traducciones experimentales en la guía/plan para permitir trabajo incremental, siempre identificadas como parciales y sujetas a revisión. La versión de Studio se registra en la nota para indicar el entorno pendiente.
+
+## Hito 14. Guardar Java Talend candidato en el plan
+
+- Fecha: 2026-11-02
+- Qué se hizo: `p10_components` guarda en `params.talend_expression_candidates` el SAS de origen, Java candidato, columnas, advertencias y el aviso de que `input_row` es un alias provisional. Solo se conserva para el motor Talend; la traducción inline existente no se duplica. El operador continúa parcial y con revisión obligatoria.
+- Artefactos: plan JSON y referencias golden para `client_poc.sas` y `p1_merge_first_last.sas`; una candidata visible en `client_poc.sas` (`compress(v, ' ')`). Diseño: `docs/superpowers/specs/2026-11-02-expresiones-candidatas-design.md`.
+- Verificación: `uv run pytest -q`: 372 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
+- Decisión: el campo de fila mantiene el alias genérico del traductor; no se infiere un enlace (`row1`, `row2`, etc.) que el plan aún no conoce.

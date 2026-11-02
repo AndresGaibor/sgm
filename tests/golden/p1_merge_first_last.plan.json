@@ -378,6 +378,17 @@
               ]
             }
           }
+        ],
+        "talend_expression_candidates": [
+          {
+            "source": "put(fecha_pago, yymmn6.)",
+            "java": "TalendDate.formatDate(\"yyyyMM\", input_row.fecha_pago)",
+            "columns": [
+              "fecha_pago"
+            ],
+            "warnings": [],
+            "row_context": "input_row es marcador; reemplazar por el enlace real de fila en Talend."
+          }
         ]
       },
       "evidence": [

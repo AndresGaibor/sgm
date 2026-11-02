@@ -2023,7 +2023,18 @@
             "String",
             32767
           ]
-        }
+        },
+        "talend_expression_candidates": [
+          {
+            "source": "compress(v, ' ')",
+            "java": "(input_row.v == null ? null : StringHandling.CHANGE(input_row.v, \" \", \"\"))",
+            "columns": [
+              "v"
+            ],
+            "warnings": [],
+            "row_context": "input_row es marcador; reemplazar por el enlace real de fila en Talend."
+          }
+        ]
       },
       "evidence": [
         {

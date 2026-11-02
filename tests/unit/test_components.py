@@ -89,6 +89,14 @@ def test_traductor_talend_activo_por_defecto_y_advertencias_revisables(monkeypat
     assert op.component["needs_review"] is True
     assert any("delimitadores consecutivos" in note for note in op.notes)
     assert any("Studio" in note for note in op.notes)
+    candidate = op.params["talend_expression_candidates"][0]
+    assert candidate["source"] == "scan(x, 2)"
+    assert "input_row.x" in candidate["java"]
+    assert candidate["columns"] == ["x"]
+    assert candidate["warnings"] == [
+        "scan: los delimitadores consecutivos cuentan como uno, como en SAS"
+    ]
+    assert "input_row" in candidate["row_context"]
 
 
 def test_traductor_talend_se_puede_desactivar_expresamente(monkeypatch):

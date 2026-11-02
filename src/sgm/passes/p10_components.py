@@ -159,6 +159,18 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
                 if warning not in op.notes:
                     op.notes.append(warning)
             if result.engine == "talend":
+                candidate = {
+                    "source": text,
+                    "java": result.talend,
+                    "columns": result.columns,
+                    "warnings": result.warnings,
+                    "row_context": (
+                        "input_row es marcador; reemplazar por el enlace real de fila en Talend."
+                    ),
+                }
+                candidates = op.params.setdefault("talend_expression_candidates", [])
+                if candidate not in candidates:
+                    candidates.append(candidate)
                 note = "Traducción candidata con rutinas de Talend; falta validar en Studio 8.0.1."
                 if note not in op.notes:
                     op.notes.append(note)
