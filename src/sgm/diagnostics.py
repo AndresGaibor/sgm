@@ -139,6 +139,23 @@ def render(data: dict, report: dict) -> str:
             "|---|---:|",
         ]
         lines += [f"| {name} | {count} |" for name, count in candidate_functions]
+    candidate_warnings = sorted(
+        total["advertencias_en_candidatas_talend"].items(),
+        key=lambda item: (-item[1], item[0]),
+    )
+    if candidate_warnings:
+        lines += [
+            "",
+            "## Advertencias semánticas en candidatas Talend",
+            "",
+            "El conteo es por expresión candidata; una expresión puede tener varias advertencias.",
+            "",
+            "| advertencia | expresiones | ",
+            "|---|---:|",
+        ]
+        for warning, count in candidate_warnings:
+            safe_warning = " ".join(warning.split()).replace("|", "\\|")
+            lines.append(f"| {safe_warning} | {count} |")
     lines += [
         "",
         "## Componentes por constructo de origen",

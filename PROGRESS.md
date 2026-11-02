@@ -918,3 +918,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: una expresión con `strip(scan(...))` verifica detección, orden y deduplicación; las métricas verifican el conteo y su orden.
 - Verificación: `uv run pytest -q`: 376 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
 - Decisión: el inventario se calcula desde el árbol analizado por el traductor, no buscando palabras en el Java generado ni en cadenas literales SAS.
+
+## Hito 19. Agrupar advertencias semánticas de candidatas
+
+- Fecha: 2026-11-02
+- Qué se hizo: las métricas cuentan las advertencias guardadas por expresión candidata, por programa y en el total; el diagnóstico las muestra ordenadas por frecuencia. Una expresión puede aportar varias advertencias y el agrupamiento conserva el texto exacto.
+- Prioridad observada en el corpus: 81 advertencias para `input` numérico (confirmar el informat), 5 para `scan` (delimitadores consecutivos) y 4 para una macrovariable que requiere contexto.
+- Prueba: métricas y diagnóstico validan la frecuencia de advertencias de `scan()` e `input()` en fixtures separados.
+- Verificación: `uv run pytest -q`: 376 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
+- Decisión: agrupar por texto exacto de advertencia; no generalizar mensajes que pueden señalar distintos nombres o causas.
