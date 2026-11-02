@@ -94,6 +94,9 @@ def render(data: dict, report: dict) -> str:
         f"- Subjobs: {total['subjobs']}",
         f"- Decisiones: {total['decisiones_pendientes']} totales, "
         f"{total['firmas_de_decision']} firmas únicas",
+        f"- Candidatas Talend pendientes de validar en Studio: "
+        f"{total['expresiones_talend_candidatas']} en "
+        f"{total['operadores_con_expresiones_talend']} operadores",
         "",
         "## Componentes por constructo de origen",
         "",

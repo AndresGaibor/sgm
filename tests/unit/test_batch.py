@@ -4,7 +4,7 @@ import json
 
 from typer.testing import CliRunner
 
-from sgm import batch, lineage, metrics
+from sgm import batch, diagnostics, lineage, metrics
 from sgm.cli import app
 from sgm.emit.plan_json import plan_to_dict
 
@@ -62,6 +62,21 @@ def test_metricas_por_programa_y_total(tmp_path):
     assert report["programas"]["a.sas"]["nodos_sas"] == 1
     assert 0 <= report["total"]["pct_tjava"] <= 100
     assert set(report["programas"]["a.sas"]) >= {"componentes", "jobs", "subjobs", "pct_tjava"}
+
+
+def test_metricas_y_diagnostico_cuentan_candidatas_talend():
+    files = {"candidato.sas": "data a; set s; z = scan(x, 2); run;"}
+    compiled, analysis = batch.compile_batch(files, workers=1)
+
+    report = metrics.compute(compiled, files, analysis)
+    program = report["programas"]["candidato.sas"]
+
+    assert program["expresiones_talend_candidatas"] == 1
+    assert program["operadores_con_expresiones_talend"] == 1
+    assert report["total"]["expresiones_talend_candidatas"] == 1
+    assert report["total"]["operadores_con_expresiones_talend"] == 1
+    diagnosis = diagnostics.render(diagnostics.build(compiled), report)
+    assert "Candidatas Talend pendientes de validar en Studio: 1 en 1 operadores" in diagnosis
 
 
 def test_cli_compile_usa_la_cache_y_se_invalida_al_cambiar_un_archivo(tmp_path, monkeypatch):

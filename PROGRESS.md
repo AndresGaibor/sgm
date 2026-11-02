@@ -891,3 +891,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas nuevas: guía con candidata y guía con advertencia semántica de `scan()`.
 - Verificación: `uv run pytest -q`: 374 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
 - Decisión: mostrar las expresiones completas en la guía, sin truncar el Java ni convertirlo en una afirmación de equivalencia validada.
+
+## Hito 16. Medir candidatas Talend por validar
+
+- Fecha: 2026-11-02
+- Qué se hizo: `metrics.json` ahora cuenta `expresiones_talend_candidatas` y `operadores_con_expresiones_talend`, por programa y en el total. El diagnóstico Markdown incluye una línea que resume ambas cifras como trabajo pendiente de validación en Studio.
+- Efecto medido en los 189 programas del corpus: 234 expresiones candidatas en 148 operadores. El conteo no modifica el estado de aprobación ni la línea base del trinquete.
+- Prueba: un programa con `scan()` comprueba conteos por programa y total, además del texto del diagnóstico.
+- Verificación: `uv run pytest -q`: 375 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
+- Decisión: tratar la cantidad de candidatas como indicador de revisión pendiente, no como mejora o regresión automática.
