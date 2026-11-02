@@ -6,6 +6,7 @@ en una fila con `×N`, para que la guía no repita lo mismo.
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 
 from sgm.ir.models import Evidence, Operator, Plan
@@ -114,6 +115,51 @@ def _stages(plan: Plan) -> list[str]:
     return rows
 
 
+def _code_block(value: str, language: str) -> list[str]:
+    """Usa un fence más largo que cualquier secuencia de backticks en el contenido."""
+    longest = max((len(run) for run in re.findall(r"`+", value)), default=0)
+    fence = "`" * max(3, longest + 1)
+    return [f"{fence}{language}", value, fence]
+
+
+def _talend_candidates(operators: list[Operator]) -> list[str]:
+    candidates = [
+        (op, candidate)
+        for op in operators
+        for candidate in op.params.get("talend_expression_candidates", [])
+    ]
+    if not candidates:
+        return []
+    lines = [
+        "",
+        "## Expresiones candidatas Talend",
+        "",
+        "Son borradores pendientes de revisión. input_row es un alias provisional, no un enlace "
+        "confirmado en Talend Studio.",
+    ]
+    for op, candidate in candidates:
+        columns = ", ".join(candidate.get("columns", [])) or "ninguna identificada"
+        warnings = candidate.get("warnings", [])
+        lines += [
+            "",
+            f"### Operador {op.id}",
+            "",
+            "Origen SAS:",
+            "",
+            *_code_block(str(candidate.get("source", "")), "sas"),
+            "",
+            f"Columnas: {_cell(columns)}",
+            f"Contexto de fila: {_cell(candidate.get('row_context', 'pendiente'))}",
+            "Advertencias: " + ("; ".join(_cell(w) for w in warnings) or "ninguna"),
+            f"Evidencia: {_ev(op.evidence)}",
+            "",
+            "Java candidato:",
+            "",
+            *_code_block(str(candidate.get("java", "")), "java"),
+        ]
+    return lines
+
+
 def render_guide(plan: Plan) -> str:
     operators = sorted(plan.graph.operators(), key=lambda o: o.id)
     by_status = Counter(op.status for op in operators)
@@ -157,6 +203,7 @@ def render_guide(plan: Plan) -> str:
                 f"| {_cell(_component(head))} | {_ev(head.evidence)} | {_cell(_statement(head))} "
                 f"| {_cell(notes)} | ×{count} |"
             )
+    lines += _talend_candidates(operators)
     lines += ["", "## No migrado", ""]
     if plan.not_migrated:
         lines += ["| operador | qué es | equivalente en Talend | evidencia |", "|---|---|---|---|"]

@@ -59,6 +59,34 @@ def test_guia_y_json_no_contienen_secretos_sin_enmascarar():
     assert secrets == []
 
 
+def test_guia_muestra_expresiones_talend_candidatas():
+    compiled, _ = compile_project({"client_poc.sas": _text(CLIENT / "client_poc.sas")})
+    plan = compiled["client_poc.sas"].plan
+    op = next(
+        operator
+        for operator in plan.graph.operators()
+        if operator.params.get("talend_expression_candidates")
+    )
+    candidate = op.params["talend_expression_candidates"][0]
+    guide = render_guide(plan)
+
+    assert "## Expresiones candidatas Talend" in guide
+    assert candidate["source"] in guide
+    assert candidate["java"] in guide
+    assert ", ".join(candidate["columns"]) in guide
+    assert candidate["row_context"] in guide
+    assert "input_row" in guide
+
+
+def test_guia_muestra_advertencias_semanticas_de_candidatas():
+    compiled, _ = compile_project({"candidate.sas": "data a; set s; z = scan(x, 2); run;"})
+    plan = compiled["candidate.sas"].plan
+
+    guide = render_guide(plan)
+
+    assert "scan: los delimitadores consecutivos cuentan como uno, como en SAS" in guide
+
+
 def test_cli_compile_escribe_guia_y_plan_por_programa(tmp_path):
     result = CliRunner().invoke(
         app, ["compile", str(CLIENT / "client_poc.sas"), "--out", str(tmp_path)]

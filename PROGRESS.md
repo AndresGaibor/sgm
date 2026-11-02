@@ -882,3 +882,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Artefactos: plan JSON y referencias golden para `client_poc.sas` y `p1_merge_first_last.sas`; una candidata visible en `client_poc.sas` (`compress(v, ' ')`). Diseño: `docs/superpowers/specs/2026-11-02-expresiones-candidatas-design.md`.
 - Verificación: `uv run pytest -q`: 372 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
 - Decisión: el campo de fila mantiene el alias genérico del traductor; no se infiere un enlace (`row1`, `row2`, etc.) que el plan aún no conoce.
+
+## Hito 15. Mostrar traducciones candidatas en la guía
+
+- Fecha: 2026-11-02
+- Qué se hizo: `guide_md` agrega una sección con el SAS de origen, Java candidato, columnas, advertencias, contexto provisional de fila y evidencia. Los bloques de código usan delimitadores que se adaptan al contenido para que expresiones con backticks no rompan el Markdown.
+- Efecto en `client_poc.sas`: la guía muestra la candidata `compress(v, ' ')` y su Java con `StringHandling.CHANGE`; indica que `input_row` todavía debe enlazarse en Talend Studio.
+- Pruebas nuevas: guía con candidata y guía con advertencia semántica de `scan()`.
+- Verificación: `uv run pytest -q`: 374 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
+- Decisión: mostrar las expresiones completas en la guía, sin truncar el Java ni convertirlo en una afirmación de equivalencia validada.
