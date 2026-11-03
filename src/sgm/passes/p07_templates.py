@@ -25,6 +25,50 @@ from sgm.ir.signature import signature
 from sgm.passes.base import PassContext, PassLog
 
 NAME = "p07_templates"
+# Umbrales de joblet (fase 3.7). Pendiente: moverlos a `rules/` como datos.
+JOBLET_MIN_OCCURRENCES = 2
+JOBLET_MIN_OPERATIONS = 3
+
+
+def _register_joblet(plan, template: str, label, body, instances, varying, contexts) -> None:
+    """Un bloque repetido pasa a joblet: una unidad por forma, con todas sus apariciones.
+
+    Las mismas formas en nodos distintos son el mismo joblet: se suman apariciones e instancias.
+    """
+    identificador = template.replace("tpl_", "jl_")
+    fuente = [
+        [
+            {"file": ev.file, "line_start": ev.line_start, "line_end": ev.line_end}
+            for op in ordered
+            for ev in op.evidence[:1]
+        ]
+        for ordered, _ in instances
+    ]
+    existente = next((j for j in plan.joblets if j["id"] == identificador), None)
+    if existente is None:
+        existente = {
+            "id": identificador,
+            "etiquetas": [],
+            "operaciones": [op.kind for op in body],
+            "apariciones": 0,
+            "parametros": [],
+            "instancias": [],
+            "fuente": [],
+        }
+        plan.joblets.append(existente)
+    if label not in existente["etiquetas"]:
+        existente["etiquetas"].append(label)
+    existente["apariciones"] += len(instances)
+    existente["parametros"] = sorted(
+        set(existente["parametros"]) | {f"parametro_{k}" for k in varying}
+    )
+    existente["instancias"] += contexts
+    existente["fuente"] += fuente
+    existente["por_que"] = (
+        f"el mismo bloque de {len(body)} operaciones aparece {existente['apariciones']} veces"
+    )
+
+
 _NAME_KEYS = ("dataset", "outputs", "inputs", "sources", "target")
 
 
@@ -166,6 +210,8 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
             # Colapsar rompería el orden (una instancia depende de otra): una llamada por instancia.
             for (ordered, _), context in zip(instances, contexts, strict=True):
                 _replace_with_iterate(graph, builder, log, template, label, ordered, [context])
+        if len(instances) >= JOBLET_MIN_OCCURRENCES and len(body) >= JOBLET_MIN_OPERATIONS:
+            _register_joblet(ctx.plan, template, label, body, instances, varying, contexts)
         log.notes.append(
             f"plantilla {template}: {len(instances)} instancias, {len(varying)} parámetros"
         )

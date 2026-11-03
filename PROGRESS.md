@@ -984,3 +984,19 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Decisión: ambos cambios son aditivos. Los goldens se regeneraron y se verificó con un script que, quitando `valor_componente` y `pendientes`, son idénticos a los del commit anterior.
 - Pruebas: `tests/unit/test_plan_valores.py` (fuente, regla y confianza en cada componente; dueño y cierre en cada pendiente).
 - Pendiente: `hechos` por valor (enlace operador↔hecho); 3.5 regla de materialización por lectores como regla completa (hoy solo dispara la decisión del patrón de agregado).
+
+## Hito 24. Joblets por forma repetida: fase 3.7 (parcial)
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`):
+  - 3.7: `Plan.joblets` (campo aditivo de la IR) y su salida `joblets` en el plan JSON. La pasada 7 registra un joblet por cada forma repetida con al menos 2 apariciones y 3 operaciones. Las mismas formas en nodos distintos son un solo joblet: se suman apariciones, instancias y fuente.
+  - Cada joblet lleva `id`, `etiquetas`, `operaciones`, `apariciones`, `parametros`, `instancias`, `fuente` (una lista por aparición, con archivo y líneas) y `por_que`.
+- Medición: en `client_large.sas`, 74 joblets con identificadores únicos (antes de fusionar por forma salían 98 repetidos).
+- Decisión: los joblets se derivan de las plantillas que la pasada 7 ya detecta; no cambian la emisión de componentes (sigue `iterate`).
+- Límites conocidos, pendientes:
+  - Los umbrales (2 apariciones, 3 operaciones) están como constantes en `p07_templates.py`, no en `rules/`, como pide 3.7.
+  - Los parámetros se llaman `parametro_k`: falta el tipo (tabla o literal) y un nombre con sentido, que es 3.8.
+  - La guía de Jobs todavía no muestra los joblets; eso es la fase 4.1.
+- Prueba: `tests/unit/test_joblets.py` (un bloque repetido en dos nodos es un solo joblet con 5 apariciones; invariantes de joblet; sin repetición no hay joblet).
+- Goldens: regenerados; verificado que, quitando `joblets`, `valor_componente` y `pendientes`, son idénticos al commit anterior.
+- Verificación: `uv run pytest -q`: 418 pasan, 1 se salta; `uv run ruff check .`: limpio.

@@ -269,3 +269,4 @@ class Plan:
     not_migrated: list[NotMigrated] = field(default_factory=list)
     pending: list[Pending] = field(default_factory=list)
     gaps: list[Gap] = field(default_factory=list)
+    joblets: list[dict[str, Any]] = field(default_factory=list)  # fase 3.7: bloques repetidos

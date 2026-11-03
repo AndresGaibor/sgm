@@ -141,4 +141,5 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
     """Plan JSON: la base del plan más el bloque de pendientes unificados."""
     datos = _plan_base(plan)
     datos["pendientes"] = _pendientes(plan)
+    datos["joblets"] = list(plan.joblets)
     return datos
