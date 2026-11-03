@@ -984,3 +984,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Verificación: `uv run pytest -q`: 425 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
 - Decisión: los espacios dentro de un literal son datos y no se normalizan. No se agregaron dependencias ni se modificó la línea base.
 - Bloqueos: ninguno.
+
+
+## Hito 25. Evitar índices inválidos al traducir SCAN
+
+- Fecha: 2026-11-03
+- Qué se hizo: las posiciones enteras negativas de `SCAN` cuentan desde el final y usan un índice dinámico protegido por la longitud del arreglo. Cero, decimales y valores mayores al rango de índice de Java quedan pendientes; ya no se truncan ni producen índices negativos o literales Java inválidos.
+- Evidencia: `tests/fixtures/sas/real/learning-sas-by-example/Example_code/Programs_Used_in_the_Second_Edition.sas` contiene `scan(Name,-1,' ')` en las líneas 1595 y 2112 para obtener el último nombre.
+- Pruebas: RED observado para el índice negativo, cero y posiciones fraccionarias; una regresión adicional confirma que una posición fuera del rango de Java queda pendiente. Focales: 6 pasan. Suite final: `uv run pytest -q`: 430 pasan y 1 se salta; Ruff limpio; reglas válidas; `git diff --check` limpio.
+- Métricas: `sgm metrics tests/fixtures/sas --check` alternó entre una corrida válida de 19,16 s y mediciones de 20,3–23,2 s, frente al límite 19,08 s. Comparación aislada: Hito 24 23,1 s y Hito 25 23,0 s; ambas exceden el umbral, por lo que no se atribuye el tiempo al cambio de SCAN. El perfil midió la normalización nueva en 0,033 s para 877 expresiones y SCAN en 6 llamadas con tiempo redondeado a 0. No se modificó la línea base.
+- Decisión: solo se traduce la posición negativa cuando es un entero dentro del rango de índices Java; las demás quedan pendientes hasta probar su equivalencia.
+- Bloqueo: el trinquete de tiempo sigue excediendo el límite de forma variable también en la revisión Hito 24. Mantenerlo visible y no relajar la línea base.

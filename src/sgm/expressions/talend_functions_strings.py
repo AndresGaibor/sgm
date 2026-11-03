@@ -60,11 +60,18 @@ def _scan(p: _P, args: list[E]) -> E:
     _need(args, 2, 3, "scan")
     if args[1].kind != "num" or (len(args) == 3 and args[2].kind != "str"):
         raise Unsupported("scan con posición o delimitadores que no son literales")
+    if not re.fullmatch(r"-?\d+", args[1].java):
+        raise Unsupported("scan con una posición que no es entera")
+    n = int(args[1].java)
+    if n == 0 or abs(n) > 2_147_483_647:
+        raise Unsupported("scan con una posición fuera del rango seguro")
     delims = re.escape(args[2].java[1:-1]) if len(args) == 3 else r"\\s,;"
-    n = int(float(args[1].java))
     p.warnings.add("scan: los delimitadores consecutivos cuentan como uno, como en SAS")
     tokens = f'{args[0].java}.replaceAll("^[{delims}]+", "").split("[{delims}]+")'
-    return E(_guard([args[0]], f"({tokens}.length >= {n} ? {tokens}[{n - 1}] : null)"), "str")
+    index = str(n - 1) if n > 0 else f"{tokens}.length + {n}"
+    return E(
+        _guard([args[0]], f"({tokens}.length >= {abs(n)} ? {tokens}[{index}] : null)"), "str"
+    )
 
 
 def _compress(p: _P, args: list[E]) -> E:
