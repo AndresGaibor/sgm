@@ -162,7 +162,7 @@ def _f_compress(args: list[str]) -> str:
     """compress(texto) quita los blancos; con lista de caracteres no hay equivalente simple."""
     if len(args) != 1:
         raise _Unsupported("compress() con lista de caracteres: sin equivalente simple")
-    return _guard(args[0], args[0] + '.replaceAll("\\\\s", "")')
+    return _guard(args[0], args[0] + '.replaceAll(" ", "")')
 
 
 def _f_index(args: list[str]) -> str:

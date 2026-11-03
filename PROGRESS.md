@@ -1075,3 +1075,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 27,8 s frente al límite 19,08 s. El control Hito 31, medido por separado, registró 43,7 s; la corrida previa de Hito 31 registró 22,8 s. La variación impide atribuir el tiempo a este cambio. No se modificó la línea base.
 - Decisión: conservar re.escape como única codificación regex y mantener _jstr para el nivel Java. Sin dependencias nuevas.
 - Bloqueos: el tiempo del corpus continúa variable y sobre el umbral; las expresiones candidatas requieren validación en Talend Studio.
+
+## Hito 33. Alinear el COMPRESS predeterminado del flujo integrado
+
+- Fecha: 2026-11-03
+- Qué se hizo: el traductor inline de un argumento ahora elimina el espacio literal, igual que la rutina Talend ya existente, en vez de eliminar cualquier whitespace con la regex \\s.
+- Hallazgo: el flujo público translate() toma primero la ruta inline y evitaba el mapeo nuevo. Así COMPRESS(value) borraba tabulaciones y otros blancos que no estaban en su lista predeterminada.
+- Evidencia: _f_compress documenta que sin lista se quitan blancos; el constructor Talend usa StringHandling.CHANGE con un espacio literal. La regresión llama al flujo integrado translate("compress(value)").
+- Pruebas: RED observado en el flujo integrado; las 16 pruebas focales de COMPRESS pasan tras el cambio.
+- Verificación: uv run pytest -q: 455 pasan y 1 se salta (117,90 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 25,8 s frente al límite 19,08 s. La corrida previa Hito 32 dio 27,8 s y un control Hito 31 dio 43,7 s. No se cambió la línea base.
+- Decisión: alinear el atajo inline con el constructor Talend vigente, sin ampliar la lista de caracteres que se eliminan. Sin dependencias nuevas.
+- Bloqueos: el trinquete de tiempo sigue variable y sobre el umbral; las expresiones candidatas requieren validación en Talend Studio.

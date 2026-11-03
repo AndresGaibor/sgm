@@ -2,6 +2,7 @@
 
 import pytest
 
+from sgm.expressions.expressions import translate
 from sgm.expressions.talend_translator import Unsupported, translate_to_talend
 
 
@@ -38,6 +39,14 @@ def test_compress_no_duplica_el_escape_regex_de_ampersand():
     assert result.java == (
         r'(input_row.value == null ? null : '
         r'StringHandling.EREPLACE(input_row.value, "[a\\&b]", ""))'
+    )
+
+
+def test_compress_predeterminado_en_el_flujo_publico_solo_quita_espacios():
+    result = translate("compress(value)")
+
+    assert result.talend == (
+        '(input_row.value == null ? null : input_row.value.replaceAll(" ", ""))'
     )
 
 
