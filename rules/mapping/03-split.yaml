@@ -1,13 +1,13 @@
 id: 03-split
 version: 1
-rung: 3
+prioridad: 70
 description: "Salidas condicionadas."
-match:
+cuando:
   kind: "split"
   placement: "flow"
-emit:
+produce:
   component: "tMap"
 confidence: media
 alternatives: []
-tests:
+casos:
   - tests/cases/03-split

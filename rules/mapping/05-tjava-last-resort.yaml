@@ -1,14 +1,14 @@
 id: 05-tjava-last-resort
 version: 1
-rung: 5
+prioridad: 50
 description: "Último recurso: ningún componente anterior aplica."
-match:
+cuando:
   kind: "*"
-emit:
+produce:
   component: "tJava"
   needs_review: true
   keep_sas_source: true
 confidence: baja
 alternatives: []
-tests:
+casos:
   - tests/cases/05-tjava-last-resort

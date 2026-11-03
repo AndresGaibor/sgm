@@ -1,13 +1,13 @@
 id: 02-dedup
 version: 1
-rung: 2
+prioridad: 80
 description: "Deduplicación por clave."
-match:
+cuando:
   kind: "dedup"
   placement: "flow"
-emit:
+produce:
   component: "tUniqRow"
 confidence: alta
 alternatives: []
-tests:
+casos:
   - tests/cases/02-dedup

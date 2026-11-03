@@ -16,13 +16,13 @@ ROOT = Path(__file__).resolve().parents[2]
 VALID_RULE = {
     "id": "02-demo",
     "version": 1,
-    "rung": 2,
+    "prioridad": 80,
     "description": "demo",
-    "match": {"kind": "filter"},
-    "emit": {"component": "tFilterRow"},
+    "cuando": {"kind": "filter"},
+    "produce": {"component": "tFilterRow"},
     "confidence": "alta",
     "alternatives": [],
-    "tests": ["tests/cases/02-demo"],
+    "casos": ["tests/cases/02-demo"],
 }
 
 
@@ -56,13 +56,13 @@ def test_un_arbol_correcto_no_tiene_problemas(tmp_path: Path):
 
 
 def test_componente_fuera_del_catalogo_se_reporta(tmp_path: Path):
-    rule = {**VALID_RULE, "emit": {"component": "tInventada"}}
+    rule = {**VALID_RULE, "produce": {"component": "tInventada"}}
     problems = rules_validate.validate(_tree(tmp_path, rule))
     assert any("tInventada" in p.message and p.file.endswith("02-demo.yaml") for p in problems)
 
 
 def test_caso_inexistente_se_reporta(tmp_path: Path):
-    rule = {**VALID_RULE, "tests": ["tests/cases/no-existe"]}
+    rule = {**VALID_RULE, "casos": ["tests/cases/no-existe"]}
     problems = rules_validate.validate(_tree(tmp_path, rule))
     assert any("no-existe" in p.message for p in problems)
 
@@ -81,7 +81,7 @@ def test_campo_obligatorio_faltante_se_reporta_con_linea(tmp_path: Path):
 
 
 def test_comando_sale_con_uno_si_hay_errores(tmp_path: Path, monkeypatch):
-    root = _tree(tmp_path, {**VALID_RULE, "emit": {"component": "tInventada"}})
+    root = _tree(tmp_path, {**VALID_RULE, "produce": {"component": "tInventada"}})
     monkeypatch.setattr(rules_validate, "ROOT", root)
     result = CliRunner().invoke(app, ["rules", "validate"])
     assert result.exit_code == 1

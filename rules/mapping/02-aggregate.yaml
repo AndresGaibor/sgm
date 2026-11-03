@@ -1,13 +1,13 @@
 id: 02-aggregate
 version: 1
-rung: 2
+prioridad: 80
 description: "Agregados por grupo."
-match:
+cuando:
   kind: "aggregate"
   placement: "flow"
-emit:
+produce:
   component: "tAggregateRow"
 confidence: media
 alternatives: ["tMap"]
-tests:
+casos:
   - tests/cases/02-aggregate

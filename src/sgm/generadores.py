@@ -234,15 +234,15 @@ def _mapeo(identificador: str, firma: str) -> str:
     return (
         f"id: {identificador}\n"
         "version: 1\n"
-        "rung: 2\n"
+        "prioridad: 80\n"
         'description: "PENDIENTE: qué operación cubre esta regla."\n'
-        "match:\n"
+        "cuando:\n"
         "  kind: PENDIENTE\n"
-        "emit:\n"
+        "produce:\n"
         "  component: none  # sin componente hasta decidirlo; `none` no pasa a componente\n"
         "confidence: baja\n"
         "alternatives: []\n"
-        "tests:\n"
+        "casos:\n"
         f"  - tests/cases/{normalizar(firma)}\n"
     )
 

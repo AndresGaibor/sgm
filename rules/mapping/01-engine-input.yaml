@@ -1,13 +1,13 @@
 id: 01-engine-input
 version: 1
-rung: 1
+prioridad: 90
 description: "Lectura desde base de datos: componente de entrada del motor."
-match:
+cuando:
   kind: "read"
   placement: "db"
-emit:
+produce:
   component: "engine:input"
 confidence: alta
 alternatives: []
-tests:
+casos:
   - tests/cases/01-engine-input

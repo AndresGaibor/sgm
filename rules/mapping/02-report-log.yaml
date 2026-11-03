@@ -1,12 +1,12 @@
 id: 02-report-log
 version: 1
-rung: 2
+prioridad: 80
 description: "Reporte impreso que se registra en el log del Job (política reports = log)."
-match:
+cuando:
   kind: "report"
-emit:
+produce:
   component: "tLogRow"
 confidence: media
 alternatives: []
-tests:
+casos:
   - tests/cases/02-report-log

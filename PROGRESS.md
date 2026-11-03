@@ -946,3 +946,19 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Medición: en `client_large.sas`, los 390 `CREATE TABLE` tienen hecho en su línea; las 274 definiciones de macro son 10 nombres distintos; 0 líneas con contenido sin cubrir.
 - Verificación: `uv run pytest -q`: 408 pasan, 1 se salta; `uv run ruff check .`: limpio.
 - Pendiente: la fase 2 (motor de reglas por hechos) y el resto de las fases siguen en el plan `docs/automatizacion/03-plan-produccion.md`.
+
+## Hito 21. Motor de reglas: fase 2 de producción (parcial)
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`, fase 2):
+  - 2.1: esquema `schemas/rules/mapping.schema.json` con `prioridad`, `cuando`, `produce` y `casos`.
+  - 2.2: `cuando` es un lenguaje cerrado (`kind`, `placement`, `file_format`); el esquema rechaza cualquier otra clave.
+  - 2.3: `p10_components.resolve`: entre las reglas que coinciden gana la de mayor prioridad; si dos de igual prioridad proponen componentes distintos, se registra un `Conflicto` como decisión pendiente y el operador queda para revisión.
+  - 2.4: las 24 reglas de `rules/mapping/` migradas al formato nuevo (`match`→`cuando`, `emit`→`produce`, `tests`→`casos`, `rung`→`prioridad` = 100 − 10·peldaño). `rung` queda como valor derivado para las métricas.
+  - 2.5: `choose` es ahora un envoltorio sobre `resolve`; la primera coincidencia ya no decide por sí sola.
+- Medición previa a la migración: no hay solapes reales entre reglas de peldaños 1 a 4 en el corpus; la única regla que cubre todo es la de último recurso.
+- Pruebas: `tests/unit/test_reglas_conflictos.py` (4 de conflictos y prioridad, 1 de lenguaje cerrado).
+- Verificación: la suite completa pasa sin cambiar goldens (408 pasan, 1 se salta); `uv run ruff check .` limpio; `rules validate` limpio; `metrics --check` sobre `tests/fixtures/sas`: trinquete sin empeorar.
+- Pendiente de la fase 2 (no cerrado):
+  - 2.2: el lenguaje de `cuando` todavía no lee hechos (`tiene(tabla_escrita, alcance=work)`, `lectores(...)`); la sección 5.1 de `01-automatizacion.md` lo pide.
+  - 2.6: los patrones de Talend como datos (caché, joblet, parámetro, contexto de ambiente, `tDBRow` para SQL de consumo único) no existen todavía. Pasan a la fase 3, donde nacen los joblets.

@@ -1,13 +1,13 @@
 id: 02-select
 version: 1
-rung: 2
+prioridad: 80
 description: "Selección o descarte de columnas."
-match:
+cuando:
   kind: "select"
   placement: "flow"
-emit:
+produce:
   component: "tFilterColumns"
 confidence: alta
 alternatives: []
-tests:
+casos:
   - tests/cases/02-select

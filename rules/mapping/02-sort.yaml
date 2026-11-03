@@ -1,13 +1,13 @@
 id: 02-sort
 version: 1
-rung: 2
+prioridad: 80
 description: "Ordenación en flujo."
-match:
+cuando:
   kind: "sort"
   placement: "flow"
-emit:
+produce:
   component: "tSortRow"
 confidence: alta
 alternatives: ["tMap"]
-tests:
+casos:
   - tests/cases/02-sort

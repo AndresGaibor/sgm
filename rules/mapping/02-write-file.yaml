@@ -1,12 +1,12 @@
 id: 02-write-file
 version: 1
-rung: 2
+prioridad: 80
 description: "Escritura a archivo delimitado."
-match:
+cuando:
   kind: "write_file"
-emit:
+produce:
   component: "tFileOutputDelimited"
 confidence: alta
 alternatives: []
-tests:
+casos:
   - tests/cases/02-write-file

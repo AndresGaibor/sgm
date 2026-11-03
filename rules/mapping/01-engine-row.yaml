@@ -1,13 +1,13 @@
 id: 01-engine-row
 version: 1
-rung: 1
+prioridad: 90
 description: "SQL ejecutado en la base: componente de fila del motor."
-match:
+cuando:
   kind: "exec_sql"
   placement: "db"
-emit:
+produce:
   component: "engine:row"
 confidence: alta
 alternatives: []
-tests:
+casos:
   - tests/cases/01-engine-row

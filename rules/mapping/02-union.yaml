@@ -1,13 +1,13 @@
 id: 02-union
 version: 1
-rung: 2
+prioridad: 80
 description: "Unión de flujos con el mismo esquema."
-match:
+cuando:
   kind: "union"
   placement: "flow"
-emit:
+produce:
   component: "tUnite"
 confidence: alta
 alternatives: []
-tests:
+casos:
   - tests/cases/02-union

@@ -1,13 +1,13 @@
 id: 03-join
 version: 1
-rung: 3
+prioridad: 70
 description: "Unión por clave dentro de un tMap."
-match:
+cuando:
   kind: "join"
   placement: "flow"
-emit:
+produce:
   component: "tMap"
 confidence: media
 alternatives: ["tJoin"]
-tests:
+casos:
   - tests/cases/03-join

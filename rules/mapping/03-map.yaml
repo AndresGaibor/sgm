@@ -1,12 +1,12 @@
 id: 03-map
 version: 1
-rung: 3
+prioridad: 70
 description: "Mapa de varias salidas o con expresiones."
-match:
+cuando:
   kind: "map"
-emit:
+produce:
   component: "tMap"
 confidence: alta
 alternatives: []
-tests:
+casos:
   - tests/cases/03-map

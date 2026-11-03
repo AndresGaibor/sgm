@@ -89,11 +89,13 @@ def _check_rule(
     if "id" in data and path.stem != data["id"]:
         message = f"el nombre del archivo debe ser {data['id']}"
         problems.append(Problem(rel, "id", _line_of(text, "id"), message))
-    for test in data.get("tests", []) or []:
+    # `casos` es el nombre del formato por hechos (fase 2); `tests` se acepta en los demás tipos.
+    campo = "casos" if "casos" in data else "tests"
+    for test in data.get(campo, []) or []:
         if not (root / test / "expected.yaml").exists():
             message = f"el caso {test} no existe"
-            problems.append(Problem(rel, "tests", _line_of(text, "tests"), message))
-    component = (data.get("emit") or {}).get("component")
+            problems.append(Problem(rel, campo, _line_of(text, campo), message))
+    component = (data.get("produce") or data.get("emit") or {}).get("component")
     known = component_names()
     if isinstance(component, str) and component != "none" and not component.startswith("engine:"):
         if component not in known:

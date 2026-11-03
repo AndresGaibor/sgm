@@ -36,19 +36,35 @@ ENGINES_PATH = ROOT / "rules" / "talend" / "engines.json"
 NO_COMPONENT = "none"
 CANDIDATE = "candidato"
 _FUNCTION = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
-_REQUIRED = ("id", "version", "rung", "match", "emit", "confidence", "alternatives", "tests")
+_REQUIRED = (
+    "id",
+    "version",
+    "prioridad",
+    "cuando",
+    "produce",
+    "confidence",
+    "alternatives",
+    "casos",
+)
 
 
 @dataclass(frozen=True)
 class Rule:
+    """Regla de mapeo. `prioridad` (100 = la más alta) decide entre reglas que coinciden;
+    `rung` es el peldaño derivado (1 = motor, 5 = último recurso) que usan las métricas."""
+
     id: str
     version: int
-    rung: int
-    match: dict[str, Any]
-    emit: dict[str, Any]
+    prioridad: int
+    cuando: dict[str, Any]
+    produce: dict[str, Any]
     confidence: str
     alternatives: tuple[str, ...]
     description: str = ""
+
+    @property
+    def rung(self) -> int:
+        return (100 - self.prioridad) // 10
 
 
 def load_rules(directory: Path = RULES_DIR) -> list[Rule]:
@@ -63,9 +79,9 @@ def load_rules(directory: Path = RULES_DIR) -> list[Rule]:
             Rule(
                 id=str(raw["id"]),
                 version=int(raw["version"]),
-                rung=int(raw["rung"]),
-                match=dict(raw["match"]),
-                emit=dict(raw["emit"]),
+                prioridad=int(raw["prioridad"]),
+                cuando=dict(raw["cuando"]),
+                produce=dict(raw["produce"]),
                 confidence=str(raw["confidence"]),
                 alternatives=tuple(raw["alternatives"]),
                 description=str(raw.get("description", "")),
@@ -74,7 +90,7 @@ def load_rules(directory: Path = RULES_DIR) -> list[Rule]:
     ids = [r.id for r in rules]
     if len(ids) != len(set(ids)):
         raise ValueError("ids de regla duplicados")
-    return sorted(rules, key=lambda r: (r.rung, r.id))
+    return sorted(rules, key=lambda r: (-r.prioridad, r.id))
 
 
 def load_engines(path: Path = ENGINES_PATH) -> dict[str, dict[str, str]]:
@@ -88,7 +104,7 @@ def _file_format(op: Operator) -> str:
 
 
 def _matches(rule: Rule, op: Operator) -> bool:
-    match = rule.match
+    match = rule.cuando
     if match.get("kind") not in (None, "*") and op.kind != match["kind"]:
         return False
     if "placement" in match:
@@ -104,7 +120,7 @@ def _matches(rule: Rule, op: Operator) -> bool:
 
 
 def _resolve(rule: Rule, op: Operator, engines: dict[str, dict[str, str]]) -> str | None:
-    component = str(rule.emit["component"])
+    component = str(rule.produce["component"])
     if component.startswith("engine:"):
         placement = op.placement or ""
         if not placement.startswith("db:"):
@@ -114,21 +130,48 @@ def _resolve(rule: Rule, op: Operator, engines: dict[str, dict[str, str]]) -> st
     return component
 
 
-def choose(
-    op: Operator, rules: list[Rule], engines: dict[str, dict[str, str]]
-) -> tuple[Rule, str] | None:
-    """Primera regla de la escalera que aplica al operador, con su componente; None si ninguna.
+@dataclass(frozen=True)
+class Conflicto:
+    """Reglas de la misma prioridad que proponen componentes distintos para un operador.
 
-    El peldaño 5 (último recurso) no entra aquí: lo aplica `_tjava`, que respeta las excepciones
-    (una lectura o una consulta soportadas no son tJava).
+    No se elige una en silencio: el operador queda para revisión y la decisión lo recoge.
     """
+
+    opciones: tuple[tuple[str, str], ...]  # (id de la regla, componente)
+
+
+def resolve(
+    op: Operator, rules: list[Rule], engines: dict[str, dict[str, str]]
+) -> tuple[tuple[Rule, str] | None, Conflicto | None]:
+    """Regla ganadora y componente, o None; y el conflicto si las de mayor prioridad chocan.
+
+    Solo cuentan los peldaños de componente (1 a 4); el último recurso lo aplica `_tjava`.
+    Entre las que coinciden gana la de mayor prioridad y, a igual prioridad, la de id menor
+    (el orden de `load_rules`). Si a igual prioridad proponen componentes distintos, hay conflicto.
+    """
+    candidatos: list[tuple[Rule, str]] = []
     for rule in rules:
         if rule.rung >= 5 or not _matches(rule, op):
             continue
         component = _resolve(rule, op, engines)
         if component:
-            return rule, component
-    return None
+            candidatos.append((rule, component))
+    if not candidatos:
+        return None, None
+    mejor = max(rule.prioridad for rule, _ in candidatos)
+    top = [(rule, component) for rule, component in candidatos if rule.prioridad == mejor]
+    if len({component for _, component in top}) > 1:
+        opciones = tuple((rule.id, component) for rule, component in top)
+        return top[0], Conflicto(opciones)
+    return top[0], None
+
+
+def choose(
+    op: Operator, rules: list[Rule], engines: dict[str, dict[str, str]]
+) -> tuple[Rule, str] | None:
+    """Regla ganadora y su componente; None si ninguna aplica (ver `resolve` para conflictos)."""
+    found, _ = resolve(op, rules, engines)
+    return found
 
 
 def _expressions(op: Operator) -> list[str]:
@@ -201,7 +244,22 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
     for op in graph.operators():
         if op.status in ("hueco", "reemplazado") or op.kind == "unsupported":
             continue
-        found = choose(op, rules, engines)
+        found, conflicto = resolve(op, rules, engines)
+        if conflicto is not None:
+            ctx.plan.pending.append(
+                Pending(
+                    signature=op.signature,
+                    options=[
+                        {
+                            "opcion": component,
+                            "confianza": "media",
+                            "supuesto": f"propuesta de la regla {rule_id}",
+                        }
+                        for rule_id, component in conflicto.opciones
+                    ],
+                    default=found[1] if found else "",
+                )
+            )
         if found is None:
             found = _tjava(op, rules)
         if found is None:
@@ -215,7 +273,9 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
                 "status": CANDIDATE,
             }
             continue
-        needs_review = bool(rule.emit.get("needs_review")) or rule.rung >= 4
+        needs_review = bool(rule.produce.get("needs_review")) or rule.rung >= 4 or bool(
+            conflicto
+        )
         if rule.rung == 5:
             op.params["sas_source"] = op.params.get("statement") or op.signature
         if _unmapped(op, ctx.plan.gaps):
@@ -263,5 +323,5 @@ def _tjava(op: Operator, rules: list[Rule]) -> tuple[Rule, str] | None:
         return None
     for rule in rules:
         if rule.rung == 5 and _matches(rule, op):
-            return rule, str(rule.emit["component"])
+            return rule, str(rule.produce["component"])
     return None
