@@ -92,6 +92,8 @@ def _compress(p: _P, args: list[E]) -> E:
     chars = args[1].java[1:-1] if len(args) == 2 and args[1].kind == "str" else " "
     if len(args) == 2 and args[1].kind != "str":
         raise Unsupported("compress con caracteres que no son literales")
+    if any(ord(char) < 32 or char in "\u2028\u2029" for char in chars) or "\\" in chars:
+        raise Unsupported("compress con caracteres que requieren escape no demostrado")
     if len(chars) == 1:
         return E(
             _guard(
@@ -100,7 +102,11 @@ def _compress(p: _P, args: list[E]) -> E:
             ),
             "str",
         )
+    regex = "[" + re.escape(chars).replace("&", r"\&") + "]"
+    pattern_java = _jstr("'" + regex.replace("'", "''") + "'")
     return E(
-        _guard([args[0]], f'StringHandling.EREPLACE({args[0].java}, "[{re.escape(chars)}]", "")'),
+        _guard(
+            [args[0]], f"StringHandling.EREPLACE({args[0].java}, {pattern_java}, \"\")"
+        ),
         "str",
     )

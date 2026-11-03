@@ -1017,3 +1017,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Verificación: `uv run pytest -q`: 440 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
 - Decisión: aceptar solo el punto literal con `kd`, que es la combinación probada; no generalizar la construcción de clases regex para otras listas.
 - Bloqueo: la rutina candidata aún requiere validación en Talend Studio.
+
+
+## Hito 28. Escapar listas literales de COMPRESS en Java
+
+- Fecha: 2026-11-03
+- Qué se hizo: los patrones de caracteres múltiples para `COMPRESS` ahora pasan por el escapado regex y luego por el serializador de literales Java. La llamada de referencia con espacio, paréntesis, guion y punto deja de emitir escapes inválidos en la cadena Java. Las listas que contienen barras invertidas o caracteres de control quedan pendientes porque el parser todavía no conserva el literal original separado de su representación Java.
+- Evidencia: `tests/fixtures/sas/real/learning-sas-by-example/Example_code/Programs_Used_in_the_Second_Edition.sas`, línea 1513, usa `compress(Phone,' ()-.')`.
+- Pruebas: una regresión comprueba la cadena Java escapada; casos con barra invertida y salto de línea verifican que no se emite una candidata dudosa. RED observado antes del cambio; 13 focales pasan.
+- Verificación: `uv run pytest -q`: 443 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: no reconstruir caracteres que ya llegan escapados en Java ni literales con controles; se dejan pendientes hasta que el lexer conserve el valor SAS original.
+- Bloqueo: la rutina candidata requiere validación en Talend Studio.

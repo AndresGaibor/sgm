@@ -23,6 +23,15 @@ def test_compress_conserva_digitos_y_punto_decimal_demostrados():
     )
 
 
+def test_compress_escapa_caracteres_de_lista_para_java_y_regex():
+    result = translate_to_talend("compress(phone,' ()-.')")
+
+    assert result.java == (
+        r'(input_row.phone == null ? null : '
+        r'StringHandling.EREPLACE(input_row.phone, "[\\ \\(\\)\\-\\.]", ""))'
+    )
+
+
 @pytest.mark.parametrize(
     "sas",
     [
@@ -37,5 +46,11 @@ def test_compress_conserva_digitos_y_punto_decimal_demostrados():
     ],
 )
 def test_compress_deja_combinaciones_no_demostradas_pendientes(sas):
+    with pytest.raises(Unsupported):
+        translate_to_talend(sas)
+
+
+@pytest.mark.parametrize("sas", ["compress(value,'a\\b')", "compress(value,'a\nb')"])
+def test_compress_deja_escapes_que_no_puede_serializar_pendientes(sas):
     with pytest.raises(Unsupported):
         translate_to_talend(sas)
