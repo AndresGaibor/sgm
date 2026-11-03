@@ -229,7 +229,8 @@
           "supuesto": "alternativa a tAggregateRow"
         }
       ],
-      "default": "tAggregateRow",
+      "sugerido": "tAggregateRow",
+      "aplicado": false,
       "occurrences": 1
     }
   ],

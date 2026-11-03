@@ -217,7 +217,7 @@ def decisions_pending(
         options = ", ".join(group.options)
         typer.echo(
             f"{group.signature}  operadores={group.operators}  archivos={len(group.files)}  "
-            f"opciones=[{options}]  por_defecto={group.default}"
+            f"opciones=[{options}]  sugerido={group.default} (no aplicado)"
         )
 
 

@@ -108,13 +108,16 @@ def test_p08_cadena_lineal_no_se_corta():
     assert {"filter", "map"} & set(kinds)  # el filtro (o el map que lo funde)
 
 
-def test_p08_agregado_que_vuelve_a_unirse_con_su_detalle_materializa_la_arista():
+def test_p08_agregado_que_vuelve_a_unirse_deja_decision_no_materializa():
+    """La materialización no se aplica en silencio: queda como decisión con sugerencia."""
     text = (
         "data det; set src; run;\n"
         "proc means data=det noprint out=agg; class k; var v; run;\n"
         "data j; merge det(in=a) agg(in=b); by k; if a and b; run;\n"
     )
     plan = _plan(text)
-    materializadas = [e for e in plan.graph.edges() if e.materialize is not None]
-    assert materializadas and materializadas[0].materialize == "temp_table"
-    assert any(p.default == "temp_table" for p in plan.pending)
+    # Ninguna arista se materializa sin decisión humana.
+    assert all(e.materialize is None for e in plan.graph.edges())
+    pendientes = [p for p in plan.pending if p.default == "temp_table"]
+    assert pendientes
+    assert all(o["aplicado"] is False for p in pendientes for o in p.options)

@@ -700,7 +700,8 @@
           "supuesto": "alternativa a tFileInputDelimited"
         }
       ],
-      "default": "tFileInputDelimited",
+      "sugerido": "tFileInputDelimited",
+      "aplicado": false,
       "occurrences": 1
     },
     {
@@ -717,7 +718,8 @@
           "supuesto": "alternativa a tSortRow"
         }
       ],
-      "default": "tSortRow",
+      "sugerido": "tSortRow",
+      "aplicado": false,
       "occurrences": 1
     },
     {
@@ -734,7 +736,8 @@
           "supuesto": "alternativa a tFileInputDelimited"
         }
       ],
-      "default": "tFileInputDelimited",
+      "sugerido": "tFileInputDelimited",
+      "aplicado": false,
       "occurrences": 1
     },
     {
@@ -751,7 +754,8 @@
           "supuesto": "alternativa a tSortRow"
         }
       ],
-      "default": "tSortRow",
+      "sugerido": "tSortRow",
+      "aplicado": false,
       "occurrences": 1
     },
     {
@@ -768,7 +772,8 @@
           "supuesto": "alternativa a tSortRow"
         }
       ],
-      "default": "tSortRow",
+      "sugerido": "tSortRow",
+      "aplicado": false,
       "occurrences": 1
     },
     {
@@ -785,7 +790,8 @@
           "supuesto": "alternativa a tMap"
         }
       ],
-      "default": "tMap",
+      "sugerido": "tMap",
+      "aplicado": false,
       "occurrences": 1
     },
     {
@@ -802,7 +808,8 @@
           "supuesto": "alternativa a tFilterRow"
         }
       ],
-      "default": "tFilterRow",
+      "sugerido": "tFilterRow",
+      "aplicado": false,
       "occurrences": 1
     }
   ],

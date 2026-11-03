@@ -13,9 +13,9 @@ Talend (OnSubjobOk), no una conexión de filas:
 Un componente que supera `max_components_per_job` (`env/project.json`) se parte en trozos en orden
 topológico. Es el único corte que rompe una conexión de filas, y queda anotado como tamaño máximo.
 
-Además, un agregado que vuelve a unirse con su detalle en flujo necesita una arista
-materializada. Su volumen no se conoce, así que se marca `temp_table` y queda como decisión
-pendiente.
+Además, un agregado que vuelve a unirse con su detalle en flujo necesita decidir si su arista se
+materializa. Su volumen no se conoce: la arista no se materializa y queda como decisión pendiente,
+con `temp_table` como sugerencia no aplicada.
 """
 
 from __future__ import annotations
@@ -54,8 +54,11 @@ def _materialize(graph: Graph, ctx: PassContext, log: PassLog) -> None:
                 others = [p for p in graph.predecessors(join.id) if p != mid.id]
                 if not any(p in shared or graph.ancestors(p) & shared for p in others):
                     continue
-                graph.set_edge_materialize(edge, "temp_table")
-                log.metrics["materializadas"] = log.metrics.get("materializadas", 0) + 1
+                # No se materializa: la elección depende del volumen, que no se conoce. La arista
+                # queda sin materializar y la decisión lleva la sugerencia, no aplicada.
+                log.metrics["pendientes_materializacion"] = (
+                    log.metrics.get("pendientes_materializacion", 0) + 1
+                )
                 ctx.plan.pending.append(
                     Pending(
                         signature=agg.signature,
@@ -64,8 +67,14 @@ def _materialize(graph: Graph, ctx: PassContext, log: PassLog) -> None:
                                 "opcion": "temp_table",
                                 "confianza": "media",
                                 "supuesto": "volumen grande",
+                                "aplicado": False,
                             },
-                            {"opcion": "hash", "confianza": "media", "supuesto": "volumen pequeño"},
+                            {
+                                "opcion": "hash",
+                                "confianza": "media",
+                                "supuesto": "volumen pequeño",
+                                "aplicado": False,
+                            },
                         ],
                         default="temp_table",
                     )

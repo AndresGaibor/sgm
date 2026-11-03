@@ -962,3 +962,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pendiente de la fase 2 (no cerrado):
   - 2.2: el lenguaje de `cuando` todavía no lee hechos (`tiene(tabla_escrita, alcance=work)`, `lectores(...)`); la sección 5.1 de `01-automatizacion.md` lo pide.
   - 2.6: los patrones de Talend como datos (caché, joblet, parámetro, contexto de ambiente, `tDBRow` para SQL de consumo único) no existen todavía. Pasan a la fase 3, donde nacen los joblets.
+
+## Hito 22. Decisiones sin valor aplicado: fase 3 de producción (parcial)
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`, fase 3):
+  - 3.3 (parcial): la pasada 8 ya no fija `temp_table` en la arista. Queda sin materializar y la decisión lleva `temp_table` como sugerencia, con cada opción marcada `aplicado: false`. Es el cambio que quita la materialización silenciosa.
+  - 3.4: en el plan JSON, `default` pasa a `sugerido` y cada decisión lleva `aplicado: false`. La CLI muestra "sugerido ... (no aplicado)".
+- Decisión: todas las decisiones pendientes se emiten con `aplicado: false` hasta que una persona las confirme, también las de alternativas de componente de la pasada 10, que hoy usan el componente propuesto como candidato.
+- Cambio de comportamiento deliberado: `tests/golden/*.plan.json` (4 programas) cambian solo en las claves de decisión (`default` → `sugerido`, más `aplicado`). Se comprobó con un script que, ignorando esas tres claves, los planes son idénticos. Se regeneraron con `SGM_UPDATE_GOLDEN=1`.
+- Prueba: `test_p08_agregado_que_vuelve_a_unirse_deja_decision_no_materializa` comprueba que ninguna arista queda materializada sin decisión.
+- Verificación: `uv run pytest -q`: 413 pasan, 1 se salta; `uv run ruff check .`: limpio.
+- Pendiente de la fase 3 (no cerrado): 3.1 campos por valor (`fuente`, `regla`, `confianza`, `hechos`), 3.2 modelo único de pendiente, 3.5 regla de materialización por lectores, 3.6 residuo de bloques repetidos, 3.7 y 3.8 joblets y sus parámetros, 3.9 contextos de ambiente como pendientes, 3.10 división de los archivos de más de 300 líneas.

@@ -57,7 +57,8 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
             {
                 "signature": p.signature,
                 "options": p.options,
-                "default": p.default,
+                "sugerido": p.default,
+                "aplicado": False,
                 "occurrences": p.occurrences,
             }
             for p in plan.pending
