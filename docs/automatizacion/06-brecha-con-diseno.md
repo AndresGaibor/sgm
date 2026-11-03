@@ -36,3 +36,21 @@ Medido el 3 de noviembre de 2026 sobre `tests/fixtures/sas/client/client_large.s
 
 Cada punto se puede medir con la misma tabla. El objetivo es que la tabla de arriba se acerque a
 la columna de la izquierda sin tocar el archivo de referencia a mano.
+
+## Mediciones deterministas adicionales (3 de noviembre de 2026)
+
+Estas medidas sustituyen la premisa de "30 bloques idénticos" del diseño de referencia.
+
+- **Regiones por `%macro ambiente`:** 30 regiones, pero solo 6 comparten el mismo multiconjunto de
+  tipos de operador, y solo 1 tiene la misma longitud que la primera. La región 0 tiene 82
+  operadores y la región 1 tiene 15. No son copias del mismo bloque.
+- **Sub-cadenas repetidas de operadores:** con longitud 3 hay 30 tipos de cadena repetida que
+  cubren el 62 % de los operadores secuenciales. Como joblet, cada aparición sigue siendo una
+  llamada: unas 171 llamadas, no una. No baja los componentes visibles de forma útil.
+- **Fusión de cadenas lineales de componentes:** de 330 componentes reales a 210 cadenas. 163 de
+  esas cadenas son un solo componente, porque hay puntos de ramificación.
+
+Conclusión medida: con transformaciones deterministas sobre la estructura, el techo para este
+archivo está cerca de 200 componentes visibles, no de 80. Llegar a 80 exige unir sabanas
+distintas en pocos jobs, y eso es una decisión sobre qué procesos son el mismo proceso. El
+archivo no lo dice por estructura.
