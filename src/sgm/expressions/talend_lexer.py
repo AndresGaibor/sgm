@@ -31,9 +31,44 @@ def _tokens(text: str) -> list[tuple[str, str]]:
     return out
 
 
+def _collapse_whitespace_outside_strings(text: str) -> str:
+    """Normaliza espacios SAS sin alterar el contenido de literales entre comillas."""
+    out: list[str] = []
+    quote: str | None = None
+    pending_space = False
+    pos = 0
+    while pos < len(text):
+        char = text[pos]
+        if quote is not None:
+            out.append(char)
+            if char == quote:
+                if pos + 1 < len(text) and text[pos + 1] == quote:
+                    out.append(text[pos + 1])
+                    pos += 2
+                    continue
+                quote = None
+            pos += 1
+            continue
+        if char in ("'", '"'):
+            if pending_space and out:
+                out.append(" ")
+            pending_space = False
+            quote = char
+            out.append(char)
+        elif char.isspace():
+            pending_space = bool(out)
+        else:
+            if pending_space and out:
+                out.append(" ")
+            pending_space = False
+            out.append(char)
+        pos += 1
+    return "".join(out).strip()
+
+
 def _clean(text: str) -> str:
     """Quita lo que acompaña a una expresión de PROC SQL y no es parte de ella."""
-    text = re.sub(r"\s+", " ", text).strip()
+    text = _collapse_whitespace_outside_strings(text)
     text = re.sub(r"(?i)^(on|where|having)\s+", "", text)
     text = re.sub(r"(?i)^distinct\s+", "", text)
     text = re.sub(

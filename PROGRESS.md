@@ -973,3 +973,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Métricas: el trinquete final pasa con 13,5 s para 189 programas, 8532 pasos SAS, 629 nodos y 1328 componentes. Dos mediciones anteriores excedieron solo el tiempo (21,3 y 21,6 s frente a 15,9 s + 20 %). El hito 22, cargado en memoria bajo las mismas condiciones, registró 21,4 s. La sustitución y el etiquetado DATA sumaron 0,021 s en el perfil. Se conservó la línea base.
 - Decisiones: conservar las dos clases de comillas de SAS antes de traducir el informat, sin añadir equivalencias. Guardar el origen en cada sentencia conserva las rutas por ocurrencia del hito 22 incluso si un mismo DATA combina archivos distintos.
 - Bloqueos: ninguno. Las candidatas históricas siguen pendientes de validación en Talend Studio.
+
+
+## Hito 24. Preservar espacios en literales SAS de expresiones
+
+- Fecha: 2026-11-03
+- Qué se hizo: la limpieza previa al parseo ahora colapsa espacios solo fuera de literales; conserva intactos los espacios en cadenas con comillas simples o dobles y las comillas duplicadas de SAS.
+- Hallazgo: `_clean` aplicaba una expresión regular sobre todo el texto. Cuatro regresiones RED demostraron que `'a   b'`, `"a   b"`, cadenas con comillas SAS duplicadas y concatenaciones cambiaban el contenido antes de traducirse a Java.
+- Pruebas: las cuatro regresiones pasan tras el cambio; no cambia la normalización de espacios alrededor de expresiones.
+- Verificación: `uv run pytest -q`: 425 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: los espacios dentro de un literal son datos y no se normalizan. No se agregaron dependencias ni se modificó la línea base.
+- Bloqueos: ninguno.

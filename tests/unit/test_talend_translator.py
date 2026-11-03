@@ -58,6 +58,21 @@ def test_texto_usa_las_rutinas_de_talend():
     assert java("count(x,'a')") == 'StringHandling.COUNT(input_row.x, "a")'
 
 
+@pytest.mark.parametrize(
+    ("sas", "expected"),
+    [
+        ("'a   b'", '"a   b"'),
+        ('"a   b"', '"a   b"'),
+        ("'a''b   c'", '"a\'b   c"'),
+        ("  'a   b'   ||   'c  d'  ", '("a   b" + "c  d")'),
+    ],
+)
+def test_limpieza_conserva_espacios_dentro_de_literales(sas, expected):
+    result = translate_to_talend(sas)
+
+    assert result.java == expected
+
+
 def test_longitud_y_conteo_de_caracteres():
     assert java("length(x)") == (
         "(input_row.x == null ? null : StringHandling.LEN(StringHandling.RTRIM(input_row.x)))"
