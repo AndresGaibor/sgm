@@ -77,11 +77,17 @@ def _scan(p: _P, args: list[E]) -> E:
 def _compress(p: _P, args: list[E]) -> E:
     _need(args, 1, 3, "compress")
     if len(args) == 3:
-        if args[1].kind != "omitted" or args[2].java != '"kd"':
+        if args[2].java != '"kd"':
             raise Unsupported("compress con modificadores no demostrados")
+        if args[1].kind == "omitted":
+            pattern = "[^0-9]"
+        elif args[1].kind == "str" and args[1].java == '"."':
+            pattern = "[^0-9.]"
+        else:
+            raise Unsupported("compress con una lista de caracteres no demostrada")
         source = args[0]
         return E(
-            _guard([source], f'StringHandling.EREPLACE({source.java}, "[^0-9]", "")'), "str"
+            _guard([source], f'StringHandling.EREPLACE({source.java}, "{pattern}", "")'), "str"
         )
     chars = args[1].java[1:-1] if len(args) == 2 and args[1].kind == "str" else " "
     if len(args) == 2 and args[1].kind != "str":

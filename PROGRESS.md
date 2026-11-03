@@ -1006,3 +1006,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Verificación: `uv run pytest -q`: 437 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
 - Decisión: soportar solo la combinación literal `kd` con lista de caracteres omitida, porque es la forma probada; no inferir combinaciones equivalentes por orden o variantes de modificadores.
 - Bloqueo: la expresión Java candidata aún requiere validación en Talend Studio; permanece sujeta a revisión.
+
+
+## Hito 27. Preservar punto decimal en COMPRESS con KD
+
+- Fecha: 2026-11-03
+- Qué se hizo: se amplió la combinación demostrada de `COMPRESS` para aceptar una lista de caracteres igual al literal `'.'` con el modificador exacto `'kd'`. La expresión conserva dígitos y punto decimal con el patrón `[^0-9.]`; otras listas explícitas siguen pendientes.
+- Evidencia: `tests/fixtures/sas/real/ci360-download-client/macros/dsc_create_attrib.sas`, línea 97, reemplaza la coma decimal por punto y luego usa `compress(...,'.','kd')` para extraer la precisión numérica de tipos como `decimal(13,6)`.
+- Pruebas: una regresión verifica el Java exacto y dos variantes de lista de caracteres sin evidencia quedan como `Unsupported`. RED observado antes del cambio. 10 focales pasan.
+- Verificación: `uv run pytest -q`: 440 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: aceptar solo el punto literal con `kd`, que es la combinación probada; no generalizar la construcción de clases regex para otras listas.
+- Bloqueo: la rutina candidata aún requiere validación en Talend Studio.
