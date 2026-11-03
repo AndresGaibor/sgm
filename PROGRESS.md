@@ -1051,3 +1051,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 24,1 s frente al límite 19,08 s. En el commit de control Hito 29, medido por separado, registró 23,6 s y excedió el mismo límite. No se modificó la línea base.
 - Decisión: conservar el valor literal SAS para separar el escape regex del escape Java; no inferir comportamiento para delimitadores vacíos ni controles. Sin dependencias nuevas.
 - Bloqueos: el tiempo del corpus continúa sobre el umbral también en el control; las expresiones candidatas requieren validación en Talend Studio.
+
+## Hito 31. Escapar los literales de patrones LIKE
+
+- Fecha: 2026-11-03
+- Qué se hizo: LIKE ahora toma el patrón SAS decodificado, escapa los caracteres que pertenecen al texto y serializa el resultado como literal Java. Solo los comodines % y _ se convierten en .* y ., respectivamente. Los patrones calculados y los que contienen caracteres de control quedan pendientes.
+- Hallazgo: el parser reconstruía el patrón desde Java ya serializado y dejaba metacaracteres como punto o asterisco activos en el regex. También intentaba tratar una expresión de texto calculada como literal.
+- Evidencia de wildcard: tests/fixtures/sas/real/ci360-download-client/macros/dsc_appendtocustomerdb.sas, línea 41, usa LIKE con un comodín % al final del patrón.
+- Pruebas: RED observado para los metacaracteres punto y asterisco, patrones calculados y caracteres de control. Las cinco pruebas focales pasan; la barra invertida conserva su traducción esperada.
+- Verificación: uv run pytest -q: 453 pasan y 1 se salta (97,50 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 22,8 s frente al límite 19,08 s. El control Hito 30 registró 24,1 s; no se modificó la línea base.
+- Decisión: usar E.literal como fuente y mantener calculados o controles pendientes en vez de inferir escapes de LIKE que el patrón no demuestra. Sin dependencias nuevas.
+- Bloqueos: el tiempo del corpus sigue sobre el umbral, aunque queda por debajo del control Hito 30; las expresiones candidatas requieren validación en Talend Studio.

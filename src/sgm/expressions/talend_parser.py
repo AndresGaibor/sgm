@@ -98,9 +98,15 @@ class ExpressionParser:
         if k == "id" and low == "like":
             self.take()
             pattern = self.add()
-            if pattern.kind != "str":
+            if pattern.kind != "str" or pattern.literal is None:
                 raise Unsupported("LIKE con un patrón que no es literal")
-            regex = _jstr("'" + re.sub(r"%", ".*", re.sub(r"_", ".", pattern.java[1:-1])) + "'")
+            if any(not char.isprintable() for char in pattern.literal):
+                raise Unsupported("LIKE con un patrón que contiene caracteres de control")
+            regex = "".join(
+                ".*" if char == "%" else "." if char == "_" else re.escape(char)
+                for char in pattern.literal
+            )
+            regex = _jstr("'" + regex.replace("'", "''") + "'")
             core = f"({left.java} != null && {left.java}.matches({regex}))"
             return E(f"(!{core})" if negate else core, "bool")
         op = _CMP.get(low) if k in ("op", "id") else None
