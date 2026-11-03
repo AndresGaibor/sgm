@@ -54,3 +54,25 @@ Conclusión medida: con transformaciones deterministas sobre la estructura, el t
 archivo está cerca de 200 componentes visibles, no de 80. Llegar a 80 exige unir sabanas
 distintas en pocos jobs, y eso es una decisión sobre qué procesos son el mismo proceso. El
 archivo no lo dice por estructura.
+
+## Fusión de joins en tMap: investigación y resultado (intento revertido)
+
+**Investigación.** Según la documentación de Talend 8.0, un join se modela dentro de `tMap` como
+lookup: tiene un modelo de coincidencia (`unique match`, `first match`, `all matches`) y un tipo de
+join (inner o left outer). Referencias: [ejemplo de modelos de coincidencia](https://help.qlik.com/talend/en-US/components/8.0/tmap/example-job-implementing-different-match-models?l=de-DE)
+y [diferencias entre modelos](https://help.qlik.com/talend/en-US/components/8.0/tmap/differences-between-unique-match-first-match-and-all-matches).
+Por tanto, un join sí puede vivir dentro de un `tMap`.
+
+**Medición.** Incluir `join` en la fusión de cadenas (`p06`) baja los `tMap` de 175 a 149 y los
+componentes reales de 330 a 296 en `client_large.sas`.
+
+**Por qué se revirtió.** Al fundir el join en un `map`, desaparece como operador suelto y rompe
+dos cosas del modelo del proyecto:
+- las decisiones por firma: un override `tJoin` ya no puede aplicarse a ese join
+  (`tests/unit/test_store.py`, cuatro fallos);
+- la detección del patrón de materialización de la pasada 8 (`test_fusion_partition`), y una
+  prueba de SQL que espera un join explícito (`test_sql_flujo.py`).
+
+**Decisión pendiente.** Fundir joins solo cuando no hay override ni decisión abierta sobre ese join
+exige que la firma del join se conserve dentro del paso del `map`. Es el siguiente cambio que
+tendría sentido; requiere tu aprobación porque toca el modelo de decisiones.
