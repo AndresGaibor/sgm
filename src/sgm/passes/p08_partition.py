@@ -27,6 +27,20 @@ NAME = "p08_partition"
 CONTROL = frozenset({"exec_sql", "external_load", "iterate"})
 
 
+def sugerir_materializacion(lectores: int, entregable: bool, frontera: bool) -> tuple[str, str]:
+    """Regla de materialización (fase 3.5): sugerencia y motivo. No se aplica sin decisión (3.4).
+
+    - Entregable o frontera entre etapas: materializar.
+    - Dos o más lectores: materializar.
+    - Un solo lector y no entregable: encadenar (WITH o subconsulta).
+    """
+    if entregable or frontera:
+        return "temp_table", "entregable o frontera entre etapas"
+    if lectores >= 2:
+        return "temp_table", "dos o más lectores"
+    return "encadenar", "un solo lector y no es entregable"
+
+
 def _materialize(graph: Graph, ctx: PassContext, log: PassLog) -> None:
     """Agregado que vuelve a unirse, en flujo, con un dato que comparte con su detalle.
 
@@ -76,7 +90,7 @@ def _materialize(graph: Graph, ctx: PassContext, log: PassLog) -> None:
                                 "aplicado": False,
                             },
                         ],
-                        default="temp_table",
+                        default=sugerir_materializacion(2, False, False)[0],
                     )
                 )
                 break

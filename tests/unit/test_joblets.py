@@ -38,6 +38,7 @@ def test_invariantes_de_joblet() -> None:
         claves = {k for inst in j["instancias"] for k in inst}
         assert claves == set(j["parametros"])
         assert len(j["fuente"]) == j["apariciones"]
+        assert isinstance(j["entradas"], list) and isinstance(j["salidas"], list)
 
 
 def test_sin_repeticion_no_hay_joblet() -> None:

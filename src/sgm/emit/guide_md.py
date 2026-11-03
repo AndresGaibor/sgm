@@ -181,7 +181,12 @@ def _joblets(plan: Plan) -> list[str]:
                 f"{ev['file']}:{ev['line_start']}-{ev['line_end']}" for ev in aparicion
             )
             lines.append(f"  - {rangos or 'sin evidencia'}")
-        lines.append("- Entradas y salidas del joblet: pendientes (no calculadas aún).")
+        entradas = ", ".join(f"`{d}`" for d in j.get("entradas", [])) or "ninguna"
+        salidas = ", ".join(f"`{d}`" for d in j.get("salidas", [])) or "ninguna"
+        lines.append(f"- Entradas (de fuera del bloque): {entradas}.")
+        lines.append(f"- Salidas (para el resto del programa): {salidas}.")
+        if j.get("variable_entre_apariciones"):
+            lines.append("- Los conjuntos cambian entre apariciones: ver parámetros.")
         lines.append("")
     return lines
 

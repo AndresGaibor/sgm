@@ -44,6 +44,32 @@ def _tipo_de_parametro(valores: list[str]) -> str:
     return "tabla" if valores and all(_TABLA.match(v) for v in valores) else "literal"
 
 
+def _entradas_salidas(ordered) -> tuple[list[str], list[str]]:
+    """Conjuntos de datos que el bloque lee de fuera y que escribe para fuera (4.1).
+
+    Entrada: lectura de un conjunto que el propio bloque no produce antes. Salida: escritura
+    o `outputs` de un paso que no vuelve a leer dentro del bloque.
+    """
+    producidos: set[str] = set()
+    entradas: list[str] = []
+    salidas: list[str] = []
+    for op in ordered:
+        if op.kind == "read" and isinstance(op.params.get("dataset"), str):
+            nombre = op.params["dataset"]
+            if nombre not in producidos and nombre not in entradas:
+                entradas.append(nombre)
+        if op.kind == "write":
+            destinos = [op.params.get("dataset")]
+        else:
+            destinos = op.params.get("outputs", [])
+        for nombre in destinos:
+            if isinstance(nombre, str):
+                producidos.add(nombre)
+                if nombre not in salidas:
+                    salidas.append(nombre)
+    return entradas, salidas
+
+
 def _register_joblet(plan, template: str, label, body, instances, varying, contexts) -> None:
     """Un bloque repetido pasa a joblet: una unidad por forma, con todas sus apariciones.
 
@@ -76,6 +102,15 @@ def _register_joblet(plan, template: str, label, body, instances, varying, conte
     existente["parametros"] = sorted(
         set(existente["parametros"]) | {f"parametro_{k}" for k in varying}
     )
+    entradas, salidas = _entradas_salidas(body)
+    if "entradas" not in existente:
+        existente["entradas"] = entradas
+        existente["salidas"] = salidas
+        existente["variable_entre_apariciones"] = False
+    for ordered, _ in instances:
+        otras_entradas, otras_salidas = _entradas_salidas(ordered)
+        if otras_entradas != existente["entradas"] or otras_salidas != existente["salidas"]:
+            existente["variable_entre_apariciones"] = True
     existente["instancias"] += contexts
     tipos = existente.setdefault("tipos", {})
     for k in varying:

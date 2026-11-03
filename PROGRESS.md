@@ -1070,3 +1070,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Goldens regenerados. Verificado con un script que, quitando `residuos_bloques`, `tipos` y los pendientes `contexto:*`, son idénticos al commit anterior.
 - Pruebas: `tests/unit/test_joblets.py` (tipos y residuos), `tests/unit/test_mapa_flujo.py` (etapas).
 - Verificación: `uv run ruff check .`: limpio. Suite completa: ver la línea del commit siguiente.
+
+## Hito 31. Entradas y salidas de joblets y regla de materialización: 4.1 y 3.5
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`):
+  - 4.1: cada joblet declara `entradas` (conjuntos que lee de fuera del bloque) y `salidas` (conjuntos que escribe para el resto del programa), con `variable_entre_apariciones` cuando cambian entre copias. La guía las muestra en lugar de la nota pendiente.
+  - 3.5: `sugerir_materializacion(lectores, entregable, frontera)` en `p08_partition.py`: entregable o frontera → materializar; dos o más lectores → materializar; un lector y no entregable → encadenar. La decisión sigue sin aplicarse (3.4). El único patrón que materializa hoy usa la regla con dos lectores, así que la salida no cambia.
+- Parcial, sin cerrar:
+  - 3.5: la regla está probada, pero el entregable y la frontera entre etapas aún no se leen de los hechos ni de los operadores. Por eso la pasada solo le pasa dos lectores y no entregable.
+- Pruebas: `test_regla_de_materializacion_tabla_de_decision` (tabla de decisión) y los invariantes de joblet con entradas y salidas.
+- Verificación: `uv run pytest -q`: 432 pasan, 1 se salta. `uv run ruff check .`: limpio.
+- Pendiente del plan: 5.8 (validación extremo a extremo contra SAS y Talend con datos). Requiere un ambiente externo.

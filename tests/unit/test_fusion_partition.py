@@ -121,3 +121,13 @@ def test_p08_agregado_que_vuelve_a_unirse_deja_decision_no_materializa():
     pendientes = [p for p in plan.pending if p.default == "temp_table"]
     assert pendientes
     assert all(o["aplicado"] is False for p in pendientes for o in p.options)
+
+
+def test_regla_de_materializacion_tabla_de_decision():
+    """Fase 3.5: la sugerencia sale de lectores, entregable y frontera; nunca se aplica sola."""
+    from sgm.passes.p08_partition import sugerir_materializacion as regla
+
+    assert regla(1, False, False)[0] == "encadenar"
+    assert regla(2, False, False)[0] == "temp_table"
+    assert regla(1, True, False)[0] == "temp_table"
+    assert regla(1, False, True)[0] == "temp_table"
