@@ -114,7 +114,7 @@ def _compress(p: _P, args: list[E]) -> E:
             ),
             "str",
         )
-    regex = "[" + re.escape(chars).replace("&", r"\&") + "]"
+    regex = "[" + re.escape(chars) + "]"
     pattern_java = _jstr("'" + regex.replace("'", "''") + "'")
     return E(
         _guard(

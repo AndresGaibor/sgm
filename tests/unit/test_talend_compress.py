@@ -32,6 +32,15 @@ def test_compress_escapa_caracteres_de_lista_para_java_y_regex():
     )
 
 
+def test_compress_no_duplica_el_escape_regex_de_ampersand():
+    result = translate_to_talend("compress(value,'a&b')")
+
+    assert result.java == (
+        r'(input_row.value == null ? null : '
+        r'StringHandling.EREPLACE(input_row.value, "[a\\&b]", ""))'
+    )
+
+
 def test_compress_usa_el_literal_sas_para_escapar_barra_invertida():
     result = translate_to_talend(r"compress(value,'a\b')")
 

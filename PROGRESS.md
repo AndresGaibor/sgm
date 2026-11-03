@@ -1063,3 +1063,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 22,8 s frente al límite 19,08 s. El control Hito 30 registró 24,1 s; no se modificó la línea base.
 - Decisión: usar E.literal como fuente y mantener calculados o controles pendientes en vez de inferir escapes de LIKE que el patrón no demuestra. Sin dependencias nuevas.
 - Bloqueos: el tiempo del corpus sigue sobre el umbral, aunque queda por debajo del control Hito 30; las expresiones candidatas requieren validación en Talend Studio.
+
+## Hito 32. Evitar el doble escape de ampersand en COMPRESS
+
+- Fecha: 2026-11-03
+- Qué se hizo: se eliminó el escape manual adicional de ampersand después de re.escape. La regex queda escapada una vez como patrón y luego _jstr la serializa para Java, evitando añadir la barra invertida a la lista de caracteres eliminados.
+- Hallazgo: re.escape ya escapa ampersand en la versión de Python del proyecto. El reemplazo posterior lo escapaba otra vez y producía cuatro barras en el fuente Java en lugar de dos.
+- Evidencia: la regresión sintética compress(value,'a&b') mostró la diferencia exacta. No se encontró una lista literal con ampersand en los programas SAS del corpus revisado.
+- Pruebas: RED observado para la salida Java con ampersand; 15 pruebas focales de COMPRESS pasan tras el arreglo.
+- Verificación: uv run pytest -q: 454 pasan y 1 se salta (103,39 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 27,8 s frente al límite 19,08 s. El control Hito 31, medido por separado, registró 43,7 s; la corrida previa de Hito 31 registró 22,8 s. La variación impide atribuir el tiempo a este cambio. No se modificó la línea base.
+- Decisión: conservar re.escape como única codificación regex y mantener _jstr para el nivel Java. Sin dependencias nuevas.
+- Bloqueos: el tiempo del corpus continúa variable y sobre el umbral; las expresiones candidatas requieren validación en Talend Studio.
