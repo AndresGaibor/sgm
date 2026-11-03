@@ -65,9 +65,19 @@ def _scan(p: _P, args: list[E]) -> E:
     n = int(args[1].java)
     if n == 0 or abs(n) > 2_147_483_647:
         raise Unsupported("scan con una posición fuera del rango seguro")
-    delims = re.escape(args[2].java[1:-1]) if len(args) == 3 else r"\\s,;"
+    if len(args) == 3:
+        delimiters = args[2].literal
+        if delimiters is None or not delimiters or any(not char.isprintable() for char in delimiters):
+            raise Unsupported("scan con delimitadores vacíos o que requieren escape no demostrado")
+        delims = re.escape(delimiters)
+    else:
+        delims = r"\s,;"
     p.warnings.add("scan: los delimitadores consecutivos cuentan como uno, como en SAS")
-    tokens = f'{args[0].java}.replaceAll("^[{delims}]+", "").split("[{delims}]+")'
+    prefix_regex = f"^[{delims}]+"
+    token_regex = f"[{delims}]+"
+    prefix_java = _jstr("'" + prefix_regex.replace("'", "''") + "'")
+    token_java = _jstr("'" + token_regex.replace("'", "''") + "'")
+    tokens = f"{args[0].java}.replaceAll({prefix_java}, \"\").split({token_java})"
     index = str(n - 1) if n > 0 else f"{tokens}.length + {n}"
     return E(
         _guard([args[0]], f"({tokens}.length >= {abs(n)} ? {tokens}[{index}] : null)"), "str"

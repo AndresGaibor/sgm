@@ -1040,3 +1040,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Métricas: `sgm metrics tests/fixtures/sas --check` marca solo `tiempo_compilacion_s`: 22,4 s en esta rama frente a 23,2 s en el commit Hito 28; ambos exceden el límite 19,08 s. No se modificó la línea base.
 - Decisión: conservar el valor SAS decodificado en `E.literal`; no serializar caracteres de control como literales Java hasta tener un escapado completo.
 - Bloqueo: el umbral temporal también falla en el commit de control; queda pendiente una corrida dentro del límite, sin atribuirlo a este cambio.
+
+## Hito 30. Escapar los delimitadores de SCAN en Java
+
+- Fecha: 2026-11-03
+- Qué se hizo: SCAN construye sus patrones desde el valor SAS decodificado y serializa cada regex como literal Java. Los delimitadores punto, ampersand y barra invertida quedan escapados en ambas capas. Los delimitadores personalizados vacíos, no literales o con caracteres de control quedan pendientes.
+- Evidencia: tests/fixtures/sas/real/ts-sas-legacy-analytics/Macro/RunAll.sas, líneas 131–132, separa el nombre y la extensión con scan(basename,1,".") y scan(basename,2,".").
+- Pruebas: se observó RED para punto, ampersand y delimitador vacío. Las nueve pruebas focales de SCAN pasan, incluidas las regresiones de punto, ampersand, barra invertida y delimitador vacío.
+- Verificación: uv run pytest -q: 448 pasan y 1 se salta (100,14 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 24,1 s frente al límite 19,08 s. En el commit de control Hito 29, medido por separado, registró 23,6 s y excedió el mismo límite. No se modificó la línea base.
+- Decisión: conservar el valor literal SAS para separar el escape regex del escape Java; no inferir comportamiento para delimitadores vacíos ni controles. Sin dependencias nuevas.
+- Bloqueos: el tiempo del corpus continúa sobre el umbral también en el control; las expresiones candidatas requieren validación en Talend Studio.
