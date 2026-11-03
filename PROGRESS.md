@@ -927,3 +927,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Prueba: métricas y diagnóstico validan la frecuencia de advertencias de `scan()` e `input()` en fixtures separados.
 - Verificación: `uv run pytest -q`: 376 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
 - Decisión: agrupar por texto exacto de advertencia; no generalizar mensajes que pueden señalar distintos nombres o causas.
+
+
+## Hito 20. Dejar INPUT con informat dinámico pendiente
+
+- Fecha: 2026-11-03
+- Qué se hizo: se dividió el traductor en núcleo, lexer, parser, familias de funciones y registro. La fachada conserva `translate_to_talend`, `Unsupported`, `Result` y `E`; `ExpressionParser` recibe el registro por argumento. Los ocho módulos tienen menos de 300 líneas.
+- Comportamiento: el parser valida la procedencia antes de serializar el informat. Acepta un único token `fmt`, `str` o `num` con punto que cumpla `\d+\.\d*`; macros sin resolver, columnas y expresiones compuestas quedan pendientes con una explicación en español que no reproduce valores. Los mapeos de literales no cambian.
+- Pruebas: se observó RED para las macros, columnas y expresiones compuestas antes del cambio. Las pruebas sintéticas verifican el hueco `FUNCION_NO_MAPEADA` sin candidata, literales numéricos/de texto/fecha, macro constante expandida, aritmética numérica y mensajes sin valores de origen. La macro constante mantiene su traducción inline existente, sin duplicarla como candidata.
+- Métricas: el segundo adjunto se recompiló solo en memoria mediante `compile_batch`, antes y después. Conserva 21 candidatas y 21 huecos; sus cuatro llamadas INPUT candidatas tienen un único informat numérico literal. No demuestra informats dinámicos. En el caso sintético de macro sin resolver, una candidata pasa a cero y aparece un hueco de función no mapeada. No se modificó `metrics/baseline.json`.
+- Decisiones: mantener informats dinámicos pendientes hasta contar con un valor literal demostrado; conservar el token numérico con punto evita alterar la tokenización de las expresiones numéricas generales. No se agregaron dependencias ni datos de los adjuntos.
+- Verificación: `uv run pytest -q`: 392 pasan, 1 se salta; focalizadas: 44 pasan; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas). `git diff --check`: limpio. El control de tiempo se repitió sin pytest concurrente después de dos mediciones afectadas por contención; no se cambió la línea base.
+- Bloqueos: ninguno. Continúa pendiente validar las candidatas literales en Talend Studio.
