@@ -40,10 +40,22 @@ def test_sort_con_out_queda_soportado_y_ordena_por_las_claves(plan):
     assert orden.params["by"] == ["sucursal", "producto"]
 
 
+def _tipo_y_estado_del_join(plan):
+    """El join puede quedar suelto o como paso dentro de un tMap fundido (pasada 6)."""
+    for op in plan.graph.operators():
+        if op.kind == "join":
+            return op.params["join_type"], op.status
+        if op.kind == "map":
+            for st in op.params.get("steps", []):
+                if st.get("kind") == "join":
+                    return st["params"]["join_type"], op.status
+    raise AssertionError("sin join")
+
+
 def test_merge_con_in_se_compila_como_join(plan):
-    (cruce,) = _operadores(plan, "join")
-    assert cruce.status == "soportado"
-    assert cruce.params["join_type"] == "inner"  # `if en_stock and en_precio;` filtra a interior
+    tipo, estado = _tipo_y_estado_del_join(plan)
+    assert estado == "soportado"
+    assert tipo == "inner"  # `if en_stock and en_precio;` filtra a interior
 
 
 def test_proc_means_con_class_se_compila_como_agregacion(plan):
