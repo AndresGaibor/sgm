@@ -178,3 +178,18 @@ Investigado:
 Brecha restante: 137 componentes frente a unos 80. El siguiente paso medible es partir el
 encabezado en joblets de contexto y en Job padre, y mirar si las firmas de 104 se pueden reducir
 con sub-cadenas compartidas entre los dos joblets grandes.
+
+## Investigación sobre PROC SQL hacia SQL de motor (3 de noviembre de 2026)
+
+- Traducir PROC SQL a SQL de Spark o Hive es posible para `SELECT`, `GROUP BY` y subconsultas
+  simples ([guía de migración de SAS a PySpark](https://digihub.mastechdigital.com/Fabric_Assets/Microsoft%20Fabric%20Asset%20Library/09_Migration_Modernization/MS_Fabric_SAS_to_PySpark_Migration.docx)).
+- Diferencia de semántica: en SAS, una columna no agrupada junto a un agregado devuelve un valor;
+  en Spark hace falta una función de ventana. Un traductor debe marcar ese caso, no adivinarlo
+  ([análisis de conversiones erróneas](https://medium.com/@protmaks/why-ai-cant-correctly-convert-sas-code-to-spark-sql-for-databricks-473552770eb0)).
+- `SELECT ... INTO :macrovariable` no es SQL portable: se reconstruye en el programa anfitrión.
+- sqlglot traduce entre dialectos SQL (Spark, Hive y otros) ([página de sqlglot](https://pypi.org/project/sqlglot/0.6.0)).
+  No confirmé que tenga un dialecto de SAS: hay que verificarlo en su README antes de depender de él.
+
+Consecuencia para la fusión de SQL: cada sentencia pasa a un tDBInput solo si su semántica es
+portable. Lo que no lo es (columnas no agrupadas, `INTO :`) queda como pendiente con motivo, no
+como SQL inventado.
