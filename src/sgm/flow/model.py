@@ -73,6 +73,14 @@ class ConfigLine:
 
 
 @dataclass
+class Pending:
+    """Algo que no se pudo seguir: su texto y el paso al que se refiere, si lo hay."""
+
+    text: str
+    step_id: str | None
+
+
+@dataclass
 class FlowModel:
     program: str
     steps: list[FlowStep]
@@ -80,10 +88,10 @@ class FlowModel:
     edges: list[FlowEdge]
     external_inputs: list[str]
     config: list[ConfigLine]
-    pending: list[str]
+    pending: list[Pending]
 
 
-def _key(name: str) -> str:
+def dataset_key(name: str) -> str:
     """Nombre de dataset para comparar: sin mayúsculas y sin el prefijo WORK. de la biblioteca."""
     low = name.strip().lower()
     return low[5:] if low.startswith("work.") else low
@@ -185,7 +193,7 @@ def _config_line(item: ProgramItem) -> ConfigLine | None:
     return ConfigLine(kind, item.line, text.strip()[:200])
 
 
-def _layers(steps: list[FlowStep], edges: list[FlowEdge]) -> None:
+def assign_layers(steps: list[FlowStep], edges: list[FlowEdge]) -> None:
     """Capa de cada paso: 1 + la capa de su predecesor más lejano. Las entradas van en la capa 0."""
     incoming: dict[str, list[str]] = {}
     for edge in edges:
@@ -238,9 +246,13 @@ def build_flow(
     external: list[str] = []
     for index, step in enumerate(steps):
         for name in dict.fromkeys(step.reads):
-            key = _key(name)
+            key = dataset_key(name)
             producer = next(
-                (prev for prev in reversed(steps[:index]) if key in {_key(w) for w in prev.writes}),
+                (
+                    prev
+                    for prev in reversed(steps[:index])
+                    if key in {dataset_key(w) for w in prev.writes}
+                ),
                 None,
             )
             if producer is not None:
@@ -259,72 +271,25 @@ def build_flow(
                 )
                 external.append(name)
             edges.append(FlowEdge(inputs[key].id, step.id, name))
-    _layers(steps, edges)
+    assign_layers(steps, edges)
     pending = [
-        f"%include sin resolver en {file}: {raw} ({status})" for file, raw, status in unresolved
+        Pending(f"%include sin resolver en {file}: {raw} ({status})", None)
+        for file, raw, status in unresolved
     ]
     pending += [
-        f"{s.file}:{s.line} {s.type_name}: {s.title}"
+        Pending(f"{s.file}:{s.line} {s.type_name}: {s.title}", s.id)
         for s in steps
         if s.kind in ("dynamic", "unparsed")
     ]
     return FlowModel(program, steps, list(inputs.values()), edges, external, config, pending)
 
 
-def by_section(model: FlowModel) -> FlowModel:
-    """Vista por sección: una caja por etiqueta de sección del programa, con sus conexiones.
-
-    Sirve para programas largos, donde el diagrama de pasos no se puede leer. Las entradas externas
-    siguen igual, y cada conexión entre secciones lleva el dataset que las une.
-    """
-    members: dict[str, list[FlowStep]] = {}
-    section_of: dict[str, str] = {}
-    for step in model.steps:
-        name = step.label or SECCION_SIN_NOMBRE
-        members.setdefault(name, []).append(step)
-        section_of[step.id] = name
-    ids = {name: f"s{number}" for number, name in enumerate(members, 1)}
-    nodes = [
-        FlowStep(
-            id=ids[name],
-            file=items[0].file,
-            line=items[0].line,
-            label=name,
-            kind="section",
-            type_name=f"Sección · {len(items)} pasos",
-            title=name,
-        )
-        for name, items in members.items()
-    ]
-
-    def node_of(step_id: str) -> str:
-        return ids[section_of[step_id]] if step_id in section_of else step_id
-
-    edges: list[FlowEdge] = []
-    seen: set[tuple[str, str, str]] = set()
-    for edge in model.edges:
-        source, target = node_of(edge.source), node_of(edge.target)
-        if source == target or (source, target, edge.dataset) in seen:
-            continue
-        seen.add((source, target, edge.dataset))
-        edges.append(FlowEdge(source, target, edge.dataset))
-    _layers(nodes, edges)
-    return FlowModel(
-        model.program,
-        nodes,
-        model.inputs,
-        edges,
-        model.external_inputs,
-        model.config,
-        model.pending,
-    )
-
-
 def build_flows(
     files: dict[str, str], externals: dict[str, str] | None = None
 ) -> dict[str, FlowModel]:
     """Un modelo por programa. Redacta credenciales antes de analizar."""
-    clean = {path: redact(text, path) for path, text in files.items()}
+    # El BOM UTF-8 se quita: si queda pegado, la primera palabra (`data`) no se reconoce.
+    clean = {path: redact(text.lstrip("\ufeff"), path) for path, text in files.items()}
     ext = {path: redact(text, path) for path, text in (externals or {}).items()}
     analysis: ProgramAnalysis = analyze_program(clean, ext)
     return {

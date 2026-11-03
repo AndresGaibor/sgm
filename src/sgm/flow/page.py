@@ -10,7 +10,9 @@ from datetime import date
 from html import escape
 
 from sgm.flow.layout import render_svg
-from sgm.flow.model import DIAGRAMA_POR_PASO_MAX, FlowModel, FlowStep, by_section
+from sgm.flow.model import DIAGRAMA_POR_PASO_MAX, FlowModel, FlowStep, Pending
+from sgm.flow.salida import indice_datasets
+from sgm.flow.seccion import by_section
 
 _CSS = """
 :root {
@@ -190,11 +192,45 @@ def _inputs_list(model: FlowModel) -> str:
     return f'<ul class="lista">{items}</ul>'
 
 
+def _pending_item(pendiente: Pending) -> str:
+    texto = escape(pendiente.text)
+    if pendiente.step_id:
+        return f'<li><a href="#paso-{pendiente.step_id}">{texto}</a></li>'
+    return f"<li>{texto}</li>"
+
+
 def _pending_list(model: FlowModel) -> str:
     if not model.pending:
         return '<p class="nota">Sin pendientes en este programa.</p>'
-    items = "".join(f"<li>{escape(p)}</li>" for p in model.pending)
+    items = "".join(_pending_item(p) for p in model.pending)
     return f'<ul class="lista">{items}</ul>'
+
+
+def _links(ids: list[str], titulos: dict[str, str]) -> str:
+    """Enlaces a las filas de la tabla de pasos, con el título del paso como ayuda."""
+    if not ids:
+        return '<span class="nota">-</span>'
+    return ", ".join(
+        f'<a href="#paso-{i}" title="{escape(titulos.get(i, ""))}">{i}</a>' for i in ids
+    )
+
+
+def _datasets_table(model: FlowModel) -> str:
+    """Un dataset por fila: qué pasos lo escriben y cuáles lo leen. Sin JavaScript."""
+    usos = indice_datasets(model)
+    if not usos:
+        return '<p class="nota">El programa no lee ni escribe datasets en sus pasos.</p>'
+    titulos = {s.id: s.title for s in model.steps}
+    filas = "".join(
+        f'<tr><td class="mono">{escape(u.nombre)}</td>'
+        f"<td>{_links(u.escriben, titulos)}</td>"
+        f"<td>{_links(u.leen, titulos)}</td></tr>"
+        for u in usos
+    )
+    return (
+        "<table><thead><tr><th>Dataset</th><th>Lo escriben</th><th>Lo leen</th></tr></thead>"
+        f"<tbody>{filas}</tbody></table>"
+    )
 
 
 def render_page(model: FlowModel) -> str:
@@ -232,6 +268,10 @@ otro. No es la traducción a Talend. Cada caja enlaza con su fila de la tabla.</
 <div class="marco">{render_svg(diagrama)}</div>
 <h2 id="pasos">Pasos en orden</h2>
 {_steps_table(model)}
+<h2>Datasets</h2>
+<p class="nota">Cada dataset y los pasos que lo escriben o lo leen. Cada número enlaza con su
+fila en la tabla de pasos.</p>
+{_datasets_table(model)}
 <h2>Entradas externas</h2>
 <p class="nota">Datasets que el programa lee y que ningún paso anterior escribe. Vienen de fuera
 del programa.</p>

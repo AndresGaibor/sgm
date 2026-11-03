@@ -1269,3 +1269,21 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 
 - La investigación se hizo con búsquedas web y lectura de páginas públicas; las afirmaciones sobre Impala se marcan como documentadas o pendientes, no como probadas.
 - La herramienta de medición es un script en `tools/`, no un test: lee el archivo grande y no se ejecuta en la suite.
+
+## Hito 45. `sgm flujo`: tramos, índice de datasets, JSON y pruebas de salida
+
+- Fecha: 2026-11-03
+- Qué se hizo (tareas 41 a 45 y 31 a 38 de la lista de 50):
+  - 41: una sección de más de 150 pasos se parte en tramos consecutivos según el dataset que escribe cada paso (`src/sgm/flow/seccion.py`). Un paso sin escritura sigue al tramo anterior. Client_large: la sección de 1,084 pasos pasa a tramos.
+  - 42: las conexiones del diagrama van en codo, cada una por su carril vertical entre columnas. Ya no cruzan las cajas.
+  - 43: sección "Datasets" en la página: cada dataset con los pasos que lo escriben y los que lo leen, enlazados a su fila. Sin JavaScript.
+  - 44: los pendientes enlazan a su paso.
+  - 45: `sgm flujo --json` escribe `<programa>.flujo.json` (versión 1) con el modelo completo.
+  - Pruebas (`tests/unit/test_flujo_salidas.py`): índice de datasets, JSON, tramos, vista por sección que cuenta todos los pasos una vez, conexiones sin retroceso de capa, posiciones únicas, HTML con etiquetas balanceadas, golden de la página (`tests/fixtures/flujo/`), programa vacío, carpeta de generalización, comando que crea la carpeta de salida.
+- Bug encontrado y corregido: un `.sas` guardado con BOM UTF-8 perdía su primer paso, porque el `﻿` quedaba pegado a `data`. Ahora `build_flows` quita el BOM antes de analizar.
+- Decisiones:
+  - La división de secciones grandes usa el dataset escrito, no el tipo de paso. En client_large, 604 de los 1,084 pasos son macros dinámicas sin escritura; esos se quedan en el tramo que los contiene.
+  - Las pruebas de tiempo no se incluyen (tarea 32): dependen de la máquina. Se usa el tamaño del HTML y el número de pasos como señal.
+  - El módulo `model.py` se mantiene bajo 300 líneas; la vista por sección y el índice de datasets viven en `seccion.py` y `salida.py`.
+- Medición: client_large.sas, 2,205 pasos. HTML de 2.0 MB; JSON de 2.0 MB.
+- Pruebas: `tests/unit/test_flujo.py` (11) y `tests/unit/test_flujo_salidas.py` (14). Suite completa y ruff: ver verificación al cierre.

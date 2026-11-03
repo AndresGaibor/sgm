@@ -14,11 +14,15 @@ import typer
 from sgm.cli_util import _collect, _env
 from sgm.flow.model import build_flows
 from sgm.flow.page import render_page
+from sgm.flow.salida import a_json
 
 
 def flujo_command(
     source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
+    como_json: Annotated[
+        bool, typer.Option("--json", help="Escribe también `<programa>.flujo.json`.")
+    ] = False,
 ) -> None:
     """Escribe `<programa>.flujo.html`: pasos en orden, datasets que pasan de uno a otro."""
     if not source.exists():
@@ -33,4 +37,6 @@ def flujo_command(
         stem = Path(program).with_suffix("").as_posix().replace("/", "__")
         destino = out / f"{stem}.flujo.html"
         destino.write_text(render_page(model), encoding="utf-8")
+        if como_json:
+            out.joinpath(f"{stem}.flujo.json").write_text(a_json(model), encoding="utf-8")
         typer.echo(f"{program}: {len(model.steps)} pasos -> {destino}")

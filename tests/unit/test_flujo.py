@@ -116,4 +116,4 @@ def test_bloque_condicional_no_constante_es_macro_dinamica_pendiente():
     dinamicos = [s for s in flujo.steps if s.kind == "dynamic"]
     assert len(dinamicos) == 1
     assert "ejecutar" in dinamicos[0].notes[0]
-    assert any("p.sas:1" in p for p in flujo.pending)
+    assert any("p.sas:1" in p.text for p in flujo.pending)

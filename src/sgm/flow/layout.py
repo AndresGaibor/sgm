@@ -88,22 +88,29 @@ def _node_svg(node: FlowStep, x: int, y: int) -> str:
     )
 
 
+CARRILES = 6  # carriles verticales distintos dentro del espacio entre columnas
+
+
 def _edge_svg(
-    model: FlowModel,
     pos: dict[str, tuple[int, int]],
     index: int,
     source: str,
     target: str,
     dataset: str,
 ) -> str:
+    """Conexión en codo: sale a la derecha, baja por un carril propio y entra por la izquierda.
+
+    Cada conexión usa un carril distinto (según su índice), así dos conexiones no se montan
+    una sobre otra en el mismo tramo vertical.
+    """
     x1, y1 = pos[source][0] + CAJA_W, pos[source][1] + CAJA_H // 2
     x2, y2 = pos[target][0], pos[target][1] + CAJA_H // 2
-    half = GAP_X // 2
-    path = f"M{x1},{y1} C{x1 + half},{y1} {x2 - half},{y2} {x2},{y2}"
-    mid_x, mid_y = (x1 + x2) // 2, (y1 + y2) // 2
+    carril = x1 + 16 + (index % CARRILES) * ((GAP_X - 32) // (CARRILES - 1))
+    path = f"M{x1},{y1} H{carril} V{y2} H{x2}"
+    etiqueta_y = min(y1, y2) + 14 + (index % 3) * 13
     return (
         f'<g class="arista"><path d="{path}" marker-end="url(#flecha)"/>'
-        f'<text x="{mid_x}" y="{mid_y - 6 - (index % 3) * 13}">{escape(_corta(dataset, 26))}</text>'
+        f'<text x="{carril + 4}" y="{etiqueta_y}">{escape(_corta(dataset, 26))}</text>'
         "</g>"
     )
 
@@ -120,7 +127,7 @@ def render_svg(model: FlowModel) -> str:
     pos = positions(model)
     nodes = {node.id: node for node in [*model.inputs, *model.steps]}
     edges = "".join(
-        _edge_svg(model, pos, i, e.source, e.target, e.dataset) for i, e in enumerate(model.edges)
+        _edge_svg(pos, i, e.source, e.target, e.dataset) for i, e in enumerate(model.edges)
     )
     boxes = "".join(_node_svg(node, *pos[node.id]) for node in nodes.values())
     return (
