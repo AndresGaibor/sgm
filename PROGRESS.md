@@ -1144,3 +1144,13 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Causa: el archivo no contiene `RETAIN`, `FIRST.`/`LAST.` ni `LAG(`. Ninguna sentencia cae en la regla `04-stateful-row`.
 - Joins en el mismo archivo: 53 tMap, todos con `match_model: all`. Tipos: 14 inner, 9 left outer, 29 cross y 1 full. Los 30 de tipo cross o full llevan advertencia.
 - Decisión: el cero de `tJavaRow` es real en este pipeline; un SAS con `RETAIN` que no se traduce aparecería como hueco, no como tJavaRow.
+
+
+## Hito 41. Investigación de temas 41 a 47
+
+- Fecha: 2026-11-03
+- Qué se hizo: se escribió `docs/automatizacion/07-investigacion.md` con una sección por tema (41 a 47): pregunta, fuentes con enlace, conclusión y qué cambia en el proyecto. Cada punto va marcado como confirmado, parcial o sin confirmar según lo que dijeron las páginas leídas.
+- Hallazgos principales: tFlowToIterate y tCacheOut/tCacheIn quedan con puntos sin confirmar en documentación oficial; el modelo de caché de tMap tiene límites documentados; %DO, %SYSFUNC y el IN= de MERGE tienen sintaxis confirmada; no encontré traductor de SAS de código abierto maduro (tree-sitter-sas es el parser más sólido hallado).
+- Pruebas: no aplica (solo documentación).
+- Bloqueos: el PDF del paper de Horstman (MERGE) no se pudo extraer en texto; la página de scoring translator de SAS devolvió 404; la nota de %EVAL y las reglas many-to-many de MERGE quedan sin confirmar en fuente oficial.
+- Decisión: tratar como pendiente de validación en Studio 8 cualquier comportamiento de subjob por fila y de caché entre jobs; no traducir MERGE a JOIN sin prueba de equivalencia.
