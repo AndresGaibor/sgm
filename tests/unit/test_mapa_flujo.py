@@ -55,5 +55,5 @@ def test_dos_cadenas_independientes_son_dos_etapas() -> None:
     )
     hechos = facts_for_project({"p.sas": texto})["p.sas"]
     filas = [l for l in mapa_markdown("p.sas", hechos).split("\n") if l.startswith("| ") and "Etapa" not in l]
-    etapas = [l for l in filas if l.split("|")[1].strip().isdigit()]
+    etapas = [ln for ln in filas if ln.split("|")[1].strip().isdigit()]
     assert len(etapas) == 2
