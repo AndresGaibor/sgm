@@ -289,7 +289,7 @@ La decisión sale de hechos del linaje, no de criterio manual:
 | Frontera entre etapas (un programa o job termina y otro lee) | Materializar |
 | Salida sin lectores | Advertencia: código muerto o salida no declarada |
 
-Esto convierte en regla algo que se decidió a mano. Como referencia, el archivo de este caso crea 348 tablas WORK distintas, 263 se leen con `FROM` y solo 2 se borran explícitamente. La regla dice cuántas se materializan, y la respuesta depende del linaje, no de una opinión.
+Esto convierte en regla algo que se decidió a mano. Como referencia, el archivo de este caso escribe 405 conjuntos WORK distintos, lee 347 y borra 1 (medido con `sgm facts`; el conteo anterior con grep era incompleto). La regla dice cuántas se materializan, y la respuesta depende del linaje, no de una opinión.
 
 ---
 

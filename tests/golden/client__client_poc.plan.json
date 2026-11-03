@@ -23,7 +23,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00003",
@@ -48,7 +49,8 @@
       "notes": [
         "PROC DATASETS sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00004",
@@ -78,7 +80,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00005",
@@ -111,6 +114,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -144,6 +162,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -177,6 +210,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -210,6 +258,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -243,6 +306,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -276,6 +354,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -309,6 +402,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -342,6 +450,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -375,6 +498,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -408,6 +546,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -441,6 +594,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -474,6 +642,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -507,6 +690,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -540,6 +738,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -573,6 +786,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tUnite",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 22,
+            "line_end": 25,
+            "label": "Ciclo_Append",
+            "call": "30:append_all"
+          }
+        ],
+        "regla": "02-union@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -599,7 +827,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00021",
@@ -637,6 +866,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tAggregateRow",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 32,
+            "line_end": 34,
+            "label": "Ciclo_Append",
+            "call": null
+          }
+        ],
+        "regla": "02-aggregate@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -663,7 +907,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00035",
@@ -701,6 +946,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tAggregateRow",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 86,
+            "line_end": 88,
+            "label": "CONTADOR_ACURA",
+            "call": null
+          }
+        ],
+        "regla": "02-aggregate@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -727,7 +987,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00037",
@@ -765,6 +1026,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tAggregateRow",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 91,
+            "line_end": 93,
+            "label": "CONTADOR_BMW",
+            "call": null
+          }
+        ],
+        "regla": "02-aggregate@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -791,7 +1067,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00043",
@@ -829,6 +1106,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tAggregateRow",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 112,
+            "line_end": 114,
+            "label": "CONTADOR_CHEVROLET",
+            "call": null
+          }
+        ],
+        "regla": "02-aggregate@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -855,7 +1147,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00045",
@@ -893,6 +1186,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tAggregateRow",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 117,
+            "line_end": 119,
+            "label": "CONTADOR_JAGUAR",
+            "call": null
+          }
+        ],
+        "regla": "02-aggregate@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -917,7 +1225,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00054",
@@ -941,7 +1250,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00055",
@@ -965,7 +1275,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00056",
@@ -989,7 +1300,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00058",
@@ -1038,6 +1350,21 @@
         "alternatives": [
           "tJavaRow"
         ]
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 656,
+            "line_end": 666,
+            "label": "ACURA",
+            "call": null
+          }
+        ],
+        "regla": "03-derive@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -1062,7 +1389,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00227",
@@ -1086,7 +1414,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00230",
@@ -1110,7 +1439,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00232",
@@ -1134,7 +1464,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00234",
@@ -1158,7 +1489,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00236",
@@ -1182,7 +1514,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00237",
@@ -1206,7 +1539,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00238",
@@ -1230,7 +1564,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00239",
@@ -1254,7 +1589,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00240",
@@ -1278,7 +1614,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00241",
@@ -1302,7 +1639,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00242",
@@ -1326,7 +1664,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00243",
@@ -1350,7 +1689,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00244",
@@ -1374,7 +1714,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00245",
@@ -1398,7 +1739,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00246",
@@ -1422,7 +1764,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00247",
@@ -1446,7 +1789,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00248",
@@ -1470,7 +1814,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00249",
@@ -1494,7 +1839,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00250",
@@ -1518,7 +1864,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00251",
@@ -1542,7 +1889,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00252",
@@ -1566,7 +1914,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00253",
@@ -1590,7 +1939,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00254",
@@ -1614,7 +1964,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00255",
@@ -1638,7 +1989,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00256",
@@ -1662,7 +2014,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00257",
@@ -1686,7 +2039,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00258",
@@ -1710,7 +2064,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00259",
@@ -1734,7 +2089,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00260",
@@ -1758,7 +2114,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00261",
@@ -1782,7 +2139,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00262",
@@ -1806,7 +2164,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00263",
@@ -1830,7 +2189,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00264",
@@ -1854,7 +2214,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00265",
@@ -1878,7 +2239,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00266",
@@ -1902,7 +2264,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00267",
@@ -1926,7 +2289,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00268",
@@ -1950,7 +2314,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00269",
@@ -1974,7 +2339,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00270",
@@ -1998,7 +2364,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00271",
@@ -2064,6 +2431,21 @@
         "alternatives": [
           "tJavaRow"
         ]
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 862,
+            "line_end": 865,
+            "label": "Exportar Bucket S3 Version 2",
+            "call": null
+          }
+        ],
+        "regla": "03-derive@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -2088,7 +2470,8 @@
       "notes": [
         "llamada a %exportar_s3 que no se pudo expandir"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00285",
@@ -2112,7 +2495,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00290",
@@ -2136,7 +2520,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00291",
@@ -2160,7 +2545,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00292",
@@ -2184,7 +2570,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00294",
@@ -2233,6 +2620,21 @@
         "alternatives": [
           "tJavaRow"
         ]
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1419,
+            "line_end": 1429,
+            "label": "BMW",
+            "call": null
+          }
+        ],
+        "regla": "03-derive@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -2257,7 +2659,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00463",
@@ -2281,7 +2684,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00466",
@@ -2305,7 +2709,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00468",
@@ -2329,7 +2734,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00470",
@@ -2353,7 +2759,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00472",
@@ -2377,7 +2784,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00473",
@@ -2401,7 +2809,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00474",
@@ -2425,7 +2834,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00481",
@@ -2449,7 +2859,8 @@
       "notes": [
         "llamada a %importar_s3 que no se pudo expandir"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00485",
@@ -2473,7 +2884,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00490",
@@ -2497,7 +2909,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00491",
@@ -2521,7 +2934,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00492",
@@ -2545,7 +2959,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00494",
@@ -2594,6 +3009,21 @@
         "alternatives": [
           "tJavaRow"
         ]
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2132,
+            "line_end": 2142,
+            "label": "CHEVROLET",
+            "call": null
+          }
+        ],
+        "regla": "03-derive@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -2618,7 +3048,8 @@
       "notes": [
         "sentencia global sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00669",
@@ -2642,7 +3073,8 @@
       "notes": [
         "configuración de sesión o de macro: se resuelve en el contexto del Job"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00670",
@@ -2666,7 +3098,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00671",
@@ -2690,7 +3123,8 @@
       "notes": [
         "%INCLUDE fuera del proyecto: el contenido no se conoce"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00673",
@@ -2739,6 +3173,21 @@
         "alternatives": [
           "tJavaRow"
         ]
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2782,
+            "line_end": 2792,
+            "label": "JAGUAR",
+            "call": null
+          }
+        ],
+        "regla": "03-derive@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -3791,6 +4240,1036 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 667,
+            "line_end": 667,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 668,
+            "line_end": 668,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 671,
+            "line_end": 671,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 672,
+            "line_end": 672,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 673,
+            "line_end": 673,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 676,
+            "line_end": 676,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 677,
+            "line_end": 677,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 680,
+            "line_end": 680,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 681,
+            "line_end": 681,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 682,
+            "line_end": 682,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 683,
+            "line_end": 683,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 684,
+            "line_end": 684,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 685,
+            "line_end": 685,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 686,
+            "line_end": 686,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 687,
+            "line_end": 687,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 688,
+            "line_end": 688,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 689,
+            "line_end": 689,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 692,
+            "line_end": 692,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 693,
+            "line_end": 693,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 697,
+            "line_end": 698,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 699,
+            "line_end": 699,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 701,
+            "line_end": 705,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 710,
+            "line_end": 710,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 715,
+            "line_end": 715,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 717,
+            "line_end": 718,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 719,
+            "line_end": 719,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 723,
+            "line_end": 729,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 730,
+            "line_end": 730,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 731,
+            "line_end": 731,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 732,
+            "line_end": 732,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 733,
+            "line_end": 733,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 735,
+            "line_end": 736,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 592,
+            "line_end": 592,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 593,
+            "line_end": 593,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 595,
+            "line_end": 596,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 597,
+            "line_end": 597,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 599,
+            "line_end": 599,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 603,
+            "line_end": 604,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 606,
+            "line_end": 609,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 611,
+            "line_end": 611,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 616,
+            "line_end": 617,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 618,
+            "line_end": 618,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 619,
+            "line_end": 619,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 621,
+            "line_end": 621,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 290,
+            "line_end": 290,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 291,
+            "line_end": 291,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 292,
+            "line_end": 292,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 293,
+            "line_end": 293,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 294,
+            "line_end": 294,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 297,
+            "line_end": 297,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 298,
+            "line_end": 298,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 302,
+            "line_end": 303,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 304,
+            "line_end": 304,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 305,
+            "line_end": 305,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 309,
+            "line_end": 309,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 310,
+            "line_end": 310,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 311,
+            "line_end": 311,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 312,
+            "line_end": 312,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 316,
+            "line_end": 316,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 320,
+            "line_end": 320,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 323,
+            "line_end": 323,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 327,
+            "line_end": 328,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 329,
+            "line_end": 329,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 331,
+            "line_end": 331,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 334,
+            "line_end": 338,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 343,
+            "line_end": 344,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 346,
+            "line_end": 348,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 350,
+            "line_end": 353,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 355,
+            "line_end": 355,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 356,
+            "line_end": 356,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 458,
+            "line_end": 458,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 459,
+            "line_end": 459,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 460,
+            "line_end": 460,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 461,
+            "line_end": 461,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 463,
+            "line_end": 464,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 465,
+            "line_end": 465,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 466,
+            "line_end": 466,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 468,
+            "line_end": 468,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 470,
+            "line_end": 473,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 475,
+            "line_end": 475,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 476,
+            "line_end": 476,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 478,
+            "line_end": 480,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 482,
+            "line_end": 482,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 523,
+            "line_end": 527,
+            "label": "ACURA",
+            "call": "532:execImpalaQuery"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 746,
+            "line_end": 746,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 497,
+            "line_end": 497,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 498,
+            "line_end": 498,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 499,
+            "line_end": 499,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 501,
+            "line_end": 501,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 504,
+            "line_end": 505,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 506,
+            "line_end": 506,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 507,
+            "line_end": 507,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 510,
+            "line_end": 512,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 515,
+            "line_end": 517,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 487,
+            "line_end": 487,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 488,
+            "line_end": 488,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 490,
+            "line_end": 492,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 536,
+            "line_end": 536,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 537,
+            "line_end": 537,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 540,
+            "line_end": 542,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 543,
+            "line_end": 543,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 544,
+            "line_end": 544,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 547,
+            "line_end": 547,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 550,
+            "line_end": 554,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 557,
+            "line_end": 559,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 563,
+            "line_end": 564,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 566,
+            "line_end": 567,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 569,
+            "line_end": 571,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 573,
+            "line_end": 582,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 583,
+            "line_end": 583,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 584,
+            "line_end": 584,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 585,
+            "line_end": 585,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 174,
+            "line_end": 174,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 175,
+            "line_end": 175,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 179,
+            "line_end": 180,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 181,
+            "line_end": 181,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 182,
+            "line_end": 182,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 184,
+            "line_end": 185,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 187,
+            "line_end": 187,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 188,
+            "line_end": 188,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 190,
+            "line_end": 194,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 197,
+            "line_end": 198,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 200,
+            "line_end": 200,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 206,
+            "line_end": 207,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 209,
+            "line_end": 213,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 218,
+            "line_end": 218,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 220,
+            "line_end": 221,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 626,
+            "line_end": 626,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 627,
+            "line_end": 627,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 629,
+            "line_end": 630,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 631,
+            "line_end": 631,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 633,
+            "line_end": 634,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 635,
+            "line_end": 635,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 641,
+            "line_end": 641,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 642,
+            "line_end": 642,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 643,
+            "line_end": 643,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 644,
+            "line_end": 644,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 645,
+            "line_end": 645,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 646,
+            "line_end": 646,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 647,
+            "line_end": 647,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 648,
+            "line_end": 648,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 649,
+            "line_end": 649,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 650,
+            "line_end": 650,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 651,
+            "line_end": 651,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 756,
+            "line_end": 756,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 759,
+            "line_end": 764,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          }
+        ],
+        "regla": "01-engine-output@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -4843,6 +6322,1036 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1430,
+            "line_end": 1430,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1431,
+            "line_end": 1431,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1434,
+            "line_end": 1434,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1435,
+            "line_end": 1435,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1436,
+            "line_end": 1436,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1439,
+            "line_end": 1439,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1440,
+            "line_end": 1440,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1443,
+            "line_end": 1443,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1444,
+            "line_end": 1444,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1445,
+            "line_end": 1445,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1446,
+            "line_end": 1446,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1447,
+            "line_end": 1447,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1448,
+            "line_end": 1448,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1449,
+            "line_end": 1449,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1450,
+            "line_end": 1450,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1451,
+            "line_end": 1451,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 1452,
+            "line_end": 1452,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 692,
+            "line_end": 692,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 693,
+            "line_end": 693,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 697,
+            "line_end": 698,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 699,
+            "line_end": 699,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 701,
+            "line_end": 705,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 710,
+            "line_end": 710,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 715,
+            "line_end": 715,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 717,
+            "line_end": 718,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 719,
+            "line_end": 719,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 723,
+            "line_end": 729,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 730,
+            "line_end": 730,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 731,
+            "line_end": 731,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 732,
+            "line_end": 732,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 733,
+            "line_end": 733,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 735,
+            "line_end": 736,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 592,
+            "line_end": 592,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 593,
+            "line_end": 593,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 595,
+            "line_end": 596,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 597,
+            "line_end": 597,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 599,
+            "line_end": 599,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 603,
+            "line_end": 604,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 606,
+            "line_end": 609,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 611,
+            "line_end": 611,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 616,
+            "line_end": 617,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 618,
+            "line_end": 618,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 619,
+            "line_end": 619,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 621,
+            "line_end": 621,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 290,
+            "line_end": 290,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 291,
+            "line_end": 291,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 292,
+            "line_end": 292,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 293,
+            "line_end": 293,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 294,
+            "line_end": 294,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 297,
+            "line_end": 297,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 298,
+            "line_end": 298,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 302,
+            "line_end": 303,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 304,
+            "line_end": 304,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 305,
+            "line_end": 305,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 309,
+            "line_end": 309,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 310,
+            "line_end": 310,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 311,
+            "line_end": 311,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 312,
+            "line_end": 312,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 316,
+            "line_end": 316,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 320,
+            "line_end": 320,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 323,
+            "line_end": 323,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 327,
+            "line_end": 328,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 329,
+            "line_end": 329,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 331,
+            "line_end": 331,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 334,
+            "line_end": 338,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 343,
+            "line_end": 344,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 346,
+            "line_end": 348,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 350,
+            "line_end": 353,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 355,
+            "line_end": 355,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 356,
+            "line_end": 356,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 458,
+            "line_end": 458,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 459,
+            "line_end": 459,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 460,
+            "line_end": 460,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 461,
+            "line_end": 461,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 463,
+            "line_end": 464,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 465,
+            "line_end": 465,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 466,
+            "line_end": 466,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 468,
+            "line_end": 468,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 470,
+            "line_end": 473,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 475,
+            "line_end": 475,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 476,
+            "line_end": 476,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 478,
+            "line_end": 480,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 482,
+            "line_end": 482,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 523,
+            "line_end": 527,
+            "label": "ACURA",
+            "call": "532:execImpalaQuery"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 746,
+            "line_end": 746,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 497,
+            "line_end": 497,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 498,
+            "line_end": 498,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 499,
+            "line_end": 499,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 501,
+            "line_end": 501,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 504,
+            "line_end": 505,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 506,
+            "line_end": 506,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 507,
+            "line_end": 507,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 510,
+            "line_end": 512,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 515,
+            "line_end": 517,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 487,
+            "line_end": 487,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 488,
+            "line_end": 488,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 490,
+            "line_end": 492,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 536,
+            "line_end": 536,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 537,
+            "line_end": 537,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 540,
+            "line_end": 542,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 543,
+            "line_end": 543,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 544,
+            "line_end": 544,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 547,
+            "line_end": 547,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 550,
+            "line_end": 554,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 557,
+            "line_end": 559,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 563,
+            "line_end": 564,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 566,
+            "line_end": 567,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 569,
+            "line_end": 571,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 573,
+            "line_end": 582,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 583,
+            "line_end": 583,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 584,
+            "line_end": 584,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 585,
+            "line_end": 585,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 174,
+            "line_end": 174,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 175,
+            "line_end": 175,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 179,
+            "line_end": 180,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 181,
+            "line_end": 181,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 182,
+            "line_end": 182,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 184,
+            "line_end": 185,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 187,
+            "line_end": 187,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 188,
+            "line_end": 188,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 190,
+            "line_end": 194,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 197,
+            "line_end": 198,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 200,
+            "line_end": 200,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 206,
+            "line_end": 207,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 209,
+            "line_end": 213,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 218,
+            "line_end": 218,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 220,
+            "line_end": 221,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 626,
+            "line_end": 626,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 627,
+            "line_end": 627,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 629,
+            "line_end": 630,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 631,
+            "line_end": 631,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 633,
+            "line_end": 634,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 635,
+            "line_end": 635,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 641,
+            "line_end": 641,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 642,
+            "line_end": 642,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 643,
+            "line_end": 643,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 644,
+            "line_end": 644,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 645,
+            "line_end": 645,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 646,
+            "line_end": 646,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 647,
+            "line_end": 647,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 648,
+            "line_end": 648,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 649,
+            "line_end": 649,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 650,
+            "line_end": 650,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 651,
+            "line_end": 651,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 756,
+            "line_end": 756,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 759,
+            "line_end": 764,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          }
+        ],
+        "regla": "01-engine-output@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -5916,6 +8425,1057 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2143,
+            "line_end": 2143,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2144,
+            "line_end": 2144,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2147,
+            "line_end": 2147,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2148,
+            "line_end": 2148,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2149,
+            "line_end": 2149,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2152,
+            "line_end": 2152,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2153,
+            "line_end": 2153,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2156,
+            "line_end": 2156,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2157,
+            "line_end": 2157,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2158,
+            "line_end": 2158,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2159,
+            "line_end": 2159,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2160,
+            "line_end": 2160,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2161,
+            "line_end": 2161,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2162,
+            "line_end": 2162,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2163,
+            "line_end": 2163,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2164,
+            "line_end": 2164,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2165,
+            "line_end": 2165,
+            "label": "CHEVROLET",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 692,
+            "line_end": 692,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 693,
+            "line_end": 693,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 697,
+            "line_end": 698,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 699,
+            "line_end": 699,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 701,
+            "line_end": 705,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 710,
+            "line_end": 710,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 715,
+            "line_end": 715,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 717,
+            "line_end": 718,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 719,
+            "line_end": 719,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 723,
+            "line_end": 729,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 730,
+            "line_end": 730,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 731,
+            "line_end": 731,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 732,
+            "line_end": 732,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 733,
+            "line_end": 733,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 735,
+            "line_end": 736,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 592,
+            "line_end": 592,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 593,
+            "line_end": 593,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 595,
+            "line_end": 596,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 597,
+            "line_end": 597,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 599,
+            "line_end": 599,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 603,
+            "line_end": 604,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 606,
+            "line_end": 609,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 611,
+            "line_end": 611,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 616,
+            "line_end": 617,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 618,
+            "line_end": 618,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 619,
+            "line_end": 619,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 621,
+            "line_end": 621,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 290,
+            "line_end": 290,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 291,
+            "line_end": 291,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 292,
+            "line_end": 292,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 293,
+            "line_end": 293,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 294,
+            "line_end": 294,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 297,
+            "line_end": 297,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 298,
+            "line_end": 298,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 302,
+            "line_end": 303,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 304,
+            "line_end": 304,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 305,
+            "line_end": 305,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 309,
+            "line_end": 309,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 310,
+            "line_end": 310,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 311,
+            "line_end": 311,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 312,
+            "line_end": 312,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 316,
+            "line_end": 316,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 320,
+            "line_end": 320,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 323,
+            "line_end": 323,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 327,
+            "line_end": 328,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 329,
+            "line_end": 329,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 331,
+            "line_end": 331,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 334,
+            "line_end": 338,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 343,
+            "line_end": 344,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 346,
+            "line_end": 348,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 350,
+            "line_end": 353,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 355,
+            "line_end": 355,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 356,
+            "line_end": 356,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 458,
+            "line_end": 458,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 459,
+            "line_end": 459,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 460,
+            "line_end": 460,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 461,
+            "line_end": 461,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 463,
+            "line_end": 464,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 465,
+            "line_end": 465,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 466,
+            "line_end": 466,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 468,
+            "line_end": 468,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 470,
+            "line_end": 473,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 475,
+            "line_end": 475,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 476,
+            "line_end": 476,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 478,
+            "line_end": 480,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 482,
+            "line_end": 482,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 523,
+            "line_end": 527,
+            "label": "ACURA",
+            "call": "532:execImpalaQuery"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 746,
+            "line_end": 746,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 497,
+            "line_end": 497,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 498,
+            "line_end": 498,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 499,
+            "line_end": 499,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 501,
+            "line_end": 501,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 504,
+            "line_end": 505,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 506,
+            "line_end": 506,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 507,
+            "line_end": 507,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 510,
+            "line_end": 512,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 515,
+            "line_end": 517,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 487,
+            "line_end": 487,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 488,
+            "line_end": 488,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 490,
+            "line_end": 492,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 536,
+            "line_end": 536,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 537,
+            "line_end": 537,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 540,
+            "line_end": 542,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 543,
+            "line_end": 543,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 544,
+            "line_end": 544,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 547,
+            "line_end": 547,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 550,
+            "line_end": 554,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 557,
+            "line_end": 559,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 563,
+            "line_end": 564,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 566,
+            "line_end": 567,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 569,
+            "line_end": 571,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 573,
+            "line_end": 582,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 583,
+            "line_end": 583,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 584,
+            "line_end": 584,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 585,
+            "line_end": 585,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 174,
+            "line_end": 174,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 175,
+            "line_end": 175,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 179,
+            "line_end": 180,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 181,
+            "line_end": 181,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 182,
+            "line_end": 182,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 184,
+            "line_end": 185,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 187,
+            "line_end": 187,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 188,
+            "line_end": 188,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 190,
+            "line_end": 194,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 197,
+            "line_end": 198,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 200,
+            "line_end": 200,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 206,
+            "line_end": 207,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 209,
+            "line_end": 213,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 218,
+            "line_end": 218,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 220,
+            "line_end": 221,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 626,
+            "line_end": 626,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 627,
+            "line_end": 627,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 629,
+            "line_end": 630,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 631,
+            "line_end": 631,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 633,
+            "line_end": 634,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 635,
+            "line_end": 635,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 641,
+            "line_end": 641,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 642,
+            "line_end": 642,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 643,
+            "line_end": 643,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 644,
+            "line_end": 644,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 645,
+            "line_end": 645,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 646,
+            "line_end": 646,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 647,
+            "line_end": 647,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 648,
+            "line_end": 648,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 649,
+            "line_end": 649,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 650,
+            "line_end": 650,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 651,
+            "line_end": 651,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 756,
+            "line_end": 756,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 759,
+            "line_end": 764,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2263,
+            "line_end": 2263,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2264,
+            "line_end": 2264,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2265,
+            "line_end": 2265,
+            "label": "JAGUAR",
+            "call": null
+          }
+        ],
+        "regla": "01-engine-output@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -6996,6 +10556,1064 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2793,
+            "line_end": 2793,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2794,
+            "line_end": 2794,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2797,
+            "line_end": 2797,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2798,
+            "line_end": 2798,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2799,
+            "line_end": 2799,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2802,
+            "line_end": 2802,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2803,
+            "line_end": 2803,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2806,
+            "line_end": 2806,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2807,
+            "line_end": 2807,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2808,
+            "line_end": 2808,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2809,
+            "line_end": 2809,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2810,
+            "line_end": 2810,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2811,
+            "line_end": 2811,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2812,
+            "line_end": 2812,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2813,
+            "line_end": 2813,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2814,
+            "line_end": 2814,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2815,
+            "line_end": 2815,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 692,
+            "line_end": 692,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 693,
+            "line_end": 693,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 697,
+            "line_end": 698,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 699,
+            "line_end": 699,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 701,
+            "line_end": 705,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 710,
+            "line_end": 710,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 715,
+            "line_end": 715,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 717,
+            "line_end": 718,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 719,
+            "line_end": 719,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 723,
+            "line_end": 729,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 730,
+            "line_end": 730,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 731,
+            "line_end": 731,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 732,
+            "line_end": 732,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 733,
+            "line_end": 733,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 735,
+            "line_end": 736,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 592,
+            "line_end": 592,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 593,
+            "line_end": 593,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 595,
+            "line_end": 596,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 597,
+            "line_end": 597,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 599,
+            "line_end": 599,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 603,
+            "line_end": 604,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 606,
+            "line_end": 609,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 611,
+            "line_end": 611,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 616,
+            "line_end": 617,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 618,
+            "line_end": 618,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 619,
+            "line_end": 619,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 621,
+            "line_end": 621,
+            "label": "ACURA",
+            "call": "739:capturaCampos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 290,
+            "line_end": 290,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 291,
+            "line_end": 291,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 292,
+            "line_end": 292,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 293,
+            "line_end": 293,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 294,
+            "line_end": 294,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 297,
+            "line_end": 297,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 298,
+            "line_end": 298,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 302,
+            "line_end": 303,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 304,
+            "line_end": 304,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 305,
+            "line_end": 305,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 309,
+            "line_end": 309,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 310,
+            "line_end": 310,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 311,
+            "line_end": 311,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 312,
+            "line_end": 312,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 316,
+            "line_end": 316,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 320,
+            "line_end": 320,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 323,
+            "line_end": 323,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 327,
+            "line_end": 328,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 329,
+            "line_end": 329,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 331,
+            "line_end": 331,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 334,
+            "line_end": 338,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 343,
+            "line_end": 344,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 346,
+            "line_end": 348,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 350,
+            "line_end": 353,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 355,
+            "line_end": 355,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 356,
+            "line_end": 356,
+            "label": "ACURA",
+            "call": "740:split3"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 458,
+            "line_end": 458,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 459,
+            "line_end": 459,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 460,
+            "line_end": 460,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 461,
+            "line_end": 461,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 463,
+            "line_end": 464,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 465,
+            "line_end": 465,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 466,
+            "line_end": 466,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 468,
+            "line_end": 468,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 470,
+            "line_end": 473,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 475,
+            "line_end": 475,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 476,
+            "line_end": 476,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 478,
+            "line_end": 480,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 482,
+            "line_end": 482,
+            "label": "ACURA",
+            "call": "744:create_commands"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 523,
+            "line_end": 527,
+            "label": "ACURA",
+            "call": "532:execImpalaQuery"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 746,
+            "line_end": 746,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 497,
+            "line_end": 497,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 498,
+            "line_end": 498,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 499,
+            "line_end": 499,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 501,
+            "line_end": 501,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 504,
+            "line_end": 505,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 506,
+            "line_end": 506,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 507,
+            "line_end": 507,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 510,
+            "line_end": 512,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 515,
+            "line_end": 517,
+            "label": "ACURA",
+            "call": "747:executeBulkload"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 487,
+            "line_end": 487,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 488,
+            "line_end": 488,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 490,
+            "line_end": 492,
+            "label": "ACURA",
+            "call": "748:waitForBulkLoads"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 536,
+            "line_end": 536,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 537,
+            "line_end": 537,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 540,
+            "line_end": 542,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 543,
+            "line_end": 543,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 544,
+            "line_end": 544,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 547,
+            "line_end": 547,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 550,
+            "line_end": 554,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 557,
+            "line_end": 559,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 563,
+            "line_end": 564,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 566,
+            "line_end": 567,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 569,
+            "line_end": 571,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 573,
+            "line_end": 582,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 583,
+            "line_end": 583,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 584,
+            "line_end": 584,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 585,
+            "line_end": 585,
+            "label": "ACURA",
+            "call": "749:checkForErrors"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 174,
+            "line_end": 174,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 175,
+            "line_end": 175,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 179,
+            "line_end": 180,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 181,
+            "line_end": 181,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 182,
+            "line_end": 182,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 184,
+            "line_end": 185,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 187,
+            "line_end": 187,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 188,
+            "line_end": 188,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 190,
+            "line_end": 194,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 197,
+            "line_end": 198,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 200,
+            "line_end": 200,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 206,
+            "line_end": 207,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 209,
+            "line_end": 213,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 218,
+            "line_end": 218,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 220,
+            "line_end": 221,
+            "label": "ACURA",
+            "call": "750:delProcessTables"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 626,
+            "line_end": 626,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 627,
+            "line_end": 627,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 629,
+            "line_end": 630,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 631,
+            "line_end": 631,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 633,
+            "line_end": 634,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 635,
+            "line_end": 635,
+            "label": "ACURA",
+            "call": "751:comparaRegistros"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 641,
+            "line_end": 641,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 642,
+            "line_end": 642,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 643,
+            "line_end": 643,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 644,
+            "line_end": 644,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 645,
+            "line_end": 645,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 646,
+            "line_end": 646,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 647,
+            "line_end": 647,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 648,
+            "line_end": 648,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 649,
+            "line_end": 649,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 650,
+            "line_end": 650,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 651,
+            "line_end": 651,
+            "label": "ACURA",
+            "call": "752:tiempos"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 756,
+            "line_end": 756,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 759,
+            "line_end": 764,
+            "label": "ACURA",
+            "call": "2895:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2899,
+            "line_end": 2902,
+            "label": "Final_Timer",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 701,
+            "line_end": 705,
+            "label": "ACURA",
+            "call": "769:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 701,
+            "line_end": 705,
+            "label": "ACURA",
+            "call": "1531:mainProgram"
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 701,
+            "line_end": 705,
+            "label": "ACURA",
+            "call": "2245:mainProgram"
+          }
+        ],
+        "regla": "01-engine-output@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -7029,6 +11647,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 42,
+            "line_end": 49,
+            "label": "ACURA",
+            "call": null
+          }
+        ],
+        "regla": "01-engine-write@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -7062,6 +11695,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 42,
+            "line_end": 49,
+            "label": "ACURA",
+            "call": null
+          }
+        ],
+        "regla": "01-engine-write@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -7095,6 +11743,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 42,
+            "line_end": 49,
+            "label": "ACURA",
+            "call": null
+          }
+        ],
+        "regla": "01-engine-write@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -7128,6 +11791,21 @@
         "status": "candidato",
         "needs_review": false,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tImpalaOutput",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 42,
+            "line_end": 49,
+            "label": "ACURA",
+            "call": null
+          }
+        ],
+        "regla": "01-engine-write@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -7207,6 +11885,42 @@
         "status": "candidato",
         "needs_review": true,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 42,
+            "line_end": 49,
+            "label": "ACURA",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 58,
+            "line_end": 65,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 74,
+            "line_end": 81,
+            "label": "BMW",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 100,
+            "line_end": 107,
+            "label": "CHEVROLET",
+            "call": null
+          }
+        ],
+        "regla": "03-map@1",
+        "confianza": "alta",
+        "hechos": null
       }
     }
   ],
@@ -9088,6 +13802,574 @@
         }
       },
       "children": []
+    }
+  ],
+  "pendientes": [
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "PROC_NO_SOPORTADO",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/procs/",
+        "nota": "proc datasets lib=GCIDLL01 nolist; delete cars_poc"
+      },
+      "signature": "f3bbf4970b5d8468",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 8,
+          "line_end": 10,
+          "label": "Programa",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "SENTENCIA_NO_SOPORTADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/statements/",
+        "nota": "filename _all_ clear"
+      },
+      "signature": "182a39a32afa607d",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 140,
+          "line_end": 140,
+          "label": "ACURA",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 903,
+          "line_end": 903,
+          "label": "BMW",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1616,
+          "line_end": 1616,
+          "label": "CHEVROLET",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2266,
+          "line_end": 2266,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "INCLUDE_EXTERNO",
+        "dueno": "byron",
+        "se_cierra_con": "env/externals/ o env/externals.json",
+        "nota": "%include \"/data/Programas_SAS/activenodelzcode.sas\""
+      },
+      "signature": "bed7cbe9dda3d57a",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 146,
+          "line_end": 146,
+          "label": "ACURA",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 147,
+          "line_end": 147,
+          "label": "ACURA",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 786,
+          "line_end": 786,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 909,
+          "line_end": 909,
+          "label": "BMW",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 910,
+          "line_end": 910,
+          "label": "BMW",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1548,
+          "line_end": 1548,
+          "label": "Importar Bucket S3",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1622,
+          "line_end": 1622,
+          "label": "CHEVROLET",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1623,
+          "line_end": 1623,
+          "label": "CHEVROLET",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2272,
+          "line_end": 2272,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2273,
+          "line_end": 2273,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "SENTENCIA_NO_SOPORTADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/statements/",
+        "nota": "%let &out = \",\""
+      },
+      "signature": "1a7ede71552aeeec",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 796,
+          "line_end": 796,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "816:resolver_delimitador"
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 800,
+          "line_end": 800,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "816:resolver_delimitador"
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 804,
+          "line_end": 804,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "816:resolver_delimitador"
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 796,
+          "line_end": 796,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "1579:resolver_delimitador"
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 800,
+          "line_end": 800,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "1579:resolver_delimitador"
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 804,
+          "line_end": 804,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "1579:resolver_delimitador"
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "SENTENCIA_NO_SOPORTADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/statements/",
+        "nota": "%let &out = '09'x"
+      },
+      "signature": "7dcc4baaa1b64eee",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 808,
+          "line_end": 808,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "816:resolver_delimitador"
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 808,
+          "line_end": 808,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "1579:resolver_delimitador"
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "SENTENCIA_NO_SOPORTADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/statements/",
+        "nota": "%let &out ="
+      },
+      "signature": "0794c33cda152349",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 812,
+          "line_end": 812,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "816:resolver_delimitador"
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 812,
+          "line_end": 812,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": "1579:resolver_delimitador"
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "MACRO_NO_EXPANDIDA",
+        "dueno": "joseph",
+        "se_cierra_con": "mejora del expansor (pendiente de contrato)",
+        "nota": "%exportar_s3(num_datasets=opt4, folder=FILE_GCIA_DLLO_SERV_DE_INFORM/, \nsubfolder=, formato=csv, modo_xlsx=$modo_xlsx, d"
+      },
+      "signature": "b1611b1aaab84390",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 879,
+          "line_end": 882,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "MACRO_NO_EXPANDIDA",
+        "dueno": "joseph",
+        "se_cierra_con": "mejora del expansor (pendiente de contrato)",
+        "nota": "%importar_s3(s3_file=BMW, folder=FILE_GCIA_DLLO_SERV_DE_INFORM/, subfolder=, \nformato=csv, tabla=, library=WORK, delimit"
+      },
+      "signature": "952d8e8bb14d9010",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1593,
+          "line_end": 1595,
+          "label": "Importar Bucket S3",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "TIPO_DESCONOCIDO",
+        "dueno": "byron",
+        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
+        "nota": ""
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 656,
+          "line_end": 666,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "TIPO_DESCONOCIDO",
+        "dueno": "byron",
+        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
+        "nota": ""
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1419,
+          "line_end": 1429,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "TIPO_DESCONOCIDO",
+        "dueno": "byron",
+        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
+        "nota": ""
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2132,
+          "line_end": 2142,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "TIPO_DESCONOCIDO",
+        "dueno": "byron",
+        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
+        "nota": ""
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2782,
+          "line_end": 2792,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "FUNCION_NO_MAPEADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/functions/",
+        "nota": "byte(int(65+26*ranuni(0)))"
+      },
+      "signature": "c7e5947edb164199/byte",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 656,
+          "line_end": 666,
+          "label": "ACURA",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "FUNCION_NO_MAPEADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/functions/",
+        "nota": "symget('cols_unlocked')"
+      },
+      "signature": "27425832bc7e612a/symget",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 862,
+          "line_end": 865,
+          "label": "Exportar Bucket S3 Version 2",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "FUNCION_NO_MAPEADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/functions/",
+        "nota": "byte(int(65+26*ranuni(0)))"
+      },
+      "signature": "c7e5947edb164199/byte",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 1419,
+          "line_end": 1429,
+          "label": "BMW",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "FUNCION_NO_MAPEADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/functions/",
+        "nota": "byte(int(65+26*ranuni(0)))"
+      },
+      "signature": "c7e5947edb164199/byte",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2132,
+          "line_end": 2142,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "FUNCION_NO_MAPEADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/functions/",
+        "nota": "byte(int(65+26*ranuni(0)))"
+      },
+      "signature": "c7e5947edb164199/byte",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2782,
+          "line_end": 2792,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tAggregateRow; no aplicado"
+      },
+      "signature": "584b31fdb8099257",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tAggregateRow; no aplicado"
+      },
+      "signature": "584b31fdb8099257",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tAggregateRow; no aplicado"
+      },
+      "signature": "584b31fdb8099257",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tAggregateRow; no aplicado"
+      },
+      "signature": "584b31fdb8099257",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tAggregateRow; no aplicado"
+      },
+      "signature": "584b31fdb8099257",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tMap; no aplicado"
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tMap; no aplicado"
+      },
+      "signature": "27425832bc7e612a",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tMap; no aplicado"
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tMap; no aplicado"
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tMap; no aplicado"
+      },
+      "signature": "c7e5947edb164199",
+      "fuente": []
     }
   ]
 }

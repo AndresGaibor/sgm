@@ -24,7 +24,8 @@
       "notes": [
         "PROC FORMAT sin regla de migración"
       ],
-      "component": null
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00002",
@@ -65,6 +66,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tSortRow",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 6,
+            "line_end": 6,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "02-sort@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -105,6 +121,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tSortRow",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 7,
+            "line_end": 7,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "02-sort@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -132,7 +163,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00005",
@@ -159,7 +191,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00006",
@@ -198,6 +231,21 @@
         "alternatives": [
           "tJoin"
         ]
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 9,
+            "line_end": 22,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "03-join@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -230,6 +278,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tFilterRow",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 9,
+            "line_end": 22,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "02-filter@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -266,6 +329,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tJavaRow",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 9,
+            "line_end": 22,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "04-stateful-row@1",
+        "confianza": "baja",
+        "hechos": null
       }
     },
     {
@@ -305,6 +383,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tJavaRow",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 9,
+            "line_end": 22,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "04-stateful-row@1",
+        "confianza": "baja",
+        "hechos": null
       }
     },
     {
@@ -343,6 +436,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tJavaRow",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 9,
+            "line_end": 22,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "04-stateful-row@1",
+        "confianza": "baja",
+        "hechos": null
       }
     },
     {
@@ -419,6 +527,21 @@
         "status": "candidato",
         "needs_review": true,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 9,
+            "line_end": 22,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "03-map@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -447,7 +570,8 @@
         "rung": 2,
         "rule": "02-flow-write",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     }
   ],
   "edges": [
@@ -712,6 +836,142 @@
       "contexts": {},
       "context_groups": {},
       "children": []
+    }
+  ],
+  "pendientes": [
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "PROC_NO_SOPORTADO",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/procs/",
+        "nota": "proc format; value $tramo low-<30='Joven' 30-<60='Adulto' 60-high='Mayor'"
+      },
+      "signature": "4f1a74160ba1651b",
+      "fuente": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 2,
+          "line_end": 4,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "TIPO_DESCONOCIDO",
+        "dueno": "byron",
+        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
+        "nota": ""
+      },
+      "signature": "fd0e7150b6f1f34c",
+      "fuente": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "FUNCION_NO_MAPEADA",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/functions/",
+        "nota": "put(edad, tramo.)"
+      },
+      "signature": "fd0e7150b6f1f34c/put",
+      "fuente": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 9,
+          "line_end": 22,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tSortRow; no aplicado"
+      },
+      "signature": "7adb03c4f0c46410",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tSortRow; no aplicado"
+      },
+      "signature": "6bc64a5c23a1373a",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tMap; no aplicado"
+      },
+      "signature": "fd875572c3274573",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tFilterRow; no aplicado"
+      },
+      "signature": "4188de0614a8a949",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tJavaRow; no aplicado"
+      },
+      "signature": "bfa577264feec877",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tJavaRow; no aplicado"
+      },
+      "signature": "1cfbde066a0f6469",
+      "fuente": []
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tJavaRow; no aplicado"
+      },
+      "signature": "184f6cda65206008",
+      "fuente": []
     }
   ]
 }

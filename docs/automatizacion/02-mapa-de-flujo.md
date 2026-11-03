@@ -62,7 +62,7 @@ Tabla con un renglón por conjunto de datos:
 - **Leído en (cantidad)**: número de pasos que lo leen. Es la base de la decisión de materializar.
 - **Nota**: "no lo lee nadie", "lo borra un paso", "se usa como entregable", etc.
 
-Para el archivo de referencia, esta tabla muestra que se crean 348 conjuntos de trabajo distintos, que 263 se leen y que solo 2 se borran explícitamente. El documento no concluye nada de eso; solo lo muestra.
+Para el archivo de referencia, esta tabla muestra que se escriben 405 conjuntos de trabajo distintos, que 347 se leen y que 1 se borra explícitamente (medido con `sgm facts`). El documento no concluye nada de eso; solo lo muestra.
 
 ### 2.4 Entradas y salidas externas
 
@@ -153,7 +153,7 @@ Solo con datos ya medidos en el archivo:
 
 - **Tamaño:** 24.801 líneas y 610 pasos etiquetados.
 - **Bloques repetidos:** 30 bloques con la misma secuencia de macros (9 macros distintas repetidas en cada bloque), que se diferencian sobre todo por el nombre de la tabla que procesan.
-- **Conjuntos de trabajo:** 348 creados, 263 leídos, 2 borrados explícitamente.
+- **Conjuntos de trabajo:** 405 escritos, 347 leídos, 1 borrado explícitamente (medido con `sgm facts`).
 - **Ambiente:** una rama por valor de una variable con tres valores (D, C, P), que cambia el nombre de la base de destino.
 - **Entradas externas:** Excel desde una carpeta compartida (cinco archivos distintos) y lectura de una base.
 - **Salidas externas:** archivos CSV a una carpeta compartida, y cargas a un servidor remoto mediante sesiones.

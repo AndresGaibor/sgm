@@ -26,7 +26,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00004",
@@ -52,7 +53,8 @@
         "rung": 2,
         "rule": "02-flow-read",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     },
     {
       "id": "op00005",
@@ -99,6 +101,21 @@
         "alternatives": [
           "tMap"
         ]
+      },
+      "valor_componente": {
+        "valor": "tAggregateRow",
+        "fuente": [
+          {
+            "file": "p0_ejemplo_basico.sas",
+            "line_start": 10,
+            "line_end": 17,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "02-aggregate@1",
+        "confianza": "media",
+        "hechos": null
       }
     },
     {
@@ -156,6 +173,21 @@
         "status": "candidato",
         "needs_review": true,
         "alternatives": []
+      },
+      "valor_componente": {
+        "valor": "tMap",
+        "fuente": [
+          {
+            "file": "p0_ejemplo_basico.sas",
+            "line_start": 4,
+            "line_end": 8,
+            "label": null,
+            "call": null
+          }
+        ],
+        "regla": "03-map@1",
+        "confianza": "alta",
+        "hechos": null
       }
     },
     {
@@ -184,7 +216,8 @@
         "rung": 2,
         "rule": "02-flow-write",
         "status": "candidato"
-      }
+      },
+      "valor_componente": null
     }
   ],
   "edges": [
@@ -261,6 +294,38 @@
       "contexts": {},
       "context_groups": {},
       "children": []
+    }
+  ],
+  "pendientes": [
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "TIPO_DESCONOCIDO",
+        "dueno": "byron",
+        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
+        "nota": ""
+      },
+      "signature": "c397fddd49302c35",
+      "fuente": [
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 4,
+          "line_end": 8,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "DECISION_HUMANA",
+        "dueno": "usuario",
+        "se_cierra_con": "sgm decisions set",
+        "nota": "sugerido tAggregateRow; no aplicado"
+      },
+      "signature": "08499c40f4aeaff9",
+      "fuente": []
     }
   ]
 }

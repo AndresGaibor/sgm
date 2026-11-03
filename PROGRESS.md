@@ -974,3 +974,13 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Prueba: `test_p08_agregado_que_vuelve_a_unirse_deja_decision_no_materializa` comprueba que ninguna arista queda materializada sin decisión.
 - Verificación: `uv run pytest -q`: 413 pasan, 1 se salta; `uv run ruff check .`: limpio.
 - Pendiente de la fase 3 (no cerrado): 3.1 campos por valor (`fuente`, `regla`, `confianza`, `hechos`), 3.2 modelo único de pendiente, 3.5 regla de materialización por lectores, 3.6 residuo de bloques repetidos, 3.7 y 3.8 joblets y sus parámetros, 3.9 contextos de ambiente como pendientes, 3.10 división de los archivos de más de 300 líneas.
+
+## Hito 23. Campos por valor y pendiente unificado: fase 3.1 y 3.2
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`):
+  - 3.1: cada componente del plan lleva `valor_componente` con `valor`, `fuente` (archivo y líneas), `regla` (id@versión) y `confianza`. El campo `hechos` queda en `null`: enlazar hechos a operadores no está calculado.
+  - 3.2: el plan lleva `pendientes`, un modelo único con `valor: null`, `motivo`, `dueno` y `se_cierra_con` (tomados de `rules/routing.yaml` vía `motivos.de`), y `nota`. Los modelos `Pending` y `Gap` no cambian: es una vista nueva y aditiva, porque reemplazarlos requiere acuerdo de contrato.
+- Decisión: ambos cambios son aditivos. Los goldens se regeneraron y se verificó con un script que, quitando `valor_componente` y `pendientes`, son idénticos a los del commit anterior.
+- Pruebas: `tests/unit/test_plan_valores.py` (fuente, regla y confianza en cada componente; dueño y cierre en cada pendiente).
+- Pendiente: `hechos` por valor (enlace operador↔hecho); 3.5 regla de materialización por lectores como regla completa (hoy solo dispara la decisión del patrón de agregado).
