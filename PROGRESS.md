@@ -1082,3 +1082,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: `test_regla_de_materializacion_tabla_de_decision` (tabla de decisión) y los invariantes de joblet con entradas y salidas.
 - Verificación: `uv run pytest -q`: 432 pasan, 1 se salta. `uv run ruff check .`: limpio.
 - Pendiente del plan: 5.8 (validación extremo a extremo contra SAS y Talend con datos). Requiere un ambiente externo.
+
+## Hito 32. Guía con contextos y pendientes: fase 4.1 completa en estructura
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`, 4.1): la guía trae las secciones que pide el plan y que faltaban: `## Contextos` (variables declaradas con su origen y su estado, y grupos de ambiente con su selector) y `## Pendientes` (motivo, dueño y cómo cerrar, con el mismo modelo que el plan JSON).
+- Pendiente de la fase 4: ninguno en el plan. 4.1, 4.2 y 4.3 quedan cubiertos; 4.3 con `sgm gaps list`.
+- Pruebas: `test_guia_tiene_contextos_y_pendientes`.
+- Verificación: `uv run pytest -q`: 433 pasan, 1 se salta. `uv run ruff check .`: limpio. Los goldens no cambian porque no incluyen la guía Markdown.
+- Pendiente de la fase 5: 5.8, validación con datos contra SAS y Talend. Requiere un ambiente externo.

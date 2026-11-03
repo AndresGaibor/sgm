@@ -191,6 +191,50 @@ def _joblets(plan: Plan) -> list[str]:
     return lines
 
 
+def _contextos(plan: Plan) -> list[str]:
+    """Contextos del Job (fase 4.1): variables declaradas y grupos de ambiente."""
+    lines = ["## Contextos", ""]
+    filas = []
+    for job in plan.jobs:
+        for nombre, datos in sorted(job.contexts.items()):
+            if isinstance(datos, dict):
+                valor = datos.get("valor")
+                estado = "pendiente" if valor is None else f"valor `{valor}`"
+                filas.append(f"| {nombre} | {datos.get('origen', '-')} | {estado} |")
+    if filas:
+        lines += ["| Variable | Origen | Estado |", "|---|---|---|", *filas, ""]
+    else:
+        lines += ["No hay variables de contexto declaradas.", ""]
+    for nombre, grupo in sorted(
+        (n, g) for job in plan.jobs for n, g in job.context_groups.items()
+    ):
+        lines.append(
+            f"- Grupo `{nombre}`: se elige por `{grupo.get('selector', '?')}`; variables "
+            + (", ".join(f"`{v}`" for v in grupo.get("variables", [])) or "ninguna")
+            + "."
+        )
+    if any(job.context_groups for job in plan.jobs):
+        lines.append("")
+    return lines
+
+
+def _pendientes_guia(plan: Plan) -> list[str]:
+    """Pendientes (fase 4.1): mismo modelo que el plan JSON, con motivo, dueño y cierre."""
+    from sgm.emit.plan_json import _pendientes
+
+    filas = _pendientes(plan)
+    lines = ["## Pendientes", ""]
+    if not filas:
+        return [*lines, "Ninguno.", ""]
+    for fila in filas:
+        pend = fila["pendiente"]
+        lines.append(
+            f"- {pend['motivo']} ({pend['dueno']}): {pend['nota']}. "
+            f"Se cierra con: {pend['se_cierra_con']}."
+        )
+    return [*lines, ""]
+
+
 def render_guide(plan: Plan) -> str:
     operators = sorted(plan.graph.operators(), key=lambda o: o.id)
     by_status = Counter(op.status for op in operators)
@@ -213,6 +257,7 @@ def render_guide(plan: Plan) -> str:
         "",
         *_stages(plan),
         *_joblets(plan),
+        *_contextos(plan),
         "## Operadores por nodo",
     ]
     by_label: dict[str, list[Operator]] = {}
@@ -258,4 +303,5 @@ def render_guide(plan: Plan) -> str:
         ]
     else:
         lines.append("Nada.")
+    lines += ["", *_pendientes_guia(plan)]
     return "\n".join(lines) + "\n"

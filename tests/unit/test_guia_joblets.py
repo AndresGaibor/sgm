@@ -28,3 +28,11 @@ def test_guia_muestra_joblet_con_parametros_y_apariciones() -> None:
 def test_sin_joblets_no_hay_seccion() -> None:
     compilados, _ = compile_project({"x.sas": "data work.a; set work.b; run;\n"})
     assert "## Joblets" not in render_guide(compilados["x.sas"].plan)
+
+
+def test_guia_tiene_contextos_y_pendientes() -> None:
+    """Fase 4.1: la guía trae sección de contextos y de pendientes."""
+    compilados, _ = compile_project({"x.sas": PROGRAMA})
+    guia = render_guide(compilados["x.sas"].plan)
+    assert "## Contextos" in guia
+    assert "## Pendientes" in guia
