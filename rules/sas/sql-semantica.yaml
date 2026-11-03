@@ -1,0 +1,22 @@
+# Semántica de PROC SQL de SAS que no es portable a SQL de motor (Impala, Spark, Hive).
+# Cada regla dice qué se detecta, qué se hace y de dónde sale. Un caso no portable nunca se
+# traduce a SQL inventado: queda como pendiente o como advertencia con su motivo.
+reglas:
+  - id: agregado-sin-group-by
+    detecta: columna no agregada junto a una función de agregado, sin GROUP BY que la cubra
+    en_sas: devuelve un valor por grupo implícito
+    tratamiento: pendiente
+    motivo: el motor exige agrupar o usar función de ventana; la elección la decide una persona
+    fuente: https://medium.com/@protmaks/why-ai-cant-correctly-convert-sas-code-to-spark-sql-for-databricks-473552770eb0
+  - id: select-into-macrovariable
+    detecta: SELECT ... INTO :variable
+    en_sas: asigna una macrovariable en tiempo de ejecución
+    tratamiento: reconstruir_en_anfitrion
+    motivo: no es SQL portable; el valor se obtiene en el programa que llama al motor
+    fuente: https://digihub.mastechdigital.com/Fabric_Assets/Microsoft%20Fabric%20Asset%20Library/09_Migration_Modernization/MS_Fabric_SAS_to_PySpark_Migration.docx
+  - id: select-basico-group-by
+    detecta: SELECT con GROUP BY y funciones de agregado sobre las columnas agrupadas
+    en_sas: equivale a SQL estándar
+    tratamiento: portable
+    motivo: sintaxis común a los motores; se compone directamente
+    fuente: https://digihub.mastechdigital.com/Fabric_Assets/Microsoft%20Fabric%20Asset%20Library/09_Migration_Modernization/MS_Fabric_SAS_to_PySpark_Migration.docx
