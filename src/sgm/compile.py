@@ -6,7 +6,6 @@ plan por programa. Cada plan tiene su propio grafo y su propio registro de pasad
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -18,6 +17,7 @@ from sgm.frontend.program import ProgramAnalysis, analyze_program
 from sgm.frontend.selectors import SelectorUse
 from sgm.ir.lower import lower_items
 from sgm.ir.models import Evidence, Gap, Graph, Job, NotMigrated, Plan
+from sgm.ir.sql_portability import load_sql_portable
 from sgm.passes.base import PassContext, PassLog
 from sgm.passes.pipeline import run_passes
 from sgm.redaction import redact
@@ -31,15 +31,6 @@ SCHEMAS_PATH = ROOT_DIR / "env" / "schemas"
 class Compiled:
     plan: Plan
     logs: list[PassLog] = field(default_factory=list)
-
-
-def load_sql_portable(path: Path | None = None) -> frozenset[str]:
-    """Nombres de funciones SQL portables (status `portable` en `rules/sas/sql-functions.json`)."""
-    source = path or RULES_DIR / "sas" / "sql-functions.json"
-    data = json.loads(source.read_text(encoding="utf-8"))
-    return frozenset(
-        name for name, info in data["functions"].items() if info.get("status") == "portable"
-    )
 
 
 def build_gaps(graph: Graph) -> list[Gap]:

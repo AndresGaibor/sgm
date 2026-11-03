@@ -38,7 +38,7 @@ def _candidates(graph: Graph, target: str) -> set[str]:
         if op.kind not in db_sql.DB_KINDS:
             continue
         preds = graph.predecessors(op_id)
-        if len(preds) != 1 or db_sql._step_sql(op, "SELECT 1") is None:
+        if len(preds) != 1 or db_sql._step_sql(op, "t") is None:
             continue
         pred = graph.operator(preds[0])
         # Un read_file se convierte en carga única; una carga o lectura de base solo cuenta si

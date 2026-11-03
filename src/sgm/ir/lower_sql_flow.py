@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.sql_normalize import NormalizedSql
+from sgm.ir import sql_semantics
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
@@ -81,6 +82,15 @@ def _names(items) -> list[str]:
     return [it.alias or it.column for it in items if not it.star and (it.alias or it.column)]
 
 
+def _plain_items(spec: SelectSpec) -> list[str]:
+    """Elementos del SELECT que no son agregados (ni `*`): columnas que quedarían sin agrupar."""
+    return [
+        it.alias or it.column or it.expression
+        for it in spec.items
+        if not it.star and not _AGGREGATE.search(it.expression)
+    ]
+
+
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
     """Operadores de una rama de SELECT, en el orden lógico de SQL. Devuelve el último."""
     aliases = {s.alias.lower() for s in [spec.base] if s and s.alias}
@@ -123,7 +133,16 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 for it in aggregates
             ],
         }
-        current = chain.step("aggregate", params, current)
+        plain = _plain_items(spec) if not spec.group_by else []
+        if plain and sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente":
+            # SAS remezcla las columnas sin agregar en cada fila: no hay SQL equivalente probado.
+            params["pendiente"] = plain
+            label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
+            note = f"{label}: columnas sin agregar {', '.join(plain)}; pendiente de decidir"
+            current = chain.step("aggregate", params, current, status="parcial")
+            current.notes.append(note)
+        else:
+            current = chain.step("aggregate", params, current)
         if spec.having:
             having = _column(spec.having, aliases)
             for it in aggregates:
@@ -170,11 +189,44 @@ def lower_query(tree: SqlTree, normalized: NormalizedSql, ev: Evidence, b: Build
     if tree.target:
         final.params["outputs"] = [qualify(_restore(tree.target, normalized))]
         b.refresh(final)
-    for variable, separator in normalized.into_vars:
-        output = _names(tree.selects[0].items)
+    if normalized.into_vars:
+        _host_assignments(tree, normalized, final, chain)
+
+
+def _host_assignments(
+    tree: SqlTree, normalized: NormalizedSql, final: Operator, chain: _Chain
+) -> None:
+    """SELECT ... INTO :v1, :v2: cada macro variable toma la expresión de su posición.
+
+    La asignación es un operador `set_variable` del programa anfitrión, no SQL. Un valor sale como
+    `soportado` si la consulta da una sola fila (todo son agregados sin GROUP BY) o si hay un
+    separador; en los demás casos queda `parcial`, porque no está demostrado qué valor toma SAS.
+    Si la regla no es `programa_anfitrion` (tratamiento `pendiente`), la asignación siempre es
+    `parcial`.
+    """
+    select = tree.selects[0]
+    single_row = (
+        len(tree.selects) == 1
+        and not select.group_by
+        and bool(select.items)
+        and all(_AGGREGATE.search(it.expression) for it in select.items if not it.star)
+    )
+    host = sql_semantics.tratamiento(sql_semantics.SELECT_INTO) == "programa_anfitrion"
+    for position, (variable, separator) in enumerate(normalized.into_vars):
+        item = select.items[position] if position < len(select.items) else None
+        has_item = item is not None and not item.star
+        proven = host and has_item and (single_row or separator is not None)
         params = {
             "variable": variable,
             "separator": separator,
-            "column": output[0] if output else None,
+            "regla": sql_semantics.SELECT_INTO,
+            "column": (item.alias or item.column) if has_item else None,
+            "expression": _restore(item.expression, normalized) if has_item else None,
         }
-        chain.step("set_variable", params, final)
+        op = chain.step("set_variable", params, final, status="soportado" if proven else "parcial")
+        if not proven:
+            op.notes.append(
+                f"{sql_semantics.reglas()[sql_semantics.SELECT_INTO].etiqueta}: valor de "
+                f"{variable} sin demostrar (varias filas sin separador, elemento no nombrado "
+                "o regla pendiente)"
+            )

@@ -23,7 +23,11 @@ import re
 from dataclasses import dataclass, field
 
 _QUOTED = "'[^']*'|\"[^\"]*\""  # literal entre comillas simples o dobles
-_INTO = re.compile(rf"(?i)\binto\s*:\s*(\w+)(?:\s+separated\s+by\s+({_QUOTED}))?")
+_INTO = re.compile(
+    rf"(?i)\binto\s*((?::\s*\w+\s*,?\s*)+)"  # una o más variables :x, :y
+    rf"(?:trimmed\b\s*)?(?:separated\s+by\s+({_QUOTED})\s*)?(?:trimmed\b\s*)?"
+)
+_INTO_NAME = re.compile(r":\s*(\w+)")
 _MACRO_REF = re.compile(r"&(\w+)\.?")
 _MACRO_FN = re.compile(r"%(\w+)\s*\(")
 _CALCULATED = re.compile(r"(?i)\bcalculated\s+(\w+)")
@@ -223,7 +227,9 @@ def normalize(sql: str) -> NormalizedSql:
     text = sql
 
     for match in _INTO.finditer(text):
-        result.into_vars.append((match.group(1), match.group(2)))
+        separator = match.group(2)
+        for name in _INTO_NAME.findall(match.group(1)):
+            result.into_vars.append((name, separator))
     if result.into_vars:
         text = _INTO.sub("", text)
         result.notes.append("INTO: variables de macro recibidas por el SELECT")

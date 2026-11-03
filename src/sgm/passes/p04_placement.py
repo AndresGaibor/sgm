@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re
 
+from sgm.ir import sql_semantics
 from sgm.ir.builder import Builder
 from sgm.ir.models import Graph, Operator
 from sgm.ir.signature import signature
@@ -45,6 +46,8 @@ def _expressible(op: Operator, ctx: PassContext) -> bool:
     """Si el operador se puede escribir como SQL portable sin perder lógica."""
     if op.kind not in SQL_KINDS or op.params.get("untranslated"):
         return False
+    if op.kind == "aggregate" and sql_semantics.aggregate_pendiente(op.params):
+        return False  # pendiente según sql-semantica.yaml: no se ubica en la base
     if op.kind == "filter":
         return _portable([str(op.params.get("expression", ""))], ctx)
     if op.kind == "derive":
