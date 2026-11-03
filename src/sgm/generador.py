@@ -78,3 +78,22 @@ def joblets_por_grupo(plan_ops, hechos: list[Fact], lineas: list[str]) -> list[d
             }
         )
     return salida
+
+
+def diseno_del_job(plan_ops, hechos: list[Fact], lineas: list[str]) -> dict:
+    """Job padre de diseño: una llamada por grupo (`tFlowToIterate` sobre sus contextos) y los
+    componentes de las regiones sueltas. Es el equivalente en Talend del bucle `%DO ... %TO`
+    sobre una lista (`%SCAN`), aplicado a copias agrupadas de forma determinista.
+    """
+    joblets = joblets_por_grupo(plan_ops, hechos, lineas)
+    inicios = marcador_de_regiones(lineas)
+    llamadas = [
+        {"joblet": j["id"], "iteraciones": j["miembros"], "contextos": len(j["contextos"])}
+        for j in joblets
+    ]
+    return {
+        "job_padre": {"llamadas": llamadas},
+        "joblets": [{k: v for k, v in j.items() if k != "contextos"} for j in joblets],
+        "contextos": {j["id"]: j["contextos"] for j in joblets},
+        "regiones": len(inicios),
+    }

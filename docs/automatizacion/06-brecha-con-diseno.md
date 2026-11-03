@@ -142,3 +142,19 @@ Esa es la forma de llamar un joblet una vez por miembro, en lugar de una vez por
 
 Pendiente: los contextos hoy son listas de conjuntos de datos; el diseño necesita roles
 (entrada, salida, producto) y la emisión del Job con `tFlowToIterate`.
+
+## Job padre de diseño (3 de noviembre de 2026)
+
+`sgm.generador.diseno_del_job` produce el Job padre: una llamada por joblet de grupo (5), más los
+componentes de las regiones sueltas (33). Canvas del padre: 38 nodos. Componentes dentro de los
+joblets: 111 firmas.
+
+Investigado: en SAS, repetir sobre una lista se escribe con `%DO i = 1 %TO %SYSFUNC(COUNTW(&lista));`
+y `%SCAN` para extraer cada elemento ([guía de macros comunes](https://advance.hub.phuse.global/wiki/x/4xOZAQ)).
+El programa de referencia no tiene esa lista: tiene copias. El generador las convierte en la misma
+forma (llamada por lista de contextos), que es el equivalente en Talend (`tFlowToIterate` sobre
+los contextos de cada joblet).
+
+Brecha restante: los 33 componentes sueltos (6 regiones sin grupo) y los 111 dentro de joblets
+siguen por encima de los unos 80 del diseño. Para bajarlos hay que agrupar también las regiones
+sueltas (con un umbral más bajo o por sus propias firmas) y que los joblets compartan firmas.
