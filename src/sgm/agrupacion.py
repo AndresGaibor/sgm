@@ -51,7 +51,8 @@ def agrupar(
     """Grupos de regiones por similitud de Jaccard entre sus palabras (sin plomería común)."""
     n = len(palabras)
     conteo = Counter(w for p in palabras.values() for w in p)
-    comunes = {w for w, c in conteo.items() if n and c > n * df_maximo}
+    # Con pocas regiones todo el vocabulario sería "común": el filtro solo aplica desde seis.
+    comunes = {w for w, c in conteo.items() if n >= 6 and c > n * df_maximo}
     limpias = {r: p - comunes for r, p in palabras.items()}
     padre = {r: r for r in limpias}
 

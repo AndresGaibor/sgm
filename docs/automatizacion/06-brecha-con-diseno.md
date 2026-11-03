@@ -126,3 +126,19 @@ Medidas:
 Pendiente para cerrar la brecha: emitir un joblet por grupo con esas firmas, convertir los
 nombres y literales que varían en contextos, y llamar cada joblet con `tFlowToIterate` sobre la
 lista de contextos de sus miembros.
+
+## Generador de joblets por grupo (3 de noviembre de 2026)
+
+Implementado en `src/sgm/generador.py`. Regiones: definiciones de la macro más repetida del
+programa (sin nombres de cliente). Grupos: `sgm.agrupacion`. Joblet: unión de firmas de componente
+distintas de sus miembros. Contextos: por miembro, los conjuntos de datos que usa.
+
+Medido en `client_large.sas`: 5 joblets (11, 7, 2, 2, 2 miembros) con 89, 14, 5, 2 y 1 firmas.
+
+Investigado para la llamada: en Talend, `tFlowToIterate` recorre filas y los valores de cada fila
+llegan por `globalMap` a un `tRunJob` con contexto, o a un joblet que lee el contexto del Job padre
+([patrón de iteración con tRunJob](https://community.qlik.com/t5/Talend-Studio/Iterating-through-values-in-table-for-single-Context-Variable/td-p/2334186)).
+Esa es la forma de llamar un joblet una vez por miembro, en lugar de una vez por región.
+
+Pendiente: los contextos hoy son listas de conjuntos de datos; el diseño necesita roles
+(entrada, salida, producto) y la emisión del Job con `tFlowToIterate`.
