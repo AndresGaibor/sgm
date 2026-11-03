@@ -193,3 +193,11 @@ con sub-cadenas compartidas entre los dos joblets grandes.
 Consecuencia para la fusión de SQL: cada sentencia pasa a un tDBInput solo si su semántica es
 portable. Lo que no lo es (columnas no agrupadas, `INTO :`) queda como pendiente con motivo, no
 como SQL inventado.
+
+## Verificación de sqlglot (3 de noviembre de 2026)
+
+Las fuentes consultadas dicen que sqlglot traduce entre unos 31 dialectos SQL (Spark, DuckDB,
+Snowflake, BigQuery, entre otros) y permite crear dialectos propios ([repositorio de sqlglot](https://github.com/tobymao/sqlglot)).
+No encontré que tenga un dialecto de SAS. Por eso, para PROC SQL, hay que escribir el lector
+propio, y sqlglot solo serviría como escritor hacia Impala o Spark. Queda por confirmar en su
+README oficial.
