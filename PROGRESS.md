@@ -1117,3 +1117,30 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: `tests/unit/test_generador.py`, 4 nuevas (umbral 0,2 contra 0,3 con Jaccard 0,25; variables sin contraseña en claro; conteo de operadores de contexto; aritmética de nodos del padre).
 - Verificación: `uv run pytest -q`: 447 pasan, 1 se salta, 6 xfail (las de `test_objetivo_diseno.py`, que miden la brecha y no cambian con este hito). `uv run ruff check .`: limpio.
 - Bloqueos sin cambio: la decisión de qué regiones forman un mismo proceso, la fusión de joins con decisión por firma y la validación con datos (5.8), que necesita un ambiente externo.
+
+
+## Hito 40. Modelo de coincidencia y tipo de join en tMap
+
+- Fecha: 2026-11-03
+- Qué se hizo: cada join que se emite como tMap lleva `match_model` (`unique`, `first` o `all`) y `join_type` (`inner` o `left outer`) en su componente. `src/sgm/passes/join_match.py` calcula ambos y las advertencias; `p10_components` lo llama solo para joins con componente tMap.
+- Premisa corregida: la pasada 6 no funde joins. `CHAINABLE` es `filter`, `derive`, `rename` y `select`. Los joins pasan a tMap por la regla `rules/mapping/03-join.yaml`, en la pasada 10. No se cambió la pasada 6: fundir joins alteraría la firma de decisión por join y los overrides guardados.
+- Modelo por construcción: un `join` de SQL (con `keys`) es `all`, porque SQL devuelve todas las parejas que cumplen el ON. Un MERGE (sin `keys`) es `all` como suposición, con advertencia, porque SAS empareja en secuencia cuando la clave se repite en ambos lados.
+- Tipo de join (tarea 21): `inner` y `left` se traducen a `inner` y `left outer`. `right`, `full` y `cross` no tienen tipo tMap; quedan con `join_type: null` y una advertencia que pide revisión. El tMap solo admite inner y left outer según la documentación de Talend.
+- Firmas y overrides: los parámetros del join no cambian, así que la firma y las decisiones guardadas por firma siguen igual. Una prueba lo verifica.
+- Goldens regenerados: `p1_merge_first_last.plan.json` y `generalization__etl_archivos_simple.plan.json`. La diferencia es solo en los joins: claves nuevas en `component` y, en el MERGE, la advertencia en `notes`.
+- Pruebas: `tests/unit/test_join_match.py` (11 pruebas, una por comportamiento, con programas SAS mínimos inline). Junto con `test_components.py`, `test_store.py` y `test_golden.py`: 34 pasan.
+- Verificación: `ruff check .` limpio; `ruff format` aplicado a los archivos nuevos y tocados.
+
+### Tarea 22. Advertencia de unique match en la guía
+
+- Qué se hizo: `describe()` agrega, para `unique`, la advertencia de que el tMap conserva la última fila coincidente, no la primera. La advertencia queda en las notas del operador, que la guía muestra en su tabla. `first` tiene su propia advertencia.
+- Fuente: la página de ejemplo https://help.qlik.com/talend/en-US/components/8.0/tmap/example-job-implementing-different-match-models dice "It outputs the last matching record of the lookup source." para unique y "the first matching record" para first. La página general de modelos no lo precisa, por eso la advertencia cita la de ejemplo.
+- Límite: ninguna construcción SAS actual demuestra `unique` ni `first`, así que el pipeline no emite ninguno todavía. Ambos quedan aceptados por `describe(op, model=...)` y probados en aislamiento. Activarlos exige una fuente que lo demuestre.
+- Verificación: pruebas de `describe` con `unique` y `first`, y de no repetir advertencias.
+
+### Tarea 23. Medición de tJavaRow en client_large.sas
+
+- Medición con `sgm compile --no-cache` sobre `tests/fixtures/sas/client/client_large.sas` (copia en el directorio temporal de sesión): 812 operadores, 119 firmas con hueco, 0 componentes `tJavaRow` y 0 `tJava`.
+- Causa: el archivo no contiene `RETAIN`, `FIRST.`/`LAST.` ni `LAG(`. Ninguna sentencia cae en la regla `04-stateful-row`.
+- Joins en el mismo archivo: 53 tMap, todos con `match_model: all`. Tipos: 14 inner, 9 left outer, 29 cross y 1 full. Los 30 de tipo cross o full llevan advertencia.
+- Decisión: el cero de `tJavaRow` es real en este pipeline; un SAS con `RETAIN` que no se traduce aparecería como hueco, no como tJavaRow.

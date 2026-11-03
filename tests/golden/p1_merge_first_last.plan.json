@@ -393,7 +393,8 @@
         }
       ],
       "notes": [
-        "2 operadores de flujo unidos en un tMap (pasada 6)"
+        "2 operadores de flujo unidos en un tMap (pasada 6)",
+        "MERGE: el modelo 'all' es una suposición. SAS empareja filas en secuencia cuando la clave se repite en ambos lados; revisar la cardinalidad antes de migrar."
       ],
       "component": {
         "name": "tMap",
@@ -403,7 +404,14 @@
         "confidence": "alta",
         "status": "candidato",
         "needs_review": false,
-        "alternatives": []
+        "alternatives": [],
+        "joins": [
+          {
+            "firma": "fd875572c3274573",
+            "match_model": "all",
+            "join_type": "left outer"
+          }
+        ]
       },
       "valor_componente": {
         "valor": "tMap",
@@ -496,7 +504,8 @@
         "confidence": "alta",
         "status": "candidato",
         "needs_review": true,
-        "alternatives": []
+        "alternatives": [],
+        "joins": []
       },
       "valor_componente": {
         "valor": "tMap",

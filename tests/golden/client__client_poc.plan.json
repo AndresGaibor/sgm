@@ -11884,7 +11884,8 @@
         "confidence": "alta",
         "status": "candidato",
         "needs_review": true,
-        "alternatives": []
+        "alternatives": [],
+        "joins": []
       },
       "valor_componente": {
         "valor": "tMap",

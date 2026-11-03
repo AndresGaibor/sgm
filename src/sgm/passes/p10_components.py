@@ -21,6 +21,7 @@ import re
 
 from sgm.expressions.expressions import translate
 from sgm.ir.models import Gap, Graph, Operator, Pending
+from sgm.passes import join_match
 from sgm.passes.base import PassContext, PassLog
 from sgm.passes.reglas_mapeo import (  # noqa: F401  (reexport)
     ENGINES_PATH,
@@ -158,6 +159,11 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
             "needs_review": needs_review,
             "alternatives": list(rule.alternatives),
         }
+        if op.kind == "join" and component == "tMap":
+            # Modelo de coincidencia y tipo de join de Talend (fase 3, tarea 20-22).
+            join_match.attach(op, op.component)
+        elif op.kind == "map" and component == "tMap":
+            join_match.attach_map(op, op.component)
         if rule.alternatives:
             ctx.plan.pending.append(
                 Pending(
