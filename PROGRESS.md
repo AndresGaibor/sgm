@@ -1000,3 +1000,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Prueba: `tests/unit/test_joblets.py` (un bloque repetido en dos nodos es un solo joblet con 5 apariciones; invariantes de joblet; sin repetición no hay joblet).
 - Goldens: regenerados; verificado que, quitando `joblets`, `valor_componente` y `pendientes`, son idénticos al commit anterior.
 - Verificación: `uv run pytest -q`: 418 pasan, 1 se salta; `uv run ruff check .`: limpio.
+
+## Hito 25. Mapa de flujo sin traducir: fase 4.2
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/02-mapa-de-flujo.md`): `src/sgm/facts/mapa.py` genera un Markdown por programa con las secciones del diseño: resumen, conjuntos de datos (escritos, leídos y borrados, con alcance), entradas y salidas externas, conexiones a base, ramas por valor de ambiente y pendientes. Sale solo de los hechos. Comando: `sgm mapa <ruta> --out <carpeta>`.
+- Decisión: los nombres con macro variable no entran en la tabla de conjuntos (se cuentan aparte en el resumen), para no presentar como tablas nombres que aún no se conocen.
+- Pruebas: `tests/unit/test_mapa_flujo.py` (secciones, conteos por conjunto y ausencia de secretos).
+- Pendiente de 4.2: la sección de etapas (grafo de datos separado por fronteras externas) y los bloques repetidos con su residuo, que dependen de 3.6.
+- Verificación: `uv run pytest -q`: 421 pasan, 1 se salta; `uv run ruff check .`: limpio; `sgm mapa` genera el Markdown del fixture de prueba.

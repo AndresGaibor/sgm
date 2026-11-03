@@ -41,3 +41,24 @@ def facts_command(
         typer.echo(f"hechos escritos en {salida}")
     else:
         typer.echo(texto)
+
+
+def mapa_command(
+    ruta: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
+    salida: Annotated[
+        Path, typer.Option("--out", help="Carpeta donde se escriben los mapas.")
+    ] = Path("out") / "mapas",
+) -> None:
+    """Mapa de flujo en Markdown de cada programa, sin traducir (fase 4.2)."""
+    from sgm.facts.mapa import mapa_markdown
+
+    if not ruta.exists():
+        raise typer.BadParameter(f"no existe: {ruta}")
+    por_archivo = facts_for_project(_leer(ruta))
+    salida.mkdir(parents=True, exist_ok=True)
+    for archivo, hechos in por_archivo.items():
+        nombre = archivo.replace("/", "__").replace("\\", "__")
+        (salida / f"{nombre}.md").write_text(
+            mapa_markdown(archivo, hechos), encoding="utf-8"
+        )
+    typer.echo(f"{len(por_archivo)} mapas escritos en {salida}")
