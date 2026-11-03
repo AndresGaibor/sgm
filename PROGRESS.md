@@ -963,3 +963,13 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Plan: se marcaron completos los ocho pasos tras verificar evidencia, implementación, regresiones, actualización de PROGRESS y commits de los hitos 20–22.
 - Bloqueos: ninguno; la re-revisión acotada de la ronda 2/5 quedó aprobada sin nuevas regresiones.
 - Verificación: 99 focales pasan; `uv run pytest -q`: 413 pasan, 1 se salta (100,69 s); `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora en 189 programas, baseline sin cambios. La ejecución focal inicial señaló la referencia golden del filtro con rango antiguo; se actualizó exclusivamente esa evidencia y se repitieron focales y suite completa. Autor revisión: consumidores y fusiones revisados, diff limpio permitiendo CRLF histórico; módulos afectados menores de 300 líneas.
+
+## Hito 23. Corregir macros y evidencia de origen
+
+- Fecha: 2026-11-03.
+- Qué se hizo: una llamada de macro sin expandir dentro de un informat entre comillas dobles queda como `FUNCION_NO_MAPEADA`, sin candidata. La expansión conserva los literales entre comillas simples y sustituye las macrovariables conocidas en comillas dobles.
+- Evidencia: los filtros y asignaciones DATA usan el archivo y el rango inclusivo de la sentencia que produjo el lexer, también cuando la sentencia llegó por inclusión o desde una macro de otro archivo. El plan sigue perteneciendo al programa que la compiló.
+- Pruebas: antes del arreglo, seis casos sintéticos fallaron por los cuatro hallazgos y dos controles pasaron. Después pasaron 119 focales con cobertura de macros, rangos, fusión, ocurrencias repetidas y golden. Suite final: 421 pasan y una se salta (102,38 s). Ruff limpio y reglas válidas.
+- Métricas: el trinquete final pasa con 13,5 s para 189 programas, 8532 pasos SAS, 629 nodos y 1328 componentes. Dos mediciones anteriores excedieron solo el tiempo (21,3 y 21,6 s frente a 15,9 s + 20 %). El hito 22, cargado en memoria bajo las mismas condiciones, registró 21,4 s. La sustitución y el etiquetado DATA sumaron 0,021 s en el perfil. Se conservó la línea base.
+- Decisiones: conservar las dos clases de comillas de SAS antes de traducir el informat, sin añadir equivalencias. Guardar el origen en cada sentencia conserva las rutas por ocurrencia del hito 22 incluso si un mismo DATA combina archivos distintos.
+- Bloqueos: ninguno. Las candidatas históricas siguen pendientes de validación en Talend Studio.

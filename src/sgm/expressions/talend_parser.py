@@ -6,6 +6,7 @@ from sgm.expressions.talend_core import E, Unsupported, _compare, _guard, _jstr,
 
 _CMP = {"=": "eq", "eq": "eq", "^=": "ne", "~=": "ne", "¬=": "ne", "ne": "ne", "<>": "ne", ">": "gt", "gt": "gt",
         "<": "lt", "lt": "lt", ">=": "ge", "ge": "ge", "<=": "le", "le": "le"}  # fmt: skip
+_MACRO_TRIGGER = re.compile(r"&+[A-Za-z_]\w*|%[A-Za-z_]\w*\s*\(")
 _FORMAT_ARGS = {"input", "inputn", "inputc", "put", "putn", "putc"}
 
 
@@ -252,7 +253,7 @@ class ExpressionParser:
         """El formato de `input`/`put` (`date9.`, `$10.`, `8.`) es un nombre, no una expresión."""
         kind, value = self.peek()
         literal = kind in ("fmt", "str") or (kind == "num" and re.fullmatch(r"\d+\.\d*", value))
-        unresolved = kind == "str" and value.startswith('"') and re.search(r"&+[A-Za-z_]\w*", value)
+        unresolved = kind == "str" and value.startswith('"') and _MACRO_TRIGGER.search(value)
         if not literal or unresolved or self.peek(1)[1] not in (",", ")"):
             raise Unsupported("informat dinámico o no literal: queda pendiente de resolución")
         self.take()

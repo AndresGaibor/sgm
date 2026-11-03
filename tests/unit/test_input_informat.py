@@ -176,3 +176,44 @@ def test_repeated_expression_in_fused_branches_keeps_each_origin():
     assert [[(e.file, e.line_start, e.line_end) for e in g.evidence] for g in gaps] == [
         [("program.sas", 4, 4)], [("program.sas", 8, 8)],
     ]
+
+
+def test_unexpanded_macro_call_in_double_quoted_informat_is_a_gap():
+    plan = _plan('data target; set source; parsed=inputn(value, "%choosefmt()"); run;')
+    assert "talend_expression_candidates" not in _derive_for(plan, "parsed").params
+    assert [g.reason for g in plan.gaps].count("FUNCION_NO_MAPEADA") == 1
+
+
+@pytest.mark.parametrize("literal", ["'&fmt'", "'%choosefmt()'", '"&fmt"'])
+def test_compiled_macro_informat_respects_sas_quotes(literal):
+    plan = _plan(f"%let fmt=yymmdd10.; data target; set source; parsed=inputn(value, {literal}); run;")
+    expression = _derive_for(plan, "parsed").params["assignments"][0]["expression"]
+    expected = '"yymmdd10."' if literal == '"&fmt"' else literal
+    assert expression == f"inputn(value, {expected})"
+    java = translate(expression).talend
+    assert ("TalendDate.parseDate(" in java) == (literal == '"&fmt"')
+
+
+@pytest.mark.parametrize("prefix", ["parsed=", "where "])
+def test_comment_inside_input_keeps_original_gap_range(prefix):
+    plan = _plan(f"data target;\nset source;\n{prefix}input(value, /* uno\ndos\ntres */ &fmt);\nrun;")
+    gap, = [g for g in plan.gaps if g.reason == "FUNCION_NO_MAPEADA"]
+    assert [(e.file, e.line_start, e.line_end) for e in gap.evidence] == [("program.sas", 3, 5)]
+
+
+@pytest.mark.parametrize("macro", [False, True], ids=["include", "macro"])
+def test_external_statement_has_source_file_and_owning_program(macro):
+    if macro:
+        main = "%emit();"
+        body = "%macro emit();\ndata target;\nset source;\n"
+        end = "\nrun;\n%mend;"
+    else:
+        main = "data target;\nset source;\n%include 'lib/body.sas';\nrun;"
+        body = ""
+        end = ""
+    body += "\n" * (7 - body.count("\n")) + "parsed=input(value, &fmt);" + end
+    compiled, _ = compile_project({"main.sas": main, "lib/body.sas": body})
+    plan = compiled["main.sas"].plan
+    assert plan.program == "main.sas"
+    gap, = [g for g in plan.gaps if g.reason == "FUNCION_NO_MAPEADA"]
+    assert [(e.file, e.line_start, e.line_end) for e in gap.evidence] == [("lib/body.sas", 8, 8)]
