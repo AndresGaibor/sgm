@@ -158,3 +158,23 @@ los contextos de cada joblet).
 Brecha restante: los 33 componentes sueltos (6 regiones sin grupo) y los 111 dentro de joblets
 siguen por encima de los unos 80 del diseño. Para bajarlos hay que agrupar también las regiones
 sueltas (con un umbral más bajo o por sus propias firmas) y que los joblets compartan firmas.
+
+## Medición final de la ronda (3 de noviembre de 2026)
+
+- Los 27 componentes que antes contábamos como "sueltos" son del encabezado del programa (antes de
+  la primera región). Son la etapa de preparación: en el diseño pertenecen al Job padre.
+- Umbral 0,3: 5 joblets (11, 7, 2, 2, 2), 111 firmas sin pérdida.
+- Umbral 0,2: 2 joblets (20 y 4 miembros), 104 firmas sin pérdida. Los sueltos de región bajan a 6.
+- Con umbral 0,2 el canvas estimado es 2 llamadas de joblet + 27 componentes del encabezado +
+  6 componentes de regiones sueltas = 35 nodos; componentes totales 104 + 33 = 137.
+
+Investigado:
+- Talend publica un marco de gestión de contextos basado en joblets que carga las variables al
+  inicio de cada Job ([Context Management Framework](https://academy-storage.talend.com/Custom_pages/customers/customer_catalog/4/Content/Solution%20templates/ContextMgmtFramework.htm)).
+  Es el patrón para los contextos por entorno del diseño.
+- No encontré evidencia independiente de convertidores de SAS a Talend. Las herramientas que aparecen
+  son comerciales y cubren otras migraciones.
+
+Brecha restante: 137 componentes frente a unos 80. El siguiente paso medible es partir el
+encabezado en joblets de contexto y en Job padre, y mirar si las firmas de 104 se pueden reducir
+con sub-cadenas compartidas entre los dos joblets grandes.
