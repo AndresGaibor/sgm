@@ -1233,3 +1233,39 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Decisión: sin YAML se mantiene la similitud con umbral 0,2; con YAML manda la declaración del equipo. El archivo de `decisiones/` existía desde la ronda anterior y ningún código lo leía.
 - Pruebas: `tests/unit/test_agrupacion.py` (2 nuevas: agrupación por sufijo con región sin producto, y YAML mal formado) y `tests/unit/test_diseno.py` (1 nueva: el comando detecta el YAML junto al programa y deja la región sin producto como suelta).
 - Verificación: `uv run ruff check src tests`: limpio. `uv run pytest -q`: 495 pasan, 1 se salta, 6 xfail. `ruff check .` falla solo en `tools/referencia/`, trabajo sin confirmar de otro agente.
+
+## Hito 47. SQL de base con WITH, funciones portables y reglas PROC SQL (tareas 13 a 16)
+
+- Fecha: 2026-11-03
+- Qué se hizo:
+  - `ir/sql_portability.py`: funciones de una expresión (sqlglot) contra `rules/sas/sql-functions.json`; solo `status: portable` pasa. `CASE`, `AND`, `OR`, `NOT` y paréntesis no cuentan como funciones. `load_sql_portable` se movió aquí desde `compile.py`.
+  - `passes/db_sql.py`: `sas_to_sql` rechaza funciones no portables (antes, `cats(...)` o `input(...)` llegaban a la base). Las cadenas se escriben con `WITH sgm_paso<n>` en vez de subconsultas.
+  - `rules/sas/sql-semantica.yaml` y `ir/sql_semantics.py`: reglas `agregado-sin-group-by` (tratamiento `pendiente`) y `select-into-macrovariable` (`programa_anfitrion`). La carga falla si un id o un tratamiento no es válido.
+  - `ir/lower_sql_flow.py`: un agregado sin GROUP BY con columnas sin agregar queda `parcial` con `params.pendiente` y nota; el `SELECT ... INTO` se reconstruye como `set_variable` por posición (`into :a, :b` asigna cada variable a su elemento), con la expresión original.
+  - `passes/p04_placement.py` y `passes/db_sql.py` consultan la regla: un agregado pendiente no se ubica en la base ni genera SQL.
+  - `frontend/sql_normalize.py`: `into` acepta varias variables y `trimmed`.
+- Pruebas: `tests/unit/test_sql_with.py` (15) y `tests/unit/test_sql_semantica.py` (14). Golden, frontend, push, reglas y nombres pasan sin cambiar referencias. `ruff check .` limpio.
+- Bloqueos abiertos: `WITH` dentro de `CREATE TABLE ... AS` y `ORDER BY` en CTE no verificados en Impala (ver docs/automatizacion/07-sql-investigacion.md).
+
+## Decisiones (hito 20)
+
+- Impala no tiene dialecto en sqlglot: se sigue usando `write="hive"`, como antes.
+- La portabilidad es conservadora: una función sin entrada `portable` en el JSON no es portable.
+- Un `SELECT ... INTO` con varias filas y sin separador queda `parcial`: no está demostrado qué valor toma SAS.
+- `trimmed` se ignora sin nota; afecta solo a espacios de columnas de texto (pendiente).
+- Tratamiento y etiqueta de las reglas viven en el YAML; el código solo conoce los dos ids y los dos tratamientos.
+
+## Hito 48. Investigación y medición SQL (tareas 17 a 19)
+
+- Fecha: 2026-11-03
+- Qué se hizo:
+  - `docs/automatizacion/07-sql-investigacion.md`: README de sqlglot (sin dialecto Impala; Hive como más cercano; parser permisivo), documentación de Impala sobre `WITH` (CTAS con `WITH` no confirmado) y lista de pendientes.
+  - `tools/medir_sql_portable.py`: clasifica las sentencias de PROC SQL de un archivo con las reglas del código.
+- Medición en `tests/fixtures/sas/client/client_large.sas`: 463 sentencias de PROC SQL; 231 portables; 118 no consultas; 86 con `parse_error`; 22 `SELECT ... INTO`; 4 con macro; 2 con función no portable.
+- Verificación: `ruff check .` limpio.
+- Bloqueos abiertos: las 86 sentencias con `parse_error` no están clasificadas por causa.
+
+## Decisiones (hito 48)
+
+- La investigación se hizo con búsquedas web y lectura de páginas públicas; las afirmaciones sobre Impala se marcan como documentadas o pendientes, no como probadas.
+- La herramienta de medición es un script en `tools/`, no un test: lee el archivo grande y no se ejecuta en la suite.
