@@ -1031,3 +1031,26 @@ Pendiente de F1: F1.4 (reglas fuera del c√≥digo: fontaner√≠a, sentencias, inform
 - Pendiente de la fase 5: 5.8 (validaci√≥n extremo a extremo contra SAS y Talend con datos), que necesita un ambiente externo.
 - Pendiente que qued√≥ de fases 3 y 4 y que la fase 5 no cubre: 3.5 (regla de materializaci√≥n por lectores completa), 3.6 (residuo de bloques repetidos), 3.8 (tipo y nombre de par√°metros de joblet), 3.9 (contextos de ambiente como pendientes), 3.10 (dividir archivos de m√°s de 300 l√≠neas), 4.1 (entradas y salidas de joblets, estructura completa de la gu√≠a), 4.2 (secci√≥n de etapas del mapa), 4.3 (informe de constructos sin regla; `sgm gaps list` ya lo da en parte).
 - Verificaci√≥n: `uv run pytest -q`: 428 pasan, 1 se salta; `uv run ruff check .`: limpio; `metrics --check`: sin empeorar, metas cero en 0.
+
+## Hito 28. An·lisis SQL m·s completo: fase 0.1 cerrada
+
+- Fecha: 2026-11-03
+- QuÈ se hizo: el ·rbol llevaba cambios sin confirmar desde antes de la fase 0. Se verificÛ la suite y se confirmaron en dos commits. El usuario decidiÛ incluirlos (paso 0.1).
+  - hito 28: sql_normalize.py (m·s reglas de sqlglot: nombres con espacios, LABEL, informatos, literal ., ^=, NOT =, CONTAINS), lower_sql.py (OUTER UNION pasa a SEMANTICA_DUDOSA en vez de parsearse mal), metrics/baseline.json (PARSE_ERROR 42 -> 8, FUNCION_NO_MAPEADA 394 -> 177, componentes 1328 -> 1383), 	ests/unit/test_sql_normalize.py.
+  - hito 29: divisiÛn de los archivos de m·s de 300 lÌneas (R9, fase 3.10): cli.py queda en 276 (comandos a cli_decisiones.py y cli_util.py), expressions.py en 131 (m·s expressions_base.py, expressions_funciones.py, expressions_parser.py), 	alend_translator.py en 43 (m·s 	alend_base.py, 	alend_parser.py, 	alend_funciones.py, 	alend_tabla.py), macros.py en 163 (m·s macros_modelo.py, macros_control.py, macros_llamadas.py), steps.py en 216 (m·s steps_tipos.py), p10_components.py en 194 (m·s eglas_mapeo.py). La salida no cambia: goldens idÈnticos.
+- ReparaciÛn incluida en hito 29: el trabajo de divisiÛn venÌa sin terminar y la suite no importaba (	alend_parser.py con un import vacÌo y un error de sintaxis; _FUNCTIONS a medio mover a 	alend_tabla.py). Se completÛ el movimiento y se dejÛ el ·rbol en verde.
+- VerificaciÛn: uv run pytest -q: 428 pasan, 1 se salta; uv run ruff check .: limpio; metrics --check: sin empeorar. Ning˙n archivo de src/ supera 300 lÌneas.
+
+## Hito 28. Partir los archivos de m√°s de 300 l√≠neas: fase 3.10
+
+- Fecha: 2026-11-03
+- Qu√© se hizo (seg√∫n `docs/automatizacion/03-plan-produccion.md`, 3.10): ning√∫n archivo de `src/` supera 300 l√≠neas. Cambios puros de estructura, sin cambiar salidas:
+  - `frontend/steps.py` (305): tipos de paso en `steps_tipos.py`, reexportados.
+  - `passes/p10_components.py` (327): carga, emparejamiento y resoluci√≥n de reglas en `reglas_mapeo.py`.
+  - `cli.py` (390): auxiliares en `cli_util.py`; comandos de decisiones y huecos en `cli_decisiones.py`.
+  - `frontend/macros.py` (478): modelo e √≠ndice en `macros_modelo.py`; control (`%if`, `%do`) en la mezcla `macros_control.py`; llamadas e `%include` en `macros_llamadas.py`.
+  - `expressions/expressions.py` (700): base, funciones y analizador en `expressions_base.py`, `expressions_funciones.py` y `expressions_parser.py`; la fachada conserva `translate`.
+  - `expressions/talend_translator.py` (736): `talend_base.py`, `talend_parser.py`, `talend_funciones.py` y `talend_tabla.py` (la tabla `_FUNCTIONS`); la fachada conserva `translate_to_talend`, `Unsupported` y `Result`.
+- Decisi√≥n: los nombres p√∫blicos se reexportan desde el m√≥dulo original, as√≠ que los importadores no cambian. Donde una funci√≥n solo usa el tipo del analizador como anotaci√≥n, el import va bajo `TYPE_CHECKING` para evitar un ciclo.
+- Verificaci√≥n: `uv run pytest -q`: 428 pasan, 1 se salta. Los goldens no cambiaron, lo que confirma que la divisi√≥n no altera salidas. `uv run ruff check .`: limpio.
+- Cambios sin confirmar de otros (`frontend/sql_normalize.py`, `ir/lower_sql.py`, `metrics/baseline.json`) no se tocaron ni entran en este commit.
