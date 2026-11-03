@@ -1185,3 +1185,23 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Mediciones: `client_poc.sas` 310 pasos, 69 aristas, 13 s. `client_large.sas` 2,205 pasos, 1,226 aristas, 5 s; HTML de 0,4 MB con la vista por sección.
 - Verificación: `uv run pytest -q`: 471 pasan, 1 se salta, 6 xfail. `uv run ruff check .`: limpio.
 - Bloqueos y pendientes: en `client_large` la vista por sección sigue densa: una sección muy grande ("Escritura COLUMNAS_DEPOSITOS", 1,084 pasos) domina la columna y algunas curvas largas cruzan cajas. No se resolvió en este hito.
+
+## Hito 44. Calidad de las pruebas
+
+- Fecha: 2026-11-03
+- Qué se hizo:
+  - Aislamiento de la base: `tests/conftest.py` apunta `SGM_DB` a una base temporal por prueba. Antes, las pruebas de CLI que compilan, registran huecos o listan decisiones escribían en `~/.sgm/sgm.sqlite`, compartida por todas las pruebas, los workers de xdist y las ejecuciones previas.
+  - `tests/unit/test_security.py` ya no lee `out/`: esa carpeta es estado local y el resultado de la prueba dependía de lo que hubiera en ella.
+  - Se quitó `tests/support/cache.py`: nada lo importa y apunta a paquetes que ya no existen (`sas_grid_migrator`, `apps/api`, `mcp/`). Al llamar `cached_planset` falla con `ModuleNotFoundError: No module named 'sas_grid_migrator'`.
+  - `tests/unit/test_golden_equivalencia.py` compara cada plan golden con el actual y clasifica cada diferencia como `quitado`, `cambiado` o `agregado`. Solo se aceptan campos agregados listados en `CAMPOS_ADITIVOS` (hoy `talend_expression_candidates`, hito 14).
+  - Segundo programa SAS: `tests/fixtures/sas/independiente/inventario_mensual.sas`, con `%let`, `WHERE`, `SORT ... OUT=`, `MERGE` con `IN=`, `PROC MEANS` con `CLASS` y un nombre de salida con macrovariable. `tests/unit/test_programa_independiente.py` fija lo que el compilador demuestra. Las tablas de origen no tienen esquema, así que sus huecos son `TIPO_DESCONOCIDO` y no se inventan tipos.
+- Falla intermitente de `test_guia_y_json_no_contienen_secretos_sin_enmascarar` (tarea 29): no reproducida. Hipótesis probadas:
+  - Semilla de hash: la misma compilación de `client_large.sas` con `PYTHONHASHSEED` de 0 a 9 no produce ninguna coincidencia del regex.
+  - Paralelo: `uv run pytest tests/unit/test_compile_outputs.py -n 2` pasó en todas las pasadas ejecutadas en este hito.
+  - Estado compartido: la prueba no lee disco ni base, y `compile_project` no usa `Store`. El estado compartido sí existía en las pruebas vecinas (base del usuario y `out/`) y ya quedó aislado.
+  - Causa: no determinada. Si reaparece, pytest muestra la lista `secrets` con las coincidencias; hay que anotar esa salida y el `PYTHONHASHSEED` del fallo.
+- Pendiente, cobertura (tarea 33): `pytest-cov` no está entre las dependencias de desarrollo permitidas por AGENTS.md y no se instaló. No hay cifra de cobertura hasta que se autorice.
+- Verificación: `uv run pytest -q` (xdist): 390 pasan, 1 se salta; `uv run ruff check .`: limpio. Pruebas nuevas o cambiadas, serie (`-n 0`): 18 pasan.
+- Decisiones:
+  - El aislamiento de la base es global (autouse) y no por archivo, para que ninguna prueba nueva escriba en la base del usuario por omisión. Una prueba que necesite otra base la fija con `monkeypatch.setenv`.
+  - `test_security` deja de leer `out/`; las salidas se revisan en pruebas que las generan en una carpeta temporal.
