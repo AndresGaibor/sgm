@@ -76,3 +76,17 @@ dos cosas del modelo del proyecto:
 **Decisión pendiente.** Fundir joins solo cuando no hay override ni decisión abierta sobre ese join
 exige que la firma del join se conserve dentro del paso del `map`. Es el siguiente cambio que
 tendría sentido; requiere tu aprobación porque toca el modelo de decisiones.
+
+## Similitud entre regiones con tolerancia a huecos (3 de noviembre de 2026)
+
+Medida: subsecuencia común más larga (LCS) de tipos de operador entre cada región `%macro ambiente`
+y la más grande. Referencia: [Görg, parameterized clone detection](https://dl.gi.de/items/484f854b-061c-4024-9678-5b1dbfc45c12/full)
+y [Asta, clones por subárboles repetidos](https://www.microsoft.com/en-us/research/?p=186510).
+
+- Similitud máxima frente a la región de referencia: 0,47.
+- La mayoría de las regiones están por debajo de 0,10.
+
+Conclusión: el archivo no contiene 30 copias del mismo proceso ni siquiera con huecos permitidos.
+La agrupación "producto ×3" del diseño no se deriva de la estructura. Un generador determinista
+puede producir la estructura del diseño solo a partir de una agrupación declarada (por ejemplo en
+YAML, con qué regiones forman cada proceso), y esa agrupación es una decisión, no un hecho del SAS.
