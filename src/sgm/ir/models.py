@@ -270,3 +270,4 @@ class Plan:
     pending: list[Pending] = field(default_factory=list)
     gaps: list[Gap] = field(default_factory=list)
     joblets: list[dict[str, Any]] = field(default_factory=list)  # fase 3.7: bloques repetidos
+    residuos_bloques: list[dict[str, Any]] = field(default_factory=list)  # fase 3.6

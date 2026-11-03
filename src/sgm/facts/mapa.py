@@ -52,6 +52,52 @@ def _datasets(hechos: list[Fact]) -> list[str]:
     return lineas
 
 
+def _etapas(hechos: list[Fact]) -> list[str]:
+    """Etapas (fase 4.2): pasos unidos por conjuntos de datos internos; lo externo no une."""
+    padre: dict[str, str] = {}
+
+    def raiz(x: str) -> str:
+        padre.setdefault(x, x)
+        while padre[x] != x:
+            padre[x] = padre[padre[x]]
+            x = padre[x]
+        return x
+
+    escribe: dict[str, set[str]] = defaultdict(set)
+    lee: dict[str, set[str]] = defaultdict(set)
+    primera: dict[str, int] = {}
+    for h in hechos:
+        if h.tipo not in ("tabla_escrita", "tabla_leida"):
+            continue
+        if h.alcance in ("externo", "no_aplica") or h.detalle.get("dinamico") == "si":
+            continue
+        nodo = h.nodo or "(sin etiqueta)"
+        primera[nodo] = min(primera.get(nodo, h.linea_inicio), h.linea_inicio)
+        raiz(nodo)
+        (escribe if h.tipo == "tabla_escrita" else lee)[h.valor.lower()].add(nodo)
+    for ds in set(escribe) | set(lee):
+        grupo = sorted(escribe[ds] | lee[ds])
+        for n in grupo[1:]:
+            padre[raiz(n)] = raiz(grupo[0])
+    comps: dict[str, list[str]] = defaultdict(list)
+    for nodo in primera:
+        comps[raiz(nodo)].append(nodo)
+    filas = sorted(comps.values(), key=lambda nodos: min(primera[n] for n in nodos))
+    lineas = [
+        "| Etapa | Pasos (etiquetas) | Conjuntos escritos | Conjuntos leídos |",
+        "|---|---|---|---|",
+    ]
+    for i, nodos in enumerate(filas, 1):
+        nodos = sorted(nodos, key=lambda n: primera[n])
+        esc = sorted({d for d, ns in escribe.items() if ns & set(nodos)})
+        lec = sorted({d for d, ns in lee.items() if ns & set(nodos)})
+        lineas.append(
+            f"| {i} | {'; '.join(nodos[:4])}{' …' if len(nodos) > 4 else ''} | "
+            f"{len(esc)} | {len(lec)} |"
+        )
+    return lineas
+
+
 def mapa_markdown(archivo: str, hechos: list[Fact]) -> str:
     """Documento Markdown del mapa de flujo de un programa."""
     conteo = Counter(h.tipo for h in hechos)
@@ -75,6 +121,10 @@ def mapa_markdown(archivo: str, hechos: list[Fact]) -> str:
         f"- Entradas o salidas externas: {len(externas)}; conexiones a base: {len(conexiones)}.",
         f"- Ramas por valor de ambiente: {len(ramas)}.",
         f"- Sin interpretar: {len(desconocidos)}; nombres dinámicos: {len(dinamicos)}.",
+        "",
+        "## Etapas",
+        "",
+        *(_etapas(hechos) if hechos else ["Sin pasos."]),
         "",
         "## Conjuntos de datos",
         "",

@@ -42,3 +42,20 @@ def test_invariantes_de_joblet() -> None:
 
 def test_sin_repeticion_no_hay_joblet() -> None:
     assert _joblets("data work.a; set work.b; x = 1; run;\n") == []
+
+
+def test_parametros_de_joblet_tienen_tipo() -> None:
+    """Fase 3.8: cada parámetro del joblet declara si es `tabla` o `literal`."""
+    for j in _joblets(PROGRAMA):
+        assert set(j["tipos"]) == set(j["parametros"])
+        assert set(j["tipos"].values()) <= {"tabla", "literal"}
+
+
+def test_residuos_son_lista_explicita() -> None:
+    """Fase 3.6: los residuos de bloques se listan; ninguna forma sin unificar queda oculta."""
+    from sgm.compile import compile_project
+
+    compilados, _ = compile_project({"x.sas": PROGRAMA})
+    residuos = compilados["x.sas"].plan.residuos_bloques
+    assert isinstance(residuos, list)
+    assert all(r["motivo"] == "SEMANTICA_DUDOSA" for r in residuos)

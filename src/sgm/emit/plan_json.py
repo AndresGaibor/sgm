@@ -120,6 +120,23 @@ def _pendientes(plan: Plan) -> list[dict[str, Any]]:
                 "fuente": _evidence(gap.evidence),
             }
         )
+    for job in plan.jobs:
+        for nombre, datos in sorted(job.contexts.items()):
+            # Variable de contexto declarada sin valor en el archivo (fase 3.9): no se inventa.
+            if isinstance(datos, dict) and "origen" in datos and datos.get("valor") is None:
+                filas.append(
+                    {
+                        "valor": None,
+                        "pendiente": {
+                            "motivo": "DATO_NO_EN_ARCHIVO",
+                            "dueno": "usuario",
+                            "se_cierra_con": f"valor de {nombre} por entorno",
+                            "nota": f"declarada en {datos['origen']}; el archivo no trae su valor",
+                        },
+                        "signature": f"contexto:{nombre}",
+                        "fuente": [],
+                    }
+                )
     for pend in plan.pending:
         filas.append(
             {
@@ -142,6 +159,7 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
     datos = _plan_base(plan)
     datos["pendientes"] = _pendientes(plan)
     datos["joblets"] = list(plan.joblets)
+    datos["residuos_bloques"] = list(plan.residuos_bloques)
     return datos
 
 

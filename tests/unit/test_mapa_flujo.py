@@ -42,3 +42,18 @@ def test_conjuntos_de_datos_muestran_escritura_y_lectura() -> None:
 
 def test_el_mapa_no_muestra_secretos() -> None:
     assert "secreto-123" not in _mapa()
+
+
+def test_dos_cadenas_independientes_son_dos_etapas() -> None:
+    """Fase 4.2: pasos sin datos en común forman etapas distintas."""
+    texto = (
+        "/* Etiqueta: Cadena A */\n"
+        "data work.a1; set work.s1; run;\n"
+        "data work.a2; set work.a1; run;\n"
+        "/* Etiqueta: Cadena B */\n"
+        "data work.b1; set work.t1; run;\n"
+    )
+    hechos = facts_for_project({"p.sas": texto})["p.sas"]
+    filas = [l for l in mapa_markdown("p.sas", hechos).split("\n") if l.startswith("| ") and "Etapa" not in l]
+    etapas = [l for l in filas if l.split("|")[1].strip().isdigit()]
+    assert len(etapas) == 2

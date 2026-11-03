@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections import defaultdict
 
 import networkx as nx
@@ -28,6 +29,19 @@ NAME = "p07_templates"
 # Umbrales de joblet (fase 3.7). Pendiente: moverlos a `rules/` como datos.
 JOBLET_MIN_OCCURRENCES = 2
 JOBLET_MIN_OPERATIONS = 3
+
+
+def template_of(shape: str) -> str:
+    """Nombre de plantilla de una forma (la misma convención que usa la pasada)."""
+    return f"tpl_{shape[:8]}"
+
+
+_TABLA = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
+
+
+def _tipo_de_parametro(valores: list[str]) -> str:
+    """`tabla` si todos los valores son nombres de conjunto de datos; si no, `literal` (3.8)."""
+    return "tabla" if valores and all(_TABLA.match(v) for v in valores) else "literal"
 
 
 def _register_joblet(plan, template: str, label, body, instances, varying, contexts) -> None:
@@ -63,6 +77,13 @@ def _register_joblet(plan, template: str, label, body, instances, varying, conte
         set(existente["parametros"]) | {f"parametro_{k}" for k in varying}
     )
     existente["instancias"] += contexts
+    tipos = existente.setdefault("tipos", {})
+    for k in varying:
+        clave = f"parametro_{k}"
+        valores = [str(c.get(clave, "")) for c in contexts]
+        previo = tipos.get(clave)
+        nuevo = _tipo_de_parametro(valores)
+        tipos[clave] = "literal" if previo == "literal" or nuevo == "literal" else "tabla"
     existente["fuente"] += fuente
     existente["por_que"] = (
         f"el mismo bloque de {len(body)} operaciones aparece {existente['apariciones']} veces"
@@ -182,7 +203,29 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
         shape, ordered = _shape(graph, comp, order)
         groups[(_label(ordered[0]), shape)].append((ordered, _names(ordered)))
     for (label, shape), instances in sorted(groups.items(), key=lambda kv: str(kv[0])):
-        if len(instances) < 2 or any(len(names) != len(instances[0][1]) for _, names in instances):
+        if len(instances) >= 2 and any(
+            len(names) != len(instances[0][1]) for _, names in instances
+        ):
+            # Residuo (fase 3.6): la misma forma no se puede unificar; se deja explicado.
+            ctx.plan.residuos_bloques.append(
+                {
+                    "forma": template_of(shape),
+                    "etiqueta": label,
+                    "apariciones": len(instances),
+                    "motivo": "SEMANTICA_DUDOSA",
+                    "nota": "las copias tienen distinto número de valores que cambian",
+                    "fuente": [
+                        [
+                            {"file": ev.file, "line_start": ev.line_start, "line_end": ev.line_end}
+                            for op in ordered
+                            for ev in op.evidence[:1]
+                        ]
+                        for ordered, _ in instances
+                    ],
+                }
+            )
+            continue
+        if len(instances) < 2:
             continue
         varying = [
             k for k in range(len(instances[0][1])) if len({names[k] for _, names in instances}) > 1

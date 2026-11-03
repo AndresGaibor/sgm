@@ -1054,3 +1054,19 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Decisión: los nombres públicos se reexportan desde el módulo original, así que los importadores no cambian. Donde una función solo usa el tipo del analizador como anotación, el import va bajo `TYPE_CHECKING` para evitar un ciclo.
 - Verificación: `uv run pytest -q`: 428 pasan, 1 se salta. Los goldens no cambiaron, lo que confirma que la división no altera salidas. `uv run ruff check .`: limpio.
 - Cambios sin confirmar de otros (`frontend/sql_normalize.py`, `ir/lower_sql.py`, `metrics/baseline.json`) no se tocaron ni entran en este commit.
+
+## Hito 30. Fase 3 y 4 pendientes: 3.6, 3.8, 3.9, 4.2 y 4.3
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`):
+  - 3.6: la pasada 7 registra cada grupo de la misma forma que no se puede unificar en `Plan.residuos_bloques` (motivo `SEMANTICA_DUDOSA`, apariciones y fuente). Ya no se descarta en silencio. Plan JSON: `residuos_bloques`.
+  - 3.8: cada parámetro de joblet tiene `tipos` (`tabla` si todos sus valores son nombres de conjunto de datos; `literal` si no). Los nombres siguen siendo `parametro_k`: el nombre con sentido queda pendiente.
+  - 3.9: cada variable de contexto declarada sin valor en el archivo sale como pendiente `DATO_NO_EN_ARCHIVO` con dueño y cómo cerrarse. No se inventa el valor.
+  - 4.2: el mapa de flujo tiene la sección `## Etapas`: pasos unidos por conjuntos de datos internos. Lo externo no une etapas.
+  - 4.3: el ranking de constructos sin regla ya lo da `sgm gaps list --top` (por archivos y ocurrencias). No se agregó un reporte nuevo.
+- Parcial, sin cerrar:
+  - 3.5: la única materialización automática es la del agregado que vuelve a unirse, que ya exige dos lectores. La regla de frontera entre etapas no está implementada.
+  - 4.1: las entradas y salidas de cada joblet siguen pendientes; la guía lo dice.
+- Goldens regenerados. Verificado con un script que, quitando `residuos_bloques`, `tipos` y los pendientes `contexto:*`, son idénticos al commit anterior.
+- Pruebas: `tests/unit/test_joblets.py` (tipos y residuos), `tests/unit/test_mapa_flujo.py` (etapas).
+- Verificación: `uv run ruff check .`: limpio. Suite completa: ver la línea del commit siguiente.
