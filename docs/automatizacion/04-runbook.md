@@ -81,3 +81,14 @@ líneas, 989 operadores):
 
 Límite vigilado por prueba: 120 s para el archivo de referencia. Por encima, la prueba falla y
 hay que revisar qué cambió antes de aceptar el cambio.
+
+## Generar y leer el flujo de un programa nuevo
+
+1. Copia el programa a una carpeta de entrada, o pasa el archivo directamente.
+2. Ejecuta `uv run sgm flujo <ruta> --out out`. Escribe un `.flujo.html` por programa en `out/`.
+3. Abre el HTML en el navegador. Lee primero el resumen y el diagrama; después la tabla de pasos.
+4. Revisa la sección **Pendientes**. Cada pendiente lleva el paso al que se refiere; si la causa es una
+   macro dinámica, el flujo de esa parte no se puede seguir sin ejecutar el programa.
+5. Si el diagrama es ilegible (más de 200 pasos), usa la vista por sección y baja a la tabla para el detalle.
+
+El HTML es una vista de revisión. Nunca cambia el plan ni la guía, y no se sube a ningún lado.

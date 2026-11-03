@@ -171,3 +171,13 @@ Estos datos no son el mapa final; son lo que el mapa tendría que mostrar. Si el
 | Un nombre de variable que sugiere un significado falso | Se muestra como nombre, sin interpretación |
 | El lector confunde "mapa" con "traducción" | Nota fija y sección 4 visibles en el documento |
 | Volumen grande, documento ilegible | Resumen primero; tablas largas al final; el JSON contiene el detalle completo |
+
+## 8. Vista de revisión: `sgm flujo`
+
+Para entender cómo corre un programa SAS antes de mirar la traducción, `sgm flujo <archivo|carpeta>`
+escribe `<programa>.flujo.html`: pasos en orden, diagrama de datasets, tabla con el código de cada paso
+y los pendientes enlazados a su paso. Es estático (CSS y SVG en línea, sin scripts) y no cambia el plan
+ni la guía. Un programa de más de 200 pasos muestra el diagrama por sección del propio programa.
+
+Límites: el flujo sigue las sentencias tal como las lee el parser. Las macros dinámicas aparecen como
+pendientes; no se ejecutan.

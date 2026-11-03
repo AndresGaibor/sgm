@@ -9,3 +9,6 @@ out/
 
 corpus/*
 !corpus/README.md
+
+# Referencia: los PDF oficiales pesan decenas de MB. Se regeneran con tools/referencia/descargar.py.
+docs/referencia/sas/*.pdf

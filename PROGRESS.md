@@ -1205,3 +1205,19 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Decisiones:
   - El aislamiento de la base es global (autouse) y no por archivo, para que ninguna prueba nueva escriba en la base del usuario por omisión. Una prueba que necesite otra base la fija con `monkeypatch.setenv`.
   - `test_security` deja de leer `out/`; las salidas se revisan en pruebas que las generan en una carpeta temporal.
+
+## Hito 44. Documentación de referencia: herramientas, índices y guía
+
+- Fecha: 2026-11-03
+- Qué se hizo (de la lista de 50 tareas, grupos de documentación y herramientas):
+  - Tarea 50: la descarga sale de `tools/referencia/` (`descargar.py`, `fuentes.py`). Usa solo biblioteca estándar. Talend se baja en Markdown; una página sin `.md` queda anotada como no descargada.
+  - Tarea 10: `tools/referencia/indice.py` escribe `<guía>.INDEX.md` por cada PDF de SAS, desde sus marcadores (sección → página). Las seis guías ya tienen su índice.
+  - Tarea 49: `docs/referencia/README.md` con la tabla de fuentes, fecha y cómo regenerar.
+  - Tareas 46, 47, 48: `docs/automatizacion/02-mapa-de-flujo.md` (sección 8, `sgm flujo`), `04-runbook.md` (cómo generar y leer el flujo) y `docs/conventions.md` (sección 8, excepción del HTML).
+  - Tarea 9: la versión exacta de SAS del cliente sigue sin confirmar; queda como pendiente en `docs/referencia/sas/README.md`. No se puede resolver desde el repo.
+  - Los PDF de SAS (~48 MB) se excluyen de git con `.gitignore`. Se versionan el texto y los índices.
+- Decisiones:
+  - `pypdf` solo se usa en `tools/referencia/indice.py`, con import tardío. No es dependencia de `sgm`; queda fuera de `pyproject.toml`.
+  - La prueba de referencia no exige los PDF (no están en git); exige el `.txt` y el `.INDEX.md` de cada guía.
+- Pruebas: `tests/unit/test_referencia_tools.py` (7): enlaces de subpáginas por nombre, sin duplicados, aplanado de marcadores, formato del índice, URLs, texto e índice presentes para cada guía, y página presente para cada componente de Talend del proyecto.
+- Verificación: `uv run pytest -q` y `uv run ruff check .` ver al cierre del hito.

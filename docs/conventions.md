@@ -122,3 +122,9 @@ El informe de traducción lista los reportes descartados para que la pérdida se
 
 Solo lo que el SAS y el catálogo no pueden dar: una credencial, una ruta de entorno, un tipo ambiguo, código dinámico.
 Cada pendiente lleva su motivo y su línea de origen. Nada se rellena con un valor supuesto.
+
+## 8. Salidas de revisión en HTML
+
+El proyecto genera Markdown y JSON como salida de la traducción. Hay una excepción aprobada por el usuario
+(hito 43): `sgm flujo` escribe un HTML estático de revisión, con CSS y SVG en línea y sin scripts. Ese HTML
+no es un producto para el cliente: sirve para entender un programa SAS. Ver `AGENTS.md`, punto 2.
