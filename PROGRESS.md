@@ -1016,3 +1016,18 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`): la guía Markdown de cada programa tiene una sección `## Joblets` con, por joblet, el porqué, las operaciones del bloque, los parámetros, cada aparición con su archivo y líneas, y una nota fija de lo que falta.
 - Pendiente de 4.1: entradas y salidas de cada joblet (aún no calculadas), la estructura completa de la guía de Jobs con contextos y subjobs como la del diseño, y el tipo y nombre de los parámetros (3.8).
 - Pruebas: `tests/unit/test_guia_joblets.py` (la sección aparece con joblets y no aparece sin ellos).
+
+## Hito 27. Fase 5: producción (cerrada salvo 5.8 y las partes pendientes de fases 3 y 4)
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`, fase 5):
+  - 5.1: pruebas de invariantes en `tests/unit/test_invariantes_produccion.py`: determinismo byte a byte del plan, etiqueta de versión, ningún secreto en plan ni guía, límite de tiempo y entradas hostiles sin excepciones.
+  - 5.2: el trinquete incluye `pendientes_sin_dueno` y `valores_sin_fuente`, con meta cero (no depende de la línea base, que tiene cambios sin confirmar).
+  - 5.3: corpus hostil de compilación sin excepciones.
+  - 5.4: medido: `client_large.sas` compila en 26 s, pico de 29 MB de memoria Python. Límite vigilado: 120 s. Queda en `docs/automatizacion/04-runbook.md`.
+  - 5.5: `README.md` (estaba vacío): instalación, comandos, qué produce y límites.
+  - 5.6: `docs/automatizacion/04-runbook.md`: incorporar un archivo nuevo, paso a paso.
+  - 5.7: la salida de `intake` y `compile` lleva `metadatos` con `sgm_version` y `ruleset_hash`. Va fuera de `plan_to_dict` para que un cambio de reglas no rompa los goldens.
+- Pendiente de la fase 5: 5.8 (validación extremo a extremo contra SAS y Talend con datos), que necesita un ambiente externo.
+- Pendiente que quedó de fases 3 y 4 y que la fase 5 no cubre: 3.5 (regla de materialización por lectores completa), 3.6 (residuo de bloques repetidos), 3.8 (tipo y nombre de parámetros de joblet), 3.9 (contextos de ambiente como pendientes), 3.10 (dividir archivos de más de 300 líneas), 4.1 (entradas y salidas de joblets, estructura completa de la guía), 4.2 (sección de etapas del mapa), 4.3 (informe de constructos sin regla; `sgm gaps list` ya lo da en parte).
+- Verificación: `uv run pytest -q`: 428 pasan, 1 se salta; `uv run ruff check .`: limpio; `metrics --check`: sin empeorar, metas cero en 0.

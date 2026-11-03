@@ -15,9 +15,12 @@ from __future__ import annotations
 
 from collections import Counter
 
+from sgm import motivos
 from sgm.compile import Compiled
 
 TIME_MARGIN = 0.20
+# Métricas de meta cero (fase 5.2): deben ser 0 siempre, no solo no empeorar.
+METAS_CERO = ("pendientes_sin_dueno", "valores_sin_fuente")
 # Dirección buena de cada métrica del total: "sube", "baja" o "mantiene" (no empeorar).
 DIRECTIONS = {
     "pasos_por_componente": "sube",
@@ -85,6 +88,8 @@ def extras(compiled: dict[str, Compiled], files: dict[str, str]) -> dict:
     failures = 0
     reasons: Counter[str] = Counter()
     decisions: set[str] = set()
+    sin_dueno = 0
+    sin_fuente = 0
     for result in compiled.values():
         for op in result.plan.graph.operators():
             if (
@@ -93,9 +98,15 @@ def extras(compiled: dict[str, Compiled], files: dict[str, str]) -> dict:
                 and (op.origin or "").startswith("proc_sql")
             ):
                 tjava_sql += 1
+        for op in result.plan.graph.operators():
+            if op.component and op.component.get("name") not in (None, "none"):
+                if not op.evidence:
+                    sin_fuente += 1
         for gap in result.plan.gaps:
             if gap.signature.startswith("PARSE_ERROR:") and gap.reason == "PARSE_ERROR":
                 failures += 1
+            if motivos.de(gap.reason) is None:
+                sin_dueno += 1
         reasons.update(gap.reason for gap in result.plan.gaps)
         decisions.update(p.signature for p in result.plan.pending)
     return {
@@ -104,6 +115,8 @@ def extras(compiled: dict[str, Compiled], files: dict[str, str]) -> dict:
         "huecos_por_motivo": dict(sorted(reasons.items())),
         "lineas_sin_cubrir": uncovered_lines(compiled, files),
         "firmas_de_decision": len(decisions),
+        "pendientes_sin_dueno": sin_dueno,
+        "valores_sin_fuente": sin_fuente,
     }
 
 
@@ -126,6 +139,9 @@ def check(current: dict, baseline: dict) -> list[str]:
             problems.append(f"{metric}: {value} < {reference} (debe subir)")
         if direction == "baja" and value > reference:
             problems.append(f"{metric}: {value} > {reference} (debe bajar)")
+    for metric in METAS_CERO:
+        if now.get(metric, 0) != 0:
+            problems.append(f"{metric}: {now.get(metric)} (la meta es 0)")
     for reason, count in now.get("huecos_por_motivo", {}).items():
         reference = was.get("huecos_por_motivo", {}).get(reason, 0)
         if count > reference:

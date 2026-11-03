@@ -21,7 +21,7 @@ from sgm.batch import compile_batch
 from sgm.catalog import describe as describe_mod
 from sgm.catalog.config import ConfigError, Env, load_env
 from sgm.emit.guide_md import render_guide
-from sgm.emit.plan_json import plan_to_dict
+from sgm.emit.plan_json import metadatos_de_salida, plan_to_dict
 from sgm.facts.cli import facts_command, mapa_command
 from sgm.ingest.importer import ImportError_, looks_like_sas
 from sgm.store import gaps as gap_store
@@ -85,7 +85,7 @@ def _write_outputs(out: Path, compiled: dict) -> list[str]:
         guide = f"{stem}.guide.md"
         plan = f"{stem}.plan.json"
         (out / guide).write_text(render_guide(result.plan), encoding="utf-8")
-        payload = plan_to_dict(result.plan)
+        payload = {"metadatos": metadatos_de_salida(), **plan_to_dict(result.plan)}
         (out / plan).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         names += [guide, plan]
     return names

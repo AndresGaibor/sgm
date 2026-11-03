@@ -26,7 +26,7 @@ from sgm import redaction
 from sgm.batch import compile_batch
 from sgm.catalog.config import Env, load_env
 from sgm.emit.guide_md import render_guide
-from sgm.emit.plan_json import plan_to_dict
+from sgm.emit.plan_json import metadatos_de_salida, plan_to_dict
 from sgm.ingest.importer import TEXT_KINDS, detect_encoding, import_source
 from sgm.ingest.limits import ImportLimits
 from sgm.ingest.models import FileKind
@@ -84,7 +84,7 @@ def _escribir_salida(carpeta: Path, compiled: dict) -> None:
     for program, result in compiled.items():
         stem = Path(program).with_suffix("").as_posix().replace("/", "__")
         (out / f"{stem}.guide.md").write_text(render_guide(result.plan), encoding="utf-8")
-        payload = plan_to_dict(result.plan)
+        payload = {"metadatos": metadatos_de_salida(), **plan_to_dict(result.plan)}
         (out / f"{stem}.plan.json").write_text(
             json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
         )

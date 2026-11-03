@@ -143,3 +143,15 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
     datos["pendientes"] = _pendientes(plan)
     datos["joblets"] = list(plan.joblets)
     return datos
+
+
+def metadatos_de_salida() -> dict[str, Any]:
+    """Etiqueta de versión de cada plan escrito (fase 5.7): versión de sgm y hash de reglas.
+
+    Va en el archivo que se escribe, no en `plan_to_dict`, para que un cambio de reglas no
+    invalide las referencias de prueba.
+    """
+    from sgm import __version__
+    from sgm.cache import rules_hash
+
+    return {"sgm_version": __version__, "ruleset_hash": rules_hash()}
