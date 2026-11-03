@@ -1154,3 +1154,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: no aplica (solo documentación).
 - Bloqueos: el PDF del paper de Horstman (MERGE) no se pudo extraer en texto; la página de scoring translator de SAS devolvió 404; la nota de %EVAL y las reglas many-to-many de MERGE quedan sin confirmar en fuente oficial.
 - Decisión: tratar como pendiente de validación en Studio 8 cualquier comportamiento de subjob por fila y de caché entre jobs; no traducir MERGE a JOIN sin prueba de equivalencia.
+
+## Hito 42. El diseño sale como artefacto de CLI
+
+- Fecha: 2026-11-03
+- Qué se hizo:
+  - `sgm.diseno.diseno_de_programa` compone plan, hechos y generador en un dict de diseño; redacta el texto antes de extraer hechos.
+  - `sgm diseno <archivo.sas> --out out/` (en `sgm/cli_diseno.py`, registrado desde `sgm.cli`) escribe `out/<programa>.diseno.json` con joblets por grupo, sus contextos, joblet de contexto y Job padre. Compila con la misma `env/` que `sgm compile`. `cli.py` no pasa de 300 líneas.
+  - Pruebas: `tests/unit/test_diseno.py` (2), que ejercitan el comando completo y verifican que la contraseña no aparece en claro en el archivo.
+- Hallazgo: las mediciones de la ronda anterior se hicieron sin `env/project.json`. La política canónica `push_to_db` cambia la fusión: el plan pasa de 955 a 780 operadores, el encabezado de 27 a 56 componentes, las firmas distintas de 112 a 131 y el Job padre de 36 a 65 nodos. Aislado por variantes de `Env`: la causa es `placement_strategy`, no los externos ni los motores.
+- Decisión: el diseño queda como artefacto separado (`.diseno.json`), no dentro de `plan.jobs`. Meter los joblets y el Job padre en el plan toca el modelo de decisiones y las pruebas de firmas; es una decisión aparte y no lo pidió esta ronda.
+- Verificación: `uv run pytest -q`: 449 pasan, 1 se salta, 6 xfail. `uv run ruff check .`: limpio. Corrida real: `uv run sgm diseno tests/fixtures/sas/client/client_large.sas --out out/diseno` en 45 s, con 2 joblets, 65 nodos y 131 firmas.

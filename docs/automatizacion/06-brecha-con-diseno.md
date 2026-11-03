@@ -210,6 +210,9 @@ resuelven las sub-cadenas compartidas: los dos joblets comparten 3 firmas, así 
 solo ahorraría 3 de las 104. El resto exige unir regiones que la estructura no demuestra que sean el
 mismo proceso (similitud máxima 0,47, ya medida arriba).
 
+Estas cifras se midieron sin la política de `env/project.json`. Con la política canónica cambian; la
+medición vigente está en la sección "Diseño como artefacto de CLI" al final del archivo.
+
 ## Investigación sobre PROC SQL hacia SQL de motor (3 de noviembre de 2026)
 
 - Traducir PROC SQL a SQL de Spark o Hive es posible para `SELECT`, `GROUP BY` y subconsultas
@@ -232,3 +235,39 @@ Snowflake, BigQuery, entre otros) y permite crear dialectos propios ([repositori
 No encontré que tenga un dialecto de SAS. Por eso, para PROC SQL, hay que escribir el lector
 propio, y sqlglot solo serviría como escritor hacia Impala o Spark. Queda por confirmar en su
 README oficial.
+
+## Diseño como artefacto de CLI (3 de noviembre de 2026)
+
+**Qué hay ahora.** `uv run sgm diseno <archivo.sas> --out out/` escribe
+`out/<programa>.diseno.json` con los joblets por grupo, sus contextos, el joblet de contexto y el Job
+padre. El diseño deja de existir solo como función del generador: se revisa como archivo, igual que
+el plan y la guía. Compila con la misma configuración que `sgm compile` (`env/`), redacta el texto
+antes de extraer hechos y no modifica el plan ni la guía.
+
+**Medición vigente** en `client_large.sas`, con `env/project.json` (`placement_strategy:
+push_to_db`), que es lo que usa la CLI:
+
+| Métrica | Valor |
+|---|---|
+| Operadores del plan | 780 |
+| Componentes reales | 388 |
+| Joblets por grupo (umbral 0,2) | 2 (20 y 4 regiones), con 109 y 12 firmas |
+| Firmas de componente distintas | 131 |
+| Componentes del encabezado | 56 |
+| Componentes de regiones sueltas | 6 |
+| Nodos del Job padre | 65 |
+| Operadores de contexto | 14 |
+| Variables de contexto | 7 (3 con valor, 4 pendientes) |
+
+**Por qué no coinciden con las secciones anteriores.** La política `push_to_db` cambia la fusión y
+el empalme a la base: sin ella el plan tiene 955 operadores, el encabezado 27 componentes, 2 joblets
+con 98 y 6 firmas, 112 firmas distintas y un Job padre de 36 nodos. Las mediciones anteriores de este
+archivo se hicieron sin la política; desde esta sección se reporta la configuración canónica, que es
+la que produce la CLI. Con `push_to_db` el encabezado crece porque pasos que antes se fusionaban en
+el flujo quedan como componentes.
+
+**Qué sigue pendiente.** El diseño no entra en el plan ni en la guía: son artefactos separados. Meter
+los joblets y el Job padre en `plan.jobs` toca el modelo de decisiones y las pruebas de firmas, así
+que es una decisión aparte. La brecha de fondo tampoco se mueve: 131 firmas distintas frente a los
+unos 80 del diseño, y las regiones sueltas siguen requiriendo una decisión sobre qué es el mismo
+proceso.
