@@ -104,3 +104,25 @@ Con esa agrupación y contando firmas repetidas una sola vez:
 Esto acerca la salida a la estructura del diseño: un Job por producto con pocas clases de componente
 repetidas, en lugar de 30 regiones distintas. Los nombres de producto y sufijos viven en
 `decisiones/client_large.agrupacion.yaml` (decisión del equipo), no en `rules/` ni en `src/`.
+
+## Ruta sin pérdida hacia el diseño (3 de noviembre de 2026)
+
+Investigado en la documentación de Talend 8.0: un joblet es una agrupación de diseño cuyo código
+queda dentro de la clase del Job padre; un `tRunJob` es una ejecución separada con su propio
+contexto ([diferencias entre joblet y tRunJob](https://help.qlik.com/talend/en-US/diffs-between-joblet-trunjob/8.0)).
+Por eso, en el canvas, un joblet es un solo nodo aunque tenga muchos componentes dentro.
+
+Método determinista usado (sin sufijos): agrupar regiones por el vocabulario de sus conjuntos de
+datos (`sgm.agrupacion`), con Jaccard y palabras comunes descartadas. Resultado en `client_large.sas`:
+5 grupos de 2 o más regiones (11, 7, 2, 2, 2) y 6 regiones sueltas.
+
+Medidas:
+- Con un cuerpo representativo por grupo: 18 componentes dentro de joblets y 6 sueltos. Pero esto
+  pierde las diferencias de los demás miembros; no es equivalente.
+- Sin pérdida (unión de firmas de componente distintas por grupo): 89, 14, 5, 2 y 1 firmas; 117 en
+  total con las sueltas. Es la cifra honesta: cercana a los unos 80 del diseño. Las firmas distintas
+  dentro de un grupo se diferencian sobre todo por nombres y literales, que pasan a contextos.
+
+Pendiente para cerrar la brecha: emitir un joblet por grupo con esas firmas, convertir los
+nombres y literales que varían en contextos, y llamar cada joblet con `tFlowToIterate` sobre la
+lista de contextos de sus miembros.
