@@ -6,6 +6,9 @@ Instrucciones para agentes de IA que trabajen en `sgm-v2`.
 
 1. **Nada de MCP.** No uses herramientas MCP, no arranques `talend-mcp`, no copies `mcp/`, `contract/` ni `talend_adapter/`, no agregues dependencias `mcp` ni crees `.mcp.json`. La salida es solo Markdown y JSON.
 2. Nada de API web ni frontend. Solo librería Python y CLI.
+   **Excepción aprobada por el usuario (hito 43):** `sgm flujo` escribe un HTML estático de revisión
+   (`<programa>.flujo.html`) con CSS y SVG en línea. No tiene scripts, servidor ni recursos externos,
+   y no cambia el plan ni la guía. Es una vista de cómo funciona el programa, no una traducción.
 3. No conectarte a Impala ni a ninguna base. Los esquemas salen de un archivo JSON local (`env/schemas.json`).
 4. No modificar el repositorio viejo (`migrador-sasgrid-qlik`). Solo leerlo y copiar.
 5. No hacer `git push`. Sí se hacen commits locales, uno por hito, con el mensaje `hito N: <resumen>`.

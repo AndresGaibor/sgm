@@ -1165,3 +1165,23 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Hallazgo: las mediciones de la ronda anterior se hicieron sin `env/project.json`. La política canónica `push_to_db` cambia la fusión: el plan pasa de 955 a 780 operadores, el encabezado de 27 a 56 componentes, las firmas distintas de 112 a 131 y el Job padre de 36 a 65 nodos. Aislado por variantes de `Env`: la causa es `placement_strategy`, no los externos ni los motores.
 - Decisión: el diseño queda como artefacto separado (`.diseno.json`), no dentro de `plan.jobs`. Meter los joblets y el Job padre en el plan toca el modelo de decisiones y las pruebas de firmas; es una decisión aparte y no lo pidió esta ronda.
 - Verificación: `uv run pytest -q`: 449 pasan, 1 se salta, 6 xfail. `uv run ruff check .`: limpio. Corrida real: `uv run sgm diseno tests/fixtures/sas/client/client_large.sas --out out/diseno` en 45 s, con 2 joblets, 65 nodos y 131 firmas.
+
+## Hito 43. `sgm flujo`: HTML de cómo funciona un programa SAS
+
+- Fecha: 2026-11-03
+- Qué se hizo: el comando `sgm flujo <archivo|carpeta> --out out` escribe `<programa>.flujo.html`, una vista de cómo funciona el programa (no es la traducción). Contiene resumen, diagrama SVG, tabla de pasos en orden con su código plegable, entradas externas, configuración y pendientes.
+  - `src/sgm/flow/model.py`: pasos con los datasets que leen y escriben (DATA step, PROC SQL, PROC genérico), aristas entre el último paso que escribió un dataset y el que lo lee, entradas externas, capas y redacción de credenciales antes de analizar.
+  - `src/sgm/flow/layout.py`: diseño en columnas por capa y SVG a mano.
+  - `src/sgm/flow/page.py`: página HTML con CSS en línea y modo claro/oscuro. Sin scripts ni recursos externos.
+  - `src/sgm/cli_flow.py`: comando, registrado en `sgm.cli`.
+  - Programas con más de 200 pasos muestran el diagrama por sección (etiquetas del programa), con una caja por sección y su número de pasos. El detalle sigue en la tabla.
+- Decisiones:
+  - Excepción a AGENTS.md (punto 2, "solo Markdown y JSON" y "nada de frontend"), aprobada por el usuario. El HTML es estático, de revisión, sin scripts ni servidor.
+  - Sin dependencias nuevas: SVG y CSS escritos a mano.
+  - Identificadores en inglés; textos de la página en español.
+  - Las entradas externas van en la columna 0 y las capas se calculan por dependencia.
+  - El motivo de macro dinámica se traduce a una frase en la nota, en lugar del código `MACRO_DINAMICA`.
+- Pruebas: `tests/unit/test_flujo.py` (11): pasos y datasets, unión entre pasos, capas, `WORK.` como mismo dataset, configuración separada, credenciales fuera del HTML, escape de texto, SVG bien formado, programa sin pasos, macro expandida y bloque condicional dinámico.
+- Mediciones: `client_poc.sas` 310 pasos, 69 aristas, 13 s. `client_large.sas` 2,205 pasos, 1,226 aristas, 5 s; HTML de 0,4 MB con la vista por sección.
+- Verificación: `uv run pytest -q`: 471 pasan, 1 se salta, 6 xfail. `uv run ruff check .`: limpio.
+- Bloqueos y pendientes: en `client_large` la vista por sección sigue densa: una sección muy grande ("Escritura COLUMNAS_DEPOSITOS", 1,084 pasos) domina la columna y algunas curvas largas cruzan cajas. No se resolvió en este hito.
