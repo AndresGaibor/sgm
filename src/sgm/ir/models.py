@@ -78,12 +78,14 @@ class Operator:
     component: dict[str, Any] | None = None  # componente Talend candidato (pasada 10)
     origin: str | None = None  # constructo SAS de origen (diagnóstico; no entra en la firma)
     # Evidencia interna por expresión: no altera parámetros, firmas ni el JSON del operador.
-    expression_evidence: dict[str, list[Evidence]] = field(default_factory=dict)
+    expression_evidence: dict[tuple[str | int, ...], list[Evidence]] = field(default_factory=dict)
 
-    def inherit_expression_evidence(self, other: Operator) -> None:
+    def inherit_expression_evidence(
+        self, other: Operator, prefix: tuple[str | int, ...] = ()
+    ) -> None:
         """Conserva los orígenes precisos al fusionar o reemplazar operadores."""
-        for expression, origins in other.expression_evidence.items():
-            target = self.expression_evidence.setdefault(expression, [])
+        for path, origins in other.expression_evidence.items():
+            target = self.expression_evidence.setdefault(prefix + path, [])
             target.extend(ev for ev in origins if ev not in target)
 
 
@@ -163,8 +165,6 @@ class Graph:
         """Sustituye un conjunto de operadores por `new`, reconectando las aristas que cruzan el
         borde."""
         group = set(op_ids)
-        for op_id in op_ids:
-            new.inherit_expression_evidence(self.operator(op_id))
         self.add_operator(new)  # antes de las aristas: el nodo nuevo tiene que existir
         for op_id in op_ids:
             for pred in list(self._g.predecessors(op_id)):

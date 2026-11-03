@@ -131,28 +131,34 @@ def choose(
     return None
 
 
-def _expressions(op: Operator) -> list[str]:
-    texts: list[str] = []
+def _expressions(op: Operator) -> list[tuple[tuple[str | int, ...], str]]:
+    """Expresiones con la ruta de su ocurrencia dentro de los parámetros."""
+    texts = []
     if op.kind == "filter":
-        texts.append(str(op.params.get("expression", "")))
+        texts.append((("expression",), str(op.params.get("expression", ""))))
     if op.kind == "derive":
-        texts += [str(a.get("expression", "")) for a in op.params.get("assignments", [])]
+        for index, assignment in enumerate(op.params.get("assignments", [])):
+            path = ("assignments", index, "expression")
+            texts.append((path, str(assignment.get("expression", ""))))
     if op.kind == "map":
-        for step in op.params.get("steps", []):
+        for index, step in enumerate(op.params.get("steps", [])):
             params = step.get("params", {})
+            prefix = ("steps", index, "params")
             if step.get("kind") == "filter":
-                texts.append(str(params.get("expression", "")))
+                texts.append((prefix + ("expression",), str(params.get("expression", ""))))
             if step.get("kind") == "derive":
-                texts += [str(a.get("expression", "")) for a in params.get("assignments", [])]
-        for branch in op.params.get("branches", []):
-            texts.append(str(branch.get("expression", "")))
-    return [t for t in texts if t.strip()]
+                for position, assignment in enumerate(params.get("assignments", [])):
+                    path = prefix + ("assignments", position, "expression")
+                    texts.append((path, str(assignment.get("expression", ""))))
+        for index, branch in enumerate(op.params.get("branches", [])):
+            texts.append((("branches", index, "expression"), str(branch.get("expression", ""))))
+    return [(path, text) for path, text in texts if text.strip()]
 
 
 def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
     """Registra huecos y advertencias de expresiones. True si algo requiere revisión."""
     found = False
-    for text in _expressions(op):
+    for path, text in _expressions(op):
         result = translate(text)
         if result.talend is not None:
             for warning in result.warnings:
@@ -184,7 +190,7 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
             Gap(
                 signature=f"{op.signature}/{name}",
                 reason="FUNCION_NO_MAPEADA",
-                evidence=list(op.expression_evidence.get(text, op.evidence)),
+                evidence=list(op.expression_evidence.get(path, op.evidence)),
                 text=" ".join(text.split())[:120],
             )
         )

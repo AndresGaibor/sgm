@@ -150,3 +150,29 @@ def test_translation_wrapper_lexing_diagnostics_do_not_echo_source():
     assert result.talend is None
     assert result.warnings
     assert "secret42" not in " ".join(result.warnings)
+
+
+@pytest.mark.parametrize("statements", [
+    "  where input(value, &informat);\n  parsed=input(value, &informat);",
+    "  parsed=input(value, &informat);\n  repeated=input(value, &informat);",
+    "  where input(value, &informat);\n  if input(value, &informat);",
+])
+def test_repeated_expression_gaps_keep_each_occurrence_origin(statements):
+    plan = _plan("data target;\n  set source;\n" + statements + "\nrun;")
+    gaps = [g for g in plan.gaps if g.reason == "FUNCION_NO_MAPEADA"]
+    assert len(gaps) == 2
+    assert [[(e.file, e.line_start, e.line_end) for e in g.evidence] for g in gaps] == [
+        [("program.sas", 3, 3)], [("program.sas", 4, 4)],
+    ]
+
+
+
+def test_repeated_expression_in_fused_branches_keeps_each_origin():
+    plan = _plan("data source; set initial; marker=1; run;\n"
+                 "data first;\n  set source;\n  where input(value, &informat);\nrun;\n"
+                 "data second;\n  set source;\n  where input(value, &informat);\nrun;")
+    assert any(op.kind == "map" and "branches" in op.params for op in plan.graph.operators())
+    gaps = [g for g in plan.gaps if g.reason == "FUNCION_NO_MAPEADA"]
+    assert [[(e.file, e.line_start, e.line_end) for e in g.evidence] for g in gaps] == [
+        [("program.sas", 4, 4)], [("program.sas", 8, 8)],
+    ]

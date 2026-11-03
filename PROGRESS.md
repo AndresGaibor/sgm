@@ -951,3 +951,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Decisiones: guardar la evidencia por texto de expresión fuera de los parámetros evita alterar firmas, deduplicación y contratos JSON; se conserva y une en Graph.merge/replace. El error léxico mantiene el motivo útil sin reproducir valores. El lexer inline existente recibe solo este saneamiento puntual; no se amplía el alcance a su modularización.
 - Bloqueos: ninguno.
 - Verificación: focales de expresiones, evidencia IR y golden: 86 pasan; `uv run pytest -q`: 409 pasan, 1 se salta (86,85 s); `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora en 189 programas, sin modificar baseline. La primera suite señaló únicamente dos golden con evidencia antigua; se actualizaron solo esas ubicaciones y se repitió completa. El diff respeta los finales de línea históricos y pasa el control de espacios con CRLF permitido.
+
+
+## Hito 22. Preservar origen de filtros repetidos
+
+- Fecha: 2026-11-03
+- Qué se hizo: la evidencia interna usa la ruta estructural de cada ocurrencia en los parámetros (asignación, paso o rama), en lugar del texto de la expresión. DATA registra el origen preciso de filtros y asignaciones; p06 rebasa las rutas al formar pasos y ramas; p10 consulta la ocurrencia correspondiente. Se elimina el transporte plano al reemplazar operadores y se mantiene la unión por ruta al fusionar operadores equivalentes.
+- Pruebas: RED observado para filtro/asignación con texto idéntico en líneas 3 y 4, dos asignaciones repetidas y dos filtros repetidos. Las regresiones verifican archivo y rango de cada hueco por separado; también se cubren ramas fusionadas con expresiones iguales.
+- Compatibilidad: no cambia la traducción, parámetros, firmas ni JSON del operador. Se revisaron todos los consumidores del metadato. La fusión SQL produce exec_sql, sin consumidores de expresión en p10; la fusión de flujo conserva rutas por paso/rama. Una referencia golden actualiza únicamente la evidencia de un hueco de filtro al rango preciso.
+- Decisiones: usar rutas de ocurrencia evita que expresiones iguales de constructos o posiciones distintas compartan origen. La evidencia permanece fuera de los parámetros y las firmas. Sin dependencias nuevas.
+- Plan: se marcaron completos los ocho pasos tras verificar evidencia, implementación, regresiones, actualización de PROGRESS y commits de los hitos 20–22.
+- Bloqueos: ninguno; la re-revisión acotada de la ronda 2/5 quedó aprobada sin nuevas regresiones.
+- Verificación: 99 focales pasan; `uv run pytest -q`: 413 pasan, 1 se salta (100,69 s); `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora en 189 programas, baseline sin cambios. La ejecución focal inicial señaló la referencia golden del filtro con rango antiguo; se actualizó exclusivamente esa evidencia y se repitieron focales y suite completa. Autor revisión: consumidores y fusiones revisados, diff limpio permitiendo CRLF histórico; módulos afectados menores de 300 líneas.

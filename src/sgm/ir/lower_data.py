@@ -127,8 +127,8 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
                 current = pending_derive
             pending_derive.params["assignments"].append(assignment)
             origin = replace(ev, line_start=s.line, line_end=s.line + s.text.count("\n"))
-            origins = pending_derive.expression_evidence.setdefault(assignment["expression"], [])
-            origins.append(origin)
+            path = ("assignments", len(pending_derive.params["assignments"]) - 1, "expression")
+            pending_derive.expression_evidence[path] = [origin]
             b.refresh(pending_derive)
             continue
         pending_derive = None
@@ -149,6 +149,9 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             else:
                 loose.append(s.text)  # sin operador aún: se adjunta al operador final
             continue
+        if new.kind == "filter":
+            origin = replace(ev, line_start=s.line, line_end=s.line + s.text.count("\n"))
+            new.expression_evidence[("expression",)] = [origin]
         if current is not None:
             b.link(current, new)
         current = new

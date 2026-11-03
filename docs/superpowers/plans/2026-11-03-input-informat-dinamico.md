@@ -66,7 +66,7 @@
 - `_P.raw_format` accepts one literal token of type `fmt` or `str`, or one numeric token matching `\d+\.\d*` for a numeric SAS informat such as `10.`. A macro, column, integer without an informat dot, or multi-token expression raises `Unsupported` before it can be converted into a string literal. `_input` keeps its current mappings for literal informats.
 - Static numeric informat behavior and recognized date/character literal behavior remain unchanged in this hito.
 
-- [ ] **Step 1: Add failing direct and integration tests** in `tests/unit/test_input_informat.py`.
+- [x] **Step 1: Add failing direct and integration tests** in `tests/unit/test_input_informat.py`.
 
 ```python
 import pytest
@@ -140,10 +140,10 @@ def _derive_for(plan, target):
 
 ```
 
-- [ ] **Step 2: Verify RED** with `uv run pytest -q tests/unit/test_input_informat.py`; the unresolved cases must fail because the current translator emits a numeric `Mathematical.REAL` candidate.
-- [ ] **Step 3: Move the existing code by responsibility** into the listed core, lexer, parser, function-family and registry modules. Keep existing expressions and output byte-for-byte equivalent. In the parser, make `raw_format` accept one `fmt` or `str` token, or one `num` token matching `\d+\.\d*`; otherwise raise `Unsupported` without including its source value. The facade delegates parsing to `ExpressionParser` with the shared function registry.
-- [ ] **Step 4: Verify the refactor and behavior** with `uv run pytest -q tests/unit/test_talend_translator.py tests/unit/test_input_informat.py`; all current literal cases and new pending cases must pass.
-- [ ] **Step 5: Recompile the second supplied example in memory** through `compile_batch` (which redacts before analysis). Verify the four `INPUT` expressions remain literal numeric informats and preserve the baseline of 21 candidates and 21 gaps. Report only these aggregate classifications/counts; do not write source or derived example files.
-- [ ] **Step 6: Run project verification** with `uv run pytest -q`, `uv run ruff check .`, `uv run sgm rules validate`, and `uv run sgm metrics tests/fixtures/sas --check`. If the intentional reclassification raises `FUNCION_NO_MAPEADA`, update only that baseline count with the reason in `PROGRESS.md`, then rerun the metric check.
-- [ ] **Step 7: Update `PROGRESS.md`** with the hito date, implementation summary, test/Ruff/rules/metrics results, candidate-to-gap change, blockers, and the decision to keep dynamic informats pending.
-- [ ] **Step 8: Commit** the completed hito with `git commit -m "hito 20: dejar INPUT con informat dinámico pendiente"`.
+- [x] **Step 2: Verify RED** with `uv run pytest -q tests/unit/test_input_informat.py`; the unresolved cases must fail because the current translator emits a numeric `Mathematical.REAL` candidate.
+- [x] **Step 3: Move the existing code by responsibility** into the listed core, lexer, parser, function-family and registry modules. Keep existing expressions and output byte-for-byte equivalent. In the parser, make `raw_format` accept one `fmt` or `str` token, or one `num` token matching `\d+\.\d*`; otherwise raise `Unsupported` without including its source value. The facade delegates parsing to `ExpressionParser` with the shared function registry.
+- [x] **Step 4: Verify the refactor and behavior** with `uv run pytest -q tests/unit/test_talend_translator.py tests/unit/test_input_informat.py`; all current literal cases and new pending cases must pass.
+- [x] **Step 5: Recompile the second supplied example in memory** through `compile_batch` (which redacts before analysis). Verify the four `INPUT` expressions remain literal numeric informats and preserve the baseline of 21 candidates and 21 gaps. Report only these aggregate classifications/counts; do not write source or derived example files.
+- [x] **Step 6: Run project verification** with `uv run pytest -q`, `uv run ruff check .`, `uv run sgm rules validate`, and `uv run sgm metrics tests/fixtures/sas --check`. If the intentional reclassification raises `FUNCION_NO_MAPEADA`, update only that baseline count with the reason in `PROGRESS.md`, then rerun the metric check.
+- [x] **Step 7: Update `PROGRESS.md`** with the hito date, implementation summary, test/Ruff/rules/metrics results, candidate-to-gap change, blockers, and the decision to keep dynamic informats pending.
+- [x] **Step 8: Commit** the completed hito with `git commit -m "hito 20: dejar INPUT con informat dinámico pendiente"`.
