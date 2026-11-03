@@ -1103,3 +1103,17 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Verificación: `uv run ruff check .`: limpio. Suite completa: 439 pasan, 1 se salta, en la segunda ejecución.
 - Incidencia: en una ejecución completa falló una vez `test_compile_outputs::test_guia_y_json_no_contienen_secretos_sin_enmascarar`. No se reproduce: pasa en serie, con tres semillas de hash distintas y en la ejecución siguiente de la suite completa. Queda anotado como fallo intermitente sin causa identificada.
 - Pendiente: 5.8 en un ambiente con SAS, Talend Studio y datos de prueba. Es el único punto del plan que no se puede cerrar desde el repositorio.
+
+## Hito 39. Umbral de agrupación fijado y joblet de contexto del encabezado
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/06-brecha-con-diseno.md`):
+  - Umbral de agrupación en `sgm.generador.UMBRAL_DE_AGRUPACION = 0.2`, decidido con revisión humana. Con 0,3 salen 5 joblets, 7 firmas más y 3 nodos más en el Job padre, sin que el archivo demuestre que esos grupos sean procesos distintos.
+  - `sgm.generador.contexto_del_encabezado`: joblet de contexto con las sentencias de entorno del encabezado (`%let`, `OPTIONS REMOTE=`, `PROC DOWNLOAD`/`RSUBMIT`, `PROC PWENCODE`), el resto del encabezado se queda en el Job padre.
+  - Variables de contexto declaradas sin inventar valores: `servidor_remoto`, `base_de_datos` y `credencial` con el valor observado (credencial siempre `***`); `anio`, `mes`, `dia` y `mday` como pendiente `DATO_NO_EN_ARCHIVO`. Las 14 rutas literales quedan como un pendiente que pide confirmar su papel.
+  - `diseno_del_job` reporta el nodo de contexto, los nodos del padre y las firmas de componente distintas de todo el programa.
+- Medición en `client_large.sas`: 14 operadores de entorno en el joblet de contexto; 7 variables declaradas y 5 pendientes; Job padre de 36 nodos (2 llamadas, 1 contexto, 27 del encabezado, 6 de sueltas); 112 firmas distintas e 137 instancias.
+- Decisión: el joblet de contexto no se conecta al plan ni a la guía. Sigue siendo la fase de diseño, igual que los joblets por grupo; conectarlo es otro cambio y no lo pidió esta ronda.
+- Pruebas: `tests/unit/test_generador.py`, 4 nuevas (umbral 0,2 contra 0,3 con Jaccard 0,25; variables sin contraseña en claro; conteo de operadores de contexto; aritmética de nodos del padre).
+- Verificación: `uv run pytest -q`: 447 pasan, 1 se salta, 6 xfail (las de `test_objetivo_diseno.py`, que miden la brecha y no cambian con este hito). `uv run ruff check .`: limpio.
+- Bloqueos sin cambio: la decisión de qué regiones forman un mismo proceso, la fusión de joins con decisión por firma y la validación con datos (5.8), que necesita un ambiente externo.

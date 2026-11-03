@@ -179,6 +179,37 @@ Brecha restante: 137 componentes frente a unos 80. El siguiente paso medible es 
 encabezado en joblets de contexto y en Job padre, y mirar si las firmas de 104 se pueden reducir
 con sub-cadenas compartidas entre los dos joblets grandes.
 
+## Joblet de contexto del encabezado y umbral fijado (3 de noviembre de 2026)
+
+**Decisión de umbral.** Queda en 0,2 (`sgm.generador.UMBRAL_DE_AGRUPACION`), tras la revisión humana
+del 3 de noviembre de 2026. Con 0,3 la estructura agrupa más fino (5 joblets en vez de 2), pero deja
+7 firmas de componente más y 3 nodos más en el Job padre, y el archivo no demuestra que esos grupos
+sean procesos distintos.
+
+**Joblet de contexto.** `sgm.generador.contexto_del_encabezado` separa del encabezado las sentencias
+de entorno: macrovariables (`%let`), opciones de sesión remota (`OPTIONS REMOTE=`), transferencias
+(`PROC DOWNLOAD`, `RSUBMIT`) y codificación de contraseña (`PROC PWENCODE`). Medido en
+`client_large.sas`:
+
+- 14 operadores de entorno se van a `jl_contexto`, que ocupa un solo nodo del Job padre.
+- 7 variables de contexto declaradas: `servidor_remoto`, `base_de_datos` y `credencial` con el valor
+  observado en el archivo (la credencial siempre como `***`); `anio`, `mes`, `dia` y `mday` quedan
+  como pendiente `DATO_NO_EN_ARCHIVO`, porque los fija la tabla de validación de fecha en cada
+  ejecución.
+- 1 pendiente más: 14 rutas literales cuyo papel (insumo o resultado) el archivo no distingue.
+- Los 27 componentes de datos del encabezado se quedan en el Job padre, según la decisión tomada.
+
+**Job padre.** 36 nodos: 2 llamadas de joblet, el nodo de contexto, 27 componentes del encabezado y
+6 de las regiones sueltas. Firmas de componente distintas en todo el programa: 112 (101 de los
+dos joblets, 13 del encabezado y 2 de las sueltas, con 2 compartidas entre encabezado y joblets).
+Instancias: 137.
+
+**Qué no cambió.** El joblet de contexto no baja el conteo de componentes: sus 14 operadores son
+sentencias pendientes, no componentes. La brecha de 137 frente a unos 80 sigue igual. Tampoco se
+resuelven las sub-cadenas compartidas: los dos joblets comparten 3 firmas, así que unirlos en uno
+solo ahorraría 3 de las 104. El resto exige unir regiones que la estructura no demuestra que sean el
+mismo proceso (similitud máxima 0,47, ya medida arriba).
+
 ## Investigación sobre PROC SQL hacia SQL de motor (3 de noviembre de 2026)
 
 - Traducir PROC SQL a SQL de Spark o Hive es posible para `SELECT`, `GROUP BY` y subconsultas
