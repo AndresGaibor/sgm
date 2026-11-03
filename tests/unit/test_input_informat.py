@@ -91,3 +91,62 @@ def test_numeric_literals_outside_formats_keep_numeric_kind():
 def test_integer_without_informat_dot_is_unsupported():
     with pytest.raises(Unsupported, match="informat"):
         translate_to_talend("input(value, 10)")
+
+
+@pytest.mark.parametrize("function", ["input", "inputn"])
+@pytest.mark.parametrize("informat", ['"&private_marker"', '"best&private_marker.."'])
+def test_double_quoted_macro_informat_stays_dynamic(function, informat):
+    with pytest.raises(Unsupported, match="informat") as error:
+        translate_to_talend(f"{function}(value, {informat})")
+    assert "private_marker" not in str(error.value)
+    plan = _plan(f"data target; set source; parsed={function}(value, {informat}); run;")
+    assert "talend_expression_candidates" not in _derive_for(plan, "parsed").params
+    assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+
+
+@pytest.mark.parametrize("function", ["input", "inputn"])
+def test_single_quoted_macro_text_keeps_literal_behavior(function):
+    assert translate_to_talend(f"{function}(value, '&private_marker')").warnings
+
+
+def test_expanded_double_quoted_macro_informat_stays_literal():
+    plan = _plan('%let fmt = yymmdd10.; data target; set source; parsed=input(value, "&fmt"); run;')
+    expression = _derive_for(plan, "parsed").params["assignments"][0]["expression"]
+    assert expression == 'input(value, "yymmdd10.")'
+    assert "TalendDate.parseDate(" in translate(expression).talend
+    assert not any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+
+
+@pytest.mark.parametrize("informat", ["row.informat", "e8601da. || row.informat"])
+def test_qualified_column_or_composed_informat_stays_dynamic(informat):
+    with pytest.raises(Unsupported, match="informat"):
+        translate_to_talend(f"input(value, {informat})")
+
+
+def test_lexing_failure_does_not_echo_informat_source():
+    with pytest.raises(Unsupported) as error:
+        translate_to_talend("input(value, %secret42())")
+    assert "secret42" not in str(error.value)
+
+
+@pytest.mark.parametrize("filter_step", ["", "  where enabled = 1;\n"])
+def test_dynamic_assignment_gap_has_precise_file_and_lines(filter_step):
+    source = "data target;\n  set source;\n" + filter_step + "  kept = 1;\n  parsed = input(\n    value, &informat);\nrun;"
+    plan = _plan(source)
+    gap = next(g for g in plan.gaps if g.reason == "FUNCION_NO_MAPEADA")
+    start = 5 if filter_step else 4
+    assert [(e.file, e.line_start, e.line_end) for e in gap.evidence] == [("program.sas", start, start + 1)]
+
+
+@pytest.mark.parametrize("function,method", [("input", "parseDate"), ("put", "formatDate")])
+@pytest.mark.parametrize("format_name,pattern", [("e8601da.", "yyyy-MM-dd"), ("e8601dt.", "yyyy-MM-dd'T'HH:mm:ss")])
+def test_iso_literal_formats_keep_previous_java(function, method, format_name, pattern):
+    assert translate_to_talend(f"{function}(value, {format_name})").java == f'TalendDate.{method}("{pattern}", input_row.value)'
+
+
+
+def test_translation_wrapper_lexing_diagnostics_do_not_echo_source():
+    result = translate("input(value, %secret42())")
+    assert result.talend is None
+    assert result.warnings
+    assert "secret42" not in " ".join(result.warnings)

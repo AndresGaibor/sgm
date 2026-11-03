@@ -184,7 +184,7 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
             Gap(
                 signature=f"{op.signature}/{name}",
                 reason="FUNCION_NO_MAPEADA",
-                evidence=list(op.evidence),
+                evidence=list(op.expression_evidence.get(text, op.evidence)),
                 text=" ".join(text.split())[:120],
             )
         )

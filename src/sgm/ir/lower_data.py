@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
@@ -125,6 +126,9 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
                     b.link(current, pending_derive)
                 current = pending_derive
             pending_derive.params["assignments"].append(assignment)
+            origin = replace(ev, line_start=s.line, line_end=s.line + s.text.count("\n"))
+            origins = pending_derive.expression_evidence.setdefault(assignment["expression"], [])
+            origins.append(origin)
             b.refresh(pending_derive)
             continue
         pending_derive = None

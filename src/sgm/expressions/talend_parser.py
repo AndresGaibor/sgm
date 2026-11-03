@@ -252,7 +252,8 @@ class ExpressionParser:
         """El formato de `input`/`put` (`date9.`, `$10.`, `8.`) es un nombre, no una expresión."""
         kind, value = self.peek()
         literal = kind in ("fmt", "str") or (kind == "num" and re.fullmatch(r"\d+\.\d*", value))
-        if not literal or self.peek(1)[1] not in (",", ")"):
+        unresolved = kind == "str" and value.startswith('"') and re.search(r"&+[A-Za-z_]\w*", value)
+        if not literal or unresolved or self.peek(1)[1] not in (",", ")"):
             raise Unsupported("informat dinámico o no literal: queda pendiente de resolución")
         self.take()
         return E(_jstr("'" + value.strip("\'\"") + "'"), "str")

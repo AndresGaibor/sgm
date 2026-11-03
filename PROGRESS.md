@@ -939,3 +939,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Decisiones: mantener informats dinámicos pendientes hasta contar con un valor literal demostrado; conservar el token numérico con punto evita alterar la tokenización de las expresiones numéricas generales. No se agregaron dependencias ni datos de los adjuntos.
 - Verificación: `uv run pytest -q`: 392 pasan, 1 se salta; focalizadas: 44 pasan; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas). `git diff --check`: limpio. El control de tiempo se repitió sin pytest concurrente después de dos mediciones afectadas por contención; no se cambió la línea base.
 - Bloqueos: ninguno. Continúa pendiente validar las candidatas literales en Talend Studio.
+
+
+## Hito 21. Corregir bordes de INPUT
+
+- Fecha: 2026-11-03
+- Qué se hizo: se rechazan informats con macrovariable sin resolver dentro de comillas dobles en INPUT/INPUTN; se conservan cadenas simples y macros ya expandidas. El lexer reconoce formatos con dígitos intercalados y mantiene exactamente el Java de e8601da./e8601dt. en INPUT y PUT, sin aceptar columnas calificadas ni expresiones compuestas.
+- Evidencia: cada asignación DATA conserva archivo, línea inicial y final en metadatos internos del operador. Se propagan al fusionar o reemplazar operadores, y p10 usa ese origen para el hueco. Las firmas, parámetros y el JSON de operadores no cambian. Dos referencias golden actualizan solo la evidencia de seis huecos de asignación.
+- Diagnósticos: ambos lexers de expresiones emiten un motivo estático, sin fragmentos del origen; se cubren la excepción directa y las advertencias del wrapper translate.
+- Pruebas: RED observado para macros entre comillas dobles, cuatro combinaciones ISO, evidencia DATA multilínea (derive agrupado y map fusionado) y fuga léxica directa y del wrapper. Las regresiones conservan literales simples, macros expandidas y rechazo de columnas/expresiones.
+- Decisiones: guardar la evidencia por texto de expresión fuera de los parámetros evita alterar firmas, deduplicación y contratos JSON; se conserva y une en Graph.merge/replace. El error léxico mantiene el motivo útil sin reproducir valores. El lexer inline existente recibe solo este saneamiento puntual; no se amplía el alcance a su modularización.
+- Bloqueos: ninguno.
+- Verificación: focales de expresiones, evidencia IR y golden: 86 pasan; `uv run pytest -q`: 409 pasan, 1 se salta (86,85 s); `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora en 189 programas, sin modificar baseline. La primera suite señaló únicamente dos golden con evidencia antigua; se actualizaron solo esas ubicaciones y se repitió completa. El diff respeta los finales de línea históricos y pasa el control de espacios con CRLF permitido.
