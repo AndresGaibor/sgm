@@ -1009,3 +1009,10 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: `tests/unit/test_mapa_flujo.py` (secciones, conteos por conjunto y ausencia de secretos).
 - Pendiente de 4.2: la sección de etapas (grafo de datos separado por fronteras externas) y los bloques repetidos con su residuo, que dependen de 3.6.
 - Verificación: `uv run pytest -q`: 421 pasan, 1 se salta; `uv run ruff check .`: limpio; `sgm mapa` genera el Markdown del fixture de prueba.
+
+## Hito 26. Guía de Jobs con joblets: fase 4.1 (parcial)
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`): la guía Markdown de cada programa tiene una sección `## Joblets` con, por joblet, el porqué, las operaciones del bloque, los parámetros, cada aparición con su archivo y líneas, y una nota fija de lo que falta.
+- Pendiente de 4.1: entradas y salidas de cada joblet (aún no calculadas), la estructura completa de la guía de Jobs con contextos y subjobs como la del diseño, y el tipo y nombre de los parámetros (3.8).
+- Pruebas: `tests/unit/test_guia_joblets.py` (la sección aparece con joblets y no aparece sin ellos).

@@ -160,6 +160,32 @@ def _talend_candidates(operators: list[Operator]) -> list[str]:
     return lines
 
 
+def _joblets(plan: Plan) -> list[str]:
+    """Joblets (fase 4.1): bloque repetido, parámetros y apariciones con su evidencia."""
+    if not plan.joblets:
+        return []
+    lines = ["## Joblets", ""]
+    for j in plan.joblets:
+        lines += [
+            f"### {j['id']}",
+            "",
+            f"- Por qué se propone: {j['por_que']}.",
+            f"- Operaciones del bloque: {', '.join(j['operaciones'])}.",
+            "- Parámetros: "
+            + (", ".join(f"`{p}`" for p in j["parametros"]) or "ninguno")
+            + " (tipo y nombre pendientes: fase 3.8).",
+            "- Apariciones:",
+        ]
+        for aparicion in j["fuente"]:
+            rangos = "; ".join(
+                f"{ev['file']}:{ev['line_start']}-{ev['line_end']}" for ev in aparicion
+            )
+            lines.append(f"  - {rangos or 'sin evidencia'}")
+        lines.append("- Entradas y salidas del joblet: pendientes (no calculadas aún).")
+        lines.append("")
+    return lines
+
+
 def render_guide(plan: Plan) -> str:
     operators = sorted(plan.graph.operators(), key=lambda o: o.id)
     by_status = Counter(op.status for op in operators)
@@ -181,6 +207,7 @@ def render_guide(plan: Plan) -> str:
         f"- Pendientes de decisión: {len(plan.pending)}",
         "",
         *_stages(plan),
+        *_joblets(plan),
         "## Operadores por nodo",
     ]
     by_label: dict[str, list[Operator]] = {}
