@@ -8,119 +8,30 @@ por un paso.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 
 from sgm.frontend.datastep import DataStep, classify_statement, parse_data_header
 from sgm.frontend.lexer import MACRO_KEYWORDS, Stmt, split_statements
 from sgm.frontend.splitter import Node
 from sgm.frontend.sql import SqlStatement, parse_sql_statement
+from sgm.frontend.steps_tipos import (  # noqa: F401  (reexport para los importadores)
+    Global,
+    Include,
+    Let,
+    Libname,
+    MacroCall,
+    MacroDef,
+    Options,
+    ParsedNode,
+    Proc,
+    ProcSql,
+    Unparsed,
+    XCommand,
+)
 
 _DATALINES_HEAD = ("datalines", "cards", "datalines4", "cards4")
 _PROC_OPTION = re.compile(r"([A-Za-z_]\w*)\s*=\s*(\S+)")
 _PROC_CLAUSES = ("by", "var", "class", "where", "id", "output", "tables", "model")
-
-
-@dataclass
-class ProcSql:
-    statements: list[SqlStatement]
-    line: int
-    end_line: int
-    text: str
-
-
-@dataclass
-class Proc:
-    name: str
-    options: dict[str, str]  # DATA=, OUT=, etc., con clave en minúsculas
-    flags: list[str]  # opciones sin valor (nodupkey, noprint...)
-    clauses: dict[str, str]  # BY, VAR, CLASS, WHERE, ... con el texto de la sentencia
-    line: int
-    end_line: int
-    text: str
-    body: list[str] = field(default_factory=list)  # todas las sentencias del cuerpo, tal cual
-
-
-@dataclass
-class MacroDef:
-    name: str
-    params: list[str]
-    body: list[object]
-    line: int
-    end_line: int
-    text: str
-
-
-@dataclass
-class MacroCall:
-    name: str
-    args: str
-    line: int
-    end_line: int
-    text: str
-
-
-@dataclass
-class Let:
-    name: str
-    value: str
-    line: int
-    end_line: int
-    text: str
-
-
-@dataclass
-class Include:
-    path: str | None
-    line: int
-    end_line: int
-    text: str
-
-
-@dataclass
-class Libname:
-    name: str
-    value: str
-    line: int
-    end_line: int
-    text: str
-
-
-@dataclass
-class Options:
-    text: str
-    line: int
-    end_line: int
-
-
-@dataclass
-class XCommand:
-    command: str
-    line: int
-    end_line: int
-    text: str
-
-
-@dataclass
-class Global:
-    text: str
-    line: int
-    end_line: int
-
-
-@dataclass
-class Unparsed:
-    text: str
-    reason: str
-    line: int
-    end_line: int
-
-
-@dataclass
-class ParsedNode:
-    label: str | None
-    line_start: int
-    line_end: int
-    steps: list[object] = field(default_factory=list)
 
 
 def _lower(stmt: Stmt) -> str:

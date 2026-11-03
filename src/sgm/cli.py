@@ -10,7 +10,6 @@ from typing import Annotated
 import typer
 
 from sgm import cache, generadores, trinquete
-from sgm import decisions as decisions_mod
 from sgm import diagnostics as diagnostics_mod
 from sgm import explain as explain_mod
 from sgm import intake as intake_mod
@@ -19,11 +18,11 @@ from sgm import metrics as metrics_mod
 from sgm import rules_validate as rules_validate_mod
 from sgm.batch import compile_batch
 from sgm.catalog import describe as describe_mod
-from sgm.catalog.config import ConfigError, Env, load_env
+from sgm.cli_util import _collect, _env
 from sgm.emit.guide_md import render_guide
 from sgm.emit.plan_json import metadatos_de_salida, plan_to_dict
 from sgm.facts.cli import facts_command, mapa_command
-from sgm.ingest.importer import ImportError_, looks_like_sas
+from sgm.ingest.importer import ImportError_
 from sgm.store import gaps as gap_store
 from sgm.store import overrides as override_store
 from sgm.store.db import Store
@@ -31,10 +30,8 @@ from sgm.store.db import Store
 app = typer.Typer(
     help="sgm: compila programas SAS a guías de migración Talend.", no_args_is_help=True
 )
-decisions_app = typer.Typer(
-    help="Decisiones del usuario por firma y alcance.", no_args_is_help=True
-)
-gaps_app = typer.Typer(help="Inventario de huecos.", no_args_is_help=True)
+from sgm.cli_decisiones import decisions_app, gaps_app  # noqa: E402
+
 rules_app = typer.Typer(help="Reglas, casos y configuración.", no_args_is_help=True)
 case_app = typer.Typer(help="Casos de prueba declarativos.", no_args_is_help=True)
 app.add_typer(decisions_app, name="decisions")
@@ -48,29 +45,6 @@ app.command("mapa")(mapa_command)
 @app.callback()
 def main() -> None:
     """Punto de entrada: cada subcomando es una operación de sgm."""
-
-
-def _collect(path: Path) -> dict[str, str]:
-    """Textos de los programas SAS: un archivo, o todos los de una carpeta (rutas relativas)."""
-    if path.is_file():
-        return {path.name: path.read_text(encoding="utf-8", errors="replace")}
-    files: dict[str, str] = {}
-    for candidate in sorted(path.rglob("*")):
-        if not candidate.is_file() or candidate.suffix.lower() not in {".sas", ".txt"}:
-            continue
-        text = candidate.read_text(encoding="utf-8", errors="replace")
-        if candidate.suffix.lower() == ".sas" or looks_like_sas(text):
-            files[candidate.relative_to(path).as_posix()] = text
-    return files
-
-
-def _env() -> Env:
-    """`env/` cargado y validado. Un archivo mal formado detiene el comando con su mensaje."""
-    try:
-        return load_env()
-    except ConfigError as error:
-        typer.echo(f"Configuración no válida: {error}", err=True)
-        raise typer.Exit(code=2) from error
 
 
 def _project_name(source: Path) -> str:
@@ -199,94 +173,6 @@ def lineage(
     compiled, _ = compile_batch(files, env=_env())
     for number, wave in enumerate(lineage_mod.waves(compiled), 1):
         typer.echo(f"Oleada {number}: " + ", ".join(wave))
-
-
-@decisions_app.command("pendientes")
-def decisions_pending(
-    source: Annotated[Path, typer.Argument(help="Archivo .sas o carpeta con programas.")],
-    top: Annotated[int, typer.Option("--top", help="Cuántas firmas mostrar.")] = 30,
-) -> None:
-    """Decisiones pendientes agrupadas por firma: cuántos operadores y archivos la comparten."""
-    files = _collect(source)
-    if not files:
-        typer.echo("No hay programas SAS en la fuente.")
-        raise typer.Exit(code=1)
-    compiled, _ = compile_batch(files, env=_env())
-    totals = decisions_mod.totals(compiled)
-    typer.echo(f"{totals['decisiones']} decisiones, {totals['firmas']} firmas únicas")
-    for group in decisions_mod.group(compiled)[:top]:
-        options = ", ".join(group.options)
-        typer.echo(
-            f"{group.signature}  operadores={group.operators}  archivos={len(group.files)}  "
-            f"opciones=[{options}]  sugerido={group.default} (no aplicado)"
-        )
-
-
-@decisions_app.command("list")
-def decisions_list() -> None:
-    """Muestra las decisiones guardadas."""
-    with Store() as store:
-        items = override_store.list_overrides(store)
-    if not items:
-        typer.echo("No hay decisiones guardadas.")
-        return
-    for o in items:
-        ref = f" ref={o.ref}" if o.ref else ""
-        typer.echo(f"{o.signature}  {o.option}  alcance={o.scope}{ref}  motivo={o.reason}")
-
-
-@decisions_app.command("set")
-def decisions_set(
-    signature: Annotated[str, typer.Argument(help="Firma del operador (la que muestra la guía).")],
-    option: Annotated[str, typer.Argument(help="Opción elegida (un componente Talend).")],
-    scope: Annotated[
-        str, typer.Option("--scope", help="paso, archivo, proyecto o global.")
-    ] = "global",
-    ref: Annotated[
-        str, typer.Option("--ref", help="Nombre del alcance (archivo:línea, archivo, proyecto).")
-    ] = "",
-    reason: Annotated[str, typer.Option("--reason", help="Motivo de la decisión.")] = "",
-) -> None:
-    """Guarda una decisión por firma y alcance."""
-    try:
-        with Store() as store:
-            row = override_store.set_override(store, signature, option, scope, ref, reason)
-    except ValueError as error:
-        raise typer.BadParameter(str(error)) from error
-    typer.echo(f"Guardada: {row.signature} -> {row.option} ({row.scope})")
-
-
-@gaps_app.command("list")
-def gaps_list(
-    top: Annotated[int, typer.Option("--top", help="Cuántos huecos mostrar.")] = 20,
-    owner: Annotated[str | None, typer.Option("--owner", help="Solo los de este dueño.")] = None,
-    file: Annotated[
-        str | None,
-        typer.Option("--file", help="Solo los que aparecen en un archivo con este texto."),
-    ] = None,
-) -> None:
-    """Huecos ordenados por archivos y ocurrencias, con dueño, arreglo y comando sugerido."""
-    with Store() as store:
-        rows = gap_store.top(store, top, owner=owner, file=file)
-    if not rows:
-        if owner or file:
-            typer.echo("No hay huecos con esos filtros.")
-        else:
-            typer.echo("No hay huecos guardados. Compila primero con `sgm compile`.")
-        return
-    for row in rows:
-        example = row["example"] or {}
-        typer.echo(
-            f"{row['signature']}  {row['reason']}  dueño={row['owner']}  "
-            f"archivos={len(row['files'])}  ocurrencias={row['occurrences']}"
-        )
-        if example:
-            typer.echo(
-                f"  ejemplo: {example['file']}:{example['line_start']}-{example['line_end']}"
-                f"  {example['texto']}"
-            )
-        typer.echo(f"  se cierra con: {row['fix_with'] or 'sin arreglo registrado'}")
-        typer.echo(f"  comando: {row['comando']}")
 
 
 env_app = typer.Typer(help="Entorno: esquemas de las bases.", no_args_is_help=True)
