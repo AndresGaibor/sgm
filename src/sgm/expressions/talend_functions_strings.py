@@ -77,11 +77,11 @@ def _scan(p: _P, args: list[E]) -> E:
 def _compress(p: _P, args: list[E]) -> E:
     _need(args, 1, 3, "compress")
     if len(args) == 3:
-        if args[2].java != '"kd"':
+        if args[2].kind != "str" or args[2].literal != "kd":
             raise Unsupported("compress con modificadores no demostrados")
         if args[1].kind == "omitted":
             pattern = "[^0-9]"
-        elif args[1].kind == "str" and args[1].java == '"."':
+        elif args[1].kind == "str" and args[1].literal == ".":
             pattern = "[^0-9.]"
         else:
             raise Unsupported("compress con una lista de caracteres no demostrada")
@@ -89,10 +89,12 @@ def _compress(p: _P, args: list[E]) -> E:
         return E(
             _guard([source], f'StringHandling.EREPLACE({source.java}, "{pattern}", "")'), "str"
         )
-    chars = args[1].java[1:-1] if len(args) == 2 and args[1].kind == "str" else " "
-    if len(args) == 2 and args[1].kind != "str":
+    if len(args) == 2 and (args[1].kind != "str" or args[1].literal is None):
         raise Unsupported("compress con caracteres que no son literales")
-    if any(ord(char) < 32 or char in "\u2028\u2029" for char in chars) or "\\" in chars:
+    chars = args[1].literal if len(args) == 2 else " "
+    if not chars:
+        raise Unsupported("compress con una lista de caracteres vacía")
+    if any(not char.isprintable() for char in chars):
         raise Unsupported("compress con caracteres que requieren escape no demostrado")
     if len(chars) == 1:
         return E(

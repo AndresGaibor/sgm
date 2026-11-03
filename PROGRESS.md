@@ -1028,3 +1028,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Verificación: `uv run pytest -q`: 443 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
 - Decisión: no reconstruir caracteres que ya llegan escapados en Java ni literales con controles; se dejan pendientes hasta que el lexer conserve el valor SAS original.
 - Bloqueo: la rutina candidata requiere validación en Talend Studio.
+
+
+## Hito 29. Conservar el valor de literales SAS en expresiones
+
+- Fecha: 2026-11-03
+- Qué se hizo: los nodos de cadena ahora conservan, además del Java serializado, el valor literal SAS ya decodificado. `COMPRESS` usa ese valor para sus caracteres y modificadores; ya no intenta reconstruirlo desde escapes Java. Las listas con barra invertida se traducen correctamente y las cadenas con caracteres de control quedan pendientes.
+- Hallazgo: la serialización Java duplicaba las barras invertidas, por lo que el hito 28 no podía distinguir una barra del escape generado por Java. También se detectó que una lista vacía producía una regex no demostrada; ahora queda pendiente.
+- Pruebas: RED observado para una lista con barra invertida y para `compress(value,'')`; ambas regresiones pasan tras el cambio. Se mantiene la prueba de salto de línea pendiente. 14 focales pasan.
+- Verificación: `uv run pytest -q`: 444 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `git diff --check`: limpio.
+- Métricas: `sgm metrics tests/fixtures/sas --check` marca solo `tiempo_compilacion_s`: 22,4 s en esta rama frente a 23,2 s en el commit Hito 28; ambos exceden el límite 19,08 s. No se modificó la línea base.
+- Decisión: conservar el valor SAS decodificado en `E.literal`; no serializar caracteres de control como literales Java hasta tener un escapado completo.
+- Bloqueo: el umbral temporal también falla en el commit de control; queda pendiente una corrida dentro del límite, sin atribuirlo a este cambio.

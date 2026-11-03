@@ -9,10 +9,11 @@ class Unsupported(Exception):
 
 @dataclass
 class E:
-    """Una expresión Java y su clase: num/str (literal), bool, null, date, any (columna o cálculo de tipo desconocido)."""
+    """Expresión Java, clase y valor SAS literal cuando el nodo procede de una cadena."""
 
     java: str
     kind: str = "any"
+    literal: str | None = None
 
 
 class Result:

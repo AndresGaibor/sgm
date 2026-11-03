@@ -170,7 +170,7 @@ class ExpressionParser:
     def atom(self) -> E:
         k, v = self.take()
         if k == "str":
-            return E(_jstr(v), "str")
+            return E(_jstr(v), "str", v[1:-1].replace(v[0] * 2, v[0]))
         if k == "datelit":
             return E(f'TalendDate.parseDateLocale("ddMMMyyyy", "{v[1:-2]}", "en")', "date")
         if k == "num":
