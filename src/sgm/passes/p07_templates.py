@@ -96,8 +96,10 @@ def _register_joblet(plan, template: str, label, body, instances, varying, conte
             "fuente": [],
         }
         plan.joblets.append(existente)
-    if label not in existente["etiquetas"]:
-        existente["etiquetas"].append(label)
+    for ordered, _ in instances:
+        etiqueta = _label(ordered[0])
+        if etiqueta not in existente["etiquetas"]:
+            existente["etiquetas"].append(etiqueta)
     existente["apariciones"] += len(instances)
     existente["parametros"] = sorted(
         set(existente["parametros"]) | {f"parametro_{k}" for k in varying}
