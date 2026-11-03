@@ -90,3 +90,17 @@ Conclusión: el archivo no contiene 30 copias del mismo proceso ni siquiera con 
 La agrupación "producto ×3" del diseño no se deriva de la estructura. Un generador determinista
 puede producir la estructura del diseño solo a partir de una agrupación declarada (por ejemplo en
 YAML, con qué regiones forman cada proceso), y esa agrupación es una decisión, no un hecho del SAS.
+
+## Agrupación determinista por producto (3 de noviembre de 2026)
+
+Regla: cada región `%macro ambiente` toma el sufijo dominante (`_CTE`, `_AHO`, `_NEQUI`) de las
+tablas que escribe o lee. Medido: 25 de 30 regiones tienen sufijo (11 CTE, 10 AHO, 3 NEQUI); 5 no
+tienen ninguno y quedan como pendiente.
+
+Con esa agrupación y contando firmas repetidas una sola vez:
+- Firmas de componente distintas: 112 (con nombres y literales).
+- Clases gruesas (tipo de operador, componente): 14 en todo el programa, de 6 a 10 por producto.
+
+Esto acerca la salida a la estructura del diseño: un Job por producto con pocas clases de componente
+repetidas, en lugar de 30 regiones distintas. Los nombres de producto y sufijos viven en
+`decisiones/client_large.agrupacion.yaml` (decisión del equipo), no en `rules/` ni en `src/`.

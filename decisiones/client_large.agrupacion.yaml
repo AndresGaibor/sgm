@@ -1,0 +1,13 @@
+# Agrupación por producto para client_large.sas. Es una decisión del equipo, no un hecho del SAS.
+# Regla determinista: cada región %macro ambiente se clasifica por el sufijo dominante de las
+# tablas que escribe o lee. Los sufijos son nombres del cliente y viven aquí, no en rules/.
+programa: client_large.sas
+region_marcador: "%macro ambiente"
+productos:
+  - nombre: cte
+    sufijos: [CTE]
+  - nombre: aho
+    sufijos: [AHO]
+  - nombre: nequi
+    sufijos: [NEQUI]
+sin_producto: pendiente   # regiones sin sufijo: se listan, no se adivinan
