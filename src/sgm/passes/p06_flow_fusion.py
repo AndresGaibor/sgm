@@ -116,7 +116,15 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
         graph.replace([op.id for op in chain], merged)
         log.created.append(merged.id)
         log.merged += [op.id for op in chain]
-        if chain[0].kind == "join":
+        existente = next(
+            (x for x in ctx.plan.pending if chain[0].kind == "join"
+             and x.signature == chain[0].signature),
+            None,
+        )
+        if existente is not None:
+            # Una sola decisión por firma: las apariciones se cuentan, no se duplican.
+            existente.occurrences += 1
+        elif chain[0].kind == "join":
             # Decisión por firma: el join queda dentro del tMap; una persona puede dejarlo suelto.
             ctx.plan.pending.append(
                 Pending(
