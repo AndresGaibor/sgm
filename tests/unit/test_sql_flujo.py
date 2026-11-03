@@ -33,9 +33,29 @@ def test_where_se_convierte_en_filtro():
     assert "filter" in kinds
 
 
+def _join_dentro_de_map(compiled) -> bool:
+    return any(
+        st.get("kind") == "join"
+        for op in compiled.plan.graph.operators()
+        if op.kind == "map"
+        for st in op.params.get("steps", [])
+    )
+
+
+def _join_dentro_de_map(programa: str) -> bool:
+    compiled, _ = compile_project({"p.sas": programa})
+    return any(
+        st.get("kind") == "join"
+        for op in compiled["p.sas"].plan.graph.operators()
+        if op.kind == "map"
+        for st in op.params.get("steps", [])
+    )
+
+
 def test_join_on_se_convierte_en_union_por_clave():
-    kinds = _kinds(_sql("create table t as select a.k, b.v from s a join r b on a.k = b.k;"))
-    assert "join" in kinds
+    programa = _sql("create table t as select a.k, b.v from s a join r b on a.k = b.k;")
+    # El join puede quedar suelto o dentro del tMap fundido (pasada 6): en ambos casos existe.
+    assert "join" in _kinds(programa) or _join_dentro_de_map(programa)
 
 
 def test_group_by_y_agregados_van_a_tAggregateRow():

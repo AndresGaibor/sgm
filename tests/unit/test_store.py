@@ -16,25 +16,38 @@ def store(tmp_path):
         yield s
 
 
-def _compile(files: dict[str, str]):
+def _compile(files: dict[str, str], store=None):
+    """Compila; con `store`, repite la compilación si una decisión deja un join suelto (CLI)."""
     compiled, _ = compile_project(files)
+    if store is not None:
+        sueltos = override_store.joins_sueltos(store, compiled)
+        if sueltos:
+            compiled, _ = compile_project(files, no_fusionar=sueltos)
     return compiled
 
 
 def _join_signature(compiled, program: str) -> str:
-    (op,) = [o for o in compiled[program].plan.graph.operators() if o.kind == "join"]
-    return op.signature
+    """Firma del join: el operador suelto, o el paso de join dentro del tMap fundido."""
+    for op in compiled[program].plan.graph.operators():
+        if op.kind == "join":
+            return op.signature
+        for step in op.params.get("steps", []):
+            if step.get("kind") == "join":
+                return step["signature"]
+    raise AssertionError("sin join")
 
 
 def _component(compiled, program: str) -> str:
-    (op,) = [o for o in compiled[program].plan.graph.operators() if o.kind == "join"]
-    return op.component["name"]
+    for op in compiled[program].plan.graph.operators():
+        if op.kind == "join" or any(s.get("kind") == "join" for s in op.params.get("steps", [])):
+            return op.component["name"]
+    raise AssertionError("sin join")
 
 
 def test_override_global_cambia_la_salida_de_todos_los_archivos_con_esa_firma(store):
-    compiled = _compile({"a.sas": MERGE, "b.sas": MERGE})
-    firma = _join_signature(compiled, "a.sas")
+    firma = _join_signature(_compile({"a.sas": MERGE, "b.sas": MERGE}), "a.sas")
     override_store.set_override(store, firma, "tJoin", scope="global", reason="prueba")
+    compiled = _compile({"a.sas": MERGE, "b.sas": MERGE}, store)
     for result in compiled.values():
         override_store.apply(result.plan, store, "proyecto")
     assert _component(compiled, "a.sas") == "tJoin"
@@ -42,10 +55,10 @@ def test_override_global_cambia_la_salida_de_todos_los_archivos_con_esa_firma(st
 
 
 def test_override_de_archivo_gana_sobre_el_global(store):
-    compiled = _compile({"a.sas": MERGE, "b.sas": MERGE})
-    firma = _join_signature(compiled, "a.sas")
+    firma = _join_signature(_compile({"a.sas": MERGE, "b.sas": MERGE}), "a.sas")
     override_store.set_override(store, firma, "tJoin", scope="global")
     override_store.set_override(store, firma, "tMap", scope="archivo", ref="a.sas")
+    compiled = _compile({"a.sas": MERGE, "b.sas": MERGE}, store)
     for result in compiled.values():
         override_store.apply(result.plan, store, "proyecto")
     assert _component(compiled, "a.sas") == "tMap"
@@ -55,7 +68,7 @@ def test_override_de_archivo_gana_sobre_el_global(store):
 def test_override_sobrevive_a_una_recompilacion(store):
     firma = _join_signature(_compile({"a.sas": MERGE}), "a.sas")
     override_store.set_override(store, firma, "tJoin", scope="proyecto", ref="proyecto")
-    again = _compile({"a.sas": MERGE})
+    again = _compile({"a.sas": MERGE}, store)
     assert _join_signature(again, "a.sas") == firma
     override_store.apply(again["a.sas"].plan, store, "proyecto")
     assert _component(again, "a.sas") == "tJoin"

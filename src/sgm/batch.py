@@ -59,13 +59,14 @@ def compile_batch(
     library_engines: dict[str, str] | None = None,
     workers: int = 1,
     env: Env | None = None,
+    no_fusionar: frozenset[str] = frozenset(),
 ) -> tuple[dict[str, Compiled], ProgramAnalysis]:
     """Compila todos los programas. `workers` > 1 reparte los programas entre procesos.
 
     `env` es `env/` ya cargado (motores, políticas, externos). Sin él, valores por defecto.
     """
     clean = {path: redact(text, path) for path, text in files.items()}
-    base = project_base(library_engines, env)
+    base = project_base(library_engines, env, no_fusionar)
     externals = {path: redact(text, path) for path, text in base["external_files"].items()}
     analysis = analyze_program(clean, externals)
     order = include_order(clean)

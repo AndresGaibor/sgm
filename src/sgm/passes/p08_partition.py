@@ -27,6 +27,16 @@ NAME = "p08_partition"
 CONTROL = frozenset({"exec_sql", "external_load", "iterate"})
 
 
+def _es_join(op) -> bool:
+    """Un join es un operador `join` o un `map` que contiene un paso de join (fase 3, Talend:
+    el join vive dentro de tMap como lookup, con modelo de coincidencia y tipo de join)."""
+    if op.kind == "join":
+        return True
+    return op.kind == "map" and any(
+        step.get("kind") == "join" for step in op.params.get("steps", [])
+    )
+
+
 def sugerir_materializacion(lectores: int, entregable: bool, frontera: bool) -> tuple[str, str]:
     """Regla de materialización (fase 3.5): sugerencia y motivo. No se aplica sin decisión (3.4).
 
@@ -57,11 +67,11 @@ def _materialize(graph: Graph, ctx: PassContext, log: PassLog) -> None:
             mid = graph.operator(edge.dst)
             joins = (
                 [mid]
-                if mid.kind == "join"
+                if _es_join(mid)
                 else [
                     graph.operator(s)
                     for s in graph.successors(mid.id)
-                    if graph.operator(s).kind == "join"
+                    if _es_join(graph.operator(s))
                 ]
             )
             for join in joins:

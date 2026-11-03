@@ -12,12 +12,14 @@ Un filtro o selección aislado no se fusiona: un `map` de un solo paso no aporta
 from __future__ import annotations
 
 from sgm.ir.builder import Builder
-from sgm.ir.models import Graph, Operator
+from sgm.ir.models import Graph, Operator, Pending
 from sgm.ir.signature import signature
 from sgm.passes.base import PassContext, PassLog
 
 NAME = "p06_flow_fusion"
-CHAINABLE = frozenset({"filter", "derive", "rename", "select"})
+CHAINABLE = frozenset({"filter", "derive", "rename", "select", "join"})
+# Un join solo puede iniciar una cadena (tiene dos entradas). Talend lo modela como lookup dentro de
+# tMap, con modelo de coincidencia y tipo de join; la decisión por firma sigue viva (ver `run`).
 _RANK = {"soportado": 0, "parcial": 1, "reemplazado": 2, "hueco": 3}
 
 
@@ -38,13 +40,18 @@ def _union(ops: list[Operator]) -> list:
     return evidence
 
 
-def _chains(graph: Graph) -> list[list[Operator]]:
-    """Cadenas maximales de operadores encadenables (de dos o más)."""
+def _chains(graph: Graph, excluidos: frozenset[str] = frozenset()) -> list[list[Operator]]:
+    """Cadenas maximales de operadores encadenables (de dos o más).
+
+    Un join cuya firma está en `excluidos` queda suelto: su decisión la tomó una persona.
+    """
     chains: list[list[Operator]] = []
     used: set[str] = set()
     for op_id in graph.topological():
         op = graph.operator(op_id)
         if op_id in used or op.kind not in CHAINABLE or not _in_flow(op):
+            continue
+        if op.kind == "join" and op.signature in excluidos:
             continue
         chain = [op]
         used.add(op_id)
@@ -67,7 +74,7 @@ def _chains(graph: Graph) -> list[list[Operator]]:
 
 
 def _step(op: Operator) -> dict:
-    return {"kind": op.kind, "params": op.params}
+    return {"kind": op.kind, "params": op.params, "signature": op.signature}
 
 
 def _branch_pairs(graph: Graph) -> list[tuple[Operator, Operator, Operator]]:
@@ -91,7 +98,7 @@ def _branch_pairs(graph: Graph) -> list[tuple[Operator, Operator, Operator]]:
 def run(graph: Graph, ctx: PassContext) -> PassLog:
     log = PassLog(NAME)
     builder = Builder(graph)
-    for chain in _chains(graph):
+    for chain in _chains(graph, ctx.no_fusionar):
         params = {"steps": [_step(op) for op in chain]}
         outputs = chain[-1].params.get("outputs", [])
         if outputs:
@@ -109,6 +116,20 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
         graph.replace([op.id for op in chain], merged)
         log.created.append(merged.id)
         log.merged += [op.id for op in chain]
+        if chain[0].kind == "join":
+            # Decisión por firma: el join queda dentro del tMap; una persona puede dejarlo suelto.
+            ctx.plan.pending.append(
+                Pending(
+                    signature=chain[0].signature,
+                    options=[
+                        {"opcion": "tMap", "confianza": "alta", "supuesto": "join dentro del tMap",
+                         "aplicado": False},
+                        {"opcion": "tJoin", "confianza": "media", "supuesto": "join suelto",
+                         "aplicado": False},
+                    ],
+                    default="tMap",
+                )
+            )
     pairs = _branch_pairs(graph)
     by_source: dict[str, list[tuple[Operator, Operator, Operator]]] = {}
     for src, read, filt in pairs:

@@ -121,6 +121,7 @@ def compile_file(analysis: ProgramAnalysis, program: str, ctx_base: dict) -> Com
         schemas=ctx_base["schemas"],
         macro_params=macro_params,
         project=ctx_base["project"],
+        no_fusionar=ctx_base.get("no_fusionar", frozenset()),
     )
     logs = run_passes(ctx)
     plan.gaps = build_gaps(plan.graph) + plan.gaps + _catalog_and_intrinsic_gaps(plan.graph)
@@ -147,7 +148,11 @@ def _catalog_and_intrinsic_gaps(graph: Graph) -> list[Gap]:
     return list(found.values())
 
 
-def project_base(library_engines: dict[str, str] | None = None, env: Env | None = None) -> dict:
+def project_base(
+    library_engines: dict[str, str] | None = None,
+    env: Env | None = None,
+    no_fusionar: frozenset[str] = frozenset(),
+) -> dict:
     """Lo que todos los programas de un proyecto comparten: motores, esquemas, políticas y externos.
 
     `library_engines` (si se da) gana sobre `env/engines.json`.
@@ -161,6 +166,7 @@ def project_base(library_engines: dict[str, str] | None = None, env: Env | None 
         "externals": env.externals,
         "external_files": env.external_files,
         "project": env.project,
+        "no_fusionar": frozenset(no_fusionar),
     }
 
 
@@ -168,13 +174,14 @@ def compile_project(
     files: dict[str, str],
     library_engines: dict[str, str] | None = None,
     env: Env | None = None,
+    no_fusionar: frozenset[str] = frozenset(),
 ) -> tuple[dict[str, Compiled], ProgramAnalysis]:
     """Compila todos los programas de un proyecto. `files` es {ruta relativa: texto}.
 
     El texto se redacta antes de analizarlo: ninguna credencial llega a un modelo derivado.
     """
     clean = {path: redact(text, path) for path, text in files.items()}
-    base = project_base(library_engines, env)
+    base = project_base(library_engines, env, no_fusionar)
     externals = {path: redact(text, path) for path, text in base["external_files"].items()}
     analysis = analyze_program(clean, externals)
     compiled = {program: compile_file(analysis, program, base) for program in sorted(clean)}

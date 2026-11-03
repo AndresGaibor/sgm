@@ -105,3 +105,23 @@ def apply(plan: Plan, store: Store, project: str) -> int:
         op.component["name"] = chosen.option
         applied += 1
     return applied
+
+
+def joins_sueltos(store: Store, compiled: dict) -> frozenset[str]:
+    """Firmas de join fundidos en un tMap que una decisión pide dejar sueltos (`tJoin`).
+
+    Una decisión distinta de `tMap` para ese join exige compilar otra vez con esas firmas fuera de
+    la fusión: así la decisión por firma se respeta sin editar el plan a posteriori.
+    """
+    firmas: set[str] = set()
+    for result in compiled.values():
+        for op in result.plan.graph.operators():
+            if op.kind != "map":
+                continue
+            for step in op.params.get("steps", []):
+                if step.get("kind") != "join":
+                    continue
+                sig = step.get("signature", "")
+                if any(o.option != "tMap" for o in overrides_for(store, sig)):
+                    firmas.add(sig)
+    return frozenset(firmas)

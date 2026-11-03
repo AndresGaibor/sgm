@@ -123,14 +123,15 @@
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
-      "signature": "c397fddd49302c35",
+      "signature": "e4c42f799de61346",
       "params": {
         "steps": [
           {
             "kind": "filter",
             "params": {
               "expression": "age >= 13"
-            }
+            },
+            "signature": "e41c04144c347a11"
           },
           {
             "kind": "derive",
@@ -144,7 +145,8 @@
               "outputs": [
                 "WORK.personas_filtradas"
               ]
-            }
+            },
+            "signature": "8e928bb9919db388"
           }
         ],
         "outputs": [
@@ -269,7 +271,7 @@
   ],
   "gaps": [
     {
-      "signature": "c397fddd49302c35",
+      "signature": "e4c42f799de61346",
       "reason": "TIPO_DESCONOCIDO",
       "evidence": [
         {
@@ -305,7 +307,7 @@
         "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
         "nota": ""
       },
-      "signature": "c397fddd49302c35",
+      "signature": "e4c42f799de61346",
       "fuente": [
         {
           "file": "p0_ejemplo_basico.sas",

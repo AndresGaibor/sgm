@@ -91,6 +91,10 @@ def compile(
     compiled, _ = compile_batch(files, workers=workers, env=_env())
     project = _project_name(source)
     with Store() as store:
+        sueltos = override_store.joins_sueltos(store, compiled)
+        if sueltos:
+            # Una decisión deja un join suelto: se compila otra vez sin fundirlo en el tMap.
+            compiled, _ = compile_batch(files, workers=workers, env=_env(), no_fusionar=sueltos)
         for result in compiled.values():
             override_store.apply(result.plan, store, project)
         gap_store.save(store, gap_store.inventory([r.plan for r in compiled.values()]))
