@@ -1,0 +1,91 @@
+# tmominput
+
+> Fuente oficial: https://help.qlik.com/talend/en-US/components/8.0/tmominput  
+> Descargado: 2026-11-03.
+
+
+---
+
+<!-- fuente: https://help.qlik.com/talend/en-US/components/8.0/tmominput -->
+
+# tMomInput
+
+Fetches a message from a queue on a Message-Oriented Middleware (MOM) system and passes it on to the next component.
+
+tMomInput makes it possible to set up asynchronous communications via a MOM server.
+
+For further information, see [https://help.talend.com/r/en-US/8.0/studio-user-guide/messaging-brokers-supported-by-talend-messaging-components](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/messaging-brokers-supported-by-talend-messaging-components).
+
+## tMomInput Standard properties
+
+These properties are used to configure tMomInput running in the Standard Job framework.
+
+The Standard tMomInput component belongs to the Internet family.
+
+The component in this framework is available in all Talend products.
+
+## Basic settings
+
+| Properties | Description |
+| --- | --- |
+| Use existing connection | Select this check box and in the Component<br>List drop-down list, select the desired connection component to<br>reuse the connection details you already defined.<br><br>Note that when a Job contains the parent Job and the child Job,<br>Component List presents only the<br>connection components in the same Job level. |
+| Keep Listening | Select this check box to keep the MOM server listening for and<br>fetching new messages.<br><br>This check box is not visible when ActiveMQ or WebSphere MQ is selected<br>from the MQ server list and the<br>receive number of messages check box<br>is selected. |
+| Sleeping time (in sec) | Specify the timeout interval (in seconds) within which the next<br>message must be received.<br><br>This field is available in any one of the following situations:<br><br><ul> <li> <p> <span>ActiveMQ</span> is selected											from the <span>MQ server</span> list											and the <span>Keep Listening</span>											check box is cleared.</p> </li> <li> <p> <span>ActiveMQ</span> is selected											from the <span>MQ server</span> list											and the <span>receive number of												messages</span> and <span>Timeout for receiver</span> check boxes are											selected.</p> </li> </ul> |
+| receive number of messages | Select this check box to set the maximum number of messages that<br>can be received.<br><br>This check box is available when ActiveMQ or WebSphere MQ is selected<br>from the MQ server list and the<br>Keep Listening check box is<br>cleared. |
+| maximum messages | Enter the maximum number of messages you can receive.<br><br>This field is available only when the receive number of messages check box is<br>selected. |
+| Timeout for receiver | Select this check box and specify the timeout interval for the<br>receiver in the Sleeping time (in<br>sec) field.<br><br>This check box is available only when the receive number of messages check box is<br>selected. |
+| Failover | Select this check box to use the ActiveMQ failover transport. For<br>more information about the failover transport, see [Failover Transport Reference](http://activemq.apache.org/failover-transport-reference.html).<br><br>This check box is available only when ActiveMQ is selected from the MQ server list and the Static<br>Discovery check box is cleared. |
+| Static Discovery | Select this check box to use the ActiveMQ static transport<br>discovery mechanism. For more information about the static<br>transport, see [Static Transport Reference](http://activemq.apache.org/static-transport-reference.html).<br><br>This check box is available only when ActiveMQ is selected from the MQ server list and the Failover check box is cleared. |
+| URI parameters | Enter the URI parameters.<br><br>This field is available only when the Failover or Static<br>Discovery check box is selected. |
+| MQ server | Select the type of the MQ server(s) to be connected from the list:<br>ActiveMQ or WebSphere<br>MQ. According to the server type selected, the<br>parameters required differ slightly. |
+| Use SSL Transport | Select this check box to use the ActiveMQ SSL transport. For more<br>information about the SSL transport, see [SSL Transport Reference](http://activemq.apache.org/ssl-transport-reference.html).<br><br>This check box is available only when ActiveMQ is selected from the MQ server list. |
+| Host | Enter the host name or IP address of the MQ server. |
+| Port | Enter the listening port of the MQ server. |
+| Username and Password | Enter the user authentication credentials.<br><br>To enter the password, click the [...] button<br>next to the password field, enter the password in double quotes in the pop-up dialog box,<br>and click OK to save the settings. |
+| Channel | Specify the name of the channel through which the connection is<br>established. The default value is<br>*DC.SVRCONN*.<br><br>This field is available only when WebSphere<br>MQ is selected from the MQ<br>server list. |
+| Message From | Type in the message source, exactly as expected by the server;<br>this must include the type and name of the source. e.g.: queue/A or<br>topic/testtopic<br><br>Note that the field is case-sensitive.<br><br>This field is available only when ActiveMQ is selected from the MQ Server list. |
+| Message Type | Select the message type, either Topic or Queue.<br><br>This field is available only when ActiveMQ is selected from the MQ Server list. |
+| Message Body Type | Select the message body type: Text<br>Message, Bytes<br>Message or Map<br>Message. |
+| Schema and Edit<br>Schema | A schema is a row description, it defines the number of fields<br>that will be processed and passed on to the next component.<br><br>In the context of tMomInput<br>usage, the schema is comprised of two columns: From and Message,<br>and the column names are read only. |
+| QueueManager | Specify the name of the queue manager to which the connection is<br>established.<br><br>This field is available only when WebSphere<br>MQ is selected from the MQ<br>server list. |
+| MessageQueue | Enter the name of the message queue into which message queueing<br>applications can put messages.<br><br>This field is available only when WebSphere<br>MQ is selected from the MQ<br>server list. |
+| Is using message id to fetch | Select this check box to fetch messages according to their<br>IDs.<br><br>This check box is available only when Text<br>Message or Bytes<br>Message is selected from the Message Body Type list. |
+| Commit (delete message after read from the<br>queue) | Select this check box to force a commit after reading each message<br>from the queue.<br><br>This check box is available only when WebSphere MQ is selected from the MQ server list and the Browse message check box in the Advanced settings view is cleared. |
+| Backout messages to input queue | Select this check box to put the message back into the queue after<br>reading it.<br><br>This check box and the Browse<br>message check box in the Advanced settings view enable you to read messages<br>non-destructively from the queue. For further information, see https://publib.boulder.ibm.com/iseries/v5r2/ic2924/books/csqzaw07.pdf.<br><br>This check box is available only when WebSphere MQ is selected from the MQ server list and the Keep Listening, Commit (delete message after read from the queue)<br>and Browse message check boxes are<br>cleared. |
+| Backout messages to backout queue (when backoutCount of<br>message reach the threshold value) | Select this check box to backout the messages to the backout queue<br>defined in the Websphere MQ manager when the backout count reaches<br>the configured threshold which is a property of the queue in the<br>Websphere MQ server.<br><br>This check box is available only when WebSphere MQ is selected from the MQ server list and the Keep Listening, Commit (delete message after read from the queue)<br>and Browse message check boxes are<br>cleared. |
+| Set Transacted | Select this check box to transact the session. For further<br>information about this parameter, see https://publib.boulder.ibm.com/iseries/v5r2/ic2924/books/csqzaw07.pdf.<br><br>Information noteNote:<br><br>Selecting this check box will ignore the settings in the<br>Acknowledgement Mode list<br>in the Advanced settings view<br>of tMomInput.<br><br>This check box is available only when ActiveMQ is selected from the MQ server list. |
+| start server | Select this check box to force a start of the ActiveMQ<br>server.<br><br>This check box is available only when ActiveMQ is selected from the MQ server list. |
+
+## Advanced settings
+
+| Properties | Description |
+| --- | --- |
+| Additional options | Define the additional transport options in the table. This<br>table is available only if you select the Failover or Static<br>Discovery check box in the Basic<br>settings view.<br><br><ul> <li> <p> <span>Option name</span>: the name of the                           option.</p> </li> <li> <p> <span>Option value</span>: the value of the                           option.</p> </li> </ul><br><br>For example, enter *maxReconnectAttempts* in the Option<br>name field and then *0* in the Option value field so that no attempt is made<br>to retry the connection when no server is available for the failover mode.<br><br>For more information about the failover transport options, see<br>[Failover Transport<br>Reference](http://activemq.apache.org/failover-transport-reference.html).<br><br>For more information about the static discovery transport<br>options, see [Static Transport<br>Reference](http://activemq.apache.org/static-transport-reference.html). |
+| Acknowledgement Mode | Select an acknowledgement mode from the list to indicate that<br>the client will acknowledge any messages it receives:<br><br><br>Auto Acknowledge: With this<br>acknowledgement mode, the client automatically acknowledges a message when it<br>has either successfully returned from a call to receive,or the message listener<br>it has called to process the message successfully returns.<br><br><br>Client Acknowledge: With this<br>acknowledgement mode, the client acknowledges a message by calling a message's<br>acknowledge method.<br><br><br>Dups OK Acknowledge: This<br>acknowledgement mode instructs the session to lazily acknowledge the delivery<br>of messages.<br><br>For further information about the usage of Jms headers, see<br>https://publib.boulder.ibm.com/iseries/v5r2/ic2924/books/csqzaw07.pdf.<br><br>Information noteNote:<br><br>If the Set<br>Transacted check box of tMomOutput is selected, Acknowledgement Mode will be ignored. This check box is<br>enabled when the MQ server is ActiveMQ. |
+| Get Jms Header | Select this check box to receive the Jms headers through the<br>mapping from Jms fields onto MQ Series fields. When this check box is checked,<br>you can specify the Jms header and the corresponding reference column name in<br>the line(s) you added by clicking the plus button in the Parameters table. For further information about<br>the usage of Jms headers, see https://publib.boulder.ibm.com/iseries/v5r2/ic2924/books/csqzaw07.pdf.<br><br>Information noteNote:<br><br>This check box is enabled when the MQ server is ActiveMQ. |
+| Get Jms Properties | Select this check box to receive the Jms properties mapped to<br>MQMD fields. When this check box is checked, you can specify the property name,<br>the property type and the reference column name in the line(s) you added by<br>clicking the plus button in the Parameters table. For further information about the usage of<br>Jms properties, see https://publib.boulder.ibm.com/iseries/v5r2/ic2924/books/csqzaw07.pdf.<br><br>(Available when ActiveMQ is selected in the MQ<br>Server list.) |
+| Browse message | Select this check box to disable Commit (delete message after read from the queue) check box and<br>Backout messages to input queue<br>check box in the Basic settings view<br>and open the queue to browse messages.<br><br>Information noteNote:<br><br>This check box and the Backout<br>messages to input queue check box in the Basic settings view enable you to read<br>messages non-destructively from the queue. Browse message check box is visible only when the MQ server<br>is WebSphere MQ with the Backout messages to<br>input queue check box cleared. For further information, see<br>http://publib.boulder.ibm.com/infocenter/wmqv7/v7r0m0/index.jsp?topic=%2Fcom.ibm.mq.java.doc%2Fcom%2Fibm%2Fmq%2FMQC.html/. |
+| Get MQMD Fields | Select this check box to set one or more message descriptors<br>by adding new fields for MQMD(message queuing message descriptor) in the<br>Parameters table:<br><br><br>Field Name: Select one or more message<br>descriptors from the list to retrieve header information of the message.<br><br><br>Reference Column Name: The header and<br>properties information of the message.<br><br>For further information, see http://publib.boulder.ibm.com/infocenter/wmqv7/v7r0m0/index.jsp?topic=%2Fcom.ibm.mq.csqzak.doc%2Ffr13040\_.htm/.<br><br>(Available when WebSphere<br>MQ is selected in the MQ<br>Server list.) |
+| Include Header | Select this check box to specify the header of the message:<br><br><br>MQRFH2 fixed Portion: Select this check<br>box and click the plus button to add one or more lines to specify the<br>Version, Encoding, Format,<br>Flags, NameValueCCSID and CodedCharSetId as needed for the fixed portion of MQRFH2<br>header.<br><br><br>MCD folder: Select this check box and<br>click the plus button to add one or more lines to specify the fields and the<br>reference column names for the properties that describe the format of the<br>message.<br><br><br>JMS folder: Select this check box and<br>click the plus button to add one or more lines to specify the fields and the<br>reference column names for the transportation of JMS header fields and JMSX<br>properties.<br><br><br>USR folder: Select this check box and<br>click the plus button to add one or more lines to specify the fields and the<br>reference column names for the transportation of application-defined properties<br>associated with the message.<br><br>For further information about MQRFH2 header, see http://publib.boulder.ibm.com/infocenter/wmbhelp/v6r1m0/index.jsp?topic=%2Fcom.ibm.etools.mft.doc%2Faq06920\_.htm.<br><br>Available when WebSphere<br>MQ is selected in the MQ<br>Server list. |
+| Set Cipher Suite | Select this check box to enable the Cipher Suite list from which you can<br>specify the Cipher Suite to be used with WebSphere MQ SSL.<br><br>For further information about Cipher Suite, see [CipherSpecs and their equivalent CipherSuites<br>supported by IBM WebSphere MQ](https://www.ibm.com/support/knowledgecenter/SSFKSJ_7.1.0/com.ibm.mq.doc/ja34740_.htm).<br><br>Available when WebSphere MQ is selected in the<br>MQ Server list. |
+| Custom Cipher Suite | Select this check box to allow you to custome Cipher Suite.<br><br><br>IBM Cipher Mappings: Use the IBM Java Cipher Suite to<br>IBM MQ Cipher Spec Mappings.<br><br><br>Oracle Cipher Mappings: Use the Oracle Cipher Suite to<br>IBM MQ Cipher Spec Mappings. |
+| tStatCatcher Statistics | Select this check box to gather the Job processing metadata at<br>a Job level as well as at each component level. |
+
+## Global Variables
+
+| Variables | Description |
+| --- | --- |
+| Global Variables | ERROR\_MESSAGE: the error message generated by the<br>component when an error occurs. This is an After variable and it returns a string. This<br>variable functions only if the Die on error checkbox is<br>cleared, if the component has this checkbox.<br><br><br>NB\_LINE: the number<br>of rows read by an input component or transferred to an output component. This is an<br>After variable and it returns an integer.<br><br>A Flow variable functions during the execution of a component<br>while an After variable functions after the execution of the component.<br><br>To fill up a field or expression with a variable, press Ctrl+Space to access the variable list and choose the variable to use from<br>it.<br><br>For more information about variables, see [Using contexts and variables](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/contexts-and-variables). |
+
+## Usage
+
+| Usage guidance | Description |
+| --- | --- |
+| **Usage rule** | This component is generally used as a start component. It must be<br>linked to an output component. |
+| Dynamic settings | Click the [+] button to add a<br>row in the table and fill the Code<br>field with a context variable to choose your MQ Server connection<br>dynamically from multiple connections planned in your Job.<br><br>The Dynamic settings table is<br>available only when the Use an existing<br>connection check box is selected in the Basic settings view. Once a dynamic parameter is<br>defined, the Component List box in the<br>Basic settings view becomes unusable.<br><br>For examples on using dynamic parameters, see [Reading data from databases through<br>context-based dynamic connections](https://help.qlik.com/talend/r/en-US/8.0/components/defining-context-groups/reading-data-from-databases-through-context-based-dynamic-connections) and [Reading data from different MySQL databases<br>using dynamically loaded connection parameters](https://help.qlik.com/talend/r/en-US/8.0/components/context/reading-data-from-different-mysql-databases-using-dynamically-loaded-connection-parameters). For more information on<br>Dynamic settings and context variables, see<br>[Dynamic schema](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/dynamic-schema) and [Creating a context group and define context<br>variables in it](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/creating-context-group-and-define-context-variables-in-it). |
+| Limitation | Make sure the relevant ActiveMQ or Websphere MQ<br>server is launched.<br><br>This component requires installation of its related jar files. |
+
+**Related concepts**
+
+* [Asynchronous communication via a MOM server](https://help.qlik.com/talend/en-US/components/8.0/tmomoutput-tmominput-tlogrow-trowgenerator-asynchronous-communication-via-mom-server-standard-component-this)
+* [Transmitting XML files via a MOM server](https://help.qlik.com/talend/en-US/components/8.0/tmomoutput-tmominput-tfileinputxml-tlogrow-transmitting-xml-files-via-mom-server-standard-component-this)

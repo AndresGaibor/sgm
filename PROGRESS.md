@@ -1313,3 +1313,25 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - Los conteos de usos de `client_large.sas` son del fixture, no de la documentación. Van en la nota.
 - Pruebas: `tests/unit/test_catalogo_sas.py` (27), `tests/unit/test_plumbing_categorias.py` (38), `tests/unit/test_routing_motivos.py` (2), `tests/unit/test_no_script_specific_names.py` (ampliada).
 - Verificación: `uv run sgm rules validate`: válido. `uv run pytest -q` y `uv run ruff check .`: ver al cierre del hito.
+
+## Hito 49. Documentación de Talend contra el catálogo, cruce con el código y pruebas de entrada (tareas 11 a 20, 28, 29, 30, 37)
+
+- Fecha: 2026-11-03
+- Qué se hizo:
+  - Tarea 12: las 539 páginas de `rules/talend/components.json` bajadas en `docs/referencia/talend/catalogo/` (`descargar.py talend --catalogo`, sin errores). `test_cada_componente_del_catalogo_tiene_su_pagina`.
+  - Tarea 11: `tools/referencia/verificar.py` compara el catálogo con las páginas (título y familia). Informe en `catalogo/VERIFICACION.md`. Hay 8 discrepancias de familia, sin errores de título: 6 LDAP (catálogo `Business/LDAP`, página `Databases`), `tReplace` (catálogo `Processing`, página `Data Quality`) y `tREST` (catálogo `Internet`, página `ESB`). Quién tiene razón lo decide una persona; el catálogo no se cambió.
+  - Tarea 15: `tjdbcconnection-opciones.yaml`, 14 propiedades extraídas de sus tablas (`tools/referencia/opciones.py`).
+  - Tarea 20 (parcial): la guía de Studio (R2026-09) incluye ahora el tema *Creating a connection*. 16 temas, sin duplicados (la primera versión repetía los joblets; se corrigió). Falta *Creating metadata database*: vive en otra ruta del sitio y el descargador no la sigue.
+  - Tareas 16, 18, 19: `cruce-con-el-codigo.md`, con cada referencia a archivo y línea comprobada con grep. Brechas: `tPrejob`/`tPostjob` no se emiten en `src/sgm` aunque la convención los describe; `tDie` se usa para parar sin el `tLogCatcher` que la documentación pide junto a él.
+  - Tarea 28: `inventario.sha256` registra la huella del inventario oficial. `test_la_huella_del_inventario_no_cambio_sin_revisarse` falla si el inventario cambia.
+  - Pruebas: `tests/unit/test_talend_referencia.py` (11), `tests/unit/test_entrada_sas.py` (28 con las pruebas del lexer y del redactor), y `tests/unit/test_flujo_salidas.py` con la prueba de la tarea 37.
+- Pendiente, con motivo:
+  - Tarea 13 (funciones de `tMap`): `tmap.md` no trae el catálogo de funciones de expresión. Se necesitan otras páginas de Talend que no están descargadas.
+  - Tarea 14 (motores de `tSQLTemplate`): la página no enumera los motores; la lista está en el desplegable de la interfaz.
+  - Tarea 17 (prueba del diseño de joblets frente a contextos): el joblet de contexto no está conectado al plan (hito 39); la prueba se escribe cuando se conecte.
+  - Tarea 20, la página *Creating metadata database*: fuera de la ruta que sigue el descargador.
+- Hallazgo, sin cambio: en la tarea 29 se pensó que `* comentario; de linea;` era un fallo del lexer. No lo es: en SAS, un comentario `*` termina en el primer `;`, y el lexer lo hace igual. La prueba fija ese comportamiento.
+- Decisiones:
+  - El catálogo de componentes se baja solo en su página raíz (sin subpáginas), para que el tamaño quede en 5 MB.
+  - El extracto de opciones JDBC es un YAML de consulta, no una regla: no pasa por el esquema de `rules/`.
+- Verificación: `uv run pytest -q`: 629 pasan, 1 se salta, 6 xfail. `uv run ruff check .`: limpio.

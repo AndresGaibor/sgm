@@ -1,0 +1,77 @@
+# tvectorwiseoutput
+
+> Fuente oficial: https://help.qlik.com/talend/en-US/components/8.0/tvectorwiseoutput  
+> Descargado: 2026-11-03.
+
+
+---
+
+<!-- fuente: https://help.qlik.com/talend/en-US/components/8.0/tvectorwiseoutput -->
+
+# tVectorWiseOutput
+
+Executes the action defined on the table and/or on the data contained in the table, based on the flow incoming from the preceding component in the Job.
+
+tVectorWiseOutput writes, updates, makes changes or suppresses entries in a database.
+
+Information noteNote:
+
+* This component is available only when you have installed the 8.0.1-R2023-02 Talend Studio Monthly update or a later one delivered by Talend. For more information, check with your administrator.
+* If you plan to upgrade from an earlier version of Talend Studio that has Vectorwise components, please make sure you apply the 8.0.1-R2023-02 Talend Studio Monthly update before starting the upgrade process.
+
+## tVectorWiseOutput Standard properties
+
+These properties are used to configure tVectorWiseOutput running in the Standard Job framework.
+
+The Standard tVectorWiseOutput component belongs to the Databases family.
+
+The component in this framework is available in all Talend products.
+
+Information noteNote: This component is a specific version of a dynamic database connector. The properties related to database settings vary depending on your database type selection. For more information about dynamic database connectors, see [DB Generic components](https://help.qlik.com/talend/r/en-US/8.0/components/db-generic/db-generic-component).
+
+## Basic settings
+
+| Properties | Description |
+| --- | --- |
+| Database | Select the desired database type from the list and click<br>Apply. |
+| Property<br>type | Either Built-in or Repository<br>.<br><br><ul> <li> <p> <span>Built-in</span>: No property                        data stored centrally.</p> </li> <li> <p> <span>Repository</span>: Select the                        repository file in which the properties are stored. The fields that                        follow are completed automatically using the data                        retrieved.</p> </li> </ul> |
+| ![](https://help.qlik.com/talend/en-US/components/Resources/images/Save_Icon.png) | Click this icon to<br>open a database connection wizard and store the database connection<br>parameters you set in the component Basic settings view.<br><br>For more information about setting up<br>and storing database connection parameters, see [Centralizing database metadata](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/centralizing-database-metadata). |
+| Use an existing<br>connection | Select this check box and in the Component<br>List drop-down list, select the desired connection component to<br>reuse the connection details you already defined.<br><br>Information noteNote: When a Job contains the parent Job and the child Job, do the following if you<br>want to share an existing connection between the parent Job and the child Job (for example,<br>to share the connection created by the parent Job with the child Job).<br><br><ol> <li>In the parent level, register the database connection to be shared               in the <span>Basic settings</span> view of the               connection component which creates that very database connection. </li> <li>In the child level, use a dedicated connection component to read               that registered database connection. </li> </ol><br><br>For an example about how to share a database connection across Job levels,<br>see [Sharing a database connection](https://help.qlik.com/talend/r/en-US/7.3/studio-user-guide/sharing-database-connection). |
+| Host | Database server IP<br>address. |
+| Port | Listening port<br>number of the DB server. |
+| Database | Name of the<br>database. |
+| Username and Password | DB user<br>authentication data.<br><br>To enter the password, click the [...] button<br>next to the password field, enter the password in double quotes in the pop-up dialog box,<br>and click OK to save the settings. |
+| Table | Name of the table to<br>be written. Note that only one table can be written at a<br>time. |
+| Action on<br>table | On the table<br>defined, you can perform one of the following operations:<br><br><br>None: No operation is carried out.<br><br><br>Drop and create a table: The table is<br>removed and created again.<br><br><br>Create a<br>table: The table does not exist and gets created.<br><br><br>Create a table if not exists: The table<br>is created if it does not exist.<br><br><br>Drop a table if exists<br>and create: The table is removed if it already exists<br>and created again.<br><br><br>Clear a table: The table<br>content is deleted. |
+| Action on<br>data | On the data of the table defined, you can<br>perform:<br><br><br>Insert: Add new entries to the table. If<br>duplicates are found, job stops.<br><br>Update: Make<br>changes to existing<br>entries.<br><br>Information noteNote: In cases where all the schema<br>columns are set as keys, this action yields an error and the Job fails.<br><br>Insert or<br>update: Insert a new record. If the record with the given reference<br>already exists, an update would be<br>made.<br><br>Information noteNote: In cases where all the schema<br>columns are set as keys, this action yields a warning message and the Job<br>continues.<br><br>Update or<br>insert: Update the record with the given reference. If the record does<br>not exist, a new record would be<br>inserted.<br><br>Information noteNote: In cases where all the schema<br>columns are set as keys, this action yields a warning message and the Job<br>continues.<br><br><br>Delete: Remove entries corresponding to<br>the input flow.<br><br>Information noteWarning:<br><br><br>*It is necessary to specify at least one column as a primary key<br>on which the Update and Delete operations are based.<br>You can do that by clicking Edit Schema and selecting the<br>check box(es) next to the column(s) you want to set as primary<br>key(s). For an advanced use, click the Advanced<br>settings view where you can simultaneously<br>define primary keys for the Update and Delete<br>operations. To do that: Select the Use field options check box and<br>then in the Key in<br>update column, select the check boxes next to<br>the column names you want to use as a base for the Update<br>operation. Do the same in the Key in delete column for the<br>Delete operation.* |
+| Schema and Edit<br>Schema | A schema is a row description. It defines the number of fields<br>(columns) to be processed and passed on to the next component. When you create a Spark<br>Job, avoid the reserved word line when naming the<br>fields.<br><br><ul> <li> <p> <span>Built-In</span>: You create and store the schema locally for this component                only.</p> </li> <li> <p> <span>Repository</span>: You have already created the schema and stored it in the                Repository. You can reuse it in various projects and Job designs.</p> </li> </ul><br><br>When the schema to be reused has default values that are<br>integers or functions, ensure that these default values are not enclosed within<br>quotation marks. If they are, you must remove the quotation marks manually.<br><br>For more information, see [Retrieving table schemas](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/retrieving-table-schemas?tocId=_C1~eFOlN~GM_JR2qkBYZg).<br><br>Click Edit<br>schema to make changes to the schema. If the current schema is of the Repository type, three options are available:<br><br><ul> <li> <p> <span>View schema</span>: choose this                option to view the schema only.</p> </li> <li> <p> <span>Change to built-in property</span>:                choose this option to change the schema to <span>Built-in</span> for local changes.</p> </li> <li> <p> <span>Update repository connection</span>:                choose this option to change the schema stored in the repository and decide whether                to propagate the changes to all the Jobs upon completion.</p> <p>If you just want to                propagate the changes to the current Job, you can select <span>No</span> upon completion and choose this schema metadata                again in the <span>Repository Content</span>                window.</p> </li> </ul> |
+| Die on error | This check box is<br>selected by default. Clear the check box to skip the row on error and<br>complete the process for error-free rows. If needed, you can retrieve<br>the rows on error via a Row&gt;Rejects link. |
+
+## Advanced settings
+
+| Properties | Description |
+| --- | --- |
+| Additional JDBC Parameters | Specify additional JDBC parameters for the database connection created.<br><br>This property is not available when the Use an existing connection check box in the Basic<br>settings view is selected. |
+| Commit<br>every | Number of rows to<br>be completed before committing batches of rows together into the DB.<br>This option ensures transaction quality (but not rollback) and, above<br>all, better performance at executions. |
+| Additional<br>Columns | This option is not<br>offered if you create (with or without drop) the DB table. This option<br>allows you to call SQL functions to perform actions on columns, which<br>are not insert, nor update or delete actions, or action that require<br>particular preprocessing.<br><br><ul> <li> <p> <span>Name:</span> Type in the name                        of the schema column to be altered or inserted as new                        column.</p> </li> <li> <p> <span>SQL expression:</span> Type in                        the SQL statement to be executed in order to alter or insert the                        relevant column data.</p> </li> <li> <p> <span>Position:</span> Select                        <span>Before</span>,                        <span>Replace</span> or                        <span>After</span>                        following the action to be performed on the reference                        column.</p> </li> <li> <p> <span>Reference column:</span> Type                        in a column of reference that the <span>tDBOutput</span> can use to place or replace                        the new or altered column. </p> </li> </ul> |
+| Use field<br>options | Select this check<br>box to customize a request, especially when there is double action on<br>data. |
+| Debug query mode | Select this check box to display each step during processing entries<br>in a database. |
+| Support null in "SQL WHERE"<br>statement | Select this check<br>box if you want to deal with the Null values contained in a DB table.<br><br>Information noteNote:<br><br>Ensure that the Nullable check box is selected for<br>the corresponding columns in the schema. |
+| Use Batch | Select this check box to activate the batch mode for data processing.<br><br>This option is only supported with<br>Vectorwise version 2.5 and later, and is only available when you select<br>Insert from<br>the Action on<br>data drop-down list in the Basic settings tab. |
+| Batch<br>Size | Specify the number of records to be processed in each batch.<br><br>This field is available only when the Use batch mode<br>check box is selected. |
+| Storage type | Set the storage type by selecting the corresponding option from the drop-down list: X100 or X100\_ROW.<br><br>This drop-down list is available when None or<br>Clear table is not selected from the<br>Action on table drop-down list in the<br>Basic settings view. |
+| tStat<br>Catcher<br>Statistics | Select this check<br>box to collect log data at the component level. |
+| Enable parallel<br>execution | Select this check box to perform high-speed data processing, by treating<br>multiple data flows simultaneously. Note that this feature depends on the database or<br>the application ability to handle multiple inserts in parallel as well as the number of<br>CPU affected. In the Number of parallel executions<br>field, either:<br><br><ul> <li>Enter the number of parallel executions desired.</li> <li>Press <span>Ctrl+Space</span> and select               the appropriate context variable from the list. For further information about context               variables, see <a href="https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/contexts-and-variables" target="_blank">Using contexts and variables</a>. </li> </ul><br><br>Note that when parallel execution is enabled, it is not possible to use global<br>variables to retrieve return values in a subJob.<br><br><ul><li>						            The <span>Action on							table</span> field is not available with the							parallelization function. Therefore, you must use a <span>tCreateTable</span> component if you							want to create a table. 					          </li><li>						            When parallel execution is enabled, it is not							possible to use global variables to retrieve return values in a							subJob.					          </li> </ul> |
+
+## Global Variables
+
+| Variables | Description |
+| --- | --- |
+| Global<br>Variables | NB\_LINE:<br>the number of rows processed. This is an After variable and it returns an integer.<br><br><br>NB\_LINE\_UPDATED: the number of rows updated.<br>This is an After variable and it returns an integer.<br><br><br>NB\_LINE\_INSERTED: the number of<br>rows inserted. This is an After variable and it returns an integer.<br><br><br>NB\_LINE\_DELETED: the<br>number of rows deleted. This is an After variable and it returns an integer.<br><br><br>NB\_LINE\_REJECTED: the number of rows rejected. This is an After<br>variable and it returns an integer.<br><br><br>ERROR\_MESSAGE: the error message generated by the<br>component when an error occurs. This is an After variable and it returns a string. This<br>variable functions only if the Die on error checkbox is<br>cleared, if the component has this checkbox.<br><br>A Flow variable functions during the execution of a component<br>while an After variable functions after the execution of the component.<br><br>To fill up a field or expression with a variable, press Ctrl+Space to access the variable list and choose the variable to use from<br>it.<br><br>For more information about variables, see [Using contexts and variables](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/contexts-and-variables). |
+
+## Usage
+
+| Usage guidance | Description |
+| --- | --- |
+| **Usage<br>rule** | This component<br>offers the flexibility benefit of the DB query and covers all of the SQL<br>queries possible.<br><br>This component<br>must be used as an output component. It allows you to carry out actions<br>on a table or on the data of a table in a Vertica database. It also<br>allows you to create a reject flow using a Row &gt; Rejects link to filter data in<br>error. For an example of tMysqlOutput in use, see [Retrieving data in error with a Reject link](https://help.qlik.com/talend/en-US/components/8.0/mysql/tmysqloutput-tmap-tfileoutputdelimited-tfileinputdelimited-retrieving-data-in-error-with-reject-link-standard-component-this). |
+| Limitation | Due to license incompatibility, one or more JARs required to use this component<br>are not provided. You can install the missing JARs for this particular component by<br>clicking the Install button on the Component tab view. You can also find out and add all missing<br>JARs easily on the Modules tab in the Integration perspective of Talend Studio. For<br>details, see [Installing external modules](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/installing-external-modules). |

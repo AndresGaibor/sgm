@@ -1,0 +1,55 @@
+# tgsbucketcreate
+
+> Fuente oficial: https://help.qlik.com/talend/en-US/components/8.0/tgsbucketcreate  
+> Descargado: 2026-11-03.
+
+
+---
+
+<!-- fuente: https://help.qlik.com/talend/en-US/components/8.0/tgsbucketcreate -->
+
+# tGSBucketCreate
+
+Creates a new bucket which you can use to organize data and control access to data in Google Cloud Storage.
+
+## tGSBucketCreate Standard properties
+
+These properties are used to configure tGSBucketCreate running in the Standard Job framework.
+
+The Standard tGSBucketCreate component belongs to the Big Data and the Cloud families.
+
+The component in this framework is available in all Talend products.
+
+## Basic settings
+
+| Properties | Description |
+| --- | --- |
+| Use an existing connection | Select this check box and in the Component List click the relevant connection component to reuse the connection details you already defined. |
+| Credential type | Select the mode to be used to authenticate to your project.<br><br><ul> <li><span>Service account</span>: authenticate using a Google account                     that is associated with your Google Cloud Platform project. When selecting this                     mode, the access key must be provided in the <span>Service account                        key</span> field.</li> <li><span>Workload Identity Federation</span>: authenticate using an                     external identity provider, such as AWS, Azure, or OIDC, without needing a                     service account key. When selecting this mode, the identity federation                     configuration must be provided in the <span>Client library configuration                        file</span> field.</li> <li><span>Application Default Credentials</span>: authenticate using the                     Application Default Credentials. When selecting this mode, no additional                     parameters need to be defined as credentials are automatically found based on                     the application environment.</li> <li> <span>OAuth Access Token</span>: authenticate using an OAuth access                     token. When selecting this mode, the token must be provided in the                        <span>OAuth Access Token</span> field. </li> </ul><br><br>To know more about the Google Cloud authentication process, read [the Google Cloud documentation](https://cloud.google.com/docs/authentication/). |
+| Service account key | Click the [...] button next to the service account key<br>field to browse for the JSON file that contains your service account key.<br><br>This property is only available when you authenticate using Service<br>account. |
+| OAuth Access Token | Enter an access token.<br><br>The lifetime of the token is one hour. The component<br>does not perform the token refresh operation but will fetch the new access token<br>to operate beyond the one-hour limit.<br><br><br>This property is only available when you<br>authenticate using OAuth Access Token. |
+| Bucket name | Specify the name of the bucket which you want to create. Note that the bucket name must be unique across the Google Cloud Storage system.<br><br>For more information about the bucket naming convention, see [Bucket names](https://cloud.google.com/storage/docs/buckets#naming) in the Google Cloud documentation. |
+| Special configure | Select this check box to provide the additional configuration for the bucket to be created. |
+| Project ID | When the credential type is set to OAuth Access<br>Token, specify the project ID to which the new bucket<br>belongs. |
+| Location and access<br>control | Select from the list the location where the new bucket will be created. Europe and US are available for all credential types and ASIA only for Service account and OAuth Access Token. By default, the bucket location is in the US.<br><br>Note that once a bucket is created in a specific location, it cannot be moved to another location. |
+| Acl | Select from the list the desired access control list (ACL) for the new bucket.<br><br>Depending on the ACL on the bucket, the access requests from users may be allowed or rejected. If you do not specify a predefined ACL for the new bucket, the predefined project-private ACL applies.<br><br>For more information about ACL, see [Overview of access control](https://cloud.google.com/storage/docs/access-control) in the Google Cloud documentation. |
+| Die on error | This check box is cleared by default, meaning to skip the row on error and to complete the process for error-free rows. |
+
+## Advanced settings
+
+| Properties | Description |
+| --- | --- |
+| Use a custom endpoint | Select this check box to use a private endpoint rather than the default one.<br><br>When selected, enter the URL in the Google Storage Private API<br>URL property, by respecting the following format:<br>"https://storage.goggleapis.com".<br><br>For more information,<br>see [Access Google APIs through endpoints](https://cloud.google.com/vpc/docs/configure-private-service-connect-apis) from<br>Google documentation.<br><br>This property is only available when you authenticate<br>using Service account and Application Default<br>Credentials. |
+| tStatCatcher Statistics | Select this check box to gather the Job processing metadata at the Job level as well as at each component level. |
+
+## Global Variables
+
+| Variables | Description |
+| --- | --- |
+| Global Variables | ERROR\_MESSAGE: the error message generated by the<br>component when an error occurs. This is an After variable and it returns a string. This<br>variable functions only if the Die on error checkbox is<br>cleared, if the component has this checkbox.<br><br>A Flow variable functions during the execution of a component<br>while an After variable functions after the execution of the component.<br><br>To fill up a field or expression with a variable, press Ctrl+Space to access the variable list and choose the variable to use from<br>it.<br><br>For more information about variables, see [Using contexts and variables](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/contexts-and-variables). |
+
+## Usage
+
+| Usage guidance | Description |
+| --- | --- |
+| **Usage rule** | This component can be used together with the tGSBucketList component to check if a new bucket is created successfully. |

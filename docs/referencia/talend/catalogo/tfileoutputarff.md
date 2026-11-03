@@ -1,0 +1,56 @@
+# tfileoutputarff
+
+> Fuente oficial: https://help.qlik.com/talend/en-US/components/8.0/tfileoutputarff  
+> Descargado: 2026-11-03.
+
+
+---
+
+<!-- fuente: https://help.qlik.com/talend/en-US/components/8.0/tfileoutputarff -->
+
+# tFileOutputARFF
+
+Writes an ARFF file that holds data organized according to the defined schema.
+
+## tFileOutputARFF Standard properties
+
+These properties are used to configure tFileOutputARFF running in the Standard Job framework.
+
+The Standard tFileOutputARFF component belongs to the File family.
+
+The component in this framework is available in all Talend products.
+
+## Basic settings
+
+| Properties | Description |
+| --- | --- |
+| Property type | <ul> <li> <p>Either <span>Built-in</span> or <span>Repository</span>. </p> </li> <li> <p> <span>Built-in</span>: No property data stored								centrally.</p> </li> <li> <p> <span>Repository</span>: Select the repository								file where the properties are stored. The fields that follow are								completed automatically using the data retrieved.</p> </li> </ul> |
+| ![](https://help.qlik.com/talend/en-US/components/Resources/images/Save_Icon.png) | Click this icon to open a connection wizard and store the Excel<br>file connection parameters you set in the component Basic settings view.<br><br>For more information about setting up and storing file<br>connection parameters, see [Setting connection parameters](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/setting-connection-parameters). |
+| File name | Name or path to the output file and/or the variable to be used.<br><br>For further information about how to define and use a variable in a Job, see [Using contexts and variables](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/contexts-and-variables).<br><br>Information noteWarning: Use absolute path (instead of relative path) for<br>this field to avoid possible errors. |
+| Attribute Define | Displays the schema you defined in the Edit<br>schema dialog box.<br><br><br>Column: Name of the<br>column.<br><br><br>Type: Data type.<br><br><br>Pattern: Enter the data model<br>(pattern), if necessary. |
+| Relation | Enter the name of the relation. |
+| Append | Select this check box to add the new rows at the end of the<br>file. |
+| Schema and Edit<br>Schema | <ul> <li> <p>A schema is a row description, it defines the number of fields to be processed and								passed on to the next component. The schema is either <span>Built-in</span> or stored remotely in the									<span>Repository</span>.</p> <p>Click <span>Edit        schema</span> to make changes to the schema. If the current schema is of the <span>Repository</span> type, three options are available:</p> <ul> <li> <p> <span>View schema</span>: choose this                option to view the schema only.</p> </li> <li> <p> <span>Change to built-in property</span>:                choose this option to change the schema to <span>Built-in</span> for local changes.</p> </li> <li> <p> <span>Update repository connection</span>:                choose this option to change the schema stored in the repository and decide whether                to propagate the changes to all the Jobs upon completion.</p> <p>If you just want to                propagate the changes to the current Job, you can select <span>No</span> upon completion and choose this schema metadata                again in the <span>Repository Content</span>                window.</p> </li> </ul> </li> <li> <p> <span>Built-in</span>: You can create the								schema and store it locally for this component. For more information about a component schema in its <span>Basic settings</span> tab, see <a href="https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/basic-settings-tab" target="_blank">Basic settings tab</a>.</p> </li> <li> <p> <span>Repository</span>: You have already								created and stored the schema in the Repository. You can reuse it in								various projects and Job flowcharts. For more information about a component schema in its <span>Basic settings</span> tab, see <a href="https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/basic-settings-tab" target="_blank">Basic settings tab</a>.</p> </li> </ul> |
+| Create directory if not exists | This check box is selected by default. It creates a directory to<br>hold the output table if it does not exist. |
+
+## Advanced settings
+
+| Properties | Description |
+| --- | --- |
+| Don't generate empty file | Select this check box if you do not want to generate empty<br>files. |
+| tStatCatcher Statistics | Select this check box to gather the Job processing metadata at a<br>Job level as well as at each component level. |
+
+## Global Variables
+
+| Variables | Description |
+| --- | --- |
+| Global Variables | NB\_LINE: the number<br>of rows read by an input component or transferred to an output component. This is an<br>After variable and it returns an integer.<br><br><br>ERROR\_MESSAGE: the error message generated by the<br>component when an error occurs. This is an After variable and it returns a string. This<br>variable functions only if the Die on error checkbox is<br>cleared, if the component has this checkbox.<br><br>A Flow variable functions during the execution of a component<br>while an After variable functions after the execution of the component.<br><br>To fill up a field or expression with a variable, press Ctrl+Space to access the variable list and choose the variable to use from<br>it.<br><br>For more information about variables, see [Using contexts and variables](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/contexts-and-variables). |
+
+## Usage
+
+| Usage guidance | Description |
+| --- | --- |
+| **Usage rule** | Use this component along with a Row link to collect data from another component and<br>to re-write the data to an ARFF file. |
+| Dynamic settings | Click the [+] button to add a row in the<br>table and fill the Code field with a context variable<br>to choose your HDFS connection dynamically from multiple connections planned in your<br>Job. This feature is useful when you need to access files in different HDFS systems or<br>different distributions, especially when you are working in an environment where you<br>cannot change your Job settings, for example, when your Job has to be deployed and<br>executed independent of *Talend Studio*.<br><br>The Dynamic settings table is<br>available only when the Use an existing<br>connection check box is selected in the Basic settings view. Once a dynamic parameter is<br>defined, the Component List box in the<br>Basic settings view becomes unusable.<br><br>For examples on using dynamic parameters, see [Reading data from databases through<br>context-based dynamic connections](https://help.qlik.com/talend/r/en-US/8.0/components/defining-context-groups/reading-data-from-databases-through-context-based-dynamic-connections) and [Reading data from different MySQL databases<br>using dynamically loaded connection parameters](https://help.qlik.com/talend/r/en-US/8.0/components/context/reading-data-from-different-mysql-databases-using-dynamically-loaded-connection-parameters). For more information on<br>Dynamic settings and context variables, see<br>[Dynamic schema](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/dynamic-schema) and [Creating a context group and define context<br>variables in it](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/creating-context-group-and-define-context-variables-in-it). |
+| Connections | Outgoing links (from this component to another):<br><br><br>Row: Main.<br><br><br>Trigger: On Subjob Ok; On Subjob<br>Error; Run if.<br><br>Incoming links (from one component to this one):<br><br><br>Row: Main; Reject;<br>Iterate.<br><br><br>Trigger: On Subjob Ok; On Subjob<br>Error; Run if; On Component Ok; On Component Error; Synchronize;<br>Parallelize.<br><br>For further information regarding connections, see [Using connections in a Job](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/using-connections-in-job). |
+| Limitation | Due to license incompatibility, one or more JARs required to use this component<br>are not provided. You can install the missing JARs for this particular component by<br>clicking the Install button on the Component tab view. You can also find out and add all missing<br>JARs easily on the Modules tab in the Integration perspective of Talend Studio. For<br>details, see [Installing external modules](https://help.qlik.com/talend/r/en-US/8.0/studio-user-guide/installing-external-modules). |

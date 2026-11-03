@@ -33,3 +33,9 @@ coincidan con los archivos que hay en esta carpeta.
   `sas/README.md`.
 - Las páginas de Talend que el sitio no publica en Markdown se listan como no descargadas dentro del
   archivo de cada tema, con su URL.
+
+## Revisiones hechas sobre esta documentación
+
+- `talend/catalogo/VERIFICACION.md`: el catálogo de componentes contra sus páginas.
+- `talend/cruce-con-el-codigo.md`: lo que dice la documentación frente al código, con las brechas.
+- `sas/*.INDEX.md`: índices por sección de las seis guías de SAS.

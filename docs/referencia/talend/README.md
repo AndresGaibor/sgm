@@ -49,3 +49,20 @@ variables de contexto (versión R2026-09).
 | [trowgenerator](trowgenerator.md) | 8 | 0 | 19517 |
 | [tdbrow](tdbrow.md) | 1 | 0 | 1176 |
 | [tdbconnection](tdbconnection.md) | 1 | 0 | 1256 |
+
+## Qué hay además de los 41 componentes
+
+- [`catalogo/`](catalogo/): página raíz de los 539 componentes de `rules/talend/components.json`, en
+  Markdown oficial. Se baja con `uv run python tools/referencia/descargar.py talend --catalogo`.
+- [`catalogo/VERIFICACION.md`](catalogo/VERIFICACION.md): comparación del catálogo con las páginas
+  (título y familia). Se regenera con `uv run python tools/referencia/verificar.py`. Hoy hay 8
+  discrepancias de familia (6 LDAP, `tReplace`, `tREST`), para revisar a mano; el catálogo no se
+  cambia solo.
+- [`studio-guia-jobs-contextos.md`](studio-guia-jobs-contextos.md): guía de Studio R2026-09 (diseño de
+  Jobs, joblets, contextos y conexiones), 16 temas. Se baja con `descargar.py talend --guia`.
+- [`tjdbcconnection-opciones.yaml`](tjdbcconnection-opciones.yaml): 14 propiedades de la conexión
+  JDBC, extraídas de sus tablas (`tools/referencia/opciones.py`).
+- [`inventario.sha256`](inventario.sha256): huella del inventario oficial. Si el inventario cambia, la
+  prueba `test_talend_referencia` falla hasta que se revise y se actualice la huella.
+- [`cruce-con-el-codigo.md`](cruce-con-el-codigo.md): qué dice la documentación y qué hace el código
+  sobre contextos, `tPrejob`/`tPostjob`, `tRunJob` y manejo de errores, con las brechas y lo pendiente.

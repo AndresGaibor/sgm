@@ -1,0 +1,6 @@
+# Huella del inventario oficial de Talend que usa el proyecto.
+# Si cambia rules/talend/official-component-inventory.json, la prueba test_talend_referencia falla:
+# revisa qué cambió (versión, componentes) y actualiza este archivo con el hash nuevo.
+documentation_target: Talend Studio 8.0 R2026-09
+availability_snapshot_version: 8.0.1.20261015_1208-patch
+sha256: 75b06ef80a4720bd6a850ba4ac563bce6b02022dd0db02da2f327da8e3d44521

@@ -178,3 +178,13 @@ def test_carpeta_de_generalizacion_se_analiza_sin_errores():
     modelos = build_flows(archivos)
     assert set(modelos) == set(archivos)
     assert any(m.steps for m in modelos.values())
+
+
+def test_programa_sin_etiquetas_cae_en_una_sola_seccion():
+    flujo = _flujo(PROGRAMA)
+    assert {s.label for s in flujo.steps} == {None}
+    vista = by_section(flujo)
+    assert [n.title for n in vista.steps] == ["(sin sección)"]
+    assert vista.steps[0].type_name == f"Sección · {len(flujo.steps)} pasos"
+    # Las únicas aristas salen de la entrada externa; no hay conexiones entre pasos.
+    assert all(e.source.startswith("e") for e in vista.edges)

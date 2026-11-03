@@ -83,6 +83,7 @@ TALEND_STUDIO_RAICES: tuple[str, ...] = (
     "designing-a-joblet",
     "defining-variables",
     "applying-context-variable-to-joblet",
+    "creating-connection",
 )
 
 
