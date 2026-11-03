@@ -113,11 +113,4 @@ Requiere acceso a un ambiente con SAS y Talend, y datos de prueba.
 
 ## Fase 5. Studio y portal
 
-Se reactiva el MCP. Solo empieza con la fase 3 cerrada.
-
-| Id | Tarea | Criterio de terminado |
-| --- | --- | --- |
-| B5.1 | Traer `talend-mcp` como subtree y un emisor que convierte el plan en llamadas al MCP | Un programa escrito en Studio como Job y abierto sin errores de estructura |
-| B5.2 | API y web: proyectos, guía, decisiones por firma, inventario de huecos, métricas | Un usuario resuelve una decisión en la web y se aplica a todos los archivos con esa firma |
-| A5.1 | Contrato entre el plan y el emisor de Studio | Agregado a `05-contratos.md` |
-| J5.1 | Pruebas de extremo a extremo con los fixtures de Grid y del cliente | En verde |
+**Retirada.** `AGENTS.md` prohíbe MCP, API y web en esta tarea. Según `docs/automatizacion/03-plan-produccion.md` (R6), esta fase sale del plan. La validación extremo a extremo que la fase pedía pasa a la tarea 5.8 de ese plan y depende de un ambiente externo.

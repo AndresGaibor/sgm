@@ -22,6 +22,7 @@ from sgm.catalog import describe as describe_mod
 from sgm.catalog.config import ConfigError, Env, load_env
 from sgm.emit.guide_md import render_guide
 from sgm.emit.plan_json import plan_to_dict
+from sgm.facts.cli import facts_command
 from sgm.ingest.importer import ImportError_, looks_like_sas
 from sgm.store import gaps as gap_store
 from sgm.store import overrides as override_store
@@ -40,6 +41,7 @@ app.add_typer(decisions_app, name="decisions")
 app.add_typer(gaps_app, name="gaps")
 app.add_typer(rules_app, name="rules")
 app.add_typer(case_app, name="case")
+app.command("facts")(facts_command)
 
 
 @app.callback()

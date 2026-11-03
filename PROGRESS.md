@@ -927,3 +927,22 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Prueba: métricas y diagnóstico validan la frecuencia de advertencias de `scan()` e `input()` en fixtures separados.
 - Verificación: `uv run pytest -q`: 376 pasan, 1 se salta; `uv run ruff check .`: limpio; `rules validate` limpio; `metrics --check`: trinquete sin empeorar.
 - Decisión: agrupar por texto exacto de advertencia; no generalizar mensajes que pueden señalar distintos nombres o causas.
+
+## Hito 20. Automatización para producción: fases 0 y 1
+
+- Fecha: 2026-11-03
+- Qué se hizo (fase 0, decisiones):
+  - 0.1: los cambios sin confirmar del árbol (`metrics/baseline.json`, `frontend/sql_normalize.py`, `ir/lower_sql.py`, `tests/unit/test_sql_normalize.py`, `docs/diseno-talend-exogena-depositos.md`) no se tocan ni entran en este commit.
+  - 0.2: versión objetivo de Talend Studio 8.0 R2026-09 (la de la documentación del migrador). Pendiente de confirmación del usuario.
+  - 0.3: los contratos de `05-contratos.md` solo reciben campos opcionales nuevos (permitido sin acuerdo). Reemplazar el modelo de pendiente queda pendiente de acuerdo.
+  - 0.4: MCP, API y web salen de la hoja de ruta, como manda `AGENTS.md`.
+- Qué se hizo (fase 1, capa de hechos C2): `src/sgm/facts/` con el modelo `Fact` y un catálogo cerrado de tipos, extractores estructurales (DATA step, PROC SQL, PROC genérico) y textuales (macros, `%let`, `%include`, bibliotecas, rutas, servidores, credenciales), y el comando `sgm facts <ruta>`.
+- Decisión: las definiciones y llamadas de macro se leen de los pasos del texto completo (`parse_steps`), no del índice. El índice descarta copias idénticas: en el archivo de referencia conserva 13 de las 274 definiciones de `%macro` y descarta 261 (medido).
+- Decisión: el catálogo se amplió con `biblioteca`, `comando_sistema` y `sentencia_global`, que el SAS real necesita. Son extensiones del catálogo propuesto, no cambios de contrato.
+- Decisión: un nombre con `&` o `%` se marca `dinamico=si`; no se trata como tabla concreta.
+- Corrección de conteos: las cifras anteriores de este diseño (348 tablas WORK creadas, 263 leídas, 2 borradas) salían de búsquedas con grep que solo veían `CREATE TABLE` y `FROM`. Con los hechos, en `client_large.sas`: 405 conjuntos WORK distintos escritos (sin dinámicos), 347 leídos y 1 borrado. Los hechos reemplazan a los conteos de grep.
+- Hallazgos del extractor, corregidos: (a) el `create table` dentro de un pase directo o de `EXECUTE BY` se perdía; (b) las definiciones de macro repetidas se perdían en el índice; (c) las llamadas que se expanden a nada no dejaban hecho.
+- Prueba: 11 pruebas en `tests/unit/test_facts.py`: trazabilidad, catálogo cerrado, credenciales enmascaradas, determinismo, alcances, nombres dinámicos, cobertura de cada línea con contenido por un paso y entradas hostiles sin excepciones.
+- Medición: en `client_large.sas`, los 390 `CREATE TABLE` tienen hecho en su línea; las 274 definiciones de macro son 10 nombres distintos; 0 líneas con contenido sin cubrir.
+- Verificación: `uv run pytest -q`: 408 pasan, 1 se salta; `uv run ruff check .`: limpio.
+- Pendiente: la fase 2 (motor de reglas por hechos) y el resto de las fases siguen en el plan `docs/automatizacion/03-plan-produccion.md`.
