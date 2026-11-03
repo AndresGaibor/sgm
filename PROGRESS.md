@@ -995,3 +995,14 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Métricas: `sgm metrics tests/fixtures/sas --check` alternó entre una corrida válida de 19,16 s y mediciones de 20,3–23,2 s, frente al límite 19,08 s. Comparación aislada: Hito 24 23,1 s y Hito 25 23,0 s; ambas exceden el umbral, por lo que no se atribuye el tiempo al cambio de SCAN. El perfil midió la normalización nueva en 0,033 s para 877 expresiones y SCAN en 6 llamadas con tiempo redondeado a 0. No se modificó la línea base.
 - Decisión: solo se traduce la posición negativa cuando es un entero dentro del rango de índices Java; las demás quedan pendientes hasta probar su equivalencia.
 - Bloqueo: el trinquete de tiempo sigue excediendo el límite de forma variable también en la revisión Hito 24. Mantenerlo visible y no relajar la línea base.
+
+
+## Hito 26. Traducir COMPRESS con modificador de dígitos demostrado
+
+- Fecha: 2026-11-03
+- Qué se hizo: el parser admite el segundo argumento omitido únicamente en llamadas a `COMPRESS` y lo distingue del literal SAS `.`. El traductor cubre el patrón `compress(origen,,'kd')` con `StringHandling.EREPLACE` y la clase explícita `[0-9]`; otras combinaciones de modificadores o una lista de caracteres quedan pendientes.
+- Evidencia: `tests/fixtures/sas/real/learning-sas-by-example/Example_code/Programs_Used_in_the_Second_Edition.sas` usa esta forma para limpiar números en las líneas 1228, 1520, 1527, 1529 y 3892; el comentario junto al caso telefónico indica que conserva los dígitos.
+- Pruebas: la traducción directa verifica Java y guarda de nulo. Seis combinaciones no demostradas verifican que no se generaliza el mapeo. RED observado para el argumento vacío y para el literal `.` confundido con una omisión; 7 focales pasan.
+- Verificación: `uv run pytest -q`: 437 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: soportar solo la combinación literal `kd` con lista de caracteres omitida, porque es la forma probada; no inferir combinaciones equivalentes por orden o variantes de modificadores.
+- Bloqueo: la expresión Java candidata aún requiere validación en Talend Studio; permanece sujeta a revisión.

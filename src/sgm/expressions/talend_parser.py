@@ -236,9 +236,12 @@ class ExpressionParser:
         args: list[E] = []
         if self.peek()[1] != ")":
             while True:
-                args.append(
-                    self.raw_format() if name in _FORMAT_ARGS and len(args) == 1 else self.expr()
-                )
+                if name == "compress" and len(args) == 1 and self.peek()[1] == ",":
+                    args.append(E("", "omitted"))
+                else:
+                    args.append(
+                        self.raw_format() if name in _FORMAT_ARGS and len(args) == 1 else self.expr()
+                    )
                 if self.peek()[1] != ",":
                     break
                 self.take()
