@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
-from sgm.agrupacion import agrupar, inicios_de, palabras_por_region
+from pathlib import Path
+
+import pytest
+
+from sgm.agrupacion import (
+    agrupar,
+    cargar_declaracion,
+    grupos_declarados,
+    inicios_de,
+    palabras_por_region,
+)
 from sgm.facts.project import facts_for_project
 
 
@@ -23,3 +33,40 @@ def test_dos_procesos_repetidos_forman_dos_grupos_sin_sufijos() -> None:
     grupos = agrupar(palabras_por_region(hechos, inicios), umbral=0.3).grupos
     tamanos = sorted(len(g) for g in grupos)
     assert tamanos == [3, 3]
+
+
+DECLARACION = """region_marcador: "%macro bloque"
+productos:
+  - nombre: ventas
+    sufijos: [UNO]
+  - nombre: compras
+    sufijos: [DOS]
+"""
+
+
+def test_declaracion_agrupa_por_sufijo_y_deja_fuera_la_region_sin_producto(
+    tmp_path: Path,
+) -> None:
+    texto = (
+        _region("a", ["pagos_uno"])
+        + _region("b", ["cobros_dos"])
+        + _region("c", ["otros_uno"])
+        + _region("d", ["otros_dos"])
+        + _region("e", ["generica"])
+    )
+    ruta = tmp_path / "declaracion.yaml"
+    ruta.write_text(DECLARACION, encoding="utf-8")
+    declaracion = cargar_declaracion(ruta)
+    inicios = inicios_de(texto.splitlines(), declaracion.marcador)
+    hechos = facts_for_project({"p.sas": texto})["p.sas"]
+    grupos = grupos_declarados(hechos, inicios, declaracion)
+    assert [list(g) for g in grupos] == [[0, 2], [1, 3]]
+
+def test_declaracion_mal_formada_falla_con_el_motivo(tmp_path: Path) -> None:
+    ruta = tmp_path / "mala.yaml"
+    ruta.write_text("productos:\n  - nombre: ventas\n    sufijos: [UNO]\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="region_marcador"):
+        cargar_declaracion(ruta)
+    ruta.write_text("region_marcador: '%macro bloque'\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="productos"):
+        cargar_declaracion(ruta)

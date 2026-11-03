@@ -1221,3 +1221,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - La prueba de referencia no exige los PDF (no están en git); exige el `.txt` y el `.INDEX.md` de cada guía.
 - Pruebas: `tests/unit/test_referencia_tools.py` (7): enlaces de subpáginas por nombre, sin duplicados, aplanado de marcadores, formato del índice, URLs, texto e índice presentes para cada guía, y página presente para cada componente de Talend del proyecto.
 - Verificación: `uv run pytest -q` y `uv run ruff check .` ver al cierre del hito.
+
+## Hito 45. Agrupación declarada por producto en el diseño
+
+- Fecha: 2026-11-03
+- Qué se hizo:
+  - `sgm.agrupacion.Declaracion`, `cargar_declaracion` y `grupos_declarados`: la agrupación por sufijo declarada en YAML (`region_marcador` y `productos` con sus sufijos) produce los grupos; una región sin producto no se adivina y queda suelta.
+  - `sgm diseno` busca `<programa>.agrupacion.yaml` junto al programa y, si no está, en `decisiones/`; `--agrupacion` manda sobre ambos. El JSON declara el modo (`declarada`, o `similitud` con su umbral) y cada joblet lista sus `regiones`.
+  - Corrección documental: las regiones con producto son 24 de 30 (11 CTE, 10 AHO, 3 NEQUI) y 6 quedan sin producto. La sección anterior decía 25 y 5, y la suma no cuadraba.
+- Medición en `client_large.sas` con su YAML: 3 joblets (11, 10 y 3 regiones) con 64, 38 y 57 firmas; Job padre de 66 nodos; 131 firmas distintas, las mismas que con similitud porque son las mismas regiones. La suma de firmas por joblet sube de 121 a 159: se arman los tres procesos del diseño a cambio de más variedad dentro de cada joblet.
+- Decisión: sin YAML se mantiene la similitud con umbral 0,2; con YAML manda la declaración del equipo. El archivo de `decisiones/` existía desde la ronda anterior y ningún código lo leía.
+- Pruebas: `tests/unit/test_agrupacion.py` (2 nuevas: agrupación por sufijo con región sin producto, y YAML mal formado) y `tests/unit/test_diseno.py` (1 nueva: el comando detecta el YAML junto al programa y deja la región sin producto como suelta).
+- Verificación: `uv run ruff check src tests`: limpio. `uv run pytest -q`: 495 pasan, 1 se salta, 6 xfail. `ruff check .` falla solo en `tools/referencia/`, trabajo sin confirmar de otro agente.

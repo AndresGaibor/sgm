@@ -4,7 +4,8 @@ Pasos deterministas:
 1. Regiones: cada definición de la macro que más veces se define en el programa (empates: la que
    aparece antes en el archivo). No se usa ningún nombre de cliente.
 2. Grupos: `sgm.agrupacion` (vocabulario de conjuntos de datos, sin palabras comunes), con el
-   umbral que el equipo fijó en `UMBRAL_DE_AGRUPACION`.
+   umbral que el equipo fijó en `UMBRAL_DE_AGRUPACION`. Si el equipo declaró la agrupación en
+   `decisiones/`, se usa esa en lugar de la similitud: es una decisión, no un hecho del SAS.
 3. Joblet por grupo: unión de firmas de componente distintas de sus miembros, en orden de primera
    aparición. Cada miembro aporta un contexto con los conjuntos de datos que usa, en orden.
 4. Joblet de contexto: las sentencias de entorno del encabezado del programa (macrovariables,
@@ -20,7 +21,13 @@ import bisect
 import re
 from collections import Counter, defaultdict
 
-from sgm.agrupacion import agrupar, palabras_por_region
+from sgm.agrupacion import (
+    Declaracion,
+    agrupar,
+    grupos_declarados,
+    inicios_de,
+    palabras_por_region,
+)
 from sgm.facts.model import MASK, Fact
 
 _DEF_MACRO = re.compile(r"^\s*%macro\s+([A-Za-z_]\w*)", re.I)
@@ -57,16 +64,22 @@ def marcador_de_regiones(lineas: list[str]) -> list[int]:
     return [i for i, n in nombres if n == ganador]
 
 
-def _reparto(plan_ops, hechos: list[Fact], lineas: list[str]):
+def _reparto(
+    plan_ops, hechos: list[Fact], lineas: list[str], declaracion: Declaracion | None = None
+):
     """Inicios de región, grupos de dos o más miembros y operadores por región (sin región: -1)."""
-    inicios = marcador_de_regiones(lineas)
+    if declaracion is not None:
+        inicios = inicios_de(lineas, declaracion.marcador)
+        grupos = list(grupos_declarados(hechos, inicios, declaracion))
+    else:
+        inicios = marcador_de_regiones(lineas)
+        grupos = [
+            g
+            for g in agrupar(palabras_por_region(hechos, inicios), UMBRAL_DE_AGRUPACION).grupos
+            if len(g) >= 2
+        ] if len(inicios) >= 2 else []
     if len(inicios) < 2:
         return inicios, [], {}
-    grupos = [
-        g
-        for g in agrupar(palabras_por_region(hechos, inicios), UMBRAL_DE_AGRUPACION).grupos
-        if len(g) >= 2
-    ]
     por_region: dict[int, list] = defaultdict(list)
     for op in plan_ops:
         if op.evidence:
@@ -114,6 +127,7 @@ def _joblets_de(grupos, por_region, datasets) -> list[dict]:
             {
                 "id": f"jl_grupo_{k:02d}",
                 "miembros": len(grupo),
+                "regiones": list(grupo),
                 "firmas_de_componente": len(firmas),
                 "contextos": contextos,
             }
@@ -121,9 +135,11 @@ def _joblets_de(grupos, por_region, datasets) -> list[dict]:
     return salida
 
 
-def joblets_por_grupo(plan_ops, hechos: list[Fact], lineas: list[str]) -> list[dict]:
+def joblets_por_grupo(
+    plan_ops, hechos: list[Fact], lineas: list[str], declaracion: Declaracion | None = None
+) -> list[dict]:
     """Un joblet por grupo de dos o más regiones, con sus contextos por miembro."""
-    inicios, grupos, por_region = _reparto(plan_ops, hechos, lineas)
+    inicios, grupos, por_region = _reparto(plan_ops, hechos, lineas, declaracion)
     if not grupos:
         return []
     return _joblets_de(grupos, por_region, _datasets_por_region(hechos, inicios))
@@ -245,13 +261,15 @@ def contexto_del_encabezado(plan_ops, hechos: list[Fact], lineas: list[str]) -> 
     }
 
 
-def diseno_del_job(plan_ops, hechos: list[Fact], lineas: list[str]) -> dict:
+def diseno_del_job(
+    plan_ops, hechos: list[Fact], lineas: list[str], declaracion: Declaracion | None = None
+) -> dict:
     """Job padre de diseño: una llamada por grupo, el joblet de contexto y el resto del encabezado.
 
     Es el equivalente en Talend del bucle `%DO ... %TO` sobre una lista (`%SCAN`), aplicado a
     copias agrupadas de forma determinista, más el joblet que carga el contexto del Job.
     """
-    inicios, grupos, por_region = _reparto(plan_ops, hechos, lineas)
+    inicios, grupos, por_region = _reparto(plan_ops, hechos, lineas, declaracion)
     joblets = _joblets_de(grupos, por_region, _datasets_por_region(hechos, inicios))
     contexto = contexto_del_encabezado(plan_ops, hechos, lineas)
     en_grupo = {r for g in grupos for r in g}
@@ -269,7 +287,13 @@ def diseno_del_job(plan_ops, hechos: list[Fact], lineas: list[str]) -> dict:
             if s not in todas:
                 todas.append(s)
     nodos = len(llamadas) + (1 if contexto else 0) + len(encabezado) + len(_componentes(sueltas))
+    agrupacion = (
+        {"modo": "declarada", "productos": list(declaracion.productos)}
+        if declaracion
+        else {"modo": "similitud", "umbral": UMBRAL_DE_AGRUPACION}
+    )
     return {
+        "agrupacion": agrupacion,
         "job_padre": {
             "llamadas": llamadas,
             "joblet_de_contexto": contexto["id"] if contexto else None,

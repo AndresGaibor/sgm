@@ -94,8 +94,9 @@ YAML, con qué regiones forman cada proceso), y esa agrupación es una decisión
 ## Agrupación determinista por producto (3 de noviembre de 2026)
 
 Regla: cada región `%macro ambiente` toma el sufijo dominante (`_CTE`, `_AHO`, `_NEQUI`) de las
-tablas que escribe o lee. Medido: 25 de 30 regiones tienen sufijo (11 CTE, 10 AHO, 3 NEQUI); 5 no
-tienen ninguno y quedan como pendiente.
+tablas que escribe o lee. Medido: 24 de 30 regiones tienen sufijo (11 CTE, 10 AHO, 3 NEQUI); 6 no
+tienen ninguno y quedan como pendiente. (Corregido el 3 de noviembre de 2026: la versión anterior
+decía 25 y 5, y la suma no cuadraba.)
 
 Con esa agrupación y contando firmas repetidas una sola vez:
 - Firmas de componente distintas: 112 (con nombres y literales).
@@ -266,8 +267,28 @@ archivo se hicieron sin la política; desde esta sección se reporta la configur
 la que produce la CLI. Con `push_to_db` el encabezado crece porque pasos que antes se fusionaban en
 el flujo quedan como componentes.
 
+**Agrupación declarada.** `decisiones/<programa>.agrupacion.yaml` ya se lee. El comando busca ese
+archivo junto al programa y, si no está, en `decisiones/`; `--agrupacion <ruta>` manda sobre ambos.
+El modo usado queda en `agrupacion` del JSON (`declarada` o `similitud` con su umbral) y los joblets
+llevan `regiones`, la lista de índices de región que los forman.
+
+Medido en `client_large.sas` con su YAML: 24 regiones con producto y 6 sin producto, que quedan
+sueltas. Salen 3 joblets, uno por producto, como en el diseño:
+
+| Joblet | Regiones | Firmas de componente |
+|---|---|---|
+| `jl_grupo_01` (producto 1) | 11 | 64 |
+| `jl_grupo_02` (producto 2) | 10 | 38 |
+| `jl_grupo_03` (producto 3) | 3 | 57 |
+
+Job padre: 66 nodos (3 llamadas, 1 contexto, 56 del encabezado, 6 sueltas). Firmas distintas en todo
+el programa: 131, las mismas que con similitud, porque son las mismas regiones. Lo que cambia es el
+reparto: la suma de firmas por joblet sube de 121 a 159, así que la agrupación declarada arma los tres
+procesos del diseño a cambio de más variedad dentro de cada joblet. El conteo de componentes no baja
+por declarar productos; lo que cambia es qué se ve como un solo nodo del padre.
+
 **Qué sigue pendiente.** El diseño no entra en el plan ni en la guía: son artefactos separados. Meter
 los joblets y el Job padre en `plan.jobs` toca el modelo de decisiones y las pruebas de firmas, así
 que es una decisión aparte. La brecha de fondo tampoco se mueve: 131 firmas distintas frente a los
-unos 80 del diseño, y las regiones sueltas siguen requiriendo una decisión sobre qué es el mismo
-proceso.
+unos 80 del diseño, y las 6 regiones sin producto siguen requiriendo una decisión: asignarles un
+producto o tratarlas como procesos propios.

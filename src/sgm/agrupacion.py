@@ -14,6 +14,9 @@ import bisect
 import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
 
 from sgm.facts.model import Fact
 
@@ -77,3 +80,74 @@ def agrupar(
 
 def inicios_de(lineas: list[str], marcador: str) -> list[int]:
     return _inicios(lineas, re.compile(marcador, re.I))
+
+
+@dataclass(frozen=True)
+class Declaracion:
+    """Agrupación decidida por el equipo: un producto por sufijo de sus conjuntos de datos.
+
+    Vive en `decisiones/<programa>.agrupacion.yaml` y la revisa una persona. No es un hecho del SAS:
+    el archivo no demuestra qué regiones son el mismo proceso.
+    """
+
+    marcador: str
+    productos: dict[str, tuple[str, ...]]  # nombre -> sufijos en mayúsculas
+
+
+def cargar_declaracion(path: Path) -> Declaracion:
+    """Lee la agrupación declarada. Un archivo mal formado falla con su nombre y el motivo."""
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    marcador = str(data.get("region_marcador") or "").strip()
+    if not marcador:
+        raise ValueError(f"{path}: falta region_marcador")
+    productos: dict[str, tuple[str, ...]] = {}
+    for item in data.get("productos") or []:
+        item = item or {}
+        nombre = str(item.get("nombre") or "").strip()
+        sufijos = tuple(
+            str(s).strip().upper() for s in (item.get("sufijos") or []) if str(s).strip()
+        )
+        if not nombre or not sufijos:
+            raise ValueError(f"{path}: cada producto necesita nombre y al menos un sufijo")
+        productos[nombre] = sufijos
+    if not productos:
+        raise ValueError(f"{path}: no hay productos declarados")
+    return Declaracion(marcador=marcador, productos=productos)
+
+
+def producto_por_region(
+    hechos: list[Fact], inicios: list[int], declaracion: Declaracion
+) -> dict[int, str]:
+    """Producto dominante de cada región: el de más conjuntos de datos con su sufijo.
+
+    Empate: gana el producto declarado primero. Una región sin coincidencias no tiene producto y
+    queda como pendiente, no se adivina.
+    """
+    orden = list(declaracion.productos)
+    cuenta: dict[int, Counter[str]] = defaultdict(Counter)
+    for h in hechos:
+        if h.tipo not in ("tabla_escrita", "tabla_leida") or h.detalle.get("dinamico") == "si":
+            continue
+        r = bisect.bisect_right(inicios, h.linea_inicio) - 1
+        if r < 0:
+            continue
+        nombre = h.valor.upper()
+        for producto, sufijos in declaracion.productos.items():
+            if any(nombre.endswith("_" + s) for s in sufijos):
+                cuenta[r][producto] += 1
+    return {
+        r: max(c.most_common(), key=lambda kv: (kv[1], -orden.index(kv[0])))[0]
+        for r, c in cuenta.items()
+        if c
+    }
+
+
+def grupos_declarados(
+    hechos: list[Fact], inicios: list[int], declaracion: Declaracion
+) -> tuple[tuple[int, ...], ...]:
+    """Regiones agrupadas por producto declarado, de mayor a menor. Las sueltas quedan fuera."""
+    grupos: dict[str, list[int]] = defaultdict(list)
+    for r, producto in sorted(producto_por_region(hechos, inicios, declaracion).items()):
+        grupos[producto].append(r)
+    ordenados = [tuple(g) for g in grupos.values() if len(g) >= 2]
+    return tuple(sorted(ordenados, key=lambda g: (-len(g), g)))

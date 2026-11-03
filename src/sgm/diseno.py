@@ -7,20 +7,26 @@ contra el diseño de referencia del equipo, en `docs/`.
 
 from __future__ import annotations
 
+from sgm.agrupacion import Declaracion
 from sgm.facts.project import facts_for_project
 from sgm.generador import diseno_del_job
 from sgm.redaction import redact
 
 
-def diseno_de_programa(programa: str, texto: str, plan) -> dict:
+def diseno_de_programa(
+    programa: str, texto: str, plan, declaracion: Declaracion | None = None
+) -> dict:
     """Diseño de un programa a partir de su texto y de su `Plan` ya compilado.
 
-    El texto se redacta antes de extraer los hechos, igual que en la compilación: ningún valor de
-    credencial entra en el artefacto.
+    `declaracion` es la agrupación que decidió el equipo; sin ella se agrupa por similitud. El texto
+    se redacta antes de extraer los hechos, igual que en la compilación: ningún valor de credencial
+    entra en el artefacto.
     """
     limpio = redact(texto, programa)
     hechos = facts_for_project({programa: limpio})[programa]
     return {
         "programa": programa,
-        **diseno_del_job(list(plan.graph.operators()), hechos, limpio.splitlines()),
+        **diseno_del_job(
+            list(plan.graph.operators()), hechos, limpio.splitlines(), declaracion
+        ),
     }
