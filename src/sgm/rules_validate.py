@@ -28,6 +28,7 @@ RULE_FOLDERS = {
     "rules/sas/statements": "statement",
     "rules/sas/functions": "function",
     "rules/sas/intrinsics": "intrinsic",
+    "rules/sas/catalogo": "catalogo",
 }
 RULE_FILES = {
     "rules/sas/informats.yaml": "informats",

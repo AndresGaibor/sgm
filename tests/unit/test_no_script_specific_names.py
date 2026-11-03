@@ -29,11 +29,14 @@ FORBIDDEN_NAMES = [
     "bulkload_generic",
 ]
 
-# Dónde se busca: código Python del paquete y reglas (datos).
+# Dónde se busca: código Python del paquete, herramientas y reglas (datos). `docs/` queda fuera a
+# propósito: describe los programas del cliente, y ahí el nombre es parte del texto.
 SEARCH_GLOBS = [
     ("src/sgm", "*.py"),
+    ("tools", "*.py"),
     ("rules", "*.json"),
     ("rules", "*.yaml"),
+    ("rules", "*.yml"),
 ]
 
 

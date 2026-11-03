@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Catálogo documental de SAS (rules/sas/catalogo)",
+  "description": "Lista de elementos de SAS con su página en la documentación oficial. Cada entrada debe citar la página; sin ella no pasa la validación.",
+  "type": "object",
+  "required": ["id", "kind", "version", "description", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "kind": { "const": "catalogo" },
+    "version": { "type": "integer", "minimum": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "nombre", "fuente", "estado"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "nombre": { "type": "string", "minLength": 1 },
+          "fuente": {
+            "type": "string",
+            "pattern": "p\\. \\d+",
+            "description": "Guía y página de la documentación oficial, p. ej. 'lefunctionsref.pdf, p. 1080'."
+          },
+          "estado": {
+            "enum": ["reconocida", "no_reconocida", "no_verificada", "dentro_de_select"],
+            "description": "Lo que el repo hace hoy con el elemento; ver la descripción del archivo."
+          },
+          "nota": { "type": "string" }
+        }
+      }
+    }
+  }
+}

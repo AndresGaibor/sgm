@@ -1,0 +1,151 @@
+id: funciones-macro
+kind: catalogo
+version: 1
+description: Funciones de macro de SAS 9.4 con su página. 'reconocida' = el código del repo las reconoce; el resto no está
+  implementado.
+entries:
+- id: bquote
+  nombre: '%BQUOTE'
+  fuente: mcrolref.pdf, p. 340
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: eval
+  nombre: '%EVAL'
+  fuente: mcrolref.pdf, p. 344
+  estado: reconocida
+  nota: el código del repo la reconoce (lexer, macros)
+- id: index
+  nombre: '%INDEX'
+  fuente: mcrolref.pdf, p. 346
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: length
+  nombre: '%LENGTH'
+  fuente: mcrolref.pdf, p. 347
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: nrbquote
+  nombre: '%NRBQUOTE'
+  fuente: mcrolref.pdf, p. 348
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: nrquote
+  nombre: '%NRQUOTE'
+  fuente: mcrolref.pdf, p. 348
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: nrstr
+  nombre: '%NRSTR'
+  fuente: mcrolref.pdf, p. 349
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: qscan
+  nombre: '%QSCAN'
+  fuente: mcrolref.pdf, p. 349
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: qsubstr
+  nombre: '%QSUBSTR'
+  fuente: mcrolref.pdf, p. 349
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: qsysfunc
+  nombre: '%QSYSFUNC'
+  fuente: mcrolref.pdf, p. 350
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: quote
+  nombre: '%QUOTE'
+  fuente: mcrolref.pdf, p. 350
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: qupcase
+  nombre: '%QUPCASE'
+  fuente: mcrolref.pdf, p. 352
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: scan
+  nombre: '%SCAN'
+  fuente: mcrolref.pdf, p. 352
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: str
+  nombre: '%STR'
+  fuente: mcrolref.pdf, p. 357
+  estado: reconocida
+  nota: el código del repo la reconoce (lexer, macros)
+- id: substr
+  nombre: '%SUBSTR'
+  fuente: mcrolref.pdf, p. 360
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: superq
+  nombre: '%SUPERQ'
+  fuente: mcrolref.pdf, p. 363
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: symexist
+  nombre: '%SYMEXIST'
+  fuente: mcrolref.pdf, p. 365
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: symglobl
+  nombre: '%SYMGLOBL'
+  fuente: mcrolref.pdf, p. 366
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: symlocal
+  nombre: '%SYMLOCAL'
+  fuente: mcrolref.pdf, p. 367
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: sysevalf
+  nombre: '%SYSEVALF'
+  fuente: mcrolref.pdf, p. 368
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: sysfunc
+  nombre: '%SYSFUNC'
+  fuente: mcrolref.pdf, p. 372
+  estado: reconocida
+  nota: el código del repo la reconoce (lexer, macros)
+- id: sysget
+  nombre: '%SYSGET'
+  fuente: mcrolref.pdf, p. 379
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: sysmacexec
+  nombre: '%SYSMACEXEC'
+  fuente: mcrolref.pdf, p. 380
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: sysmacexist
+  nombre: '%SYSMACEXIST'
+  fuente: mcrolref.pdf, p. 380
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: sysmexecdepth
+  nombre: '%SYSMEXECDEPTH'
+  fuente: mcrolref.pdf, p. 381
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: sysmexecname
+  nombre: '%SYSMEXECNAME'
+  fuente: mcrolref.pdf, p. 383
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: sysprod
+  nombre: '%SYSPROD'
+  fuente: mcrolref.pdf, p. 384
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: unquote
+  nombre: '%UNQUOTE'
+  fuente: mcrolref.pdf, p. 386
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico
+- id: upcase
+  nombre: '%UPCASE'
+  fuente: mcrolref.pdf, p. 387
+  estado: no_verificada
+  nota: el parser no la expande; si aparece en una condición, el bloque queda dinámico

@@ -1,0 +1,333 @@
+id: sentencias-data-step
+kind: catalogo
+version: 1
+description: Sentencias del DATA step de SAS 9.4, con la página de la guía. 'reconocida' = el parser las clasifica; 'no_reconocida'
+  = queda como 'other' con su texto, sin interpretar.
+entries:
+- id: abort-statement
+  nombre: ABORT Statement
+  fuente: lestmtsref.pdf, p. 27
+  estado: no_reconocida
+- id: array-statement
+  nombre: ARRAY Statement
+  fuente: lestmtsref.pdf, p. 33
+  estado: reconocida
+- id: array-reference-statement
+  nombre: Array Reference Statement
+  fuente: lestmtsref.pdf, p. 39
+  estado: no_verificada
+  nota: el parser reconoce solo la primera palabra (ARRAY); la forma completa no se verifica
+- id: assignment-statement
+  nombre: Assignment Statement
+  fuente: lestmtsref.pdf, p. 44
+  estado: reconocida
+- id: attrib-statement
+  nombre: ATTRIB Statement
+  fuente: lestmtsref.pdf, p. 45
+  estado: reconocida
+- id: by-statement
+  nombre: BY Statement
+  fuente: lestmtsref.pdf, p. 51
+  estado: reconocida
+- id: call-statement
+  nombre: CALL Statement
+  fuente: lestmtsref.pdf, p. 58
+  estado: no_verificada
+  nota: solo CALL SYMPUT se reconoce (datastep.py)
+- id: cards-statement
+  nombre: CARDS Statement
+  fuente: lestmtsref.pdf, p. 59
+  estado: reconocida
+- id: cards4-statement
+  nombre: CARDS4 Statement
+  fuente: lestmtsref.pdf, p. 59
+  estado: reconocida
+- id: catname-statement
+  nombre: CATNAME Statement
+  fuente: lestmtsref.pdf, p. 59
+  estado: no_reconocida
+- id: checkpoint-execute-always-statement
+  nombre: CHECKPOINT EXECUTE_ALWAYS Statement
+  fuente: lestmtsref.pdf, p. 60
+  estado: no_reconocida
+- id: comment-statement
+  nombre: Comment Statement
+  fuente: lestmtsref.pdf, p. 60
+  estado: no_reconocida
+- id: continue-statement
+  nombre: CONTINUE Statement
+  fuente: lestmtsref.pdf, p. 60
+  estado: no_reconocida
+- id: data-statement
+  nombre: DATA Statement
+  fuente: lestmtsref.pdf, p. 61
+  estado: reconocida
+  nota: lo separa el segmentador de pasos (frontend/steps.py)
+- id: datalines-statement
+  nombre: DATALINES Statement
+  fuente: lestmtsref.pdf, p. 73
+  estado: reconocida
+- id: datalines4-statement
+  nombre: DATALINES4 Statement
+  fuente: lestmtsref.pdf, p. 75
+  estado: reconocida
+- id: delete-statement
+  nombre: DELETE Statement
+  fuente: lestmtsref.pdf, p. 77
+  estado: no_reconocida
+- id: describe-statement
+  nombre: DESCRIBE Statement
+  fuente: lestmtsref.pdf, p. 78
+  estado: no_reconocida
+- id: display-statement
+  nombre: DISPLAY Statement
+  fuente: lestmtsref.pdf, p. 79
+  estado: no_reconocida
+- id: dm-statement
+  nombre: DM Statement
+  fuente: lestmtsref.pdf, p. 82
+  estado: no_reconocida
+- id: do-statement
+  nombre: DO Statement
+  fuente: lestmtsref.pdf, p. 82
+  estado: reconocida
+- id: do-until-statement
+  nombre: DO UNTIL Statement
+  fuente: lestmtsref.pdf, p. 88
+  estado: no_verificada
+  nota: el parser reconoce solo la primera palabra (DO); la forma completa no se verifica
+- id: do-while-statement
+  nombre: DO WHILE Statement
+  fuente: lestmtsref.pdf, p. 90
+  estado: no_verificada
+  nota: el parser reconoce solo la primera palabra (DO); la forma completa no se verifica
+- id: drop-statement
+  nombre: DROP Statement
+  fuente: lestmtsref.pdf, p. 91
+  estado: reconocida
+- id: end-statement
+  nombre: END Statement
+  fuente: lestmtsref.pdf, p. 93
+  estado: reconocida
+- id: endsas-statement
+  nombre: ENDSAS Statement
+  fuente: lestmtsref.pdf, p. 94
+  estado: no_reconocida
+- id: error-statement
+  nombre: ERROR Statement
+  fuente: lestmtsref.pdf, p. 94
+  estado: no_reconocida
+- id: execute-statement
+  nombre: EXECUTE Statement
+  fuente: lestmtsref.pdf, p. 96
+  estado: no_reconocida
+- id: file-statement
+  nombre: FILE Statement
+  fuente: lestmtsref.pdf, p. 97
+  estado: no_reconocida
+- id: filename-statement
+  nombre: FILENAME Statement
+  fuente: lestmtsref.pdf, p. 120
+  estado: no_reconocida
+- id: footnote-statement
+  nombre: FOOTNOTE Statement
+  fuente: lestmtsref.pdf, p. 123
+  estado: no_reconocida
+- id: format-statement
+  nombre: FORMAT Statement
+  fuente: lestmtsref.pdf, p. 123
+  estado: reconocida
+- id: goto-statement
+  nombre: GOTO Statement
+  fuente: lestmtsref.pdf, p. 127
+  estado: no_reconocida
+- id: if-then-else-statement
+  nombre: IF-THEN/ELSE Statement
+  fuente: lestmtsref.pdf, p. 132
+  estado: reconocida
+- id: include-statement
+  nombre: '%INCLUDE Statement'
+  fuente: lestmtsref.pdf, p. 134
+  estado: no_reconocida
+- id: infile-statement
+  nombre: INFILE Statement
+  fuente: lestmtsref.pdf, p. 134
+  estado: reconocida
+- id: informat-statement
+  nombre: INFORMAT Statement
+  fuente: lestmtsref.pdf, p. 173
+  estado: reconocida
+- id: input-statement
+  nombre: INPUT Statement
+  fuente: lestmtsref.pdf, p. 177
+  estado: reconocida
+- id: keep-statement
+  nombre: KEEP Statement
+  fuente: lestmtsref.pdf, p. 216
+  estado: reconocida
+- id: label-statement
+  nombre: LABEL Statement
+  fuente: lestmtsref.pdf, p. 218
+  estado: reconocida
+- id: label-statement-2
+  nombre: 'Label:  Statement'
+  fuente: lestmtsref.pdf, p. 223
+  estado: no_verificada
+  nota: el parser reconoce solo la primera palabra (LABEL); la forma completa no se verifica
+- id: leave-statement
+  nombre: LEAVE Statement
+  fuente: lestmtsref.pdf, p. 226
+  estado: no_reconocida
+- id: length-statement
+  nombre: LENGTH Statement
+  fuente: lestmtsref.pdf, p. 227
+  estado: reconocida
+- id: libname-statement
+  nombre: LIBNAME Statement
+  fuente: lestmtsref.pdf, p. 233
+  estado: no_reconocida
+- id: link-statement
+  nombre: LINK Statement
+  fuente: lestmtsref.pdf, p. 234
+  estado: no_reconocida
+- id: list-statement
+  nombre: LIST Statement
+  fuente: lestmtsref.pdf, p. 236
+  estado: no_reconocida
+- id: list-statement-2
+  nombre: '%LIST Statement'
+  fuente: lestmtsref.pdf, p. 240
+  estado: no_reconocida
+- id: lock-statement
+  nombre: LOCK Statement
+  fuente: lestmtsref.pdf, p. 240
+  estado: no_reconocida
+- id: lockdown-statement
+  nombre: LOCKDOWN Statement
+  fuente: lestmtsref.pdf, p. 241
+  estado: no_reconocida
+- id: lostcard-statement
+  nombre: LOSTCARD Statement
+  fuente: lestmtsref.pdf, p. 241
+  estado: no_reconocida
+- id: merge-statement
+  nombre: MERGE Statement
+  fuente: lestmtsref.pdf, p. 243
+  estado: reconocida
+- id: missing-statement
+  nombre: MISSING Statement
+  fuente: lestmtsref.pdf, p. 252
+  estado: no_reconocida
+- id: modify-statement
+  nombre: MODIFY Statement
+  fuente: lestmtsref.pdf, p. 252
+  estado: no_reconocida
+- id: null-statement
+  nombre: Null Statement
+  fuente: lestmtsref.pdf, p. 273
+  estado: no_reconocida
+- id: options-statement
+  nombre: OPTIONS Statement
+  fuente: lestmtsref.pdf, p. 273
+  estado: no_reconocida
+- id: output-statement
+  nombre: OUTPUT Statement
+  fuente: lestmtsref.pdf, p. 273
+  estado: reconocida
+- id: page-statement
+  nombre: PAGE Statement
+  fuente: lestmtsref.pdf, p. 277
+  estado: no_reconocida
+- id: put-statement
+  nombre: PUT Statement
+  fuente: lestmtsref.pdf, p. 277
+  estado: no_reconocida
+- id: putlog-statement
+  nombre: PUTLOG Statement
+  fuente: lestmtsref.pdf, p. 316
+  estado: no_reconocida
+- id: redirect-statement
+  nombre: REDIRECT Statement
+  fuente: lestmtsref.pdf, p. 322
+  estado: no_reconocida
+- id: remove-statement
+  nombre: REMOVE Statement
+  fuente: lestmtsref.pdf, p. 324
+  estado: no_reconocida
+- id: rename-statement
+  nombre: RENAME Statement
+  fuente: lestmtsref.pdf, p. 326
+  estado: reconocida
+- id: replace-statement
+  nombre: REPLACE Statement
+  fuente: lestmtsref.pdf, p. 328
+  estado: no_reconocida
+- id: resetline-statement
+  nombre: RESETLINE Statement
+  fuente: lestmtsref.pdf, p. 331
+  estado: no_reconocida
+- id: retain-statement
+  nombre: RETAIN Statement
+  fuente: lestmtsref.pdf, p. 331
+  estado: reconocida
+- id: return-statement
+  nombre: RETURN Statement
+  fuente: lestmtsref.pdf, p. 336
+  estado: no_reconocida
+- id: run-statement
+  nombre: RUN Statement
+  fuente: lestmtsref.pdf, p. 338
+  estado: reconocida
+  nota: lo separa el segmentador de pasos (frontend/steps.py)
+- id: run-statement-2
+  nombre: '%RUN Statement'
+  fuente: lestmtsref.pdf, p. 338
+  estado: no_reconocida
+- id: sasfile-statement
+  nombre: SASFILE Statement
+  fuente: lestmtsref.pdf, p. 338
+  estado: no_reconocida
+- id: select-statement
+  nombre: SELECT Statement
+  fuente: lestmtsref.pdf, p. 338
+  estado: no_reconocida
+- id: set-statement
+  nombre: SET Statement
+  fuente: lestmtsref.pdf, p. 343
+  estado: reconocida
+- id: skip-statement
+  nombre: SKIP Statement
+  fuente: lestmtsref.pdf, p. 358
+  estado: no_reconocida
+- id: stop-statement
+  nombre: STOP Statement
+  fuente: lestmtsref.pdf, p. 358
+  estado: no_reconocida
+- id: sum-statement
+  nombre: Sum Statement
+  fuente: lestmtsref.pdf, p. 360
+  estado: no_reconocida
+- id: sysecho-statement
+  nombre: SYSECHO Statement
+  fuente: lestmtsref.pdf, p. 362
+  estado: no_reconocida
+- id: title-statement
+  nombre: TITLE Statement
+  fuente: lestmtsref.pdf, p. 362
+  estado: no_reconocida
+- id: update-statement
+  nombre: UPDATE Statement
+  fuente: lestmtsref.pdf, p. 362
+  estado: no_reconocida
+- id: where-statement
+  nombre: WHERE Statement
+  fuente: lestmtsref.pdf, p. 371
+  estado: reconocida
+- id: window-statement
+  nombre: WINDOW Statement
+  fuente: lestmtsref.pdf, p. 379
+  estado: no_reconocida
+- id: x-statement
+  nombre: X Statement
+  fuente: lestmtsref.pdf, p. 392
+  estado: no_reconocida

@@ -1,0 +1,111 @@
+id: sentencias-proc-sql
+kind: catalogo
+version: 1
+description: 'PROC SQL de SAS 9.4: sentencias y cláusulas con su página. ''reconocida'' = sql.py la clasifica; ''no_reconocida''
+  = queda como ''other''; ''dentro_de_select'' = parte de un SELECT.'
+entries:
+- id: order-by-clause
+  nombre: ORDER BY Clause
+  fuente: sqlproc.pdf, p. 37
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: group-by-clause
+  nombre: GROUP BY Clause
+  fuente: sqlproc.pdf, p. 38
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: having-clause
+  nombre: HAVING Clause
+  fuente: sqlproc.pdf, p. 38
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: proc-sql-statement
+  nombre: PROC SQL Statement
+  fuente: sqlproc.pdf, p. 269
+  estado: reconocida
+- id: alter-table-statement
+  nombre: ALTER TABLE Statement
+  fuente: sqlproc.pdf, p. 282
+  estado: no_reconocida
+- id: connect-statement
+  nombre: CONNECT Statement
+  fuente: sqlproc.pdf, p. 287
+  estado: reconocida
+- id: create-index-statement
+  nombre: CREATE INDEX Statement
+  fuente: sqlproc.pdf, p. 288
+  estado: no_reconocida
+- id: create-table-statement
+  nombre: CREATE TABLE Statement
+  fuente: sqlproc.pdf, p. 290
+  estado: reconocida
+- id: create-view-statement
+  nombre: CREATE VIEW Statement
+  fuente: sqlproc.pdf, p. 296
+  estado: no_reconocida
+- id: delete-statement
+  nombre: DELETE Statement
+  fuente: sqlproc.pdf, p. 299
+  estado: reconocida
+- id: describe-statement
+  nombre: DESCRIBE Statement
+  fuente: sqlproc.pdf, p. 300
+  estado: no_reconocida
+- id: disconnect-statement
+  nombre: DISCONNECT Statement
+  fuente: sqlproc.pdf, p. 301
+  estado: reconocida
+- id: drop-statement
+  nombre: DROP Statement
+  fuente: sqlproc.pdf, p. 302
+  estado: reconocida
+- id: execute-statement
+  nombre: EXECUTE Statement
+  fuente: sqlproc.pdf, p. 303
+  estado: reconocida
+- id: from-clause
+  nombre: FROM Clause
+  fuente: sqlproc.pdf, p. 304
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: group-by-clause-2
+  nombre: GROUP BY Clause
+  fuente: sqlproc.pdf, p. 306
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: having-clause-2
+  nombre: HAVING Clause
+  fuente: sqlproc.pdf, p. 308
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: insert-statement
+  nombre: INSERT Statement
+  fuente: sqlproc.pdf, p. 309
+  estado: reconocida
+- id: into-clause
+  nombre: INTO Clause
+  fuente: sqlproc.pdf, p. 312
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: order-by-clause-2
+  nombre: ORDER BY Clause
+  fuente: sqlproc.pdf, p. 318
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: reset-statement
+  nombre: RESET Statement
+  fuente: sqlproc.pdf, p. 320
+  estado: no_reconocida
+- id: select-clause
+  nombre: SELECT Clause
+  fuente: sqlproc.pdf, p. 320
+  estado: dentro_de_select
+  nota: el parser no la separa; se lee dentro de la sentencia
+- id: select-statement
+  nombre: SELECT Statement
+  fuente: sqlproc.pdf, p. 323
+  estado: reconocida
+- id: update-statement
+  nombre: UPDATE Statement
+  fuente: sqlproc.pdf, p. 323
+  estado: no_reconocida

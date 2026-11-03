@@ -1287,3 +1287,29 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - El módulo `model.py` se mantiene bajo 300 líneas; la vista por sección y el índice de datasets viven en `seccion.py` y `salida.py`.
 - Medición: client_large.sas, 2,205 pasos. HTML de 2.0 MB; JSON de 2.0 MB.
 - Pruebas: `tests/unit/test_flujo.py` (11) y `tests/unit/test_flujo_salidas.py` (14). Suite completa y ruff: ver verificación al cierre.
+
+## Hito 46. Catálogo documental de SAS en YAML, con página por entrada (tareas 1 a 8, 21, 23 a 27)
+
+- Fecha: 2026-11-03
+- Qué se hizo:
+  - Tipo nuevo `catalogo` (`schemas/rules/catalogo.schema.json`, carpeta `rules/sas/catalogo/`). Cada entrada exige `fuente` con página (`p. N`) y un `estado`. Tarea 23: el validador rechaza una entrada sin página (prueba `test_una_entrada_sin_pagina_no_pasa_el_esquema`). Tarea 24: la misma regla de estilo, por esquema.
+  - `funciones-usadas.yaml` (tarea 1): 36 funciones y CALL routines de `client_large.sas`, cada una con la página de la guía (`lefunctionsref.INDEX.md`).
+  - `sentencias-data-step.yaml` (tarea 7): 80 sentencias de `lestmtsref`. `reconocida` si el parser las clasifica; `no_reconocida` si caen en `other`. `DO UNTIL` y `Label:` figuran como `no_verificada`, porque el parser solo mira la primera palabra.
+  - `sentencias-proc-sql.yaml` (tarea 8): sentencias y cláusulas de `sqlproc`. Pruebas de HAVING y UNION (quedan dentro del SELECT).
+  - `funciones-macro.yaml` (tareas 5 y 6): funciones de macro de `mcrolref`. Reconocidas: SYSFUNC, EVAL, STR.
+  - `opciones-dataset.yaml` (tarea 3): 40 opciones de `ledsoptsref`. Reconocida: IN=.
+  - `sql-nulos.yaml` (tarea 21): valores nulos y faltantes de PROC SQL, citados. Ninguno tiene regla implementada.
+  - Tarea 4 bloqueada: una regla `proc-sort.yaml` se escribió y se revirtió. `test_proc_rules.py::test_sort_sigue_en_codigo` fija la decisión de F1.4 (PROGRESS, hito de F1.4): `sort` depende de si hay BY y de NODUPKEY, y una regla plana no lo expresa. Ya existen PROC FREQ y PROC MEANS como reglas.
+  - Tarea 26: la guardia de nombres de scripts ahora mira `tools/*.py` y `rules/*.yml`. `docs/` queda fuera a propósito (describe los programas del cliente).
+  - Tarea 25: no hay motivos sin uso. Los 13 de `routing.yaml` aparecen en `src/sgm`. Se fija con prueba, no se borra nada.
+  - Tarea 27: `test_plumbing_categorias.py` tiene un caso que cae y un caso cercano que no cae, para las 19 categorías. El pipeline pasa la sentencia sin `;`; la prueba lo reproduce.
+  - Tarea 2: prueba de que las funciones de `rules/sas/functions` existen en la guía.
+- No hecho, con motivo:
+  - Tarea 22 (informats): la guía de formatos (`leforinfref`) no está descargada (404). Pendiente.
+  - Tarea 21, la regla en código: `rules/sas/sql-semantica.yaml` lo lee `src/sgm/ir/sql_semantics.py`, que hace fallar la carga con un id que no conoce. Se documentó en el catálogo y no se tocó ese archivo, porque lo editó otro trabajo en paralelo.
+- Decisiones:
+  - Un catálogo por tema, no un archivo por función (tarea 1 pedía "una regla por función"). Un archivo por tema evita 36 archivos casi vacíos. Cada entrada conserva su id.
+  - `estado` tiene el mismo significado en todos los catálogos: lo que el repo hace hoy con ese elemento. La descripción de cada archivo dice el criterio.
+  - Los conteos de usos de `client_large.sas` son del fixture, no de la documentación. Van en la nota.
+- Pruebas: `tests/unit/test_catalogo_sas.py` (27), `tests/unit/test_plumbing_categorias.py` (38), `tests/unit/test_routing_motivos.py` (2), `tests/unit/test_no_script_specific_names.py` (ampliada).
+- Verificación: `uv run sgm rules validate`: válido. `uv run pytest -q` y `uv run ruff check .`: ver al cierre del hito.

@@ -1,0 +1,26 @@
+id: sql-nulos
+kind: catalogo
+version: 1
+description: Valores faltantes y nulos en PROC SQL de SAS 9.4. Documentados para revisar la diferencia con SQL de motor; ninguno
+  tiene regla implementada todavía.
+entries:
+- id: null-values
+  nombre: Null Values
+  fuente: sqlproc.pdf, p. 22
+  estado: no_verificada
+  nota: Qué es un valor nulo en SQL y cómo se compara. Sin regla en el repo.
+- id: using-a-where-clause-with-missing-values
+  nombre: Using a WHERE Clause with Missing Values
+  fuente: sqlproc.pdf, p. 73
+  estado: no_verificada
+  nota: 'WHERE con valores faltantes: qué filas quedan. Sin regla en el repo.'
+- id: grouping-with-missing-values
+  nombre: Grouping with Missing Values
+  fuente: sqlproc.pdf, p. 88
+  estado: no_verificada
+  nota: GROUP BY agrupa los faltantes en un solo grupo. Sin regla en el repo.
+- id: the-effects-of-null-values-on-joins
+  nombre: The Effects of Null Values on Joins
+  fuente: sqlproc.pdf, p. 102
+  estado: no_verificada
+  nota: Un join con nulos no empareja esas filas. Sin regla en el repo.

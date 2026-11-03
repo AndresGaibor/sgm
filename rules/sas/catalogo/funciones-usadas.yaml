@@ -1,0 +1,186 @@
+id: funciones-usadas
+kind: catalogo
+version: 1
+description: Funciones y CALL routines de SAS que aparecen en client_large.sas, con la página de la guía oficial. estado 'reconocida'
+  = hay regla en rules/sas/functions; 'no_verificada' = el repo no tiene regla para ella todavía.
+entries:
+- id: substr-right-of-function
+  nombre: SUBSTR (right of =) Function
+  fuente: lefunctionsref.pdf, p. 1574
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 182'
+- id: input-function
+  nombre: INPUT Function
+  fuente: lefunctionsref.pdf, p. 1080
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 157'
+- id: cats-function
+  nombre: CATS Function
+  fuente: lefunctionsref.pdf, p. 503
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 124'
+- id: upcase-function
+  nombre: UPCASE Function
+  fuente: lefunctionsref.pdf, p. 1638
+  estado: reconocida
+  nota: 'usos en client_large.sas: 120; tiene regla en rules/sas/functions/fn-upcase.yaml'
+- id: date-function
+  nombre: DATE Function
+  fuente: lefunctionsref.pdf, p. 637
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 100'
+- id: time-function
+  nombre: TIME Function
+  fuente: lefunctionsref.pdf, p. 1604
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 100'
+- id: datetime-function
+  nombre: DATETIME Function
+  fuente: lefunctionsref.pdf, p. 640
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 90'
+- id: sum-function
+  nombre: SUM Function
+  fuente: lefunctionsref.pdf, p. 1580
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 68'
+- id: left-function
+  nombre: LEFT Function
+  fuente: lefunctionsref.pdf, p. 1178
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 67'
+- id: cat-function
+  nombre: CAT Function
+  fuente: lefunctionsref.pdf, p. 495
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 66'
+- id: length-function
+  nombre: LENGTH Function
+  fuente: lefunctionsref.pdf, p. 1180
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 65'
+- id: system-function
+  nombre: SYSTEM Function
+  fuente: lefunctionsref.pdf, p. 1599
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 63'
+- id: call-execute-routine
+  nombre: CALL EXECUTE Routine
+  fuente: lefunctionsref.pdf, p. 324
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 61'
+- id: lowcase-function
+  nombre: LOWCASE Function
+  fuente: lefunctionsref.pdf, p. 1219
+  estado: reconocida
+  nota: 'usos en client_large.sas: 60; tiene regla en rules/sas/functions/fn-lowcase.yaml'
+- id: open-function
+  nombre: OPEN Function
+  fuente: lefunctionsref.pdf, p. 1314
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 60'
+- id: attrn-function
+  nombre: ATTRN Function
+  fuente: lefunctionsref.pdf, p. 280
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 60'
+- id: int-function
+  nombre: INT Function
+  fuente: lefunctionsref.pdf, p. 1087
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 60'
+- id: ranuni-function
+  nombre: RANUNI Function
+  fuente: lefunctionsref.pdf, p. 1474
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 60'
+- id: pathname-function
+  nombre: PATHNAME Function
+  fuente: lefunctionsref.pdf, p. 1319
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 60'
+- id: call-symputx-routine
+  nombre: CALL SYMPUTX Routine
+  fuente: lefunctionsref.pdf, p. 482
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 60'
+- id: count-function
+  nombre: COUNT Function
+  fuente: lefunctionsref.pdf, p. 608
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 51'
+- id: countw-function
+  nombre: COUNTW Function
+  fuente: lefunctionsref.pdf, p. 615
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 30'
+- id: close-function
+  nombre: CLOSE Function
+  fuente: lefunctionsref.pdf, p. 556
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 30'
+- id: sleep-function
+  nombre: SLEEP Function
+  fuente: lefunctionsref.pdf, p. 1532
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 30'
+- id: strip-function
+  nombre: STRIP Function
+  fuente: lefunctionsref.pdf, p. 1568
+  estado: reconocida
+  nota: 'usos en client_large.sas: 30; tiene regla en rules/sas/functions/fn-strip.yaml'
+- id: compress-function
+  nombre: COMPRESS Function
+  fuente: lefunctionsref.pdf, p. 587
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 28'
+- id: ifn-function
+  nombre: IFN Function
+  fuente: lefunctionsref.pdf, p. 1067
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 26'
+- id: substrn-function
+  nombre: SUBSTRN Function
+  fuente: lefunctionsref.pdf, p. 1576
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 24'
+- id: round-function
+  nombre: ROUND Function
+  fuente: lefunctionsref.pdf, p. 1486
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 24'
+- id: ifc-function
+  nombre: IFC Function
+  fuente: lefunctionsref.pdf, p. 1065
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 18'
+- id: prxmatch-function
+  nombre: PRXMATCH Function
+  fuente: lefunctionsref.pdf, p. 1403
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 15'
+- id: put-function
+  nombre: PUT Function
+  fuente: lefunctionsref.pdf, p. 1417
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 14'
+- id: max-function
+  nombre: MAX Function
+  fuente: lefunctionsref.pdf, p. 1230
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 7'
+- id: mod-function
+  nombre: MOD Function
+  fuente: lefunctionsref.pdf, p. 1240
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 7'
+- id: prxchange-function
+  nombre: PRXCHANGE Function
+  fuente: lefunctionsref.pdf, p. 1398
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 6'
+- id: year-function
+  nombre: YEAR Function
+  fuente: lefunctionsref.pdf, p. 1729
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 2'

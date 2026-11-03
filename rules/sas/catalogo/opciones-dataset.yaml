@@ -1,0 +1,167 @@
+id: opciones-dataset
+kind: catalogo
+version: 1
+description: Opciones de dataset de SAS 9.4 con su página. 'reconocida' = el parser la lee; el resto no tiene tratamiento
+  propio todavía.
+entries:
+- id: alter
+  nombre: ALTER=
+  fuente: ledsoptsref.pdf, p. 21
+  estado: no_verificada
+- id: bufno
+  nombre: BUFNO=
+  fuente: ledsoptsref.pdf, p. 23
+  estado: no_verificada
+- id: bufsize
+  nombre: BUFSIZE=
+  fuente: ledsoptsref.pdf, p. 25
+  estado: no_verificada
+- id: cntllev
+  nombre: CNTLLEV=
+  fuente: ledsoptsref.pdf, p. 26
+  estado: no_verificada
+- id: compress
+  nombre: COMPRESS=
+  fuente: ledsoptsref.pdf, p. 28
+  estado: no_verificada
+- id: dldmgaction
+  nombre: DLDMGACTION=
+  fuente: ledsoptsref.pdf, p. 31
+  estado: no_verificada
+- id: drop
+  nombre: DROP=
+  fuente: ledsoptsref.pdf, p. 32
+  estado: no_verificada
+- id: encrypt
+  nombre: ENCRYPT=
+  fuente: ledsoptsref.pdf, p. 34
+  estado: no_verificada
+- id: encryptkey
+  nombre: ENCRYPTKEY=
+  fuente: ledsoptsref.pdf, p. 39
+  estado: no_verificada
+- id: extendobscounter
+  nombre: EXTENDOBSCOUNTER=
+  fuente: ledsoptsref.pdf, p. 42
+  estado: no_verificada
+- id: fileclose
+  nombre: FILECLOSE=
+  fuente: ledsoptsref.pdf, p. 44
+  estado: no_verificada
+- id: firstobs
+  nombre: FIRSTOBS=
+  fuente: ledsoptsref.pdf, p. 45
+  estado: no_verificada
+- id: genmax
+  nombre: GENMAX=
+  fuente: ledsoptsref.pdf, p. 47
+  estado: no_verificada
+- id: gennum
+  nombre: GENNUM=
+  fuente: ledsoptsref.pdf, p. 48
+  estado: no_verificada
+- id: idxname
+  nombre: IDXNAME=
+  fuente: ledsoptsref.pdf, p. 50
+  estado: no_verificada
+- id: idxwhere
+  nombre: IDXWHERE=
+  fuente: ledsoptsref.pdf, p. 52
+  estado: no_verificada
+- id: index
+  nombre: INDEX=
+  fuente: ledsoptsref.pdf, p. 54
+  estado: no_verificada
+- id: in
+  nombre: IN=
+  fuente: ledsoptsref.pdf, p. 56
+  estado: reconocida
+  nota: lo lee datastep.py como variable indicadora
+- id: keep
+  nombre: KEEP=
+  fuente: ledsoptsref.pdf, p. 57
+  estado: no_verificada
+- id: label
+  nombre: LABEL=
+  fuente: ledsoptsref.pdf, p. 59
+  estado: no_verificada
+- id: maxtablemem
+  nombre: MAXTABLEMEM=
+  fuente: ledsoptsref.pdf, p. 61
+  estado: no_verificada
+- id: obsbuf
+  nombre: OBSBUF=
+  fuente: ledsoptsref.pdf, p. 62
+  estado: no_verificada
+- id: obs
+  nombre: OBS=
+  fuente: ledsoptsref.pdf, p. 64
+  estado: no_verificada
+- id: outrep
+  nombre: OUTREP=
+  fuente: ledsoptsref.pdf, p. 73
+  estado: no_verificada
+- id: pointobs
+  nombre: POINTOBS=
+  fuente: ledsoptsref.pdf, p. 76
+  estado: no_verificada
+- id: pw
+  nombre: PW=
+  fuente: ledsoptsref.pdf, p. 78
+  estado: no_verificada
+- id: pwreq
+  nombre: PWREQ=
+  fuente: ledsoptsref.pdf, p. 79
+  estado: no_verificada
+- id: read
+  nombre: READ=
+  fuente: ledsoptsref.pdf, p. 80
+  estado: no_verificada
+- id: rename
+  nombre: RENAME=
+  fuente: ledsoptsref.pdf, p. 82
+  estado: no_verificada
+- id: repempty
+  nombre: REPEMPTY=
+  fuente: ledsoptsref.pdf, p. 85
+  estado: no_verificada
+- id: replace
+  nombre: REPLACE=
+  fuente: ledsoptsref.pdf, p. 88
+  estado: no_verificada
+- id: reuse
+  nombre: REUSE=
+  fuente: ledsoptsref.pdf, p. 89
+  estado: no_verificada
+- id: role
+  nombre: ROLE=
+  fuente: ledsoptsref.pdf, p. 90
+  estado: no_verificada
+- id: sortedby
+  nombre: SORTEDBY=
+  fuente: ledsoptsref.pdf, p. 91
+  estado: no_verificada
+- id: spill
+  nombre: SPILL=
+  fuente: ledsoptsref.pdf, p. 94
+  estado: no_verificada
+- id: tobsno
+  nombre: TOBSNO=
+  fuente: ledsoptsref.pdf, p. 102
+  estado: no_verificada
+- id: type
+  nombre: TYPE=
+  fuente: ledsoptsref.pdf, p. 103
+  estado: no_verificada
+- id: where
+  nombre: WHERE=
+  fuente: ledsoptsref.pdf, p. 105
+  estado: no_verificada
+- id: whereup
+  nombre: WHEREUP=
+  fuente: ledsoptsref.pdf, p. 108
+  estado: no_verificada
+- id: write
+  nombre: WRITE=
+  fuente: ledsoptsref.pdf, p. 110
+  estado: no_verificada
