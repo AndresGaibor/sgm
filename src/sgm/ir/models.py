@@ -271,3 +271,4 @@ class Plan:
     gaps: list[Gap] = field(default_factory=list)
     joblets: list[dict[str, Any]] = field(default_factory=list)  # fase 3.7: bloques repetidos
     residuos_bloques: list[dict[str, Any]] = field(default_factory=list)  # fase 3.6
+    fronteras: list[str] = field(default_factory=list)  # fase 3.5: conjuntos que otro programa lee

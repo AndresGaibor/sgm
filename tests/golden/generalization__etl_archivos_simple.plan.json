@@ -1232,5 +1232,6 @@
     }
   ],
   "joblets": [],
-  "residuos_bloques": []
+  "residuos_bloques": [],
+  "fronteras": []
 }

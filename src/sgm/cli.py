@@ -26,6 +26,7 @@ from sgm.ingest.importer import ImportError_
 from sgm.store import gaps as gap_store
 from sgm.store import overrides as override_store
 from sgm.store.db import Store
+from sgm.verify import comparar_command
 
 app = typer.Typer(
     help="sgm: compila programas SAS a guías de migración Talend.", no_args_is_help=True
@@ -40,6 +41,7 @@ app.add_typer(rules_app, name="rules")
 app.add_typer(case_app, name="case")
 app.command("facts")(facts_command)
 app.command("mapa")(mapa_command)
+app.command("comparar")(comparar_command)
 
 
 @app.callback()

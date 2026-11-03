@@ -178,4 +178,8 @@ def compile_project(
     externals = {path: redact(text, path) for path, text in base["external_files"].items()}
     analysis = analyze_program(clean, externals)
     compiled = {program: compile_file(analysis, program, base) for program in sorted(clean)}
+    from sgm.lineage import fronteras  # import tardío: lineage importa Compiled de este módulo
+
+    for program, lista in fronteras(compiled).items():
+        compiled[program].plan.fronteras = lista
     return compiled, analysis

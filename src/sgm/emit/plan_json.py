@@ -160,6 +160,7 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
     datos["pendientes"] = _pendientes(plan)
     datos["joblets"] = list(plan.joblets)
     datos["residuos_bloques"] = list(plan.residuos_bloques)
+    datos["fronteras"] = list(plan.fronteras)
     return datos
 
 

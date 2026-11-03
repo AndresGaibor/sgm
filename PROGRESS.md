@@ -1091,3 +1091,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: `test_guia_tiene_contextos_y_pendientes`.
 - Verificación: `uv run pytest -q`: 433 pasan, 1 se salta. `uv run ruff check .`: limpio. Los goldens no cambian porque no incluyen la guía Markdown.
 - Pendiente de la fase 5: 5.8, validación con datos contra SAS y Talend. Requiere un ambiente externo.
+
+## Hito 33. Frontera entre programas, comparación de salidas y procedimiento de validación: 3.5 y 5.8
+
+- Fecha: 2026-11-03
+- Qué se hizo (según `docs/automatizacion/03-plan-produccion.md`):
+  - 3.5: `sgm.lineage.fronteras` calcula, por programa, los conjuntos permanentes que escribe y que otro programa lee. Se expone como `Plan.fronteras`, en el plan JSON (`fronteras`) y en la guía (`## Fronteras entre programas`). Un conjunto de frontera ya está persistido, por eso la regla no pide tabla temporal.
+  - 5.8 (lo que no depende del ambiente): `src/sgm/verify.py` y el comando `sgm comparar <sas.csv> <talend.csv>`, que compara filas, sumas por columna y huella del contenido sin importar el orden. Sale con código 1 si algo no coincide. Procedimiento en `docs/automatizacion/05-validacion-extremo-a-extremo.md`.
+- Pruebas: `tests/unit/test_fronteras.py` (2), `tests/unit/test_comparar_salidas.py` (4).
+- Goldens regenerados: verificado con un script que, quitando `fronteras`, son idénticos al commit anterior.
+- Verificación: `uv run ruff check .`: limpio. Suite completa: 439 pasan, 1 se salta, en la segunda ejecución.
+- Incidencia: en una ejecución completa falló una vez `test_compile_outputs::test_guia_y_json_no_contienen_secretos_sin_enmascarar`. No se reproduce: pasa en serie, con tres semillas de hash distintas y en la ejecución siguiente de la suite completa. Queda anotado como fallo intermitente sin causa identificada.
+- Pendiente: 5.8 en un ambiente con SAS, Talend Studio y datos de prueba. Es el único punto del plan que no se puede cerrar desde el repositorio.

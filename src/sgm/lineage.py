@@ -43,6 +43,23 @@ def graph_of(compiled: dict[str, Compiled]) -> nx.DiGraph:
     return g
 
 
+def fronteras(compiled: dict[str, Compiled]) -> dict[str, list[str]]:
+    """Por programa, los datasets permanentes que escribe y que otro programa lee (fase 3.5).
+
+    Un conjunto permanente ya está persistido: es la frontera entre etapas, y no necesita una
+    tabla temporal.
+    """
+    data = {name: _datasets(result) for name, result in compiled.items()}
+    salida: dict[str, list[str]] = {}
+    for a, (writes_a, _) in data.items():
+        otros_leen: set[str] = set()
+        for b, (_, reads_b) in data.items():
+            if a != b:
+                otros_leen |= reads_b
+        salida[a] = sorted(writes_a & otros_leen)
+    return salida
+
+
 def waves(compiled: dict[str, Compiled]) -> list[list[str]]:
     """Oleadas de ejecución: cada lista puede correr en paralelo tras la anterior."""
     g = graph_of(compiled)

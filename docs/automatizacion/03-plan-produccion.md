@@ -268,3 +268,10 @@ Cada investigación deja una nota en `docs/automatizacion/investigacion/` con fu
 - No toma decisiones de negocio.
 - No usa MCP, API ni web, por la regla del proyecto.
 - No genera Jobs dentro de Studio; genera la guía que una persona usa para construirlos.
+
+## Estado (actualizado el 3 de noviembre de 2026)
+
+- Fases 0 a 4: hechas. Ver `PROGRESS.md`, hitos 20 a 32.
+- 3.5: hecha. La regla de materialización está en `p08_partition.sugerir_materializacion`. La frontera entre etapas se calcula entre programas (`sgm.lineage.fronteras`), se expone en el plan (`fronteras`) y en la guía. Un conjunto de frontera ya está persistido, así que no hace falta tabla temporal.
+- Fase 5: hecha, salvo 5.8.
+- 5.8: el procedimiento está en `05-validacion-extremo-a-extremo.md`. La comparación es `sgm comparar` (filas, sumas por columna y huella, sin depender del orden). La ejecución en SAS y Talend requiere un ambiente externo: queda pendiente hasta que se haga allí.

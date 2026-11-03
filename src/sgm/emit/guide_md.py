@@ -303,5 +303,10 @@ def render_guide(plan: Plan) -> str:
         ]
     else:
         lines.append("Nada.")
+    lines += ["", "## Fronteras entre programas", ""]
+    lines += (
+        [f"- `{d}`: persistido; otro programa lo lee." for d in plan.fronteras]
+        or ["Ninguna: ningún conjunto permanente de este programa lo lee otro."]
+    )
     lines += ["", *_pendientes_guia(plan)]
     return "\n".join(lines) + "\n"
