@@ -1522,3 +1522,17 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - Los hijos son esqueletos que dicen qué falta. Hay que traducir la lectura de insumos (Excel a caché con tHashOutput), la lectura y validación de producto (tImpalaInput, tMap, joblets), y totales y conciliación.
   - tDBClose y la conexión compartida de Impala.
   - El registro de errores (`jl_registro_errores`) y OnSubjobError (lineStyle sin ejemplo real).
+
+
+## Hito 62. Ciclos locales de pruebas incrementales
+
+- Fecha: 2026-11-04
+- Qu? se hizo: se agreg? `pytest-testmon` como dependencia de desarrollo y se document? en README el comando local `uv run pytest --testmon -q -n 4`. La base `.testmondata` queda fuera de git. La suite completa `uv run pytest -q` contin?a como verificaci?n obligatoria.
+- Decisi?n: habilitar selecci?n incremental solo al pedir `--testmon`; no activarla por defecto, para que las ejecuciones est?ndar sigan corriendo toda la suite. La dependencia adicional est? aprobada por el usuario.
+- M?tricas: l?nea base con `--durations=20`: 74,21 s para 859 pruebas pasadas, 1 omitida y 132 xfail; destacaron compilar todos los fixtures (18,32 s) y validar componentes del cat?logo (15,45 s). Con Testmon ya inicializado y `-n 4`, una ejecuci?n sin pruebas afectadas tard? 10,94 s en seleccionar y recolectar (sin ejecutar tests). Validaci?n completa final: 899 pasadas, 1 omitida y 132 xfail en 69,59 s; Ruff limpio.
+- Uso: la primera ejecuci?n incremental corre la suite para construir el mapa; luego `uv run pytest --testmon -q -n 4` elige las pruebas afectadas. Tras cambios amplios, de configuraci?n, dependencias o pruebas, ejecutar `uv run pytest -q` completo.
+- Bloqueos: ninguno.
+
+- Bloqueo detectado en una repetici?n posterior: `uv run pytest -q` fall? en `tests/unit/test_talend_jobs_diseno.py::test_los_insumos_declarados_llevan_cache_o_variables_globales` (898 pasaron, 1 fall?, 1 omitida, 132 xfail). El test espera cuatro caches, pero el YAML de decisiones modificado en el ?rbol de trabajo ya contiene `cache_periodo`. Esos cambios estaban presentes antes de este hito y no se modificaron aqu?; requieren actualizar/verificar juntos el YAML y su expectativa.
+
+- Estado final tras la repetici?n: `uv run pytest -q` pas? (903 pruebas, 1 omitida y 132 xfail en 78,06 s) y `uv run ruff check .` qued? limpio. El fallo intermedio ya no se reproduce.

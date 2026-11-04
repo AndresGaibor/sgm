@@ -13,6 +13,31 @@ uv run pytest -q
 uv run ruff check .
 ```
 
+### Ciclos rápidos de pruebas
+
+Para el desarrollo local, instala las dependencias y ejecuta una primera vez:
+
+```powershell
+uv sync
+uv run pytest --testmon -q -n 4
+```
+
+Esa primera ejecución corre la suite completa y registra qué archivos usa cada prueba. En ejecuciones
+posteriores, el mismo comando vuelve a correr las pruebas afectadas por los cambios. La primera pasada
+puede tardar lo mismo que la suite completa; el ahorro aparece en las siguientes iteraciones. Se fijan
+cuatro workers porque la medición local mostró que `-n auto` tardaba más en la fase incremental. La
+base local está en `.testmondata` y no se versiona.
+
+Antes de cerrar un hito, conserva la verificación completa, sin selección incremental:
+
+```powershell
+uv run pytest -q
+uv run ruff check .
+```
+
+Si cambian dependencias, configuración de pytest o el propio conjunto de pruebas, vuelve a ejecutar
+la suite completa para actualizar y comprobar la selección incremental.
+
 ## Comandos
 
 | Comando | Para qué |
