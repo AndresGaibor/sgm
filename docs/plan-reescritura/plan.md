@@ -33,7 +33,7 @@ Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca
 | 2 | Modelo de proceso | **En curso** (hitos 52 a 54) | `fase2-familias.md`, `src/sgm/proceso/` |
 | 3 | Emisor del documento de diseño | **En curso** (hitos 55 y 56): secciones 1.1, 1.4 y 6 | `proceso/diseno_doc.py` |
 | 4 | Joblets por sub-cadena compartida | Sin empezar | |
-| 5 | Job Script de Talend | Sin empezar; bloqueada | falta verificar versión de Studio y cómo se ejecuta |
+| 5 | Emisión de Jobs de Talend | **Empezada** (hito 59): `.item` con 2 componentes idéntico a un Job real; sin verificar en Studio | `fase5-talend-instalado.md`, `src/sgm/talend_item/` |
 | 6 | Segundo programa e informe de complejidad | Sin empezar | |
 
 ### Lo que cambió respecto al plan original
@@ -67,9 +67,9 @@ Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca
   declarado.
 - **Fase 4.** Cadenas repetidas entre etapas se vuelven joblets con parámetros. Meta del manual: unos 6
   joblets y 80 a 100 componentes.
-- **Fase 5.** Antes de escribir código hay que confirmar la versión de Talend Studio del cliente y cómo se
-  ejecuta un Job Script (la página "How to generate a Job from a Job script" no se leyó). Plan B: tomar
-  un Job exportado como plantilla y parametrizarlo.
+- **Fase 5.** El Studio instalado (8.0.1 parche 2026-09, Cloud Data Fabric) no trae Job Script ni línea de
+  comandos; se decidió escribir directamente los `.item`/`.properties` que guarda Studio, comparados
+  contra Jobs reales (`fase5-talend-instalado.md`). Faltan los demás componentes y abrir un Job emitido en Studio.
 - **Fase 6.** Correr todo sobre los otros programas de `tests/fixtures/sas` y emitir un informe de
   complejidad y de huecos al estilo de Lakebridge (Analyzer, Converter, Reconcile).
 

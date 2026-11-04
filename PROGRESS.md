@@ -1438,3 +1438,16 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Hallazgo: el colapso mecánico (364) queda en el mismo orden que el generador anterior (388 componentes) y lejos de los unos 80 del diseño manual. Normalizar literales y números reduce los 755 pasos de las plantillas a 421 formas distintas, tampoco cerca de 80. Esa diferencia no se cierra con colapso: el manual abstrae la validación en joblets y cambia comportamiento (un solo archivo de rechazos con columna motivo, un lookup en caché). Es una decisión de diseño, no una deducción. Lo que el emisor entrega es el diseño por etapas y su tamaño medido; reducirlo a ~80 pide joblets declarados (fase 4) y decisiones del negocio (D2).
 - Pruebas: `tests/unit/test_proceso_colapso.py` (5). `uv run pytest -q`: 771 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
 - Pendiente: joblets por cadena repetida dentro de una etapa; secciones 2, 4, 5, 7 y 8 del documento.
+
+## Hito 59. Reescritura, Fase 5: emisión de Jobs de Talend como `.item`
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - Se revisó el Talend instalado (`docs/plan-reescritura/fase5-talend-instalado.md`): Studio 8.0.1 parche 2026-09 ("Cloud Data Fabric"), sin Job Script ni línea de comandos, con un proyecto Git (`PRJ_BANCOLOMBIA`) y decenas de Jobs reales guardados por ese Studio.
+  - Decisión: escribir directamente los `.item` y `.properties` que guarda Studio (plan B), modelados sobre esos Jobs reales.
+  - `src/sgm/talend_item/` (`base.py` 96 parámetros base, `modelo.py`, `componentes.py` con `tFixedFlowInput` y `tLogRow`, `item.py` con `render_item` y `render_properties`).
+  - `tests/fixtures/talend/hijo_0.1.item`: copia de un Job real de este Studio, con las contraseñas cifradas por defecto vaciadas.
+- Resultado: nodos, conexiones y subjobs del Job emitido son idénticos a los del Job real; los 96 parámetros base coinciden en campo y orden. Hubo un fallo propio (el separador de filas `\n` se escribía como salto real en vez de la secuencia de dos caracteres) que la comparación detectó.
+- Pruebas: `tests/unit/test_talend_item.py` (5). `uv run pytest -q`: 776 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
+- No verificado: ningún Job emitido se abrió en Studio; el `.properties` omite `item_key` y el `.screenshot`; las contraseñas por defecto van vacías. `tFileInputExcel`, `tAggregateRow`, `tUnite` y `tReplicate` no tienen ejemplo en el proyecto.
+- Pendiente: que una persona abra un Job emitido en Studio; añadir componentes con su comparación contra un Job real (`tMap`, `tFileInputDelimited`, `tFileOutputDelimited`, `tRunJob`, `tPrejob`, `tPostjob`, `tDie`, `tHashInput`/`tHashOutput` como caché).
