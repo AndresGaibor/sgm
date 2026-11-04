@@ -30,6 +30,15 @@ class Tabla:
     show: str | None = None
 
 
+@dataclass(frozen=True)
+class Metadata:
+    """Bloque `<metadata>` de un nodo: un conector (FLOW, REJECT, ...) con sus columnas."""
+
+    conector: str
+    nombre: str
+    columnas: tuple[Columna, ...] = ()
+
+
 @dataclass
 class Nodo:
     componente: str  # nombre del componente: tFixedFlowInput, tLogRow, ...
@@ -40,6 +49,10 @@ class Nodo:
     parametros: list[Fila | Tabla] = field(default_factory=list)  # en el orden en que se escriben
     columnas: list[Columna] = field(default_factory=list)
     conector: str = "FLOW"
+    # Si se da, sustituye a `conector` y `columnas`: varios bloques `<metadata>` en orden.
+    metadatas: list[Metadata] | None = None
+    # XML de `<nodeData>` ya escrito (el mapeo de un tMap); vacío si el componente no lo tiene.
+    datos: str = ""
 
 
 @dataclass(frozen=True)
@@ -48,9 +61,12 @@ class Conexion:
     destino: str
     nombre: str = "row1"
     conector: str = "FLOW"
-    estilo: int = (
-        0  # 0 = fila, 1 = OnSubjobOk, 3 = OnComponentOk, 4 = OnSubjobError, 5 = OnComponentError
-    )
+    # lineStyle de Studio, verificado en Jobs reales: 0 fila, 1 OnSubjobOk, 3 OnComponentOk,
+    # 6 Run if, 7 iterar, 13 paralelizar.
+    estilo: int = 0
+    # Parámetros propios de la conexión; si es None se escriben los de una fila.
+    parametros: tuple[Fila, ...] | None = None
+    etiqueta: str = ""  # texto de la línea; si está vacío se usa el nombre
 
 
 @dataclass

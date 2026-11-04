@@ -1,0 +1,43 @@
+{
+ "componente": "tJavaRow",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "MEMO_EDITOR_JAVA",
+   "CODE",
+   "",
+   null
+  ],
+  [
+   "MEMO_EDITOR_IMPORT",
+   "IMPORT",
+   "//import java.util.List;",
+   null
+  ],
+  [
+   "TEXT",
+   "LABEL",
+   "__UNIQUE_NAME__",
+   null
+  ],
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

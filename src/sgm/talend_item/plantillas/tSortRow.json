@@ -1,0 +1,102 @@
+{
+ "componente": "tSortRow",
+ "version": "0.102",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tSortRow",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.102 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "Processing",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "true",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.tSortRow",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "C:\\Talend\\8.0.1\\studio\\configuration\\lib\\java",
+   "false"
+  ],
+  {
+   "tabla": "CRITERIA",
+   "show": null,
+   "celdas": []
+  },
+  [
+   "CHECK",
+   "EXTERNAL",
+   "false",
+   null
+  ],
+  [
+   "DIRECTORY",
+   "TEMPFILE",
+   "\"C:/Talend/8.0.1/studio/workspace/temp\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "CREATEDIR",
+   "true",
+   "false"
+  ],
+  [
+   "TEXT",
+   "EXTERNAL_SORT_BUFFERSIZE",
+   "1000000",
+   "false"
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

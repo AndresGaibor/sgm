@@ -1,0 +1,103 @@
+{
+ "componente": "tHashInput",
+ "version": "0.102",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tHashInput",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.102 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "Technical",
+   "false"
+  ],
+  [
+   "CHECK",
+   "START",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.Hash",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "C:\\Talend\\8.0.1\\studio\\configuration\\lib\\java",
+   "false"
+  ],
+  [
+   "CHECK",
+   "LINK_WITH",
+   "true",
+   null
+  ],
+  [
+   "COMPONENT_LIST",
+   "LIST",
+   "tHashOutput_2",
+   null
+  ],
+  [
+   "FILE",
+   "BASE_FILE_PATH",
+   "\"C:/Talend/8.0.1/studio/workspace/in.hash\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "RELEASE_CACHE",
+   "false",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

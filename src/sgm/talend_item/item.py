@@ -11,7 +11,7 @@ from base64 import urlsafe_b64encode
 from xml.sax.saxutils import escape
 
 from sgm.talend_item.base import PARAMETROS_BASE
-from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
+from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Metadata, Nodo, Tabla
 
 PRODUCTO = "Talend Cloud Data Fabric"
 VERSION_PRODUCTO = "8.0.1.20260925_1301-patch"
@@ -19,13 +19,16 @@ COLOR_SUBJOB = "0;93;185"
 _ENCABEZADO = (
     '<?xml version="1.0" encoding="UTF-8"?>\n'
     '<talendfile:ProcessType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" '
+    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+    'xmlns:TalendMapper="http://www.talend.org/mapper" '
     'xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" '
     'defaultContext="Default" jobType="Standard">\n'
 )
 
 
 def _atributo(valor: str) -> str:
-    return escape(valor, {'"': "&quot;"})
+    """Valor de atributo XML; los saltos y tabuladores se escriben como Studio, con referencias."""
+    return escape(valor, {'"': "&quot;", "\n": "&#10;", "\t": "&#09;", "\r": "&#13;"})
 
 
 def _fila(fila: Fila, sangria: str = "    ") -> str:
@@ -67,26 +70,41 @@ def _nodo(n: Nodo) -> list[str]:
     lineas = [cabecera]
     for p in n.parametros:
         lineas += _tabla(p) if isinstance(p, Tabla) else [_fila(p)]
-    lineas.append(f'    <metadata connector="{n.conector}" name="{n.unico}">')
-    lineas += [_columna(c) for c in n.columnas]
-    lineas += ["    </metadata>", "  </node>"]
+    if n.metadatas is None:
+        bloques = [Metadata(n.conector, n.unico, tuple(n.columnas))]
+    else:
+        bloques = n.metadatas
+    for bloque in bloques:
+        nombre = _atributo(bloque.nombre)
+        lineas.append(f'    <metadata connector="{bloque.conector}" name="{nombre}">')
+        lineas += [_columna(c) for c in bloque.columnas]
+        lineas.append("    </metadata>")
+    if n.datos:
+        lineas.append(n.datos)
+    lineas.append("  </node>")
     return lineas
 
 
 def _conexion(c: Conexion) -> list[str]:
+    if c.parametros is None:
+        filas = [
+            ("CHECK", "MONITOR_CONNECTION", "false", None),
+            ("TEXT", "UNIQUE_NAME", c.nombre, "false"),
+        ]
+    else:
+        filas = list(c.parametros)
     return [
-        f'  <connection connectorName="{c.conector}" label="{_atributo(c.nombre)}" '
+        f'  <connection connectorName="{c.conector}" label="{_atributo(c.etiqueta or c.nombre)}" '
         f'lineStyle="{c.estilo}" metaname="{c.origen}" offsetLabelX="0" offsetLabelY="0" '
         f'source="{c.origen}" target="{c.destino}">',
-        _fila(("CHECK", "MONITOR_CONNECTION", "false", None)),
-        _fila(("TEXT", "UNIQUE_NAME", c.nombre, "false")),
+        *[_fila(f) for f in filas],
         "  </connection>",
     ]
 
 
 def _subjobs(job: Job) -> list[str]:
     """Un subjob por nodo de inicio: los nodos que ninguna conexión de fila alimenta."""
-    alimentados = {c.destino for c in job.conexiones if c.estilo == 0}
+    alimentados = {c.destino for c in job.conexiones if c.estilo in (0, 7)}
     lineas: list[str] = []
     for nodo in job.nodos:
         if nodo.unico in alimentados:

@@ -1,0 +1,91 @@
+{
+ "componente": "tMap",
+ "version": "2.1",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "EXTERNAL",
+   "MAP",
+   "",
+   null
+  ],
+  [
+   "CLOSED_LIST",
+   "LINK_STYLE",
+   "AUTO",
+   null
+  ],
+  [
+   "DIRECTORY",
+   "TEMPORARY_DATA_DIRECTORY",
+   "",
+   null
+  ],
+  [
+   "IMAGE",
+   "PREVIEW",
+   "",
+   null
+  ],
+  [
+   "CHECK",
+   "DIE_ON_ERROR",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "LKUP_PARALLELIZE",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "LEVENSHTEIN",
+   "0",
+   "false"
+  ],
+  [
+   "TEXT",
+   "JACCARD",
+   "0",
+   "false"
+  ],
+  [
+   "CHECK",
+   "ENABLE_AUTO_CONVERT_TYPE",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "ROWS_BUFFER_SIZE",
+   "2000000",
+   null
+  ],
+  [
+   "CHECK",
+   "CHANGE_HASH_AND_EQUALS_FOR_BIGDECIMAL",
+   "true",
+   null
+  ],
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "out1",
+   "columnas": []
+  }
+ ]
+}

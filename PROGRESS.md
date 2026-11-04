@@ -1451,3 +1451,34 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: `tests/unit/test_talend_item.py` (5). `uv run pytest -q`: 776 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
 - No verificado: ningún Job emitido se abrió en Studio; el `.properties` omite `item_key` y el `.screenshot`; las contraseñas por defecto van vacías. `tFileInputExcel`, `tAggregateRow`, `tUnite` y `tReplicate` no tienen ejemplo en el proyecto.
 - Pendiente: que una persona abra un Job emitido en Studio; añadir componentes con su comparación contra un Job real (`tMap`, `tFileInputDelimited`, `tFileOutputDelimited`, `tRunJob`, `tPrejob`, `tPostjob`, `tDie`, `tHashInput`/`tHashOutput` como caché).
+
+## Hito 60. Reescritura, Fase 5: plantillas de componentes, conexiones y validación en Studio
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - Validación contra el Studio real. El usuario autorizó usar el proyecto `C:\Users\USUARIO_BISOLUTION1\code\talend-mcp` como validador externo desde la línea de comandos. Es una excepción puntual a la regla de no usar MCP de `AGENTS.md`; el producto `sgm` no depende de él. Se arrancó su servidor con `bun run start:server` y `TALEND_PROJECT` apuntando a `C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA`. El puente de Studio respondió.
+  - `src/sgm/talend_item/plantillas.py` y `extraccion.py`: plantillas JSON de 16 componentes (tFileInputDelimited, tFileOutputDelimited, tJava, tJavaRow, tRunJob, tPrejob, tPostjob, tFlowToIterate, tDie, tHashInput, tHashOutput, tSortRow, tWarn, tImpalaConnection, tImpalaInput, tImpalaRow) extraídas de Jobs reales con `tools/extraer_plantilla.py`. El extractor vacía contraseñas y datos de entorno (USER, HOST, DBNAME, PORT, URL, FILENAME), neutraliza código, consultas, mensajes, Job hijo y columnas, y regenera las tablas por columna (TRIMSELECT, DECODE_COLS, TRIM_COLUMN) y las columnas del rechazo desde el esquema pedido. Instanciar una plantilla rechaza un parámetro que el componente no tiene.
+  - `src/sgm/talend_item/conexiones.py`: OnSubjobOk (lineStyle 1), OnComponentOk (3), Run if (6) e Iterate (7), con los parámetros de Jobs reales.
+  - Los atributos XML escriben el salto de línea, el tabulador y el retorno como `&#10;`, `&#09;` y `&#13;`, como hace Studio.
+  - `Nodo` admite varios bloques `metadata` y `nodeData`.
+- Resultado de la validación en Studio real:
+  - El Job de dos componentes (tFixedFlowInput a tLogRow) emitido por sgm se cargó, se compiló con build-batch y, exportado como Build Job y ejecutado con el JDK de Studio, imprimió `1|Bogota` y `2|Medellin`.
+  - Un Job de siete nodos (tPrejob, tJava, tFileInputDelimited, tFileOutputDelimited, tJava, tPostjob y tJava, con disparadores) compiló y se ejecutó: imprimió INICIO, FILAS=3 y FIN, y escribió la copia del CSV con cabecera.
+- Hallazgos de la validación:
+  - La primera plantilla de tFileOutputDelimited venía de un Job con USESTREAM=true. Ese Job compilaba, pero al ejecutarlo fallaba con NullPointerException. Solo se vio al ejecutarlo. Se rehízo desde un Job con el modo por defecto. Compilar no basta: hay que ejecutar.
+  - Studio guarda en memoria cada Job por su identificador. Al reemitir el mismo nombre con otro contenido, build-batch regeneró el código con la versión anterior, aunque se hizo refresh del workspace. Con un nombre nuevo funcionó. Los identificadores de sgm son deterministas a partir del nombre y la versión; para revalidar un cambio hay que usar un nombre nuevo.
+  - Un diálogo "Network Issue Occured" de Studio bloquea talend_job_verify y la creación en vivo de Jobs. talend-mcp no sabe cerrarlo y no se tocó. La ruta sin interfaz funciona: escribir el `.item`, build-batch, exportar y ejecutar.
+  - Los Jobs de prueba se borraron del proyecto después de la validación.
+- Pruebas: `tests/unit/test_talend_plantillas.py` (más de 30 casos, con parametrización por plantilla). `uv run pytest -q`: 814 pasan, 1 se salta, 132 xfail. `uv run ruff check .`: limpio.
+- No verificado:
+  - Ningún Job emitido se abrió en el editor gráfico de Studio. Solo se cargaron, compilaron y ejecutaron por la ruta de generación de código.
+  - tMap no está emitido.
+  - tFileInputExcel, tAggregateRow, tUnite y tReplicate no tienen ejemplo en el proyecto.
+  - Los valores de rutas de trabajo de Studio en las plantillas (TEMP_DIR, BASE_FILE_PATH) vienen del Job de origen.
+  - Las plantillas de Impala traen USE_EXISTING_CONNECTION=true, y su CONNECTION no está regenerada.
+- Pendiente:
+  - tMap con nodeData.
+  - Conectar el modelo de proceso con el emisor.
+  - Plantillas de componentes sin ejemplo, creándolos en Studio.
+- `tMap` (mismo hito): `src/sgm/talend_item/tmap.py` (`EntradaMap`, `SalidaMap`, `tmap()`) con plantilla `tMap.json` y el `nodeData` generado; el encabezado del `.item` declara `xmlns:xsi` y `xmlns:TalendMapper`. Validado en Studio real: tFixedFlowInput a tMap (`row1.id * 2`, `row1.nombre.toUpperCase()`) a tLogRow compiló y ejecutó e imprimió `2|ANA`, `4|LUIS`, `6|MARIA`. Pruebas finales: 821 pasan, 1 se salta, 132 xfail; `ruff check .` limpio.
+- `tMap` sin verificar: solo hay un ejemplo real por tipo; lookups con varias entradas, filtros y el orden de varias entradas o salidas en `nodeData` no están verificados (`tmap()` solo escribe lo visto en Jobs reales).

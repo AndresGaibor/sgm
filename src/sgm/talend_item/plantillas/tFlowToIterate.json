@@ -1,0 +1,42 @@
+{
+ "componente": "tFlowToIterate",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "CHECK",
+   "DEFAULT_MAP",
+   "true",
+   null
+  ],
+  {
+   "tabla": "MAP",
+   "show": "false",
+   "celdas": []
+  },
+  [
+   "TEXT",
+   "LABEL",
+   "__UNIQUE_NAME__",
+   null
+  ],
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

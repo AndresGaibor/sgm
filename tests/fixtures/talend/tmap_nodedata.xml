@@ -1,0 +1,22 @@
+    <nodeData xsi:type="TalendMapper:MapperData">
+      <uiProperties shellMaximized="true"/>
+      <varTables sizeState="INTERMEDIATE" name="Var" minimized="true"/>
+      <outputTables sizeState="INTERMEDIATE" name="out1">
+        <mapperTableEntries name="id" expression="row1.id " type="id_Integer"/>
+        <mapperTableEntries name="nombre" expression="row1.nombre " type="id_String"/>
+        <mapperTableEntries name="apellido" expression="row1.apellido " type="id_String"/>
+        <mapperTableEntries name="ciudad" expression="row1.ciudad " type="id_String" nullable="true"/>
+        <mapperTableEntries name="edad" expression="row1.edad " type="id_Integer" nullable="true"/>
+        <mapperTableEntries name="salario" expression="row1.salario " type="id_BigDecimal" nullable="true"/>
+        <mapperTableEntries name="fecha_registro" expression="row1.fecha_registro " type="id_Date" nullable="true"/>
+      </outputTables>
+      <inputTables sizeState="INTERMEDIATE" name="row1" matchingMode="UNIQUE_MATCH" lookupMode="LOAD_ONCE">
+        <mapperTableEntries name="id" type="id_Integer"/>
+        <mapperTableEntries name="nombre" type="id_String"/>
+        <mapperTableEntries name="apellido" type="id_String"/>
+        <mapperTableEntries name="ciudad" type="id_String" nullable="true"/>
+        <mapperTableEntries name="edad" type="id_Integer" nullable="true"/>
+        <mapperTableEntries name="salario" type="id_BigDecimal" nullable="true"/>
+        <mapperTableEntries name="fecha_registro" type="id_Date" nullable="true"/>
+      </inputTables>
+    </nodeData>

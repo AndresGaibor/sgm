@@ -1,0 +1,55 @@
+{
+ "componente": "tDie",
+ "version": "0.102",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "CHECK",
+   "ACTIVATE",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "MESSAGE",
+   "\"\"",
+   null
+  ],
+  [
+   "TEXT",
+   "CODE",
+   "",
+   null
+  ],
+  [
+   "CLOSED_LIST",
+   "PRIORITY",
+   "5",
+   null
+  ],
+  [
+   "CHECK",
+   "EXIT_JVM",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

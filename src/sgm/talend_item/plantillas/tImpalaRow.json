@@ -1,0 +1,224 @@
+{
+ "componente": "tImpalaRow",
+ "version": "0.102",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "TYPE",
+   "Hive",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_EXISTING_CONNECTION",
+   "true",
+   null
+  ],
+  [
+   "COMPONENT_LIST",
+   "CONNECTION",
+   "tImpalaConnection_1",
+   null
+  ],
+  [
+   "CLOSED_LIST",
+   "IMPALA_DRIVER",
+   "HIVE2",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HOST",
+   "",
+   "false"
+  ],
+  [
+   "TEXT",
+   "PORT",
+   "",
+   "false"
+  ],
+  [
+   "TEXT",
+   "DBNAME",
+   "",
+   "false"
+  ],
+  [
+   "TEXT",
+   "IMPALA_ADDITIONAL_JDBC",
+   "\"\"",
+   null
+  ],
+  [
+   "TEXT",
+   "USER",
+   "",
+   "false"
+  ],
+  [
+   "PASSWORD",
+   "PASS",
+   "",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_KRB",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "IMPALA_PRINCIPAL",
+   "\"impala/_HOST@EXAMPLE.COM\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_KEYTAB",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "PRINCIPAL",
+   "\"hive\"",
+   "false"
+  ],
+  [
+   "FILE",
+   "KEYTAB_PATH",
+   "\"/tmp/hive.keytab\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_SSL",
+   "false",
+   "false"
+  ],
+  [
+   "FILE",
+   "SSL_TRUST_STORE",
+   "\"/home/usr1/ssl/trust_store.jks\"",
+   "false"
+  ],
+  [
+   "PASSWORD",
+   "SSL_TRUST_STORE_PASSWORD",
+   "",
+   "false"
+  ],
+  [
+   "DBTABLE",
+   "TABLE",
+   "\"\"",
+   null
+  ],
+  [
+   "QUERYSTORE_TYPE",
+   "QUERYSTORE",
+   "\"\"",
+   null
+  ],
+  [
+   "TECHNICAL",
+   "QUERYSTORE:REPOSITORY_QUERYSTORE_TYPE",
+   "",
+   "false"
+  ],
+  [
+   "TECHNICAL",
+   "QUERYSTORE:QUERYSTORE_TYPE",
+   "BUILT_IN",
+   null
+  ],
+  [
+   "MEMO_SQL",
+   "QUERY",
+   "\"\"",
+   null
+  ],
+  [
+   "CHECK",
+   "DIE_ON_ERROR",
+   "true",
+   null
+  ],
+  [
+   "CHECK",
+   "PROPAGATE_RECORD_SET",
+   "false",
+   null
+  ],
+  [
+   "COLUMN_LIST",
+   "RECORD_SET_COLUMN",
+   "",
+   "false"
+  ],
+  [
+   "ENCODING_TYPE",
+   "ENCODING",
+   "\"ISO-8859-15\"",
+   "false"
+  ],
+  [
+   "TECHNICAL",
+   "ENCODING:ENCODING_TYPE",
+   "ISO-8859-15",
+   null
+  ],
+  [
+   "TEXT",
+   "LABEL",
+   "__UNIQUE_NAME__",
+   null
+  ],
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  },
+  {
+   "conector": "REJECT",
+   "nombre": "REJECT",
+   "refleja_flow": true,
+   "columnas": [
+    {
+     "nombre": "errorCode",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": 255,
+     "precision": 0,
+     "patron": ""
+    },
+    {
+     "nombre": "errorMessage",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": 255,
+     "precision": 0,
+     "patron": ""
+    }
+   ]
+  }
+ ]
+}

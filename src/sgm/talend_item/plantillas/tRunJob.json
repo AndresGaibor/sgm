@@ -1,0 +1,167 @@
+{
+ "componente": "tRunJob",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_DYNAMIC_JOB",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "CONTEXT_JOB",
+   "",
+   "false"
+  ],
+  [
+   "PROCESS_TYPE",
+   "PROCESS",
+   "",
+   null
+  ],
+  [
+   "TECHNICAL",
+   "PROCESS:PROCESS_TYPE_CONTEXT",
+   "Default",
+   null
+  ],
+  [
+   "TECHNICAL",
+   "PROCESS:PROCESS_TYPE_PROCESS",
+   "",
+   null
+  ],
+  [
+   "TECHNICAL",
+   "PROCESS:PROCESS_TYPE_VERSION",
+   "Latest",
+   null
+  ],
+  [
+   "TEXT",
+   "CONTEXT_NAME",
+   "Default",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_INDEPENDENT_PROCESS",
+   "false",
+   null
+  ],
+  [
+   "CHECK",
+   "DIE_ON_CHILD_ERROR",
+   "true",
+   null
+  ],
+  [
+   "CHECK",
+   "TRANSMIT_WHOLE_CONTEXT",
+   "false",
+   null
+  ],
+  {
+   "tabla": "CONTEXTPARAMS",
+   "show": null,
+   "celdas": []
+  },
+  [
+   "CHECK",
+   "PROPAGATE_CHILD_RESULT",
+   "false",
+   null
+  ],
+  [
+   "CHECK",
+   "PRINT_PARAMETER",
+   "false",
+   null
+  ],
+  [
+   "CHECK",
+   "TRANSMIT_ORIGINAL_CONTEXT",
+   "true",
+   "false"
+  ],
+  [
+   "RADIO",
+   "USE_CHILD_JVM_SETTING",
+   "true",
+   "false"
+  ],
+  [
+   "RADIO",
+   "USE_CUSTOM_JVM_SETTING",
+   "false",
+   "false"
+  ],
+  {
+   "tabla": "JVM_ARGUMENTS",
+   "show": "false",
+   "celdas": []
+  },
+  [
+   "CHECK",
+   "USE_DYNAMIC_CONTEXT",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "DYNAMIC_CONTEXT",
+   "\"\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_EXTRA_CLASSPATH",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "EXTRA_CLASSPATH",
+   "\"\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "LOAD_CONTEXT_FROM_FILE",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_BASE64",
+   "true",
+   null
+  ],
+  [
+   "TEXT",
+   "LABEL",
+   "__UNIQUE_NAME__",
+   null
+  ],
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

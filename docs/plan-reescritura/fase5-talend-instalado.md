@@ -33,22 +33,41 @@ Motivos:
 (copia de un Job real de este Studio, sin contraseñas ni rutas locales): **son idénticos**. Los 96
 parámetros base coinciden en campo y orden.
 
-## Qué no se ha verificado
+## Validación en Studio real
 
-- **Nunca se abrió un Job emitido en Studio.** Esta sesión no puede abrir Studio. Un Job emitido que
-  Studio rechace o "repare" al abrir es un riesgo real. Antes de seguir añadiendo componentes, una
-  persona debe abrir un Job emitido (ver abajo).
-- El `.properties` omite `item_key` (hash que Studio escribe; no se sabe cómo se calcula) y el
-  `.screenshot`. Studio probablemente los regenera, pero no se comprobó.
-- Las contraseñas por defecto del Job se emiten vacías (Studio guarda un valor cifrado).
-- Solo hay dos componentes con ejemplo real comparado. Para los demás (`tMap`, `tFileInputExcel`,
-  `tAggregateRow`, `tUnite`, `tReplicate`, `tRunJob`...) hay que copiar sus parámetros de un Job real
-  y añadirlos con su prueba. `tFileInputExcel`, `tAggregateRow`, `tUnite` y `tReplicate` no tienen
-  ejemplo en el proyecto: habría que crear uno en Studio y copiarlo.
+Procedimiento para repetir la validación con el Studio instalado (hito 60). Se usa el proyecto
+`talend-mcp` solo como validador externo desde la línea de comandos, con permiso del usuario. `AGENTS.md`
+prohíbe MCP dentro de `sgm`, y el producto no depende de él.
 
-## Cómo comprobarlo a mano
+1. Arrancar el servidor de talend-mcp con el proyecto de Studio:
+   `TALEND_PROJECT=C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA bun run start:server`.
+   Dejarlo corriendo.
+2. Emitir el `.item` y el `.properties` del Job en `PRJ_BANCOLOMBIA/process/` con un nombre nuevo
+   (ver hallazgo 2).
+3. Refrescar el workspace: `bun run scripts/mcp-call.ts talend_bridge_refresh_workspace '{}'`.
+4. Compilar con `talend_job_build_batch` y `{"jobs":["NOMBRE"]}`, con el mismo `scripts/mcp-call.ts` del paso 3.
+5. Exportar con `talend_deliverables_build_job` y `{"jobName":"NOMBRE","destinationDir":"<carpeta>"}`.
+6. Ejecutar el `.bat` del launcher con el `java` del JDK de Studio en el PATH
+   (`C:\Talend\8.0.1\zulu21.50.19-ca-jdk21.0.11-win_x64\bin`). La salida debe coincidir con lo esperado.
+7. Borrar los dos archivos del proyecto (`.item` y `.properties`).
 
-1. Generar un Job con `sgm.talend_item` (por ahora desde Python: ver la prueba).
-2. Copiar `<nombre>/<nombre>_0.1.item` y `.properties` a `PRJ_BANCOLOMBIA/process/<carpeta>/`.
-3. En Studio: clic derecho en Repository, "Refresh"; abrir el Job y ejecutarlo.
-4. Anotar si Studio lo abre sin errores y qué cambia al guardarlo (comparar el `.item` guardado).
+### Hallazgos
+
+1. Compilar no basta. Una plantilla de tFileOutputDelimited con USESTREAM=true compilaba y fallaba al
+   ejecutar con NullPointerException. Por eso la validación incluye ejecutar el Job.
+2. Studio guarda en memoria cada Job por su identificador. Al reemitir el mismo nombre con otro contenido,
+   build-batch regeneró el código con la versión anterior, aunque se hizo refresh del workspace. Los
+   identificadores de sgm son deterministas a partir del nombre y la versión, así que para revalidar un
+   cambio hay que usar un nombre nuevo.
+3. Un diálogo "Network Issue Occured" de Studio bloquea `talend_job_verify` y la creación en vivo de Jobs.
+   talend-mcp no sabe cerrarlo. La ruta sin interfaz (escribir el `.item`, build-batch, exportar y ejecutar)
+   sí funciona.
+
+### Lo que sigue sin verificar
+
+- Ningún Job emitido se ha abierto en el editor gráfico de Studio. Solo se cargaron, compilaron y ejecutaron
+  por la ruta de generación de código.
+- tMap no está emitido todavía.
+- `tFileInputExcel`, `tAggregateRow`, `tUnite` y `tReplicate` no tienen ejemplo en el proyecto.
+- Los valores de rutas de trabajo de Studio en las plantillas (TEMP_DIR, BASE_FILE_PATH) vienen del Job de origen.
+- Las plantillas de Impala traen USE_EXISTING_CONNECTION=true y su CONNECTION no está regenerada.

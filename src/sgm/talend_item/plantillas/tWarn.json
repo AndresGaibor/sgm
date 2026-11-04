@@ -1,0 +1,43 @@
+{
+ "componente": "tWarn",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "MESSAGE",
+   "\"\"",
+   null
+  ],
+  [
+   "TEXT",
+   "CODE",
+   "",
+   null
+  ],
+  [
+   "CLOSED_LIST",
+   "PRIORITY",
+   "4",
+   null
+  ],
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

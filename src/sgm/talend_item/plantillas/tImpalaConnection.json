@@ -1,0 +1,125 @@
+{
+ "componente": "tImpalaConnection",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "TYPE",
+   "Hive",
+   "false"
+  ],
+  [
+   "CLOSED_LIST",
+   "IMPALA_DRIVER",
+   "HIVE2",
+   null
+  ],
+  [
+   "TEXT",
+   "HOST",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "PORT",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "DBNAME",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "IMPALA_ADDITIONAL_JDBC",
+   "\"\"",
+   null
+  ],
+  [
+   "TEXT",
+   "USER",
+   "",
+   null
+  ],
+  [
+   "PASSWORD",
+   "PASS",
+   "",
+   null
+  ],
+  [
+   "CHECK",
+   "USE_KRB",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "IMPALA_PRINCIPAL",
+   "\"impala/_HOST@EXAMPLE.COM\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_KEYTAB",
+   "true",
+   "false"
+  ],
+  [
+   "TEXT",
+   "PRINCIPAL",
+   "\"hive\"",
+   "false"
+  ],
+  [
+   "FILE",
+   "KEYTAB_PATH",
+   "\"/tmp/hive.keytab\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "USE_SSL",
+   "false",
+   null
+  ],
+  [
+   "FILE",
+   "SSL_TRUST_STORE",
+   "\"/home/usr1/ssl/trust_store.jks\"",
+   "false"
+  ],
+  [
+   "PASSWORD",
+   "SSL_TRUST_STORE_PASSWORD",
+   "",
+   "false"
+  ],
+  {
+   "tabla": "HADOOP_ADVANCED_PROPERTIES",
+   "show": null,
+   "celdas": []
+  },
+  {
+   "tabla": "ADVANCED_PROPERTIES",
+   "show": null,
+   "celdas": []
+  },
+  [
+   "TEXT",
+   "CONNECTION_FORMAT",
+   "row",
+   null
+  ]
+ ],
+ "metadatas": []
+}
