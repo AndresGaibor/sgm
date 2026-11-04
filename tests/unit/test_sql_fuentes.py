@@ -186,3 +186,19 @@ def test_pass_through_no_aporta_tablas_de_sas():
 def test_sentencias_completas_usan_la_extraccion(sentencia, esperado):
     st = parse_sql_statement(sentencia, 1)
     assert st.sources == esperado
+
+
+def test_columnas_separadas_por_coma_en_subconsulta_de_join_no_son_tablas():
+    sql = "select a.x from t a left join (select num_doc, llave from m) b on a.k = b.llave"
+    assert extract_sources(sql) == ("t", "m")
+
+
+def test_columnas_separadas_por_coma_en_subconsulta_de_from_no_son_tablas():
+    assert extract_sources("select * from (select c1, c2 from base) z") == ("base",)
+
+
+def test_pass_through_expone_las_tablas_del_motor_como_lecturas():
+    sentencia = "create table w.t as select * from connection to impala (select a, b from esq.tabla)"
+    st = parse_sql_statement(sentencia, 1)
+    assert st.kind == "select_passthrough"
+    assert st.sources == ("esq.tabla",)

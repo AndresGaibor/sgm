@@ -1353,3 +1353,18 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - 3 entradas `WORK` sin escritor previo y 3 nombres con macrovariable sin resolver (`&tabla_origen.`).
   - `sql_tree` falla con subconsultas en FROM (no es parte de la extracción de fuentes).
 - Decisiones: `call` conserva su significado (más interna) para no mover plantillas ni goldens; la región usa el campo nuevo `outer_call`. El marcador de región vive en el YAML de decisiones, no en el código.
+
+## Hito 52. Reescritura, Fase 2: familias de regiones por producto
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - `frontend/sql.py`: un pass-through (`select ... from connection to <motor> (...)`) ahora expone como lecturas las tablas de su SQL interno. Con eso aparecen en el grafo las tablas de la base que el programa consulta.
+  - `frontend/sql_fuentes.py`: arreglo de un fallo propio: la lista de columnas de una subconsulta en `join (select a, b from t)` se leía como lista de tablas.
+  - `proceso/familias.py` (nuevo): normaliza regiones (sin comentarios, minúsculas, sufijo de producto como `{P}`), detecta familias por parecido de líneas (umbral 0,85) y lista las diferencias entre miembros. `tools/familias_regiones.py` lo aplica a un programa.
+- Resultado en `client_large.sas` (detalle en `docs/plan-reescritura/fase2-familias.md`): 7 familias; 6 son pares aho/cte (parecido 0,89 a 0,997); la 7.ª agrupa 10 regiones que persisten una tabla WORK a la base. Nequi no tiene copias; las tres regiones grandes quedan solas.
+- Pruebas: `tests/unit/test_proceso_familias.py` (9), tres más en `test_sql_fuentes.py`.
+- Pendiente, con motivo:
+  - Nequi sin copias contradice la premisa D6 del diseño manual; sigue como decisión humana (P6).
+  - Falta el modelo de proceso (entradas, salidas, etapas, parámetros por familia) y el emisor del documento de ocho secciones.
+  - Las entradas de la base que son tablas intermedias del propio programa (persistencias) aún aparecen como entradas externas.
+- Decisiones: los sufijos de producto salen del YAML; el módulo no tiene nombres del cliente. El umbral es un parámetro.

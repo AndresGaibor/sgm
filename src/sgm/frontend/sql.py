@@ -32,7 +32,7 @@ class SqlStatement:
     line: int
     target: str | None = None  # tabla que se crea, inserta, borra o elimina
     engine: str | None = None  # motor de un pass-through, conexión o ejecución
-    sources: tuple[str, ...] = ()  # tablas que lee la sentencia (FROM y JOIN, sin el pass-through)
+    sources: tuple[str, ...] = ()  # tablas que lee la sentencia (FROM y JOIN; en un pass-through, las del motor)
     inner_sql: str | None = None  # SQL del pass-through o de execute, intacto
     fields: dict[str, str] = field(default_factory=dict)
 
@@ -54,6 +54,7 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
                 target=target,
                 engine=pt.group(1),
                 inner_sql=pt.group(2).strip(),
+                sources=extract_sources(pt.group(2)),
                 fields={"query": query},
             )
         return SqlStatement(
@@ -68,6 +69,7 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
                 body,
                 line,
                 engine=pt.group(1),
+                sources=extract_sources(pt.group(2)),
                 inner_sql=pt.group(2).strip(),
             )
         return SqlStatement("select", body, line, sources=extract_sources(body))

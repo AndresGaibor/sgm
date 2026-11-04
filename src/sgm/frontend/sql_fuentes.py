@@ -140,7 +140,7 @@ def _recorrer(grupo: _Grupo, acc: _Acumulador, esperar: bool = False, en_funcion
                 _recorrer(h, acc, en_funcion=h.funcion)
         return
 
-    en_from = esperar
+    en_from = False  # la lista de columnas de una subconsulta no es una lista de tablas
     espera = esperar
     i = 0
     while i < len(hijos):
