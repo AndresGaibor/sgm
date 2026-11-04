@@ -5,9 +5,9 @@ programa: client_large.sas
 region_marcador: "%macro ambiente"
 productos:
   - nombre: cte
-    sufijos: [CTE]
+    sufijos: [CTE, CORRIENTE]
   - nombre: aho
-    sufijos: [AHO]
+    sufijos: [AHO, AHORROS]
   - nombre: nequi
     sufijos: [NEQUI]
 sin_producto: pendiente   # regiones sin sufijo: se listan, no se adivinan

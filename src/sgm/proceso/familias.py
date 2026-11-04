@@ -51,7 +51,7 @@ class ResultadoFamilias:
     unicas: tuple[int, ...]  # regiones sin copia
 
 
-def _patron_sufijos(sufijos: list[str]) -> re.Pattern[str] | None:
+def patron_sufijos(sufijos: list[str]) -> re.Pattern[str] | None:
     if not sufijos:
         return None
     alternativas = "|".join(re.escape(s) for s in sorted(sufijos, key=len, reverse=True))
@@ -60,7 +60,7 @@ def _patron_sufijos(sufijos: list[str]) -> re.Pattern[str] | None:
 
 def normalizar_region(texto: str, sufijos: list[str]) -> list[str]:
     """Líneas de la región sin comentarios de bloque, en minúsculas y con el sufijo sustituido."""
-    patron = _patron_sufijos(sufijos)
+    patron = patron_sufijos(sufijos)
     sin_comentarios = _COMENTARIO.sub(" ", texto)
     lineas: list[str] = []
     for cruda in sin_comentarios.split("\n"):
@@ -77,7 +77,7 @@ def producto_de_texto(texto: str, productos: dict[str, tuple[str, ...]]) -> str 
     """Producto con más apariciones de su sufijo en el texto; el empate o la ausencia dan None."""
     cuenta: Counter[str] = Counter()
     for nombre, sufijos in productos.items():
-        patron = _patron_sufijos(list(sufijos))
+        patron = patron_sufijos(list(sufijos))
         if patron:
             cuenta[nombre] = len(patron.findall(texto))
     if not cuenta:

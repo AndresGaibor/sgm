@@ -1368,3 +1368,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - Falta el modelo de proceso (entradas, salidas, etapas, parámetros por familia) y el emisor del documento de ocho secciones.
   - Las entradas de la base que son tablas intermedias del propio programa (persistencias) aún aparecen como entradas externas.
 - Decisiones: los sufijos de producto salen del YAML; el módulo no tiene nombres del cliente. El umbral es un parámetro.
+
+## Hito 53. Reescritura, Fase 2: fuentes, persistencias y plantillas de salida
+
+- Fecha: 2026-11-04
+- Qué se hizo: `proceso/entradas_salidas.py` reparte las entradas externas del linaje en fuentes (Excel, CSV, tabla de base), persistencias propias (tabla de la base cuyo nombre coincide con un WORK que el programa escribe: el diseño la elimina) y pendientes con motivo (macrovariable, `_all_`, WORK que se lee antes de crearse). Agrupa las salidas de archivo por plantilla con el producto como `{P}`.
+- Medición en `client_large.sas`: de 40 entradas externas quedan 12 fuentes (5 Excel, 4 CSV y 3 tablas de base: las 5 Excel y las 3 tablas coinciden en número con el diseño manual), 22 persistencias propias descartadas y 6 pendientes. Las 22 salidas de archivo pasan a 16 plantillas.
+- Decisión del YAML `decisiones/client_large.agrupacion.yaml`: se declaran `AHORROS` y `CORRIENTE` como palabras de producto. Con eso las salidas `*_AHORROS`/`*_CORRIENTE` casan con las de `AHO`/`CTE`. Es una declaración del equipo, no un hecho del SAS.
+- Pruebas: `tests/unit/test_proceso_entradas_salidas.py` (4). `uv run pytest -q`: 731 pasan, 1 se salta, 146 xfail. `ruff check .`: limpio.
+- Pendiente, con motivo:
+  - Las 16 plantillas no equivalen aún a las 5 familias de salida del diseño (sábana válida, rechazados, totales, conciliación, log): esa agrupación semántica es decisión humana o va en el YAML.
+  - 3 WORK que se leen antes de crearse (`SABANA_SIN_*`): no se investigó cómo se crean (probablemente macro dinámica).
+  - Las 4 CSV de entrada no coinciden con las tablas Impala del diseño; no se afirma que sean las mismas fuentes.
