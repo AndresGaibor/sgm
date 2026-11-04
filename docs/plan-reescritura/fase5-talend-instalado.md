@@ -74,12 +74,13 @@ prohíbe MCP dentro de `sgm`, y el producto no depende de él.
 
 ## Jobs del diseño
 
-- El comando `sgm talend <programa.sas>` escribe los cinco Jobs en `<out>/<programa>/talend/process/`.
+- El comando `sgm talend <programa.sas>` escribe los cuatro Jobs (padre y tres hijos) en `<out>/<programa>/talend/process/`.
 - Intervienen tres YAML de decisiones: `decisiones/client_large.agrupacion.yaml` (productos CTE, AHO y NEQUI),
   `decisiones/client_large.jobs.yaml` (arquitectura: proyecto, entornos, nombres de Jobs y mensaje final) y
   `decisiones/client_large.diseno.yaml` (diseño del proceso).
-- Hoy sale el Job padre completo, con tPrejob, tDie condicionado, llamadas a insumos, productos por iteración,
-  totales, conciliación y tPostjob. Los cuatro hijos son esqueletos (`tJava`) que dicen qué les falta.
+- Hoy sale el Job padre completo, con tPrejob, tDie condicionado, periodo leído del Excel de fecha, productos por
+  iteración, totales, conciliación y tPostjob. Los tres hijos (producto, totales y conciliación) son esqueletos
+  (`tJava`) que declaran las variables del periodo y dicen qué les falta.
 - Validado en Studio real (hito 61): los cinco Jobs compilan. El padre con `--context=DEV` corre insumos una
   vez, producto tres veces (CTE, AHO, NEQUI), totales y conciliación, con salida 0. Con el entorno vacío,
   el Prejob marca `env_valido=false`, el tDie termina la ejecución y ningún hijo corre (salida 1).
@@ -89,3 +90,21 @@ prohíbe MCP dentro de `sgm`, y el producto no depende de él.
   3. Solo se vacía el CODE de campos Java; vaciar el código numérico de tDie y tWarn rompe la compilación.
   4. tPrejob que lanza una excepción no detiene el flujo: hace falta tDie con EXIT_JVM.
   5. build-batch compila en paralelo: compilar primero los hijos y después el padre.
+
+## Diseño simple, sin caché
+
+- Decisión: se eliminó `job_insumos` y el caché compartido entre Jobs. Lo pidió el usuario ("que sea simple").
+  Los Excel pequeños se leen como lookup dentro del `tMap` de `job_producto`. El Job padre lee la fecha una vez
+  y la deja en `context.periodo_anio`, `periodo_mes` y `periodo_dia`, que los hijos heredan.
+- Motivo probado en Studio 8.0.1: `tHashOutput` y `tHashInput` no comparten datos entre Jobs distintos con ninguna
+  configuración. La clave del buffer incluye el nombre del Job y un pid aleatorio, el LIST de `tHashInput` solo ve
+  los `tHashOutput` del mismo Job, y el modo PERSISTENT está comentado. Por eso se descartó `tCacheIn` con `tRunJob`.
+- Alternativa descartada: una rutina Java con mapa estático. Studio no carga rutinas nuevas sin reiniciar y no hay un
+  `.item` de rutina real que copiar, así que no se validó.
+- Cómo validar un Job con Excel:
+  1. Generar los insumos simulados con `tools/simular_insumos.py`.
+  2. Emitir los Jobs con `sgm talend` (cuatro Jobs) y compilarlos.
+  3. Exportar el Build Job y ejecutar su lanzador. No usar `talend_job_execute`: desde Studio no se cargan los archivos de contexto.
+- Si la exportación falla por poms de Maven (`logging-parent` 11.3.0, `log4j-bom` 2.24.2 y 2.24.3), bajar esos poms
+  públicos a la caché de Studio con un script temporal fuera del repositorio.
+- `PASSWORD` de `tFileInputExcel` no puede quedar vacío ni con `***`. Ver hallazgo 1 del hito 62 en `PROGRESS.md`.

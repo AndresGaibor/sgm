@@ -14,9 +14,22 @@ import typer
 
 from sgm.agrupacion import cargar_declaracion
 from sgm.cli_proceso import _decision
+from sgm.proceso.insumos import InsumosResueltos, resolver_insumos
+from sgm.proceso.secciones_entrada import cargar_declaradas
 from sgm.talend_item.arquitectura import cargar_arquitectura
 from sgm.talend_item.escritura import escribir_job
 from sgm.talend_item.jobs_diseno import ProductoJob, job_padre, jobs_hijos
+from sgm.talend_item.periodo import contextos_de_periodo, nodos_periodo
+
+
+def _descripcion_lookups(arq, resueltos: InsumosResueltos) -> str:
+    """Los Excel que `job_producto` usará como lookup, con las columnas que el SAS les usa."""
+    partes = []
+    for clave in arq.lookups:
+        insumo = resueltos.insumos.get(clave)
+        if insumo:
+            partes.append(f"{insumo.archivo} ({', '.join(insumo.columnas) or 'sin columnas'})")
+    return f". Lookups: {'; '.join(partes)}" if partes else ""
 
 
 def talend_command(
@@ -28,6 +41,9 @@ def talend_command(
     jobs_yaml: Annotated[
         Path | None, typer.Option("--jobs", help="YAML con la arquitectura de Jobs.")
     ] = None,
+    diseno: Annotated[
+        Path | None, typer.Option("--diseno", help="YAML con las fuentes declaradas.")
+    ] = None,
 ) -> None:
     """Escribe en `<out>/<programa>/talend/process/` los Jobs del diseño."""
     if not source.is_file():
@@ -35,10 +51,23 @@ def talend_command(
     declaracion = cargar_declaracion(_decision(agrupacion, source, "agrupacion"))
     arq = cargar_arquitectura(_decision(jobs_yaml, source, "jobs"))
     productos = [ProductoJob(p, "", p) for p in declaracion.productos]
+    texto = source.read_text(encoding="utf-8", errors="replace")
+    declaradas = cargar_declaradas(_decision(diseno, source, "diseno"), "fuentes")
+    claves = [*arq.lookups, *([arq.periodo.fuente] if arq.periodo else [])]
+    resueltos = resolver_insumos(texto, declaradas, claves)
+    padre = job_padre(
+        arq,
+        productos,
+        periodo=nodos_periodo(arq, resueltos),
+        contextos_periodo=contextos_de_periodo(arq, resueltos),
+    )
+    variables = tuple(v for _, v in arq.periodo.variables) if arq.periodo else ()
+    jobs = [padre, *jobs_hijos(arq, variables, _descripcion_lookups(arq, resueltos))]
     destino = out / source.stem / "talend" / "process"
-    jobs = [job_padre(arq, productos), *jobs_hijos(arq)]
     escritos = [escribir_job(job, destino) for job in jobs]
     for item, _ in escritos:
         typer.echo(str(item))
     typer.echo(f"{len(escritos)} Jobs escritos.")
     typer.echo(f"Pendiente: tabla de origen de {len(productos)} productos (no está en el SAS).")
+    for pendiente in resueltos.pendientes:
+        typer.echo(f"Pendiente: {pendiente}")

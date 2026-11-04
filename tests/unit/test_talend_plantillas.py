@@ -49,7 +49,7 @@ def test_la_extraccion_neutraliza_lo_que_es_del_job_de_origen():
     plantilla = plantilla_desde_nodo(ET.fromstring(NODO_REAL))
     valores = _valores(plantilla)
     assert valores["UNIQUE_NAME"] == UNICO
-    assert valores["PASSWORD"] == ""
+    assert valores["PASSWORD"] == ""  # nunca el secreto
     assert valores["HOST"] == ""
     assert valores["CODE"] == ""
     assert valores["LABEL"] == "__UNIQUE_NAME__"
@@ -81,7 +81,9 @@ def test_ninguna_plantilla_guarda_contrasenas_ni_datos_de_otro_job(componente):
         if isinstance(fila, dict):
             continue
         campo, nombre, valor, _ = fila
-        if campo == "PASSWORD" or nombre in {"USER", "HOST", "DBNAME", "FILENAME"}:
+        if campo == "PASSWORD":
+            assert not valor, f"{componente}.{nombre} trae un valor"
+        if nombre in {"USER", "HOST", "DBNAME", "FILENAME"}:
             assert not valor, f"{componente}.{nombre} trae un valor"
         assert nombre != "ACTIVATE", f"{componente} viene de un componente desactivado"
         if nombre in {"QUERY", "MESSAGE", "PROCESS"} or campo == "MEMO_EDITOR_JAVA":

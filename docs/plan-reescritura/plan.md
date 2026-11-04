@@ -33,7 +33,7 @@ Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca
 | 2 | Modelo de proceso | **En curso** (hitos 52 a 54) | `fase2-familias.md`, `src/sgm/proceso/` |
 | 3 | Emisor del documento de diseño | **En curso** (hitos 55 y 56): secciones 1.1, 1.4 y 6 | `proceso/diseno_doc.py` |
 | 4 | Joblets por sub-cadena compartida | Sin empezar | |
-| 5 | Emisión de Jobs de Talend | **Empezada** (hitos 59 a 61): Jobs del diseño generados desde el modelo y validados ejecutando en Studio real; padre completo, hijos esqueleto | `fase5-talend-instalado.md`, `src/sgm/talend_item/` |
+| 5 | Emisión de Jobs de Talend | **Empezada** (hitos 59 a 63): Jobs del diseño generados desde el modelo y validados ejecutando en Studio real; padre completo con periodo, hijos esqueleto, sin caché (desviación del diseño manual por el límite probado de tHash entre Jobs) | `fase5-talend-instalado.md`, `src/sgm/talend_item/` |
 | 6 | Segundo programa e informe de complejidad | Sin empezar | |
 
 ### Lo que cambió respecto al plan original
@@ -67,7 +67,7 @@ Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca
   declarado.
 - **Fase 4.** Cadenas repetidas entre etapas se vuelven joblets con parámetros. Meta del manual: unos 6
   joblets y 80 a 100 componentes.
-- **Fase 5.** Empezada (hitos 59 a 61): los Jobs se emiten como `.item`, y el Job padre del diseño se genera desde el modelo y se ejecuta en Studio real; los hijos son esqueletos. Faltan traducir los hijos y la lógica de producto (lectura de insumos, validación, totales y conciliación), y tMap. Procedimiento en `fase5-talend-instalado.md`.
+- **Fase 5.** Empezada (hitos 59 a 63): los Jobs se emiten como `.item` y se validan ejecutándolos en Studio real. El Job padre del diseño sale del modelo, con la fecha del proceso leída una vez y heredada por los hijos; los hijos (producto, totales, conciliación) son esqueletos. No hay caché compartida: `tHashOutput` no cruza Jobs, así que los Excel pequeños irán como lookup dentro del `tMap` de producto (desviación del diseño manual). Faltan traducir la lógica de producto, totales y conciliación, y la tabla de origen de cada producto.
 - **Fase 6.** Correr todo sobre los otros programas de `tests/fixtures/sas` y emitir un informe de
   complejidad y de huecos al estilo de Lakebridge (Analyzer, Converter, Reconcile).
 

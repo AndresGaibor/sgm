@@ -1,8 +1,9 @@
 """Jobs del diseño de Talend armados desde la arquitectura declarada y el modelo de proceso.
 
-Por ahora el Job padre (sección 3.1 del diseño): validar el entorno, correr los hijos en orden y
-recorrer los productos. Cada pieza es un componente real con plantilla de Studio; lo que el SAS no
-demuestra (la tabla de origen de cada producto) queda vacío y se informa como pendiente.
+Por ahora el Job padre (sección 3.1 del diseño): validar el entorno, leer la fecha, correr los
+hijos en orden y recorrer los productos. Cada pieza es un componente real con plantilla de
+Studio; lo que el SAS no demuestra (la tabla de origen de cada producto) queda vacío y se
+informa como pendiente.
 """
 
 from __future__ import annotations
@@ -80,11 +81,21 @@ CONDICION_ENTORNO_INVALIDO = '!((Boolean) globalMap.get("env_valido"))'
 
 
 def job_padre(
-    arq: Arquitectura, productos: list[ProductoJob], ruta_java: str | None = None
+    arq: Arquitectura,
+    productos: list[ProductoJob],
+    ruta_java: str | None = None,
+    periodo: tuple[list[Nodo], list[Conexion]] = ([], []),
+    contextos_periodo: list[ParametroContexto] | None = None,
 ) -> Job:
-    """Job padre: Prejob, insumos, productos en iteración, totales, conciliación y Postjob."""
+    """Job padre: Prejob, periodo, productos en iteración, totales, conciliación y Postjob.
+
+    `periodo` son los nodos que leen la fecha del proceso al contexto (ver `periodo.py`); si vienen
+    vacíos el padre arranca directamente en los productos.
+    """
+    nodos_p, conexiones_p = periodo
     texto = [Columna("producto"), Columna("tabla_origen"), Columna("sufijo")]
     filas = [[java(p.producto.upper()), java(p.tabla_origen), java(p.sufijo)] for p in productos]
+    y = 2 * PASO_Y  # el periodo ocupa la fila de y = PASO_Y
     nodos = [
         nodo_desde_plantilla("tPrejob", "tPrejob_1", 0, 0, ruta_java=ruta_java),
         nodo_desde_plantilla(
@@ -103,65 +114,88 @@ def job_padre(
             {"MESSAGE": '"env_nombre invalido: " + context.env_nombre', "EXIT_JVM": "true"},
             ruta_java=ruta_java,
         ),
-        run_job("tRunJob_1", arq.insumos, arq.proyecto, None, 0, PASO_Y, ruta_java),
-        fixed_flow_input("tFixedFlowInput_1", texto, filas, 0, 2 * PASO_Y, ruta_java or ""),
-        nodo_desde_plantilla(
-            "tFlowToIterate", "tFlowToIterate_1", PASO_X, 2 * PASO_Y, ruta_java=ruta_java
-        ),
+        *nodos_p,
+        fixed_flow_input("tFixedFlowInput_1", texto, filas, 0, y, ruta_java or ""),
+        nodo_desde_plantilla("tFlowToIterate", "tFlowToIterate_1", PASO_X, y, ruta_java=ruta_java),
         run_job(
-            "tRunJob_2",
+            "tRunJob_1",
             arq.producto,
             arq.proyecto,
             {c.nombre: f'(String) globalMap.get("row1.{c.nombre}")' for c in texto},
             2 * PASO_X,
-            2 * PASO_Y,
+            y,
             ruta_java,
         ),
-        run_job("tRunJob_3", arq.totales, arq.proyecto, None, 0, 3 * PASO_Y, ruta_java),
-        run_job("tRunJob_4", arq.conciliacion, arq.proyecto, None, 0, 4 * PASO_Y, ruta_java),
-        nodo_desde_plantilla("tPostjob", "tPostjob_1", 0, 5 * PASO_Y, ruta_java=ruta_java),
+        run_job("tRunJob_2", arq.totales, arq.proyecto, None, 0, y + PASO_Y, ruta_java),
+        run_job("tRunJob_3", arq.conciliacion, arq.proyecto, None, 0, y + 2 * PASO_Y, ruta_java),
+        nodo_desde_plantilla("tPostjob", "tPostjob_1", 0, y + 3 * PASO_Y, ruta_java=ruta_java),
         fixed_flow_input(
-            "tFixedFlowInput_2", [Columna("mensaje")], [[java(arq.mensaje_fin)]],
-            PASO_X, 5 * PASO_Y, ruta_java or "",
+            "tFixedFlowInput_2",
+            [Columna("mensaje")],
+            [[java(arq.mensaje_fin)]],
+            PASO_X,
+            y + 3 * PASO_Y,
+            ruta_java or "",
         ),
-        log_row("tLogRow_1", [Columna("mensaje")], 2 * PASO_X, 5 * PASO_Y, ruta_java or ""),
+        log_row("tLogRow_1", [Columna("mensaje")], 2 * PASO_X, y + 3 * PASO_Y, ruta_java or ""),
     ]
+    inicio = nodos_p[0].unico if nodos_p else None
     conexiones = [
         al_terminar_componente("tPrejob_1", "tJava_1"),
         si("tJava_1", "tDie_1", CONDICION_ENTORNO_INVALIDO),
-        al_terminar_subjob("tRunJob_1", "tFixedFlowInput_1", 1),
+        *conexiones_p,
+        *([al_terminar_subjob(inicio, "tFixedFlowInput_1", 1)] if inicio else []),
         Conexion("tFixedFlowInput_1", "tFlowToIterate_1", "row1"),
-        iterar("tFlowToIterate_1", "tRunJob_2"),
-        al_terminar_subjob("tFixedFlowInput_1", "tRunJob_3", 2),
-        al_terminar_subjob("tRunJob_3", "tRunJob_4", 3),
+        iterar("tFlowToIterate_1", "tRunJob_1"),
+        al_terminar_subjob("tFixedFlowInput_1", "tRunJob_2", 2),
+        al_terminar_subjob("tRunJob_2", "tRunJob_3", 3),
         al_terminar_componente("tPostjob_1", "tFixedFlowInput_2", 2),
         Conexion("tFixedFlowInput_2", "tLogRow_1", "row2"),
     ]
-    contextos = {"Default": [ParametroContexto("env_nombre")]}
+    contextos = {"Default": [ParametroContexto("env_nombre"), *(contextos_periodo or [])]}
     contextos.update({e: [ParametroContexto("env_nombre", valor=e)] for e in arq.entornos})
     return Job(arq.padre, nodos=nodos, conexiones=conexiones, contextos=contextos)
 
 
 def job_pendiente(
-    nombre: str, motivo: str, parametros: tuple[str, ...] = (), ruta_java: str | None = None
+    nombre: str,
+    motivo: str,
+    parametros: tuple[str, ...] = (),
+    ruta_java: str | None = None,
 ) -> Job:
-    """Job hijo todavía sin lógica: un `tJava` que informa el motivo. Declara sus parámetros."""
-    codigo = f"System.out.println({java(nombre + ': PENDIENTE, ' + motivo)});"
-    nodo = nodo_desde_plantilla("tJava", "tJava_1", 0, 0, {"CODE": codigo}, ruta_java=ruta_java)
+    """Job hijo todavía sin lógica: un `tJava` que informa el motivo y los parámetros heredados."""
+    lineas = [f"System.out.println({java(nombre + ': PENDIENTE, ' + motivo)});"]
+    lineas += [f'System.out.println("  {p} = " + context.{p});' for p in parametros]
+    nodo = nodo_desde_plantilla(
+        "tJava", "tJava_1", 0, 0, {"CODE": "\n".join(lineas)}, ruta_java=ruta_java
+    )
     contextos = {"Default": [ParametroContexto(p) for p in parametros]} if parametros else {}
     return Job(nombre, nodos=[nodo], contextos=contextos)
 
 
-def jobs_hijos(arq: Arquitectura, ruta_java: str | None = None) -> list[Job]:
-    """Hijos del padre. Mientras no se traduzca su lógica, cada uno dice qué le falta."""
+def jobs_hijos(
+    arq: Arquitectura,
+    variables_periodo: tuple[str, ...] = (),
+    lookups: str = "",
+    ruta_java: str | None = None,
+) -> list[Job]:
+    """Hijos del padre. Mientras no se traduzca su lógica, cada uno dice qué le falta.
+
+    Cada hijo declara las variables del periodo que hereda del padre y las imprime, para que se
+    vea que el contexto llega. `lookups` describe los Excel que `job_producto` usará en su `tMap`.
+    """
+    producto = ("producto", "tabla_origen", "sufijo", *variables_periodo)
     return [
-        job_pendiente(arq.insumos, "falta leer las fuentes (Excel) a caché", (), ruta_java),
         job_pendiente(
             arq.producto,
-            "falta la lectura, validación y salidas del producto",
-            ("producto", "tabla_origen", "sufijo"),
+            "falta la lectura, la validación y las salidas del producto" + lookups,
+            producto,
             ruta_java,
         ),
-        job_pendiente(arq.totales, "falta unir los totales de origen y de salida", (), ruta_java),
-        job_pendiente(arq.conciliacion, "falta conciliar origen contra salida", (), ruta_java),
+        job_pendiente(
+            arq.totales, "falta unir totales de origen y de salida", variables_periodo, ruta_java
+        ),
+        job_pendiente(
+            arq.conciliacion, "falta conciliar origen contra salida", variables_periodo, ruta_java
+        ),
     ]

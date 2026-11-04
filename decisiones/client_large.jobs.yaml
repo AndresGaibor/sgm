@@ -6,8 +6,21 @@ proyecto: PRJ_BANCOLOMBIA
 entornos: [DEV, QA, PROD]   # el Job padre falla si `env_nombre` no es uno de ellos (diseño 2.4)
 jobs:
   padre: job_exogena_depositos
-  insumos: job_insumos
   producto: job_producto      # un solo Job con el producto como parámetro (D6)
   totales: job_totales
   conciliacion: job_conciliacion
 mensaje_fin: Proceso terminado
+
+# La fecha del proceso (tabla 1.1 del diseño): el padre lee su Excel una vez y deja AÑO, MES y DIA en
+# variables de contexto; los hijos las heredan porque el padre transmite el contexto completo.
+periodo:
+  fuente: 'Validación de fecha'
+  variables: {AÑO: periodo_anio, MES: periodo_mes, DIA: periodo_dia}
+
+# Excel que job_producto usa como lookup en su tMap. Hoy solo se listan: la validación de producto
+# todavía no se traduce.
+lookups_producto:
+  - 'Homologación de tipo de documento'
+  - 'Homologación de tipo de documento Nequi'
+  - 'Códigos de país'
+  - 'Códigos DANE'

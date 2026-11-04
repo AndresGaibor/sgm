@@ -1536,3 +1536,50 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Bloqueo detectado en una repetici?n posterior: `uv run pytest -q` fall? en `tests/unit/test_talend_jobs_diseno.py::test_los_insumos_declarados_llevan_cache_o_variables_globales` (898 pasaron, 1 fall?, 1 omitida, 132 xfail). El test espera cuatro caches, pero el YAML de decisiones modificado en el ?rbol de trabajo ya contiene `cache_periodo`. Esos cambios estaban presentes antes de este hito y no se modificaron aqu?; requieren actualizar/verificar juntos el YAML y su expectativa.
 
 - Estado final tras la repetici?n: `uv run pytest -q` pas? (903 pruebas, 1 omitida y 132 xfail en 78,06 s) y `uv run ruff check .` qued? limpio. El fallo intermedio ya no se reproduce.
+
+## Hito 63. Reescritura, Fase 5: diseño simple de Jobs (sin caché), periodo en el padre y columnas deducidas del SAS
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - Se eliminó `job_insumos` y el caché compartido entre Jobs. Lo pidió el usuario: "que sea simple".
+  - `src/sgm/proceso/columnas_fuente.py` deduce las columnas de cada Excel importado por `PROC IMPORT`, a partir de cómo el programa las usa: alias en `PROC SQL` (incluido `alias.'NOMBRE'n`), `SELECT col INTO :var FROM` y `rename=`. No inventa columnas: un Excel sin columnas usadas queda con esquema pendiente. Resultado en el programa grande:
+    - Homologacion_tpo_dto.xlsx: CNAME, CODIGO DIAN.
+    - Cod_pais.xlsx: Codigo_Pais, Nombre Pais.
+    - CODIGOS_DANE.xlsx: CODIGO_DANE.
+    - Validacion_fecha.xlsx: AÑO, MES, DIA.
+    - Homologacion_tpo_dto_Nequi.xlsx: CNAME, CODIGO DIAN.
+  - `src/sgm/proceso/insumos.py`: `resolver_insumos` une las fuentes declaradas en `decisiones/<programa>.diseno.yaml` con la ruta, las variables de contexto (ruta y archivo) y las columnas halladas. Lo que falta queda como pendiente, con su motivo.
+  - `tools/simular_insumos.py` escribe un .xlsx simulado por cada Excel del programa, solo con la biblioteca estándar. Los datos son `SIM_<columna>_<n>`. Si no hay columnas, escribe una columna `PENDIENTE`. Sirve para probar sin los archivos reales.
+  - `src/sgm/talend_item/periodo.py`: `tFileInputExcel` y `tJavaRow` en el padre asignan `context.periodo_*`. `nombre_columna` convierte los nombres del Excel en identificadores válidos en Java: AÑO pasa a ANO y los espacios pasan a guion bajo.
+  - `arquitectura.py` y `decisiones/client_large.jobs.yaml` ya no declaran `insumos`. Ahora declaran `periodo` (fuente y variables) y `lookups_producto`.
+  - `jobs_diseno.py`: el padre arranca con el periodo y recorre producto, totales y conciliación. Los tres hijos esqueleto declaran e imprimen las variables del periodo. El hijo de producto lista los lookups con sus columnas en su mensaje de pendiente.
+  - `sgm talend` ahora escribe cuatro Jobs: el padre y tres hijos.
+- Resultado en Studio real:
+  - El padre, con un Excel simulado de fecha, compiló, se exportó y se ejecutó con salida 0. Leyó el Excel.
+  - Los hijos imprimieron `periodo_anio = SIM_AÑO_1`, `periodo_mes = SIM_MES_1` y `periodo_dia = SIM_DIA_1`.
+  - El hijo de producto corrió tres veces (CTE, AHO y NEQUI, cada una con sus parámetros).
+  - El padre terminó con "Proceso terminado".
+- Hallazgos:
+  1. `tFileInputExcel` con VERSION_2007 genera un `Optional.ofNullable()` vacío y no compila si PASSWORD está vacío o vale `***`, porque Studio trata `***` como máscara. Con un valor normal (ni vacío ni máscara) compila, y Excel lo ignora porque el archivo no tiene clave. El valor se pasa desde `periodo.py`.
+  2. La ejecución con `talend_job_execute` desde Studio no carga los archivos de contexto: el grupo DEV no se encuentra y las variables quedan en null. Para Jobs con contexto hay que exportar el Build Job y ejecutar su lanzador.
+  3. La exportación de Jobs con `tFileInputExcel` fallaba por poms públicos de Maven ausentes de la caché local en modo offline: `logging-parent` 11.3.0, `log4j-bom` 2.24.2 y `log4j-bom` 2.24.3. Hay red a Maven Central. Se resolvió descargando esos poms a la caché de Studio (`C:\Talend\8.0.1\studio\configuration\.m2\repository`) con un script temporal que lee el log de Studio y baja lo que falta. Es un cambio fuera del repositorio.
+  4. `rm -rf` con una variable sin comprobar es bloqueado por el sistema: usar `${VAR:?}`.
+- Decisiones:
+  - Se eliminó `job_insumos` y el caché compartido. Motivo técnico, probado ejecutando en Studio 8.0.1: `tHashOutput` y `tHashInput` no pueden compartir datos entre Jobs distintos con ninguna configuración. La clave del buffer lleva el nombre del Job más un pid aleatorio, el LIST de `tHashInput` solo ve los `tHashOutput` del mismo Job, y el modo PERSISTENT está comentado. Es el riesgo que el diseño manual marcaba como no probado (`tCacheIn` con `tRunJob`).
+  - Alternativa descartada: una rutina Java con mapa estático. Un agente intentó instalarla, pero Studio no carga rutinas nuevas sin reiniciar y el formato de `.item` de rutina no tiene ejemplo real. No se validó y se descartó el código.
+  - Desviación respecto al diseño manual (secciones 1.2 y 3.2): los Excel pequeños se leerán como lookup dentro del `tMap` de `job_producto`. La fecha del proceso la lee el Job padre una vez y la deja en las variables de contexto `periodo_anio`, `periodo_mes` y `periodo_dia`. Los hijos las heredan porque el padre transmite el contexto completo.
+- Pruebas:
+  - Pruebas nuevas: `test_proceso_columnas_fuente.py` (28), `test_proceso_insumos.py` (3) y `test_tools_simular_insumos.py` (9). `test_talend_jobs_diseno.py` se reescribió (13).
+  - `uv run pytest -q`: 902 pasan, 1 se salta y 132 xfail.
+  - `uv run ruff check .`: limpio.
+- No verificado:
+  - El orden de las columnas dentro de cada Excel real no está en el SAS. Talend mapea por posición.
+  - El nombre de la hoja: el SAS dice `SHEET=''`, que es la primera hoja, y Talend pide un nombre. Se usa la variable `hoja_excel` con valor "Sheet1" por defecto.
+  - Tipos de columna: todas son String, porque nada en el SAS los demuestra.
+  - Ningún Job abierto en el editor gráfico de Studio.
+  - Los lookups todavía no están en un `tMap`.
+- Pendiente:
+  - Traducir `job_producto` (lectura de Impala, validación con los lookups en `tMap`, salidas), `job_totales` y `job_conciliacion`.
+  - La tabla de origen de cada producto.
+  - `tDBClose` y la conexión Impala compartida.
+  - El registro de errores.

@@ -11,7 +11,15 @@ from pathlib import Path
 
 import yaml
 
-JOBS_REQUERIDOS = ("padre", "insumos", "producto", "totales", "conciliacion")
+JOBS_REQUERIDOS = ("padre", "producto", "totales", "conciliacion")
+
+
+@dataclass(frozen=True)
+class PeriodoDecl:
+    """El Excel de la fecha del proceso: el padre lo lee una vez y deja su valor en el contexto."""
+
+    fuente: str  # clave de la tabla 1.1 del diseño
+    variables: tuple[tuple[str, str], ...]  # (columna del Excel, variable de contexto)
 
 
 @dataclass(frozen=True)
@@ -19,11 +27,22 @@ class Arquitectura:
     proyecto: str
     entornos: tuple[str, ...]
     padre: str
-    insumos: str
     producto: str
     totales: str
     conciliacion: str
     mensaje_fin: str
+    periodo: PeriodoDecl | None = None
+    lookups: tuple[str, ...] = ()  # fuentes Excel que job_producto usa como lookup
+
+
+def _periodo(path: Path, item: dict | None) -> PeriodoDecl | None:
+    if not item:
+        return None
+    fuente = str(item.get("fuente") or "").strip()
+    variables = tuple((str(c), str(v)) for c, v in (item.get("variables") or {}).items())
+    if not fuente or not variables:
+        raise ValueError(f"{path}: `periodo` necesita fuente y variables")
+    return PeriodoDecl(fuente, variables)
 
 
 def cargar_arquitectura(path: Path) -> Arquitectura:
@@ -44,4 +63,6 @@ def cargar_arquitectura(path: Path) -> Arquitectura:
         entornos,
         *(str(jobs[k]).strip() for k in JOBS_REQUERIDOS),
         mensaje_fin=str(data.get("mensaje_fin") or "").strip(),
+        periodo=_periodo(path, data.get("periodo")),
+        lookups=tuple(str(x).strip() for x in (data.get("lookups_producto") or [])),
     )
