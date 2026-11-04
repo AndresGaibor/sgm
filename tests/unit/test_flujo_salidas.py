@@ -12,8 +12,9 @@ from sgm.cli_flow import flujo_command
 from sgm.flow.layout import positions, render_svg
 from sgm.flow.model import FlowModel, FlowStep, build_flows
 from sgm.flow.page import render_page
-from sgm.flow.salida import a_json, indice_datasets
+from sgm.flow.salida import a_json, indice_datasets, salidas_finales
 from sgm.flow.seccion import SECCION_MAX_PASOS, _tramos, by_section
+from sgm.flow.texto import es_dinamico, etiqueta_paso, frase_resumen
 
 REPO = Path(__file__).resolve().parents[2]
 GOLDEN = REPO / "tests" / "fixtures" / "flujo" / "p1_merge_first_last.flujo.html"
@@ -89,7 +90,7 @@ def test_seccion_chica_no_se_parte():
 def test_vista_por_seccion_cuenta_todos_los_pasos_una_vez():
     flujo = _flujo(PROGRAMA)
     vista = by_section(flujo)
-    total = sum(int(m) for n in vista.steps for m in re.findall(r"· (\d+) pasos", n.type_name))
+    total = sum(int(m) for n in vista.steps for m in re.findall(r"· (\d+) pasos?", n.type_name))
     assert total == len(flujo.steps)
 
 
@@ -186,5 +187,45 @@ def test_programa_sin_etiquetas_cae_en_una_sola_seccion():
     vista = by_section(flujo)
     assert [n.title for n in vista.steps] == ["(sin sección)"]
     assert vista.steps[0].type_name == f"Sección · {len(flujo.steps)} pasos"
+    una_linea = _flujo("data a; set b; run;\n")
+    assert by_section(una_linea).steps[0].type_name == "Sección · 1 paso"
     # Las únicas aristas salen de la entrada externa; no hay conexiones entre pasos.
     assert all(e.source.startswith("e") for e in vista.edges)
+
+
+def test_paso_de_proc_muestra_su_dataset_en_vez_de_repetir_el_tipo():
+    flujo = _flujo(PROGRAMA)
+    sort = next(s for s in flujo.steps if s.id == "p3")
+    assert etiqueta_paso(sort) == "→ resumen"
+    assert etiqueta_paso(flujo.steps[0]) == "DATA trabajo.clientes"
+
+
+def test_salidas_finales_son_los_datasets_que_nadie_lee():
+    flujo = _flujo("data trabajo.x; set entrada.y; run;\n")
+    assert [u.nombre for u in salidas_finales(flujo)] == ["trabajo.x"]
+    assert salidas_finales(_flujo(PROGRAMA)) == []
+
+
+def test_frase_resumen_dice_entradas_pasos_y_salidas():
+    flujo = _flujo("data trabajo.x; set entrada.y; run;\n")
+    frase = frase_resumen(flujo, ["trabajo.x"])
+    assert frase == (
+        "Lee 1 entrada externa (entrada.y), ejecuta 1 paso, deja 1 salida final (trabajo.x)."
+    )
+
+
+def test_frase_resumen_de_programa_vacio():
+    assert frase_resumen(_flujo("%let a = 1;\n"), []).startswith("El programa no tiene pasos")
+
+
+def test_dataset_con_macrovariable_se_marca_como_dinamico():
+    html = render_page(_flujo("data t; set w.&tabla; run;\n"))
+    assert es_dinamico("w.&tabla")
+    assert 'class="badge"' in html
+    assert not es_dinamico("w.tabla")
+
+
+def test_etapa_con_muchos_datasets_resume_el_resto():
+    texto = "".join(f"data d{i}; set a; run;\n" for i in range(7))
+    html = render_page(_flujo(texto))
+    assert "y 2 más" in html

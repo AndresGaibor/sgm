@@ -249,12 +249,33 @@ def grow(seq, units, first: int, last: int, floor: int, ceiling: int, flow: Flow
     def span(a: int, b: int) -> list[Operator]:
         return [op for k in range(a, b + 1) for op in ops_of(k)]
 
+    # `absorbable` solo depende de la unidad y del rango de la región que la contiene: se memoiza
+    # para no rehacer la región (miles de operadores) en cada iteración de `grow`.
+    back_memo: dict[tuple[int, int], bool] = {}
+    forward_memo: dict[tuple[int, int, int], bool] = {}
+
     def back_ok(k: int) -> bool:
-        return all(absorbable(ops_of(j), span(j + 1, last), flow) for j in range(k, first))
+        for j in range(k, first):
+            key = (j, last)
+            verdict = back_memo.get(key)
+            if verdict is None:
+                verdict = absorbable(ops_of(j), span(j + 1, last), flow)
+                back_memo[key] = verdict
+            if not verdict:
+                return False
+        return True
 
     def forward_ok(k: int) -> bool:
         group = span(first, k)
-        return all(absorbable(ops_of(j), group, flow) for j in range(last + 1, k + 1))
+        for j in range(last + 1, k + 1):
+            key = (j, first, k)
+            verdict = forward_memo.get(key)
+            if verdict is None:
+                verdict = absorbable(ops_of(j), group, flow)
+                forward_memo[key] = verdict
+            if not verdict:
+                return False
+        return True
 
     changed = True
     while changed:

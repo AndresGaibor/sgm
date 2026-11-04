@@ -72,7 +72,7 @@ def by_section(model: FlowModel) -> FlowModel:
                 line=pasos[0].line,
                 label=nombre,
                 kind="section",
-                type_name=f"{tipo} · {len(pasos)} pasos",
+                type_name=f"{tipo} · {len(pasos)} {'paso' if len(pasos) == 1 else 'pasos'}",
                 title=nombre,
             )
         )

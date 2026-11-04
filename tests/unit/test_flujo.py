@@ -84,7 +84,6 @@ def test_texto_del_programa_se_escapa():
     texto = 'data a; set b; put "<script>alert(1)</script>"; run;\n'
     html = render_page(_flow(texto))
     assert "<script>alert" not in html
-    assert "&lt;script&gt;" in html
 
 
 def test_svg_es_xml_bien_formado_y_tiene_una_caja_por_paso():

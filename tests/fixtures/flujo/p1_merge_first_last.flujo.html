@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flujo SAS: p1_merge_first_last.sas</title>
+<title>Qué hace p1_merge_first_last.sas</title>
 <style>
 :root {
   --fondo: #f6f7f9; --panel: #ffffff; --texto: #1d2430; --suave: #5b6676; --linea: #d9dee6;
-  --data: #2563eb; --sql: #059669; --proc: #d97706; --externo: #64748b;
+  --enlace: #1d4ed8; --data: #2563eb; --sql: #059669; --proc: #b45309; --externo: #64748b;
   --dinamico: #dc2626; --sin-leer: #e11d48;
   --data-f: #e8efff; --sql-f: #e6f7f1; --proc-f: #fdf1e0; --externo-f: #eef1f5;
   --dinamico-f: #fde8e8; --sin-leer-f: #ffe8ef;
@@ -15,27 +15,40 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --fondo: #0f1419; --panel: #171d24; --texto: #e6e9ef; --suave: #9aa5b5; --linea: #2a3340;
+    --enlace: #8ab4ff; --proc: #f59e0b;
     --data-f: #1c2a4a; --sql-f: #15332a; --proc-f: #3a2c14; --externo-f: #222a35;
     --dinamico-f: #3d1b1b; --sin-leer-f: #3d1b26;
   }
 }
 :root[data-theme="dark"] {
   --fondo: #0f1419; --panel: #171d24; --texto: #e6e9ef; --suave: #9aa5b5; --linea: #2a3340;
+  --enlace: #8ab4ff; --proc: #f59e0b;
   --data-f: #1c2a4a; --sql-f: #15332a; --proc-f: #3a2c14; --externo-f: #222a35;
   --dinamico-f: #3d1b1b; --sin-leer-f: #3d1b26;
 }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--fondo); color: var(--texto);
   font: 15px/1.5 system-ui, "Segoe UI", Roboto, sans-serif; }
 main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 64px; }
 h1 { font-size: 26px; margin: 0 0 4px; }
-h2 { font-size: 19px; margin: 40px 0 12px; }
+h2 { font-size: 19px; margin: 40px 0 12px; scroll-margin-top: 16px; }
+a { color: var(--enlace); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--enlace); outline-offset: 2px;
+  border-radius: 4px; }
 .resumen { color: var(--suave); margin: 0 0 20px; }
+.frase { font-size: 17px; margin: 0 0 18px; padding: 14px 18px; background: var(--panel);
+  border: 1px solid var(--linea); border-left: 4px solid var(--data); border-radius: 10px; }
 .tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
 .tarjeta { background: var(--panel); border: 1px solid var(--linea); border-radius: 12px;
   padding: 14px 16px; }
 .tarjeta b { display: block; font-size: 26px; }
 .tarjeta span { color: var(--suave); font-size: 13px; }
+.dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.bloque { background: var(--panel); border: 1px solid var(--linea); border-radius: 12px;
+  padding: 14px 16px; }
+.bloque h3 { font-size: 15px; margin: 0 0 8px; }
 .leyenda { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0; font-size: 13px; }
 .leyenda i { display: inline-block; width: 12px; height: 12px; border-radius: 3px;
   margin-right: 6px; vertical-align: -1px; }
@@ -53,85 +66,57 @@ h2 { font-size: 19px; margin: 40px 0 12px; }
 .k-dynamic rect { fill: var(--dinamico-f); stroke: var(--dinamico); }
 .k-unparsed rect { fill: var(--sin-leer-f); stroke: var(--sin-leer); stroke-dasharray: 2 3; }
 .k-section rect { fill: var(--panel); stroke: var(--texto); stroke-width: 2; }
-.arista path { fill: none; stroke: var(--suave); stroke-width: 1.6; opacity: .8; }
-.arista text { font-size: 11px; fill: var(--texto); paint-order: stroke; stroke: var(--panel);
-  stroke-width: 4px; }
+.arista path { fill: none; stroke: var(--suave); stroke-width: 1.6; opacity: .85; }
+.etiqueta rect { fill: var(--panel); stroke: var(--linea); }
+.etiqueta text { font-size: 10.5px; fill: var(--texto); }
 #flecha path { fill: var(--suave); }
-table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: 14px;
-  border: 1px solid var(--linea); border-radius: 12px; overflow: hidden; }
+.tabla { overflow-x: auto; border: 1px solid var(--linea); border-radius: 12px;
+  background: var(--panel); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--linea);
   vertical-align: top; }
-th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--suave); }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--suave);
+  white-space: nowrap; }
 td code, .mono { font: 12.5px/1.45 ui-monospace, Consolas, monospace; }
 pre { background: var(--fondo); border: 1px solid var(--linea); border-radius: 8px;
   padding: 10px 12px; overflow: auto; font: 12.5px/1.45 ui-monospace, Consolas, monospace;
   white-space: pre; margin: 8px 0 0; }
 details summary { cursor: pointer; color: var(--suave); font-size: 13px; }
-.etiqueta { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px;
-  background: var(--fondo); border: 1px solid var(--linea); color: var(--suave); }
 ul.lista { padding-left: 20px; margin: 0; }
+.etapa { display: flex; gap: 14px; align-items: flex-start; background: var(--panel);
+  border: 1px solid var(--linea); border-radius: 12px; padding: 14px 16px; margin: 0 0 12px; }
+.etapa .num { flex: 0 0 32px; height: 32px; border-radius: 50%; background: var(--data);
+  color: #ffffff; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.etapa .cuerpo { min-width: 0; }
+.etapa h3 { font-size: 16px; margin: 0 0 6px; }
+.etapa p { margin: 4px 0; }
+.badge { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px;
+  font-size: 11px; color: var(--dinamico); border: 1px solid var(--dinamico); }
+details.plegado { display: inline; }
+details.plegado summary { display: inline; }
 .nota { color: var(--suave); font-size: 13px; }
 footer { color: var(--suave); font-size: 12px; margin-top: 40px; }
+@media (max-width: 700px) {
+  main { padding: 20px 16px 48px; }
+  h1 { font-size: 22px; }
+  .tarjeta b { font-size: 22px; }
+  .frase { font-size: 15px; }
+}
 </style>
 </head>
 <body>
 <main>
 <h1>p1_merge_first_last.sas</h1>
-<p class="resumen">Cómo funciona el programa: pasos en orden y los datasets que pasan de uno a
-otro. No es la traducción a Talend. Cada caja enlaza con su fila de la tabla.</p>
-<section class="tarjetas"><div class="tarjeta"><b>4</b><span>pasos del programa</span></div><div class="tarjeta"><b>2</b><span>entradas externas</span></div><div class="tarjeta"><b>4</b><span>conexiones entre datasets</span></div><div class="tarjeta"><b>0</b><span>pendientes</span></div></section>
-<h2>Diagrama</h2>
-<p class="nota">Cada caja es un paso del programa. Pasa el cursor para ver lo que lee y escribe.</p>
-<div class="leyenda"><span><i style="background:var(--data)"></i>DATA step</span><span><i style="background:var(--sql)"></i>PROC SQL</span><span><i style="background:var(--proc)"></i>Otro PROC</span><span><i style="background:var(--externo)"></i>Entrada externa</span><span><i style="background:var(--dinamico)"></i>Macro dinámica</span><span><i style="background:var(--sin-leer)"></i>Sin leer</span></div>
-<div class="marco"><svg viewBox="0 0 1004 342" width="1004" height="342" role="img" aria-label="Flujo de datos del programa p1_merge_first_last.sas"><defs><marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs><g class="arista"><path d="M264,67 H280 V171 H384" marker-end="url(#flecha)"/><text x="284" y="81">work.pagos</text></g><g class="arista"><path d="M264,171 H297 V275 H384" marker-end="url(#flecha)"/><text x="301" y="198">work.clientes</text></g><g class="arista"><path d="M620,275 H670 V67 H740" marker-end="url(#flecha)"/><text x="674" y="107">work.clientes</text></g><g class="arista"><path d="M620,171 H687 V67 H740" marker-end="url(#flecha)"/><text x="691" y="81">work.pagos</text></g><a href="#entrada-e1"><g class="nodo k-external"><title>Entrada externa: work.pagos
-lee: nada
-escribe: work.pagos
-p1_merge_first_last.sas:6</title><rect x="28" y="28" width="236" height="78" rx="10"/><text class="tipo" x="42" y="50">Entrada externa</text><text class="titulo" x="42" y="72">work.pagos</text><text class="sub" x="42" y="91">dataset del programa</text></g></a><a href="#entrada-e2"><g class="nodo k-external"><title>Entrada externa: work.clientes
-lee: nada
-escribe: work.clientes
-p1_merge_first_last.sas:7</title><rect x="28" y="132" width="236" height="78" rx="10"/><text class="tipo" x="42" y="154">Entrada externa</text><text class="titulo" x="42" y="176">work.clientes</text><text class="sub" x="42" y="195">dataset del programa</text></g></a><a href="#paso-p1"><g class="nodo k-proc"><title>PROC FORMAT: PROC FORMAT
-lee: nada
-escribe: nada
-p1_merge_first_last.sas:2</title><rect x="384" y="28" width="236" height="78" rx="10"/><text class="tipo" x="398" y="50">PROC FORMAT</text><text class="titulo" x="398" y="72">PROC FORMAT</text><text class="sub" x="398" y="91">p1_merge_first_last.sas:2</text></g></a><a href="#paso-p2"><g class="nodo k-proc"><title>PROC SORT: PROC SORT
-lee: work.pagos
-escribe: work.pagos
-p1_merge_first_last.sas:6</title><rect x="384" y="132" width="236" height="78" rx="10"/><text class="tipo" x="398" y="154">PROC SORT</text><text class="titulo" x="398" y="176">PROC SORT</text><text class="sub" x="398" y="195">p1_merge_first_last.sas:6</text></g></a><a href="#paso-p3"><g class="nodo k-proc"><title>PROC SORT: PROC SORT
-lee: work.clientes
-escribe: work.clientes
-p1_merge_first_last.sas:7</title><rect x="384" y="236" width="236" height="78" rx="10"/><text class="tipo" x="398" y="258">PROC SORT</text><text class="titulo" x="398" y="280">PROC SORT</text><text class="sub" x="398" y="299">p1_merge_first_last.sas:7</text></g></a><a href="#paso-p4"><g class="nodo k-data"><title>DATA step: DATA work.pagos_cliente
-lee: work.clientes, work.pagos
-escribe: work.pagos_cliente
-p1_merge_first_last.sas:9</title><rect x="740" y="28" width="236" height="78" rx="10"/><text class="tipo" x="754" y="50">DATA step</text><text class="titulo" x="754" y="72">DATA work.pagos_cliente</text><text class="sub" x="754" y="91">p1_merge_first_last.sas:9</text></g></a></svg></div>
-<h2 id="pasos">Pasos en orden</h2>
-<table><thead><tr><th>#</th><th>Origen</th><th>Tipo</th><th>Qué hace</th><th>Lee</th><th>Escribe</th><th>Notas y código</th></tr></thead><tbody><tr id="paso-p1"><td>p1</td><td class="mono">p1_merge_first_last.sas:2</td><td>PROC FORMAT</td><td>PROC FORMAT</td><td class="mono">-</td><td class="mono">-</td><td><span class="nota">-</span><details><summary>ver código</summary><pre>proc format
-value $tramo low-&lt;30=&#x27;Joven&#x27; 30-&lt;60=&#x27;Adulto&#x27; 60-high=&#x27;Mayor&#x27;</pre></details></td></tr><tr id="paso-p2"><td>p2</td><td class="mono">p1_merge_first_last.sas:6</td><td>PROC SORT</td><td>PROC SORT</td><td class="mono">work.pagos</td><td class="mono">work.pagos</td><td>ordena el dataset en su lugar (sin OUT=)<details><summary>ver código</summary><pre>proc sort data=work.pagos
-by cliente_id fecha_pago</pre></details></td></tr><tr id="paso-p3"><td>p3</td><td class="mono">p1_merge_first_last.sas:7</td><td>PROC SORT</td><td>PROC SORT</td><td class="mono">work.clientes</td><td class="mono">work.clientes</td><td>ordena el dataset en su lugar (sin OUT=)<details><summary>ver código</summary><pre>proc sort data=work.clientes
-by cliente_id</pre></details></td></tr><tr id="paso-p4"><td>p4</td><td class="mono">p1_merge_first_last.sas:9</td><td>DATA step</td><td>DATA work.pagos_cliente</td><td class="mono">work.clientes, work.pagos</td><td class="mono">work.pagos_cliente</td><td><span class="nota">-</span><details><summary>ver código</summary><pre>data work.pagos_cliente
-merge work.clientes(in=a) work.pagos(in=b)
-by cliente_id
-if a
-retain acumulado 0
-array m{3} mes1-mes3
-if first.cliente_id then acumulado = 0
-acumulado + coalesce(monto, 0)
-if missing(monto) then flag_sin_pago = 1
-dias = intck(&#x27;day&#x27;, fecha_pago, today())
-mes_pago = put(fecha_pago, yymmn6.)
-tramo = put(edad, tramo.)
-if last.cliente_id then output</pre></details></td></tr></tbody></table>
-<h2>Datasets</h2>
-<p class="nota">Cada dataset y los pasos que lo escriben o lo leen. Cada número enlaza con su
-fila en la tabla de pasos.</p>
-<table><thead><tr><th>Dataset</th><th>Lo escriben</th><th>Lo leen</th></tr></thead><tbody><tr><td class="mono">work.clientes</td><td><a href="#paso-p3" title="PROC SORT">p3</a></td><td><a href="#paso-p3" title="PROC SORT">p3</a>, <a href="#paso-p4" title="DATA work.pagos_cliente">p4</a></td></tr><tr><td class="mono">work.pagos</td><td><a href="#paso-p2" title="PROC SORT">p2</a></td><td><a href="#paso-p2" title="PROC SORT">p2</a>, <a href="#paso-p4" title="DATA work.pagos_cliente">p4</a></td></tr><tr><td class="mono">work.pagos_cliente</td><td><a href="#paso-p4" title="DATA work.pagos_cliente">p4</a></td><td><span class="nota">-</span></td></tr></tbody></table>
-<h2>Entradas externas</h2>
-<p class="nota">Datasets que el programa lee y que ningún paso anterior escribe. Vienen de fuera
-del programa.</p>
-<ul class="lista"><li id="entrada-e1"><span class="mono">work.pagos</span> <span class="nota">se usa en 1 paso(s)</span></li><li id="entrada-e2"><span class="mono">work.clientes</span> <span class="nota">se usa en 1 paso(s)</span></li></ul>
-<h2>Configuración</h2>
-<p class="nota">Librerías, variables, opciones, includes y macros que definen el entorno.</p>
-<p class="nota">Sin sentencias de configuración.</p>
-<h2>Pendientes</h2>
-<p class="nota">Sin pendientes en este programa.</p>
+<p class="resumen">Explicación del programa en lenguaje llano. No muestra el código.</p>
+<p class="frase">Lee 2 entradas externas (work.pagos y work.clientes), ejecuta 4 pasos, deja 1 salida final (work.pagos_cliente).</p>
+<div class="dos"><div class="bloque"><h3>Qué datos entran</h3><p class="nota">Datos que el programa toma de fuera y que no crea antes.</p><ul class="lista"><li><span class="mono">work.pagos</span></li><li><span class="mono">work.clientes</span></li></ul></div><div class="bloque"><h3>Qué resultados quedan</h3><p class="nota">Datos que el programa produce y que nadie usa después.</p><ul class="lista"><li><span class="mono">work.pagos_cliente</span></li></ul></div></div>
+<h2>Cómo funciona, paso a paso</h2>
+<p class="nota">Cada etapa es una parte del programa. Se ejecutan en el orden de esta lista.
+Cada una dice qué hace y qué datos toma y deja.</p>
+<section class="etapa" id="etapa-1"><div class="num">1</div><div class="cuerpo"><h3>(sin sección) <span class="nota">· 4 pasos</span></h3><p>Define formatos, ordena datos (2 veces), transforma datos.</p><p class="nota">Toma datos de: <span class="mono">work.pagos</span>, <span class="mono">work.clientes</span></p><p class="nota">Deja datos en: <span class="mono">work.pagos</span>, <span class="mono">work.clientes</span>, <span class="mono">work.pagos_cliente</span></p></div></section>
+<h2>Lo que no se puede seguir sin ejecutarlo</h2>
+<p class="nota">No hay nada que el análisis no pueda seguir.</p>
 <footer>Generado el FECHA por `sgm flujo`. Vista de revisión: no cambia el
 plan ni la guía.</footer>
 </main>

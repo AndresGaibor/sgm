@@ -38,6 +38,11 @@ def indice_datasets(model: FlowModel) -> list[UsoDataset]:
     return sorted(usos.values(), key=lambda u: u.nombre.lower())
 
 
+def salidas_finales(model: FlowModel) -> list[UsoDataset]:
+    """Datasets que algún paso escribe y ningún paso lee: lo que el programa deja al final."""
+    return [uso for uso in indice_datasets(model) if uso.escriben and not uso.leen]
+
+
 def a_json(model: FlowModel) -> str:
     """Modelo completo en JSON (pasos, conexiones, entradas, configuración y pendientes)."""
     datos = {
