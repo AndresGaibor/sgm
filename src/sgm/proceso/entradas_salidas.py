@@ -49,14 +49,14 @@ class EntradasSalidas:
     salidas: list[Plantilla] = field(default_factory=list)
 
 
-def _nombre_archivo(ruta: str) -> str:
+def nombre_archivo(ruta: str) -> str:
     """Último componente de la ruta, con barras de Windows o de Unix."""
     clase = PureWindowsPath if "\\" in ruta else PurePosixPath
     return clase(ruta).name
 
 
 def _tipo_archivo(ruta: str) -> str:
-    sufijo = PurePosixPath(_nombre_archivo(ruta).lower()).suffix
+    sufijo = PurePosixPath(nombre_archivo(ruta).lower()).suffix
     if sufijo in _EXCEL:
         return "excel"
     return "csv" if sufijo in _TEXTO else "archivo"
@@ -121,7 +121,7 @@ def agrupar_salidas(modelo: FlowModel, productos: dict[str, tuple[str, ...]]) ->
             if not escrito.startswith(PREFIJO_ARCHIVO):
                 continue
             ruta = escrito[len(PREFIJO_ARCHIVO) :]
-            plantilla, producto = _plantilla_de(_nombre_archivo(ruta), productos)
+            plantilla, producto = _plantilla_de(nombre_archivo(ruta), productos)
             instancia = (producto, ruta)
             lista = grupos.setdefault(plantilla, [])
             if instancia not in lista:

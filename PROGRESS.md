@@ -1389,3 +1389,15 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Límite: los patrones se ajustaron mirando las mismas etiquetas, así que el 97,9 % mide que ninguna quedó huérfana, no que cada una esté bien clasificada. `normalizar` (179) es la etapa más amplia y la más dudosa. Una persona debe revisar el reparto.
 - Pruebas: `tests/unit/test_proceso_etapas.py` (7). `ruff check .`: limpio.
 - Pendiente: usar las etapas para ordenar el proceso por producto y emitir las secciones 3.x; agrupar las 5 familias de salida del diseño.
+
+## Hito 55. Reescritura, Fase 3: primeras secciones del documento de diseño (1.1 y 1.4)
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - `proceso/secciones_entrada.py`: emite las secciones 1.1 (fuentes) y 1.4 (salidas). Cada fila une lo declarado (`fuentes` y `salidas` en `decisiones/client_large.diseno.yaml`: nombres de parámetros, textos de uso) con lo que el SAS demuestra: tipo y estado de cada fuente salen de las fuentes halladas; el equivalente en el SAS de una salida sale de los archivos que el programa escribe. Lo que el SAS no demuestra queda `pendiente`.
+  - `proceso/diseno_doc.py`: `construir_diseno(programa, agrupacion, diseno)` devuelve `{sección: {fila: {columna: texto}}}`.
+  - La conformidad (`tests/conformidad/`) llama ahora al emisor. Las secciones emitidas se evalúan de verdad; el resto sigue en `xfail` estricto. Cambié `test_el_emisor_de_las_ocho_secciones_aun_no_existe` (su premisa terminó) por una prueba de que solo se emiten las secciones declaradas.
+- Resultado: pasan 15 pruebas más de conformidad (2 de sección y 13 de fila: F01-F03, F05-F08 y S01-S05). Una fila discrepa y queda como `xfail` estricto con su motivo: F04 (el SAS sí lee `CODIGOS_DANE.xlsx`; el manual lo daba por pendiente, así que el migrador halla más que el manual).
+- Límite honesto: los nombres de parámetros (`ruta_insumos + arch_dane`) y los textos de uso no están en el SAS; vienen del YAML, que en esas filas contiene el diseño manual. Lo que el emisor deduce es tipo, estado, existencia y el equivalente de `totales_exogena` (`TOTAL_AHORROS_CONS.csv, TOTAL_CORRIENTE.csv`).
+- Pruebas: `tests/unit/test_proceso_secciones_entrada.py` (6). `uv run pytest -q`: 759 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
+- Pendiente: secciones 1.2, 1.3, 2.x, 3.x, 4 a 7; y la prosa del Markdown (hoy solo se emite el contrato de datos).

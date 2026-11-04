@@ -1,7 +1,8 @@
-"""Interfaz mínima del emisor de las ocho secciones del diseño (aún no existe).
+"""Enganche entre la conformidad y el emisor del documento de diseño.
 
-`obtener_diseno` es el punto de enganche: cuando el emisor exista, su salida se adapta a este
-contrato y las pruebas de `test_conformidad.py` dejan de ser `xfail`.
+`obtener_diseno` llama a `sgm.proceso.diseno_doc.construir_diseno` con las decisiones del programa
+(`decisiones/<programa>.agrupacion.yaml` y `decisiones/<programa>.diseno.yaml`). Solo devuelve las
+secciones que el emisor ya produce (`SECCIONES_EMITIDAS`); las demás siguen en `xfail`.
 
 Contrato de la salida: `{codigo_seccion: {clave_de_fila: {columna: texto}}}`, con los mismos
 códigos de sección, claves de fila y nombres de columna que `diseno_manual.yaml`.
@@ -11,17 +12,20 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests.conformidad.cargador import Fila
+from sgm.proceso.diseno_doc import SECCIONES_EMITIDAS, Diseno, construir_diseno
+from tests.conformidad.cargador import RAIZ, Fila
 
-Diseno = dict[str, dict[str, dict[str, str]]]
+__all__ = ["SECCIONES_EMITIDAS", "Diseno", "diferencias_fila", "obtener_diseno"]
 
 
 def obtener_diseno(programa_sas: Path) -> Diseno:
-    """Devuelve el diseño que el migrador deduce de `programa_sas`.
-
-    Hoy no hay emisor de las ocho secciones: lanza `NotImplementedError`.
-    """
-    raise NotImplementedError("el emisor de las 8 secciones del diseño aún no existe")
+    """Diseño que el migrador deduce de `programa_sas` (solo las secciones ya emitidas)."""
+    decisiones = RAIZ / "decisiones"
+    return construir_diseno(
+        programa_sas,
+        decisiones / f"{programa_sas.stem}.agrupacion.yaml",
+        decisiones / f"{programa_sas.stem}.diseno.yaml",
+    )
 
 
 def _norm(valor: str) -> str:

@@ -9,12 +9,13 @@ import pytest
 from tests.conformidad.cargador import (
     CLASIFICACIONES,
     DOCUMENTO,
+    RAIZ,
     REFERENCIA,
     cargar_secciones,
     contar_filas_documento,
     todas_las_filas,
 )
-from tests.conformidad.interfaz import diferencias_fila, obtener_diseno
+from tests.conformidad.interfaz import SECCIONES_EMITIDAS, diferencias_fila, obtener_diseno
 
 SECCIONES = cargar_secciones()
 FILAS = todas_las_filas(SECCIONES)
@@ -92,6 +93,6 @@ def test_el_comparador_detecta_diferencias_y_acepta_coincidencias() -> None:
     assert diferencias_fila(fila, None)
 
 
-def test_el_emisor_de_las_ocho_secciones_aun_no_existe() -> None:
-    with pytest.raises(NotImplementedError):
-        obtener_diseno(DOCUMENTO)
+def test_el_emisor_produce_solo_las_secciones_emitidas() -> None:
+    programa = RAIZ / "tests" / "fixtures" / "sas" / "client" / "client_large.sas"
+    assert tuple(obtener_diseno(programa)) == SECCIONES_EMITIDAS

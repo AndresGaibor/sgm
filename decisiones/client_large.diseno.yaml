@@ -21,3 +21,24 @@ etapas:
     patrones: ["corregi", "corregir", "\\bincons", "\\bincorr", "invalido", "inv\\b", "incon "]
   - nombre: sabana_final
     patrones: ["sabana", "reportar", "final", "completa", "\\bunica\\b", "^uni", "consolidado", "paq "]
+
+# Fuentes externas (sección 1.1 del diseño). `busca` es una expresión regular sobre la ubicación que
+# el emisor halló en el SAS; si no casa con ninguna, la fuente queda con `estado_sin_hallar`.
+fuentes:
+  - {clave: 'Homologación de tipo de documento', busca: 'Homologacion_tpo_dto\.xlsx$', ubicacion: 'ruta_insumos + arch_hom_tpo_doc', uso: 'Lookup de tipo de documento (CTE/AHO)'}
+  - {clave: 'Homologación de tipo de documento Nequi', busca: 'Homologacion_tpo_dto_Nequi\.xlsx$', ubicacion: 'ruta_insumos + arch_hom_tpo_doc_nequi', uso: 'Lookup de tipo de documento (NEQUI)'}
+  - {clave: 'Códigos de país', busca: 'Cod_pais\.xlsx$', ubicacion: 'ruta_insumos + arch_paises', uso: 'Lookup de país'}
+  - {clave: 'Códigos DANE', busca: 'CODIGOS_DANE\.xlsx$', ubicacion: 'ruta_insumos + arch_dane', uso: 'Lookup de departamento y municipio'}
+  - {clave: 'Validación de fecha', busca: 'Validacion_fecha\.xlsx$', ubicacion: 'ruta_insumos + arch_validacion_fecha', uso: 'Periodo (AÑO, MES, DIA)'}
+  - {clave: 'Depósitos corriente (origen CTE)', tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado_sin_hallar: 'pendiente (nombre de tabla)'}
+  - {clave: 'Depósitos ahorros (origen AHO)', tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado_sin_hallar: 'pendiente (nombre de tabla)'}
+  - {clave: 'Depósitos Nequi (origen NEQUI)', tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado_sin_hallar: 'pendiente (nombre de tabla)'}
+
+# Salidas de archivo (sección 1.4). `equivalente_busca`: expresión regular sobre los nombres de
+# archivo que escribe el SAS; si casa, la columna `equivalente_sas` lista los que halló.
+salidas:
+  - {clave: 'sabana_validada_<sufijo>.csv', creado_en: 'job_producto', contenido: 'Registros válidos del producto', equivalente_sas: 'Sábanas SABANA_FINAL_REPORTAR_*'}
+  - {clave: 'doc_incorrectos_<sufijo>.csv', creado_en: 'job_producto', contenido: 'Registros rechazados, con columna motivo', equivalente_sas: 'DOC_INCORRECTOS_TPO*_NEQUI (ver decisión D2)'}
+  - {clave: 'totales_exogena_<anio><mes><dia>.csv', creado_en: 'job_totales', contenido: 'Total global de cuentas y saldos', equivalente_busca: '^TOTAL_'}
+  - {clave: 'conciliacion_<anio><mes><dia>.csv', creado_en: 'job_conciliacion', contenido: 'Diferencias origen vs salida por producto', equivalente_sas: '"Conciliacion final"'}
+  - {clave: 'Log de errores', creado_en: 'jl_registro_errores', contenido: 'Fallos por componente', equivalente_sas: '— (SAS no tenía registro estructurado)'}
