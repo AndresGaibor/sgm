@@ -1,0 +1,257 @@
+# Referencia legible por máquina de docs/diseno-talend-exogena-depositos.md (Fase 0).
+#
+# Fidelidad: cada fila copia el texto del documento (sin el formato de comillas invertidas).
+# No se corrige ni se completa nada; lo que el documento marca "pendiente" queda como "pendiente".
+#
+# Esquema de una fila:
+#   id             identificador estable de la fila (no cambia si el documento se reordena).
+#   clave          clave natural de la fila dentro de su sección (única en la sección).
+#   clasificacion  derivable | declarada | humana
+#                    derivable: el emisor lo produce solo, desde la estructura del SAS o por una
+#                               convención fija del emisor; no hace falta YAML ni una persona.
+#                    declarada: hace falta un valor o una elección en el YAML de decisiones.
+#                    humana:    decisión o riesgo que solo una persona confirma.
+#   motivo         por qué se clasificó así (corto).
+#   campos         el resto de columnas de la tabla, con los nombres de columna del documento.
+#
+# Sección con `md: false`: son notas sueltas del documento, no una tabla; la prueba de conteo
+# contra el Markdown no las cuenta.
+
+version: 1
+documento: docs/diseno-talend-exogena-depositos.md
+
+secciones:
+
+  "1.1":
+    titulo: Fuentes externas
+    columnas: [tipo, ubicacion, uso, estado]
+    filas:
+      - {id: F01, clave: 'Homologación de tipo de documento', clasificacion: derivable, motivo: 'El SAS lee el archivo con ruta y nombre explícitos', campos: {tipo: 'Excel', ubicacion: 'ruta_insumos + arch_hom_tpo_doc', uso: 'Lookup de tipo de documento (CTE/AHO)', estado: 'Ruta confirmada en SAS'}}
+      - {id: F02, clave: 'Homologación de tipo de documento Nequi', clasificacion: derivable, motivo: 'El SAS lee el archivo con ruta y nombre explícitos', campos: {tipo: 'Excel', ubicacion: 'ruta_insumos + arch_hom_tpo_doc_nequi', uso: 'Lookup de tipo de documento (NEQUI)', estado: 'Ruta confirmada en SAS'}}
+      - {id: F03, clave: 'Códigos de país', clasificacion: derivable, motivo: 'El SAS lee el archivo con ruta y nombre explícitos', campos: {tipo: 'Excel', ubicacion: 'ruta_insumos + arch_paises', uso: 'Lookup de país', estado: 'Ruta confirmada en SAS'}}
+      - {id: F04, clave: 'Códigos DANE', clasificacion: declarada, motivo: 'El nombre del archivo no está en el SAS; se declara en el YAML', campos: {tipo: 'Excel', ubicacion: 'ruta_insumos + arch_dane', uso: 'Lookup de departamento y municipio', estado: 'pendiente (nombre de archivo)'}}
+      - {id: F05, clave: 'Validación de fecha', clasificacion: derivable, motivo: 'El SAS lee el archivo con ruta y nombre explícitos', campos: {tipo: 'Excel', ubicacion: 'ruta_insumos + arch_validacion_fecha', uso: 'Periodo (AÑO, MES, DIA)', estado: 'Ruta confirmada en SAS'}}
+      - {id: F06, clave: 'Depósitos corriente (origen CTE)', clasificacion: declarada, motivo: 'El nombre de la tabla de origen no se demuestra en el SAS; se declara', campos: {tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado: 'pendiente (nombre de tabla)'}}
+      - {id: F07, clave: 'Depósitos ahorros (origen AHO)', clasificacion: declarada, motivo: 'El nombre de la tabla de origen no se demuestra en el SAS; se declara', campos: {tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado: 'pendiente (nombre de tabla)'}}
+      - {id: F08, clave: 'Depósitos Nequi (origen NEQUI)', clasificacion: declarada, motivo: 'El nombre de la tabla de origen no se demuestra en el SAS; se declara', campos: {tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado: 'pendiente (nombre de tabla)'}}
+
+  "1.2":
+    titulo: Cachés en memoria (no son tablas)
+    columnas: [creada_en, leida_en, contenido, clave_busqueda]
+    filas:
+      - {id: C01, clave: 'cache_hom_doc', clasificacion: derivable, motivo: 'Lookup que sale de la lectura del Excel y su uso en un join', campos: {creada_en: 'job_insumos', leida_en: 'jl_validar_documento (CTE/AHO)', contenido: 'Homologación de tipo de documento', clave_busqueda: 'código de tipo'}}
+      - {id: C02, clave: 'cache_hom_nequi', clasificacion: derivable, motivo: 'Lookup que sale de la lectura del Excel y su uso en un join', campos: {creada_en: 'job_insumos', leida_en: 'jl_validar_documento (NEQUI)', contenido: 'Homologación Nequi', clave_busqueda: 'código de tipo'}}
+      - {id: C03, clave: 'cache_paises', clasificacion: derivable, motivo: 'Lookup que sale de la lectura del Excel y su uso en un join', campos: {creada_en: 'job_insumos', leida_en: 'jl_validar_ubicacion', contenido: 'Códigos de país', clave_busqueda: 'código de país'}}
+      - {id: C04, clave: 'cache_dane', clasificacion: derivable, motivo: 'Lookup que sale de la lectura del Excel y su uso en un join', campos: {creada_en: 'job_insumos', leida_en: 'jl_validar_ubicacion', contenido: 'Departamento y municipio', clave_busqueda: 'código DANE'}}
+      - {id: C05, clave: 'totales_origen_cte', clasificacion: derivable, motivo: 'Convención fija de totales para la conciliación (D4)', campos: {creada_en: 'job_producto (CTE)', leida_en: 'job_totales, job_conciliacion', contenido: 'Conteo y suma de saldos de origen', clave_busqueda: '—'}}
+      - {id: C06, clave: 'totales_origen_aho', clasificacion: derivable, motivo: 'Convención fija de totales para la conciliación (D4)', campos: {creada_en: 'job_producto (AHO)', leida_en: 'job_totales, job_conciliacion', contenido: 'Idem', clave_busqueda: '—'}}
+      - {id: C07, clave: 'totales_origen_nequi', clasificacion: derivable, motivo: 'Convención fija de totales para la conciliación (D4)', campos: {creada_en: 'job_producto (NEQUI)', leida_en: 'job_totales, job_conciliacion', contenido: 'Idem', clave_busqueda: '—'}}
+      - {id: C08, clave: 'totales_salida_cte', clasificacion: derivable, motivo: 'Convención fija de totales para la conciliación (D4)', campos: {creada_en: 'job_producto (CTE)', leida_en: 'job_totales, job_conciliacion', contenido: 'Conteo y suma de saldos validados', clave_busqueda: '—'}}
+      - {id: C09, clave: 'totales_salida_aho', clasificacion: derivable, motivo: 'Convención fija de totales para la conciliación (D4)', campos: {creada_en: 'job_producto (AHO)', leida_en: 'job_totales, job_conciliacion', contenido: 'Idem', clave_busqueda: '—'}}
+      - {id: C10, clave: 'totales_salida_nequi', clasificacion: derivable, motivo: 'Convención fija de totales para la conciliación (D4)', campos: {creada_en: 'job_producto (NEQUI)', leida_en: 'job_totales, job_conciliacion', contenido: 'Idem', clave_busqueda: '—'}}
+
+  "1.3":
+    titulo: Variables globales
+    columnas: [creada_en, origen, uso]
+    filas:
+      - {id: G01, clave: 'periodo_anio', clasificacion: derivable, motivo: 'El SAS lee la fecha de un Excel y la usa en nombres de archivo', campos: {creada_en: 'job_insumos', origen: 'Columna AÑO de validacion_fecha', uso: 'Nombres de archivo de salida'}}
+      - {id: G02, clave: 'periodo_mes', clasificacion: derivable, motivo: 'El SAS lee la fecha de un Excel y la usa en nombres de archivo', campos: {creada_en: 'job_insumos', origen: 'Columna MES de validacion_fecha', uso: 'Idem'}}
+      - {id: G03, clave: 'periodo_dia', clasificacion: derivable, motivo: 'El SAS lee la fecha de un Excel y la usa en nombres de archivo', campos: {creada_en: 'job_insumos', origen: 'Columna DIA de validacion_fecha', uso: 'Idem'}}
+
+  "1.4":
+    titulo: Salidas (archivos)
+    columnas: [creado_en, contenido, equivalente_sas]
+    filas:
+      - {id: S01, clave: 'sabana_validada_<sufijo>.csv', clasificacion: derivable, motivo: 'Equivale a un PROC EXPORT de las sábanas finales del SAS', campos: {creado_en: 'job_producto', contenido: 'Registros válidos del producto', equivalente_sas: 'Sábanas SABANA_FINAL_REPORTAR_*'}}
+      - {id: S02, clave: 'doc_incorrectos_<sufijo>.csv', clasificacion: declarada, motivo: 'Un archivo con columna motivo en vez de ocho depende de D2; se declara', campos: {creado_en: 'job_producto', contenido: 'Registros rechazados, con columna motivo', equivalente_sas: 'DOC_INCORRECTOS_TPO*_NEQUI (ver decisión D2)'}}
+      - {id: S03, clave: 'totales_exogena_<anio><mes><dia>.csv', clasificacion: derivable, motivo: 'Equivale a los PROC EXPORT de totales del SAS', campos: {creado_en: 'job_totales', contenido: 'Total global de cuentas y saldos', equivalente_sas: 'TOTAL_AHORROS_CONS.csv, TOTAL_CORRIENTE.csv'}}
+      - {id: S04, clave: 'conciliacion_<anio><mes><dia>.csv', clasificacion: derivable, motivo: 'El SAS tiene un paso de conciliación final comparable', campos: {creado_en: 'job_conciliacion', contenido: 'Diferencias origen vs salida por producto', equivalente_sas: '"Conciliacion final"'}}
+      - {id: S05, clave: 'Log de errores', clasificacion: derivable, motivo: 'Convención fija del emisor (joblet de registro); el SAS no tiene equivalente', campos: {creado_en: 'jl_registro_errores', contenido: 'Fallos por componente', equivalente_sas: '— (SAS no tenía registro estructurado)'}}
+
+  "2.1":
+    titulo: Grupo Default (claves; sin valor de entorno)
+    columnas: [tipo, valor, nota]
+    filas:
+      - {id: X01, clave: 'ruta_insumos', clasificacion: derivable, motivo: 'El valor sale de la ruta literal del SAS', campos: {tipo: 'String', valor: '\\sbcldwpsgf01\FILE_VSPC_FINANZAS\', nota: 'Ruta del SAS; confirmar por entorno'}}
+      - {id: X02, clave: 'ruta_resultados', clasificacion: derivable, motivo: 'El valor sale de la ruta literal del SAS', campos: {tipo: 'String', valor: '\\sbcldwpsgf01\FILE_VSPC_FINANZAS\GST_Informacion_Exogena\RESULTADOS\', nota: 'Ruta del SAS; confirmar por entorno'}}
+      - {id: X03, clave: 'arch_hom_tpo_doc', clasificacion: derivable, motivo: 'El nombre del archivo está en el SAS', campos: {tipo: 'String', valor: 'Homologacion_tpo_dto.xlsx', nota: ''}}
+      - {id: X04, clave: 'arch_hom_tpo_doc_nequi', clasificacion: derivable, motivo: 'El nombre del archivo está en el SAS', campos: {tipo: 'String', valor: 'Homologacion_tpo_dto_Nequi.xlsx', nota: ''}}
+      - {id: X05, clave: 'arch_paises', clasificacion: derivable, motivo: 'El nombre del archivo está en el SAS', campos: {tipo: 'String', valor: 'Cod_pais.xlsx', nota: ''}}
+      - {id: X06, clave: 'arch_dane', clasificacion: declarada, motivo: 'El nombre del archivo no está en el SAS; se declara', campos: {tipo: 'String', valor: 'pendiente', nota: ''}}
+      - {id: X07, clave: 'arch_validacion_fecha', clasificacion: derivable, motivo: 'El nombre del archivo está en el SAS', campos: {tipo: 'String', valor: 'Validacion_fecha.xlsx', nota: ''}}
+      - {id: X08, clave: 'tolerancia_conciliacion', clasificacion: humana, motivo: 'El valor 0 lo confirma el negocio; no sale del SAS', campos: {tipo: 'BigDecimal', valor: '0', nota: 'Confirmar con negocio'}}
+      - {id: X09, clave: 'log_nivel', clasificacion: derivable, motivo: 'Valor por defecto fijo del emisor', campos: {tipo: 'String', valor: 'INFO', nota: 'DEBUG solo en pruebas'}}
+
+  "2.2":
+    titulo: Grupos de entorno (DEV, QA, PROD)
+    columnas: [DEV, QA, PROD, origen]
+    filas:
+      - {id: E01, clave: 'env_nombre', clasificacion: derivable, motivo: 'Cada grupo toma su propio nombre; la validación es convención del emisor', campos: {DEV: 'DEV', QA: 'QA', PROD: 'PROD', origen: 'Validado en tPrejob'}}
+      - {id: E02, clave: 'impala_dsn', clasificacion: derivable, motivo: 'El mapeo D/C/P sale del macro de ambiente del SAS; la confirmación es P4', campos: {DEV: 'IMPALA', QA: 'IMPALAC', PROD: 'IMPALAP', origen: 'Mapeo D/C/P del SAS (m_ambiente). Confirmar'}}
+      - {id: E03, clave: 'impala_host', clasificacion: declarada, motivo: 'No está en el SAS; se declara por entorno', campos: {DEV: 'pendiente', QA: 'pendiente', PROD: 'pendiente', origen: 'No está en el SAS'}}
+      - {id: E04, clave: 'impala_puerto', clasificacion: declarada, motivo: 'No está en el SAS; se declara por entorno', campos: {DEV: 'pendiente', QA: 'pendiente', PROD: 'pendiente', origen: 'No está en el SAS'}}
+      - {id: E05, clave: 'impala_usuario', clasificacion: declarada, motivo: 'Usuario de servicio; no está en el SAS; se declara por entorno', campos: {DEV: 'pendiente', QA: 'pendiente', PROD: 'pendiente', origen: 'Usuario de servicio'}}
+      - {id: E06, clave: 'impala_password', clasificacion: humana, motivo: 'Secreto: nunca se declara en claro; solo una persona lo pone en el vault', campos: {DEV: 'sin valor', QA: 'sin valor', PROD: 'sin valor', origen: 'Vault o metadato cifrado. Nunca en claro'}}
+
+  "2.3":
+    titulo: Parámetros por Job
+    columnas: [job, tipo, origen, valor]
+    filas:
+      - {id: PJ01, clave: 'producto', clasificacion: derivable, motivo: 'Los tres productos salen de la estructura repetida del SAS', campos: {job: 'job_producto', tipo: 'String', origen: 'tFixedFlowInput del padre', valor: 'CTE, AHO, NEQUI'}}
+      - {id: PJ02, clave: 'tabla_origen', clasificacion: declarada, motivo: 'Depende del nombre de tabla por producto (P2); se declara', campos: {job: 'job_producto', tipo: 'String', origen: 'tFixedFlowInput del padre', valor: 'pendiente por producto'}}
+      - {id: PJ03, clave: 'sufijo', clasificacion: derivable, motivo: 'Es la forma en minúsculas del producto', campos: {job: 'job_producto', tipo: 'String', origen: 'tFixedFlowInput del padre', valor: 'cte, aho, nequi'}}
+
+  "2.4":
+    titulo: Reglas de contexto
+    md: lista
+    columnas: []
+    filas:
+      - {id: RC01, clave: 'El Job no se edita para cambiar de entorno; solo cambia el grupo de contexto.', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {}}
+      - {id: RC02, clave: 'tPrejob falla si env_nombre no es DEV, QA o PROD, o si una clave de entorno está vacía.', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {}}
+      - {id: RC03, clave: 'Ninguna contraseña en claro. impala_password se resuelve desde vault o metadato cifrado.', clasificacion: derivable, motivo: 'Convención fija del emisor (D5, BP-SEC-01)', campos: {}}
+      - {id: RC04, clave: 'Los Jobs hijos heredan el contexto del padre (Transmit whole context).', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {}}
+
+  "3.1":
+    titulo: job_exogena_depositos (padre)
+    columnas: [hijo_componentes, orden, error]
+    filas:
+      - {id: J1-01, clave: 'tPrejob', clasificacion: derivable, motivo: 'Convención fija del padre', campos: {hijo_componentes: 'tJava (validar entorno), tFileExist ×5 (insumos)', orden: 'Inicio', error: 'tDie'}}
+      - {id: J1-02, clave: 'A', clasificacion: derivable, motivo: 'Etapa de insumos; sale de la estructura del SAS', campos: {hijo_componentes: 'tRunJob → job_insumos', orden: 'OnSubjobOk de tPrejob', error: 'OnSubjobError → tDie'}}
+      - {id: J1-03, clave: 'B', clasificacion: derivable, motivo: 'Etapa por producto; sale de los bloques repetidos del SAS', campos: {hijo_componentes: 'tFixedFlowInput (productos) → tFlowToIterate → tRunJob → job_producto', orden: 'OnSubjobOk de A', error: 'Idem'}}
+      - {id: J1-04, clave: 'C', clasificacion: derivable, motivo: 'Etapa de totales; sale de los PROC EXPORT de totales', campos: {hijo_componentes: 'tRunJob → job_totales', orden: 'OnSubjobOk de B (tras los 3 productos)', error: 'Idem'}}
+      - {id: J1-05, clave: 'D', clasificacion: derivable, motivo: 'Etapa de conciliación; sale del paso de conciliación del SAS', campos: {hijo_componentes: 'tRunJob → job_conciliacion', orden: 'OnSubjobOk de C', error: 'Idem'}}
+      - {id: J1-06, clave: 'tPostjob', clasificacion: derivable, motivo: 'Convención fija del padre', campos: {hijo_componentes: 'tLogRow ("Proceso terminado"), tDBClose', orden: 'Fin', error: '—'}}
+
+  "3.1b":
+    titulo: Conexión compartida del padre
+    md: false
+    columnas: [detalle]
+    filas:
+      - {id: J1-07, clave: 'Conexión', clasificacion: derivable, motivo: 'Convención fija del padre', campos: {detalle: 'jl_conexion_impala al inicio, compartida con los hijos'}}
+
+  "3.2":
+    titulo: job_insumos
+    columnas: [entrada, salida]
+    filas:
+      - {id: J2-01, clave: 'tFileInputExcel (hom_tpo_doc)', clasificacion: derivable, motivo: 'Lectura de Excel del SAS hacia un lookup', campos: {entrada: 'arch_hom_tpo_doc', salida: 'jl_normalizar → tCacheOut cache_hom_doc'}}
+      - {id: J2-02, clave: 'tFileInputExcel (hom_tpo_doc_nequi)', clasificacion: derivable, motivo: 'Lectura de Excel del SAS hacia un lookup', campos: {entrada: 'arch_hom_tpo_doc_nequi', salida: 'jl_normalizar → tCacheOut cache_hom_nequi'}}
+      - {id: J2-03, clave: 'tFileInputExcel (paises)', clasificacion: derivable, motivo: 'Lectura de Excel del SAS hacia un lookup', campos: {entrada: 'arch_paises', salida: 'jl_normalizar → tCacheOut cache_paises'}}
+      - {id: J2-04, clave: 'tFileInputExcel (dane)', clasificacion: derivable, motivo: 'Estructura derivable; el nombre del archivo es F04/X06', campos: {entrada: 'arch_dane', salida: 'jl_normalizar → tCacheOut cache_dane'}}
+      - {id: J2-05, clave: 'tFileInputExcel (validacion_fecha)', clasificacion: derivable, motivo: 'Lectura de Excel del SAS hacia variables globales', campos: {entrada: 'arch_validacion_fecha', salida: 'tJavaRow → tSetGlobalVar periodo_*'}}
+      - {id: J2-06, clave: 'Error', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {entrada: '—', salida: 'jl_registro_errores'}}
+
+  "3.2b":
+    titulo: Contexto nuevo de job_insumos
+    md: false
+    columnas: [detalle]
+    filas:
+      - {id: J2-07, clave: 'Contexto nuevo', clasificacion: derivable, motivo: 'Consecuencia de las variables globales G01-G03', campos: {detalle: 'ninguno. Crea las globales periodo_*'}}
+
+  "3.3":
+    titulo: job_producto (×3, uno por producto)
+    columnas: [componentes, salida]
+    filas:
+      - {id: J3-01, clave: 'Lectura', clasificacion: derivable, motivo: 'El SQL del SAS se empuja a un tDBInput con WITH', campos: {componentes: 'tDBInput (SQL con WHERE por producto y WITH para pasos intermedios), jl_normalizar, tReplicate', salida: 'Flujo a dos ramas'}}
+      - {id: J3-02, clave: 'Rama A (totales origen)', clasificacion: derivable, motivo: 'Convención fija de totales (D4)', campos: {componentes: 'tAggregateRow (conteo, suma de saldos), tCacheOut totales_origen_<sufijo>', salida: 'Caché'}}
+      - {id: J3-03, clave: 'Rama B (validación)', clasificacion: derivable, motivo: 'La validación sale de los pasos de homologación del SAS', campos: {componentes: 'tMap (lookups cache_hom_*, cache_paises, cache_dane), jl_validar_documento, jl_validar_ubicacion, tMap (valid/reject)', salida: 'Dos flujos'}}
+      - {id: J3-04, clave: 'Valid', clasificacion: derivable, motivo: 'Salida S01 más totales de salida', campos: {componentes: 'tFileOutputDelimited → sabana_validada_<sufijo>.csv; tAggregateRow → tCacheOut totales_salida_<sufijo>', salida: 'Archivo y caché'}}
+      - {id: J3-05, clave: 'Reject', clasificacion: declarada, motivo: 'Un archivo de rechazos por producto depende de D2', campos: {componentes: 'tFileOutputDelimited → doc_incorrectos_<sufijo>.csv', salida: 'Archivo'}}
+      - {id: J3-06, clave: 'Error', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {componentes: 'tLogCatcher, tLogRow, tDie', salida: '—'}}
+
+  "3.3b":
+    titulo: Conteo de componentes de job_producto
+    md: false
+    columnas: [detalle, limite]
+    filas:
+      - {id: J3-07, clave: 'Conteo aproximado', clasificacion: derivable, motivo: 'Es una propiedad medible del Job generado', campos: {detalle: '17 componentes', limite: '20 (límite del proyecto)'}}
+
+  "3.4":
+    titulo: job_totales
+    columnas: [entrada, salida]
+    filas:
+      - {id: J4-01, clave: 'tCacheIn ×6', clasificacion: derivable, motivo: 'Una lectura por caché de totales', campos: {entrada: 'totales_origen_* (3), totales_salida_* (3)', salida: 'tUnite'}}
+      - {id: J4-02, clave: 'tUnite', clasificacion: derivable, motivo: 'Convención fija de totales', campos: {entrada: '6 flujos', salida: 'tAggregateRow (total global)'}}
+      - {id: J4-03, clave: 'tAggregateRow', clasificacion: derivable, motivo: 'Equivale al total global de los PROC EXPORT del SAS', campos: {entrada: 'Flujo unido', salida: 'tFileOutputDelimited → totales_exogena_<anio><mes><dia>.csv'}}
+      - {id: J4-04, clave: 'Error', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {entrada: '—', salida: 'jl_registro_errores'}}
+
+  "3.5":
+    titulo: job_conciliacion
+    columnas: [entrada, salida]
+    filas:
+      - {id: J5-01, clave: 'tCacheIn ×6', clasificacion: derivable, motivo: 'Una lectura por caché de totales', campos: {entrada: 'Totales origen y salida', salida: 'tUnite → jl_conciliar'}}
+      - {id: J5-02, clave: 'jl_conciliar', clasificacion: derivable, motivo: 'Convención fija de conciliación', campos: {entrada: 'Totales', salida: 'Diferencias y marca por producto'}}
+      - {id: J5-03, clave: 'tFileOutputDelimited', clasificacion: derivable, motivo: 'Salida S04', campos: {entrada: 'Diferencias', salida: 'conciliacion_<anio><mes><dia>.csv'}}
+      - {id: J5-04, clave: 'tJavaRow', clasificacion: derivable, motivo: 'Regla fija; el valor de la tolerancia es X08 (humana)', campos: {entrada: 'Diferencias', salida: 'tLogRow ("Conciliación OK") si ninguna supera tolerancia_conciliacion; tDie si alguna la supera'}}
+      - {id: J5-05, clave: 'Error', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {entrada: '—', salida: 'jl_registro_errores'}}
+
+  "4":
+    titulo: Joblets
+    columnas: [entrada, salida, componentes, usado_en]
+    filas:
+      - {id: JL01, clave: 'jl_conexion_impala', clasificacion: derivable, motivo: 'Convención fija de conexión', campos: {entrada: 'Contexto impala_*', salida: 'Conexión compartida', componentes: 'tDBConnection', usado_en: 'Padre'}}
+      - {id: JL02, clave: 'jl_normalizar', clasificacion: derivable, motivo: 'Limpieza genérica de filas; convención fija', campos: {entrada: 'Fila genérica', salida: 'Fila limpia (mismo esquema)', componentes: 'tMap (trim, mayúsculas, texto/número)', usado_en: 'job_insumos, job_producto'}}
+      - {id: JL03, clave: 'jl_validar_documento', clasificacion: derivable, motivo: 'La validación sale de los pasos del SAS; el algoritmo de DV es P5', campos: {entrada: 'tipo_doc, nro_doc, nombres, apellidos, dv', salida: 'valid / reject con motivo', componentes: 'tMap + rutina DV.calcular', usado_en: 'job_producto'}}
+      - {id: JL04, clave: 'jl_validar_ubicacion', clasificacion: derivable, motivo: 'La validación sale de los lookups de país y DANE del SAS', campos: {entrada: 'codigo_pais, departamento, municipio, codigo_dane', salida: 'valid / reject con motivo', componentes: 'tMap (lookups)', usado_en: 'job_producto'}}
+      - {id: JL05, clave: 'jl_conciliar', clasificacion: derivable, motivo: 'Convención fija de conciliación', campos: {entrada: 'Totales origen y salida', salida: 'Diferencia y marca por producto', componentes: 'tMap (join por producto, comparación)', usado_en: 'job_conciliacion'}}
+      - {id: JL06, clave: 'jl_registro_errores', clasificacion: derivable, motivo: 'Convención fija del emisor', campos: {entrada: 'OnComponentError', salida: 'Fila de log', componentes: 'tLogCatcher, tLogRow', usado_en: 'Todos los Jobs'}}
+
+  "4b":
+    titulo: Rutina DV.calcular
+    md: false
+    columnas: [detalle]
+    filas:
+      - {id: JL07, clave: 'DV.calcular', clasificacion: declarada, motivo: 'Rutina Java reutilizable; el algoritmo no está revisado y se declara o se copia del SAS (P5)', campos: {detalle: 'rutina Java reutilizable. Algoritmo pendiente de copiarse del SAS'}}
+
+  "5":
+    titulo: Decisiones tomadas
+    columnas: [decision, motivo_doc]
+    filas:
+      - {id: D1, clave: 'D1', clasificacion: derivable, motivo: 'Propiedad medible: el Job no persiste tablas intermedias', campos: {decision: 'Sin tablas intermedias. Entradas y salidas finales son las únicas persistencias', motivo_doc: 'El SAS tiene 348 tablas WORK; la mayoría son pasos encadenados'}}
+      - {id: D2, clave: 'D2', clasificacion: humana, motivo: 'El documento la marca por confirmar con negocio', campos: {decision: 'Un solo archivo de rechazos por producto, con columna motivo', motivo_doc: 'Más simple que ocho archivos para NEQUI; por confirmar con negocio'}}
+      - {id: D3, clave: 'D3', clasificacion: humana, motivo: 'Exige verificar que las copias del SAS son equivalentes (P6)', campos: {decision: 'Un solo job_producto parametrizado en lugar de 30 copias', motivo_doc: 'Las copias del SAS difieren; hay que verificar equivalencia'}}
+      - {id: D4, clave: 'D4', clasificacion: derivable, motivo: 'Propiedad medible: un tReplicate por lectura de producto', campos: {decision: 'tReplicate para totales de origen y validación en una sola lectura', motivo_doc: 'Conciliación compara la misma ejecución'}}
+      - {id: D5, clave: 'D5', clasificacion: derivable, motivo: 'Propiedad medible: ninguna contraseña en el contexto plano', campos: {decision: 'Credenciales fuera del contexto plano', motivo_doc: 'BP-SEC-01'}}
+      - {id: D6, clave: 'D6', clasificacion: derivable, motivo: 'Propiedad medible: un job_producto con el producto como parámetro', campos: {decision: 'Un job_producto por producto, con el producto como parámetro', motivo_doc: 'Límite de 20 componentes por Job'}}
+
+  "6":
+    titulo: Equivalencias con el SAS
+    columnas: [equivalente_talend]
+    filas:
+      - {id: EQ01, clave: '30 bloques de macros (%macro ambiente ×30)', clasificacion: derivable, motivo: 'Patrón estructural: bloques repetidos de macro', campos: {equivalente_talend: 'job_producto parametrizado'}}
+      - {id: EQ02, clave: '%split2, sessio&i, rsubmit, waitfor', clasificacion: derivable, motivo: 'Patrón estructural: paralelismo remoto de SAS', campos: {equivalente_talend: 'No necesario: Impala paraleliza el SQL'}}
+      - {id: EQ03, clave: 'PROC SQL sobre WORK (348 tablas)', clasificacion: derivable, motivo: 'Patrón estructural: cadena de tablas WORK', campos: {equivalente_talend: 'SQL con WITH en tDBInput'}}
+      - {id: EQ04, clave: 'PROC EXPORT + PROC UPLOAD remoto', clasificacion: derivable, motivo: 'Patrón estructural: exportación y subida', campos: {equivalente_talend: 'tFileOutputDelimited directo a ruta_resultados'}}
+      - {id: EQ05, clave: 'signon con contraseña en claro', clasificacion: derivable, motivo: 'Patrón estructural: signon', campos: {equivalente_talend: 'jl_conexion_impala con vault o metadato cifrado'}}
+      - {id: EQ06, clave: '%web_open_table, %web_drop_table, options mprint', clasificacion: derivable, motivo: 'Patrón estructural: ruido de Studio', campos: {equivalente_talend: 'Eliminados (ruido de Studio)'}}
+      - {id: EQ07, clave: '%put de depuración', clasificacion: derivable, motivo: 'Patrón estructural: %put', campos: {equivalente_talend: 'tLogRow y log_nivel'}}
+      - {id: EQ08, clave: 'Macros %ambiente (D/C/P)', clasificacion: derivable, motivo: 'Patrón estructural: macro de ambiente', campos: {equivalente_talend: 'Grupos DEV / QA / PROD'}}
+
+  "7":
+    titulo: Pendientes y riesgos
+    columnas: [tema, tipo, bloquea]
+    filas:
+      - {id: P1, clave: 'P1', clasificacion: declarada, motivo: 'Dato que se declara en el YAML', campos: {tema: 'Nombre de archivo DANE (arch_dane)', tipo: 'Dato', bloquea: 'job_insumos'}}
+      - {id: P2, clave: 'P2', clasificacion: declarada, motivo: 'Dato que se declara en el YAML', campos: {tema: 'Nombres de tablas de origen por producto (tabla_origen)', tipo: 'Dato', bloquea: 'job_producto'}}
+      - {id: P3, clave: 'P3', clasificacion: declarada, motivo: 'Dato que se declara en el YAML', campos: {tema: 'impala_host, impala_puerto, impala_usuario por entorno', tipo: 'Dato', bloquea: 'Todo'}}
+      - {id: P4, clave: 'P4', clasificacion: humana, motivo: 'Confirmar el mapeo de DSN lo hace una persona', campos: {tema: 'Confirmar impala_dsn (IMPALA, IMPALAC, IMPALAP)', tipo: 'Dato', bloquea: 'Todo'}}
+      - {id: P5, clave: 'P5', clasificacion: humana, motivo: 'Una persona verifica el algoritmo de DV', campos: {tema: 'Algoritmo de DV (copiar del SAS)', tipo: 'Lógica', bloquea: 'jl_validar_documento'}}
+      - {id: P6, clave: 'P6', clasificacion: humana, motivo: 'Verificación manual de equivalencia de las copias', campos: {tema: 'Confirmar que las 30 copias del SAS son equivalentes', tipo: 'Verificación', bloquea: 'job_producto (D3)'}}
+      - {id: P7, clave: 'P7', clasificacion: humana, motivo: 'Decisión de negocio', campos: {tema: 'Confirmar D2 (un archivo de rechazos o ocho)', tipo: 'Decisión', bloquea: 'job_producto'}}
+      - {id: P8, clave: 'P8', clasificacion: humana, motivo: 'Decisión de negocio', campos: {tema: 'Confirmar tolerancia_conciliacion (0)', tipo: 'Decisión', bloquea: 'job_conciliacion'}}
+      - {id: R1, clave: 'R1', clasificacion: humana, motivo: 'Riesgo técnico que solo se cierra probando en Talend Studio', campos: {tema: 'tCacheIn ve datos de tRunJob hijos', tipo: 'Riesgo técnico', bloquea: 'Diseño de cachés (sección 1.2)'}}
+      - {id: R2, clave: 'R2', clasificacion: humana, motivo: 'Riesgo que depende del volumen real', campos: {tema: 'Memoria para cachés y tMap con el volumen real', tipo: 'Riesgo', bloquea: 'job_producto'}}
+      - {id: R3, clave: 'R3', clasificacion: humana, motivo: 'Riesgo de instalación de Studio', campos: {tema: 'tUniqRow y tImpala* no vienen instalados por defecto', tipo: 'Riesgo', bloquea: 'Si se usan'}}
+      - {id: R4, clave: 'R4', clasificacion: humana, motivo: 'Riesgo técnico que solo se cierra probando en Talend Studio', campos: {tema: 'Pushdown de WHERE y WITH en tDBInput', tipo: 'Riesgo técnico', bloquea: 'job_producto'}}
+
+  "8":
+    titulo: Orden de construcción propuesto
+    md: lista
+    columnas: [paso]
+    filas:
+      - {id: OC01, clave: '1', clasificacion: derivable, motivo: 'Orden por dependencias de la guía; refs R1', campos: {paso: 'Prueba mínima de tCacheOut / tCacheIn entre tRunJob (R1).'}}
+      - {id: OC02, clave: '2', clasificacion: derivable, motivo: 'Orden por dependencias de la guía; refs P2, P3, P4', campos: {paso: 'Conexión jl_conexion_impala y prueba de lectura de una tabla de origen (P2, P3, P4).'}}
+      - {id: OC03, clave: '3', clasificacion: derivable, motivo: 'Orden por dependencias de la guía', campos: {paso: 'job_insumos con las cinco lecturas de Excel.'}}
+      - {id: OC04, clave: '4', clasificacion: derivable, motivo: 'Orden por dependencias de la guía', campos: {paso: 'job_producto para un solo producto (CTE) con sus joblets.'}}
+      - {id: OC05, clave: '5', clasificacion: derivable, motivo: 'Orden por dependencias de la guía; refs P6', campos: {paso: 'Extender a AHO y NEQUI tras comparar contra el SAS (P6).'}}
+      - {id: OC06, clave: '6', clasificacion: derivable, motivo: 'Orden por dependencias de la guía', campos: {paso: 'job_totales y job_conciliacion.'}}
+      - {id: OC07, clave: '7', clasificacion: derivable, motivo: 'Orden por dependencias de la guía', campos: {paso: 'Padre job_exogena_depositos con su tPrejob y tPostjob.'}}

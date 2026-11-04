@@ -1,0 +1,922 @@
+{
+  "metadatos": {
+    "programa": "client_large.sas",
+    "lineas": 24801,
+    "regiones": 30,
+    "marcador_de_region": "%macro ambiente",
+    "agrupacion": "client_large.agrupacion.yaml",
+    "diseno_manual": "diseno-talend-exogena-depositos.md"
+  },
+  "h1_fontaneria": {
+    "items_del_programa": 4808,
+    "operadores_tras_pasada_1": 6466,
+    "operadores_por_tipo_inicial": {
+      "unsupported": 3960,
+      "read": 963,
+      "derive": 587,
+      "filter": 194,
+      "write": 164,
+      "join": 125,
+      "exec_sql": 122,
+      "sort": 117,
+      "dedup": 64,
+      "aggregate": 55,
+      "set_variable": 52,
+      "select": 30,
+      "write_file": 22,
+      "read_file": 9,
+      "union": 2
+    },
+    "fontaneria_marcada_pasada_2": {
+      "total": 2651,
+      "porcentaje": 41.0,
+      "por_categoria": {
+        "visor_studio": 447,
+        "presentacion": 293,
+        "conexion": 242,
+        "control_macro": 240,
+        "configuracion_macro": 222,
+        "mensajes": 218,
+        "limpieza_work": 216,
+        "remoto": 202,
+        "espera": 150,
+        "troceado_lotes": 120,
+        "limpieza_tablas": 91,
+        "medicion": 60,
+        "variables_control": 60,
+        "fin_de_paso": 60,
+        "shell_auxiliar": 30
+      },
+      "por_familia": {
+        "log_medicion_y_presentacion": 1078,
+        "macro_control_y_configuracion": 522,
+        "sesion_remota_y_paralelismo": 502,
+        "conexion_y_tablas_de_base": 333,
+        "limpieza_de_temporales": 216
+      },
+      "quitada_suelta": 1029,
+      "absorbida_en_cargas_externas": 1622,
+      "quitada_por_categoria": {
+        "visor_studio": 441,
+        "presentacion": 275,
+        "limpieza_work": 156,
+        "conexion": 62,
+        "remoto": 52,
+        "limpieza_tablas": 31,
+        "mensajes": 8,
+        "configuracion_macro": 4
+      },
+      "absorbida_por_categoria": {
+        "control_macro": 240,
+        "configuracion_macro": 218,
+        "mensajes": 210,
+        "conexion": 180,
+        "remoto": 150,
+        "espera": 150,
+        "troceado_lotes": 120,
+        "medicion": 60,
+        "variables_control": 60,
+        "fin_de_paso": 60,
+        "limpieza_tablas": 60,
+        "limpieza_work": 60,
+        "shell_auxiliar": 30,
+        "presentacion": 18,
+        "visor_studio": 6
+      }
+    },
+    "absorbidos_por_cargas_sin_marca_de_fontaneria": {
+      "total": 1776,
+      "por_tipo": {
+        "unsupported": 1326,
+        "read": 120,
+        "derive": 90,
+        "sort": 90,
+        "filter": 60,
+        "dedup": 30,
+        "set_variable": 30,
+        "exec_sql": 30
+      }
+    },
+    "cargas_externas_creadas": 30,
+    "maquinaria_total": {
+      "operadores": 4427,
+      "porcentaje": 68.5,
+      "nota": "fontanería marcada + operadores que una carga externa absorbe sin ser fontanería por patrón (preparación de la carga)"
+    },
+    "sin_traducir_inicial": {
+      "total": 3960,
+      "de_los_cuales_fontaneria": 2470
+    },
+    "operadores_finales": {
+      "total": 780,
+      "porcentaje_del_inicial": 12.1,
+      "por_tipo": {
+        "unsupported": 164,
+        "write": 124,
+        "map": 124,
+        "read": 75,
+        "iterate": 46,
+        "aggregate": 45,
+        "external_load": 31,
+        "filter": 28,
+        "join": 26,
+        "set_variable": 22,
+        "write_file": 22,
+        "exec_sql": 21,
+        "derive": 18,
+        "dedup": 16,
+        "sort": 13,
+        "read_file": 5
+      },
+      "sin_traducir_por_origen_y_motivo": {
+        "configuracion / CONFIGURACION": 85,
+        "include / INCLUDE_DECLARADO": 30,
+        "proc_sql_work / SEMANTICA_DUDOSA": 22,
+        "proc_upload / PROC_NO_SOPORTADO": 22,
+        "proc_download / PROC_NO_SOPORTADO": 4,
+        "proc_pwencode / PROC_NO_SOPORTADO": 1
+      }
+    },
+    "residuo_estimado": {
+      "cargas_externas": 31,
+      "sentencias_de_entorno_sin_traducir": 142,
+      "operadores_de_datos_estimados": 607,
+      "porcentaje_del_inicial": 9.4
+    }
+  },
+  "h2_tablas": {
+    "nombres_dinamicos_descartados": 150,
+    "work": {
+      "escrituras_o_versiones": 810,
+      "nombres_distintos": 404,
+      "versiones_por_clase": {
+        "local_a_region": 640,
+        "sin_lector": 99,
+        "cruza_region": 40,
+        "exportada": 22,
+        "fuente_importada": 9
+      },
+      "nombres_escritos_una_sola_vez": 332,
+      "una_vez_y_local_a_su_region": 218,
+      "una_vez_y_cruza_region": 29,
+      "nombres_reescritos_mas_de_una_vez": 72,
+      "reescritos_top": {
+        "temporal": 156,
+        "contents": 30,
+        "members": 30,
+        "unionalltmp": 30,
+        "dbiftcd": 16
+      },
+      "versiones_locales_a_region": 640
+    },
+    "permanentes_o_de_base": {
+      "versiones": 1,
+      "nombres_distintos": 1,
+      "sin_lector_en_el_programa": 0,
+      "con_lector_en_el_programa": 1
+    },
+    "fuentes_externas": {
+      "archivos_importados_distintos": 9,
+      "archivos_descargados_distintos": 4,
+      "tablas_de_base_leidas_sin_escribirlas_antes_externas": 2,
+      "tablas_de_base_que_son_recarga_de_un_work_propio": 22,
+      "nombres_de_cte_descartados": [
+        "a",
+        "tabla1",
+        "tabla2"
+      ],
+      "tablas_de_base_colapsando_sufijo_de_producto": 2,
+      "work_leidas_sin_productor_previo": [
+        "_all_"
+      ],
+      "total_fuentes_distintas": 11,
+      "total_colapsando_sufijo": 11,
+      "archivos_importados": [
+        "/work_sasstudio/pcfiles/Base_datos_Nequi.csv",
+        "/work_sasstudio/pcfiles/DBIFTCD.csv",
+        "/work_sasstudio/pcfiles/DBIFTCS.csv",
+        "/work_sasstudio/pcfiles/F_1019.csv",
+        "\\\\sbcldwpsgf01\\FILE_VSPC_FINANZAS\\CODIGOS_DANE.xlsx",
+        "\\\\sbcldwpsgf01\\FILE_VSPC_FINANZAS\\Cod_pais.xlsx",
+        "\\\\sbcldwpsgf01\\FILE_VSPC_FINANZAS\\Homologacion_tpo_dto.xlsx",
+        "\\\\sbcldwpsgf01\\FILE_VSPC_FINANZAS\\Homologacion_tpo_dto_Nequi.xlsx",
+        "\\\\sbcldwpsgf01\\FILE_VSPC_FINANZAS\\Validacion_fecha.xlsx"
+      ],
+      "tablas_de_base": [
+        "resultados_vspc_clientes.master_customer_data",
+        "s_canales.sai_scilibramd_sciffimgfr"
+      ],
+      "recargas_de_un_work_propio": [
+        "proceso_vspc_finanzas.columnas_depositos",
+        "proceso_vspc_finanzas.columnas_depositos_cte",
+        "proceso_vspc_finanzas.direcciones_validas_aho",
+        "proceso_vspc_finanzas.direcciones_validas_cte",
+        "proceso_vspc_finanzas.formato_codigo_dane",
+        "proceso_vspc_finanzas.formato_codigo_pais",
+        "proceso_vspc_finanzas.reemplazo_nid_ext_aho",
+        "proceso_vspc_finanzas.reemplazo_nid_ext_cte",
+        "proceso_vspc_finanzas.sabana_completa_info_cli_aho",
+        "proceso_vspc_finanzas.sabana_completa_info_cli_cte",
+        "proceso_vspc_finanzas.sabana_corr_nom_aho",
+        "proceso_vspc_finanzas.sabana_corr_nom_cte",
+        "proceso_vspc_finanzas.sabana_fa_validas_aho",
+        "proceso_vspc_finanzas.sabana_fa_validas_cte",
+        "proceso_vspc_finanzas.sabana_final_reportar_ahorros",
+        "proceso_vspc_finanzas.sabana_final_reportar_cte",
+        "proceso_vspc_finanzas.sabana_final_reportar_nequi",
+        "proceso_vspc_finanzas.sabana_info_cname_aho",
+        "proceso_vspc_finanzas.sabana_info_cname_cte",
+        "proceso_vspc_finanzas.sabana_info_cname_nequi",
+        "proceso_vspc_finanzas.sabana_nom_apl_rz_aho",
+        "proceso_vspc_finanzas.sabana_nom_apl_rz_cte"
+      ]
+    },
+    "salidas_finales": {
+      "sentencias_de_exportacion": 22,
+      "datasets_exportados_distintos": 22,
+      "tablas_de_base_sin_lector": 0,
+      "work_cargados_a_base_por_macro": 30,
+      "de_los_cuales_se_releen_desde_la_base": 22,
+      "de_los_cuales_no_se_releen": 8,
+      "work_sin_lector_ni_exportacion_ni_carga": 60,
+      "total_salidas_distintas": 26,
+      "total_colapsando_sufijo": 20
+    },
+    "diseno_manual": {
+      "fuentes_externas": 8,
+      "salidas": 5
+    }
+  },
+  "h3_similitud": {
+    "por_llamada_de_macro": {
+      "con_fontaneria": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 116,
+          "mediana": 148.5,
+          "max": 978
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.119,
+          "mediana": 0.15,
+          "media": 0.172,
+          "max": 0.519
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.119,
+          "mediana": 0.753,
+          "media": 0.681,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.687,
+          "mediana": 1.0,
+          "media": 0.983,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 435,
+          "min": 0.119,
+          "mediana": 0.753,
+          "media": 0.681,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.123,
+          "mediana": 0.792,
+          "media": 0.681,
+          "max": 0.992
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.123,
+          "mediana": 0.739,
+          "media": 0.646,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.837,
+          "mediana": 0.992,
+          "media": 0.975,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.687,
+          "mediana": 0.992,
+          "media": 0.971,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 6068
+      },
+      "sin_fontaneria": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 3,
+          "mediana": 28.0,
+          "max": 570
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.005,
+          "mediana": 0.047,
+          "media": 0.066,
+          "max": 0.435
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.005,
+          "mediana": 0.2,
+          "media": 0.308,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.577,
+          "mediana": 1.0,
+          "media": 0.934,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 190,
+          "min": 0.026,
+          "mediana": 0.458,
+          "media": 0.414,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.011,
+          "mediana": 0.333,
+          "media": 0.348,
+          "max": 0.882
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.011,
+          "mediana": 0.295,
+          "media": 0.352,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.577,
+          "mediana": 0.92,
+          "media": 0.893,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.577,
+          "mediana": 0.93,
+          "media": 0.897,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1838
+      },
+      "sin_fontaneria_y_aristas": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 3,
+          "mediana": 19.0,
+          "max": 308
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.01,
+          "mediana": 0.062,
+          "media": 0.077,
+          "max": 0.445
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.01,
+          "mediana": 0.261,
+          "media": 0.324,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.421,
+          "mediana": 1.0,
+          "media": 0.911,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 190,
+          "min": 0.036,
+          "mediana": 0.429,
+          "media": 0.403,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.016,
+          "mediana": 0.364,
+          "media": 0.351,
+          "max": 0.826
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.016,
+          "mediana": 0.316,
+          "media": 0.358,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.421,
+          "mediana": 0.885,
+          "media": 0.855,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.421,
+          "mediana": 0.895,
+          "media": 0.863,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1174
+      },
+      "v2_sin_repetidos": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 2,
+          "mediana": 11.5,
+          "max": 203
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.01,
+          "mediana": 0.039,
+          "media": 0.072,
+          "max": 0.399
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.01,
+          "mediana": 0.24,
+          "media": 0.307,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.364,
+          "mediana": 1.0,
+          "media": 0.897,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 120,
+          "min": 0.039,
+          "mediana": 0.316,
+          "media": 0.342,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.015,
+          "mediana": 0.273,
+          "media": 0.289,
+          "max": 0.846
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.015,
+          "mediana": 0.253,
+          "media": 0.309,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.385,
+          "mediana": 0.875,
+          "media": 0.834,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.364,
+          "mediana": 0.917,
+          "media": 0.841,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1174
+      },
+      "v2_sin_sin_traducir": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 2,
+          "mediana": 17.0,
+          "max": 301
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.007,
+          "mediana": 0.05,
+          "media": 0.071,
+          "max": 0.449
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.007,
+          "mediana": 0.207,
+          "media": 0.298,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.4,
+          "mediana": 1.0,
+          "media": 0.903,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 153,
+          "min": 0.05,
+          "mediana": 0.407,
+          "media": 0.39,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.01,
+          "mediana": 0.286,
+          "media": 0.312,
+          "max": 0.81
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.01,
+          "mediana": 0.267,
+          "media": 0.329,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.4,
+          "mediana": 0.889,
+          "media": 0.839,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.4,
+          "mediana": 0.889,
+          "media": 0.852,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1026
+      }
+    },
+    "por_cuerpo_de_macro": {
+      "con_fontaneria": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 23,
+          "mediana": 54.0,
+          "max": 2948
+        },
+        "region_mayor": 0,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.008,
+          "mediana": 0.018,
+          "media": 0.031,
+          "max": 0.198
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.008,
+          "mediana": 0.426,
+          "media": 0.433,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.644,
+          "mediana": 1.0,
+          "media": 0.966,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 435,
+          "min": 0.008,
+          "mediana": 0.426,
+          "media": 0.433,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.009,
+          "mediana": 0.464,
+          "media": 0.428,
+          "max": 0.963
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.009,
+          "mediana": 0.426,
+          "media": 0.416,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.718,
+          "mediana": 0.967,
+          "media": 0.949,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.644,
+          "mediana": 0.981,
+          "media": 0.945,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 6068
+      },
+      "sin_fontaneria": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 1,
+          "mediana": 27.0,
+          "max": 568
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.002,
+          "mediana": 0.048,
+          "media": 0.064,
+          "max": 0.433
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.002,
+          "mediana": 0.129,
+          "media": 0.244,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.337,
+          "mediana": 1.0,
+          "media": 0.922,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 190,
+          "min": 0.023,
+          "mediana": 0.337,
+          "media": 0.355,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.007,
+          "mediana": 0.235,
+          "media": 0.287,
+          "max": 0.867
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.007,
+          "mediana": 0.255,
+          "media": 0.3,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.337,
+          "mediana": 0.933,
+          "media": 0.874,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.38,
+          "mediana": 0.935,
+          "media": 0.879,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1838
+      },
+      "sin_fontaneria_y_aristas": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 1,
+          "mediana": 17.0,
+          "max": 306
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.003,
+          "mediana": 0.049,
+          "media": 0.073,
+          "max": 0.441
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.003,
+          "mediana": 0.167,
+          "media": 0.246,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.247,
+          "mediana": 1.0,
+          "media": 0.898,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 153,
+          "min": 0.036,
+          "mediana": 0.3,
+          "media": 0.333,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.01,
+          "mediana": 0.222,
+          "media": 0.278,
+          "max": 0.818
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.01,
+          "mediana": 0.231,
+          "media": 0.293,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.247,
+          "mediana": 0.893,
+          "media": 0.834,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.333,
+          "mediana": 0.909,
+          "media": 0.843,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1174
+      },
+      "v2_sin_repetidos": {
+        "regiones_con_operadores": 30,
+        "largo_por_region": {
+          "min": 1,
+          "mediana": 9.0,
+          "max": 203
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 29,
+          "min": 0.005,
+          "mediana": 0.034,
+          "media": 0.068,
+          "max": 0.399
+        },
+        "estricta_todos_los_pares": {
+          "n": 435,
+          "min": 0.005,
+          "mediana": 0.182,
+          "media": 0.261,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 435,
+          "min": 0.364,
+          "mediana": 1.0,
+          "media": 0.892,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 105,
+          "min": 0.039,
+          "mediana": 0.308,
+          "media": 0.323,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.01,
+          "mediana": 0.25,
+          "media": 0.271,
+          "max": 0.857
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.01,
+          "mediana": 0.25,
+          "media": 0.291,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.364,
+          "mediana": 0.857,
+          "media": 0.822,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.364,
+          "mediana": 0.917,
+          "media": 0.834,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1174
+      },
+      "v2_sin_sin_traducir": {
+        "regiones_con_operadores": 24,
+        "largo_por_region": {
+          "min": 1,
+          "mediana": 19.0,
+          "max": 299
+        },
+        "region_mayor": 5,
+        "estricta_frente_a_la_region_mayor": {
+          "n": 23,
+          "min": 0.003,
+          "mediana": 0.054,
+          "media": 0.085,
+          "max": 0.445
+        },
+        "estricta_todos_los_pares": {
+          "n": 276,
+          "min": 0.0,
+          "mediana": 0.181,
+          "media": 0.243,
+          "max": 1.0
+        },
+        "contencion_todos_los_pares": {
+          "n": 276,
+          "min": 0.0,
+          "mediana": 0.889,
+          "media": 0.775,
+          "max": 1.0
+        },
+        "estricta_pares_con_ambas_regiones_de_10_o_mas": {
+          "n": 136,
+          "min": 0.037,
+          "mediana": 0.28,
+          "media": 0.32,
+          "max": 1.0
+        },
+        "estricta_intra_producto": {
+          "n": 103,
+          "min": 0.0,
+          "mediana": 0.171,
+          "media": 0.223,
+          "max": 0.778
+        },
+        "estricta_inter_producto": {
+          "n": 173,
+          "min": 0.0,
+          "mediana": 0.196,
+          "media": 0.255,
+          "max": 1.0
+        },
+        "contencion_intra_producto": {
+          "n": 103,
+          "min": 0.0,
+          "mediana": 0.88,
+          "media": 0.755,
+          "max": 1.0
+        },
+        "contencion_inter_producto": {
+          "n": 173,
+          "min": 0.0,
+          "mediana": 0.909,
+          "media": 0.787,
+          "max": 1.0
+        },
+        "operadores_en_regiones": 1026
+      }
+    },
+    "regiones_por_producto": {
+      "aho": 10,
+      "cte": 11,
+      "nequi": 3
+    },
+    "regiones_sin_producto": 6
+  }
+}
