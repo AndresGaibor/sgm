@@ -1410,3 +1410,17 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Cómo difiere del manual: el manual tiene 8 filas escritas a mano ("30 bloques de macros", "348 tablas WORK") con claves en prosa. Aquí las filas salen de las reglas, con conteos medidos (el SAS tiene 404 nombres WORK distintos, no 348). Las filas de estructura del manual (30 bloques → `job_producto` parametrizado) todavía no se emiten.
 - Pruebas: `tests/unit/test_proceso_fontaneria.py` (3). `uv run pytest -q`: 762 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
 - Pendiente: filas estructurales de la sección 6 (familias de regiones, tablas WORK, exportaciones); render a Markdown; secciones 2, 3, 4, 5, 7, 8.
+
+## Hito 57. Reescritura, Fase 3: documento de diseño en Markdown y comando `sgm proceso`
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - `docs/plan-reescritura/plan.md`: el plan de la reescritura con su estado por fase, los hallazgos que lo corrigieron y lo que no se podrá igualar. `docs/plan-sgm-v2/00-README.md` lleva una nota: su secuencia de fases quedó superada, pero su reparto, contratos y ciclo de huecos siguen vigentes (el README y `motivos.py` lo citan, por eso no se borró).
+  - `proceso/analisis.py` (regiones, producto y familias en una sola llamada), `proceso/pendientes.py` (pendientes con motivo) y `proceso/render_md.py` (Markdown). `proceso/diseno_doc.py` ahora devuelve un `DocumentoDiseno` con secciones, resumen y pendientes.
+  - Comando `sgm proceso <programa.sas> [--out] [--agrupacion] [--diseno]`: escribe `<programa>.diseno.md`. Lee `decisiones/<programa>.agrupacion.yaml` y `decisiones/<programa>.diseno.yaml` si no se indican.
+- Resultado en `client_large.sas`: documento de 79 líneas con resumen (2.205 pasos, 30 regiones, 7 familias, 8 regiones sin copia, 12 fuentes, 22 persistencias propias, 13 plantillas de salida, 2.228 sentencias de fontanería, 597 de 610 etiquetas con etapa), secciones 1.1, 1.4 y 6, y 16 pendientes con su motivo.
+- Pruebas: `tests/unit/test_proceso_documento.py` (4). `uv run pytest -q`: 766 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
+- Pendiente:
+  - El documento aún no tiene las secciones 2 a 5, 7 y 8 del manual.
+  - Las tablas de 1.1 y 1.4 siguen leyendo nombres del YAML (ver hito 55).
+  - `ruff format --check` marca 25 archivos antiguos sin formatear; no es parte de las comprobaciones del proyecto y no se tocaron.

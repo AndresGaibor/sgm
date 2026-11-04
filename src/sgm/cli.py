@@ -34,6 +34,7 @@ app = typer.Typer(
 from sgm.cli_decisiones import decisions_app, gaps_app  # noqa: E402
 from sgm.cli_diseno import diseno_command  # noqa: E402
 from sgm.cli_flow import flujo_command  # noqa: E402
+from sgm.cli_proceso import proceso_command  # noqa: E402
 
 rules_app = typer.Typer(help="Reglas, casos y configuración.", no_args_is_help=True)
 case_app = typer.Typer(help="Casos de prueba declarativos.", no_args_is_help=True)
@@ -45,6 +46,7 @@ app.command("facts")(facts_command)
 app.command("mapa")(mapa_command)
 app.command("comparar")(comparar_command)
 app.command("diseno")(diseno_command)
+app.command("proceso")(proceso_command)
 app.command("flujo")(flujo_command)
 
 
