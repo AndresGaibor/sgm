@@ -15,10 +15,12 @@ import typer
 from sgm.agrupacion import cargar_declaracion
 from sgm.cli_proceso import _decision
 from sgm.proceso.insumos import InsumosResueltos, resolver_insumos
+from sgm.proceso.origen_producto import origenes_producto
 from sgm.proceso.secciones_entrada import cargar_declaradas
 from sgm.talend_item.arquitectura import cargar_arquitectura
 from sgm.talend_item.escritura import escribir_job
 from sgm.talend_item.jobs_diseno import ProductoJob, job_padre, jobs_hijos
+from sgm.talend_item.jobs_producto import job_producto
 from sgm.talend_item.periodo import contextos_de_periodo, nodos_periodo
 
 
@@ -30,6 +32,11 @@ def _descripcion_lookups(arq, resueltos: InsumosResueltos) -> str:
         if insumo:
             partes.append(f"{insumo.archivo} ({', '.join(insumo.columnas) or 'sin columnas'})")
     return f". Lookups: {'; '.join(partes)}" if partes else ""
+
+
+def _delimitador(origenes) -> str:
+    """El delimitador del archivo principal de los productos (el primero; deberían coincidir)."""
+    return next(iter(origenes.por_producto.values())).fuente.delimitador
 
 
 def talend_command(
@@ -50,8 +57,12 @@ def talend_command(
         raise typer.BadParameter(f"no es un archivo: {source}")
     declaracion = cargar_declaracion(_decision(agrupacion, source, "agrupacion"))
     arq = cargar_arquitectura(_decision(jobs_yaml, source, "jobs"))
-    productos = [ProductoJob(p, "", p) for p in declaracion.productos]
     texto = source.read_text(encoding="utf-8", errors="replace")
+    origenes = origenes_producto(texto, declaracion.productos)
+    productos = [
+        ProductoJob(p, o.fuente.ruta_origen if (o := origenes.por_producto.get(p)) else "", p)
+        for p in declaracion.productos
+    ]
     declaradas = cargar_declaradas(_decision(diseno, source, "diseno"), "fuentes")
     claves = [*arq.lookups, *([arq.periodo.fuente] if arq.periodo else [])]
     resueltos = resolver_insumos(texto, declaradas, claves)
@@ -62,12 +73,23 @@ def talend_command(
         contextos_periodo=contextos_de_periodo(arq, resueltos),
     )
     variables = tuple(v for _, v in arq.periodo.variables) if arq.periodo else ()
-    jobs = [padre, *jobs_hijos(arq, variables, _descripcion_lookups(arq, resueltos))]
+    lookups = _descripcion_lookups(arq, resueltos)
+    producto = None
+    if origenes.por_producto:
+        pendiente = "validaciones, correcciones y salidas del producto" + lookups
+        producto = job_producto(
+            arq, origenes.columnas_comunes, variables, pendiente, _delimitador(origenes)
+        )
+    jobs = [padre, *jobs_hijos(arq, variables, lookups, producto_real=producto)]
     destino = out / source.stem / "talend" / "process"
     escritos = [escribir_job(job, destino) for job in jobs]
     for item, _ in escritos:
         typer.echo(str(item))
     typer.echo(f"{len(escritos)} Jobs escritos.")
-    typer.echo(f"Pendiente: tabla de origen de {len(productos)} productos (no está en el SAS).")
+    sin_origen = [p.producto for p in productos if not p.ruta_origen]
+    if sin_origen:
+        typer.echo(f"Pendiente: archivo de origen de {', '.join(sin_origen)}.")
+    for pendiente in origenes.pendientes:
+        typer.echo(f"Pendiente: {pendiente}")
     for pendiente in resueltos.pendientes:
         typer.echo(f"Pendiente: {pendiente}")

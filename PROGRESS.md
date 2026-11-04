@@ -1583,3 +1583,13 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - La tabla de origen de cada producto.
   - `tDBClose` y la conexión Impala compartida.
   - El registro de errores.
+
+## Hito 64. Reescritura, Fase 5: origen de datos de cada producto deducido del SAS y job_producto con lectura real
+
+- Fecha: 2026-11-04
+- Hallazgo: los datos de cada producto vienen de archivos CSV (`PROC DOWNLOAD` + `PROC IMPORT DBMS=DLM`, delimitador `;`, sin cabecera), no de tablas Impala como supone el diseno manual. CTE usa `DBIFTCD.csv`, AHO `DBIFTCS.csv` y NEQUI `F_1019.csv`; los tres tienen 23 columnas. `Base_datos_Nequi.csv` (6 columnas) es auxiliar de Nequi. Esto respalda un solo `job_producto` (D6).
+- Que se hizo: `proceso/fuentes_csv.py`, `esquema_csv.py` (nombres de columna deducidos de `VARn AS NOMBRE` y `X=input(left(VARn),N.)`), `origen_producto.py`; `talend_item/jobs_producto.py` (lee `context.ruta_origen` con el esquema deducido y cuenta registros); el padre pasa `ruta_origen` por producto; `tools/simular_productos.py` escribe los CSV simulados.
+- Resultado en Studio real: el padre exportado con CSV simulados corre los tres productos y cada uno imprime 3 registros; salida 0.
+- Pruebas: `test_proceso_origen_producto.py`. `ruff check .`: limpio.
+- No verificado: orden y tipos reales de las columnas (todas se leen como texto; el SAS convierte con `input()`); anchuras de Nequi en archivos reales; sin pruebas propias de `fuentes_csv` y `esquema_csv` (solo las cubre `origen_producto`).
+- Pendiente: validaciones, correcciones y salidas del producto (RESULTADO_<P>_NAL/EXT.csv, INCONS_DEP_<P>.csv), totales y conciliacion; lookups en tMap; documentar en `docs/plan-reescritura/` (no se actualizo en este hito).

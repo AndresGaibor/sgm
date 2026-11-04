@@ -136,7 +136,7 @@ def test_el_hijo_de_producto_recibe_producto_tabla_y_sufijo_del_flujo(padre):
     ]
     celdas = run.findall("elementParameter[@name='CONTEXTPARAMS']/elementValue")
     pares = [(c.get("elementRef"), c.get("value")) for c in celdas]
-    assert pares[0::2] == [("PARAM_NAME_COLUMN", n) for n in ("producto", "tabla_origen", "sufijo")]
+    assert pares[0::2] == [("PARAM_NAME_COLUMN", n) for n in ("producto", "ruta_origen", "sufijo")]
     assert pares[1][1] == '(String) globalMap.get("row1.producto")'
 
 
@@ -190,4 +190,4 @@ def test_el_comando_talend_escribe_el_padre_y_los_tres_hijos(tmp_path):
     producto = ET.parse(carpeta / "job_producto_0.1.item").getroot()
     codigo = producto.find("node/elementParameter[@name='CODE']").get("value")
     assert "Cod_pais.xlsx (Codigo_Pais, Nombre Pais)" in codigo
-    assert "Pendiente: tabla de origen de 3 productos" in resultado.output
+    assert "Base_datos_Nequi.csv" in resultado.output  # auxiliar de Nequi, pendiente

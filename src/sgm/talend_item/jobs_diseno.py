@@ -26,7 +26,7 @@ class ProductoJob:
     """Una fila de la tabla de productos que recorre el padre."""
 
     producto: str
-    tabla_origen: str  # vacío mientras el SAS no demuestre la tabla (pendiente)
+    ruta_origen: str  # archivo de datos del producto, tal como lo baja el SAS; vacío = pendiente
     sufijo: str
 
 
@@ -93,8 +93,8 @@ def job_padre(
     vacíos el padre arranca directamente en los productos.
     """
     nodos_p, conexiones_p = periodo
-    texto = [Columna("producto"), Columna("tabla_origen"), Columna("sufijo")]
-    filas = [[java(p.producto.upper()), java(p.tabla_origen), java(p.sufijo)] for p in productos]
+    texto = [Columna("producto"), Columna("ruta_origen"), Columna("sufijo")]
+    filas = [[java(p.producto.upper()), java(p.ruta_origen), java(p.sufijo)] for p in productos]
     y = 2 * PASO_Y  # el periodo ocupa la fila de y = PASO_Y
     nodos = [
         nodo_desde_plantilla("tPrejob", "tPrejob_1", 0, 0, ruta_java=ruta_java),
@@ -178,15 +178,17 @@ def jobs_hijos(
     variables_periodo: tuple[str, ...] = (),
     lookups: str = "",
     ruta_java: str | None = None,
+    producto_real: Job | None = None,
 ) -> list[Job]:
     """Hijos del padre. Mientras no se traduzca su lógica, cada uno dice qué le falta.
 
     Cada hijo declara las variables del periodo que hereda del padre y las imprime, para que se
     vea que el contexto llega. `lookups` describe los Excel que `job_producto` usará en su `tMap`.
     """
-    producto = ("producto", "tabla_origen", "sufijo", *variables_periodo)
+    producto = ("producto", "ruta_origen", "sufijo", *variables_periodo)
     return [
-        job_pendiente(
+        producto_real
+        or job_pendiente(
             arq.producto,
             "falta la lectura, la validación y las salidas del producto" + lookups,
             producto,
