@@ -1,0 +1,23 @@
+# Decisiones de diseño para client_large.sas. Es una decisión del equipo, no un hecho del SAS.
+# Cada etiqueta `/* Etiqueta: ... */` del programa se asigna a la primera etapa cuyo patrón casa
+# (expresión regular, sin distinguir mayúsculas). Las etiquetas sin etapa se listan, no se adivinan.
+programa: client_large.sas
+etapas:
+  - nombre: persistencia_intermedia   # el diseño no guarda tablas intermedias (D1)
+    patrones: ["^escritura"]
+  - nombre: importar_insumos
+    patrones: ["^importar", "^lee", "^carga", "^borrar", "macrovariables", "^condicion", "encriptar", "ult d[ií]a ingesti"]
+  - nombre: totales_conciliacion
+    patrones: ["concilia", "^total", "^suma", "sumatoria", "^nro registros", "^calculo", "^cuentas?\\b", "^exp ", "^numero de registros", "identificar diferencias", "coinciden", "frecuencia"]
+  - nombre: validar_ubicacion
+    patrones: ["\\bdir\\b", "direcc", "ubicaci", "\\bpais\\b", "\\bdane\\b", "\\bdpto\\b", "\\bmun\\b"]
+  - nombre: validar_documento
+    patrones: ["tipo doc", "\\btdoc\\b", "nro doc", "num.* doc", "\\bdoc\\b", "firmas", "documento", "calcula dv", "^fa\\b", "titulares", "extranj"]
+  - nombre: validar_cuenta_y_saldos
+    patrones: ["tipo cuenta", "tpo cta", "\\bsaldo", "negativ", "\\bcred\\b", "\\bprom\\b", "vigente", "codex", "gmf", "tpo cuenta", "filtrar cuentas", "afc", "master customer", "cumplen"]
+  - nombre: normalizar
+    patrones: ["caracter", "espacios", "convierte", "convertir", "\\bformato", "organizar", "cambiar", "\\bcampo", "mayuscula", "norma", "nombre columnas", "redondear", "quita ", "orden registros", "conv ", "eliminar reg", "concatenar"]
+  - nombre: corregir_inconsistencias
+    patrones: ["corregi", "corregir", "\\bincons", "\\bincorr", "invalido", "inv\\b", "incon "]
+  - nombre: sabana_final
+    patrones: ["sabana", "reportar", "final", "completa", "\\bunica\\b", "^uni", "consolidado", "paq "]

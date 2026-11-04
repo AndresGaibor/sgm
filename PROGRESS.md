@@ -1380,3 +1380,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - Las 16 plantillas no equivalen aún a las 5 familias de salida del diseño (sábana válida, rechazados, totales, conciliación, log): esa agrupación semántica es decisión humana o va en el YAML.
   - 3 WORK que se leen antes de crearse (`SABANA_SIN_*`): no se investigó cómo se crean (probablemente macro dinámica).
   - Las 4 CSV de entrada no coinciden con las tablas Impala del diseño; no se afirma que sean las mismas fuentes.
+
+## Hito 54. Reescritura, Fase 2: etapas de negocio declaradas
+
+- Fecha: 2026-11-04
+- Qué se hizo: `proceso/etapas.py` asigna cada etiqueta `/* Etiqueta: ... */` a la primera etapa cuyo patrón casa. Las etapas y sus patrones viven en `decisiones/client_large.diseno.yaml` (clave `etapas`), no en el código. `tools/cobertura_etapas.py` mide cuántas etiquetas quedan cubiertas y lista las sueltas.
+- Medición: 610 etiquetas, 97,9 % con etapa (9 etapas). Quedan 13 sin etapa (5 distintas: `Validar DV`, `Validar monetarios`, `Validar nombres`, `Validar_mes_año`, `tit-cot vacios o 0`). La etapa `persistencia_intermedia` (30 etiquetas `Escritura ...`) coincide con la familia 4 de regiones.
+- Límite: los patrones se ajustaron mirando las mismas etiquetas, así que el 97,9 % mide que ninguna quedó huérfana, no que cada una esté bien clasificada. `normalizar` (179) es la etapa más amplia y la más dudosa. Una persona debe revisar el reparto.
+- Pruebas: `tests/unit/test_proceso_etapas.py` (7). `ruff check .`: limpio.
+- Pendiente: usar las etapas para ordenar el proceso por producto y emitir las secciones 3.x; agrupar las 5 familias de salida del diseño.
