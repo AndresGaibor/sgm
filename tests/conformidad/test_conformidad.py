@@ -30,9 +30,7 @@ def _marca_seccion(codigo: str):
     if codigo in SECCIONES_EMITIDAS:
         return []
     return [
-        pytest.mark.xfail(
-            strict=True, reason="el emisor de esta sección del diseño aún no existe"
-        )
+        pytest.mark.xfail(strict=True, reason="el emisor de esta sección del diseño aún no existe")
     ]
 
 

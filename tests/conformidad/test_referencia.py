@@ -15,7 +15,12 @@ from tests.conformidad.cargador import (
     contar_filas_documento,
     todas_las_filas,
 )
-from tests.conformidad.interfaz import SECCIONES_EMITIDAS, diferencias_fila, obtener_diseno
+from tests.conformidad.interfaz import (
+    SECCIONES_EMITIDAS,
+    SECCIONES_GENERICAS,
+    diferencias_fila,
+    obtener_diseno,
+)
 
 SECCIONES = cargar_secciones()
 FILAS = todas_las_filas(SECCIONES)
@@ -95,4 +100,4 @@ def test_el_comparador_detecta_diferencias_y_acepta_coincidencias() -> None:
 
 def test_el_emisor_produce_solo_las_secciones_emitidas() -> None:
     programa = RAIZ / "tests" / "fixtures" / "sas" / "client" / "client_large.sas"
-    assert tuple(obtener_diseno(programa)) == SECCIONES_EMITIDAS
+    assert tuple(obtener_diseno(programa)) == (*SECCIONES_EMITIDAS, *SECCIONES_GENERICAS)

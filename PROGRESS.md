@@ -1401,3 +1401,12 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Límite honesto: los nombres de parámetros (`ruta_insumos + arch_dane`) y los textos de uso no están en el SAS; vienen del YAML, que en esas filas contiene el diseño manual. Lo que el emisor deduce es tipo, estado, existencia y el equivalente de `totales_exogena` (`TOTAL_AHORROS_CONS.csv, TOTAL_CORRIENTE.csv`).
 - Pruebas: `tests/unit/test_proceso_secciones_entrada.py` (6). `uv run pytest -q`: 759 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
 - Pendiente: secciones 1.2, 1.3, 2.x, 3.x, 4 a 7; y la prosa del Markdown (hoy solo se emite el contrato de datos).
+
+## Hito 56. Reescritura, Fase 3: sección 6 (equivalencias) desde las reglas de fontanería
+
+- Fecha: 2026-11-04
+- Qué se hizo: `proceso/fontaneria.py` aplica los patrones de `rules/sas/plumbing.yaml` a cada sentencia del programa expandido y emite la sección 6: una fila por tipo de fontanería, con cuántas veces aparece y el equivalente en Talend que la regla ya declara. No hay nombres del cliente ni equivalentes inventados. `diseno_doc.construir_diseno` la incluye bajo `SECCIONES_GENERICAS` (sus claves no coinciden con las del manual, así que no entra en la comparación fila a fila).
+- Medición en `client_large.sas`: 2.228 de 4.808 sentencias son fontanería, en 12 categorías: `visor_studio` 447, `presentacion` 293, `control_macro` 240, `configuracion_macro` 222, `mensajes` 218, `borrado_datasets` 216, `remoto` 202, `troceado_lotes` 120, `espera` 90, y 60 cada una de `medicion`, `variables_control` y `fin_de_paso`. Coincide con la medición de la Fase 0 (mismos conteos en las categorías comparables).
+- Cómo difiere del manual: el manual tiene 8 filas escritas a mano ("30 bloques de macros", "348 tablas WORK") con claves en prosa. Aquí las filas salen de las reglas, con conteos medidos (el SAS tiene 404 nombres WORK distintos, no 348). Las filas de estructura del manual (30 bloques → `job_producto` parametrizado) todavía no se emiten.
+- Pruebas: `tests/unit/test_proceso_fontaneria.py` (3). `uv run pytest -q`: 762 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
+- Pendiente: filas estructurales de la sección 6 (familias de regiones, tablas WORK, exportaciones); render a Markdown; secciones 2, 3, 4, 5, 7, 8.

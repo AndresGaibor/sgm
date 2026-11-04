@@ -10,11 +10,15 @@ from pathlib import Path
 
 from sgm.agrupacion import cargar_declaracion
 from sgm.flow.model import build_flows
+from sgm.frontend.program import analyze_program
 from sgm.proceso.entradas_salidas import entradas_y_salidas
+from sgm.proceso.fontaneria import contar_fontaneria, seccion_equivalencias
 from sgm.proceso.secciones_entrada import cargar_declaradas, seccion_fuentes, seccion_salidas
+from sgm.redaction import redact
 
 Diseno = dict[str, dict[str, dict[str, str]]]
-SECCIONES_EMITIDAS = ("1.1", "1.4")
+SECCIONES_EMITIDAS = ("1.1", "1.4")  # comparables con el diseño manual fila a fila
+SECCIONES_GENERICAS = ("6",)  # salen de reglas y hechos; sus claves no coinciden con las del manual
 
 
 def construir_diseno(programa: Path, agrupacion: Path, decisiones_diseno: Path) -> Diseno:
@@ -23,7 +27,10 @@ def construir_diseno(programa: Path, agrupacion: Path, decisiones_diseno: Path) 
     modelo = build_flows({programa.name: texto})[programa.name]
     declaracion = cargar_declaracion(agrupacion)
     es = entradas_y_salidas(modelo, declaracion.productos)
+    limpio = redact(texto.lstrip("\ufeff"), programa.name)
+    items = analyze_program({programa.name: limpio}, {}).items
     return {
         "1.1": seccion_fuentes(cargar_declaradas(decisiones_diseno, "fuentes"), es),
         "1.4": seccion_salidas(cargar_declaradas(decisiones_diseno, "salidas"), es),
+        "6": seccion_equivalencias(contar_fontaneria(items)),
     }

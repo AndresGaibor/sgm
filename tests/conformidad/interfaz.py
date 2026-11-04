@@ -12,10 +12,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sgm.proceso.diseno_doc import SECCIONES_EMITIDAS, Diseno, construir_diseno
+from sgm.proceso.diseno_doc import SECCIONES_EMITIDAS, SECCIONES_GENERICAS, Diseno, construir_diseno
 from tests.conformidad.cargador import RAIZ, Fila
 
-__all__ = ["SECCIONES_EMITIDAS", "Diseno", "diferencias_fila", "obtener_diseno"]
+__all__ = [
+    "SECCIONES_EMITIDAS",
+    "SECCIONES_GENERICAS",
+    "Diseno",
+    "diferencias_fila",
+    "obtener_diseno",
+]
 
 
 def obtener_diseno(programa_sas: Path) -> Diseno:
