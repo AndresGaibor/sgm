@@ -83,7 +83,8 @@ def test_ninguna_plantilla_guarda_contrasenas_ni_datos_de_otro_job(componente):
         campo, nombre, valor, _ = fila
         if campo == "PASSWORD" or nombre in {"USER", "HOST", "DBNAME", "FILENAME"}:
             assert not valor, f"{componente}.{nombre} trae un valor"
-        if nombre in {"CODE", "QUERY", "MESSAGE", "PROCESS"}:
+        assert nombre != "ACTIVATE", f"{componente} viene de un componente desactivado"
+        if nombre in {"QUERY", "MESSAGE", "PROCESS"} or campo == "MEMO_EDITOR_JAVA":
             assert valor in ("", '""'), f"{componente}.{nombre} trae un valor"
 
 

@@ -26,9 +26,11 @@ NEUTROS = {
     "PROCESS:PROCESS_TYPE_CONTEXT": "Default",
     "PREVIEW": "",  # imagen de vista previa del mapeo, un .bmp del Job de origen
 }
-# Datos del entorno de quien guardó el Job: se vacían.
-SENSIBLES = frozenset({"USER", "HOST", "DBNAME", "PORT", "URL", "JDBC_URL", "FILENAME"})
-TABLAS_VACIAS = frozenset({"CONTEXTPARAMS"})  # su contenido es del Job de origen
+# Datos del entorno de quien guardó el Job: se vacían. FILE_NAME es la ruta de tFileExist.
+SENSIBLES = frozenset(
+    {"USER", "HOST", "DBNAME", "PORT", "URL", "JDBC_URL", "FILENAME", "FILE_NAME"}
+)
+TABLAS_VACIAS = frozenset({"CONTEXTPARAMS", "OPERATIONS"})  # su contenido es del Job de origen
 COLUMNA_REF = "SCHEMA_COLUMN"
 # Tablas con una fila por columna del esquema y la forma que Studio les da (vistas en Jobs reales).
 # Un Job guardado con el esquema vacío las deja sin filas; se recuperan de aquí.
@@ -80,7 +82,7 @@ def _tabla(p: Element) -> dict[str, object]:
 def _valor(campo: str, nombre: str, valor: str, unico: str) -> str:
     if campo == "PASSWORD" or nombre in SENSIBLES:
         return ""
-    if nombre in NEUTROS:
+    if nombre in NEUTROS and not (nombre == "CODE" and campo != "MEMO_EDITOR_JAVA"):
         return NEUTROS[nombre]
     return valor.replace(unico, UNICO)
 
@@ -115,6 +117,8 @@ def plantilla_desde_nodo(nodo: Element) -> dict[str, object]:
     filas: list[object] = []
     for p in parametros:
         nombre, campo = p.get("name", ""), p.get("field", "")
+        if nombre == "ACTIVATE":
+            continue  # un componente desactivado en el Job de origen no se genera
         if campo == "TABLE":
             filas.append(_tabla(p))
             continue

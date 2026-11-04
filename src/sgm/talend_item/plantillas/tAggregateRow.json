@@ -1,0 +1,107 @@
+{
+ "componente": "tAggregateRow",
+ "version": "0.102",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tAggregateRow",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.102 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "Processing",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.tAggregateRow",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "",
+   "false"
+  ],
+  {
+   "tabla": "GROUPBYS",
+   "show": null,
+   "celdas": []
+  },
+  {
+   "tabla": "OPERATIONS",
+   "show": null,
+   "celdas": []
+  },
+  [
+   "TEXT",
+   "LIST_DELIMITER",
+   "\",\"",
+   null
+  ],
+  [
+   "CHECK",
+   "USE_FINANCIAL_PRECISION",
+   "true",
+   null
+  ],
+  [
+   "CHECK",
+   "CHECK_TYPE_OVERFLOW",
+   "false",
+   null
+  ],
+  [
+   "CHECK",
+   "CHECK_ULP",
+   "false",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

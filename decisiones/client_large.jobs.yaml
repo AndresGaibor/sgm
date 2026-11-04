@@ -1,0 +1,13 @@
+# Arquitectura de Jobs de Talend para client_large.sas (sección 3 del diseño). Es una decisión del
+# equipo, no un hecho del SAS: el SAS no dice cuántos Jobs hay ni cómo se llaman. Los productos salen
+# de `client_large.agrupacion.yaml`; aquí solo se nombra la estructura.
+programa: client_large.sas
+proyecto: PRJ_BANCOLOMBIA
+entornos: [DEV, QA, PROD]   # el Job padre falla si `env_nombre` no es uno de ellos (diseño 2.4)
+jobs:
+  padre: job_exogena_depositos
+  insumos: job_insumos
+  producto: job_producto      # un solo Job con el producto como parámetro (D6)
+  totales: job_totales
+  conciliacion: job_conciliacion
+mensaje_fin: Proceso terminado

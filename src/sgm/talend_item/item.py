@@ -11,7 +11,16 @@ from base64 import urlsafe_b64encode
 from xml.sax.saxutils import escape
 
 from sgm.talend_item.base import PARAMETROS_BASE
-from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Metadata, Nodo, Tabla
+from sgm.talend_item.modelo import (
+    Columna,
+    Conexion,
+    Fila,
+    Job,
+    Metadata,
+    Nodo,
+    ParametroContexto,
+    Tabla,
+)
 
 PRODUCTO = "Talend Cloud Data Fabric"
 VERSION_PRODUCTO = "8.0.1.20260925_1301-patch"
@@ -119,12 +128,39 @@ def _subjobs(job: Job) -> list[str]:
     return lineas
 
 
+def _parametro_contexto(job: Job, grupo: str, p: ParametroContexto) -> str:
+    """`contextParameter` de un grupo; sin `repositoryContextId` porque es local al Job."""
+    nombre = _atributo(p.nombre)
+    id_ = _id(f"{job.nombre}:{grupo}:{p.nombre}")
+    return (
+        f'    <contextParameter comment="{_atributo(p.comentario)}" name="{nombre}" '
+        f'prompt="{nombre}?" promptNeeded="{str(p.pedir).lower()}" type="{p.tipo}" '
+        f'value="{_atributo(p.valor)}" internalId="{id_}"/>'
+    )
+
+
+def _contextos(job: Job) -> list[str]:
+    """Bloques `<context>`: el grupo Default siempre primero y los demás en su orden."""
+    grupos = ["Default", *(g for g in job.contextos if g != "Default")]
+    lineas: list[str] = []
+    for grupo in grupos:
+        parametros = job.contextos.get(grupo, [])
+        nombres = [p.nombre for p in parametros]
+        if len(nombres) != len(set(nombres)):
+            raise ValueError(f"El grupo de contexto {grupo} repite un nombre de parámetro")
+        cabecera = f'  <context confirmationNeeded="false" hide="false" name="{_atributo(grupo)}"'
+        if not parametros:
+            lineas.append(cabecera + "/>")
+            continue
+        lineas.append(cabecera + ">")
+        lineas += [_parametro_contexto(job, grupo, p) for p in parametros]
+        lineas.append("  </context>")
+    return lineas
+
+
 def render_item(job: Job) -> str:
     """Contenido del archivo `<job>_<versión>.item`."""
-    lineas = [
-        '  <context confirmationNeeded="false" hide="false" name="Default"/>',
-        "  <parameters>",
-    ]
+    lineas = [*_contextos(job), "  <parameters>"]
     lineas += [_fila(f) for f in PARAMETROS_BASE]
     lineas.append("  </parameters>")
     for nodo in job.nodos:

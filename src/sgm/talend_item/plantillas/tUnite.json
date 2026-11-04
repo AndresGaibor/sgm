@@ -1,0 +1,73 @@
+{
+ "componente": "tUnite",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tUnite",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.101 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "Orchestration",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.tUnite",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "",
+   "false"
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

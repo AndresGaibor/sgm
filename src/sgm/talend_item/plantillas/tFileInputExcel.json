@@ -1,0 +1,295 @@
+{
+ "componente": "tFileInputExcel",
+ "version": "0.102",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tFileInputExcel",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.102 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "File/Input",
+   "false"
+  ],
+  [
+   "CHECK",
+   "START",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.tFileInputExcel",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "",
+   "false"
+  ],
+  [
+   "CHECK",
+   "VERSION_2007",
+   "true",
+   null
+  ],
+  [
+   "FILE",
+   "FILENAME",
+   "",
+   null
+  ],
+  [
+   "PASSWORD",
+   "PASSWORD",
+   "",
+   null
+  ],
+  [
+   "CHECK",
+   "ALL_SHEETS",
+   "false",
+   null
+  ],
+  {
+   "tabla": "SHEETLIST",
+   "show": null,
+   "celdas": [
+    [
+     "SHEETNAME",
+     "\"Sheet1\""
+    ],
+    [
+     "USE_REGEX",
+     "false"
+    ]
+   ]
+  },
+  [
+   "TEXT",
+   "HEADER",
+   "1",
+   null
+  ],
+  [
+   "TEXT",
+   "FOOTER",
+   "0",
+   null
+  ],
+  [
+   "TEXT",
+   "LIMIT",
+   "",
+   null
+  ],
+  [
+   "CHECK",
+   "AFFECT_EACH_SHEET",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "FIRST_COLUMN",
+   "1",
+   null
+  ],
+  [
+   "TEXT",
+   "LAST_COLUMN",
+   "",
+   null
+  ],
+  [
+   "CHECK",
+   "DIE_ON_ERROR",
+   "false",
+   null
+  ],
+  [
+   "CHECK",
+   "ADVANCED_SEPARATOR",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "THOUSANDS_SEPARATOR",
+   "\",\"",
+   "false"
+  ],
+  [
+   "TEXT",
+   "DECIMAL_SEPARATOR",
+   "\".\"",
+   "false"
+  ],
+  [
+   "CHECK",
+   "TRIMALL",
+   "false",
+   null
+  ],
+  {
+   "tabla": "TRIMSELECT",
+   "show": null,
+   "por_columna": [
+    [
+     "TRIM",
+     "false"
+    ]
+   ]
+  },
+  [
+   "CHECK",
+   "CONVERTDATETOSTRING",
+   "false",
+   null
+  ],
+  {
+   "tabla": "DATESELECT",
+   "show": null,
+   "celdas": []
+  },
+  [
+   "ENCODING_TYPE",
+   "ENCODING",
+   "\"ISO-8859-15\"",
+   null
+  ],
+  [
+   "TECHNICAL",
+   "ENCODING:ENCODING_TYPE",
+   "\"ISO-8859-15\"",
+   null
+  ],
+  [
+   "CHECK",
+   "READ_REAL_VALUE",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "FORMAT_DATE_CELLS",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STOPREAD_ON_EMPTYROW",
+   "false",
+   null
+  ],
+  [
+   "CHECK",
+   "NOVALIDATE_ON_CELL",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUPPRESS_WARN",
+   "false",
+   "false"
+  ],
+  [
+   "CLOSED_LIST",
+   "GENERATION_MODE",
+   "USER_MODE",
+   null
+  ],
+  [
+   "CHECK",
+   "INCLUDE_PHONETICRUNS",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "CONFIGURE_INFLATION_RATIO",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "INFLATION_RATIO",
+   "",
+   "false"
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  },
+  {
+   "conector": "REJECT",
+   "nombre": "REJECT",
+   "refleja_flow": true,
+   "columnas": [
+    {
+     "nombre": "errorCode",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": 255,
+     "precision": 0,
+     "patron": ""
+    },
+    {
+     "nombre": "errorMessage",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": 255,
+     "precision": 0,
+     "patron": ""
+    }
+   ]
+  }
+ ]
+}

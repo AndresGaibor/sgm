@@ -71,3 +71,21 @@ prohíbe MCP dentro de `sgm`, y el producto no depende de él.
 - `tFileInputExcel`, `tAggregateRow`, `tUnite` y `tReplicate` no tienen ejemplo en el proyecto.
 - Los valores de rutas de trabajo de Studio en las plantillas (TEMP_DIR, BASE_FILE_PATH) vienen del Job de origen.
 - Las plantillas de Impala traen USE_EXISTING_CONNECTION=true y su CONNECTION no está regenerada.
+
+## Jobs del diseño
+
+- El comando `sgm talend <programa.sas>` escribe los cinco Jobs en `<out>/<programa>/talend/process/`.
+- Intervienen tres YAML de decisiones: `decisiones/client_large.agrupacion.yaml` (productos CTE, AHO y NEQUI),
+  `decisiones/client_large.jobs.yaml` (arquitectura: proyecto, entornos, nombres de Jobs y mensaje final) y
+  `decisiones/client_large.diseno.yaml` (diseño del proceso).
+- Hoy sale el Job padre completo, con tPrejob, tDie condicionado, llamadas a insumos, productos por iteración,
+  totales, conciliación y tPostjob. Los cuatro hijos son esqueletos (`tJava`) que dicen qué les falta.
+- Validado en Studio real (hito 61): los cinco Jobs compilan. El padre con `--context=DEV` corre insumos una
+  vez, producto tres veces (CTE, AHO, NEQUI), totales y conciliación, con salida 0. Con el entorno vacío,
+  el Prejob marca `env_valido=false`, el tDie termina la ejecución y ningún hijo corre (salida 1).
+- Hallazgos principales:
+  1. Un `ACTIVATE=false` en una conexión Run if significa conexión desactivada; copiarlo deja el tDie suelto.
+  2. Un componente desactivado en el Job de origen no genera código en Studio; la extracción descarta `ACTIVATE`.
+  3. Solo se vacía el CODE de campos Java; vaciar el código numérico de tDie y tWarn rompe la compilación.
+  4. tPrejob que lanza una excepción no detiene el flujo: hace falta tDie con EXIT_JVM.
+  5. build-batch compila en paralelo: compilar primero los hijos y después el padre.

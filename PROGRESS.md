@@ -1482,3 +1482,43 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - Plantillas de componentes sin ejemplo, creándolos en Studio.
 - `tMap` (mismo hito): `src/sgm/talend_item/tmap.py` (`EntradaMap`, `SalidaMap`, `tmap()`) con plantilla `tMap.json` y el `nodeData` generado; el encabezado del `.item` declara `xmlns:xsi` y `xmlns:TalendMapper`. Validado en Studio real: tFixedFlowInput a tMap (`row1.id * 2`, `row1.nombre.toUpperCase()`) a tLogRow compiló y ejecutó e imprimió `2|ANA`, `4|LUIS`, `6|MARIA`. Pruebas finales: 821 pasan, 1 se salta, 132 xfail; `ruff check .` limpio.
 - `tMap` sin verificar: solo hay un ejemplo real por tipo; lookups con varias entradas, filtros y el orden de varias entradas o salidas en `nodeData` no están verificados (`tmap()` solo escribe lo visto en Jobs reales).
+
+## Hito 61. Reescritura, Fase 5: Jobs del diseño generados desde el modelo de proceso y validados en Studio
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - `decisiones/client_large.jobs.yaml` declara la arquitectura de Jobs: proyecto, entornos DEV, QA y PROD, nombres de los cinco Jobs y mensaje final. Es una decisión del equipo, no un hecho del SAS. `src/sgm/talend_item/arquitectura.py` lo carga y falla con el motivo si el archivo no cumple.
+  - `src/sgm/talend_item/jobs_diseno.py`:
+    - `job_padre` arma el Job padre de la sección 3.1 del diseño: tPrejob, tJava que marca `env_valido`, tDie con EXIT_JVM condicionado por Run if, tRunJob a insumos, tFixedFlowInput de productos a tFlowToIterate a tRunJob de producto por iteración con los parámetros producto, tabla_origen y sufijo, tRunJob a totales y a conciliación encadenados por OnSubjobOk, y tPostjob con tLogRow.
+    - `jobs_hijos` emite los cuatro hijos como `tJava` que dicen qué les falta (`job_pendiente`).
+    - Los productos salen de `decisiones/client_large.agrupacion.yaml` (CTE, AHO, NEQUI). La tabla de origen de cada uno queda vacía y se informa como pendiente, porque el SAS no la demuestra.
+    - El padre declara contextos: un grupo Default con `env_nombre` vacío y un grupo por entorno con su valor.
+  - `src/sgm/talend_item/escritura.py`: `escribir_job` escribe el par `.item` y `.properties`.
+  - `src/sgm/cli_talend.py`: comando `sgm talend <programa.sas>`, que escribe los cinco Jobs en `<out>/<programa>/talend/process/`.
+  - Contextos de Job: `ParametroContexto`, `Job.contextos` y los grupos Default y de entorno. Los hizo un subagente y se validó en Studio: `--context=DEV` imprime el valor del grupo.
+  - Siete plantillas nuevas, validadas ejecutando en Studio: tFileInputExcel, tAggregateRow, tUnite, tReplicate, tFileExist, tSetGlobalVar y tLogCatcher. Se obtuvieron creando Jobs de referencia con el modo offline de talend-mcp y completando todos los parámetros de la definición de Studio (`defaultValue` de `component-definitions.json`) con un script temporal.
+  - tFileInputExcel se ejecutó con `talend_job_execute` (salida 0; filas 1|Ana|10, 2|Jose|20 y 3|Lucia|30), pero el Build Job falla por una dependencia Maven (log4j-bom) sin red. No se validó con el `.bat`.
+- Resultado en Studio real (nombres nuevos, de _v2 a _v6, en cada intento):
+  - Los cinco Jobs compilan.
+  - El padre, exportado y ejecutado con `--context=DEV`, corre insumos una vez, producto tres veces (CTE, AHO y NEQUI, por iteración), totales, conciliación, y escribe "Proceso terminado". Salida 0.
+  - Con el entorno vacío (Default), el Prejob marca `env_valido=false`, el tDie condicionado se ejecuta, termina la máquina virtual y ningún hijo corre. Salida 1.
+- Hallazgos:
+  1. El parámetro `ACTIVATE=false` en una conexión Run if significa conexión desactivada, no una condición. Copiarlo de un Job real dejó el tDie suelto, que se ejecutaba siempre. Studio lo omite cuando la conexión está activa.
+  2. La plantilla de tDie venía de un componente desactivado (`ACTIVATE=false` en el nodo), y Studio no generó su código. La extracción ahora descarta `ACTIVATE`.
+  3. La regla que neutralizaba el parámetro CODE vaciaba también el código de salida numérico de tDie y tWarn. Al compilar daba `new Integer()` sin argumento. Ahora solo se vacía el CODE de los campos de código Java (MEMO_EDITOR_JAVA).
+  4. tPrejob que lanza una excepción no detiene el flujo principal en Talend. Hace falta un tDie con EXIT_JVM.
+  5. build-batch compila en paralelo, y un padre que llama a hijos recién creados puede fallar la primera vez. Conviene compilar primero los hijos y después el padre.
+  6. El MERGE de tUnite usa lineStyle 10 (FLOW_MERGE), leído del enum `EConnectionType`.
+  7. tLogCatcher, tAggregateRow y otras plantillas que se completaron a mano traen `show` y orden calculados por regla, no copiados de un Job guardado por Studio.
+  8. Con PASSWORD vacío, Studio genera `ofNullable()`. Una instancia debe recibir un valor.
+- Limpieza de datos: las plantillas tAggregateRow (OPERATIONS) y tFileInputExcel (SHEETLIST, ahora "Sheet1") no guardan datos de los Jobs de referencia.
+- Pruebas: `tests/unit/test_talend_contextos.py` (7 casos), `tests/unit/test_talend_plantillas_extra.py` (7) y `tests/unit/test_talend_jobs_diseno.py` (8). `uv run pytest -q`: 857 pasan, 1 se salta, 132 xfail. `uv run ruff check .`: limpio.
+- No verificado:
+  - Ningún Job se abrió en el editor gráfico de Studio.
+  - Los parámetros de contexto locales no tienen ejemplo real guardado por Studio. Se aceptan y se resuelven al ejecutar, pero no se comparó el XML.
+  - `show` y orden de las siete plantillas nuevas.
+  - Lookups y filtros de tMap.
+- Pendiente:
+  - Los hijos son esqueletos que dicen qué falta. Hay que traducir la lectura de insumos (Excel a caché con tHashOutput), la lectura y validación de producto (tImpalaInput, tMap, joblets), y totales y conciliación.
+  - tDBClose y la conexión compartida de Impala.
+  - El registro de errores (`jl_registro_errores`) y OnSubjobError (lineStyle sin ejemplo real).

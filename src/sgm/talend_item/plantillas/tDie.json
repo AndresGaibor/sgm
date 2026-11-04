@@ -9,12 +9,6 @@
    "false"
   ],
   [
-   "CHECK",
-   "ACTIVATE",
-   "false",
-   null
-  ],
-  [
    "TEXT",
    "MESSAGE",
    "\"\"",
@@ -23,7 +17,7 @@
   [
    "TEXT",
    "CODE",
-   "",
+   "1",
    null
   ],
   [

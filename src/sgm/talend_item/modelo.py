@@ -69,9 +69,22 @@ class Conexion:
     etiqueta: str = ""  # texto de la línea; si está vacío se usa el nombre
 
 
+@dataclass(frozen=True)
+class ParametroContexto:
+    """Variable de contexto de un grupo del Job (`contextParameter` de Studio)."""
+
+    nombre: str
+    tipo: str = "id_String"
+    valor: str = ""
+    comentario: str = ""
+    pedir: bool = False  # promptNeeded: Studio pregunta el valor al ejecutar
+
+
 @dataclass
 class Job:
     nombre: str
     version: str = "0.1"
     nodos: list[Nodo] = field(default_factory=list)
     conexiones: list[Conexion] = field(default_factory=list)
+    # Grupo de contexto -> sus parámetros. Sin entradas, el grupo Default va vacío como antes.
+    contextos: dict[str, list[ParametroContexto]] = field(default_factory=dict)

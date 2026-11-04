@@ -46,11 +46,13 @@ def iterar(origen: str, destino: str, n: int = 1, paralelo: int = 0) -> Conexion
 
 
 def si(origen: str, destino: str, condicion: str, n: int = 1) -> Conexion:
-    """`Run if`: el destino corre si la condición de Java es verdadera."""
+    """`Run if`: el destino corre si la condición de Java es verdadera.
+
+    Sin `ACTIVATE`: en Studio ese parámetro en `false` es una conexión desactivada.
+    """
     unico = f"If{n}"
     parametros = (
         ("MEMO_JAVA", "CONDITION", condicion, None),
-        ("CHECK", "ACTIVATE", "false", "false"),
         ("TEXT", "UNIQUE_NAME", unico, "false"),
     )
     return Conexion(origen, destino, unico, "RUN_IF", 6, parametros, etiqueta="If")

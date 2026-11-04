@@ -1,0 +1,103 @@
+{
+ "componente": "tLogCatcher",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tLogCatcher",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.101 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "Logs_Errors",
+   "false"
+  ],
+  [
+   "CHECK",
+   "START",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "true",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.tLogCatcher",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "",
+   "false"
+  ],
+  [
+   "CHECK",
+   "CATCH_JAVA_EXCEPTION",
+   "true",
+   null
+  ],
+  [
+   "CHECK",
+   "CATCH_TDIE",
+   "true",
+   null
+  ],
+  [
+   "CHECK",
+   "CATCH_TWARN",
+   "true",
+   null
+  ],
+  [
+   "CHECK",
+   "CATCH_TACTIONFAILURE",
+   "true",
+   "false"
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}
