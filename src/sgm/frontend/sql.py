@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+from sgm.frontend.sql_fuentes import extract_sources
+
 _CREATE = re.compile(r"(?is)^create\s+table\s+([\w.&]+)\s+as\s+(.+)$")
 _CREATE_LIKE = re.compile(r"(?is)^create\s+table\s+([\w.&]+)\s+like\s+")
 _INSERT = re.compile(r"(?is)^insert\s+into\s+([\w.&]+)")
@@ -20,7 +22,6 @@ _DISCONNECT = re.compile(r"(?is)^disconnect\s+from\s+(\w+)")
 _PASSTHROUGH = re.compile(r"(?is)\bfrom\s+connection\s+to\s+(\w+)\s*\((.*)\)\s*$")
 _EXECUTE = re.compile(r"(?is)^execute\s*\((.*)\)\s*by\s+(\w+)\s*$")
 _EXECUTE_BY = re.compile(r"(?is)^execute\s+by\s+(\w+)\s*\((.*)\)\s*$")
-_SOURCE = re.compile(r"(?i)\b(?:from|join)\s+([\w.&]+)")
 
 
 @dataclass(frozen=True)
@@ -34,14 +35,6 @@ class SqlStatement:
     sources: tuple[str, ...] = ()  # tablas que lee la sentencia (FROM y JOIN, sin el pass-through)
     inner_sql: str | None = None  # SQL del pass-through o de execute, intacto
     fields: dict[str, str] = field(default_factory=dict)
-
-
-def _sources(sql: str) -> tuple[str, ...]:
-    seen: list[str] = []
-    for name in _SOURCE.findall(sql):
-        if name.lower() not in ("connection",) and name not in seen:
-            seen.append(name)
-    return tuple(seen)
 
 
 def parse_sql_statement(text: str, line: int) -> SqlStatement:
@@ -63,7 +56,9 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
                 inner_sql=pt.group(2).strip(),
                 fields={"query": query},
             )
-        return SqlStatement("create_table", body, line, target=target, sources=_sources(query))
+        return SqlStatement(
+            "create_table", body, line, target=target, sources=extract_sources(query)
+        )
     if _CREATE_LIKE.match(body):
         return SqlStatement("create_like", body, line, target=_CREATE_LIKE.match(body).group(1))
     if body.lower().startswith("select") or body.lower().startswith("("):
@@ -75,9 +70,9 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
                 engine=pt.group(1),
                 inner_sql=pt.group(2).strip(),
             )
-        return SqlStatement("select", body, line, sources=_sources(body))
+        return SqlStatement("select", body, line, sources=extract_sources(body))
     if m := _INSERT.match(body):
-        return SqlStatement("insert", body, line, target=m.group(1), sources=_sources(body))
+        return SqlStatement("insert", body, line, target=m.group(1), sources=extract_sources(body))
     if m := _DELETE.match(body):
         return SqlStatement("delete", body, line, target=m.group(1))
     if m := _DROP.match(body):

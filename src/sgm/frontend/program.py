@@ -27,8 +27,9 @@ class ProgramItem:
     item: object  # paso (steps.*) o MacroDynamic
     line: int
     call: str | None = (
-        None  # invocación de macro más externa de la que sale el paso, "archivo:línea:nombre"
+        None  # invocación de macro más interna de la que sale el paso, "línea:nombre"
     )
+    outer_call: str | None = None  # invocación más externa (la del código que escribió el usuario)
 
 
 @dataclass
@@ -58,42 +59,46 @@ def _label_at(nodes: list[Node], line: int) -> str | None:
     return found
 
 
-def _flatten(items: list[object], call: str | None = None):
-    """Aplana las expansiones; cada sentencia conserva la invocación más externa de la que sale."""
+def _flatten(items: list[object], call: str | None = None, outer: str | None = None):
+    """Aplana las expansiones; cada sentencia conserva su invocación más interna y la más externa."""
     for item in items:
         if isinstance(item, Expanded):
-            yield from _flatten(
-                item.items, item.key
-            )  # la invocación más interna identifica el bloque
+            # la invocación más interna identifica el bloque; la más externa, dónde se llamó
+            yield from _flatten(item.items, item.key, outer or item.key)
         else:
-            yield item, call
+            yield item, call, outer
 
 
 def _collect(path: str, nodes: list[Node], expanded: list[object], result: ProgramAnalysis) -> None:
     """Agrupa los elementos expandidos en pasos y añade cada uno con su etiqueta de nodo y su llamada."""
     pending: list[object] = []
     pending_call: str | None = None
+    pending_outer: str | None = None
 
-    def flush_pending(call: str | None) -> None:
+    def flush_pending(call: str | None, outer: str | None) -> None:
         steps, _ = parse_steps(pending)
         for step in steps:
             line = getattr(step, "line", 1)
-            result.items.append(ProgramItem(path, _label_at(nodes, line), step, line, call))
+            result.items.append(
+                ProgramItem(path, _label_at(nodes, line), step, line, call, outer)
+            )
         pending.clear()
 
-    for item, call in _flatten(expanded):
+    for item, call, outer in _flatten(expanded):
         if isinstance(item, MacroDynamic):
-            flush_pending(pending_call)
+            flush_pending(pending_call, pending_outer)
             result.items.append(
-                ProgramItem(path, _label_at(nodes, item.line), item, item.line, call)
+                ProgramItem(path, _label_at(nodes, item.line), item, item.line, call, outer)
             )
             pending_call = None
+            pending_outer = None
             continue
-        if pending and call != pending_call:
-            flush_pending(pending_call)
+        if pending and (call != pending_call or outer != pending_outer):
+            flush_pending(pending_call, pending_outer)
         pending_call = call
+        pending_outer = outer
         pending.append(item)
-    flush_pending(pending_call)
+    flush_pending(pending_call, pending_outer)
 
 
 def analyze_program(

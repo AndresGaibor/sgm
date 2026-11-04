@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from sgm.flow.pasos_archivo import entradas_salidas_data_step, lecturas_escrituras_proc
 from sgm.frontend.datastep import DataStep
 from sgm.frontend.macros_modelo import MacroDynamic
 from sgm.frontend.program import ProgramAnalysis, ProgramItem, analyze_program
@@ -55,6 +56,7 @@ class FlowStep:
     notes: list[str] = field(default_factory=list)
     excerpt: str = ""
     macro_call: str | None = None
+    outer_call: str | None = None  # llamada más externa, la que escribió el usuario
     layer: int = 0
 
 
@@ -105,15 +107,10 @@ def _excerpt(lines: list[str]) -> str:
 
 
 def _data_step(obj: DataStep) -> tuple[str, str, list[str], list[str], list[str], list[str]]:
-    reads = [
-        ref["name"]
-        for st in obj.statements
-        if st.kind in ("set", "merge")
-        for ref in st.fields.get("sources", [])
-    ]
+    reads, writes = entradas_salidas_data_step(obj)
     title = "DATA " + ", ".join(obj.outputs) if obj.outputs else "DATA step"
     lines = [obj.text] + [st.text for st in obj.statements]
-    return "DATA step", title, reads, list(obj.outputs or []), [], lines
+    return "DATA step", title, reads, writes, [], lines
 
 
 def _sql_step(obj: ProcSql) -> tuple[str, str, list[str], list[str], list[str], list[str]]:
@@ -141,8 +138,7 @@ def _sql_step(obj: ProcSql) -> tuple[str, str, list[str], list[str], list[str], 
 
 
 def _proc_step(obj: Proc) -> tuple[str, str, list[str], list[str], list[str], list[str]]:
-    reads = [obj.options["data"]] if obj.options.get("data") else []
-    writes = [obj.options["out"]] if obj.options.get("out") else []
+    reads, writes = lecturas_escrituras_proc(obj.name, obj.text)
     notes: list[str] = []
     if obj.name == "sort" and not writes and reads:
         writes = list(reads)
@@ -239,6 +235,7 @@ def build_flow(
                 notes=notes,
                 excerpt=_excerpt(lines),
                 macro_call=item.call,
+                outer_call=item.outer_call,
             )
         )
     edges: list[FlowEdge] = []

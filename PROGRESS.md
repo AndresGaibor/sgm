@@ -1335,3 +1335,21 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - El catálogo de componentes se baja solo en su página raíz (sin subpáginas), para que el tamaño quede en 5 MB.
   - El extracto de opciones JDBC es un YAML de consulta, no una regla: no pasa por el esquema de `rules/`.
 - Verificación: `uv run pytest -q`: 629 pasan, 1 se salta, 6 xfail. `uv run ruff check .`: limpio.
+
+## Hito 51. Reescritura, Fase 1: linaje completo (APPEND, archivos, fuentes SQL, región por llamada)
+
+- Fecha: 2026-11-04
+- Contexto: plan de reescritura en `docs/plan-reescritura/`. Fase 0 (hito 50) midió y fijó la meta; ver `fase0-correccion-h3.md` (las regiones vienen en copias por producto de 93 a 99,7 % al normalizar el sufijo).
+- Qué se hizo:
+  - `flow/pasos_archivo.py`: `PROC APPEND`, `PROC IMPORT/EXPORT` y `INFILE/FILE` entre comillas entran al grafo como datasets `file:<ruta>`. `FILE LOG/PRINT` e `INFILE DATALINES` se ignoran.
+  - `frontend/sql_fuentes.py`: extracción de tablas de PROC SQL con tokenizador (sin tablas falsas en `extract(... from ...)`, listas con coma, todos los JOIN, alias, subconsultas, CTE).
+  - `flow/regiones.py`: división por marcador (parámetro del YAML de decisiones) y asignación de pasos por la línea de la llamada más externa. `ProgramItem` y `FlowStep` ganan `outer_call`; `call` sigue siendo la más interna.
+  - `tools/medir_regiones.py`, `tools/etiquetas_fase0.py`.
+- Medición en `client_large.sas`: 2.205 pasos, 1.277 aristas; 15 entradas externas (9 archivos: 5 Excel y 4 CSV, que coinciden con las 5 fuentes Excel del diseño manual); 22 salidas de archivo; de 406 datasets WORK escritos, 301 son locales a una región, 74 cruzan regiones y 31 no tienen lector. Paso 0 de región: 233 pasos (antes 1.277 por línea de evidencia).
+- Pruebas: `uv run pytest -q`: 715 pasan, 1 se salta, 146 xfail (140 de conformidad). `ruff check .`: limpio.
+- Pendiente, con motivo:
+  - `infile`/`file` con fileref sin comillas: requiere resolver `FILENAME`.
+  - Lecturas de la base por `connect to ... (select ...)`: los nombres de tabla de Impala no aparecen aún como entradas externas.
+  - 3 entradas `WORK` sin escritor previo y 3 nombres con macrovariable sin resolver (`&tabla_origen.`).
+  - `sql_tree` falla con subconsultas en FROM (no es parte de la extracción de fuentes).
+- Decisiones: `call` conserva su significado (más interna) para no mover plantillas ni goldens; la región usa el campo nuevo `outer_call`. El marcador de región vive en el YAML de decisiones, no en el código.
