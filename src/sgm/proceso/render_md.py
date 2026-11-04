@@ -10,6 +10,7 @@ from sgm.proceso.diseno_doc import DocumentoDiseno
 TITULOS = {
     "1.1": "Fuentes externas",
     "1.4": "Salidas (archivos)",
+    "3": "Etapas y tamaño estimado",
     "6": "Equivalencias con el SAS",
 }
 ETIQUETA_RESUMEN = {
@@ -23,6 +24,9 @@ ETIQUETA_RESUMEN = {
     "sentencias_de_fontaneria": "Sentencias de fontanería",
     "etiquetas": "Etiquetas de etapa",
     "etiquetas_con_etapa": "Etiquetas con etapa asignada",
+    "pasos_de_datos": "Pasos de datos (sin fontanería)",
+    "bloques_sin_parametrizar": "Bloques tras colapsar tablas intermedias",
+    "bloques_en_plantillas": "Bloques si cada familia se escribe una vez, sin etapas eliminadas",
 }
 
 

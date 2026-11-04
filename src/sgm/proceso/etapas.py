@@ -19,6 +19,7 @@ import yaml
 class EtapaDeclarada:
     nombre: str
     patrones: tuple[re.Pattern[str], ...]
+    elimina: bool = False  # el diseño no la construye (por ejemplo, persistencias intermedias)
 
 
 @dataclass
@@ -55,7 +56,7 @@ def cargar_etapas(path: Path) -> list[EtapaDeclarada]:
             patrones = tuple(re.compile(p, re.IGNORECASE) for p in textos)
         except re.error as error:
             raise ValueError(f"{path}: patrón inválido en la etapa {nombre}: {error}") from error
-        etapas.append(EtapaDeclarada(nombre, patrones))
+        etapas.append(EtapaDeclarada(nombre, patrones, bool(item.get("elimina", False))))
     if not etapas:
         raise ValueError(f"{path}: no hay etapas declaradas")
     return etapas

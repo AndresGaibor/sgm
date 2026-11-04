@@ -1424,3 +1424,17 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - El documento aún no tiene las secciones 2 a 5, 7 y 8 del manual.
   - Las tablas de 1.1 y 1.4 siguen leyendo nombres del YAML (ver hito 55).
   - `ruff format --check` marca 25 archivos antiguos sin formatear; no es parte de las comprobaciones del proyecto y no se tocaron.
+
+## Hito 58. Reescritura, Fase 2/3: colapso por linaje y tamaño estimado por etapa
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - `proceso/colapso.py`: funde las cadenas lineales de pasos de datos (la tabla entre dos pasos que solo se leen uno a otro es una arista, D1), excluye la fontanería (tipos de transferencia y borrado, y las reglas de `plumbing.yaml`) y cuenta bloques por región y etapa. `plantilla_por_etapa` cuenta una vez cada familia (su región mayor) y omite las etapas con `elimina: true` en el YAML.
+  - `proceso/etapas.py`: la etapa declarada admite `elimina: true`; `persistencia_intermedia` lo lleva en `decisiones/client_large.diseno.yaml`.
+  - Sección 3 del documento ("Etapas y tamaño estimado") y tres medidas nuevas en el resumen.
+- Medición en `client_large.sas` (cota, no número exacto de componentes):
+  - 2.205 pasos; 1.473 son de datos tras quitar la fontanería; 988 bloques tras colapsar cadenas lineales.
+  - Escribiendo cada familia una vez y sin la etapa de persistencia: **364 bloques**. Por etapa: normalizar 98, validar_documento 82, totales_conciliacion 55, validar_cuenta_y_saldos 36, sabana_final 31, corregir_inconsistencias 24, importar_insumos 18, validar_ubicacion 16, sin etapa 4.
+- Hallazgo: el colapso mecánico (364) queda en el mismo orden que el generador anterior (388 componentes) y lejos de los unos 80 del diseño manual. Normalizar literales y números reduce los 755 pasos de las plantillas a 421 formas distintas, tampoco cerca de 80. Esa diferencia no se cierra con colapso: el manual abstrae la validación en joblets y cambia comportamiento (un solo archivo de rechazos con columna motivo, un lookup en caché). Es una decisión de diseño, no una deducción. Lo que el emisor entrega es el diseño por etapas y su tamaño medido; reducirlo a ~80 pide joblets declarados (fase 4) y decisiones del negocio (D2).
+- Pruebas: `tests/unit/test_proceso_colapso.py` (5). `uv run pytest -q`: 771 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
+- Pendiente: joblets por cadena repetida dentro de una etapa; secciones 2, 4, 5, 7 y 8 del documento.

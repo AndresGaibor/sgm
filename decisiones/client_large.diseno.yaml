@@ -4,6 +4,7 @@
 programa: client_large.sas
 etapas:
   - nombre: persistencia_intermedia   # el diseño no guarda tablas intermedias (D1)
+    elimina: true
     patrones: ["^escritura"]
   - nombre: importar_insumos
     patrones: ["^importar", "^lee", "^carga", "^borrar", "macrovariables", "^condicion", "encriptar", "ult d[ií]a ingesti"]
