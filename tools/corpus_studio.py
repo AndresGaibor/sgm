@@ -4,9 +4,11 @@ Uso (desde la raíz del repo):
     uv run python tools/corpus_studio.py validar <caso> --jobs CARPETA --padre NOMBRE \
         --proyecto RUTA [--contexto clave=valor ...] [--mapa mapa.yaml]
     uv run python tools/corpus_studio.py comparar <caso> --salida CARPETA
+    uv run python tools/corpus_studio.py lote <caso...> --jobs CARPETA --proyecto RUTA
 
 `validar` necesita el servidor talend-mcp arrancado con escritura y ejecución (ver
-`tools/validar_en_studio.py`). `comparar` no usa Studio y es lo que va a pytest.
+`tools/validar_en_studio.py`). `comparar` no usa Studio y es lo que va a pytest. `lote` compila
+muchos Jobs en una sola llamada, con un sufijo nuevo y limpiando `process/` al terminar.
 Documentación: tools/corpus_lib/STUDIO.md. Plan: docs/plan-reescritura/plan-corpus-y-equivalencia.md
 (sección 6).
 
@@ -19,13 +21,18 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import time
 from pathlib import Path
 
 from corpus_lib.caso import resolver
 from corpus_lib.studio_informe import ResultadoCaso, comparar_caso, tabla_markdown
+from corpus_lib.studio_lote import compilar_en_lote
 from corpus_lib.studio_mapa import leer_mapa
-from corpus_lib.studio_validar import validar_en_studio
+from corpus_lib.studio_validar import sufijo_nuevo, validar_en_studio
 from mcp_cliente import ErrorValidacion
+
+from sgm.backend_talend import TalendCliBackend
+from sgm.backend_talend.salud import comprobar_salud
 
 REPO = Path(__file__).resolve().parents[1]
 CORPUS_DEFECTO = REPO / "tests" / "corpus"
@@ -89,6 +96,34 @@ def _validar(args: argparse.Namespace) -> int:
     return _emitir(resultado, args.informe)
 
 
+def _lote(args: argparse.Namespace) -> int:
+    """Compila los Jobs de los casos dados en una sola llamada a Studio."""
+    if not args.proyecto:
+        raise ValueError("falta --proyecto (o la variable TALEND_PROJECT)")
+    if not args.jobs.is_dir():
+        raise ValueError(f"no existe la carpeta de Jobs: {args.jobs}")
+    carpetas = []
+    for caso in args.casos:
+        propia = args.jobs / caso
+        carpetas.append(propia if propia.is_dir() else args.jobs)
+    backend = TalendCliBackend(args.talend_dir, args.proyecto, tiempo_max=args.tiempo_max)
+    salud = comprobar_salud(backend)
+    if not salud.ok:
+        print(f"Studio no está disponible: {salud.motivo}")
+        return 1
+    sufijo = args.sufijo or sufijo_nuevo()
+    inicio = time.perf_counter()
+    resultado = compilar_en_lote(carpetas, args.proyecto, backend, sufijo)
+    segundos = time.perf_counter() - inicio
+    print(
+        f"Lote de {len(carpetas)} Jobs (sufijo {sufijo}) en {segundos:.1f} s: "
+        f"{len(resultado.compilan)} compilan, {len(resultado.no_compilan)} no"
+    )
+    for nombre, motivo in sorted(resultado.no_compilan.items()):
+        print(f"  no compila {nombre}: {motivo}")
+    return 0 if not resultado.no_compilan else 1
+
+
 def _crear_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Arnés de Studio del corpus SAS-Talend.")
     subcomandos = parser.add_subparsers(dest="orden", required=True)
@@ -125,6 +160,33 @@ def _crear_parser() -> argparse.ArgumentParser:
     comparar.add_argument("--ignorar-orden-columnas", action="store_true")
     comparar.add_argument("--corpus", type=Path, default=CORPUS_DEFECTO)
     comparar.set_defaults(func=_comparar)
+
+    lote = subcomandos.add_parser("lote", help="compila varios Jobs en una sola llamada")
+    lote.add_argument("casos", nargs="+", help="casos del corpus cuyos Jobs se compilan")
+    lote.add_argument(
+        "--jobs",
+        type=Path,
+        required=True,
+        help="carpeta con los Jobs, o con una subcarpeta por caso",
+    )
+    lote.add_argument(
+        "--proyecto",
+        type=Path,
+        default=os.environ.get("TALEND_PROJECT"),
+        help="carpeta del proyecto Talend (con talend.project); por defecto TALEND_PROJECT",
+    )
+    lote.add_argument(
+        "--backend", choices=["talend_cli"], default="talend_cli", help="backend de Talend"
+    )
+    lote.add_argument(
+        "--talend-dir",
+        type=Path,
+        default=os.environ.get("TALEND_MCP_DIR"),
+        help="carpeta de talend-mcp; por defecto TALEND_MCP_DIR",
+    )
+    lote.add_argument("--sufijo", help="sufijo nuevo de los Jobs (por defecto, con fecha)")
+    lote.add_argument("--tiempo-max", type=float, default=900.0, help="segundos por llamada")
+    lote.set_defaults(func=_lote)
     return parser
 
 
