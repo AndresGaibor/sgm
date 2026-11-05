@@ -56,3 +56,14 @@ def si(origen: str, destino: str, condicion: str, n: int = 1) -> Conexion:
         ("TEXT", "UNIQUE_NAME", unico, "false"),
     )
     return Conexion(origen, destino, unico, "RUN_IF", 6, parametros, etiqueta="If")
+
+
+def lookup(origen: str, destino: str, nombre: str = "row2") -> Conexion:
+    """`LOOKUP`: la entrada de búsqueda de un tMap. Su `lineStyle` es 8, el id de FLOW_REF.
+
+    Studio no escribe `UNIQUE_NAME` en esta conexión: el nombre de la entrada es su etiqueta. Se
+    id 8 sale del bytecode de `EConnectionType` (org.talend.core.runtime). `MCP_L5_ReplaceList`
+    escribe 0, que es FLOW, y el catálogo lo marca como "falla".
+    """
+    parametros = (("CHECK", "MONITOR_CONNECTION", "false", None),)
+    return Conexion(origen, destino, nombre, "LOOKUP", 8, parametros)

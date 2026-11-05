@@ -1619,3 +1619,13 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
   - Solo se probaron saldos simulados con punto decimal. No se vieron saldos reales de FIN_SALDO_CTA ni se comparó la suma con un total real del SAS.
   - Los nombres de columna son los que el SAS demuestra. Las columnas que el SAS no nombra quedan como `VARn`.
 - Pendiente: validaciones, correcciones, salidas y conciliación del producto, sin cambios en este hito.
+
+## Hito 66. Reescritura, Fase 5: tMap con lookup, inner join y rechazo de union, validado ejecutando
+
+- Fecha: 2026-11-04
+- Que se hizo: `tmap.py` admite una entrada lookup con `expresiones_union` y `union_interna` (INNER JOIN), una salida `rechazo_union` (los que no casan), y modela `rechazo` y `filtro`. Los atributos salen del modelo EMF y del generador de codigo del mapper de Studio (clases `InputTable.innerJoin`, `OutputTable.reject` y `rejectInnerJoin`, `expressionFilter`; la clave de union es el atributo `expression` de la columna del lookup). `conexiones.lookup()` escribe la conexion de busqueda.
+- Resultado en Studio real: tFixedFlowInput principal (ids 1 a 4, tipos CC, XX, NIT, YY) contra un lookup (CC, NIT): salio por `validos` 1|CC y 3|NIT, y por `rechazados` 2|XX y 4|YY; salida 0.
+- Hallazgo: la conexion LOOKUP de un Job generado por el MCP usa `lineStyle` 0 (es una fila) y no compila; la correcta es `lineStyle` 8 (FLOW_REF).
+- Pruebas: `test_talend_tmap_lookup.py` (12). `uv run pytest -q`: 928 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
+- No verificado en Studio: filtro (`expressionFilter`) y salida `rechazo` (catch output reject); lookup con varias columnas de union.
+- Pendiente: usar el lookup en `job_producto` para la validacion de tipo de documento (INNER JOIN contra el Excel de homologacion, rechazo de los que no casan).
