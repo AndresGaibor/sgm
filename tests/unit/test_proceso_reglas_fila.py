@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from sgm.proceso.reglas_fila import MODOS, por_modo, reglas_fila
+from sgm.proceso.reglas_fila import MODOS, flujos_producto, por_modo, reglas_fila
 
 REPO = Path(__file__).resolve().parents[2]
 REAL = REPO / "tests" / "fixtures" / "sas" / "client" / "client_large.sas"
@@ -105,3 +105,62 @@ def test_un_where_sin_la_forma_no_produce_reglas():
 def test_por_modo_rechaza_un_modo_desconocido():
     with pytest.raises(ValueError, match="desconocido"):
         por_modo([], "otro")
+
+
+# Hito 87: además del WHERE se lee el SELECT, porque el Job emitido escribe esas columnas.
+def test_la_proyeccion_sale_del_select_y_no_se_supone():
+    v02 = [r.columnas for r in reglas_fila(_texto(V02))]
+    separacion = ("NRO_DOC_VACIO_0_TIT_COT_", "INCONS_NRO_DOC_VACIO_0_FA_",
+                  "NRO_DOC_NO_VACIO_NI_0_")
+    real = [
+        r.columnas for r in reglas_fila(_texto(REAL))
+        if r.destino.startswith(separacion) and r.destino.endswith("_CTE")
+    ]
+    assert [len(c) for c in v02] == [6, 6, 7]
+    assert v02[0][0] == "RELACION" and v02[2][-1] == "FIN_SALDO_CTA"
+    assert [len(c) for c in real] == [19, 19, 19]
+    assert real[0][0] == "RELACION" and real[0][-1] == "FIN_SALDO_CTA"
+
+
+def test_un_select_con_expresiones_no_produce_una_proyeccion_inventada():
+    sas = (
+        "PROC SQL; CREATE TABLE WORK.X AS SELECT A.NRO_DOC, "
+        "'NRO DOC VACIO O CERO' AS INCONSISTENCIA FROM WORK.S A "
+        "WHERE ( ( A.NRO_DOC = 0 ) OR A.NRO_DOC IS MISSING ) "
+        "AND ( A.RELACION <> 9902 ); QUIT;"
+    )
+    assert reglas_fila(sas)[0].columnas == ()
+
+
+def test_flujos_producto_emite_una_terna_y_reporta_lo_que_queda_fuera():
+    flujos, pendientes = flujos_producto(_texto(REAL))
+    assert [f.modo for f in flujos] == list(MODOS)
+    assert [f.tabla for f in flujos] == [
+        "NRO_DOC_VACIO_0_TIT_COT", "INCONS_NRO_DOC_VACIO_0_FA", "NRO_DOC_NO_VACIO_NI_0"
+    ]
+    assert all(len(f.columnas) == 19 for f in flujos)
+    assert any("FINAL_VALIDAR_NRO_DOC_CTE" in p for p in pendientes)
+    assert any("Campos vacios" in p for p in pendientes)
+
+
+def test_la_terna_de_v02_tiene_el_mismo_filtro_pero_otra_proyeccion():
+    real, _ = flujos_producto(_texto(REAL))
+    corpus, pendientes = flujos_producto(_texto(V02))
+    assert [r.forma[:5] for r in real] == [r.forma[:5] for r in corpus]
+    assert [len(r.columnas) for r in corpus] == [6, 6, 7]
+    assert not any("revalidaciones" in p for p in pendientes)
+
+
+def test_flujos_producto_no_mezcla_bloques_de_producto_distintos():
+    texto = _texto(REAL).replace(
+        "SABANA_NO_DUPLICADOS_CTE.RELACION <> 9902",
+        "SABANA_NO_DUPLICADOS_CTE.RELACION <> 7777",
+    )
+    # El cambio del valor 9902 altera la forma del filtro de CTE, no solo el nombre de la tabla.
+    with pytest.raises(ValueError, match="formas|distintos|proyección"):
+        flujos_producto(texto)
+
+
+def test_flujos_producto_falla_si_falta_un_flujo():
+    with pytest.raises(ValueError, match="no declara el flujo"):
+        flujos_producto("PROC SQL; QUIT;")

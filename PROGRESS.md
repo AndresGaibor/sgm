@@ -2487,3 +2487,100 @@ eglas_mapeo.py). La salida no cambia: goldens id�nticos.
   esperados sí traen cabecera. `anomalias()` y `_suma_observada()` dependen de la posición de
   `NRO_DOC` (5) y `FIN_SALDO_CTA` (6) en la proyección, declarada en `ESQUEMAS`; si el diseño
   cambia la proyección, hay que actualizar `tools/vacios_ceros_datos.py` antes de reutilizarlo.
+
+## Hito 87. R1-04 (parte 1, cierre en el emisor): los tres flujos salen del `job_producto` emitido
+
+Se cerró el hueco que el hito 86 dejó explícito: ya no es un Job aislado, es el `.item` que
+`sgm talend` escribe para `client_large.sas`. La tercera rama del `tReplicate_1` es
+`tMap_flujos` con las tres salidas `expressionFilter` y sus tres `tFileOutputDelimited`.
+
+- Cadena nueva: `proceso/reglas_fila.py` ahora lee también el `SELECT` de cada `CREATE TABLE`
+  (`columnas`) y expone `flujos_producto()`, que entrega **una** terna canónica con el nombre
+  base de cada tabla leído del SAS. `cli_talend.py` la pasa a `job_producto(..., flujos=...)`;
+  `talend_item/flujos_fila.py` construye el `tMap`, las salidas y las conexiones;
+  `talend_item/totalizadores.py` recibió los helpers de totales y homologación para que
+  `jobs_producto.py` baje de 299 a 242 líneas y no rompa el límite de 300 de `AGENTS.md`.
+- No se declara nada a mano: las proyecciones, los nombres de archivo y los filtros salen del
+  SAS. El Job escribe `NRO_DOC_VACIO_0_TIT_COT_<sufijo>.csv`,
+  `INCONS_NRO_DOC_VACIO_0_FA_<sufijo>.csv` y `NRO_DOC_NO_VACIO_NI_0_<sufijo>.csv`, con
+  cabecera y `context.sufijo`, igual que las tablas del SAS.
+- **Hallazgo de diseño**: el SAS real proyecta **19 columnas** en los tres flujos; `v02` proyecta
+  6/6/7. El emisor usa las 19 del programa real. El detector encuentra 10 reglas en el real:
+  6 de separación (CTE y AHO, formas idénticas) y 4 revalidaciones posteriores
+  (`SABANA_SIN_NRO_DOC_VACIOS_NEQUI`, `FINAL_VALIDAR_NRO_DOC_CTE/NEQUI/AHO`). Como el Job es
+  uno solo parametrizado por `context.sufijo`, se emite una sola terna, se **exige** que los dos
+  bloques de producto tengan la misma forma y las 4 restantes se publican como `Pendiente:`
+  en la salida del CLI, no se descartan en silencio.
+- **Salvedad heredada, no ocultada**: el emisor normaliza las 15 columnas numéricas del SAS real
+  (hito 84), y en `v02` `TIPO_DOC=TDxx` y `LLAVE_NOMBRE=LLVxxxxx` son texto no numérico;
+  `input(..., w.d)` las deja vacías. Es la misma salvedad medida en el hito 85. El arnés de este
+  hito compara por **nombre de columna** solo las columnas estables (`RELACION`, `TIPO_CTA`,
+  `NRO_CTA`, `NRO_DOC`, `FIN_SALDO_CTA`); `NRO_CTA` es única por fila, así que la igualdad de
+  multisets sigue siendo fila por fila. No se rellena ni se transforma el esperado. Cabecera
+  real escrita por el Job (se ven las dos columnas vacías):
+  ```text
+  RELACION,TIPO_CTA,NRO_CTA,LLAVE_NOMBRE,TIPO_DOC,NRO_DOC,GMF,VAL_CRED_MES,NRO_CRED_MES,PROM_CRED_MES,MED_CRED_MES,VAL_DEB_MES,NRO_DEB_MES,PROM_DEB_MES,MED_SALDO_CTA,PROM_SALDO_CTA,MAX_SALDO_CTA,MIN_SALDO_CTA,FIN_SALDO_CTA
+  1001,1,5000000001,,,,1,1001,2001,3001,4001,5001,6001,7001,8001,9001,10001,11001,12001
+  ```
+
+Evidencia literal en Studio 8.0.1 / `PRJ_BANCOLOMBIA`. Compilación de los 4 Jobs emitidos
+(`uv run python tools/validar_en_studio.py tests/fixtures/sas/client/client_large.sas --project
+<proyecto> --sufijo v87d --solo-compilar`, código de salida 0):
+```text
+Compilando hijos: job_conciliacion_v87d, job_producto_v87d, job_totales_v87d
+Compilando padre: job_exogena_depositos_v87d
+RESULTADO BUILD: {"job_conciliacion_v87d": {"generateMs": 167, "compileMs": 434, "ok": true}, "job_producto_v87d": {"generateMs": 662, "compileMs": 965, "ok": true}, "job_totales_v87d": {"generateMs": 180, "compileMs": 417, "ok": true}, "job_exogena_depositos_v87d": {"generateMs": 683, "compileMs": 630, "ok": true}}
+```
+
+Ejecución con datos del **Job emitido** (`tools/prueba_flujos_emitidos.py`, sufijo `v87c`,
+JDK `zulu21.../bin`, `.m2` de Studio, entradas `v02`, Excel de homologación de `v01`;
+código de salida 0 en las dos corridas):
+```text
+Código de salida CTE: 0
+CTE tit_cot: esperadas 5 filas, obtenidas 5; OK
+CTE fa: esperadas 5 filas, obtenidas 5; OK
+CTE valido: esperadas 85 filas, obtenidas 85; OK
+CTE anomalías plantadas {'tit_cot_vacio': 3, 'tit_cot_cero': 2, 'fa_vacio': 1, 'fa_cero': 4, 'validos': 85}; obtenidas {'tit_cot_vacio': 3, 'tit_cot_cero': 2, 'fa_vacio': 1, 'fa_cero': 4, 'validos': 85}; OK
+Código de salida AHO: 0
+AHO tit_cot: esperadas 3 filas, obtenidas 3; OK
+AHO fa: esperadas 2 filas, obtenidas 2; OK
+AHO valido: esperadas 70 filas, obtenidas 70; OK
+AHO anomalías plantadas {'tit_cot_vacio': 2, 'tit_cot_cero': 1, 'fa_vacio': 2, 'fa_cero': 0, 'validos': 70}; obtenidas {'tit_cot_vacio': 2, 'tit_cot_cero': 1, 'fa_vacio': 2, 'fa_cero': 0, 'validos': 70}; OK
+Invariantes: sábana=válidos+rechazos sí; conteos=15 frente a rechazos=15 sí; suma saldo CTE=1024505 frente a 1024505 sí
+RESULTADO: 2 de 2 productos coinciden fila por fila
+```
+Nota de corrida: `v87b` cayó con `"java" no se reconoce como un comando interno o externo`
+(exitCode 1) por no pasar `--java-bin`; con el JDK de Studio las dos corridas dan 0. No es un
+fallo del producto.
+
+- Bloqueos reales (ninguno se cruza): `v02` sigue `pendiente_revision` (sin SAS no se demuestra
+  el tipo de `PROC IMPORT`, el formato de `PROC EXPORT` ni el formato `30.` de `NRO_DOC`); la
+  equivalencia N2 de G4 exige los insumos reales del cliente; el lookup `TIPO_DOC`/Excel sigue
+  con la comparación texto/número sin resolver (R1-03, DC-12 de Negocio). Quedan fuera del Job
+  la parte 2 de R1-04 (`Campos vacios`), `RECHAZO_NRO_DOC_*` y las tablas de conteo.
+- Decisiones: R1-04 sigue **`parcial`**, no `hecho`. Se cierra la parte 1 en el emisor, pero el
+  criterio de la fila exige el caso revisado y las salidas completas. No se cambió
+  `decisiones/client_large.jobs.yaml`. Los programas pequeños que no declaran la terna no emiten
+  flujos a medias: `_flujos()` publica un `Pendiente:` en vez de lanzar una excepción.
+- Pruebas: 25 nuevas (`test_proceso_reglas_fila.py` +6, `test_talend_emision_flujos_fila.py` +12,
+  `test_prueba_flujos_emitidos.py` +7). Comprueban que los `expressionFilter` del `.item` son
+  literalmente los del hito 86, que las proyecciones son las 19 del `SELECT` real, que `v02`
+  con 6/6/7 columnas también pasa por el mismo emisor, que falta de normalización/columnas/
+  modos produce error, y que el comparador detecta una fila cambiada.
+  `uv run pytest -q`: **1733 pasan, 26 se saltan, 132 xfail** (frente a 1708 del hito 86),
+  corrida en serie con raíz temporal nueva
+  (`PYTEST_DEBUG_TEMPROOT=C:/tmp/sgm-hito87/root uv run pytest -q -n0 --basetemp=C:/tmp/sgm-hito87/bt`,
+  216.08s). `uv run ruff check .`: limpio.
+- Métricas del tablero: **31 componentes emitidos** (antes 27; `job_producto` pasa de 12 a 16:
+  `tMap_flujos` + 3 salidas), conformidad 12 de 118 filas y 2 de 22 secciones, 16 pendientes en
+  5 motivos, 117 casos del corpus. `test_tablero.py` se actualizó para fijar el nuevo conteo.
+- Re-verificación del cierre con la causa del falso fallo aislada: una corrida con
+  `PYTEST_DEBUG_TEMPROOT` apuntando a una carpeta **que no existía** dio `1 failed, 1732 passed` en
+  `test_tools_ci.py::test_el_cierre_termina_en_cero_si_todo_pasa`. No es el borrado masivo de
+  `garbage-*` del hito 86: el `pytest` anidado de `tools/ci.py` hereda esa variable y crea la raíz
+  con un `mkdir` **no recursivo** (`FileNotFoundError [WinError 3]` en
+  `pytest-of-USUARIO_BISOLUTION1`), así que los 78 cruces del corpus fallan en el `setup` de la
+  fixture `tmp_path`. Con `mkdir -p` previo de la raíz, `uv run python tools/ci.py --sin-suite
+  --sin-tablero` imprime `Todo verde.` (ruff, 78 cruces y oráculo OK) y la suite completa repetida
+  en serie da **1733 pasan, 26 se saltan, 132 xfail en 216.48s**, código 0. No se modificó
+  `tools/ci.py` ni `src/`: es un requisito del entorno, no un defecto del producto.
