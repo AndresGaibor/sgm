@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- COMPRESS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CODIGOS_SIN_A
+razonamiento: El modificador I ignora mayúsculas en la lista (compress-07 documentado).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
+invariantes:
+- filas(CODIGOS_SIN_A) == 3

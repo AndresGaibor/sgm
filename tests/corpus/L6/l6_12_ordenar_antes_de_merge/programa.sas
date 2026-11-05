@@ -1,0 +1,29 @@
+/* Caso l6_12_ordenar_antes_de_merge: PROC SORT ordena dos entradas sin orden antes del MERGE.
+   Entradas: entradas/NOMBRES.csv y entradas/SALDOS.csv (sin ordenar). Salida:
+   WORK.NOMBRES_CON_SALDO. Datos ficticios. */
+
+PROC IMPORT DATAFILE='.../entradas/NOMBRES.csv' OUT=WORK.NOMBRES DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+
+PROC IMPORT DATAFILE='.../entradas/SALDOS.csv' OUT=WORK.SALDOS DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+
+PROC SORT DATA=WORK.NOMBRES OUT=WORK.NOMBRES_ORD;
+  BY ID;
+RUN;
+
+PROC SORT DATA=WORK.SALDOS OUT=WORK.SALDOS_ORD;
+  BY ID;
+RUN;
+
+/* Etiqueta: Une nombre y saldo por ID */
+DATA WORK.NOMBRES_CON_SALDO;
+  MERGE WORK.NOMBRES_ORD WORK.SALDOS_ORD;
+  BY ID;
+RUN;
+
+PROC EXPORT DATA=WORK.NOMBRES_CON_SALDO OUTFILE='.../salida/NOMBRES_CON_SALDO.csv'
+  DBMS=CSV REPLACE;
+RUN;

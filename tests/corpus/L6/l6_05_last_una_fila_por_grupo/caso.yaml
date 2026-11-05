@@ -1,0 +1,17 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- LAST.
+- BY
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- ULTIMA_VENTA
+razonamiento: IF LAST.CIUDAD conserva una fila por ciudad (procesamiento BY documentado).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p0e9b2d12lpyjkn1b0y1tqg6q146.htm
+invariantes:
+- filas(ULTIMA_VENTA) == 3
+- suma(ULTIMA_VENTA.MONTO) == 34

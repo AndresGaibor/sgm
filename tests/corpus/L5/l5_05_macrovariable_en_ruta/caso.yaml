@@ -1,0 +1,17 @@
+nivel: L5
+construcciones:
+- '%LET'
+- '&VAR'
+- RUTA CON COMILLAS DOBLES
+- PROC EXPORT
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas:
+- RES_LEALTAD
+razonamiento: La ruta usa macrovariables entre comillas dobles, que SAS sí resuelve; no se crea archivo.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
+invariantes:
+- filas(RES_LEALTAD) == 4

@@ -7,6 +7,7 @@ o un agente y lo revisa otro. Capa B queda pendiente de los vectores de semánti
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from .caso import Caso
 from .csv_tabla import Tabla, comparar_con_guardado, escribir_csv, leer_entradas, ordenar_filas
@@ -39,9 +40,16 @@ def _entradas_para_sql(caso: Caso) -> dict[str, Tabla]:
     return leer_entradas(caso.entradas_preparadas)
 
 
+def _programa_ejecutable(caso: Caso) -> Path:
+    """Programa que ejecuta el oráculo: el expandido si existe (L5), si no el original."""
+    expandido = caso.directorio / "programa_expandido.sas"
+    return expandido if expandido.is_file() else caso.programa
+
+
 def calcular(caso: Caso) -> dict[str, Tabla]:
     """Calcula las salidas del caso (capa A) con SQLite. Aplica el orden declarado."""
-    sentencias = sentencias_proc_sql(caso.programa.read_text(encoding="utf-8"))
+    texto = _programa_ejecutable(caso).read_text(encoding="utf-8")
+    sentencias = sentencias_proc_sql(texto)
     salidas = ejecutar_proc_sql(sentencias, _entradas_para_sql(caso), list(caso.salidas))
     if not caso.orden_relevante:
         for tabla in salidas.values():

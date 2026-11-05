@@ -1,0 +1,16 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- TRIM
+- CONCATENAR
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CODIGOS_CON_SUFIJO
+razonamiento: TRIM(x)||y quita los blancos finales antes de unir (concat-02 documentado, con el ejemplo de blackjack).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes:
+- filas(CODIGOS_CON_SUFIJO) == 3

@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- MERGE
+- BY
+- ACUMULADO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente_revision
+salidas:
+- VENTAS_ZONA
+razonamiento: 'Combina dos reglas: la fila de MERGE (ZONAS aporta NOMBRE a sus dos filas) y el acumulado con la sentencia suma, cuya retención no se consultó.'
+fuentes_url:
+- https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/n1i8w2bwu1fn5kn1gpxj18xttbb0.htm
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p0e9b2d12lpyjkn1b0y1tqg6q146.htm
+invariantes:
+- filas(VENTAS_ZONA) == 3
+- suma(VENTAS_ZONA.ACUM) == 42
+motivo: Regla sin fuente oficial consultada; ver razonamiento.

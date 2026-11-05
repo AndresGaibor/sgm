@@ -1,0 +1,17 @@
+nivel: L5
+construcciones:
+- '%SYSFUNC'
+- UPCASE
+- '%LET'
+- PROC SQL
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas:
+- RES_LEALTAD
+razonamiento: '%SYSFUNC(UPCASE(...)) de una macrovariable en minúsculas (upcase-01 documentado).'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
+invariantes:
+- filas(RES_LEALTAD) == 4

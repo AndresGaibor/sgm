@@ -1,0 +1,17 @@
+nivel: L5
+construcciones:
+- SELECT INTO
+- PROC SQL
+- '&VAR'
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas:
+- RES_ANIO
+razonamiento: SELECT ... INTO :var con varias filas toma la primera (documentacion de INTO, PROC SQL).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
+invariantes:
+- filas(RES_ANIO) == 4
+- valor(RES_ANIO.ANIO_CORTE) == 2026

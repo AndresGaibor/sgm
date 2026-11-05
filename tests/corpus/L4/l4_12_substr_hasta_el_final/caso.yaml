@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SUBSTR
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CODIGOS_NUMERO
+razonamiento: Sin longitud, SUBSTR llega al final del valor (substr-01 documentado).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm
+invariantes:
+- filas(CODIGOS_NUMERO) == 3

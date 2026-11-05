@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- MERGE
+- BY
+- TRES CONJUNTOS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CONSUMO
+razonamiento: 'Filas por grupo = máximo de los tres conjuntos: 2 en id 1 y 2 en id 2, total 4 (regla de MERGE).'
+fuentes_url:
+- https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/n1i8w2bwu1fn5kn1gpxj18xttbb0.htm
+- https://support.sas.com/kb/24/752.html
+invariantes:
+- filas(CONSUMO) == 4

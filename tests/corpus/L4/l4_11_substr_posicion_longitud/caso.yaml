@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SUBSTR
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CODIGOS_PARTIDOS
+razonamiento: Posición y longitud; si la longitud pasa el final, llega al final (substr-01 y substr-02).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm
+invariantes:
+- filas(CODIGOS_PARTIDOS) == 3

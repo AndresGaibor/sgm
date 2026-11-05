@@ -1,0 +1,17 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- INPUT
+- FALTANTES
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- IMPORTES_CONVERTIDOS
+razonamiento: w.d con punto decimal ignora d (input-01, input-02, input-03); sin punto d=2 (input-04, input-05, input-06, deducidos de la misma regla).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm
+invariantes:
+- filas(IMPORTES_CONVERTIDOS) == 6
+- suma(IMPORTES_CONVERTIDOS.IMP_NUM) == 169.686

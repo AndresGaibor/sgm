@@ -1,0 +1,16 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- ROUND
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- MONTOS_REDONDEADOS
+razonamiento: 'round-03 (1234.57) y round-05/06 (la mitad va al de mayor valor absoluto: 3 y -3). Documentados.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm
+invariantes:
+- filas(MONTOS_REDONDEADOS) == 3
+- suma(MONTOS_REDONDEADOS.MONTO_ENTERO) == 1235

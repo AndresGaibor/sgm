@@ -1,0 +1,17 @@
+/* Caso l4_10_upcase_lowcase: UPCASE pasa a mayusculas y LOWCASE a minusculas. Entradas:
+   entradas/NOMBRES_L4_10.csv. Salida: WORK.NOMBRES_NORMALIZADOS. Datos ficticios. */
+
+PROC IMPORT DATAFILE='.../entradas/NOMBRES_L4_10.csv' OUT=WORK.NOMBRES_L4_10 DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+
+/* Etiqueta: Normaliza nombre y codigo */
+DATA WORK.NOMBRES_NORMALIZADOS;
+  SET WORK.NOMBRES_L4_10;
+  NOMBRE_MAYUS=upcase(NOMBRE);
+  CODIGO_MIN=lowcase(CODIGO);
+RUN;
+
+PROC EXPORT DATA=WORK.NOMBRES_NORMALIZADOS OUTFILE='.../salida/NOMBRES_NORMALIZADOS.csv'
+  DBMS=CSV REPLACE;
+RUN;

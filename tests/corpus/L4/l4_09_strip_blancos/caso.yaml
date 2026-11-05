@@ -1,0 +1,16 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- STRIP
+- FALTANTES
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- TEXTOS_LIMPIOS
+razonamiento: STRIP quita blancos de ambos lados; un campo en blanco da cadena vacía (strip-01 y strip-02 documentados).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0xk6tl87f4b4qn1sp1ywen1ntan.htm
+invariantes:
+- filas(TEXTOS_LIMPIOS) == 4

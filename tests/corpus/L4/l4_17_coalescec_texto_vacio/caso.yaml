@@ -1,0 +1,16 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- COALESCEC
+- FALTANTES
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CLIENTES_CIUDAD
+razonamiento: Un texto vacío o solo de blancos cuenta como faltante (coalescec-01 y coalescec-03 documentados).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1g9btrql8d9x6n1iz6yowaqrq1v.htm
+invariantes:
+- filas(CLIENTES_CIUDAD) == 3

@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- COMPRESS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- PLACAS_SIN_DIGITOS
+razonamiento: El modificador D añade los dígitos a la lista de quitados (compress-05 documentado).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
+invariantes:
+- filas(PLACAS_SIN_DIGITOS) == 3

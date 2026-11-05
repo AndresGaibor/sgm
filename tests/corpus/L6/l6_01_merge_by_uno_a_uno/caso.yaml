@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- MERGE
+- BY
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CLIENTES_CON_SALDO
+razonamiento: 'Llaves únicas en ambos lados: un registro por llave, sin cruce.'
+fuentes_url:
+- https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/n1i8w2bwu1fn5kn1gpxj18xttbb0.htm
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p0e9b2d12lpyjkn1b0y1tqg6q146.htm
+invariantes:
+- filas(CLIENTES_CON_SALDO) == 3
+- suma(CLIENTES_CON_SALDO.SALDO) == 450

@@ -1,0 +1,19 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- COMPARACION
+- FALTANTES
+- IS MISSING
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- SALDOS_MARCADOS
+razonamiento: 'En SAS el faltante numérico es menor que cualquier número: el faltante cuenta como menor de 500 (cmp-missing-01 documentado). Este resultado NO es el de SQL (ver DIFERENCIAS.md).'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes:
+- filas(SALDOS_MARCADOS) == 4
+- suma(SALDOS_MARCADOS.BAJO_500) == 2
+- suma(SALDOS_MARCADOS.ES_FALTANTE) == 1

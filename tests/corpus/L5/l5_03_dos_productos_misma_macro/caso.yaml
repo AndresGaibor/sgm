@@ -1,0 +1,18 @@
+nivel: L5
+construcciones:
+- '%MACRO'
+- LLAMADAS MULTIPLES
+- PROC SQL
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas:
+- RES_LEALTAD
+- RES_AHORRO
+razonamiento: Una macro llamada dos veces con productos distintos genera dos tablas.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
+invariantes:
+- filas(RES_LEALTAD) == 4
+- filas(RES_AHORRO) == 2

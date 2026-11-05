@@ -1,0 +1,18 @@
+nivel: L5
+construcciones:
+- '%DO ITERATIVO'
+- '%MACRO'
+- PROC SQL
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas:
+- PARTE_1
+- PARTE_2
+razonamiento: '%DO i=1 %TO 2 genera dos tablas; el límite se aplica con &i.*3.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
+invariantes:
+- filas(PARTE_1) == 3
+- filas(PARTE_2) == 6

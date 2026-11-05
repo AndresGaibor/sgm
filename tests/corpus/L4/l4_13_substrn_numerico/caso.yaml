@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SUBSTRN
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- SALDOS_TEXTO
+razonamiento: 'SUBSTRN toma el número sin blancos iniciales: 1234.5678 da 234.56 (substrn-01 documentado).'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm
+invariantes:
+- filas(SALDOS_TEXTO) == 3

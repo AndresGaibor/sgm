@@ -1,0 +1,17 @@
+nivel: L6
+construcciones:
+- PROC SORT
+- NODUP
+- BY _ALL_
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente_revision
+salidas:
+- VENTAS_SIN_REPETIR
+razonamiento: NODUP quita registros idénticos; con BY _ALL_ las idénticas quedan juntas. La regla viene de fuentes secundarias (listendata y foros), no de la documentación oficial.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/p03pc2ubulklb5n1hhgpilswqaf6.htm
+invariantes:
+- filas(VENTAS_SIN_REPETIR) == 3
+motivo: Regla sin fuente oficial consultada; ver razonamiento.

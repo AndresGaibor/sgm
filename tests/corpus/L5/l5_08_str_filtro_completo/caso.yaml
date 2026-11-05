@@ -1,0 +1,17 @@
+nivel: L5
+construcciones:
+- '%STR'
+- '%LET'
+- WHERE CON MACRO
+- PROC SQL
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas:
+- RES_FILTRO
+razonamiento: '%STR guarda una condición con comillas simples y espacios; se pega en el WHERE.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
+invariantes:
+- filas(RES_FILTRO) == 2

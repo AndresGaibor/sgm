@@ -1,0 +1,17 @@
+nivel: L5
+construcciones:
+- '%LET'
+- '&VAR'
+- PROC SQL
+- CREATE TABLE AS
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas:
+- RES_LEALTAD
+razonamiento: Macrovariable en el nombre de tabla y en el origen; el SQL se calcula sobre el programa expandido.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
+invariantes:
+- filas(RES_LEALTAD) == 4

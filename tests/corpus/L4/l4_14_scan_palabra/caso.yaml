@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SCAN
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- FRASES_PALABRA
+razonamiento: Delimitadores por omisión; los consecutivos y los de los extremos no cuentan (scan-01, scan-02, scan-03 documentados).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm
+invariantes:
+- filas(FRASES_PALABRA) == 3

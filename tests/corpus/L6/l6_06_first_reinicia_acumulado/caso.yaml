@@ -1,0 +1,19 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- FIRST.
+- BY
+- ACUMULADO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente_revision
+salidas:
+- PAGOS_ACUMULADOS
+razonamiento: El reinicio con FIRST. viene documentado; la retención de la sentencia suma (ACUM+PAGO) no se consultó en la documentación. Revisar antes de dar por verificado.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p0e9b2d12lpyjkn1b0y1tqg6q146.htm
+invariantes:
+- filas(PAGOS_ACUMULADOS) == 5
+- suma(PAGOS_ACUMULADOS.ACUM) == 57
+motivo: Regla sin fuente oficial consultada; ver razonamiento.

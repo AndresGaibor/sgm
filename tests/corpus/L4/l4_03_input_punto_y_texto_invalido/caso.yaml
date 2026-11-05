@@ -1,0 +1,17 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- INPUT
+- FALTANTES
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CODIGOS_VALIDOS
+razonamiento: Un punto solo es faltante (input-09 documentado). El texto 'abc' da faltante (input-10 deducido). Las dos filas quedan vacías.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm
+invariantes:
+- filas(CODIGOS_VALIDOS) == 4
+- suma(CODIGOS_VALIDOS.CODIGO_NUM) == 19.75

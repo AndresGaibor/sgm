@@ -1,0 +1,16 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- UPCASE
+- LOWCASE
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- NOMBRES_NORMALIZADOS
+razonamiento: UPCASE (upcase-01, pagina de FedSQL) y LOWCASE (lowcase-01).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes:
+- filas(NOMBRES_NORMALIZADOS) == 2

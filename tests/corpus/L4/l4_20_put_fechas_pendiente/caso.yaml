@@ -1,0 +1,16 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- PUT
+- MDY
+- INPUT YYMMDD10.
+capa: C
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- FECHAS_TEXTO
+razonamiento: 'Caso reservado: el programa usa PUT y fechas, pero la capa B no las implementa todavía.'
+fuentes_url: []
+invariantes: []
+motivo: No hay vector de PUT, MDY ni de informat yymmdd10. en tests/corpus/semantica/vectores.yaml. Sin fuente no se fija el resultado; el caso queda para la tarea de semántica.

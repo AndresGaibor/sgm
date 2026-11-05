@@ -1,0 +1,17 @@
+nivel: L6
+construcciones:
+- PROC SORT
+- NODUPKEY
+- DUPLICADOS POR LLAVE
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente_revision
+salidas:
+- CLIENTES_UNICOS
+razonamiento: Quita llaves repetidas. Cuál fila se conserva (la primera en el orden de entrada) viene de fuentes secundarias; la documentación de PROC SORT consultada no lo dice.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/p03pc2ubulklb5n1hhgpilswqaf6.htm
+invariantes:
+- filas(CLIENTES_UNICOS) == 3
+motivo: Regla sin fuente oficial consultada; ver razonamiento.

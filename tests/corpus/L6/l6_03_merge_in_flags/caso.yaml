@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- MERGE
+- BY
+- IN=
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- COBERTURA_PAGOS
+razonamiento: 'IN= marca el origen de cada llave. Solo se conservan ID y las marcas: las columnas de un conjunto sin el grupo no están verificadas.'
+fuentes_url:
+- https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/n1i8w2bwu1fn5kn1gpxj18xttbb0.htm
+invariantes:
+- filas(COBERTURA_PAGOS) == 5
+- suma(COBERTURA_PAGOS.EN_PAGOS) == 3

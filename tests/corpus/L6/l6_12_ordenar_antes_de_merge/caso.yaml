@@ -1,0 +1,19 @@
+nivel: L6
+construcciones:
+- PROC SORT
+- DATA STEP
+- MERGE
+- BY
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- NOMBRES_CON_SALDO
+razonamiento: 'MERGE exige entradas ordenadas: PROC SORT primero, como en el original.'
+fuentes_url:
+- https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/n1i8w2bwu1fn5kn1gpxj18xttbb0.htm
+- https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/p03pc2ubulklb5n1hhgpilswqaf6.htm
+invariantes:
+- filas(NOMBRES_CON_SALDO) == 3
+- suma(NOMBRES_CON_SALDO.SALDO) == 60

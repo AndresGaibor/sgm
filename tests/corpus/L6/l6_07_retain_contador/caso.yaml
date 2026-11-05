@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- RETAIN
+- FIRST.
+- BY
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente_revision
+salidas:
+- EMPLEADOS_NUMERADOS
+razonamiento: RETAIN CONTADOR 0 con reinicio por grupo. La página de RETAIN no se pudo consultar; la regla es la del procesamiento BY y la conservación entre iteraciones.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p0e9b2d12lpyjkn1b0y1tqg6q146.htm
+invariantes:
+- filas(EMPLEADOS_NUMERADOS) == 3
+motivo: Regla sin fuente oficial consultada; ver razonamiento.

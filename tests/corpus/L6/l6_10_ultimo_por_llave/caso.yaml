@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- LAST.
+- BY
+- DUPLICADOS POR LLAVE
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- SALDO_FINAL
+razonamiento: IF LAST.ID sobre entrada ordenada (procesamiento BY documentado).
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p0e9b2d12lpyjkn1b0y1tqg6q146.htm
+invariantes:
+- filas(SALDO_FINAL) == 3
+- suma(SALDO_FINAL.MONTO) == 43

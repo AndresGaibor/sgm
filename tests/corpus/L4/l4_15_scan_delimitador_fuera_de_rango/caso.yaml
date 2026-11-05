@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SCAN
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CAMPOS_EXTRAIDOS
+razonamiento: Sin la palabra pedida, SCAN da un blanco (scan-04 y scan-06, este deducido). Delimitador explícito en scan-05.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm
+invariantes:
+- filas(CAMPOS_EXTRAIDOS) == 3

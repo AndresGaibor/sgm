@@ -1,0 +1,19 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- INPUT
+- LEFT
+- FALTANTES
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CUENTAS_CONVERTIDAS
+razonamiento: left y input con informat 30. (vectores left-01, input-07 y input-01). Cuentas ficticias.
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n1awii5zy0u6g0n1fy6yu1hwqiw4.htm
+- https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm
+invariantes:
+- filas(CUENTAS_CONVERTIDAS) == filas(CUENTAS_L4_01)
+- suma(CUENTAS_CONVERTIDAS.NRO_CTA) == 9888889

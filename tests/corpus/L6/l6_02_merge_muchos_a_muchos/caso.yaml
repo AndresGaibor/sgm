@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- MERGE
+- BY
+- REPETIDOS EN AMBOS LADOS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- BOTH
+razonamiento: Ejemplo de la documentación (KB 24752). Salen 7 filas (2+2+3 por grupo), no el producto cartesiano (3x2 en c daría 6 filas).
+fuentes_url:
+- https://support.sas.com/kb/24/752.html
+- https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/n1i8w2bwu1fn5kn1gpxj18xttbb0.htm
+invariantes:
+- filas(BOTH) == 7
