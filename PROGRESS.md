@@ -1629,3 +1629,9 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: `test_talend_tmap_lookup.py` (12). `uv run pytest -q`: 928 pasan, 1 se salta, 132 xfail. `ruff check .`: limpio.
 - No verificado en Studio: filtro (`expressionFilter`) y salida `rechazo` (catch output reject); lookup con varias columnas de union.
 - Pendiente: usar el lookup en `job_producto` para la validacion de tipo de documento (INNER JOIN contra el Excel de homologacion, rechazo de los que no casan).
+
+## Hito 67. Documentacion del estado y plan de tareas para el siguiente agente
+
+- Fecha: 2026-11-04
+- Que se hizo: `docs/plan-reescritura/tareas-agente.md` con el estado verificado (hitos 50 a 66), los hallazgos que cambian el diseno manual (CSV de producto, sin cache entre Jobs), el protocolo de validacion en Studio, los hechos de Studio ya aprendidos y 40 tareas ordenadas por bloque (herramientas, validaciones de producto, totales y conciliacion, joblets, contextos, documento de diseno, fidelidad del emisor, generalizacion, calidad), cada una con criterio de aceptacion y marca de quien puede hacerla.
+- Estado: sin cambios de codigo. `uv run pytest -q`: 928 pasan, 1 se salta, 132 xfail. Un agente haiku que validaba el tipo de documento en `job_producto` fue detenido por el usuario antes de dejar cambios (arbol limpio); esa tarea queda como T10.
