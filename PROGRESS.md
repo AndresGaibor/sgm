@@ -4439,3 +4439,51 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
 - Hallazgos que cambian el plan maestro: (1) `sqlglot` y `jsonschema` ya están aprobadas desde el hito 80, así que MG-D02 no es una decisión pendiente; (2) el pipeline `analyze_program` y `compile_file` ya produce un `Plan` con operadores y candidatos de componente: no hace falta un IR nuevo, sino enriquecer sus parámetros y escribir el emisor de `Plan` a `.item`; (3) `sgm compile` sobre `l2_01` deja `read_file` solo con la ruta y el `derive` del `SELECT` con `assignments: []`.
 - Requisito del usuario incorporado: el migrador no falla nunca, omite y documenta lo que no puede, y deja la configuración y las credenciales pendientes en contextos y en `configuracion-pendiente.md`.
 - Sin cambios de código; no se corrieron pruebas nuevas.
+
+## Hito 103. La prueba del cierre corría la suite dentro de la suite: un pytest anidado topaba con el guardia de borrado del entorno
+
+- Fecha: 2026-11-05. Apareció al cerrar el hito de los planes: `test_tools_ci` fallaba en la suite
+  completa y pasaba aislado. Se diagnosticó antes de tocar nada.
+- Qué pasaba. El fallo era del paso **`cruces del corpus`** del propio cierre: `ruff` salía OK,
+  `cruces` FALLA y `oráculo` OK. La salida del paso fallido no terminaba con el resumen de pytest,
+  sino con
+  `[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":293,"threshold":50,...}`.
+  La prueba llamaba a `ci.main(["--sin-suite", "--sin-tablero"])`, que corre los pasos de verdad, y
+  uno de ellos es `pytest -q -n0` sobre `test_corpus_totales_cruce.py` y `test_corpus_validaciones.py`
+  — los mismos archivos que la suite ya estaba corriendo en ese momento. Al terminar, pytest limpia
+  sus directorios `garbage-*` de `%TEMP%/pytest-of-<usuario>/`; con 293 archivos dentro, el guardia
+  de borrado masivo del entorno corta la operación y el proceso anidado sale distinto de cero. Aislado
+  pasaba porque el conjunto a borrar era pequeño.
+- Por qué la prueba estaba mal escrita. El encabezado de `tests/unit/test_tools_ci.py` dice, desde el
+  primer día: «No corre la suite (sería correr pytest dentro de pytest): los pasos se prueban con
+  comandos triviales». Esta prueba hacía exactamente lo que el archivo prohíbe.
+- Qué se hizo:
+  - La prueba sustituye `ci.pasos` por dos pasos triviales con `monkeypatch` y comprueba lo que su
+    nombre dice: que el cierre devuelve 0, imprime «Todo verde.» y arma el informe (`| uno | OK |`).
+  - El mensaje del fallo ahora incluye el informe del cierre: antes solo decía `assert 1 == 0` y
+    había que adivinar qué paso había fallado. Así se encontró este.
+- Cobertura que no se pierde: los dos archivos del corpus son parte de la suite y corren en ella;
+  `ruff check .` corre en el cierre y en `test_ruff_se_resuelve_en_el_entorno_de_uv`; el oráculo tiene
+  `test_corpus_oraculo_faltantes.py` y `test_corpus_oraculo_sql.py`, y además pasó en la corrida que
+  falló. Lo único que desaparece es la duplicación que causaba la carrera.
+- Pruebas: `tests/unit/test_tools_ci.py`, 7 pasadas. Suite completa: 2272 pruebas, 0 fallos, 0 errores,
+  155 omitidas. El proceso sale con código 1 porque el guardia del entorno corta la limpieza de los
+  temporales de pytest al final de la corrida; no hay ninguna prueba roja. Una corrida mínima
+  (`pytest -q tests/unit/test_agents_md.py`) sale con 0 y sin el mensaje, así que el código no lo
+  altera el proyecto.
+- Decisiones:
+  - No se toca `tools/ci.py`: el cierre está bien; lo que estaba mal era correrlo dentro de la suite.
+  - No se marca `skip` ni `xfail`. Una prueba que no puede correr en su propio entorno se arregla, no
+    se silencia.
+  - El arreglo vale aunque el guardia del entorno no exista: un `pytest -n0` anidado sobre los mismos
+    archivos que la suite está corriendo es una carrera por diseño, y en una máquina sin guardia
+    habría fallado igual de vez en cuando, más tarde.
+- Métricas: 1 prueba reescrita, 1 mensaje de fallo que ahora explica el fallo, 0 pruebas perdidas.
+- Bloqueos: el guardia de borrado del entorno sigue actuando sobre los temporales de pytest. Deja 74
+  directorios `garbage-*` en `%TEMP%/pytest-of-<usuario>/` y corta la limpieza, con lo que la suite
+  completa termina con código 1 aunque no haya pruebas rojas. Limpiarlos es un borrado masivo (293
+  archivos en uno de ellos) y el propio guardia pide confirmación: queda para el usuario. No se tocó
+  `tools/ci.py`, que no tiene la culpa.
+- No verificado: que el guardia sea la única causa posible de un fallo del paso `cruces`. El detalle
+  del paso se capturó en una de las corridas; las otras fallaron en la misma prueba con el mismo
+  síntoma (0 fallos de test, código de salida distinto de cero).

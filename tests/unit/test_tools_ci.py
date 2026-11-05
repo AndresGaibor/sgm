@@ -58,7 +58,22 @@ def test_ruff_se_resuelve_en_el_entorno_de_uv():
     assert ci._comando((sys.executable, "-m", "pytest"))[0] == sys.executable
 
 
-def test_el_cierre_termina_en_cero_si_todo_pasa(capsys):
-    assert ci.main(["--sin-suite", "--sin-tablero"]) == 0
+def test_el_cierre_termina_en_cero_si_todo_pasa(monkeypatch, capsys):
+    # Los pasos se sustituyen por comandos triviales, como pide el encabezado de este archivo.
+    # Correr los de verdad dentro de la suite significa un `pytest -n0` anidado sobre los mismos
+    # archivos que la suite ya está corriendo, y la limpieza de temporales de ese pytest anidado
+    # tropieza con el guardia de borrado masivo del entorno: el paso sale distinto de cero por un
+    # motivo que no tiene que ver con el proyecto. Lo que esta prueba mide es la composición del
+    # cierre y su código de salida; los pasos de verdad los cubren la suite, `ruff` y las pruebas
+    # del oráculo.
+    triviales = [
+        ci.Paso("uno", (sys.executable, "-c", "pass")),
+        ci.Paso("dos", (sys.executable, "-c", "print('hola')")),
+    ]
+    monkeypatch.setattr(ci, "pasos", lambda con_suite, con_tablero: triviales)
+    codigo = ci.main(["--sin-suite", "--sin-tablero"])
     salida = capsys.readouterr().out
+    # El informe va en el mensaje: si un paso falla, el fallo tiene que decir cuál y por qué.
+    assert codigo == 0, salida
     assert "Todo verde." in salida
+    assert "| uno | OK |" in salida
