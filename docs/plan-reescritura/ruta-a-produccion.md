@@ -102,7 +102,7 @@ limpia quedan `hecho (sin verificar en Studio)` o `parcial`, con el bloqueo anot
 | ID | Tarea | Tipo | dep | Entrega y criterio | h-ag | Estado |
 |---|---|---|---|---|---|---|
 | R0-01 | Renumerar los hitos duplicados (69 a 77 aparecen en dos series) y fijar una regla de numeración | H | | `PROGRESS.md` y `docs/` sin números repetidos; nota "numeración" en `AGENTS.md` (qué hacer con sesiones paralelas: prefijo por serie) | 1 | hecho |
-| R0-02 | Corregir `tools/validar_en_studio.py`: `exportar` busca el lanzador en subcarpetas, `renombrar` sin versión fija, `ejecutar` con comillas, borrar `build-*` de `%TEMP%` | H | | Pruebas de cada corrección con doble del cliente; demostración real | 2 | hecho (12 pruebas con doble; falta la demostración real) |
+| R0-02 | Corregir `tools/validar_en_studio.py`: `exportar` busca el lanzador en subcarpetas, `renombrar` sin versión fija, `ejecutar` con comillas, borrar `build-*` de `%TEMP%` | H | | Pruebas de cada corrección con doble del cliente; demostración real | 2 | hecho (12 pruebas con doble; busqueda recursiva, comillas y borrado del build verificados en Studio en el hito 81) |
 | R0-03 | Quitar la `_exportar` duplicada del arnés del corpus y usar la corregida | H | R0-02 | `tools/corpus_lib/studio_validar.py` sin código duplicado; demostración repetida (`l2_01` coincide) | 1.5 | hecho (falta repetir `l2_01` en Studio) |
 | R0-04 | Decidir y anotar dependencias (DC-11) | D/P | | Sección "Decisiones" de `PROGRESS.md`; `pyproject.toml` coherente | 0.5 | hecho |
 | R0-05 | Actualizar `observacion_revision` obsoletas de L8/totales 03 y 08 | H | | Texto acorde a la convención de faltantes vigente | 0.5 | hecho |
@@ -123,7 +123,7 @@ SAS no puede demostrar.
 
 | ID | Tarea | Tipo | dep | Casos y criterio | h-ag | Estado |
 |---|---|---|---|---|---|---|
-| R1-01 | Validar el filtro del `tMap` (`expressionFilter`) aislado en Studio; si falla, plantilla de `tFilterRow` validada ejecutando | R+H | | Job mínimo: filas que pasan y que no; resultado en `PROGRESS.md`. Desbloquea R1-04 a R1-09 | 3 | pendiente |
+| R1-01 | Validar el filtro del `tMap` (`expressionFilter`) aislado en Studio; si falla, plantilla de `tFilterRow` validada ejecutando | R+H | | Job mínimo: filas que pasan y que no; resultado en `PROGRESS.md`. Desbloquea R1-04 a R1-09 | 3 | hecho (hito 81; `tools/prueba_filtro_tmap.py`; falta probar el filtro con valores nulos) |
 | R1-02 | Normalización inicial: `tMap` que convierte las columnas numéricas (las marcadas `numerica` por `esquema_csv`) con la semántica fiel de `input(left(x), N.)`, `compress`, mayúsculas y caracteres especiales | R+H | | `L4`, `L8/validaciones/v06`; vectores con fuente (blancos internos, signo, decimales con coma, ceros a la izquierda, no numérico a faltante) | 5 | pendiente |
 | R1-03 | Tipo de documento: cerrar T10 con el caso `v01` y `L2`; el Excel de homologación cambia por producto; documentar la comparación de texto frente a número (`01` y `1`) | H | R1-02 | `v01` coincide para CTE, AHO y NEQUI; válidos más rechazados igual al origen | 3 | parcial |
 | R1-04 | Vacíos y ceros: titulares y cotitulares, firmas autorizadas, número de documento no vacío ni cero | H | R1-01 | `v02` coincide, incluidos los conteos de anomalías plantadas | 4 | pendiente |

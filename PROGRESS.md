@@ -2041,3 +2041,42 @@ eglas_mapeo.py). La salida no cambia: goldens id�nticos.
   tablero cuenta filas y secciones de la referencia (12 de 118, 2 de 22) en vez de las 168 pruebas de
   `tests/conformidad`, porque esas 168 incluyen las 28 pruebas que comprueban que el YAML y el
   documento del manual dicen lo mismo. Las dos cifras quedan explicadas en `metricas-base.md`.
+
+## Hito 81. R1-01: el filtro del `tMap` se ejecuta en Studio y separa las filas
+
+- Fecha: 2026-11-04
+- Que se hizo: se implementa R1-01 de la Fase 1 del plan, que era el primer bloqueo del camino
+  critico (R1-04 a R1-09 dependen de el). Nuevo `tools/prueba_filtro_tmap.py`: arma con el modelo
+  del emisor un Job minimo (`tFileInputDelimited` -> `tMap` con una salida filtrada y otra de
+  rechazo de salida -> dos `tFileOutputDelimited`), lo ejecuta en el Studio instalado con un CSV de
+  prueba y compara cada rama con lo esperado. La prueba real es del utensilio, no del emisor
+  completo: es el mismo `tmap.py` y el mismo `escribir_job` que usa `sgm talend`.
+- Corrida 1 (Studio 8.0.1, proyecto `PRJ_BANCOLOMBIA`, filtro `row1.tipo.equals("CC")` sobre cinco
+  filas `1;CC`, `2;AHO`, `3;CC`, `4;NEQUI`, `5;CC`):
+  `validos.csv: ['1', '3', '5']`, `rechazados.csv: ['2', '4']`, codigo de salida 0,
+  `RESULTADO: el filtro funciona`.
+- Corrida 2 (carpeta de trabajo con espacios en el nombre, para probar las comillas de R0-02): mismo
+  resultado, codigo 0. El comando ejecutado quedo con `--context="Default"` y cada
+  `--context_param "clave=C:/.../prueba filtro espacios/..."` entre comillas.
+- Las dos corridas usan el patron completo de `job_producto`: salida filtrada por `FLOW` y salida
+  de rechazo por `REJECT`. No hubo una tercera corrida.
+- Hallazgos: (1) `expressionFilter` con `activateExpressionFilter="true"` en una salida del `tMap`
+  funciona **ejecutando**, no solo compilando; no hace falta `tFilterRow`. (2) La segunda salida con
+  `reject="true"` recoge exactamente las filas que el filtro descarta, con el conector `REJECT`.
+  (3) El servidor deja el lanzador en `<destino>/<job>/` y `exportar` lo encuentra con `rglob`
+  (R0-02 verificado en real). (4) La carpeta `build-*` de esta corrida se borro al terminar (R0-02,
+  cuarta correccion, verificada en real). Las 30 carpetas `build-*` que siguen en `%TEMP%` son de
+  sesiones anteriores a la correccion; cada una pesa 1 KB y no tocan el repositorio.
+- Riesgo para R1-04 a R1-09 (anotado, no verificado): el filtro probado compara una columna de texto
+  no nula. En `job_producto` la columna que se filtra viene de un `LEFT JOIN`, asi que puede ser
+  nula y `row1.columna.equals(...)` lanzaria `NullPointerException`. Antes de escribir esas
+  validaciones hay que usar la forma que aguanta el nulo (`"CC".equals(row1.columna)` o
+  `Relational.IS_EQUALS`) y probarla con una fila sin pareja.
+- No verificado: filtro sobre columnas numericas o `BigDecimal`; filtro con varias condiciones
+  unidas por `&&`; y el mismo filtro dentro de `job_producto` (eso es R1-04).
+- Pruebas: `tests/unit/test_prueba_filtro_tmap.py` (7; sin Studio: el `.item`, la entrada de prueba,
+  la lectura de la salida, el protocolo y los dos desenlaces). `uv run pytest -q`: 1563 pasan, 26 se
+  saltan, 132 xfail. `ruff check .`: limpio.
+- Estado en el plan: R1-01 `hecho`; R0-02 pasa a `hecho` (las cuatro correcciones con demostracion
+  real: busqueda recursiva, comillas con espacios y borrado del build; la version distinta de 0.1
+  solo con doble).
