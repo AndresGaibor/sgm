@@ -12,8 +12,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sgm.conformidad.estado import diferencias_fila
 from sgm.proceso.diseno_doc import SECCIONES_EMITIDAS, SECCIONES_GENERICAS, Diseno, construir_diseno
-from tests.conformidad.cargador import RAIZ, Fila
+from tests.conformidad.cargador import RAIZ
 
 __all__ = [
     "SECCIONES_EMITIDAS",
@@ -32,18 +33,3 @@ def obtener_diseno(programa_sas: Path) -> Diseno:
         decisiones / f"{programa_sas.stem}.agrupacion.yaml",
         decisiones / f"{programa_sas.stem}.diseno.yaml",
     )
-
-
-def _norm(valor: str) -> str:
-    return " ".join(str(valor).split())
-
-
-def diferencias_fila(esperada: Fila, obtenida: dict[str, str] | None) -> list[str]:
-    """Lista de diferencias entre la fila esperada y la obtenida (vacía si coinciden)."""
-    if obtenida is None:
-        return [f"falta la fila {esperada.clave!r}"]
-    difs = []
-    for columna, valor in esperada.campos.items():
-        if _norm(obtenida.get(columna, "")) != _norm(valor):
-            difs.append(f"{columna}: esperado {valor!r}, obtenido {obtenida.get(columna)!r}")
-    return difs

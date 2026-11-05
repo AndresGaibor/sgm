@@ -3090,3 +3090,66 @@ UBIC_VALIDA_VECTORES.csv
 - R1-05 sigue **`parcial`**. El criterio se cumple para `v03`: la regla se lee, su parte de `LENGTH`
   y `CONTAINS` está en Java documentado, y el caso coincide fila por fila en Studio. No se cumple
   para el cliente, y `COMPBL` no aparece en el caso.
+
+## Hito 93. R5-03: `sgm conformidad`, la medida reproducible de "se parece al diseño manual"
+
+- Fecha: 5 de noviembre de 2026. Tarea R5-03 de `docs/plan-reescritura/ruta-a-produccion.md`.
+- Qué se hizo:
+  - Módulo nuevo `src/sgm/conformidad/`: `referencia.py` (carga de la referencia YAML, movida desde
+    `tests/conformidad/cargador.py`), `estado.py` (estado de cada fila y comparador
+    `diferencias_fila`) e `informe.py` (conteos, porcentaje, texto y JSON).
+  - Comando `sgm conformidad <programa.sas> [--decisiones carpeta] [--formato texto|json]` en
+    `src/sgm/cli_conformidad.py`, registrado en `src/sgm/cli.py` con dos líneas. Sigue el modelo de
+    `cli_proceso.py`.
+  - El emisor reporta el origen de cada fila de las secciones 1.1 y 1.4 (`sas` o `declarada`) en
+    `DocumentoDiseno.origenes`, en un campo aparte. Las filas no cambian, así que el Markdown de
+    `sgm proceso` tampoco.
+  - Las pruebas de `tests/conformidad` ya no tienen copia del cargador ni del comparador: importan
+    de `sgm.conformidad`. Ninguna prueba cambió de expectativa.
+- Estados por fila, en este orden:
+  - `pendiente`: la sección no la emite el migrador, o la fila es `humana` (requiere una persona).
+  - `diferente`: el migrador da otro valor (el motivo nombra la columna) o la fila está en
+    `DIFERENCIAS_CONOCIDAS` (F04).
+  - `derivada`: coincide con el manual, es `derivable` y el SAS demuestra su valor (origen `sas`).
+  - `declarada`: coincide, pero el valor sale de `decisiones/`, no del SAS.
+- Salida literal de `uv run sgm conformidad tests/fixtures/sas/client/client_large.sas` (hito 93):
+
+```
+Conformidad de client_large.sas contra el diseño manual (118 filas)
+  derivadas:  5
+  declaradas: 7
+  pendientes: 105
+  diferencias: 1
+  porcentaje derivado: 4.2 %
+Diferencias con motivo:
+  F04 (sección 1.1, Códigos DANE): el SAS sí lee CODIGOS_DANE.xlsx; el manual lo daba por pendiente (el migrador halla más)
+```
+
+- Línea base medida: **5 derivadas de 118 filas (4,2 %)**: F01, F02, F03 y F05 (sección 1.1) y
+  S03 (sección 1.4). Las 7 declaradas y las 105 pendientes son el resto. Una diferencia: F04.
+- Cifras del encargo corregidas con la medida: `tests/conformidad` tiene 168 casos (42 que pasan y
+  126 `xfail`), pero no son 168 filas. Incluyen las pruebas de sección. La referencia tiene 118
+  filas. Las 42 que pasan no son 42 filas derivadas.
+- Pruebas nuevas (20): `tests/unit/test_conformidad_estado.py` (11, con referencias a mano),
+  `tests/unit/test_conformidad_cli.py` (6, con el programa pequeño de `tests/fixtures/conformidad/`
+  y sus decisiones) y `tests/conformidad/test_linea_base.py` (3, fija 118 filas, las 5 derivadas y
+  la diferencia F04 sobre `client_large.sas`).
+- Suite: `uv run pytest -q -n auto`: **1929 pasadas, 26 omitidas y 132 `xfail`**. `uv run ruff check .`:
+  sin errores. Salida determinista: dos corridas en JSON son idénticas (verificado).
+- Tamaño: ningún archivo nuevo pasa de 110 líneas; `src/sgm/cli.py` queda en 292.
+- Decisiones:
+  - El porcentaje es derivadas entre el total de filas de la referencia.
+  - `DIFERENCIAS_CONOCIDAS` se movió a `src/sgm/conformidad/estado.py`. `tools/tablero.py` la sigue
+    leyendo desde `tests/conformidad/test_conformidad.py`, que la importa de ahí; no hubo que tocarlo.
+  - El origen va en un campo aparte (`origenes`) y no como columna de la fila, para no cambiar las
+    tablas del Markdown.
+- Salvedades no ocultadas:
+  - Una fila derivada prueba que el SAS demuestra la fuente o la salida, no todo su texto. En 1.1,
+    `tipo` puede venir del SAS, pero `ubicacion` y `uso` siguen en `decisiones/`. Se mide por
+    fila entera; la salvedad queda escrita aquí.
+  - S03 se deriva por la regla `^TOTAL_` sobre los nombres de archivo del SAS. No se contrastó con
+    una ejecución de SAS.
+  - El programa pequeño no tiene macros: el modelo de flujo no lee el código dentro de `%macro`.
+    Esto ya era así en el emisor; no se corrigió aquí.
+- No verificado: Talend Studio no se usó (no hace falta para esta medida). No se ejecutó ningún
+  Job. La cifra de derivadas es la del emisor actual; cambiará cuando el emisor produzca más filas.

@@ -63,7 +63,17 @@ hito, la suite se corre completa, sin selección incremental.
 ```bash
 uv run sgm talend tests/fixtures/sas/client/client_large.sas --out out
 uv run sgm proceso tests/fixtures/sas/client/client_large.sas --out out
+uv run sgm conformidad tests/fixtures/sas/client/client_large.sas
 ```
+
+`sgm conformidad <programa.sas> [--decisiones carpeta] [--formato texto|json]` mide cuánto del
+diseño manual de referencia sale del SAS. Cada fila recibe un estado: `derivada` (el SAS demuestra
+su valor), `declarada` (el valor sale de `decisiones/`), `pendiente` (el migrador aún no la emite o
+requiere una persona) o `diferente` (el migrador da otro valor, con el motivo). El comando imprime
+los conteos, el porcentaje de derivadas y las diferencias. `--formato json` escribe una fila por
+entrada en el orden de la referencia, así que dos corridas con las mismas entradas dan la misma
+salida. La línea base medida en el hito 93 sobre `client_large.sas` es 5 derivadas de 118 filas
+(4,2 %). La prueba `tests/conformidad/test_linea_base.py` fija esa cifra.
 
 El resto de los comandos está en la tabla del `README.md`. `out/` está ignorado por git: después de
 una ejecución completa, `git status` queda limpio.

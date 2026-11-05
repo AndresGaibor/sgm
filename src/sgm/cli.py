@@ -31,6 +31,7 @@ from sgm.verify import comparar_command
 app = typer.Typer(
     help="sgm: compila programas SAS a guías de migración Talend.", no_args_is_help=True
 )
+from sgm.cli_conformidad import conformidad_command  # noqa: E402
 from sgm.cli_decisiones import decisions_app, gaps_app  # noqa: E402
 from sgm.cli_diseno import diseno_command  # noqa: E402
 from sgm.cli_flow import flujo_command  # noqa: E402
@@ -50,6 +51,7 @@ app.command("diseno")(diseno_command)
 app.command("proceso")(proceso_command)
 app.command("talend")(talend_command)
 app.command("flujo")(flujo_command)
+app.command("conformidad")(conformidad_command)
 
 
 @app.callback()

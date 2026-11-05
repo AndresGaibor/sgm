@@ -15,15 +15,14 @@ from functools import lru_cache
 
 import pytest
 
-from tests.conformidad.cargador import RAIZ, Fila, cargar_secciones, todas_las_filas
+from sgm.conformidad.estado import DIFERENCIAS_CONOCIDAS
+from sgm.conformidad.referencia import Fila
+from tests.conformidad.cargador import RAIZ, cargar_secciones, todas_las_filas
 from tests.conformidad.interfaz import SECCIONES_EMITIDAS, diferencias_fila, obtener_diseno
 
 PROGRAMA = RAIZ / "tests" / "fixtures" / "sas" / "client" / "client_large.sas"
 SECCIONES = cargar_secciones()
 
-DIFERENCIAS_CONOCIDAS = {
-    "F04": "el SAS sí lee CODIGOS_DANE.xlsx; el manual lo daba por pendiente (el migrador halla más)",
-}
 
 
 def _marca_seccion(codigo: str):

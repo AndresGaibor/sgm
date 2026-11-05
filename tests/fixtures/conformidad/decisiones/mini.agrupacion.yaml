@@ -1,0 +1,7 @@
+# Agrupación de prueba para mini.sas (decisión de prueba, no un hecho del SAS).
+programa: mini.sas
+region_marcador: "%macro ambiente"
+productos:
+  - nombre: cte
+    sufijos: [CTE, CORRIENTE]
+sin_producto: pendiente

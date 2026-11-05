@@ -19,6 +19,8 @@ Seccion = dict[str, Fila]
 
 ESTADO_HALLADA = "Ruta confirmada en SAS"
 ESTADO_PENDIENTE = "pendiente"
+ORIGEN_SAS = "sas"  # el SAS demuestra la fila (ruta o equivalente hallados)
+ORIGEN_DECLARADA = "declarada"  # la fila viene de decisiones/ sin prueba en el SAS
 _TIPO_DE_FUENTE = {
     "excel": "Excel",
     "csv": "CSV",
@@ -55,6 +57,26 @@ def _hallada(busca: str | None, fuentes: list[Fuente]) -> Fuente | None:
         return None
     patron = re.compile(busca, re.IGNORECASE)
     return next((f for f in fuentes if patron.search(f.ubicacion)), None)
+
+
+def origen_fuentes(declaradas: list[dict[str, str]], es: EntradasSalidas) -> dict[str, str]:
+    """Origen de cada fila de la 1.1: `sas` si el SAS halla la fuente, si no `declarada`."""
+    return {
+        d["clave"]: ORIGEN_SAS if _hallada(d.get("busca"), es.fuentes) else ORIGEN_DECLARADA
+        for d in declaradas
+    }
+
+
+def origen_salidas(declaradas: list[dict[str, str]], es: EntradasSalidas) -> dict[str, str]:
+    """Origen de cada fila de la 1.4: `sas` si el SAS escribe un archivo que casa."""
+    nombres = _nombres_de_salidas(es)
+    origen: dict[str, str] = {}
+    for d in declaradas:
+        busca = d.get("equivalente_busca")
+        patron = re.compile(busca, re.IGNORECASE) if busca else None
+        hallada = patron is not None and any(patron.search(n) for n in nombres)
+        origen[d["clave"]] = ORIGEN_SAS if hallada else ORIGEN_DECLARADA
+    return origen
 
 
 def seccion_fuentes(declaradas: list[dict[str, str]], es: EntradasSalidas) -> Seccion:

@@ -20,7 +20,13 @@ from sgm.proceso.entradas_salidas import entradas_y_salidas
 from sgm.proceso.etapas import Cobertura, cargar_etapas, cobertura, etapa_de
 from sgm.proceso.fontaneria import contar_fontaneria, seccion_equivalencias
 from sgm.proceso.pendientes import Pendiente, reunir_pendientes
-from sgm.proceso.secciones_entrada import cargar_declaradas, seccion_fuentes, seccion_salidas
+from sgm.proceso.secciones_entrada import (
+    cargar_declaradas,
+    origen_fuentes,
+    origen_salidas,
+    seccion_fuentes,
+    seccion_salidas,
+)
 from sgm.redaction import redact
 
 Diseno = dict[str, dict[str, dict[str, str]]]
@@ -35,6 +41,8 @@ class DocumentoDiseno:
     pendientes: list[Pendiente]
     resumen: dict[str, int] = field(default_factory=dict)
     etapas: Cobertura | None = None
+    # Origen de cada fila de las secciones 1.1 y 1.4: `sas` o `declarada` (la conformidad lo usa).
+    origenes: dict[str, dict[str, str]] = field(default_factory=dict)
 
 
 def seccion_etapas(declaradas, etapas: Cobertura, bloques: dict[str, int]) -> Diseno:
@@ -80,12 +88,15 @@ def construir_documento(
     familias = [tuple(i.region for i in f.instancias) for f in regiones.familias.familias]
     eliminadas = frozenset(e.nombre for e in declaradas if e.elimina)
     bloques = plantilla_por_etapa(colapso, familias, list(regiones.familias.unicas), eliminadas)
+    fuentes = cargar_declaradas(decisiones_diseno, "fuentes")
+    salidas = cargar_declaradas(decisiones_diseno, "salidas")
     secciones: Diseno = {
-        "1.1": seccion_fuentes(cargar_declaradas(decisiones_diseno, "fuentes"), es),
-        "1.4": seccion_salidas(cargar_declaradas(decisiones_diseno, "salidas"), es),
+        "1.1": seccion_fuentes(fuentes, es),
+        "1.4": seccion_salidas(salidas, es),
         "3": seccion_etapas(declaradas, etapas, bloques),
         "6": seccion_equivalencias(fontaneria),
     }
+    origenes = {"1.1": origen_fuentes(fuentes, es), "1.4": origen_salidas(salidas, es)}
     resumen = {
         "pasos": len(modelo.steps),
         "regiones": len(regiones.regiones),
@@ -102,7 +113,7 @@ def construir_documento(
         "bloques_en_plantillas": sum(bloques.values()),
     }
     return DocumentoDiseno(
-        programa.name, secciones, reunir_pendientes(es, regiones, etapas), resumen, etapas
+        programa.name, secciones, reunir_pendientes(es, regiones, etapas), resumen, etapas, origenes
     )
 
 

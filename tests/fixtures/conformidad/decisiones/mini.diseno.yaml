@@ -1,0 +1,10 @@
+# Decisiones de prueba para mini.sas. El valor de cada fila viene de aquí; el SAS solo prueba
+# si la fuente o la salida existe.
+etapas:
+  - nombre: importar_insumos
+    patrones: ["^importar"]
+fuentes:
+  - {clave: 'Códigos de país', busca: 'Cod_pais\.xlsx$', ubicacion: 'ruta_insumos + arch_paises', uso: 'Lookup de país'}
+  - {clave: 'Depósitos corriente (origen CTE)', tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado_sin_hallar: 'pendiente (nombre de tabla)'}
+salidas:
+  - {clave: 'sabana_validada_<sufijo>.csv', creado_en: 'job_producto', contenido: 'Registros válidos del producto', equivalente_sas: 'Sábanas SABANA_FINAL_REPORTAR_*'}
