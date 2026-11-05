@@ -4375,3 +4375,51 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
 - Repetir `v100d` cuando Studio responda.
 - Dividir `job_producto` (25 componentes frente al límite de 20 de G3), o aceptar la excepción.
 - Columnas de la exógena (`TOTAL_AHORROS_CONS`, `TOTAL_CORRIENTE`), tolerancia de negocio (DC-04) y `tUnite`.
+
+## Hito 102. `AGENTS.md` declara la documentación de referencia: dónde está, cómo se cita y qué la vigila
+
+- Fecha: 2026-11-05. Pregunta del usuario: si `AGENTS.md` sabe que existe esta documentación. No lo
+  sabía: el archivo hablaba de `env/schemas.json`, del corpus y de las reglas, pero no nombraba
+  `docs/referencia/`, ni los catálogos, ni la obligación de citar una página. Un agente que empezara
+  hoy podía escribir reglas sin saber que hay 13 guías a un `grep` de distancia.
+- Qué se hizo: sección nueva «Documentación de referencia» entre «Prohibido en esta tarea» y
+  «Numeración de hitos», con siete puntos:
+  - las 13 guías y los tres archivos de cada una (`<docset>.pdf` no versionado, `<docset>.txt` con
+    marcas `<!-- página N -->`, `<docset>.INDEX.md` con sección → página), más las páginas de Talend
+    por componente;
+  - la receta para no leer el PDF ni el `.txt` entero: sección en el `.INDEX.md`, luego
+    `grep -n "<!-- página 265 -->"` sobre el `.txt`;
+  - el reparto «qué guía para qué»: `lrcon` semántica, `lestmtsref` sintaxis, `lefunctionsref`
+    funciones, `leforinforref` formats e informats, `sqlproc` y `proc` procedimientos, `lesysoptsref`
+    y `ledsoptsref` opciones, `mcrolref` macros, `lepg` uso, `gridref`/`hostunx`/`connref` entorno;
+    con la advertencia de que el docset es `leforinforref` y `leforinfref` da 404;
+  - `tools/referencia/`: quién es el catálogo de docsets, quién baja, quién genera índice y texto
+    (con `uv run --with pypdf`) y quién cruza el catálogo de Talend con las páginas;
+  - el esquema de `rules/sas/catalogo/*.yaml` (`schemas/rules/catalogo.schema.json`, campos `id`,
+    `nombre`, `fuente`, `estado`) y el significado de los cuatro estados, incluido que `reconocida`
+    vale tanto para una regla YAML como para la tabla de `src/sgm/expressions/`;
+  - la regla de fondo: **si no hay página, no hay equivalencia**; se emite `Pendiente:` con el
+    motivo, como hizo `docs/opciones-de-sistema.md`;
+  - los dos archivos de prueba que lo vigilan y el aviso de que los `.pdf` están en `.gitignore`.
+- Pruebas: dos nuevas en `tests/unit/test_referencia_tools.py` (15 en el archivo, 50 con
+  `test_catalogo_sas.py`):
+  - `test_agents_md_dice_donde_esta_la_documentacion`: `AGENTS.md` nombra `docs/referencia/`,
+    `rules/sas/catalogo/` y `schemas/rules/catalogo.schema.json`;
+  - `test_agents_md_nombra_cada_guia_sas`: cada docset de `fuentes.SAS_DOCSETS` aparece entre
+    comillas invertidas. Se compara con comillas y no con el nombre suelto porque `proc` aparecería
+    por casualidad dentro de `PROC SQL`: la prueba pasaría sin que la guía esté nombrada.
+- Decisiones:
+  - Una sección, no una línea en «Forma de trabajar». La documentación no es un hábito más: es de
+    dónde sale lo que la regla 6 prohíbe inventar, y por eso va pegada a las prohibiciones.
+  - La prueba se escribe contra `fuentes.SAS_DOCSETS`, no contra una lista copiada: al añadir una
+    guía al catálogo, la prueba falla hasta que `AGENTS.md` la nombre. Es el mismo patrón de la
+    prueba que exige fila en la tabla de `sas/README.md`.
+  - No se documenta en `AGENTS.md` el detalle de qué guía falta por bajar (nlsref, STAT/ACCESS/ODS):
+    eso es estado, cambia, y su sitio es `docs/referencia/README.md`. `AGENTS.md` dice dónde mirar.
+- Métricas: `AGENTS.md` pasa de 39 a 71 líneas; 13 guías nombradas, 6 herramientas de
+  `tools/referencia/`, 4 estados explicados; 2 pruebas nuevas.
+- Bloqueos: ninguno.
+- Verificación: `uv run ruff check .`: limpio. Suite completa: 2268 pruebas, 0 fallos, 0 errores,
+  155 omitidas (las dos de este hito incluidas).
+- No verificado: que un agente lea la sección no se puede probar. Las pruebas garantizan que está y
+  que nombra las guías; que se use depende de que se lea, como el resto de `AGENTS.md`.

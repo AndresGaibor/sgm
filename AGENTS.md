@@ -17,6 +17,39 @@ Instrucciones para agentes de IA que trabajen en `sgm-v2`.
 8. No borrar ni debilitar pruebas para que pasen. Si una prueba falla, se arregla el código o se anota el bloqueo.
 9. No usar nombres de scripts de ejemplo (`cod1`, `cod2`, `cars_poc`, `exogena`, `split2`, `split3`, `executeBulkload`, `waitForBulkLoads`, `bulkload_generic`) dentro de `src/` ni de `rules/`. Las reglas se basan en estructura o comportamiento. `tests/unit/test_no_script_specific_names.py` lo vigila.
 
+## Documentación de referencia
+
+Las equivalencias no se inventan: cada regla del traductor se apoya en una página de la
+documentación de SAS. Está en `docs/referencia/`; el estado y la deuda de cada guía, en
+`docs/referencia/README.md` y `docs/referencia/catalogo-sas.md`.
+
+- **13 guías** en `docs/referencia/sas/`, cada una con tres archivos: `<docset>.pdf` (no
+  versionado), `<docset>.txt` (texto con marcas `<!-- página N -->`) y `<docset>.INDEX.md`
+  (sección → página, sacado de los marcadores del PDF). Las páginas de Talend, por componente, en
+  `docs/referencia/talend/`.
+- **No leas el PDF ni el `.txt` entero.** Busca la sección en el `.INDEX.md` y luego la página en el
+  `.txt`: `grep -n "<!-- página 265 -->" docs/referencia/sas/lesysoptsref.txt`.
+- Qué guía para qué: `lrcon` = semántica (qué significa una comparación, un missing); `lestmtsref` =
+  sintaxis de cada sentencia; `lefunctionsref` = funciones; `leforinforref` = formats e informats
+  (el docset es `leforinforref`, con `forinfor`: `leforinfref` no existe y da 404); `sqlproc` =
+  `PROC SQL`; `proc` = los demás procedimientos; `lesysoptsref` = opciones de sistema;
+  `ledsoptsref` = opciones de data set; `mcrolref` = macros; `lepg` = uso y ejemplos; `gridref`,
+  `hostunx` y `connref` = Grid, UNIX y CONNECT (`SIGNON`, `RSUBMIT`, `PROC UPLOAD`).
+- `tools/referencia/`: `fuentes.py` es el catálogo de docsets y sus dos formas de URL; `descargar.py`
+  baja; `indice.py` y `texto.py` generan el `.INDEX.md` y el `.txt` (necesitan `pypdf`:
+  `uv run --with pypdf`); `verificar.py` cruza `rules/talend/components.json` con las páginas.
+- `rules/sas/catalogo/*.yaml` dice qué está cubierto y con qué página. Esquema:
+  `schemas/rules/catalogo.schema.json`; cada entrada exige `id`, `nombre`, `fuente` (`<pdf>, p. N`) y
+  `estado`. Los estados significan: `reconocida` = el traductor ya lo convierte, venga de una regla
+  YAML o de la tabla de `src/sgm/expressions/`; `no_reconocida` = lo conoce y no lo convierte;
+  `no_verificada` = existe en la guía y el repo no lo trata; `dentro_de_select` = solo se acepta en
+  ese contexto.
+- **Si no hay página, no hay equivalencia:** se emite `Pendiente:` con el motivo, nunca un valor
+  supuesto. `docs/opciones-de-sistema.md` es una decisión tomada así.
+- Lo vigilan `tests/unit/test_catalogo_sas.py` (toda página citada tiene que existir en el índice de
+  su guía) y `tests/unit/test_referencia_tools.py`. Un catálogo con página inventada no pasa.
+- Los `.pdf` están en `.gitignore` (unos 50 MB): no se commitean, se bajan con `tools/referencia/`.
+
 ## Numeración de hitos
 
 - El número de cada hito es único en todo el repositorio: antes de escribir, busca el último

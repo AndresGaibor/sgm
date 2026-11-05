@@ -112,6 +112,22 @@ def test_cada_guia_sas_tiene_su_fila_en_la_tabla_del_readme():
     assert sin_fila == []
 
 
+def test_agents_md_dice_donde_esta_la_documentacion():
+    # `AGENTS.md` es lo primero que lee un agente: si no nombra la referencia, trabaja a ciegas y
+    # vuelve a inventar equivalencias sin fuente.
+    agents = (REPO / "AGENTS.md").read_text(encoding="utf-8")
+    for ruta in ("docs/referencia/", "rules/sas/catalogo/", "schemas/rules/catalogo.schema.json"):
+        assert ruta in agents, f"AGENTS.md no menciona {ruta}"
+
+
+def test_agents_md_nombra_cada_guia_sas():
+    # El reparto «qué guía para qué» solo sirve si están todas: una guía nueva sin línea en
+    # `AGENTS.md` no la consulta nadie.
+    agents = (REPO / "AGENTS.md").read_text(encoding="utf-8")
+    sin_nombrar = [g.docset for g in fuentes.SAS_DOCSETS if f"`{g.docset}`" not in agents]
+    assert sin_nombrar == []
+
+
 def test_texto_de_paginas_marca_cada_pagina_y_separa_con_una_linea_en_blanco():
     generado = texto.texto_de_paginas(["uno\n", "dos"])
     assert generado == "\n\n<!-- página 1 -->\nuno\n\n<!-- página 2 -->\ndos\n"
