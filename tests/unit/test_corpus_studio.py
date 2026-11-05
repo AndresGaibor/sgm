@@ -336,6 +336,36 @@ def test_una_ejecucion_correcta_pasa_los_parametros_y_recoge_la_salida(
     assert resultado.coincide
 
 
+def test_el_arnes_usa_la_exportacion_del_validador_y_no_una_copia():
+    """R0-03: la búsqueda recursiva del lanzador vive en un solo módulo."""
+    assert not hasattr(studio_validar, "_exportar")
+    assert studio_validar.exportar is sys.modules["validar_en_studio"].exportar
+
+
+def test_la_ejecucion_borra_el_build_temporal(proyecto, jobs, tmp_path, monkeypatch):
+    creados: list[Path] = []
+    original = studio_validar.crear_destino_build
+
+    def anotado() -> Path:
+        creados.append(original())
+        return creados[-1]
+
+    monkeypatch.setattr(studio_validar, "crear_destino_build", anotado)
+    monkeypatch.setattr(
+        studio_validar, "ejecutar", lambda *a, **k: {"exitCode": 0, "stdout": "", "stderr": ""}
+    )
+    studio_validar.validar_en_studio(
+        caso=cargar_caso(CASO_DIR),
+        carpeta_jobs=jobs,
+        padre="demo_prueba",
+        proyecto=proyecto,
+        trabajo=tmp_path / "trabajo",
+        cliente=DobleStudio(),
+        sufijo="limpio",
+    )
+    assert creados and not creados[0].exists()
+
+
 def test_un_job_que_termina_con_error_no_puede_dar_coincide(proyecto, jobs, tmp_path, monkeypatch):
     caso = cargar_caso(CASO_DIR)
 

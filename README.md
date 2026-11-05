@@ -50,6 +50,23 @@ la suite completa para actualizar y comprobar la selección incremental.
 | `uv run python -m sgm.cli gaps list --top 20` | Huecos por firma, con dueño y arreglo |
 | `uv run python -m sgm.cli rules validate` | Valida las reglas y sus casos |
 | `uv run python -m sgm.cli metrics <ruta> --check` | Falla si una métrica empeora |
+| `uv run python tools/ci.py` | Cierra un hito: `ruff`, suite, cruces, oráculo y tablero |
+| `uv run python tools/tablero.py` | La fotografía del plan: componentes, conformidad y corpus |
+
+## Cerrar un hito
+
+Un comando corre todo lo que `AGENTS.md` pide antes de un commit y resume el resultado:
+
+```powershell
+uv run python tools/ci.py
+```
+
+Corre `ruff check .`, la suite completa con `pytest -q`, los cruces del corpus
+(`tests/unit/test_corpus_*cruce*.py` y `test_corpus_validaciones.py`), el oráculo
+(`tools/corpus.py oraculo todos --verificar`) y el tablero. Sale con código distinto de 0 si algún
+paso obligatorio falla, imprime la cola de la salida del que falló y deja una tabla con el tiempo
+de cada paso. `--sin-suite` sirve para iterar y `--sin-tablero` cuando no hace falta la
+fotografía. El tablero solo informa: nunca hace fallar el cierre.
 
 ## Qué produce
 

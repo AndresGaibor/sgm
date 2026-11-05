@@ -8,7 +8,11 @@ dependencies = [
     "networkx>=3.3",
     "typer>=0.12",
     "pyyaml>=6.0",
+    # Fuera de la lista permitida de AGENTS.md; aprobada en el hito 80 (R0-04, DC-11). Analiza y
+    # reescribe el SQL de SAS: `sgm/ir/sql_tree.py`, `sql_portability.py`, `sql_render.py` y
+    # `passes/db_*.py`. Un analizador propio no cambiaría la salida, solo el riesgo.
     "sqlglot>=30.27.0",
+    # Igual: valida el YAML de reglas contra su esquema en `sgm/rules_validate.py`.
     "jsonschema>=4.26.0",
 ]
 
@@ -22,6 +26,8 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    # Fuera de la lista permitida; aprobada en el hito 80 (R0-04). Solo acelera los ciclos locales
+    # (`pytest --testmon`); el cierre de cada hito corre la suite completa sin él.
     "pytest-testmon>=2.3.0",
     "pytest-xdist>=3.5",
     "ruff>=0.5",

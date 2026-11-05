@@ -30,12 +30,12 @@ fuentes_url:
 motivo: La clasificación nacional o extranjera es un DATA step; el PROC EXPORT a CSV depende de formatos
   no comprobados sin SAS real.
 razonamiento: Los SELECT con WHERE y ORDER BY NRO_CTA se cruzaron con SQLite, con ORIGEN_PAIS calculado
-  en Python como lo hace el DATA step. El cruce coincide salvo NRO_FILAS_SIN_CUENTA (ver observacion_revision).
-observacion_revision: 'Hallazgo del oráculo: el corpus lee una celda vacía como NULL, y entonces NRO_CTA
-  = '''' no cuenta las filas sin cuenta (SQLite da 0; SAS da 4, porque el blanco es igual a ''''). Con
-  cadena vacía el cruce coincide aquí, pero en 02 falla el IS MISSING. El esperado sigue SAS. Además,
-  mismo supuesto de PROC EXPORT que en 02: comillas, formato BEST y tipo inferido por PROC IMPORT; VAL_CRED_MES
-  y similares van como ''0.00''.'
+  en Python como lo hace el DATA step. El cruce coincide en las cinco salidas (ver observacion_revision).
+observacion_revision: 'El cruce con el oráculo SQL coincide: la celda vacía de una columna de texto se
+  guarda como '''', así que NRO_CTA = '''' cuenta las 4 filas sin cuenta, y las tablas llevan COLLATE
+  RTRIM, así que los blancos finales no cuentan al comparar (convención de faltantes del hito 77c). Sin
+  demostrar sigue el PROC EXPORT: comillas, formato BEST y tipo inferido por PROC IMPORT; VAL_CRED_MES
+  y similares van como ''0.00''. Mismo supuesto de orden de filas que en 02: no hay ORDER BY.'
 tolerancia: 0.005
 orden_relevante: false
 invariantes:

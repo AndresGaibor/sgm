@@ -2,7 +2,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-.testmondata
+.testmondata*
 .ruff_cache/
 .cache/
 out/
@@ -16,3 +16,9 @@ docs/referencia/sas/*.pdf
 
 # Estado local de CommandCode: ajustes y preferencias de la maquina.
 /.commandcode/
+
+# Worktrees de las sesiones paralelas: estado local, nunca se versiona.
+/.claude/worktrees/
+
+# Build Jobs de Talend exportados dentro del repositorio (por omision se exportan a %TEMP%).
+build-*/

@@ -1032,17 +1032,17 @@ Pendiente de F1: F1.4 (reglas fuera del cÃ³digo: fontanerÃ­a, sentencias, inform
 - Pendiente que quedÃ³ de fases 3 y 4 y que la fase 5 no cubre: 3.5 (regla de materializaciÃ³n por lectores completa), 3.6 (residuo de bloques repetidos), 3.8 (tipo y nombre de parÃ¡metros de joblet), 3.9 (contextos de ambiente como pendientes), 3.10 (dividir archivos de mÃ¡s de 300 lÃ­neas), 4.1 (entradas y salidas de joblets, estructura completa de la guÃ­a), 4.2 (secciÃ³n de etapas del mapa), 4.3 (informe de constructos sin regla; `sgm gaps list` ya lo da en parte).
 - VerificaciÃ³n: `uv run pytest -q`: 428 pasan, 1 se salta; `uv run ruff check .`: limpio; `metrics --check`: sin empeorar, metas cero en 0.
 
-## Hito 28. Análisis SQL más completo: fase 0.1 cerrada
+## Hito 28. Anï¿½lisis SQL mï¿½s completo: fase 0.1 cerrada
 
 - Fecha: 2026-11-03
-- Qué se hizo: el árbol llevaba cambios sin confirmar desde antes de la fase 0. Se verificó la suite y se confirmaron en dos commits. El usuario decidió incluirlos (paso 0.1).
-  - hito 28: sql_normalize.py (más reglas de sqlglot: nombres con espacios, LABEL, informatos, literal ., ^=, NOT =, CONTAINS), lower_sql.py (OUTER UNION pasa a SEMANTICA_DUDOSA en vez de parsearse mal), metrics/baseline.json (PARSE_ERROR 42 -> 8, FUNCION_NO_MAPEADA 394 -> 177, componentes 1328 -> 1383), 	ests/unit/test_sql_normalize.py.
-  - hito 29: división de los archivos de más de 300 líneas (R9, fase 3.10): cli.py queda en 276 (comandos a cli_decisiones.py y cli_util.py), expressions.py en 131 (más expressions_base.py, expressions_funciones.py, expressions_parser.py), 	alend_translator.py en 43 (más 	alend_base.py, 	alend_parser.py, 	alend_funciones.py, 	alend_tabla.py), macros.py en 163 (más macros_modelo.py, macros_control.py, macros_llamadas.py), steps.py en 216 (más steps_tipos.py), p10_components.py en 194 (más 
-eglas_mapeo.py). La salida no cambia: goldens idénticos.
-- Reparación incluida en hito 29: el trabajo de división venía sin terminar y la suite no importaba (	alend_parser.py con un import vacío y un error de sintaxis; _FUNCTIONS a medio mover a 	alend_tabla.py). Se completó el movimiento y se dejó el árbol en verde.
-- Verificación: uv run pytest -q: 428 pasan, 1 se salta; uv run ruff check .: limpio; metrics --check: sin empeorar. Ningún archivo de src/ supera 300 líneas.
+- Quï¿½ se hizo: el ï¿½rbol llevaba cambios sin confirmar desde antes de la fase 0. Se verificï¿½ la suite y se confirmaron en dos commits. El usuario decidiï¿½ incluirlos (paso 0.1).
+  - hito 28: sql_normalize.py (mï¿½s reglas de sqlglot: nombres con espacios, LABEL, informatos, literal ., ^=, NOT =, CONTAINS), lower_sql.py (OUTER UNION pasa a SEMANTICA_DUDOSA en vez de parsearse mal), metrics/baseline.json (PARSE_ERROR 42 -> 8, FUNCION_NO_MAPEADA 394 -> 177, componentes 1328 -> 1383), 	ests/unit/test_sql_normalize.py.
+  - hito 29: divisiï¿½n de los archivos de mï¿½s de 300 lï¿½neas (R9, fase 3.10): cli.py queda en 276 (comandos a cli_decisiones.py y cli_util.py), expressions.py en 131 (mï¿½s expressions_base.py, expressions_funciones.py, expressions_parser.py), 	alend_translator.py en 43 (mï¿½s 	alend_base.py, 	alend_parser.py, 	alend_funciones.py, 	alend_tabla.py), macros.py en 163 (mï¿½s macros_modelo.py, macros_control.py, macros_llamadas.py), steps.py en 216 (mï¿½s steps_tipos.py), p10_components.py en 194 (mï¿½s 
+eglas_mapeo.py). La salida no cambia: goldens idï¿½nticos.
+- Reparaciï¿½n incluida en hito 29: el trabajo de divisiï¿½n venï¿½a sin terminar y la suite no importaba (	alend_parser.py con un import vacï¿½o y un error de sintaxis; _FUNCTIONS a medio mover a 	alend_tabla.py). Se completï¿½ el movimiento y se dejï¿½ el ï¿½rbol en verde.
+- Verificaciï¿½n: uv run pytest -q: 428 pasan, 1 se salta; uv run ruff check .: limpio; metrics --check: sin empeorar. Ningï¿½n archivo de src/ supera 300 lï¿½neas.
 
-## Hito 28. Partir los archivos de mÃ¡s de 300 lÃ­neas: fase 3.10
+## Hito 28b. Partir los archivos de mÃ¡s de 300 lÃ­neas: fase 3.10
 
 - Fecha: 2026-11-03
 - QuÃ© se hizo (segÃºn `docs/automatizacion/03-plan-produccion.md`, 3.10): ningÃºn archivo de `src/` supera 300 lÃ­neas. Cambios puros de estructura, sin cambiar salidas:
@@ -1207,7 +1207,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   - El aislamiento de la base es global (autouse) y no por archivo, para que ninguna prueba nueva escriba en la base del usuario por omisiÃ³n. Una prueba que necesite otra base la fija con `monkeypatch.setenv`.
   - `test_security` deja de leer `out/`; las salidas se revisan en pruebas que las generan en una carpeta temporal.
 
-## Hito 44. DocumentaciÃ³n de referencia: herramientas, Ã­ndices y guÃ­a
+## Hito 44b. DocumentaciÃ³n de referencia: herramientas, Ã­ndices y guÃ­a
 
 - Fecha: 2026-11-03
 - QuÃ© se hizo (de la lista de 50 tareas, grupos de documentaciÃ³n y herramientas):
@@ -1271,7 +1271,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - La investigaciÃ³n se hizo con bÃºsquedas web y lectura de pÃ¡ginas pÃºblicas; las afirmaciones sobre Impala se marcan como documentadas o pendientes, no como probadas.
 - La herramienta de mediciÃ³n es un script en `tools/`, no un test: lee el archivo grande y no se ejecuta en la suite.
 
-## Hito 45. `sgm flujo`: tramos, Ã­ndice de datasets, JSON y pruebas de salida
+## Hito 45b. `sgm flujo`: tramos, Ã­ndice de datasets, JSON y pruebas de salida
 
 - Fecha: 2026-11-03
 - QuÃ© se hizo (tareas 41 a 45 y 31 a 38 de la lista de 50):
@@ -1644,7 +1644,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Estado: sin cambios de codigo.
 
 
-## Hito 68. Bloque 0 del plan de tareas: validador externo, poms y prueba de humo
+## Hito 68b. Bloque 0 del plan de tareas: validador externo, poms y prueba de humo
 
 - Fecha: 2026-11-04
 - Que se hizo:
@@ -1729,7 +1729,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Pendiente: T12 y siguientes, que consumen el detector; catalogo de pais y DANE importados pero sin
   patron de validacion en el SAS (sus datasets solo se usan en cruces de enriquecimiento).
 
-## Hito 69. Corpus: ejecutor, oraculo SQL, vectores de semantica y casos L0 y L1
+## Hito 69c. Corpus: ejecutor, oraculo SQL, vectores de semantica y casos L0 y L1
 
 - Fecha: 2026-11-04
 - Que se hizo: (a) `tools/corpus.py` con `oraculo` e `informe` y `tools/corpus_lib/` (formato de caso `tests/corpus/<nivel>/<caso>/`); (b) oraculo capa A: `PROC SQL` ejecutado en SQLite con una tabla de diferencias de dialecto (`tools/corpus_lib/DIFERENCIAS.md`); lo no soportado falla con `NoSoportado`, nunca se traduce mal en silencio; (c) 69 vectores de semantica de funciones SAS con fuente (52 documentados, 15 deducidos, 2 inciertos) y su implementacion de referencia (`tools/corpus_semantica*.py`); (d) 30 casos: L0 (15, esperado escrito a mano con razonamiento, estado `pendiente_revision`) y L1 (15, capa A verificada).
@@ -1789,7 +1789,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   (`test_corpus_validaciones.py`); en aislamiento ese archivo pasa. `ruff check .` sigue en rojo por
   esos mismos archivos ajenos: los mios estan limpios.
 
-## Hito 70. Corpus: 16 casos L8 con anomalias plantadas y revision independiente de L0
+## Hito 70c. Corpus: 16 casos L8 con anomalias plantadas y revision independiente de L0
 
 - Fecha: 2026-11-04
 - Que se hizo: (a) `tests/corpus/L8/validaciones/` (8 casos) y `tests/corpus/L8/totales/` (8 casos): programas SAS de 215 a 300 lineas en el estilo del original (etiquetas, `PROC IMPORT DBMS=DLM`, conversiones `input(left())`, consultas de SAS Studio, macros por producto, `PROC EXPORT`), con CSV de producto de 23 columnas y Excel simulados, generados por `tools/corpus_datos/validaciones.py` y `totales.py` con semilla fija. Cada `caso.yaml` lleva `anomalias_plantadas`: el conteo exacto de registros anomalos que el generador puso (por ejemplo tipo de documento invalido: CTE 7 y AHO 5), que es un oraculo independiente de cualquier traductor. (b) Revision independiente de los 15 casos L0 por un segundo agente que calculo a mano antes de ver el esperado: 13 coinciden (`revisado`), 2 ambiguos por el tipo que `PROC IMPORT` da a una fecha ISO (`tests/corpus/L0/REVISION.md`). (c) `tools/corpus_lib/caso.py` acepta los estados `revisado` y `sin_esperado` y los campos de metadatos de los casos.
@@ -1854,7 +1854,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   columnas sin calificar) y trataba marcadores de macro sin biblioteca como tablas Impala.
 - Pendiente: los Jobs aun no leen Impala; la convencion queda escrita para el bloque B.
 
-## Hito 71. Corpus: casos L2 y L3 (joins, validacion con lookup, agregados) con invariantes
+## Hito 71c. Corpus: casos L2 y L3 (joins, validacion con lookup, agregados) con invariantes
 
 - Fecha: 2026-11-04
 - Que se hizo: 27 casos en `tests/corpus/L2/` (15) y `tests/corpus/L3/` (12), capa A, todos `traducible`, con el patron de validacion del original (`LEFT JOIN ... ON (t.TIPO_DOC = h.CNAME) WHERE h.CNAME IS MISSING` para invalidos y `INNER JOIN` para validos), joins por varias columnas, `IN` y `NOT IN` con subconsulta, `CASE`, `COALESCE`, `COUNT(DISTINCT)`, `GROUP BY` y `HAVING`, totales de origen y de salida, y conciliacion con una diferencia plantada. Mecanismo de `preparacion` para casos que mezclan un DATA step (`input(left())`) con `PROC SQL`: el DATA step se calcula con la referencia de semantica de `tools/corpus_semantica_funciones.py`, se guarda en `entradas_preparadas/` y el oraculo falla si ese archivo no coincide. Campo `invariantes` en `caso.yaml` (por ejemplo `filas(validos) + filas(invalidos) == filas(origen)`) evaluado por `tools/corpus_lib/invariantes.py`; las diferencias plantadas (`l2_05`, `l3_09`) las declara.
@@ -1889,7 +1889,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   validacion previas (T12 a T18), que siguen detras del filtro de Studio. La invariante
   validos + rechazos = origen se podra comprobar cuando esten completas.
 
-## Hito 72. Contenedores de prueba: Impala 4.5.3 real y PostgreSQL, con Jobs de Talend ejecutados contra ellos
+## Hito 72c. Contenedores de prueba: Impala 4.5.3 real y PostgreSQL, con Jobs de Talend ejecutados contra ellos
 
 - Fecha: 2026-11-04
 - Que se hizo: `tools/contenedores/impala/` (docker-compose, `arrancar.sh`/`.ps1`, `parar.sh`, README): Impala 4.5.3 REAL con las imagenes locales (HMS, statestored, catalogd, impalad), HiveServer2 en `localhost:21050` sin SASL, topes de memoria que suman 4,75 GiB (en reposo: impalad 347 MiB, catalogd 275 MiB, HMS 260 MiB, statestored 15 MiB). `cargar_tablas.py` crea las tres tablas Impala que el programa grande lee (`resultados_vspc_clientes.master_customer_data`, `s_canales.sai_scilibramd_sciffimgfr`, `proceso_vspc_finanzas.mcdq`) con las columnas que el SAS usa y 3 filas ficticias. `tools/contenedores/postgres/`: compose y datos de ejemplo. Todo con prefijo `sgmtest_`.
@@ -1902,7 +1902,7 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 ## Hito 73c. Corpus: casos L4 a L6 (funciones, macros, MERGE y FIRST./LAST.) con referencia de semantica
 
 - Fecha: 2026-11-04
-- Nota de numeracion: otra sesion trabaja en `tareas-agente.md` y usa los hitos 69 a 77; las entradas del corpus (69, 70, 71, 72 y esta) llevan el rotulo "Corpus" o "Contenedores" en el titulo. Conviene renumerar al cerrar ambas series.
+- Nota de numeracion (resuelta en el hito 80, R0-01): esta serie y las entradas 69c a 77c del corpus y los contenedores llevaban el mismo numero que la serie de `tareas-agente.md`. Ahora toda entrada del corpus y de los contenedores lleva la letra de serie `c` y la regla esta en `AGENTS.md`.
 - Que se hizo: 44 casos: L4 (20, funciones de DATA step con vectores de `semantica/vectores.yaml`: `input`, `left`, `compress`, `strip`, `upcase`, `lowcase`, `substr`, `substrn`, `scan`, `trim`, `coalescec`, `round`, comparaciones con faltantes), L5 (12, macros: `%let`, `%macro` con parametros, `%if`/`%do`, `&var`, `%eval`, `%str`, `%sysfunc`, `SELECT INTO :var`, macrovariables en nombres de tabla y ruta), L6 (12, `MERGE ... BY` con `IN=`, `FIRST.`, `LAST.`, `RETAIN`, `PROC SORT NODUPKEY` y `NODUP`). Un expansor minimo de macros (`tools/corpus_lib/expansor_macros.py`) deja `programa_expandido.sas` y el esperado se calcula sobre el expandido; la referencia de `MERGE`, `FIRST.`/`LAST.`, `RETAIN` y `NODUPKEY` esta en `tools/corpus_lib/referencia_datastep.py` con la documentacion citada.
 - Hallazgos que contradicen lo asumido en L0 a L3 (`DIFERENCIAS.md`): (1) `MERGE` de un DATA step con llaves repetidas en ambos lados NO multiplica filas como un JOIN de SQL: por grupo sale el maximo de filas de los conjuntos y el conjunto mas corto retiene su ultima observacion (ejemplo KB 24752). Un programa que use `MERGE` no es equivalente a un `JOIN`. (2) En un DATA step, `IF saldo < 500` es verdadero cuando el saldo es faltante; en SQLite la comparacion da NULL: el oraculo SQL difiere y la brecha sigue abierta. (3) El mecanismo `preparacion` corta la cadena en el primer faltante, asi que `coalesce` tras `input` no se expresa, y `catx` pide varias columnas.
 - Capa: L4 y L6 son capa B (referencia de Python), no un oraculo independiente; su esperado se verifica por regeneracion byte a byte, invariantes y la presencia de las asignaciones en el SAS. La unica comparacion externa es el ejemplo de la documentacion (l6_02).
@@ -1955,3 +1955,89 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Problemas hallados en `tools/validar_en_studio.py` (de la otra sesion, no modificado): `exportar` busca `<job>_run.bat` solo en el destino y el servidor lo deja en `destino/<job>/`; `renombrar` exige la version 0.1; `ejecutar` no entrecomilla los parametros (rechaza espacios); las carpetas `build-*` quedan en `%TEMP%`. El arnes usa su propia `_exportar` recursiva.
 - Pruebas: `test_corpus_studio.py` (28). `uv run pytest -q`: 1529 pasan, 26 se saltan, 132 xfail. `ruff check .`: limpio.
 - No verificado: fallo de compilacion en Studio real (solo con un doble del cliente), Jobs con hijos (`tRunJob`), casos con varias salidas, tolerancia numerica y `orden_relevante` en Studio real.
+
+## Hito 80. Plan ruta a produccion: Fase 0 completa, herramientas y linea base (G0)
+
+- Fecha: 2026-11-04
+- Que se hizo: se implementa la Fase 0 (R0-01 a R0-12) de `docs/plan-reescritura/ruta-a-produccion.md`,
+  que es la puerta G0 y el requisito de las demas fases. Lo que necesita Studio, Docker o el entorno
+  del banco queda entregado como codigo y documento, y se dice abajo que no se pudo ejecutar.
+- R0-01 (numeracion): `PROGRESS.md` tenia siete numeros repetidos (28, 44, 45, 68, 70, 71 y 72). Las
+  segundas entradas toman letra de serie: 28b, 44b, 45b, 68b, 70c, 71c y 72c, como ya hacian 73c a
+  77c. Queda una regla en `AGENTS.md` (seccion "Numeracion de hitos"): numero unico, una entrada
+  publicada no se renumera y cada serie de una sesion paralela lleva letra. 84 entradas, sin repetir.
+- R0-02 (`tools/validar_en_studio.py`): cuatro correcciones con su prueba. `exportar` busca el
+  lanzador con `rglob` en todo el destino (el servidor lo deja en `<destino>/<job>/`); `renombrar`
+  lee la version del nombre del archivo en vez de exigir 0.1 y recalcula los ids del `.properties`
+  con esa version (`versiones()`); `ejecutar` arma el comando con `comando_lanzador()`, que
+  entrecomilla lanzador, contexto y cada `--context_param`; y la carpeta `build-*` se borra al
+  terminar (`crear_destino_build` / `borrar_destino_build`). `tests/unit/test_tools_validar_en_studio.py`,
+  12 pruebas con un doble del cliente.
+- R0-03: el arnes del corpus ya no tiene su copia de `_exportar`; `studio_validar` importa
+  `exportar` del validador y borra el build temporal. Dos pruebas nuevas en `test_corpus_studio.py`
+  comprueban que no hay copia y que la carpeta de build desaparece.
+- R0-04 (DC-11, dependencias): `sqlglot` y `jsonschema` siguen declarados porque estan en uso real
+  (`src/sgm/ir/sql_tree.py`, `sql_portability.py`, `sql_render.py`, `passes/db_*.py` y
+  `rules_validate.py`), y `pytest-testmon` porque solo acelera los ciclos locales. La justificacion
+  queda en `pyproject.toml` y en "Decisiones" abajo. Sustituir `sqlglot` por un analizador propio no
+  cambiaria la salida, solo el riesgo.
+- R0-05: se regeneran `observacion_revision` y `razonamiento` de `L8/totales/03` y `08` desde su
+  generador (`tools/corpus_datos/totales_meta.py`): describian la convencion vieja (vacio como NULL)
+  y el cruce ya coincide con `''` en texto y `COLLATE RTRIM`. No se toco ningun esperado.
+- R0-06 (`tools/ci.py`): un comando corre `ruff check .`, la suite completa, los cruces del corpus
+  (`test_corpus_totales_cruce.py` y `test_corpus_validaciones.py`, aparte para que un cruce roto se
+  nombre), el oraculo (`corpus.py oraculo todos --verificar`) y el tablero (informativo: no puede
+  hacer fallar el cierre). Sale con codigo distinto de 0 si falla un paso obligatorio, imprime la
+  cola del que fallo y una tabla con el tiempo de cada paso. Documentado en el README.
+- R0-07 (`docs/puesta-en-marcha.md`): requisitos, `uv sync`, `uv run python tools/ci.py`, ciclos con
+  `--testmon`, uso basico, problemas conocidos y lo que no se reproduce sin el entorno del banco.
+  Verificado en esta maquina: `uv sync` no cambia nada (uv 0.12.24, Python 3.12.10, `uv.lock`
+  intacto) y el cierre queda verde. No verificado: clonar en una maquina limpia de verdad.
+- R0-08 (higiene): `.gitignore` gana `.testmondata*` (testmon deja mas de un archivo), `/.claude/worktrees/`
+  (estado local de las sesiones paralelas, que solo estaba en `.git/info/exclude`) y `build-*/`. Los
+  fixtures pesan 2,1 MB (`client_large.sas` 820 KB, el mayor) y `git status` queda limpio tras una
+  corrida completa: `out/` y `corpus/` ya estaban ignorados.
+- R0-09 (`tools/tablero.py`): imprime la tabla de la seccion 2 del plan con lo que se puede medir sin
+  Studio: componentes por Job (emite con `sgm talend` y cuenta `<node>`), conformidad (filas y
+  secciones de la referencia cumplidas), pendientes del modelo por motivo, casos del corpus por nivel
+  y estado, cobertura de construcciones y, con `--suite`, la linea de `pytest -q`. `--markdown` deja
+  solo la tabla. Emitir y analizar se memoriza, asi que el comando tarda unos 10 s.
+- R0-10 (`tools/corpus_lib/RIESGOS.md`): 18 riesgos del oraculo (O-01 a O-18), cada uno con la
+  afirmacion de `DIFERENCIAS.md`, severidad, caso o vector que lo ejerce hoy y la tarea que lo cierra.
+  De los 18, cinco no los ejerce ningun caso (blancos finales en expresiones, fechas con `BETWEEN`,
+  `DISTINCT` con blancos, expresion sin alias y el orden sin `ORDER BY`).
+- R0-11 (linea base): `docs/plan-reescritura/metricas-base.md` con la instantanea medida y la
+  etiqueta local `base-n1` sobre este commit.
+- R0-12 (`docs/guia-validacion-studio.md`): el protocolo de Studio en un solo documento, con los
+  comandos, los dos arneses, los hechos ya aprendidos, la demostracion del hito 79 y lo que no se
+  puede comprobar sin Studio.
+- Metricas antes (medidas al empezar, coinciden con la seccion 2 del plan): 26 componentes (padre 13,
+  producto 11, totales 1, conciliacion 1); conformidad 42 pasan y 126 xfail de 168 pruebas; 16
+  pendientes del modelo; 117 casos del corpus; suite 1529 pasan, 26 se saltan, 132 xfail.
+- Metricas despues: las mismas de producto (este hito no cambia la salida de `sgm talend` ni del
+  documento); suite 1556 pasan, 26 se saltan, 132 xfail (27 pruebas nuevas); `ruff` limpio. El
+  tablero queda como la forma de medirlas: 26 componentes, 12 de 118 filas y 2 de 22 secciones de
+  conformidad, 16 pendientes en 5 motivos, 117 casos con 81 traducibles y 206 construcciones distintas.
+- Pruebas nuevas: `test_tools_validar_en_studio.py` (12), `test_tablero.py` (6), `test_tools_ci.py`
+  (7) y dos en `test_corpus_studio.py`. `uv run python tools/ci.py`: ruff OK, suite OK (47 s), cruces
+  OK (1,9 s), oraculo 117 casos y 0 fallas (3,2 s), tablero OK.
+- No verificado (bloqueos reales, no pendientes de codigo): la demostracion en Studio real de las
+  cuatro correcciones (R0-02) y la repeticion del caso `l2_01` con el arnes ya sin copia (R0-03);
+  que un agente nuevo valide un Job siguiendo solo la guia (R0-12); y clonar en una maquina limpia
+  (R0-07). Todas necesitan Studio, `talend-mcp` o una maquina sin el proyecto.
+- Riesgo: la Fase 0 no cambia la paridad (N1) ni la equivalencia (N2); solo deja las herramientas y la
+  linea base. El siguiente paso del camino critico sigue siendo R1-01 (filtro del `tMap` en Studio).
+
+## Decisiones (hito 80)
+
+- DC-11, dependencias fuera de la lista de `AGENTS.md`: se conservan `sqlglot` (analisis y
+  reescritura del SQL de SAS; un analizador propio no cambia la salida), `jsonschema` (validacion del
+  YAML de reglas) y `pytest-testmon` (solo desarrollo; el cierre de cada hito corre la suite completa).
+  Queda escrito en `pyproject.toml` y no se anade ninguna dependencia nueva.
+- Numeracion de hitos: numero unico por entrada; las entradas ya publicadas no se renumeran porque
+  `docs/` las cita por numero; una serie paralela toma letra (`c` para corpus y contenedores, `b` para
+  el resto de las series viejas). La regla vive en `AGENTS.md`.
+- El tablero no corre la suite: la suite la mide `tools/ci.py`, que es el que falla por umbrales. El
+  tablero cuenta filas y secciones de la referencia (12 de 118, 2 de 22) en vez de las 168 pruebas de
+  `tests/conformidad`, porque esas 168 incluyen las 28 pruebas que comprueban que el YAML y el
+  documento del manual dicen lo mismo. Las dos cifras quedan explicadas en `metricas-base.md`.

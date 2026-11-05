@@ -1,12 +1,14 @@
 """Ejecuta un conjunto de Jobs ya emitidos en Talend Studio con las entradas de un caso.
 
 Reutiliza el protocolo de `tools/validar_en_studio.py` (nombre nuevo por intento, hijos antes que
-el padre, exportación y lanzador, borrado de los Jobs de prueba al terminar) sin modificarlo.
+el padre, exportación y lanzador, borrado de los Jobs de prueba al terminar) sin duplicar código:
+la exportación es la del módulo, que busca el lanzador en subcarpetas y limpia el build temporal.
 Aquí se añaden tres cosas: la carpeta de trabajo con las entradas del caso, los parámetros de
 contexto que apuntan a ella y la lectura de la salida. El padre no se parchea: las rutas llegan
 como `--context_param`.
 
-Hallazgo: `renombrar` lee `<job>_0.1.item`; los Jobs deben tener versión 0.1.
+Hallazgo: los Jobs pueden tener cualquier versión (`0.1`, `0.2`, `1.0`); `renombrar` la lee del
+nombre del archivo (hito 80, R0-02).
 """
 
 from __future__ import annotations
@@ -19,8 +21,15 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from mcp_cliente import MCP, ErrorValidacion, descargar_poms
-from validar_en_studio import construir, ejecutar, renombrar
+from mcp_cliente import MCP, ErrorValidacion
+from validar_en_studio import (
+    borrar_destino_build,
+    construir,
+    crear_destino_build,
+    ejecutar,
+    exportar,
+    renombrar,
+)
 
 from .caso import Caso
 from .studio_mapa import parametros_contexto
@@ -28,7 +37,6 @@ from .studio_trabajo import archivos_salida, preparar_trabajo
 
 _TECNICO = re.compile(r'technicalLabel="([^"]+)"')
 _EXTENSIONES = (".item", ".properties")
-_RONDAS_POMS = 8
 
 
 @dataclass
@@ -67,31 +75,6 @@ def _copiar_jobs(carpeta_jobs: Path, destino: Path) -> list[str]:
     return [re.sub(r"_\d+\.\d+\.item$", "", item.name) for item in items]
 
 
-def _exportar(cliente: MCP, job: str, destino: Path, m2: Path | None) -> Path:
-    """Exporta el Build Job y devuelve su lanzador `<job>_run.bat`.
-
-    A diferencia de `validar_en_studio.exportar`, busca el lanzador en todo `destino`: el
-    servidor lo deja en una subcarpeta `<destino>/<job>/`. Reintenta hasta 8 rondas
-    descargando los poms de Maven que falten en la caché de Studio.
-    """
-    ultimo = ""
-    for _ in range(_RONDAS_POMS):
-        try:
-            cliente.llamar(
-                "talend_deliverables_build_job", {"jobName": job, "destinationDir": str(destino)}
-            )
-            encontrados = sorted(destino.rglob(f"{job}_run.bat"))
-            if encontrados:
-                return encontrados[0]
-            ultimo = f"no apareció {job}_run.bat en {destino}"
-        except ErrorValidacion as error:
-            ultimo = str(error)
-        faltan = descargar_poms(ultimo, m2)
-        if not faltan:
-            break
-    raise ErrorValidacion(f"exportación fallida: {ultimo[:1200]}")
-
-
 def sufijo_nuevo() -> str:
     """Sufijo distinto en cada intento: Studio guarda en memoria cada Job por su identificador."""
     return "cs" + datetime.now().strftime("%Y%m%d%H%M%S")
@@ -123,7 +106,7 @@ def validar_en_studio(
     pares = parametros_contexto(mapa or {}, trabajo, parametros or [])
     cliente = cliente or MCP()
     temporal = Path(tempfile.mkdtemp(prefix="jobs-"))
-    exportado = Path(tempfile.mkdtemp(prefix="build-"))
+    exportado = crear_destino_build()
     copiados: list[Path] = []
     try:
         nombres = _copiar_jobs(carpeta_jobs, temporal)
@@ -145,7 +128,7 @@ def validar_en_studio(
         if hijos:
             construir(cliente, hijos)
         construir(cliente, [nuevo_padre])
-        lanzador = _exportar(cliente, nuevo_padre, exportado, m2)
+        lanzador = exportar(cliente, nuevo_padre, exportado, m2)
         return _ejecutar_lanzador(lanzador, contexto, pares, java_bin, trabajo)
     except ErrorValidacion as fallo:
         return EjecucionStudio(trabajo, [], None, error=str(fallo))
@@ -153,6 +136,7 @@ def validar_en_studio(
         for archivo in copiados:
             archivo.unlink(missing_ok=True)
         shutil.rmtree(temporal, ignore_errors=True)
+        borrar_destino_build(exportado)
         try:
             cliente.llamar("talend_bridge_refresh_workspace")
         except ErrorValidacion:

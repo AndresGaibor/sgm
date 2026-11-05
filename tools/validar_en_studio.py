@@ -25,6 +25,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -34,6 +35,7 @@ from pathlib import Path
 from mcp_cliente import MCP, ErrorValidacion, descargar_poms
 
 RAIZ = Path(__file__).resolve().parents[1]
+_NOMBRE_ITEM = re.compile(r"^(?P<nombre>.+)_(?P<version>\d+(?:\.\d+)*)\.item$")
 
 
 def emitir(programa: Path, jobs_yaml: Path | None, destino: Path) -> Path:
@@ -57,28 +59,45 @@ def _id_propiedad(base: str) -> str:
     return _id(f"{base}:id")
 
 
+def versiones(carpeta: Path) -> dict[str, str]:
+    """Nombre base de cada Job y la versión con la que está guardado, leída de su `.item`."""
+    encontradas: dict[str, str] = {}
+    for archivo in sorted(carpeta.glob("*.item")):
+        coincide = _NOMBRE_ITEM.match(archivo.name)
+        if coincide:
+            encontradas[coincide.group("nombre")] = coincide.group("version")
+    return encontradas
+
+
 def renombrar(carpeta: Path, sufijo: str, proyecto: str) -> dict[str, str]:
-    """Renombra los Jobs con sufijo nuevo; reescribe referencias entre `tRunJob` e ids."""
-    viejos = sorted({re.sub(r"_\d+\.\d+\.item$", "", p.name) for p in carpeta.glob("*.item")})
-    mapa = {v: f"{v}_{sufijo}" for v in viejos}
-    for viejo, nuevo in mapa.items():
-        item = carpeta / f"{viejo}_0.1.item"
+    """Renombra los Jobs con sufijo nuevo; reescribe referencias entre `tRunJob` e ids.
+
+    La versión sale del nombre del archivo: Studio guarda `0.1`, `0.2` o `1.0` y no se fija
+    ninguna. Los ids del `.properties` se recalculan con la versión real, porque el emisor los
+    deriva de `<job>_<versión>`.
+    """
+    guardadas = versiones(carpeta)
+    mapa = {viejo: f"{viejo}_{sufijo}" for viejo in guardadas}
+    for viejo, version in guardadas.items():
+        nuevo = mapa[viejo]
+        base_vieja, base_nueva = f"{viejo}_{version}", f"{nuevo}_{version}"
+        item = carpeta / f"{base_vieja}.item"
         texto = item.read_text(encoding="utf-8")
-        viejo_id, nuevo_id = _id_propiedad(f"{viejo}_0.1"), _id_propiedad(f"{nuevo}_0.1")
+        viejo_id, nuevo_id = _id_propiedad(base_vieja), _id_propiedad(base_nueva)
         texto = texto.replace(f'value="{viejo}"', f'value="{nuevo}"')
         texto = texto.replace(f'value="{proyecto}:{viejo_id}"', f'value="{proyecto}:{nuevo_id}"')
         item.write_text(texto, encoding="utf-8", newline="\n")
-        item.rename(carpeta / f"{nuevo}_0.1.item")
-        propiedades = carpeta / f"{viejo}_0.1.properties"
+        item.rename(carpeta / f"{base_nueva}.item")
+        propiedades = carpeta / f"{base_vieja}.properties"
         if not propiedades.exists():
             continue
         texto = propiedades.read_text(encoding="utf-8")
         texto = texto.replace(f'id="{viejo_id}"', f'id="{nuevo_id}"')
         for atributo in ("label", "displayName", "path"):
             texto = texto.replace(f'{atributo}="{viejo}"', f'{atributo}="{nuevo}"')
-        texto = texto.replace(f'href="{viejo}_0.1.item', f'href="{nuevo}_0.1.item')
+        texto = texto.replace(f'href="{base_vieja}.item', f'href="{base_nueva}.item')
         propiedades.write_text(texto, encoding="utf-8", newline="\n")
-        propiedades.rename(carpeta / f"{nuevo}_0.1.properties")
+        propiedades.rename(carpeta / f"{base_nueva}.properties")
     return mapa
 
 
@@ -121,7 +140,11 @@ def construir(mcp: MCP, nombres: list[str]) -> None:
 
 
 def exportar(mcp: MCP, job: str, destino: Path, m2: Path | None) -> Path:
-    """Exporta el Build Job; reintenta hasta 8 rondas descargando los poms que falten."""
+    """Exporta el Build Job; reintenta hasta 8 rondas descargando los poms que falten.
+
+    El servidor deja el lanzador en una subcarpeta (`<destino>/<job>/<job>_run.bat`), así que se
+    busca en todo `destino`; buscarlo solo en la raíz fue el fallo del primer validador.
+    """
     ultimo = ""
     for _ in range(8):
         try:
@@ -129,10 +152,10 @@ def exportar(mcp: MCP, job: str, destino: Path, m2: Path | None) -> Path:
                 "talend_deliverables_build_job",
                 {"jobName": job, "destinationDir": str(destino)},
             )
-            lanzador = destino / f"{job}_run.bat"
-            if lanzador.exists():
-                return lanzador
-            ultimo = f"no apareció {lanzador.name} en {destino}"
+            encontrados = sorted(destino.rglob(f"{job}_run.bat"))
+            if encontrados:
+                return encontrados[0]
+            ultimo = f"no apareció {job}_run.bat en {destino}"
         except ErrorValidacion as error:
             ultimo = str(error)
         faltan = descargar_poms(ultimo, m2)
@@ -142,19 +165,29 @@ def exportar(mcp: MCP, job: str, destino: Path, m2: Path | None) -> Path:
     raise ErrorValidacion(f"exportación fallida: {ultimo[:1200]}")
 
 
+def comando_lanzador(lanzador: Path, contexto: str | None, parametros: list[str]) -> str:
+    """Línea de comando del lanzador, con cada valor entre comillas.
+
+    Va a `shell=True`: sin comillas, una ruta o un valor con espacios se parte en argumentos y el
+    lanzador rechaza la ejecución.
+    """
+    partes = [f'"{lanzador}"']
+    if contexto:
+        partes.append(f'--context="{contexto}"')
+    partes += [f'--context_param "{p}"' for p in parametros]
+    return " ".join(partes)
+
+
 def ejecutar(
     lanzador: Path, contexto: str | None, parametros: list[str], java_bin: Path | None
 ) -> dict:
     """Corre el launcher exportado y devuelve salida y código."""
-    partes = [f'"{lanzador}"']
-    if contexto:
-        partes.append(f"--context={contexto}")
-    partes += [f"--context_param {p}" for p in parametros]
+    comando = comando_lanzador(lanzador, contexto, parametros)
     entorno = dict(os.environ)
     if java_bin is not None:
         entorno["PATH"] = str(java_bin) + os.pathsep + entorno.get("PATH", "")
     proceso = subprocess.run(
-        " ".join(partes),
+        comando,
         cwd=lanzador.parent,
         capture_output=True,
         text=True,
@@ -165,9 +198,20 @@ def ejecutar(
     )
     return {
         "exitCode": proceso.returncode,
+        "comando": comando,
         "stdout": proceso.stdout[-4000:],
         "stderr": proceso.stderr[-4000:],
     }
+
+
+def crear_destino_build() -> Path:
+    """Carpeta temporal `build-*` donde el servidor deja el Build Job exportado."""
+    return Path(tempfile.mkdtemp(prefix="build-"))
+
+
+def borrar_destino_build(destino: Path) -> None:
+    """Borra la carpeta de build: sin esto quedan `build-*` en `%TEMP%` tras cada validación."""
+    shutil.rmtree(destino, ignore_errors=True)
 
 
 def validar(args: argparse.Namespace) -> dict:
@@ -195,7 +239,7 @@ def validar(args: argparse.Namespace) -> dict:
     mcp = MCP()
     proceso = proyecto / "process"
     copiados: list[Path] = []
-    exportado = Path(tempfile.mkdtemp(prefix="build-"))
+    exportado = crear_destino_build()
     try:
         with tempfile.TemporaryDirectory(prefix="emit-") as temporal:
             carpeta = emitir(programa, jobs_yaml, Path(temporal))
@@ -216,9 +260,7 @@ def validar(args: argparse.Namespace) -> dict:
         construir(mcp, [mapa[arq.padre]])
         lanzador = exportar(mcp, mapa[arq.padre], exportado, args.m2)
         print(f"Ejecutando {lanzador} (contexto {args.contexto or 'Default'})")
-        resultado = ejecutar(lanzador, args.contexto, args.param, args.java_bin)
-        resultado["build"] = str(exportado)
-        return resultado
+        return ejecutar(lanzador, args.contexto, args.param, args.java_bin)
     finally:
         for archivo in copiados:
             archivo.unlink(missing_ok=True)
@@ -226,7 +268,8 @@ def validar(args: argparse.Namespace) -> dict:
             mcp.llamar("talend_bridge_refresh_workspace")
         except ErrorValidacion:
             pass
-        print(f"Limpieza: {len(copiados)} archivos borrados del proyecto. Build en {exportado}")
+        borrar_destino_build(exportado)
+        print(f"Limpieza: {len(copiados)} archivos borrados del proyecto y build temporal borrado")
 
 
 def main(argv: list[str]) -> int:

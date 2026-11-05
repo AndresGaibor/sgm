@@ -17,6 +17,16 @@ Instrucciones para agentes de IA que trabajen en `sgm-v2`.
 8. No borrar ni debilitar pruebas para que pasen. Si una prueba falla, se arregla el código o se anota el bloqueo.
 9. No usar nombres de scripts de ejemplo (`cod1`, `cod2`, `cars_poc`, `exogena`, `split2`, `split3`, `executeBulkload`, `waitForBulkLoads`, `bulkload_generic`) dentro de `src/` ni de `rules/`. Las reglas se basan en estructura o comportamiento. `tests/unit/test_no_script_specific_names.py` lo vigila.
 
+## Numeración de hitos
+
+- El número de cada hito es único en todo el repositorio: antes de escribir, busca el último
+  `## Hito` de `PROGRESS.md` y suma uno.
+- Una entrada publicada no se renumera: `docs/` la referencia por número.
+- Sesiones en paralelo: cada serie toma una letra detrás del número, que va en el título y en el
+  mensaje del commit (`hito 73c: ...`). `c` está tomada por el corpus y los contenedores;
+  `b` quedó para el resto de las series viejas. Las letras no se reutilizan ni se quitan.
+- El commit del hito lleva el mismo número que la entrada, con el mensaje `hito N: <resumen>`.
+
 ## Forma de trabajar
 
 - Lee antes de escribir. Los archivos grandes (`client_large.sas`, unos 800 KB) no se leen enteros: usa búsqueda y lecturas por rango de líneas.

@@ -25,8 +25,9 @@ Studio; 2 si el uso o un archivo no son válidos.
 
 ## Carpeta de Jobs
 
-Contiene el par `<job>_0.1.item` y `<job>_0.1.properties` del padre y de sus hijos (`tRunJob`).
-La versión debe ser 0.1 porque `renombrar` la espera así.
+Contiene el par `<job>_<versión>.item` y `<job>_<versión>.properties` del padre y de sus hijos
+(`tRunJob`). La versión puede ser `0.1`, `0.2` o `1.0`: `renombrar` la lee del nombre del archivo
+y recalcula los ids del `.properties` con la versión real.
 
 ## Mapa de contexto
 
@@ -61,16 +62,23 @@ original del repositorio no se toca. Las rutas no pueden ser absolutas ni tener 
 
 ## Hallazgos del protocolo
 
-- El servidor deja el lanzador en una subcarpeta, `<destino>/<job>/<job>_run.bat`. La función
-  `exportar` de `tools/validar_en_studio.py` lo busca solo en `<destino>`, así que no lo
-  encuentra. El arnés usa su propia `_exportar` con búsqueda recursiva. El módulo original no se
-  ha modificado.
-- `renombrar` solo acepta Jobs de versión 0.1.
-- `ejecutar` no entrecomilla los parámetros: las rutas y los valores con espacios se rechazan.
-- Las carpetas de build quedan en `%TEMP%` (`build-*`) para poder inspeccionarlas.
+Los cuatro primeros los corrigió el hito 80 (R0-02) en `tools/validar_en_studio.py`, y el arnés
+usa esas funciones en vez de una copia (R0-03):
+
+- El servidor deja el lanzador en una subcarpeta, `<destino>/<job>/<job>_run.bat`. `exportar` lo
+  busca en todo `<destino>` con `rglob`.
+- `renombrar` acepta Jobs de cualquier versión, no solo `0.1`.
+- `ejecutar` entrecomilla el lanzador, el contexto y cada `--context_param`, así que las rutas con
+  espacios funcionan.
+- La carpeta `build-*` de `%TEMP%` se borra al terminar, en el mismo `finally` que borra los Jobs
+  de prueba del proyecto. Si hace falta inspeccionar el build, se copia antes: ya no se queda.
+
+Sigue en pie: Studio cachea el modelo de cada Job por su identificador, así que cada intento
+necesita un sufijo nuevo (`cs` más la fecha).
 
 ## Pruebas
 
 `tests/unit/test_corpus_studio.py` cubre el comparador, el modo `comparar` con una salida copiada
 y otra alterada, el mapa y la limpieza, con un doble del cliente MCP y un lanzador falso. No
-necesita Studio.
+necesita Studio. `tests/unit/test_tools_validar_en_studio.py` cubre las cuatro correcciones del
+protocolo por separado.

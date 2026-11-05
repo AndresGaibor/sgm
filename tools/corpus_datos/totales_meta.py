@@ -69,15 +69,16 @@ META: dict[str, dict] = {
                       "a CSV depende de formatos no comprobados sin SAS real.",
             "razonamiento": "Los SELECT con WHERE y ORDER BY NRO_CTA se cruzaron con SQLite, "
                             "con ORIGEN_PAIS calculado en Python como lo hace el DATA step. El "
-                            "cruce coincide salvo NRO_FILAS_SIN_CUENTA (ver observacion_revision).",
-            "observacion_revision": "Hallazgo del oráculo: el corpus lee una celda vacía como "
-                                    "NULL, y entonces NRO_CTA = '' no cuenta las filas sin "
-                                    "cuenta (SQLite da 0; SAS da 4, porque el blanco es igual a "
-                                    "''). Con cadena vacía el cruce coincide aquí, pero en 02 "
-                                    "falla el IS MISSING. El esperado sigue SAS. Además, mismo "
-                                    "supuesto de PROC EXPORT que en 02: comillas, formato BEST y "
-                                    "tipo inferido por PROC IMPORT; VAL_CRED_MES y similares van "
-                                    "como '0.00'.",
+                            "cruce coincide en las cinco salidas (ver observacion_revision).",
+            "observacion_revision": "El cruce con el oráculo SQL coincide: la celda vacía de una "
+                                    "columna de texto se guarda como '', así que NRO_CTA = '' "
+                                    "cuenta las 4 filas sin cuenta, y las tablas llevan COLLATE "
+                                    "RTRIM, así que los blancos finales no cuentan al comparar "
+                                    "(convención de faltantes del hito 77c). Sin demostrar sigue "
+                                    "el PROC EXPORT: comillas, formato BEST y tipo inferido por "
+                                    "PROC IMPORT; VAL_CRED_MES y similares van como '0.00'. "
+                                    "Mismo supuesto de orden de filas que en 02: no hay "
+                                    "ORDER BY.",
             "tolerancia": TOLERANCIA_SUMAS,
             "orden_relevante": False,
             "invariantes": [
@@ -183,17 +184,20 @@ META: dict[str, dict] = {
             "motivo": "Cadena con macro por producto, NODUPREC, PROC EXPORT y una fórmula de "
                       "conciliación que no hace lo que dice su nombre (ver observacion_revision).",
             "razonamiento": "Por producto: dedupe por construcción (NODUPREC), marca, sábana y "
-                            "totales; los SQL se cruzaron con SQLite con las macros resueltas. Con "
-                            "la convención de vacío del corpus el cruce falla en la sábana "
-                            "(INCONSISTENCIA = ''); con cadena vacía coincide en todo.",
-            "observacion_revision": "Hallazgo del oráculo: la convención de vacío como NULL rompe "
-                                    "INCONSISTENCIA = '' (SABANA queda en 0 filas y arrastra "
-                                    "TOTALES, CONCILIACION y RESUMEN). "
+                            "totales; los SQL se cruzaron con SQLite con las macros resueltas y "
+                            "coinciden en todas las salidas.",
+            "observacion_revision": "El cruce con el oráculo SQL coincide: el vacío de una columna "
+                                    "de texto se guarda como '', así que INCONSISTENCIA = '' sí "
+                                    "marca las filas y SABANA, TOTALES, CONCILIACION y RESUMEN "
+                                    "no se quedan en cero (convención de faltantes del hito "
+                                    "77c). Hallazgo del programa, no del oráculo: "
                                     "DIF_SIN_DUPLICADOS_EXACTOS resta NRO_POR_CORREGIR de "
                                     "NRO_ORIGEN - NRO_UNICOS; el nombre sugiere los duplicados "
-                                    "exactos (2 por producto), pero la fórmula da 1. El esperado "
-                                    "sigue la fórmula escrita. Además, el estado usa solo "
-                                    "DIF_TOTAL (no las filas), a diferencia de 05.",
+                                    "exactos (2 por producto), pero la fórmula da 1, y el "
+                                    "esperado sigue la fórmula escrita. Además, el estado usa "
+                                    "solo DIF_TOTAL (no las filas), a diferencia de 05. Sin "
+                                    "demostrar: qué fila conserva NODUPREC y el formato del "
+                                    "PROC EXPORT.",
             "tolerancia": TOLERANCIA_SUMAS,
             "orden_relevante": False,
             "invariantes": [
