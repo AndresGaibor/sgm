@@ -439,3 +439,70 @@ D2 (un archivo de rechazos por producto o uno por tipo de error), D6 en lo que t
 tolerancia de conciliación, los nombres de las tablas de salida finales, el significado exacto de los
 códigos de tipo de documento y las rutas reales por entorno. El emisor las marca pendientes y las lee de un
 YAML cuando el equipo las confirme.
+
+## 7. Aceptación contra el corpus (traspaso del plan de equivalencia)
+
+Añadido el 4 de noviembre de 2026. El corpus de `tests/corpus/` (101 casos de L0 a L6 y 16 de L8, todos
+con resultado esperado; ver `plan-corpus-y-equivalencia.md`) es ahora el criterio de aceptación de las
+tareas T10 a T19 y B. Una tarea que genere Jobs no está terminada cuando compila y corre con datos
+simulados cualquiera, sino cuando el caso del corpus que le corresponde da el resultado esperado.
+
+### 7.1 Qué caso valida cada tarea
+
+| Tarea | Casos del corpus | Qué se compara |
+|---|---|---|
+| T10 tipo de documento con lookup | `L2` (patrón `LEFT JOIN ... IS MISSING` e `INNER JOIN`) y `L8/validaciones/v01_tipo_doc` | Válidos e inválidos por producto; válidos más inválidos igual al origen |
+| T12 país y DANE | `L8/validaciones/v03_pais_dane` | Rechazo por país y por DANE con motivo |
+| T13 vacíos y ceros | `L8/validaciones/v02_vacios_ceros` | Conteos de la tabla de anomalías plantadas |
+| T14 cuenta, Codex, GMF | `L8/validaciones/v04_tipo_cta_gmf`, `v05_codex_saldos` | Rangos y listas permitidas |
+| T15 duplicados | `L8/totales/01_duplicados_frecuencias`, `L6` (`NODUPKEY`, `FIRST.`/`LAST.`) | Qué fila se conserva (ojo: ver 7.3) |
+| T16 conversión numérica | `L4` (`input`, `left`, `compress`) y `semantica/vectores.yaml` | Vectores con fuente |
+| T18 correcciones | `L8/totales/02_inconsistencias_correccion` | Corregidas y por corregir |
+| T19 sábana y salidas | `L8/totales/03_sabana_nal_ext`, `L8/validaciones/v07_cadena_completa` | `RESULTADO_<P>_NAL/EXT.csv` |
+| T31 y T32 totales y conciliación | `L8/totales/04_totales_origen_salida`, `05_conciliacion` | Sumas con tolerancia, diferencia plantada |
+| Periodo | `L8/totales/06_periodo_fecha` | Variables de fecha y nombres de archivo |
+| Lectura de Impala | `L8/totales/07_impala_lectura` | Con el Impala del contenedor (`tools/contenedores/impala/`) |
+| Cadena completa | `L8/validaciones/v08_nequi_cadena`, `L8/totales/08_cadena_completa_macros` | Las invariantes del `caso.yaml` |
+
+### 7.2 Cómo se comprueba
+
+1. Sin Studio: `uv run python tools/corpus.py oraculo todos --verificar` (117 casos, 0 fallas) y las pruebas
+   de cruce (`tests/unit/test_corpus_validaciones.py`, `test_corpus_totales_cruce.py`) comprueban que el
+   esperado es coherente.
+2. Con Studio: `tools/corpus_studio.py validar <caso> --jobs <carpeta> --padre <job> --mapa mapa.yaml`
+   (en construcción, tarea K11) ejecuta los Jobs emitidos con las entradas del caso y compara cada archivo
+   escrito con `esperado/`, con la tolerancia y el orden que dice el `caso.yaml`. Sin el arnés, hazlo a
+   mano con `tools/validar_en_studio.py` apuntando las variables de contexto a `entradas/` y comparando
+   con `esperado/`.
+3. Cada caso lleva `anomalias_plantadas` (conteo exacto de registros anómalos, independiente de cualquier
+   SQL) e `invariantes`: compruébalos en la ejecución real, no solo el archivo.
+
+### 7.3 Cosas que el corpus ya enseñó y que afectan a los Jobs
+
+- `MERGE` de un DATA step no es un `JOIN`: con llaves repetidas por ambos lados sale el máximo de filas por
+  grupo (caso `L6/l6_02`, ejemplo de la documentación de SAS). No traduzcas `MERGE` como unión de `tMap`
+  sin comprobarlo.
+- En un DATA step, `IF saldo < 500` es verdadero con saldo faltante; en SQL y en Java una comparación con
+  nulo no lo es. La expresión del `tMap` debe tratar el faltante explícitamente. El oráculo SQL tampoco lo
+  modela todavía.
+- Un texto en blanco es faltante y también es igual a `''`; los blancos finales no cuentan en una
+  comparación de texto. En Java, `String.equals` sí los cuenta: usa `trim` o una comparación propia.
+- `ROUND(x, 0.01)` de SAS redondea al múltiplo de 0,01 con empates alejándose de cero; `Math.round` y
+  `BigDecimal.setScale(2, HALF_UP)` coinciden en los casos normales, pero no uses el `round` por dígitos de
+  una base de datos.
+- `COMPRESS` sin modificadores quita blancos; `SUBSTR` sobre un número lo toma alineado a la derecha;
+  `SCAN` trata delimitadores consecutivos como uno (vectores en `tests/corpus/semantica/vectores.yaml`).
+- Huecos del analizador de `sgm` que los casos encontraron (`tests/corpus/HUECOS_FRONTEND.md` y
+  `HUECOS_FRONTEND_TOTALES.md`): `PROC DOWNLOAD` dentro de `RSUBMIT` pierde la ruta de red; `%IF` dentro de
+  una macro con parámetro no se sigue en tres programas. Son la tarea T82.
+- Los casos con `estado: pendiente_revision` o `parcial` tienen detalles de formato de `PROC IMPORT` y
+  `PROC EXPORT` sin demostrar sin SAS; la tolerancia del `caso.yaml` y su `observacion_revision` dicen
+  cuáles. Si tu Job difiere solo en ese detalle, anótalo; no cambies el esperado sin una fuente.
+
+### 7.4 Regla de cierre actualizada
+
+Un hito que traduce lógica del SAS termina con: (a) la ejecución en Studio del caso del corpus que lo
+cubre, con la salida literal pegada en `PROGRESS.md`; (b) el resultado (coincide, o la celda exacta que
+difiere y por qué); (c) el estado del caso actualizado si pasó (`traducible` solo si el esperado no tiene
+supuestos pendientes). Si el corpus no tiene un caso para lo que traduces, escribe el caso primero
+(formato en `plan-corpus-y-equivalencia.md`, sección 6), con la verdad plantada en el generador.
