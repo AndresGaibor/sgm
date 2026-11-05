@@ -1788,3 +1788,12 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   Mientras corre, `uv run pytest -q` puede fallar leyendo un YAML a medio escribir
   (`test_corpus_validaciones.py`); en aislamiento ese archivo pasa. `ruff check .` sigue en rojo por
   esos mismos archivos ajenos: los mios estan limpios.
+
+## Hito 70. Corpus: 16 casos L8 con anomalias plantadas y revision independiente de L0
+
+- Fecha: 2026-11-04
+- Que se hizo: (a) `tests/corpus/L8/validaciones/` (8 casos) y `tests/corpus/L8/totales/` (8 casos): programas SAS de 215 a 300 lineas en el estilo del original (etiquetas, `PROC IMPORT DBMS=DLM`, conversiones `input(left())`, consultas de SAS Studio, macros por producto, `PROC EXPORT`), con CSV de producto de 23 columnas y Excel simulados, generados por `tools/corpus_datos/validaciones.py` y `totales.py` con semilla fija. Cada `caso.yaml` lleva `anomalias_plantadas`: el conteo exacto de registros anomalos que el generador puso (por ejemplo tipo de documento invalido: CTE 7 y AHO 5), que es un oraculo independiente de cualquier traductor. (b) Revision independiente de los 15 casos L0 por un segundo agente que calculo a mano antes de ver el esperado: 13 coinciden (`revisado`), 2 ambiguos por el tipo que `PROC IMPORT` da a una fecha ISO (`tests/corpus/L0/REVISION.md`). (c) `tools/corpus_lib/caso.py` acepta los estados `revisado` y `sin_esperado` y los campos de metadatos de los casos.
+- Hallazgos del frontend de sgm (`tests/corpus/HUECOS_FRONTEND*.md`): `PROC DOWNLOAD` dentro de `RSUBMIT` queda sin lectura ni escritura y se pierde la ruta de red; `%IF` dentro de una macro con parametro no se sigue en 3 programas (05 linea 160, 06 linea 118, 07 linea 108). Son huecos reales del analizador, no del corpus.
+- Pruebas: `test_corpus_validaciones.py` (5), `test_corpus_totales.py` (12) y las de los hitos anteriores; `tools/corpus.py oraculo todos --verificar`: 30 casos, 0 fallas.
+- No verificado: ningun resultado contra SAS real. Dudas de sintaxis y semantica anotadas por caso: UPCASE, STRIP y COMPBL con Ã‘ y tildes segun la codificacion de sesion, opciones de EXCELCS copiadas del original, `input(left(''), n.)` como faltante.
+- Pendiente: generar el esperado de los casos L8 (hoy `sin_esperado`) con el oraculo y las anomalias plantadas, arreglar los huecos del frontend, y traducir estos casos a Jobs de Talend.
