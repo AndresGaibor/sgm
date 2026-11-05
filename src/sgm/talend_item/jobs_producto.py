@@ -5,9 +5,12 @@ y suma del saldo, la base de la conciliación) y otra valida el tipo de document
 homologación, con el mismo patrón que el SAS (`LEFT JOIN` + `IS MISSING` para el rechazo, `INNER
 JOIN` para los válidos). Los válidos se totalizan y los rechazados se escriben con su `motivo`.
 
-Todas las columnas se leen como texto: el SAS convierte después con `input()`. La comparación del
-tipo de documento es, por tanto, de texto contra texto: en el SAS `TIPO_DOC` es numérico
-(`input(left(VAR9), 8.)`), así que `01` y `1` no casan igual. Esa diferencia está pendiente.
+Todas las columnas se leen como texto: el SAS convierte después con `input()`. `cli_talend` pasa en
+`numericas` las columnas que `esquema_csv` demuestra como numéricas, con el informat `w.d` real; con
+eso se inserta un `tMap` de normalización que aplica `input(left(x), w.d)` (expresiones verificadas
+en Studio, hito 83) y devuelve el mismo esquema en texto. La comparación del tipo de documento es de
+texto contra texto: en el SAS `TIPO_DOC` es numérico (`input(left(VAR9), 8.)`), así que `01` y `1`
+no casan igual. Esa diferencia está pendiente (R1-03).
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from sgm.talend_item.componentes import log_row
 from sgm.talend_item.conexiones import al_terminar_subjob, lookup
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Conexion, Job, Nodo, ParametroContexto
+from sgm.talend_item.normalizacion import as_text, input_left_wd
 from sgm.talend_item.periodo import HOJA_POR_DEFECTO
 from sgm.talend_item.plantillas import nodo_desde_plantilla
 from sgm.talend_item.tmap import EntradaMap, SalidaMap, tmap
@@ -24,11 +28,15 @@ from sgm.talend_item.tmap import EntradaMap, SalidaMap, tmap
 MOTIVO = "motivo"
 
 
-def _a_decimal(columna: str, entrada: str = "row1") -> str:
-    """Expresión de Java equivalente a `input(left(col), 20.)`: vacío es nulo, el resto decimal."""
-    valor = f"{entrada}.{columna}"
-    vacio = f"{valor} == null || {valor}.trim().isEmpty()"
-    return f"{vacio} ? null : new java.math.BigDecimal({valor}.trim())"
+def _a_decimal(
+    columna: str, entrada: str = "row1", ancho: int = 20, decimales: int = 0
+) -> str:
+    """`input(left(col), w.d)`: la expresión verificada en el hito 83. Devuelve BigDecimal o null.
+
+    El ancho por omisión (20) es el que este Job usaba antes de R1-02; cuando `cli_talend` aporta
+    el informat demostrado por el SAS, se usa ese en su lugar.
+    """
+    return input_left_wd(f"{entrada}.{columna}", ancho, decimales)
 
 
 def _operaciones(
@@ -101,11 +109,15 @@ def job_producto(
     delimitador: str = ";",
     ruta_java: str | None = None,
     validacion: ValidacionProducto | None = None,
+    numericas: dict[str, tuple[int, int]] | None = None,
 ) -> Job:
-    """Lee `context.ruta_origen`, totaliza el origen y, si hay validación,
-    separa los válidos de los rechazos.
+    """Lee `context.ruta_origen`, normaliza, totaliza el origen y separa válidos de rechazos.
+
+    `numericas` es columna -> (w, d) del informat que el SAS demuestra. Sin él no se emite el
+    `tMap` de normalización, para no inventar conversiones que el programa no declara.
     """
     cols = [Columna(c) for c in columnas]
+    informats = dict(numericas or {})
     parametros = ["producto", "ruta_origen", "sufijo", *variables_periodo]
     if validacion is not None:
         parametros += ["arch_hom_tipo_doc", "ruta_insumos", "ruta_resultados", "hoja_excel"]
@@ -113,12 +125,13 @@ def job_producto(
     lineas = [f"System.out.println({java(mensaje)});"]
     lineas += [f'System.out.println("  {p} = " + context.{p});' for p in parametros]
     con_saldo = arq.columna_saldo in columnas
+    w_saldo, d_saldo = informats.get(arq.columna_saldo, (20, 0))
     llave = cols[0]
     saldo = Columna("saldo", "id_BigDecimal")
     salida_map = [llave, saldo] if con_saldo else [llave]
     expresiones = {llave.nombre: f"row1.{llave.nombre}"}
     if con_saldo:
-        expresiones["saldo"] = _a_decimal(arq.columna_saldo)
+        expresiones["saldo"] = _a_decimal(arq.columna_saldo, ancho=w_saldo, decimales=d_saldo)
     totales_origen = [Columna("registros_origen", "id_Long")]
     if con_saldo:
         totales_origen.append(Columna("suma_saldo_origen", "id_BigDecimal"))
@@ -139,6 +152,27 @@ def job_producto(
             columnas=cols,
             ruta_java=ruta_java,
         ),
+    ]
+    if informats:
+        normalizadas = {
+            c.nombre: (
+                as_text(input_left_wd(f"row1.{c.nombre}", *informats[c.nombre]))
+                if c.nombre in informats
+                else f"row1.{c.nombre}"
+            )
+            for c in cols
+        }
+        nodos.append(
+            tmap(
+                "tMap_normalizacion",
+                [EntradaMap("row1", cols)],
+                [SalidaMap("normalizados", cols, normalizadas)],
+                120,
+                120,
+                ruta_java,
+            )
+        )
+    nodos += [
         nodo_desde_plantilla(
             "tReplicate", "tReplicate_1", 240, 120, columnas=cols, ruta_java=ruta_java
         ),
@@ -154,9 +188,15 @@ def job_producto(
         ),
         log_row("tLogRow_1", totales_origen, 960, 60, ruta_java or ""),
     ]
-    conexiones = [
-        al_terminar_subjob("tJava_1", "tFileInputDelimited_1"),
-        Conexion("tFileInputDelimited_1", "tReplicate_1", "row1"),
+    conexiones = [al_terminar_subjob("tJava_1", "tFileInputDelimited_1")]
+    if informats:
+        conexiones += [
+            Conexion("tFileInputDelimited_1", "tMap_normalizacion", "row1"),
+            Conexion("tMap_normalizacion", "tReplicate_1", "normalizados"),
+        ]
+    else:
+        conexiones.append(Conexion("tFileInputDelimited_1", "tReplicate_1", "row1"))
+    conexiones += [
         Conexion("tReplicate_1", "tMap_1", "row1"),
         Conexion("tMap_1", "tAggregateRow_1", "out1"),
         Conexion("tAggregateRow_1", "tLogRow_1", "row2"),
@@ -166,7 +206,9 @@ def job_producto(
         valido = [llave, *([saldo] if con_saldo else [])]
         expresiones_validos = {llave.nombre: f"copy2.{llave.nombre}"}
         if con_saldo:
-            expresiones_validos["saldo"] = _a_decimal(arq.columna_saldo, "copy2")
+            expresiones_validos["saldo"] = _a_decimal(
+                arq.columna_saldo, "copy2", w_saldo, d_saldo
+            )
         nodos += [
             _homologacion(validacion, 240, 360, ruta_java),
             tmap(

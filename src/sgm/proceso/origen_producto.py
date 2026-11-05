@@ -25,6 +25,8 @@ class OrigenProducto:
 class OrigenesProducto:
     por_producto: dict[str, OrigenProducto] = field(default_factory=dict)
     columnas_comunes: tuple[str, ...] = ()  # nombre por posición, común a los productos
+    # Columna -> (w, d) del informat que el SAS demuestra. Solo las que algún producto convierte.
+    numericas_comunes: dict[str, tuple[int, int]] = field(default_factory=dict)
     pendientes: list[str] = field(default_factory=list)
 
 
@@ -56,11 +58,18 @@ def origenes_producto(texto: str, productos: dict[str, tuple[str, ...]]) -> Orig
     ancho = max(anchos, default=0)
     nombres = []
     for n in range(ancho):
-        demostrados = [
-            o.columnas[n].nombre
-            for o in resultado.por_producto.values()
-            if n < len(o.columnas) and o.columnas[n].demostrada
+        columnas = [
+            o.columnas[n] for o in resultado.por_producto.values() if n < len(o.columnas)
         ]
-        nombres.append(demostrados[0] if demostrados else f"VAR{n + 1}")
+        demostrados = [c.nombre for c in columnas if c.demostrada]
+        nombre = demostrados[0] if demostrados else f"VAR{n + 1}"
+        nombres.append(nombre)
+        informats = {(c.ancho, c.decimales) for c in columnas if c.numerica}
+        if informats:
+            resultado.numericas_comunes[nombre] = sorted(informats)[0]
+            if len(informats) > 1:
+                resultado.pendientes.append(
+                    f"{nombre}: los productos declaran informats distintos {sorted(informats)}"
+                )
     resultado.columnas_comunes = tuple(nombres)
     return resultado

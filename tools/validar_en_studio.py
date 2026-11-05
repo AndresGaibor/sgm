@@ -1,13 +1,15 @@
 """Validador externo: emite un programa, lo compila, lo exporta y lo ejecuta en Talend Studio.
 
 Uso: uv run python tools/validar_en_studio.py <programa.sas> --project <ruta> [--insumos DIR]
-     [--productos DIR] [--sufijo v1] [--contexto DEV] [--param clave=valor] [--dry-run]
+     [--productos DIR] [--sufijo v1] [--contexto DEV] [--param clave=valor] [--solo-compilar]
+     [--dry-run]
 
 Convierte el protocolo de `docs/plan-reescritura/tareas-agente.md` (sección 3) en un comando:
 emite los Jobs con un nombre nuevo, parchea el padre para correrlo con datos simulados, los copia
 al proyecto, refresca el workspace, compila los hijos, luego el padre, exporta y ejecuta el
 launcher. **Siempre** borra del proyecto los Jobs de prueba y refresca el workspace al terminar,
-aunque falle.
+aunque falle. Con `--solo-compilar` se detiene tras el build: reproduce la comprobación de que lo
+emitido por `sgm talend` compila en Studio, sin necesitar Excel ni CSV simulados (hito 84).
 
 No es parte del producto: vive en `tools/` y habla con talend-mcp por HTTP (`urllib`, sin
 dependencias). El servidor debe estar arrancado con permiso de escritura, por ejemplo:
@@ -75,6 +77,12 @@ def renombrar(carpeta: Path, sufijo: str, proyecto: str) -> dict[str, str]:
     La versión sale del nombre del archivo: Studio guarda `0.1`, `0.2` o `1.0` y no se fija
     ninguna. Los ids del `.properties` se recalculan con la versión real, porque el emisor los
     deriva de `<job>_<versión>`.
+
+    Hallazgo del hito 84: las referencias de un padre a sus hijos viven en el `.item` **del
+    padre**, no en el de cada hijo. La primera pasada solo reescribe cada `.item` consigo mismo,
+    así que con varios Jobs el padre seguía apuntando a los nombres e ids originales y Studio
+    fallaba al generar el `tRunJob` con `item is null`. De ahí la segunda pasada sobre todos los
+    `.item` con el mapa completo.
     """
     guardadas = versiones(carpeta)
     mapa = {viejo: f"{viejo}_{sufijo}" for viejo in guardadas}
@@ -98,6 +106,19 @@ def renombrar(carpeta: Path, sufijo: str, proyecto: str) -> dict[str, str]:
         texto = texto.replace(f'href="{base_vieja}.item', f'href="{base_nueva}.item')
         propiedades.write_text(texto, encoding="utf-8", newline="\n")
         propiedades.rename(carpeta / f"{base_nueva}.properties")
+
+    referencias = {f'value="{viejo}"': f'value="{nuevo}"' for viejo, nuevo in mapa.items()}
+    for viejo, version in guardadas.items():
+        viejo_id = _id_propiedad(f"{viejo}_{version}")
+        nuevo_id = _id_propiedad(f"{mapa[viejo]}_{version}")
+        referencias[f'value="{proyecto}:{viejo_id}"'] = f'value="{proyecto}:{nuevo_id}"'
+    for archivo in sorted(carpeta.glob("*.item")):
+        texto = archivo.read_text(encoding="utf-8")
+        reescrito = texto
+        for buscado, reemplazo in referencias.items():
+            reescrito = reescrito.replace(buscado, reemplazo)
+        if reescrito != texto:
+            archivo.write_text(reescrito, encoding="utf-8", newline="\n")
     return mapa
 
 
@@ -132,11 +153,73 @@ def parchear_padre(
     arbol.write(archivo, encoding="UTF-8", xml_declaration=True)
 
 
-def construir(mcp: MCP, nombres: list[str]) -> None:
+def _resultado_anidado(datos: dict) -> dict:
+    """`data.result` del Studio bridge real; `{}` en el formato plano y en los dobles."""
+    data = datos.get("data")
+    if not isinstance(data, dict):
+        return {}
+    resultado = data.get("result")
+    return resultado if isinstance(resultado, dict) else {}
+
+
+def resultados_build(datos: dict) -> dict[str, dict]:
+    """Estado por Job de la respuesta de `talend_job_build_batch`, en sus dos formas.
+
+    No las redescubras: el formato plano (y el de los dobles de prueba) es
+    `{"jobs": [{"ok": true, "name": "x"}]}`; el Studio bridge real (medido en el hito 84) anida
+    el resultado en `data.result.jobs`, que además es un **diccionario** por nombre de Job:
+
+        {"ok": true, "data": {"ok": true, "result": {"total": 1, "correctos": 1,
+          "jobs": {"job_producto_v84a": {"ok": true, "compileMs": 1333}}}}}
+
+    Leer solo `datos["jobs"]` como lista, que es lo que hacía `construir`, dejaba `fallos` vacío
+    ante la respuesta real: un build fallido pasaba por correcto. Devuelve nombre -> estado.
+    """
+    if not isinstance(datos, dict):
+        return {}
+    contenedores = [datos, _resultado_anidado(datos), datos.get("data")]
+    for contenedor in contenedores:
+        if not isinstance(contenedor, dict):
+            continue
+        bruto = contenedor.get("jobs")
+        if isinstance(bruto, dict):
+            return {str(n): e for n, e in bruto.items() if isinstance(e, dict)}
+        if isinstance(bruto, list):
+            return {
+                str(e.get("name") or f"job_{i}"): e
+                for i, e in enumerate(bruto)
+                if isinstance(e, dict)
+            }
+    return {}
+
+
+def construir(mcp: MCP, nombres: list[str]) -> dict[str, dict]:
+    """Compila los Jobs en Studio y falla si alguno no compila o si el lote no cuadra.
+
+    Devuelve el estado por Job para que el arnés pueda pegar la evidencia literal en `PROGRESS.md`.
+    """
     datos = mcp.llamar("talend_job_build_batch", {"jobs": nombres, "parallelism": 4})
-    fallos = [j for j in (datos or {}).get("jobs", []) if not j.get("ok")]
+    estados = resultados_build(datos)
+    if not estados:
+        raise ErrorValidacion(
+            "el build no informó del estado de ningún Job: "
+            + json.dumps(datos, ensure_ascii=False)[:800]
+        )
+    fallos = {n: e for n, e in estados.items() if not e.get("ok")}
+    resultado = _resultado_anidado(datos)
+    if "total" in resultado and resultado.get("correctos") != resultado.get("total"):
+        fallos["<lote>"] = {
+            "total": resultado.get("total"),
+            "correctos": resultado.get("correctos"),
+        }
+    data = datos.get("data")
+    ok_puente = data.get("ok") if isinstance(data, dict) else None
+    for nivel, valor in (("<servidor>", datos.get("ok")), ("<puente>", ok_puente)):
+        if valor is False:
+            fallos[nivel] = {"ok": False}
     if fallos:
         raise ErrorValidacion(f"no compilan: {json.dumps(fallos, ensure_ascii=False)[:1200]}")
+    return estados
 
 
 def exportar(mcp: MCP, job: str, destino: Path, m2: Path | None) -> Path:
@@ -254,10 +337,19 @@ def validar(args: argparse.Namespace) -> dict:
                         copiados.append(destino)
         mcp.llamar("talend_bridge_refresh_workspace")
         hijos = [n for v, n in mapa.items() if v != arq.padre]
-        print(f"Compilando hijos: {', '.join(hijos)}")
-        construir(mcp, hijos)
+        compilados: dict[str, dict] = {}
+        if hijos:
+            print(f"Compilando hijos: {', '.join(hijos)}")
+            compilados.update(construir(mcp, hijos))
         print(f"Compilando padre: {mapa[arq.padre]}")
-        construir(mcp, [mapa[arq.padre]])
+        compilados.update(construir(mcp, [mapa[arq.padre]]))
+        print(f"RESULTADO BUILD: {json.dumps(compilados, ensure_ascii=False)}")
+        if getattr(args, "solo_compilar", False):
+            return {
+                "soloCompilar": True,
+                "jobs": sorted(mapa.values()),
+                "build": compilados,
+            }
         lanzador = exportar(mcp, mapa[arq.padre], exportado, args.m2)
         print(f"Ejecutando {lanzador} (contexto {args.contexto or 'Default'})")
         return ejecutar(lanzador, args.contexto, args.param, args.java_bin)
@@ -284,6 +376,11 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--param", action="append", default=[], metavar="CLAVE=VALOR")
     parser.add_argument("--java-bin", type=Path, help="Carpeta bin del JDK de Studio")
     parser.add_argument("--m2", type=Path, help="Caché .m2 de Studio para descargar poms")
+    parser.add_argument(
+        "--solo-compilar",
+        action="store_true",
+        help="Detenerse tras el build en Studio, sin exportar ni ejecutar el launcher",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
     try:

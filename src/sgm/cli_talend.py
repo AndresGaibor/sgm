@@ -120,6 +120,7 @@ def talend_command(
             pendiente,
             _delimitador(origenes),
             validacion=arq.validaciones[0] if arq.validaciones else None,
+            numericas=origenes.numericas_comunes,
         )
     jobs = [padre, *jobs_hijos(arq, variables, lookups, producto_real=producto)]
     destino = out / source.stem / "talend" / "process"

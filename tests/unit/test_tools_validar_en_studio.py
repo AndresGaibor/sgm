@@ -1,9 +1,11 @@
-"""Validador externo de Studio, sin Studio: las cuatro correcciones del hito 80 (R0-02).
+"""Validador externo de Studio, sin Studio: las correcciones de los hitos 80 y 84.
 
 Cubre lo que el arnés del corpus encontró roto: `exportar` busca el lanzador solo en la raíz del
 destino, `renombrar` exige la versión 0.1, `ejecutar` no entrecomilla los parámetros y las carpetas
-`build-*` se quedan en `%TEMP%`. Todo con un doble del cliente MCP; la demostración real necesita
-el Studio instalado.
+`build-*` se quedan en `%TEMP%`. También el hallazgo del hito 84: el build real del Studio bridge
+devuelve `data.result.jobs` como diccionario, y leer solo `jobs` de la raíz hacía que un build
+fallido pasara por bueno. Todo con un doble del cliente MCP; la demostración real necesita el
+Studio instalado.
 """
 
 from __future__ import annotations
@@ -85,6 +87,36 @@ def test_renombrar_lee_los_jobs_de_cualquier_version(tmp_path):
     assert mapa == {"dos": "dos_v9", "uno": "uno_v9"}
 
 
+def test_renombrar_actualiza_los_trunjob_del_padre_a_los_hijos_renombrados(tmp_path):
+    """Sin esta segunda pasada el padre apunta a ids viejos y Studio falla con `item is null`."""
+    id_hijo = validar_en_studio._id_propiedad("hijo_0.1")
+    (tmp_path / "padre_0.1.item").write_text(
+        '<talendfile:ProcessType xmlns:talendfile="http://talend">\n'
+        '  <elementParameter name="PROCESS" value="hijo"/>\n'
+        f'  <elementParameter name="PROCESS:PROCESS_TYPE_PROCESS" '
+        f'value="{PROYECTO}:{id_hijo}"/>\n'
+        "</talendfile:ProcessType>\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "hijo_0.1.item").write_text("<raiz/>", encoding="utf-8")
+    for nombre in ("padre", "hijo"):
+        propio = validar_en_studio._id_propiedad(f"{nombre}_0.1")
+        (tmp_path / f"{nombre}_0.1.properties").write_text(
+            f'<xmi:XMI><TalendProperties:Property id="{propio}" '
+            f'label="{nombre}" displayName="{nombre}" path="{nombre}"/></xmi:XMI>',
+            encoding="utf-8",
+        )
+
+    mapa = validar_en_studio.renombrar(tmp_path, "v9", PROYECTO)
+
+    texto = (tmp_path / "padre_v9_0.1.item").read_text(encoding="utf-8")
+    nuevo_id = validar_en_studio._id_propiedad("hijo_v9_0.1")
+    assert mapa == {"hijo": "hijo_v9", "padre": "padre_v9"}
+    assert 'value="hijo_v9"' in texto
+    assert f'value="{PROYECTO}:{nuevo_id}"' in texto
+    assert id_hijo not in texto
+
+
 # --- exportar con búsqueda recursiva ------------------------------------------------------------
 
 
@@ -151,3 +183,110 @@ def test_la_carpeta_de_build_se_crea_y_se_borra():
 
 def test_borrar_una_carpeta_que_ya_no_existe_no_falla(tmp_path):
     validar_en_studio.borrar_destino_build(tmp_path / "no-existe")
+
+
+# --- build en Studio: la respuesta real va anidada (hito 84) -------------------------------------
+
+# Literal de `talend_job_build_batch` contra Studio 8.0.1 / PRJ_BANCOLOMBIA, sufijo v84a.
+RESPUESTA_REAL = {
+    "ok": True,
+    "source": "studio-bridge",
+    "confidence": "high",
+    "endpoint": "/automation/job/build-batch",
+    "data": {
+        "ok": True,
+        "source": "studio-bridge",
+        "confidence": "medium",
+        "endpoint": "/automation/build-batch",
+        "result": {
+            "total": 1,
+            "correctos": 1,
+            "parallelism": 4,
+            "totalMs": 2383,
+            "jobs": {
+                "job_producto_v84a": {"generateMs": 1049, "compileMs": 1333, "ok": True}
+            },
+        },
+    },
+}
+
+
+class DobleBuild:
+    """Cliente que devuelve una respuesta de build prefijada y anota la petición."""
+
+    def __init__(self, respuesta) -> None:
+        self.respuesta = respuesta
+        self.peticiones: list[tuple[str, dict]] = []
+
+    def llamar(self, tool: str, argumentos: dict | None = None):
+        self.peticiones.append((tool, argumentos or {}))
+        return self.respuesta
+
+
+def test_construir_acepta_el_formato_plano_de_los_dobles():
+    doble = DobleBuild({"jobs": [{"ok": True, "name": "job_x"}]})
+
+    assert validar_en_studio.construir(doble, ["job_x"]) == {
+        "job_x": {"ok": True, "name": "job_x"}
+    }
+    assert doble.peticiones == [
+        ("talend_job_build_batch", {"jobs": ["job_x"], "parallelism": 4})
+    ]
+
+
+def test_construir_detecta_un_job_que_no_compila_en_formato_plano():
+    doble = DobleBuild({"jobs": [{"ok": True, "name": "bien"}, {"ok": False, "name": "mal"}]})
+
+    with pytest.raises(ErrorValidacion, match="mal"):
+        validar_en_studio.construir(doble, ["bien", "mal"])
+
+
+def test_construir_lee_el_estado_por_job_de_la_respuesta_real_del_puente():
+    assert validar_en_studio.construir(DobleBuild(RESPUESTA_REAL), ["job_producto_v84a"]) == {
+        "job_producto_v84a": {"generateMs": 1049, "compileMs": 1333, "ok": True}
+    }
+
+
+def test_construir_falla_si_un_job_del_puente_no_compila():
+    from copy import deepcopy
+
+    respuesta = deepcopy(RESPUESTA_REAL)
+    respuesta["data"]["result"]["jobs"]["job_producto_v84a"]["ok"] = False
+    respuesta["data"]["result"]["correctos"] = 0
+
+    with pytest.raises(ErrorValidacion, match="job_producto_v84a"):
+        validar_en_studio.construir(DobleBuild(respuesta), ["job_producto_v84a"])
+
+
+def test_construir_falla_si_el_lote_no_cuadra_aunque_cada_job_diga_ok():
+    from copy import deepcopy
+
+    respuesta = deepcopy(RESPUESTA_REAL)
+    respuesta["data"]["result"]["total"] = 2
+
+    with pytest.raises(ErrorValidacion, match="lote"):
+        validar_en_studio.construir(DobleBuild(respuesta), ["a", "b"])
+
+
+def test_construir_falla_si_el_servidor_marca_ok_en_falso():
+    from copy import deepcopy
+
+    respuesta = deepcopy(RESPUESTA_REAL)
+    respuesta["ok"] = False
+
+    with pytest.raises(ErrorValidacion, match="servidor"):
+        validar_en_studio.construir(DobleBuild(respuesta), ["job_producto_v84a"])
+
+
+def test_construir_no_da_por_bueno_un_build_sin_estado_de_jobs():
+    """El bug del hito 84: la respuesta real no tiene `jobs` en la raíz y antes pasaba en limpio."""
+
+    with pytest.raises(ErrorValidacion, match="no informó"):
+        validar_en_studio.construir(DobleBuild({}), ["job_x"])
+
+
+def test_main_ofrece_la_opcion_solo_compilar(capsys):
+    with pytest.raises(SystemExit) as salida:
+        validar_en_studio.main(["--help"])
+    assert salida.value.code == 0
+    assert "--solo-compilar" in capsys.readouterr().out

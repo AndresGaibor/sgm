@@ -97,3 +97,31 @@ def test_esquema_csv_nombra_y_tipa_las_columnas_que_el_sas_demuestra():
     assert (nombre.nombre, nombre.numerica, nombre.demostrada) == ("NOMBRE", False, True)
     assert (x.nombre, x.numerica, x.demostrada) == ("X", True, True)
     assert (z.nombre, z.numerica, z.demostrada) == ("VAR3", False, False)
+
+
+def test_esquema_csv_guarda_el_informat_wd_y_no_inventa_el_de_las_columnas_de_texto():
+    fuente = fuentes_csv(SAS_SIN_CABECERA, PRODUCTOS)[0]
+
+    columnas = esquema_csv(SAS_SIN_CABECERA, fuente)
+
+    assert [(c.ancho, c.decimales) for c in columnas] == [(0, 0), (10, 0), (0, 0)]
+
+
+@pytest.mark.parametrize(
+    ("conversion", "esperado"),
+    [
+        ("X=input(left(VAR2), 30.);", (30, 0)),
+        ("X=input(left(VAR2), 8.2);", (8, 2)),
+        ("X=COMPRESS(input(left(VAR2), 3.));", (3, 0)),
+        ("X = INPUT( LEFT( VAR2 ) , 12.4 );", (12, 4)),
+    ],
+    ids=["treinta_punto", "ocho_dos", "compress", "espacios_y_mayusculas"],
+)
+def test_esquema_csv_lee_w_y_d_de_las_formas_de_conversion_del_sas(conversion, esperado):
+    texto = IMPORT_SIN_CABECERA + "DATA WORK.S;\n SET WORK.Base;\n " + conversion + "\nRUN;\n"
+    fuente = fuentes_csv(texto, PRODUCTOS)[0]
+
+    (columna,) = [c for c in esquema_csv(texto, fuente) if c.posicion == 2]
+
+    assert columna.numerica is True
+    assert (columna.ancho, columna.decimales) == esperado

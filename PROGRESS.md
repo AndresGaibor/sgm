@@ -2193,3 +2193,86 @@ eglas_mapeo.py). La salida no cambia: goldens id�nticos.
   vector con fuente cual de las dos lecturas es la de SAS antes de cambiar el codigo. El SAS de
   `client_large.sas` usa `input(left(x), 30.)`, es decir, primero `LEFT`, lo que respalda el orden
   elegido aqui, pero el oraculo de los vectores modela `input(x, w.d)` sin `LEFT`.
+
+## Hito 84. R1-02 (parte 2): la normalización llega al emisor y los Jobs emitidos compilan en Studio
+
+- Fecha: 2026-11-05
+- Que se hizo: se cierra la integración de R1-02 en `sgm talend`, que en el hito 83 solo existía
+  como expresiones sueltas verificadas.
+  - `src/sgm/proceso/esquema_csv.py` captura el informat completo `w.d` de
+    `X=input(left(VARn), 30.)`, `8.2`, `COMPRESS(input(...))` y de las formas con espacios y
+    mayúsculas. `ColumnaCsv` guarda `ancho` y `decimales` (0/0 cuando el SAS no demuestra
+    conversión). No se supone ningún tipo nuevo.
+  - `origenes_producto()` publica `numericas_comunes` (columna -> `(w, d)`) y, si dos productos
+    declaran informats distintos para la misma columna, elige el menor **y lo deja en
+    `pendientes`** en vez de decidir en silencio. Sobre el SAS real hay 15 columnas:
+    `NRO_CTA` (30,0), `TIPO_DOC` (8,0), `GMF` (3,0), `FIN_SALDO_CTA` (30,0);
+    `ANIO_PROCESO` solo tiene alias y sigue siendo texto.
+  - `cli_talend` pasa `numericas=origenes.numericas_comunes` a `job_producto`. Sin columnas
+    numéricas demostradas no se emite ningún `tMap` de normalización: no se inventan conversiones.
+  - `jobs_producto.py` inserta `tMap_normalizacion` entre `tFileInputDelimited_1` y
+    `tReplicate_1`, conserva las 23 columnas, convierte solo las 15 numéricas con
+    `as_text(input_left_wd(row1.col, w, d))` y deja las demás como `row1.col`. `_a_decimal`
+    (saldo de origen y filas válidas) usa el mismo `w.d` real en vez de un ancho fijo.
+- Evidencia en Studio 8.0.1, proyecto `PRJ_BANCOLOMBIA`, dos comprobaciones reales:
+  1. Job suelto `job_producto_v84a`, copiando solo su `.item`/`.properties`:
+     `{"ok": true, "source": "studio-bridge", "confidence": "high", "data": {"ok": true,
+     "result": {"total": 1, "correctos": 1, "totalMs": 2383, "jobs":
+     {"job_producto_v84a": {"generateMs": 1049, "compileMs": 1333, "ok": true}}}}}`.
+  2. Comprobación reproducible del repo (sufijo `v84e`), con
+     `uv run python tools/validar_en_studio.py tests/fixtures/sas/client/client_large.sas --project "<proyecto>" --sufijo v84e --solo-compilar`.
+     Salida literal: `Compilando hijos: job_conciliacion_v84e, job_producto_v84e, job_totales_v84e`;
+     `Compilando padre: job_exogena_depositos_v84e`;
+     `RESULTADO BUILD: {"job_conciliacion_v84e": {"generateMs": 186, "compileMs": 384, "ok": true}, "job_producto_v84e": {"generateMs": 507, "compileMs": 735, "ok": true}, "job_totales_v84e": {"generateMs": 175, "compileMs": 352, "ok": true}, "job_exogena_depositos_v84e": {"generateMs": 705, "compileMs": 664, "ok": true}}`;
+     `Limpieza: 8 archivos borrados del proyecto y build temporal borrado`; código de salida 0.
+- Hallazgos (los tres aparecieron al volver reproducible la comprobación, no se buscaron a mano):
+  1. `validar_en_studio.construir()` leía solo `datos["jobs"]` como lista. El Studio bridge real
+     devuelve `data.result.jobs` como **diccionario** por nombre de Job, así que un build fallido
+     habría pasado por bueno. Ahora `resultados_build()` entiende las dos formas y se comprueba el
+     `ok` de cada Job, que `correctos == total` y los `ok` del servidor y del puente. Con eso
+     apareció el fallo del primer intento (`v84b`): `no compilan: {"job_exogena_depositos_v84b": {"ok": false, "error": {"message": "Cannot invoke \"Object.getClass()\" because \"item\" is null"}}, "<lote>": {"total": 1, "correctos": 0}}`.
+  2. Causa: `renombrar()` reescribía cada `.item` solo con su propio nombre e id, pero las
+     referencias `PROCESS` y `PROCESS:PROCESS_TYPE_PROCESS` de los `tRunJob` viven en el `.item`
+     del **padre**. Con sufijo nuevo el padre seguía apuntando a los hijos originales. Se añadió
+     una segunda pasada con el mapa completo de nombres e ids sobre todos los `.item`; con ella
+     compilan los 4. Se descartó que fuera cosa de `parchear_padre` repitiendo la prueba sin ese
+     parcheo (`v84c`, mismo fallo antes del arreglo).
+  3. `--solo-compilar` deja la comprobación en un comando del repo, sin Excel ni CSV simulados:
+     emite, renombra, refresca, compila hijos antes que el padre y limpia siempre.
+- Alcance: es evidencia de **compilación**, no de ejecución con datos. Las expresiones sueltas sí
+  se ejecutaron en Studio en el hito 83; ejecutar el `job_producto` emitido contra CSV y Excel
+  reales pertenece a R1-03/G4. En este hito no se ejecutó ningún Job.
+- Decisiones: (a) R1-02 se marca `hecho` **con dos salvedades explícitas**: sigue sin haber vector
+  con fuente para decimales con coma (no se implementó esa semántica) y `compress`, `UPCASE`,
+  `COMPBL` y caracteres especiales están verificadas como expresiones pero aún no se asignan a
+  columnas concretas del emisor, porque este SAS no demuestra qué columnas pasan por ellas; se
+  retoman en R1-05/R1-08. No se marca `hecho` a secas para no inflar el plan. (b) el ancho por
+  omisión de `_a_decimal` cuando el llamador no aporta `numericas` sigue siendo 20, el que declara
+  `decisiones/client_large.jobs.yaml`; cuando el CLI aporta el informat, manda el SAS.
+  (c) `metricas-base.md` no se modifica: es la foto de G0. (d) `tools/validar_en_studio.py`
+  queda en 396 líneas, por encima de las 300 de la regla de `AGENTS.md`: se acepta como desviación
+  registrada porque partirlo ahora cambiaría la superficie de importación de cuatro arneses y sus
+  pruebas sin beneficio para R1-02; hay precedente en `tools/etiquetas_fase0.py` (364) y
+  `tools/prueba_normalizacion.py` (325). La división queda pendiente para un hito de herramientas.
+- Efecto colateral a verificar en R1-03: al normalizar `TIPO_DOC` con `8.`, un `01` de origen
+  llega al lookup como `1`, justo la comparación texto frente a número que el diseño dejó
+  pendiente. No se afirma que ya coincida: hace falta correr el caso `v01` con datos.
+- Pruebas: 22 nuevas en `test_talend_emision_normalizacion.py` (cadena completa SAS -> `.item`:
+  15 conversiones, anchos 3/8/30, conexiones, ausencia del `tMap` sin `numericas`),
+  `test_proceso_fuentes_csv.py` (5), `test_proceso_origen_producto.py` (3),
+  `test_tools_validar_en_studio.py` (9: las dos formas del build, los cuatro modos de fallo y las
+  referencias cruzadas del padre) y `test_tablero.py` (expectativa actualizada).
+  `uv run pytest -q`: 1635 pasan, 26 se saltan, 132 xfail (frente a 1613 del hito 83).
+  `uv run ruff check .`: limpio.
+- Métricas del tablero: 27 componentes emitidos (job_conciliacion 1, job_exogena_depositos 13,
+  job_producto **12**, job_totales 1; antes 26 y 11 por el `tMap` nuevo). Sin cambios en
+  conformidad (12 de 118 filas, 2 de 22 secciones), 16 pendientes en 5 motivos, 117 casos del
+  corpus, 81 `traducible` y 0 traducidos por un traductor automático y pasados en Studio.
+- Estado en el plan: R1-02 pasa de `parcial` a `hecho` con las salvedades anteriores; quedan
+  desbloqueadas R1-10 y R1-11, que dependían de R1-02. El camino crítico sigue por R1-03, la
+  primera tarea que pide datos reales y, por tanto, el próximo candidato a bloqueo humano.
+- Riesgo: la normalización cambia el texto que ven todos los nodos aguas abajo de
+  `tMap_normalizacion` (incluida la homologación de tipo de documento), y eso solo se ha
+  comprobado compilando, no ejecutando. La segunda pasada de `renombrar` reescribe referencias
+  en atributos `value="..."`; si Studio llegara a guardar alguna en otro atributo, habría que
+  ampliarla. `metricas-base.md` conserva 26/11 porque es la línea base de G0, no el valor actual.
