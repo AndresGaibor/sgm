@@ -1,0 +1,24 @@
+# PostgreSQL 16 desechable para probar tDBInput/tDBOutput (tPostgresql*) de Talend.
+# Contraseña de prueba sin valor real: solo existe dentro de este contenedor local.
+# Todos los nombres empiezan por sgmtest_. Ver README.md.
+name: sgmtest_postgres
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sgmtest_postgres
+    mem_limit: 512m
+    environment:
+      POSTGRES_DB: sgmtest_db
+      POSTGRES_USER: sgmtest_user
+      POSTGRES_PASSWORD: sgmtest_pw_local
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - sgmtest_postgres_red
+
+networks:
+  sgmtest_postgres_red:
+    name: sgmtest_postgres_red

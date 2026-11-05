@@ -1,0 +1,85 @@
+{
+ "componente": "tPostgresqlInput",
+ "version": "0.102",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   null
+  ],
+  [
+   "TEXT",
+   "USE_EXISTING_CONNECTION",
+   "false",
+   null
+  ],
+  [
+   "TEXT",
+   "TYPE",
+   "PostgreSQL",
+   null
+  ],
+  [
+   "TEXT",
+   "DB_VERSION",
+   "V9_X",
+   null
+  ],
+  [
+   "TEXT",
+   "MAPPING",
+   "postgres_id",
+   null
+  ],
+  [
+   "TEXT",
+   "HOST",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "PORT",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "DBNAME",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "USER",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "PASS",
+   "",
+   null
+  ],
+  [
+   "TEXT",
+   "TABLE",
+   "\"\"",
+   null
+  ],
+  [
+   "TEXT",
+   "QUERY",
+   "\"\"",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}

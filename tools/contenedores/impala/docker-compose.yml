@@ -1,0 +1,90 @@
+# Impala 4.5.3 de pruebas para sgm-v2 (adaptado del quickstart oficial de Apache).
+# Todos los nombres empiezan por sgmtest_ para poder apagar y borrar solo lo nuestro.
+# Límites de memoria pensados para un anfitrión de 6,4 GiB (Docker Desktop).
+# El DNS inverso de Docker devuelve el nombre del contenedor (sgmtest_hms, con guion bajo) y
+# Hive lo rechaza como host de la URI (java.net.URISyntaxException). Por eso el HMS tiene IP
+# fija y los demás servicios resuelven "hms" con extra_hosts (/etc/hosts). Ver README.md.
+name: sgmtest_impala
+
+x-impala-env: &impala-env
+  JAVA_TOOL_OPTIONS: "-Xmx1g"
+
+services:
+  hms:
+    image: apache/impala:4.5.3-impala_quickstart_hms
+    container_name: sgmtest_hms
+    hostname: hms
+    command: ["hms"]
+    mem_limit: 1g
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx512m"
+    volumes:
+      - sgmtest_impala_hms:/var/lib/hive
+      - sgmtest_impala_warehouse:/user/hive/warehouse
+      - ./quickstart_conf:/opt/hive/conf:ro
+    networks:
+      sgmtest_impala_red:
+        ipv4_address: 172.30.0.10
+
+  statestored:
+    image: apache/impala:4.5.3-statestored
+    container_name: sgmtest_statestored
+    hostname: statestored
+    command: ["-redirect_stdout_stderr=false", "-logtostderr", "-v=1"]
+    mem_limit: 256m
+    volumes:
+      - ./quickstart_conf:/opt/impala/conf:ro
+    networks:
+      - sgmtest_impala_red
+
+  catalogd:
+    image: apache/impala:4.5.3-catalogd
+    container_name: sgmtest_catalogd
+    hostname: catalogd
+    depends_on:
+      - statestored
+      - hms
+    command: ["-redirect_stdout_stderr=false", "-logtostderr", "-v=1",
+              "-hms_event_polling_interval_s=1", "-invalidate_tables_timeout_s=999999"]
+    mem_limit: 1g
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx512m"
+    extra_hosts:
+      - "hms:172.30.0.10"
+    volumes:
+      - sgmtest_impala_warehouse:/user/hive/warehouse
+      - ./quickstart_conf:/opt/impala/conf:ro
+    networks:
+      - sgmtest_impala_red
+
+  impalad:
+    image: apache/impala:4.5.3-impalad_coord_exec
+    container_name: sgmtest_impalad
+    hostname: impalad
+    depends_on:
+      - statestored
+      - catalogd
+    # 21050 es HiveServer2 (protocolo HS2 para JDBC y impala-shell); solo en loopback.
+    ports:
+      - "127.0.0.1:21050:21050"
+    command: ["-v=1", "-redirect_stdout_stderr=false", "-logtostderr", "-mem_limit=2gb"]
+    mem_limit: 2500m
+    environment: *impala-env
+    extra_hosts:
+      - "hms:172.30.0.10"
+    volumes:
+      - sgmtest_impala_warehouse:/user/hive/warehouse
+      - ./quickstart_conf:/opt/impala/conf:ro
+    networks:
+      - sgmtest_impala_red
+
+volumes:
+  sgmtest_impala_hms:
+  sgmtest_impala_warehouse:
+
+networks:
+  sgmtest_impala_red:
+    name: sgmtest_impala_red
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

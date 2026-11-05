@@ -1888,3 +1888,13 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Pendiente de T19 (parte de Job): escribir los archivos con esas columnas requiere las etapas de
   validacion previas (T12 a T18), que siguen detras del filtro de Studio. La invariante
   validos + rechazos = origen se podra comprobar cuando esten completas.
+
+## Hito 72. Contenedores de prueba: Impala 4.5.3 real y PostgreSQL, con Jobs de Talend ejecutados contra ellos
+
+- Fecha: 2026-11-04
+- Que se hizo: `tools/contenedores/impala/` (docker-compose, `arrancar.sh`/`.ps1`, `parar.sh`, README): Impala 4.5.3 REAL con las imagenes locales (HMS, statestored, catalogd, impalad), HiveServer2 en `localhost:21050` sin SASL, topes de memoria que suman 4,75 GiB (en reposo: impalad 347 MiB, catalogd 275 MiB, HMS 260 MiB, statestored 15 MiB). `cargar_tablas.py` crea las tres tablas Impala que el programa grande lee (`resultados_vspc_clientes.master_customer_data`, `s_canales.sai_scilibramd_sciffimgfr`, `proceso_vspc_finanzas.mcdq`) con las columnas que el SAS usa y 3 filas ficticias. `tools/contenedores/postgres/`: compose y datos de ejemplo. Todo con prefijo `sgmtest_`.
+- Resultado en Studio real: un Job `tImpalaConnection` a `tImpalaInput` (`select count(*)`) a `tLogRow` imprimio `2` contra el Impala del contenedor; un Job `tPostgresqlInput` a `tLogRow` imprimio las 3 filas de la tabla de PostgreSQL.
+- Hallazgos: con `IMPALA_ADDITIONAL_JDBC=";auth=noSasl"` la conexion funciona (sin eso el cliente inicia SASL y se cuelga); `PASS` vacio o `""` hace que Studio genere `if ( != null && false)` y no compile, hace falta un valor (la rama LDAP no se ejecuta); el HMS necesita IP fija y `extra_hosts` porque el DNS inverso devuelve un nombre con guion bajo que Hive rechaza; el volumen nuevo del warehouse es de root y hay que darle permisos.
+- Excepcion a `AGENTS.md` regla 3: los contenedores locales solo se usan para probar los Jobs generados, autorizado por el usuario; `sgm` nunca se conecta a una base.
+- Pruebas: `test_contenedores.py` (13, sin Docker: compose validos, prefijo `sgmtest_`, sin secretos, SQL de `cargar_tablas.py`).
+- No verificado: el codigo de salida del Job de Impala (PowerShell no lo capturo); escritura con `tPostgresqlOutput` (el generador de Studio falla con un nodo escrito offline: `dbType` nulo); plantilla de `tPostgresqlConnection`. La plantilla `tPostgresqlInput` quedo en `tools/contenedores/talend_plantillas/` y falta moverla a `src/sgm/talend_item/plantillas/`.
