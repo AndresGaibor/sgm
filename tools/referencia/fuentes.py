@@ -36,6 +36,7 @@ SAS_DOCSETS: tuple[SasDocset, ...] = (
     SasDocset("proc", "SAS 9.4 Procedures Guide", "proc"),
     SasDocset("lepg", "SAS 9.4 Programmer's Guide: Essentials", "lepg"),
     SasDocset("lrcon", "SAS 9.4 Language Reference: Concepts", "lrcon", base=SAS_DOCSET_BASE),
+    SasDocset("leforinforref", "SAS 9.4 Formats and Informats: Reference", "leforinforref"),
 )
 
 # Componentes de Talend que usa el proyecto (ver rules/talend/official-component-inventory.json).

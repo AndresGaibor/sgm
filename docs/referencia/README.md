@@ -5,7 +5,7 @@ internet. Cada carpeta dice qué se descargó, de dónde y cuándo.
 
 | Carpeta | Contenido | Fuente | Descargado |
 |---|---|---|---|
-| [`sas/`](sas/README.md) | 8 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` y `/api/docsets/` | 2026-11-03 (y `lepg` y `lrcon`, 2026-11-05) |
+| [`sas/`](sas/README.md) | 9 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` y `/api/docsets/` | 2026-11-03 (y `lepg`, `lrcon` y `leforinforref`, 2026-11-05) |
 | [`talend/`](talend/README.md) | Páginas de 41 componentes de Talend Studio 8.0 y la guía de diseño de Jobs y contextos (R2026-09) | help.qlik.com | 2026-11-03 |
 
 ## Cómo se regenera
@@ -34,8 +34,6 @@ coincidan con los archivos que hay en esta carpeta.
 
 ## Qué no está aquí
 
-- La guía de formatos de SAS (`leforinfref`) devolvió 404. Hace falta para los informats que todavía
-  no están en `rules/sas/informats.yaml`.
 - La guía de opciones de sistema (`lesysoptsref`) sí está en la colección: se comprobó el 2026-11-05
   y responde con 3.6 MB. No se descargó porque ninguna regla depende todavía de una opción de
   sistema; si aparece una (`MERGENOBY`, `MISSING`, `YEARCUTOFF`), se agrega a `SAS_DOCSETS`.
@@ -48,4 +46,4 @@ coincidan con los archivos que hay en esta carpeta.
 
 - `talend/catalogo/VERIFICACION.md`: el catálogo de componentes contra sus páginas.
 - `talend/cruce-con-el-codigo.md`: lo que dice la documentación frente al código, con las brechas.
-- `sas/*.INDEX.md`: índices por sección de las ocho guías de SAS.
+- `sas/*.INDEX.md`: índices por sección de las nueve guías de SAS.

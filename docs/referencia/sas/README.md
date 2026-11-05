@@ -1,7 +1,7 @@
 # Referencia SAS 9.4 (documentación oficial)
 
 Descargado el 2026-11-03 desde `documentation.sas.com` (colección `pgmsascdc/9.4_3.5`);
-`lepg` y `lrcon` se agregaron el 2026-11-05.
+`lepg`, `lrcon` y `leforinforref` se agregaron el 2026-11-05.
 Son los PDF oficiales de SAS, sin modificar. Cada `.pdf` tiene además un `.txt` con su texto
 extraído (una marca `<!-- página N -->` por página) para buscar con `Grep`.
 
@@ -15,6 +15,7 @@ extraído (una marca `<!-- página N -->` por página) para buscar con `Grep`.
 | `proc.pdf` / `.txt` | SAS 9.4 Procedures Guide | 2928 | Procedimientos como PROC SORT, PROC IMPORT/EXPORT, PROC CONTENTS, PROC FORMAT |
 | `lepg.pdf` / `.txt` | SAS 9.4 Programmer's Guide: Essentials | 930 | Cómo funciona el paso DATA por dentro (búfer de entrada, PDV, ciclo compilar/ejecutar), grupos `BY` con `FIRST.`/`LAST.`, combinar conjuntos (`MERGE`, `SET`, `UPDATE`), `RETAIN`, arrays, `OUTPUT`, y el apéndice «Understanding How the DATA Step Works» (p. 887) |
 | `lrcon.pdf` / `.txt` | SAS 9.4 Language Reference: Concepts (Sixth Edition) | 916 | Las reglas del lenguaje, no la sintaxis: valores perdidos (p. 123), expresiones y comparación con blancos finales (p. 133), fechas e intervalos (p. 155), `BY` en programas (p. 229), `WHERE` (p. 231), combinar y modificar conjuntos (p. 563), arrays (p. 667) |
+| `leforinforref.pdf` / `.txt` | SAS 9.4 Formats and Informats: Reference | 766 | Diccionario completo de formats (p. 15) e informats (p. 553): `ANYDTDTE` (p. 617), `B8601DA` (p. 628), `E8601DA` (p. 654), `RMFDUR` (p. 706), `YYMMDD` (p. 755). Es la fuente de `rules/sas/informats.yaml` |
 
 Notas:
 - Las URL siguen el patrón `https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/<docset>/content/<docset>.pdf?locale=en`,
@@ -35,4 +36,7 @@ Notas:
 - **Pendiente (tarea 9):** confirmar con el equipo del cliente la versión exacta de SAS en que corre el
   código. Hasta entonces, todo lo de estas guías se toma como SAS 9.4 y se marca como tal.
 - PROC SORT y PROC FORMAT están dentro de `proc.pdf` (la guía de procedimientos), no en una guía propia.
-  La guía de formatos (`leforinfref`) devolvió 404 y no se descargó.
+- La guía de formatos y informats se llama `leforinforref` (con `forinfor`). Durante varios hitos se
+  la buscó como `leforinfref`, con un solo `for`, y ese docset no existe: de ahí el 404 que quedó
+  anotado como pendiente. Ya está descargada; lo que falta es llevar sus definiciones a
+  `rules/sas/informats.yaml`.

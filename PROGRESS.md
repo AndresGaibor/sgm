@@ -4009,3 +4009,53 @@ pasan a diferencias con motivo. Las diferencias suben de 3 a 19: 16 nuevas, toda
 - Sección 1.2: el texto de cada intercambio está en `decisiones/`, con su evidencia en el hito que
   lo sostiene. Lo que el emisor no hace aún dice "pendiente" con su motivo.
 - Diferencias conocidas: solo cuentan cuando hay diferencia real (ver arriba).
+
+## Hito 99. Referencia SAS: `leforinforref` (Formats and Informats), la guía que se buscaba con el nombre equivocado
+
+- Fecha: 2026-11-05. Pedido del usuario: revisar seis URL de `documentation.sas.com` y agregar lo que
+  sirviera.
+- Qué se hizo:
+  - Cinco de las seis URL son guías que ya están: `mcrolref`, `lepg`, `lefunctionsref`,
+    `ledsoptsref` y `proc`. No se volvieron a bajar.
+  - La sexta sí faltaba y era la que el proyecto daba por perdida: el docset se llama
+    **`leforinforref`** (con `forinfor`), no `leforinfref`. Con el nombre correcto responde 200 por
+    las dos plantillas de URL, así que el 404 de los hitos 44b y siguientes era un error de
+    transcripción del nombre, no una guía ausente. Es *SAS 9.4 Formats and Informats: Reference*
+    (766 páginas, 4.9 MB): formats en la p. 15 y el diccionario de informats en la p. 553.
+  - `tools/referencia/fuentes.py`: novena entrada del catálogo, con la plantilla de siempre (no
+    necesita el campo `base`). Artefactos: `leforinforref.pdf` (no versionado), `leforinforref.txt`
+    (903 KB, 766 páginas, 2 en blanco) y `leforinforref.INDEX.md` (21 KB, 539 secciones).
+  - `docs/referencia/sas/README.md`: novena fila de la tabla y una nota que explica el nombre
+    correcto, para que nadie vuelva a buscar `leforinfref`. `docs/referencia/README.md`: «9 guías» y
+    se quita de «Qué no está aquí» la guía de formatos, que era el único faltante de la colección.
+  - Medición sobre la regla `fecha` de `rules/sas/informats.yaml`, que nombra 11 informats de fecha u
+    hora: el diccionario de la guía tiene informats de esa familia que la regla no nombra. Se
+    comprobaron uno por uno en el índice: `ANYDTDTE` (p. 617), `ANYDTDTM` (p. 620), `ANYDTTME`
+    (p. 623), `B8601DA` (p. 628), `B8601DN` (p. 631), `E8601DA` (p. 654), `RMFDUR` (p. 706),
+    `RMFSTAMP` (p. 707), `SHRSTAMP` (p. 731) y `SMFSTAMP` (p. 733). Los tres `ANYDT*` leen fecha,
+    hora o fecha-hora «en cualquier forma»; los `B8601`/`E8601` son ISO 8601; los `RMF`/`SHR`/`SMF`
+    son sellos y duraciones de mainframe.
+- Decisiones:
+  - **No se toca `rules/sas/informats.yaml` en este hito.** Cada informat nuevo obliga a decidir su
+    tipo en Talend (Date, BigDecimal, Long, Double) y a probarlo; agregar nombres sin esa prueba
+    sería inventar. La guía queda local y la lista de arriba es el punto de partida del hito que lo
+    haga.
+  - La nota del nombre va en los dos README, no solo en `PROGRESS.md`: el error de transcripción
+    vivió en la documentación del proyecto durante decenas de hitos y es lo que hay que evitar que
+    vuelva.
+- Pruebas: ninguna nueva. La prueba que exige `.txt` y `.INDEX.md` por guía recorre `SAS_DOCSETS` y
+  ya cubre `leforinforref`.
+- Verificación: `uv run ruff check .`: limpio. `uv run pytest -q tests/unit/test_referencia_tools.py`:
+  12 pasadas. Suite completa: 2249 casos, 5 fallos, y los cinco son de la serie que está trabajando
+  en `src/sgm/talend_item/` sin commitear: tres esperan 21 nodos en `job_producto` y el emitido tiene
+  25, `test_no_script_specific_names` marca `src/sgm/talend_item/flujos_totales.py:11` por decir
+  «exogena», y `test_tools_ci` arrastra ese estado. Ninguno toca `docs/referencia/` ni
+  `tools/referencia/`; este hito no cambió código de `src/`.
+- Métricas: `leforinforref.txt` 903 KB (766 páginas), `leforinforref.INDEX.md` 21 KB (539 secciones),
+  `docs/referencia/sas/` de 8 a 9 guías, que es la colección `pgmsascdc` completa salvo
+  `lesysoptsref`.
+- Bloqueos: `rules/sas/informats.yaml` sigue con los 11 nombres de antes; la deuda ahora es de reglas,
+  no de documentación. La versión exacta de SAS del cliente sigue sin confirmar (tarea 9).
+- No verificado: no se leyó la guía entera; el recuento de informats de fecha/hora sin cubrir no se
+  cerró con un número, porque el diccionario mezcla formats e informats en el texto extraído y un
+  conteo automático daba resultados inestables. Se citan los casos comprobados a mano.
