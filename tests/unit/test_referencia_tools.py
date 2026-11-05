@@ -104,6 +104,14 @@ def test_cada_componente_talend_del_proyecto_tiene_su_pagina():
     assert faltantes == []
 
 
+def test_cada_guia_sas_tiene_su_fila_en_la_tabla_del_readme():
+    # La tabla de `sas/README.md` es el índice que lee una persona: si una guía se agrega al
+    # catálogo y no a la tabla, queda invisible.
+    readme = (REPO / "docs" / "referencia" / "sas" / "README.md").read_text(encoding="utf-8")
+    sin_fila = [g.archivo for g in fuentes.SAS_DOCSETS if f"`{g.archivo}.pdf`" not in readme]
+    assert sin_fila == []
+
+
 def test_texto_de_paginas_marca_cada_pagina_y_separa_con_una_linea_en_blanco():
     generado = texto.texto_de_paginas(["uno\n", "dos"])
     assert generado == "\n\n<!-- página 1 -->\nuno\n\n<!-- página 2 -->\ndos\n"

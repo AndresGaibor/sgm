@@ -37,6 +37,10 @@ SAS_DOCSETS: tuple[SasDocset, ...] = (
     SasDocset("lepg", "SAS 9.4 Programmer's Guide: Essentials", "lepg"),
     SasDocset("lrcon", "SAS 9.4 Language Reference: Concepts", "lrcon", base=SAS_DOCSET_BASE),
     SasDocset("leforinforref", "SAS 9.4 Formats and Informats: Reference", "leforinforref"),
+    SasDocset("lesysoptsref", "SAS 9.4 System Options: Reference", "lesysoptsref"),
+    SasDocset("gridref", "Grid Computing in SAS 9.4", "gridref"),
+    SasDocset("hostunx", "SAS 9.4 Companion for UNIX Environments", "hostunx"),
+    SasDocset("connref", "SAS/CONNECT 9.4 User's Guide", "connref"),
 )
 
 # Componentes de Talend que usa el proyecto (ver rules/talend/official-component-inventory.json).

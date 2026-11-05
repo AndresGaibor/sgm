@@ -4059,3 +4059,60 @@ pasan a diferencias con motivo. Las diferencias suben de 3 a 19: 16 nuevas, toda
 - No verificado: no se leyó la guía entera; el recuento de informats de fecha/hora sin cubrir no se
   cerró con un número, porque el diccionario mezcla formats e informats en el texto extraído y un
   conteo automático daba resultados inestables. Se citan los casos comprobados a mano.
+
+## Hito 100. Catálogo de documentación SAS por capas y las cuatro guías de entorno (sistema, Grid, UNIX, CONNECT)
+
+- Fecha: 2026-11-05. Pedido del usuario: un catálogo de documentación oficial de SAS por prioridad
+  («para que la IA entienda SAS 9.4 y ayude a construir el traductor»), con la instrucción de
+  quedarse con él.
+- Qué se hizo:
+  - `docs/referencia/catalogo-sas.md` (nuevo): el catálogo ordenado en las cuatro capas del pedido
+    —A semántica, B transformaciones, C entorno y ejecución, D construcción en Talend— con el estado
+    real de cada guía (descargada, disponible sin bajar, no existe con ese nombre), el orden de
+    descarga que se siguió y la regla del proyecto: ninguna equivalencia sin fuente y página.
+  - Cuatro guías nuevas, todas de la colección `pgmsascdc` (no hicieron falta URL especiales):
+    `lesysoptsref` (System Options: Reference, 514 páginas), `gridref` (Grid Computing in SAS 9.4,
+    374), `hostunx` (Companion for UNIX Environments, 702) y `connref` (SAS/CONNECT 9.4 User's
+    Guide, 500). Artefactos: `.pdf` (no versionados), `.txt` con marca de página y `.INDEX.md` por
+    sección, los tres con `descargar.py` y `texto.py`/`indice.py`.
+  - Las cuatro se justifican con evidencia del repositorio, no por completitud:
+    `tests/fixtures/sas/client/client_large.sas` se generó en `sasgrid.bancolombia.corp` y en
+    `SASGRIDCOMP1.APPS.BANCOLOMBIA.CORP` (Grid); los casos de `tests/corpus/L8/validaciones/` traen
+    `signon` y `RSUBMIT` (SAS/CONNECT); `rules/sas/plumbing.yaml` ya separa `x`, `%sysexec` y
+    `systask` del trabajo de datos (UNIX); y `docs/plan-sgm-v2/02-fases.md` tiene la fase J3.4 de
+    orquestación con `sasgsub`, `sas -sysin` y Control-M (Grid otra vez).
+  - Páginas que quedan citadas en el catálogo y en el README, para no volver a buscarlas:
+    `MERGENOBY` (p. 265), `MISSING=` (p. 266), `VALIDVARNAME=` (p. 412) y `YEARCUTOFF=` (p. 432) en
+    `lesysoptsref`; `SASGSUB` (p. 321) en `gridref`; `SIGNON`/`SIGNOFF` (p. 151), `RSUBMIT` (p. 185)
+    y librerías remotas (p. 31) en `connref`; primer/segundo plano (p. 33) y `fileref` (p. 129) en
+    `hostunx`.
+  - `docs/referencia/sas/README.md`: cuatro filas más en la tabla (13 en total) y puntero al
+    catálogo. `docs/referencia/README.md`: «13 guías», el catálogo como documento propio y «Qué no
+    está aquí» reescrito.
+- Decisiones:
+  - **No se baja `nlsref`** (7.7 MB, responde): ninguna regla depende todavía de la codificación. Se
+    anota como disponible, con el disparador («un archivo con encoding declarado»).
+  - **No se baja nada de SAS/STAT, SAS/ACCESS, ODS ni DS2**: el catálogo lo condiciona a que el
+    corpus los use, y hoy no aparecen. La regla queda escrita en el catálogo: se comprueba con una
+    búsqueda antes de bajar, no por si acaso.
+  - El catálogo vive en `docs/referencia/`, no en `PROGRESS.md`: es una decisión viva (qué falta y
+    por qué), no la bitácora de un hito.
+  - El documento de logging no tiene docset en la colección (`logref` da 404). No se inventa una URL:
+    queda como «buscar en el Help Center» si llega a hacer falta.
+- Pruebas: `tests/unit/test_referencia_tools.py`, una nueva: cada guía de `SAS_DOCSETS` tiene su fila
+  en la tabla de `sas/README.md`. La que exige `.txt` y `.INDEX.md` ya cubre las trece. Total del
+  archivo: 13.
+- Verificación: `uv run ruff check .`: limpio. `uv run pytest -q tests/unit/test_referencia_tools.py`:
+  13 pasadas. Suite completa: 2257 casos, **2101 pasadas, 26 omitidas y 128 `xfailed`**, con un solo
+  fallo, `test_no_script_specific_names`, por `src/sgm/talend_item/flujos_totales.py:11`, que dice
+  «exogena»: es de la serie que trabaja en `src/sgm/talend_item/` sin commitear. Este hito no cambió
+  código de `src/` ni de `rules/`.
+- Métricas: `docs/referencia/sas/` de 9 a 13 guías; `.txt` nuevos de 617 KB a 1.1 MB; `catalogo-sas.md`
+  108 líneas. PDF nuevos: 15.5 MB, no versionados.
+- Bloqueos: la deuda sigue siendo de reglas, no de documentación: `rules/sas/informats.yaml` con 11
+  nombres y las opciones de sistema sin regla propia. La versión exacta de SAS del cliente sigue sin
+  confirmar (tarea 9).
+- No verificado: no se leyó ninguna de las cuatro guías entera; la revisión fue por índice y por
+  búsquedas. Que el cliente use `MERGENOBY` o `YEARCUTOFF` con valores distintos del de omisión no se
+  puede saber desde el repositorio: eso lo dirá una revisión de los `autoexec` y los scripts de
+  lanzamiento.

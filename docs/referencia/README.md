@@ -5,7 +5,8 @@ internet. Cada carpeta dice qué se descargó, de dónde y cuándo.
 
 | Carpeta | Contenido | Fuente | Descargado |
 |---|---|---|---|
-| [`sas/`](sas/README.md) | 9 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` y `/api/docsets/` | 2026-11-03 (y `lepg`, `lrcon` y `leforinforref`, 2026-11-05) |
+| [`sas/`](sas/README.md) | 13 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` y `/api/docsets/` | 2026-11-03, completado el 2026-11-05 |
+| [`catalogo-sas.md`](catalogo-sas.md) | Las guías ordenadas por capa (semántica, transformaciones, entorno, Talend), con lo que falta y por qué | — | 2026-11-05 |
 | [`talend/`](talend/README.md) | Páginas de 41 componentes de Talend Studio 8.0 y la guía de diseño de Jobs y contextos (R2026-09) | help.qlik.com | 2026-11-03 |
 
 ## Cómo se regenera
@@ -34,9 +35,11 @@ coincidan con los archivos que hay en esta carpeta.
 
 ## Qué no está aquí
 
-- La guía de opciones de sistema (`lesysoptsref`) sí está en la colección: se comprobó el 2026-11-05
-  y responde con 3.6 MB. No se descargó porque ninguna regla depende todavía de una opción de
-  sistema; si aparece una (`MERGENOBY`, `MISSING`, `YEARCUTOFF`), se agrega a `SAS_DOCSETS`.
+- La guía de soporte de idioma nacional (`nlsref`, 7.7 MB) responde, pero no se descargó: todavía no
+  hay una regla que dependa de la codificación. Si aparece un archivo con encoding declarado, se
+  agrega a `SAS_DOCSETS`.
+- La guía de logging no tiene docset en la colección (`logref` da 404); el catálogo la manda al SAS
+  Help Center. Si hace falta, se busca ahí y se anota la URL exacta.
 - La versión exacta de SAS del cliente no está confirmada. Las guías son 9.4 (edición 3.5); ver
   `sas/README.md`.
 - Las páginas de Talend que el sitio no publica en Markdown se listan como no descargadas dentro del
@@ -46,4 +49,4 @@ coincidan con los archivos que hay en esta carpeta.
 
 - `talend/catalogo/VERIFICACION.md`: el catálogo de componentes contra sus páginas.
 - `talend/cruce-con-el-codigo.md`: lo que dice la documentación frente al código, con las brechas.
-- `sas/*.INDEX.md`: índices por sección de las nueve guías de SAS.
+- `sas/*.INDEX.md`: índices por sección de las trece guías de SAS.
