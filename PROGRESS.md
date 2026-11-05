@@ -1706,3 +1706,25 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   pendiente y hay que comprobarlo con los datos simulados (99 en TIPO_DOC para CTE/AHO y tambien 3
   para NEQUI).
 - Pendiente: T11 (detectar el patron en lugar de declararlo), T12 a T19.
+
+
+## Hito 71. T11: deteccion del patron de validacion por lookup en PROC SQL
+
+- Fecha: 2026-11-04
+- Que se hizo: nuevo `src/sgm/proceso/validaciones.py`. Reconoce la pareja del SAS
+  (`CREATE TABLE ... AS SELECT` con `LEFT JOIN` al catalogo y `WHERE <catalogo>.<col> IS MISSING|NULL`
+  para rechazos, y el mismo `ON` con `INNER JOIN` para validos) y devuelve
+  `Validacion(columna, columna_lookup, fuente_lookup, linea, linea_valida)`.
+  - Solo cuenta como validacion si el catalogo sale de un `PROC IMPORT`; un `LEFT JOIN` contra otro
+    dataset de SAS es un cruce, no una homologacion. En `client_large.sas` hay ocho parejas
+    `LEFT JOIN ... IS MISSING` y solo dos son de homologacion.
+  - Tolera `ON` con parentesis, alias con y sin `AS`, `ON` invertido, `IS MISSING` e `IS NULL`, y
+    name literals (`h.'codigo dian'n`).
+  - `ruta_de_dataset(texto, dataset)` une el dataset del catalogo con la ruta de su `PROC IMPORT`,
+    que es lo que despues alimenta `InsumoResuelto`.
+- Pruebas: `tests/unit/test_validaciones_sas.py`, 9 pruebas; incluye el programa real (dos
+  validaciones `TIPO_DOC` contra `CNAME` de `IMPORT_HOMOLOGACION_TPO_DOC`, las dos con pareja
+  `INNER JOIN`) y las rutas de `Homologacion_tpo_dto.xlsx` y `Homologacion_tpo_dto_Nequi.xlsx`.
+- `ruff check` de los dos archivos: limpio.
+- Pendiente: T12 y siguientes, que consumen el detector; catalogo de pais y DANE importados pero sin
+  patron de validacion en el SAS (sus datasets solo se usan en cruces de enriquecimiento).
