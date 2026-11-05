@@ -3153,3 +3153,13 @@ Diferencias con motivo:
     Esto ya era así en el emisor; no se corrigió aquí.
 - No verificado: Talend Studio no se usó (no hace falta para esta medida). No se ejecutó ningún
   Job. La cifra de derivadas es la del emisor actual; cambiará cuando el emisor produzca más filas.
+
+## Hito 92. R1-12 (parte 1): lectura de `NODUPKEY` y oráculo de duplicados; la prueba en Studio queda bloqueada
+
+- Fecha: 2026-11-05
+- Qué se hizo: `proceso/reglas_duplicados.py` lee las sentencias `PROC SORT ... NODUPKEY` (`DATA=`, `OUT=`, `BY`) y publica como `Pendiente:` lo que no demuestra (`NODUPREC`, `NOEQUALS`, `DESCENDING`); falla con `ValueError` si falta `DATA=`, `OUT=` o `BY`. `tools/duplicados_datos.py` trae un oráculo en Python (recorte de blancos finales, faltante igual a vacío, sensible a mayúsculas, primera fila por llave) y seis grupos de vectores escritos a mano.
+- Hechos demostrados sin Studio: el oráculo reproduce `L8/totales/01/esperado/AHO_UNICOS.csv` (40 filas, 7 repetidas de 47). `client_large.sas` tiene 31 `NODUPKEY`: 30 son utilidades de listado de biblioteca y la de negocio está en la línea 15817 (`SABANA_COMPLETA_INFO_CLI_NEQUI` a `SABANA_DIR_UNICA_NEQUI`, `BY NRO_DOC NRO_CTA`). La sábana AHO usa `PROC SQL DISTINCT`, no `NODUPKEY`. Ningún `NODUPKEY` del corpus usa `NOEQUALS`.
+- Bloqueo: Studio tiene abierto el diálogo modal "Network Issue Occured" (Reintentar / No) y rechaza compilar y editar nodos. Sin él no se puede crear la plantilla `tUniqRow` ni ejecutar. Hace falta que una persona lo cierre en Studio.
+- Sigue pendiente (R1-12 y R6-03 quedan `parcial`): plantilla `tUniqRow.json`, `flujos_duplicados.py`, `tools/prueba_duplicados.py`, integración en `job_producto` y ejecución con comparación contra `esperado/`. Supuestos sin demostrar: que `tUniqRow` conserve la primera fila que llega y que recortar la llave en un `tMap` previo baste.
+- Plan: se corrige la línea base de conformidad. `sgm conformidad` (hito 93) mide 5 filas derivadas de 118, no "42 de 168" (esos eran casos de prueba); la meta de R5-04 y de G3 pasa a derivadas 60 o más y derivadas más declaradas 100 o más.
+- Pruebas: `test_proceso_reglas_duplicados.py` (10).

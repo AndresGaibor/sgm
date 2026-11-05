@@ -34,7 +34,7 @@ hay que cumplir para decir "producción 100 %". Cada nivel exige el anterior.
 | Medida | Valor |
 |---|---|
 | Componentes emitidos por `sgm talend client_large.sas` | 26 (padre 13, producto 11, totales 1, conciliación 1); meta N1 unos 80 |
-| Conformidad contra el diseño manual (`tests/conformidad`) | 42 pasan, 126 xfail (25 %) |
+| Conformidad contra el diseño manual (`tests/conformidad`) | 42 pasan, 126 xfail (25 %): son casos de prueba, no filas. Medida de filas con `sgm conformidad` (hito 93): 118 filas del manual, 5 derivadas del SAS (4,2 %), 7 declaradas, 105 pendientes, 1 diferencia |
 | Pendientes del modelo para el programa grande | 16 |
 | Casos del corpus con resultado esperado | 117 (L0 a L6: 101; L8: 16) |
 | Casos del corpus traducidos por un traductor automático y pasados en Studio | 0 (1 demostración con un Job escrito a mano) |
@@ -134,7 +134,7 @@ SAS no puede demostrar.
 | R1-09 | Cuentas AFC y relaciones; filtro con el maestro de clientes de Impala | R+H | R4-03 | Caso nuevo; lectura contra el Impala del contenedor | 6 | pendiente |
 | R1-10 | Extranjeros: reemplazo del número de identificación (`reemplazo_nid_ext`) y separación nacional y extranjero | R+H | R1-02 | Caso `L8/totales/03` y uno nuevo con reemplazos plantados | 4 | pendiente |
 | R1-11 | Dígito de verificación: leer el algoritmo en el SAS ("Calcula DV"), traducirlo a una expresión de Java dentro del `tMap` (sin rutinas de Studio) y probar con vectores | R+H | R1-02 | Vectores de DV (propios, con el cálculo de referencia en Python) coinciden | 4 | pendiente |
-| R1-12 | Duplicados y frecuencias: `tUniqRow` (plantilla nueva) o agregado con grupo; qué fila se conserva en `NODUPKEY` | R+H | R6-03 | `L8/totales/01`, `L6`; la regla de qué fila se conserva se confirma ejecutando y se anota como supuesto | 4 | pendiente |
+| R1-12 | Duplicados y frecuencias: `tUniqRow` (plantilla nueva) o agregado con grupo; qué fila se conserva en `NODUPKEY` | R+H | R6-03 | `L8/totales/01`, `L6`; la regla de qué fila se conserva se confirma ejecutando y se anota como supuesto | 4 | parcial (hito 92: regla `NODUPKEY` leída y oráculo reproduce `L8/totales/01`; falta la ejecución en Studio, bloqueada por el diálogo "Network Issue") |
 | R1-13 | Corrección de inconsistencias: corregidas y por corregir, archivo de inconsistencias | H | R1-04..R1-08 | `L8/totales/02` coincide (56 filas en la sábana) | 6 | pendiente |
 | R1-14 | Sábana final y salidas: `RESULTADO_<P>_NAL.csv`, `_EXT.csv`, `INCONS_DEP_<P>.csv`, `INCONS_DEP_CORREGIDA_<P>.csv` con el orden de columnas del `SELECT` final | H | R1-13 | `L8/totales/03`, `v07`; invariante origen igual a válidos más rechazados | 5 | pendiente (análisis hecho) |
 | R1-15 | Comprobación en ejecución de las invariantes del producto (conteos y sumas) con `tJava` y `tDie` si no cuadran | H | R1-14 | Un caso con diferencia plantada hace fallar el Job con mensaje claro | 2 | pendiente |
@@ -189,7 +189,7 @@ validaciones: pasará de 20 sin una reestructura. Hay dos caminos; se prueba el 
 | R5-01 | Secciones 2, 4, 5, 7 y 8 en `sgm proceso` (T60); la 5 desde un YAML `decisiones` con id, texto y motivo | H | R4-01 | Cada sección con prueba y filas de conformidad | 3 | pendiente |
 | R5-02 | Corregir 1.1, 1.2, 1.3 y 3 con lo probado: CSV de producto como fuentes, "sin cachés" con su motivo, variables de contexto del periodo, Jobs reales con su número de componentes (T61) | D+H | R3-05 | El documento emitido ya no contradice al código | 2 | pendiente |
 | R5-03 | `sgm conformidad <programa>`: resumen de filas derivadas, declaradas, pendientes y diferencias con motivo (T62) | H | | Reporte reproducible; es la medida de "se parece" | 1.5 | hecho (hito 93: `sgm conformidad` sobre `client_large.sas` mide 5 derivadas de 118 filas (4,2 %), 7 declaradas, 105 pendientes y 1 diferencia con motivo; `tests/conformidad/test_linea_base.py` fija la cifra; 20 pruebas nuevas; no se usó Studio)
-| R5-04 | Llevar la conformidad de 42 a 100 o más filas sin copiar valores del manual; las diferencias restantes explicadas | H | R5-01, R5-02 | `tests/conformidad` con xfail reducidos y razón por cada uno | 4 | pendiente |
+| R5-04 | Llevar las filas derivadas de `sgm conformidad` de 5 (de 118) a 60 o más, y derivadas más declaradas a 100 o más, sin copiar valores del manual; las diferencias restantes explicadas | H | R5-01, R5-02 | `tests/conformidad` con xfail reducidos y razón por cada uno | 4 | pendiente |
 | R5-05 | Comparación de Jobs emitidos con la estructura del manual (3.1 a 3.5) (T63) | H | R3-05 | Informe con la brecha por Job | 1.5 | pendiente |
 | R5-06 | Corregir el diseño manual donde está equivocado (1.1 Impala, 1.2 cachés) como propuesta para el equipo, con evidencia | D | R5-02 | Documento `docs/propuesta-correcciones-diseno-manual.md` | 1.5 | pendiente |
 
@@ -325,7 +325,7 @@ rendimiento). Más unos 50 días de persona en la Fase 9, que dominan el calenda
 | G0 Línea base | R0-01 a R0-12 hechas; tablero con la fotografía inicial; suite verde |
 | G1 Producto | R1 completa; todos los casos de `L8/validaciones` coinciden en Studio con el arnés; invariantes cumplidas |
 | G2 Totales | R2 completa; `L8/totales` 04, 05, 06 y 08 coinciden; error provocado activa la rama de error |
-| G3 Paridad N1 | R3, R4, R5 y R6 completas; conformidad igual o mayor a 100 de 168; Jobs de hasta 20 componentes; cero secretos en los artefactos; el documento emitido no contradice al código |
+| G3 Paridad N1 | R3, R4, R5 y R6 completas; `sgm conformidad`: derivadas 60 o más de 118 y derivadas más declaradas 100 o más; Jobs de hasta 20 componentes; cero secretos en los artefactos; el documento emitido no contradice al código |
 | G4 Equivalencia N2 | R7 completa; casos `traducible` del corpus traducidos y pasados de forma automática; dos programas más con cobertura medida; riesgos del oráculo cerrados o aceptados por escrito |
 | G5 Operación | R8 y R9-01 a R9-10 hechas; UAT aprobado en QA; seguridad firmada |
 | G6 Paralelo | R9-11 a R9-13; diferencia cero en conteos y dentro de tolerancia en sumas durante los ciclos acordados |
