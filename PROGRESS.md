@@ -1830,3 +1830,26 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   exactamente la deuda que abre T12; deja de ser invisible.
 - Pruebas: dos nuevas en `tests/unit/test_validaciones_sas.py`; 27 pasan en los archivos tocados.
 - Pendiente: declarar esas validaciones en el YAML cuando T12 cierre la parte de Job.
+
+
+## Hito 76. T03: emulador de las tablas Impala
+
+- Fecha: 2026-11-04
+- Que se hizo: nuevo `tools/simular_tablas.py`. Lee los bloques `connect to IMPALA ... select * from
+  connection to IMPALA (...)` del programa, saca la tabla de cada `FROM` con biblioteca y las columnas
+  que la consulta referencia (calificadas por alias o por tabla, y sin calificar aunque vayan dentro
+  de una funcion como `MAX(ingestion_day)`) y escribe `<carpeta>/<biblioteca>.<tabla>.csv` con
+  cabecera y filas `SIM_<col>_<n>`.
+- Convencion de simulacion: deja `<carpeta>/CONVENCION.md`. Los Jobs que lean Impala usan
+  `tImpalaInput` en produccion y, con el contexto `modo_simulacion` no vacio, `tFileInputDelimited`
+  sobre el CSV con `;` y cabecera. Asi el Job compila siempre y se ejecuta sin Impala.
+- Sobre `client_large.sas` escribe 20 tablas, entre ellas
+  `resultados_vspc_clientes.master_customer_data` (`ingestion_day`, `YEAR`, `MONTH`, ...),
+  `S_CANALES.SAI_SCILIBRAMD_SCIFFIMGFR` (`ingestion_day`, `ingestion_month`, `ingestion_year`) y las
+  `proceso_vspc_finanzas.*` que el programa lee en pasos posteriores. Queda fuera
+  `proceso_vspc_finanzas.mcdq` como lectura: el programa la crea con `EXECUTE BY IMPALA`.
+- Pruebas: `tests/unit/test_tools_simular_tablas.py`, 4 pruebas (un CSV por tabla con sus columnas,
+  convencion escrita y programa sin Impala).
+- Corregidos de paso dos fallos del propio emulador: comparaba objetos con `is` (nunca sumaba las
+  columnas sin calificar) y trataba marcadores de macro sin biblioteca como tablas Impala.
+- Pendiente: los Jobs aun no leen Impala; la convencion queda escrita para el bloque B.
