@@ -113,3 +113,24 @@ def test_la_ruta_del_catalogo_sale_del_proc_import(sas_grande):
     assert ruta is not None and ruta.endswith("Homologacion_tpo_dto.xlsx")
     assert nequi is not None and nequi.endswith("Homologacion_tpo_dto_Nequi.xlsx")
     assert ruta_de_dataset(sas_grande, "WORK.NO_EXISTE") is None
+
+
+def test_cada_producto_empareja_su_propio_inner_join(sas_grande):
+    documentos = [v for v in validaciones(sas_grande) if v.columna.upper() == "TIPO_DOC"]
+
+    assert {v.sabana.upper() for v in documentos} == {
+        "SABANA_SIN_PAQ_VACIO_0_AHO",
+        "SABANA_SIN_PAQ_VACIO_0_CTE",
+    }
+    assert all(v.linea_valida is not None for v in documentos)
+    assert len({v.linea_valida for v in documentos}) == 2
+
+
+def test_detecta_las_validaciones_de_ubicacion(sas_grande):
+    encontradas = {
+        (v.columna.upper(), v.columna_lookup.upper(), v.dataset.upper())
+        for v in validaciones(sas_grande)
+    }
+
+    assert ("CODIGO_UBICACION", "CODIGO_DANE", "IMPORT_CODIGOS_DANE") in encontradas
+    assert ("PAIS", "CODIGO_PAIS", "IMPORT_CODIGOS_PAIS") in encontradas

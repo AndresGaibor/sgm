@@ -25,8 +25,9 @@ from sgm.proceso.columnas_fuente import datasets_importados
 _RESERVADAS = frozenset({"AS", "CROSS", "FULL", "INNER", "JOIN", "LEFT", "ON", "OUTER", "RIGHT"})
 
 # Las sentencias ya vienen sin comentarios de `_partir`; aquí solo se reconoce el
-# `CREATE TABLE ... AS SELECT` y las dos formas de unir el catálogo.
+# `CREATE TABLE ... AS SELECT`, la tabla de la sabana y las dos formas de unir el catálogo.
 _CREATE = re.compile(r"(?is)\bCREATE\s+TABLE\s+[\w.]+\s+AS\s+(?P<cuerpo>SELECT\b.*)$")
+_FROM = re.compile(r"(?is)\bFROM\s+(?P<tabla>[\w.]+)(?:\s+(?:AS\s+)?(?P<alias>\w+))?")
 _UNION = re.compile(
     r"(?is)\b(?P<tipo>LEFT|INNER)\s+(?:OUTER\s+)?JOIN\s+(?P<lookup>[\w.]+)"
     r"(?:\s+(?:AS\s+)?(?P<alias>\w+))?\s+ON\b"
@@ -49,6 +50,7 @@ class Validacion:
     columna: str
     columna_lookup: str
     fuente_lookup: str
+    sabana: str
     linea: int
     linea_valida: int | None = None
 
@@ -64,6 +66,7 @@ class _Union:
 
     tipo: str
     linea: int
+    base: str
     lookup: str
     columna: str
     columna_lookup: str
@@ -86,6 +89,7 @@ def validaciones(texto: str) -> list[Validacion]:
                 columna=rechazo.columna,
                 columna_lookup=rechazo.columna_lookup,
                 fuente_lookup=rechazo.lookup,
+                sabana=rechazo.base.split(".")[0],
                 linea=rechazo.linea,
                 linea_valida=pareja.linea if pareja else None,
             )
@@ -108,10 +112,15 @@ def _dataset(nombre: str) -> str:
 
 
 def _pareja(uniones: list[_Union], rechazo: _Union) -> _Union | None:
-    """Consulta `INNER JOIN` con el mismo catálogo y el mismo `ON` que la de rechazos."""
+    """Consulta `INNER JOIN` con la misma sabana, catálogo y `ON` que la de rechazos.
+
+    La sabana se compara por su calificador, no solo por el catálogo: el programa valida el mismo
+    `TIPO_DOC` en AHO y en CTE, y cada producto tiene que emparejar con su propio `INNER JOIN`.
+    """
     for union in uniones:
         if (
             union.tipo == "INNER"
+            and union.base.casefold() == rechazo.base.casefold()
             and union.lookup.casefold() == rechazo.lookup.casefold()
             and union.columna.casefold() == rechazo.columna.casefold()
             and union.columna_lookup.casefold() == rechazo.columna_lookup.casefold()
@@ -127,6 +136,7 @@ def _uniones(sentencia: str, base: int) -> list[_Union]:
         return []
     cuerpo = crear.group("cuerpo")
     inicio_cuerpo = crear.start("cuerpo")
+    sabana = _sabana(sentencia)
     uniones: list[_Union] = []
     for m in _UNION.finditer(cuerpo):
         lookup = m.group("lookup")
@@ -142,11 +152,12 @@ def _uniones(sentencia: str, base: int) -> list[_Union]:
         comparacion = _comparacion(cuerpo[desde:hasta], lookup, alias)
         if comparacion is None:
             continue
-        columna, columna_lookup = comparacion
+        columna, columna_lookup, calificador = comparacion
         uniones.append(
             _Union(
                 tipo=m.group("tipo").upper(),
                 linea=base + sentencia.count("\n", 0, inicio_cuerpo + m.start()),
+                base=f"{sabana}.{calificador}".casefold(),
                 lookup=lookup,
                 columna=columna,
                 columna_lookup=columna_lookup,
@@ -157,8 +168,16 @@ def _uniones(sentencia: str, base: int) -> list[_Union]:
     return uniones
 
 
-def _comparacion(condicion: str, lookup: str, alias: str | None) -> tuple[str, str] | None:
-    """Par `(columna de la sabana, columna del catálogo)` del `ON`, en cualquier orden."""
+def _sabana(sentencia: str) -> str:
+    """Tabla de la sabana de la consulta, sin la biblioteca ni el alias."""
+    m = _FROM.search(sentencia)
+    return _dataset(m.group("tabla")) if m else ""
+
+
+def _comparacion(
+    condicion: str, lookup: str, alias: str | None
+) -> tuple[str, str, str] | None:
+    """`(columna de la sabana, columna del catálogo, calificador de la sabana)` del `ON`."""
     calificadores = {_dataset(lookup).casefold()}
     if alias:
         calificadores.add(alias.casefold())
@@ -168,9 +187,9 @@ def _comparacion(condicion: str, lookup: str, alias: str | None) -> tuple[str, s
         if izquierda is None or derecha is None:
             continue
         if m.group("la").casefold() in calificadores:
-            return izquierda, derecha
+            return izquierda, derecha, m.group("ca")
         if m.group("ca").casefold() in calificadores:
-            return derecha, izquierda
+            return derecha, izquierda, m.group("la")
     return None
 
 

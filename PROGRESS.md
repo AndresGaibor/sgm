@@ -1737,3 +1737,24 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Riesgos de dialecto declarados: celda vacia igual a faltante; LIKE sensible a mayusculas; fechas ISO como texto en `PROC IMPORT`; orden de faltantes en `ORDER BY`; expresion sin alias (`_TEMA001`); blancos finales en `||`; comparaciones con faltantes en `WHERE` sin cubrir.
 - Pruebas: `test_corpus_ejecutor.py`, `test_corpus_oraculo_sql.py`, `test_corpus_semantica.py` (133). `tools/corpus.py oraculo todos --verificar`: 30 casos, 0 fallas.
 - No verificado: ningun resultado contra un SAS real (no hay). Los 15 casos L0 necesitan revision de un segundo agente.
+
+
+## Hito 72. T12 (deteccion): validaciones de ubicacion, pais y DANE
+
+- Fecha: 2026-11-04
+- Hallazgo: el SAS si valida pais y DANE, pero no con la pareja limpia de T10. La consulta
+  `INCONS_UBICACION_INVALIDA_AHO` (linea 18042) cruza `SABANA_CORR_NOM_AHO` con
+  `IMPORT_CODIGOS_DANE` y `IMPORT_CODIGOS_PAIS` y rechaza con un `WHERE` compuesto de cinco
+  condiciones (DANE faltante con pais 169, combinacion incoherente, pais faltante, direccion corta o
+  con textos prohibidos). No hay `INNER JOIN` de validos y el motivo del SAS es uno solo,
+  `CAMPOS DE UBICACION INCORRECTOS`.
+- Que se hizo: el detector reconoce esas seis consultas (AHO, CTE y NEQUI). Se corrigio el
+  emparejamiento para que compare la tabla de la sabana y no el alias: AHO y CTE usan ambos `t1` y
+  antes CTE heredaba el `INNER JOIN` de AHO. `Validacion` ahora lleva `sabana`, sin alias.
+- Pruebas: `test_detecta_las_validaciones_de_ubicacion` y
+  `test_cada_producto_empareja_su_propio_inner_join` (AHO con 3456 y CTE con 5972).
+- Bloqueo de T12 (parte de Job): traducir el `WHERE` compuesto exige filtrar filas dentro del `tMap`
+  o con `tFilterRow`, y ninguna de las dos se ha ejecutado nunca en Studio. Es el riesgo que abre
+  T13, asi que generar los `tMap` con lookup de pais y DANE queda detras de T13. Los motivos
+  separados `PAIS_INVALIDO` y `DANE_INVALIDO` son una decision de diseno: el SAS usa uno solo.
+- Pendiente: T12 (Job), T13 a T20.
