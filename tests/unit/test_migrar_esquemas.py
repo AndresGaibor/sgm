@@ -15,10 +15,17 @@ from sgm.ir.models import Column, Plan
 from sgm.migrar.esquemas import esquemas_de_entrada
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L2"
+RAIZ = Path(__file__).resolve().parents[1] / "corpus"
 
 
 def _plan(caso: str) -> Plan:
     texto = (CORPUS / caso / "programa.sas").read_text(encoding="utf-8")
+    analysis = analyze_program({"p.sas": texto})
+    return compile_file(analysis, "p.sas", project_base()).plan
+
+
+def _plan_de(nivel: str, caso: str) -> Plan:
+    texto = (RAIZ / nivel / caso / "programa.sas").read_text(encoding="utf-8")
     analysis = analyze_program({"p.sas": texto})
     return compile_file(analysis, "p.sas", project_base()).plan
 
@@ -83,3 +90,39 @@ def test_no_inventa_tipos():
     tipos = {columna.type for columnas in esquemas.values() for columna in columnas}
     assert tipos <= {"String"}
     assert len(pendientes) == len(esquemas)
+
+
+def test_select_sin_calificar_da_las_columnas():
+    """`select id_cliente, nombre, saldo from work.clientes` no califica, pero hay una sola tabla."""
+    plan = _plan_de("L1", "l1_01_select_columnas")
+
+    esquemas, _ = esquemas_de_entrada(plan, {}, muestra=None)
+
+    assert _nombres(esquemas["work.clientes"]) == ["id_cliente", "nombre", "saldo"]
+
+
+def test_expresion_da_las_columnas_que_usa():
+    plan = _plan_de("L1", "l1_05_aritmetica_faltantes")
+
+    esquemas, _ = esquemas_de_entrada(plan, {}, muestra=None)
+
+    assert {"monto", "cantidad"} <= set(_nombres(esquemas["work.ventas"]))
+
+
+def test_keep_da_las_columnas_que_conserva():
+    plan = _plan_de("L0", "l0_03_keep")
+
+    esquemas, _ = esquemas_de_entrada(plan, {}, muestra=None)
+
+    assert _nombres(esquemas["work.clientes"]) == ["id_cliente", "nombre", "saldo"]
+
+
+def test_dos_tablas_no_se_atribuyen_las_columnas_sueltas():
+    """Con dos tablas en juego, `id_cliente` puede ser de cualquiera: no se atribuye a ciegas."""
+    plan = _plan("l2_01_inner_join_clientes_ventas")
+
+    esquemas, _ = esquemas_de_entrada(plan, {}, muestra=None)
+
+    assert "id_cliente" in _nombres(esquemas["work.clientes"])
+    assert "id_cliente" in _nombres(esquemas["work.ventas"])
+    assert "monto" not in _nombres(esquemas["work.clientes"])

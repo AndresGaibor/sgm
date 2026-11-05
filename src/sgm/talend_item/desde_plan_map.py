@@ -199,24 +199,38 @@ def _valor(
     destino = str(asignacion.get("target", "")).strip()
     valor = str(asignacion.get("expression", "")).strip()
     if asignacion.get("origin") == "columna":
-        tabla, columna = _tabla(valor)
-        for indice, fuente in enumerate(meseta.fuentes):
-            if fuente.tabla == tabla:
-                return f"{meseta.fila(indice)}.{columna}", ""
-        armado.pendientes.append(
-            PendienteMigracion(
-                SIN_TRADUCIR,
-                f"columna '{destino}': la tabla '{tabla or valor}' no es una entrada del mapa",
-                _linea(op),
+        fila, motivo = _fila_de_columna(meseta, valor)
+        if fila is None:
+            armado.pendientes.append(
+                PendienteMigracion(SIN_TRADUCIR, f"columna '{destino}': {motivo}", _linea(op))
             )
-        )
-        return None, ""
+        return fila, ""
     java, motivo = expresion(valor, meseta.filas, meseta.tipos)
     if java is None:
         armado.pendientes.append(
             PendienteMigracion(SIN_TRADUCIR, f"columna '{destino}': {motivo}", _linea(op))
         )
     return java, motivo or ""
+
+
+def _fila_de_columna(meseta: _Meseta, valor: str) -> tuple[str | None, str]:
+    """`ventas.id_venta` o `id_venta` a `row1.id_venta`, según la entrada que tenga la columna."""
+    tabla, columna = _tabla(valor)
+    if tabla:
+        for indice, fuente in enumerate(meseta.fuentes):
+            if fuente.tabla == tabla:
+                return f"{meseta.fila(indice)}.{columna}", ""
+        return None, f"la tabla '{tabla}' no es una entrada del mapa"
+    candidatas = [
+        indice
+        for indice, fuente in enumerate(meseta.fuentes)
+        if any(propia.nombre == columna for propia in fuente.columnas)
+    ]
+    if len(candidatas) == 1:
+        return f"{meseta.fila(candidatas[0])}.{columna}", ""
+    if not candidatas:
+        return None, f"la columna '{columna}' no está en ninguna entrada del mapa"
+    return None, f"la columna '{columna}' está en varias entradas y el SAS no dice de cuál"
 
 
 def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:

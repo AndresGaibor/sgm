@@ -23,6 +23,7 @@ from sgm.talend_item.desde_plan import plan_a_jobs
 from sgm.talend_item.modelo import Job
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L2"
+RAIZ = Path(__file__).resolve().parents[1] / "corpus"
 
 # `WHERE saldo < 500` no está en el corpus L1, que solo compara contra un literal con `>=`. El
 # programa es el mínimo que ejercita la comparación de orden con un faltante posible.
@@ -165,6 +166,17 @@ def test_el_filtro_compila_con_javac(tmp_path):
         ["java", "-cp", str(tmp_path), "Prueba"], capture_output=True, text=True
     )
     assert ejecutado.returncode == 0, ejecutado.stderr
+
+
+def test_un_select_sin_calificar_arma_el_job_completo():
+    """`select a, b from work.clientes`: la columna suelta se resuelve porque hay una sola tabla."""
+    plan = _plan((RAIZ / "L1" / "l1_01_select_columnas" / "programa.sas").read_text(encoding="utf-8"))
+
+    resultado = plan_a_jobs(plan, esquemas_de_entrada(plan, {}, None)[0])
+
+    assert resultado.pendientes == []
+    assert _componentes(resultado.jobs[0]) == ["tFileInputDelimited", "tMap"]
+    assert 'expression="row1.saldo"' in _tmap(resultado.jobs[0])
 
 
 def test_un_operador_que_falla_no_detiene_a_los_demas(monkeypatch):

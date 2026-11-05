@@ -24,6 +24,18 @@ from sgm.ir.models import Column, Operator, Plan
 TIPO_POR_OMISION = "String"
 _TIPO_DESCONOCIDO = "P-TIPO-DESCONOCIDO"
 _REFERENCIA = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b")
+# Identificador suelto que no es llamada a función: `select a, b from t` no califica las columnas.
+_SUELTO = re.compile(r"\b([A-Za-z_]\w*)\b(?!\s*\()")
+_CADENA = re.compile(r"'[^']*'|\"[^\"]*\"")
+# Palabras del SQL que un identificador suelto puede ser sin ser una columna.
+_PALABRAS = frozenset(
+    {
+        "and", "or", "not", "is", "null", "missing", "case", "when", "then", "else", "end",
+        "true", "false", "between", "like", "in", "as", "distinct", "on", "select", "from",
+        "where", "group", "order", "by", "having", "join", "left", "right", "inner", "outer",
+        "desc", "asc", "work",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -78,6 +90,63 @@ def _columnas_usadas(plan: Plan, tabla: str) -> list[str]:
         for prefijo, columna in _REFERENCIA.findall(texto):
             if prefijo.lower() == base:
                 vistas.setdefault(columna.lower(), None)
+    for columna in _columnas_sueltas(plan, base):
+        vistas.setdefault(columna.lower(), None)
+    return list(vistas)
+
+
+def _entradas(plan: Plan, op: Operator) -> set[str]:
+    """Conjuntos que lee el operador, sin librería: sus `read` o los productores de sus entradas."""
+    nombres: set[str] = set()
+    for previo in plan.graph.predecessors(op.id):
+        anterior = plan.graph.operator(previo)
+        if anterior.kind == "read":
+            nombres.add(_nombre_base(str(anterior.params.get("dataset") or "")))
+            continue
+        for salida in anterior.params.get("outputs") or []:
+            nombres.add(_nombre_base(str(salida)))
+    return {nombre for nombre in nombres if nombre}
+
+
+def _identificadores(texto: str) -> list[str]:
+    """Identificadores sueltos de una expresión: sin cadenas, sin referencias calificadas, sin
+    palabras del SQL y sin llamadas a función."""
+    limpio = _REFERENCIA.sub(" ", _CADENA.sub(" ", texto))
+    return [nombre for nombre in _SUELTO.findall(limpio) if nombre.lower() not in _PALABRAS]
+
+
+def _sueltos(op: Operator) -> list[str]:
+    """Identificadores que son una columna entera: asignación, llave, `KEEP` o filtro."""
+    nombres: list[str] = []
+    grupos = [op.params, *(paso.get("params") or {} for paso in op.params.get("steps") or [])]
+    for grupo in grupos:
+        nombres.extend(str(nombre) for nombre in grupo.get("names") or [])
+        for asignacion in grupo.get("assignments") or []:
+            expresion = str(asignacion.get("expression") or "")
+            if asignacion.get("origin") == "columna":
+                nombres.append(expresion.split(".")[-1])
+            else:
+                nombres.extend(_identificadores(expresion))
+        for llave in grupo.get("keys") or []:
+            nombres.extend(str(parte).split(".")[-1] for parte in llave)
+        textos = [str(grupo.get("condition") or ""), str(grupo.get("expression") or "")]
+        for texto in textos:
+            nombres.extend(_identificadores(texto))
+    return [nombre for nombre in nombres if nombre]
+
+
+def _columnas_sueltas(plan: Plan, base: str) -> list[str]:
+    """Columnas sin calificar, solo cuando el operador lee una única tabla.
+
+    `select a, b from work.clientes` no dice `clientes.a`, pero tampoco deja dudas: hay una sola
+    tabla. Con dos tablas el nombre suelto puede ser de cualquiera, y entonces no se atribuye.
+    """
+    vistas: dict[str, None] = {}
+    for op in plan.graph.operators():
+        if _entradas(plan, op) != {base}:
+            continue
+        for nombre in _sueltos(op):
+            vistas.setdefault(nombre.lower(), None)
     return list(vistas)
 
 
