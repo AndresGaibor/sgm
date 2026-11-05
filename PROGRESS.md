@@ -3341,3 +3341,52 @@ dsc_download.sas:55: sas_cifrado: BA***
   - `tests/fixtures/sas/real/ci360-download-client/macros/dsc_download.sas:55` contiene un valor con `{SAS002}`. No se modificó el fixture. Se recomienda que una persona revise si es un ejemplo público o un valor real; si es real, rotarlo y retirarlo del fixture.
   - `tests/unit/test_talend_plantillas.py:20` usa el valor de prueba `"secreto"` en un nodo tJava. El escáner lo marca, lo cual es correcto para su contexto; no se cambió la prueba.
 - No verificado: Talend Studio no se usó y ningún Job se ejecutó. El escáner no lee logs reales porque el repositorio no tiene logs de ejecución. Las reglas cubren las formas listadas en `docs/secretos.md`; un secreto sin palabra clave reconocible puede pasar.
+
+## Hito 97. Referencia SAS: `lepg` (Programmer's Guide: Essentials), 930 páginas con texto e índice
+
+- Fecha: 2026-11-05. Pedido del usuario: revisar la guía `lepg` de `documentation.sas.com` y agregarla
+  si le sirve al proyecto.
+- Qué se hizo:
+  - Se revisó la guía antes de agregarla. `lepg` es *SAS 9.4 Programmer's Guide: Essentials* (930
+    páginas, 8.1 MB). No repite a las seis que ya estaban: `lestmtsref` da la sintaxis de cada
+    sentencia y `proc` la de cada procedimiento; `lepg` da la semántica del paso DATA, que es lo que
+    decide una equivalencia de Talend cuando la duda es de comportamiento. Capítulos que sirven al
+    traductor, con su página en el índice: «DATA Step Processing» (p. 43), «Syntax» con variables y
+    tipos (p. 57), «Grouping Data» con `FIRST.`/`LAST.`, `BY` y `GROUPFORMAT` (p. 423), «Loops and
+    Conditionals» (p. 441), «Combining Data» (p. 493), «Using Arrays» (p. 593), «Output» (p. 689) y el
+    apéndice «Understanding How the DATA Step Works» (p. 887), con el búfer de entrada y el PDV.
+  - `tools/referencia/fuentes.py`: séptima entrada de `SAS_DOCSETS` (`lepg`). La descarga se hizo con
+    `descargar.py sas`, que ya no vuelve a bajar los PDF existentes.
+  - `tools/referencia/texto.py` (nuevo, 64 líneas): el `.txt` de una guía, con `<!-- página N -->`
+    delante de cada página. Antes no había herramienta: los seis `.txt` que ya estaban se generaron a
+    mano y no había forma de repetirlo. Se comprobó que reproduce `lestmtsref.txt` byte a byte en sus
+    primeras 12 páginas, así que las siete guías quedan con el mismo formato.
+  - Artefactos: `docs/referencia/sas/lepg.pdf` (8.1 MB, no versionado), `lepg.txt` (1.4 MB, 930
+    páginas, 8 en blanco; `proc` tiene 3), `lepg.INDEX.md` (72 KB, 1584 secciones con su página).
+  - `docs/referencia/sas/README.md`: séptima fila de la tabla con para qué sirve y la aclaración de
+    que no repite a `lestmtsref`. `docs/referencia/README.md`: «7 guías», la fecha de `lepg` y la
+    orden para regenerar el `.txt`.
+  - Se comprobó de paso el resto de la colección: `lesysoptsref` (opciones de sistema) sí responde,
+    3.6 MB, y queda anotada en «Qué no está aquí»; `leforinfref` sigue devolviendo 404.
+- Decisiones:
+  - Solo se agrega `lepg`. `lesysoptsref` existe y se podría bajar, pero ninguna regla depende de una
+    opción de sistema todavía; bajarla sin uso sería peso muerto. La nota en el README dice cómo
+    agregarla cuando haga falta.
+  - El `.txt` se escribe con CRLF, igual que los seis que ya estaban (así los guarda git en este
+    repositorio). La herramienta lo fija, en vez de depender del sistema donde se corre.
+  - Los marcadores del PDF traen títulos partidos en dos líneas (60 casos en `lepg.INDEX.md`, 52 en
+    `proc.INDEX.md`): es un defecto del PDF y se deja igual, para que las siete guías se lean igual.
+- Pruebas: `tests/unit/test_referencia_tools.py` (3 nuevas): la marca y la línea en blanco entre
+  páginas, una página sin texto, y el orden de las páginas. La prueba que exige `.txt` y `.INDEX.md`
+  por guía cubre ahora las siete sin cambiar nada, porque recorre `SAS_DOCSETS`.
+- Verificación: `uv run ruff check .`: limpio. `uv run pytest -q -n auto`: **2059 pasadas, 26 omitidas
+  y 128 `xfailed`**, sin fallos. La corrida anterior a esa dio dos fallos que no se repitieron ni
+  solos ni en la corrida completa siguiente; no se identificaron porque el resumen se perdió, y no
+  volvieron a aparecer en dos corridas más.
+- Métricas: `lepg.txt` 1.4 MB (930 páginas), `lepg.INDEX.md` 72 KB (1584 secciones), `texto.py` 64
+  líneas, `docs/referencia/sas/` pasa de 6 a 7 guías.
+- Bloqueos: la versión exacta de SAS del cliente sigue sin confirmar (tarea 9) y `leforinfref` sigue
+  en 404, así que los informats se siguen tomando de `rules/sas/informats.yaml`.
+- No verificado: no se abrió el PDF a mano página por página; la revisión fue por el índice y por
+  búsquedas en el texto extraído. Que la guía describa la misma versión que corre el cliente no se
+  puede saber desde el repositorio.

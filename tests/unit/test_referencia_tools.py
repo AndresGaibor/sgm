@@ -15,6 +15,7 @@ sys.path.insert(0, str(REPO / "tools" / "referencia"))
 import descargar  # noqa: E402
 import fuentes  # noqa: E402
 import indice  # noqa: E402
+import texto  # noqa: E402
 
 
 @dataclass
@@ -85,3 +86,20 @@ def test_cada_componente_talend_del_proyecto_tiene_su_pagina():
     carpeta = REPO / "docs" / "referencia" / "talend"
     faltantes = [c for c in fuentes.TALEND_COMPONENTES if not (carpeta / f"{c}.md").exists()]
     assert faltantes == []
+
+
+def test_texto_de_paginas_marca_cada_pagina_y_separa_con_una_linea_en_blanco():
+    generado = texto.texto_de_paginas(["uno\n", "dos"])
+    assert generado == "\n\n<!-- página 1 -->\nuno\n\n<!-- página 2 -->\ndos\n"
+
+
+def test_una_pagina_sin_texto_deja_solo_su_marca():
+    assert texto.texto_de_paginas([None]) == "\n\n<!-- página 1 -->\n\n"
+
+
+def test_el_texto_extraido_conserva_el_orden_de_las_paginas():
+    # Los números de página son los del PDF (desde 1), que es lo que usa el `.INDEX.md`.
+    generado = texto.texto_de_paginas([f"p{n}" for n in range(1, 4)])
+    assert generado.count("<!-- página") == 3
+    assert generado.index("p2") > generado.index("<!-- página 2 -->")
+    assert generado.index("p3") > generado.index("<!-- página 3 -->")
