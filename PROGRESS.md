@@ -4487,3 +4487,65 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
 - No verificado: que el guardia sea la única causa posible de un fallo del paso `cruces`. El detalle
   del paso se capturó en una de las corridas; las otras fallaron en la misma prueba con el mismo
   síntoma (0 fallos de test, código de salida distinto de cero).
+
+## Hito 104. `AGENTS.md` dice cuál es el plan maestro y en qué orden se leen los tres planes
+
+- Fecha: 2026-11-05. Pedido del usuario: «hazlo» sobre la asimetría anotada al cerrar el hito 102 —
+  `AGENTS.md` ya describía la referencia de SAS, pero no el plan que dice qué hacer.
+- Qué se hizo: sección «Planes y orden de lectura», después de la de documentación, con los tres
+  documentos y su precedencia:
+  - **`docs/plan-reescritura/ruta-a-produccion.md` es el plan maestro**: tareas `R<fase>-<n>` con
+    dueño, dependencias, entrega y criterio de terminado; define N1 (paridad con el diseño manual, la
+    meta que pidió el usuario), N2 (equivalencia verificada) y N3 (producción). Reemplaza el orden de
+    trabajo de `tareas-agente.md` y de `plan-corpus-y-equivalencia.md`, que quedan como detalle.
+  - **`docs/plan-reescritura/plan.md`**: arquitectura (frontend → grafo de linaje → modelo de proceso
+    → emisores) y tabla «Estado por fase», la foto más reciente del avance.
+  - **`docs/plan-sgm-v2/`**: vigente para reparto (`01`), contratos (`05`), ciclo de huecos (`03`),
+    puntos de extensión (`04`) y calidad (`06`); **su secuencia de fases (`02-fases.md`) no**, porque
+    quedó superada por `plan.md`.
+  - Antes de tomar una tarea: el plan maestro entero (§0 explica cómo leerlo) y luego `PROGRESS.md`.
+    El plan es la intención, `PROGRESS.md` el hecho; si el plan contradice el código, se corrige el
+    plan o el código en el mismo cambio, nunca se deja la contradicción (es la regla que ya traía el
+    README de `plan-sgm-v2`).
+  - Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca a `src/` ni a
+    `rules/`.
+- **Corrección de una ruta muerta**: `docs/plan-sgm-v2/00-README.md` decía «Estos archivos van en el
+  repositorio, en `docs/plan/`». Esa carpeta no existe con ese nombre: quien la siguiera no
+  encontraba nada. Ahora dice `docs/plan-sgm-v2/`.
+- **Atribución**: el cambio de `AGENTS.md` quedó dentro del commit `b57533b` («hito 102m») de la serie
+  paralela, que commiteó el archivo mientras estaba sucio. El contenido es el de este hito; este commit
+  trae el resto (la ruta muerta, las pruebas y esta entrada). No se reescribió la historia: `AGENTS.md`
+  prohíbe enmendar y ese commit ya estaba publicado.
+- Pruebas: `tests/unit/test_agents_md.py` (nuevo, 6 pruebas). Las dos de `AGENTS.md` que vivían en
+  `tests/unit/test_referencia_tools.py` se trasladaron allí, no se borraron: ese archivo queda con 13
+  pruebas de las herramientas de referencia y este con todo lo que se afirma sobre `AGENTS.md`.
+  - `test_agents_md_dice_donde_esta_la_documentacion` y `test_agents_md_nombra_cada_guia_sas`: las dos
+    trasladadas.
+  - `test_agents_md_dice_cual_es_el_plan_maestro`: nombra los tres planes y la expresión «plan maestro».
+  - `test_agents_md_avisa_que_la_secuencia_de_fases_de_plan_sgm_v2_esta_superada`: nombra
+    `02-fases.md` y dice «superada». Es el error de orden que la sección existe para evitar.
+  - `test_las_rutas_de_docs_que_agents_md_nombra_existen`: extrae con una expresión regular las rutas
+    `docs/...` entre comillas invertidas y exige que existan. Hoy son 9; se comprobó que no pasa en
+    vacío listándolas una por una.
+  - `test_el_readme_de_plan_sgm_v2_no_apunta_a_una_carpeta_inexistente`: cierra la ruta muerta.
+- Decisiones:
+  - Un archivo de prueba propio para `AGENTS.md`. Las aserciones sobre un archivo no son pruebas de
+    las herramientas de referencia; mezcladas, la prueba de referencia crecía por un motivo que no era
+    el suyo.
+  - La prueba de rutas es genérica y no una lista copiada: cualquier `docs/...` que se añada a
+    `AGENTS.md` queda comprobado sin tocar la prueba. Descarta las rutas con comodín o con `<docset>`,
+    que no son archivos concretos y no se pueden comprobar.
+  - Se comprueban dos frases del texto («plan maestro», «superada»). Es una prueba frágil ante una
+    reescritura de la redacción, y se acepta: lo que hay que garantizar es que la instrucción esté, y
+    la instrucción es el texto.
+  - No se tocó `ruta-a-produccion.md` ni `plan.md`: los lleva la serie paralela y este hito solo los
+    cita. El plan maestro cambia a diario; `AGENTS.md` dice dónde está, no lo que dice hoy.
+- Métricas: `AGENTS.md` pasa de 71 a 92 líneas; 3 planes con su precedencia, 9 rutas de `docs/`
+  comprobadas, 1 ruta muerta corregida; 6 pruebas nuevas (2 de ellas trasladadas).
+- Bloqueos: ninguno en este hito. La suite se pudo cerrar gracias al hito 103, que quitó el pytest
+  anidado de `test_tools_ci`.
+- Verificación: `uv run ruff check .`: limpio. `tests/unit/test_agents_md.py` y
+  `tests/unit/test_referencia_tools.py`: 19 pasadas. Suite completa: 2272 pruebas, 0 fallos, 0 errores,
+  155 omitidas.
+- No verificado: que un agente respete el orden de lectura no se puede probar. Las pruebas garantizan
+  que la instrucción está, que nombra el plan maestro y que las rutas a las que manda existen.

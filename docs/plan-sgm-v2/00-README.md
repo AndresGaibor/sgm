@@ -2,7 +2,7 @@
 
 > **Nota (4 de noviembre de 2026):** la secuencia de fases de este plan (generador por operadores) quedó superada por `docs/plan-reescritura/plan.md`. El reparto, los contratos, el ciclo de huecos y la calidad siguen vigentes.
 
-Estos archivos van en el repositorio, en `docs/plan/`. Son la referencia del equipo (Andres, Joseph, Byron) y de los agentes que trabajen en sgm. Si algo de aquí contradice el código, se corrige el documento o el código en el mismo cambio.
+Estos archivos van en el repositorio, en `docs/plan-sgm-v2/`. Son la referencia del equipo (Andres, Joseph, Byron) y de los agentes que trabajen en sgm. Si algo de aquí contradice el código, se corrige el documento o el código en el mismo cambio.
 
 ## Qué significa "100 %"
 
