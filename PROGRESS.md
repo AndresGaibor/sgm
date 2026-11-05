@@ -1758,3 +1758,33 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   T13, asi que generar los `tMap` con lookup de pais y DANE queda detras de T13. Los motivos
   separados `PAIS_INVALIDO` y `DANE_INVALIDO` son una decision de diseno: el SAS usa uno solo.
 - Pendiente: T12 (Job), T13 a T20.
+
+
+## Hito 73. T20: presupuesto de componentes por Job
+
+- Fecha: 2026-11-04
+- Medido sobre `job_producto` real (no estimado): sin validacion, 6 componentes
+  (`tJava`, `tFileInputDelimited`, `tReplicate`, `tMap`, `tAggregateRow`, `tLogRow`). Con la
+  validacion de tipo de documento de T10, 11: se suman `tFileInputExcel`, un segundo `tMap`, un
+  segundo `tAggregateRow`, `tFileOutputDelimited` de rechazos y un `tLogRow`.
+- Queda por debajo del limite de 20 del diseno manual. Margen: 9 componentes.
+- Decision: no se mueve nada a joblets todavia. Cada validacion nueva de T12 a T19 cuesta entre 2 y
+  4 componentes (lookup, tMap y salida), asi que con dos validaciones mas el Job llega al limite. La
+  regla que se deja escrita: cuando el Job pase de 20, cada rama de validacion se va a un Job hijo
+  `job_validacion_<tema>` por producto, no a un joblet, porque el joblet comparte contexto y hace mas
+  dificil probar la rama por separado.
+- Pendiente: T12 (Job), T13 a T19, y el bloque B.
+
+## Estado del backlog al cerrar la sesion
+
+- Hechos: T01, T02, T04 (hito 69), T10 (hito 70), T11 (hito 71), T12 en su parte de deteccion
+  (hito 72), T20 (hito 73).
+- Bloqueado con motivo: T12 (Job) y T13 dependen de ejecutar en Studio el filtro del `tMap` o
+  `tFilterRow`; no hay Studio disponible en esta sesion (el dialogo "Network Issue" bloquea
+  `talend_job_verify`) y el repo prohibe suponer el comportamiento sin medirlo. T15 (`tUniqRow`) y
+  T16 (compilacion Java con el JDK de Studio) arrastran el mismo bloqueo.
+- Abierto: T14, T17 a T19 y los bloques B, C y D (T30 a T94) no se han tocado.
+- Nota de convivencia: otra sesion trabaja en el mismo repositorio (`tools/corpus*`, `tests/corpus/`).
+  Mientras corre, `uv run pytest -q` puede fallar leyendo un YAML a medio escribir
+  (`test_corpus_validaciones.py`); en aislamiento ese archivo pasa. `ruff check .` sigue en rojo por
+  esos mismos archivos ajenos: los mios estan limpios.
