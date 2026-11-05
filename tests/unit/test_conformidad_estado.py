@@ -69,9 +69,18 @@ def test_fila_ausente_en_el_diseno_emitido_queda_pendiente() -> None:
 def test_diferencia_conocida_gana_sobre_la_comparacion() -> None:
     clave_conocida = next(iter(DIFERENCIAS_CONOCIDAS))
     secciones = _seccion(_fila(clave_conocida, "Fuente"))
-    diseno = {"1.1": {"Fuente": {"tipo": "Excel"}}}
+    diseno = {"1.1": {"Fuente": {"tipo": "CSV"}}}  # hay diferencia real: el manual dice Excel
     estado, motivo = _estados(secciones, diseno, {})[clave_conocida]
     assert (estado, motivo) == ("diferente", DIFERENCIAS_CONOCIDAS[clave_conocida])
+
+
+def test_diferencia_conocida_no_se_aplica_si_la_fila_coincide() -> None:
+    clave_conocida = next(iter(DIFERENCIAS_CONOCIDAS))
+    secciones = _seccion(_fila(clave_conocida, "Fuente"))
+    diseno = {"1.1": {"Fuente": {"tipo": "Excel"}}}
+    origenes = {"1.1": {"Fuente": ORIGEN_SAS}}
+    estado, _ = _estados(secciones, diseno, origenes)[clave_conocida]
+    assert estado == "derivada"
 
 
 def test_fila_humana_que_coincide_sigue_pendiente() -> None:

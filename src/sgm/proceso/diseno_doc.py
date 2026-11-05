@@ -15,24 +15,29 @@ from sgm.flow.model import build_flows
 from sgm.flow.regiones import asignar_regiones, dividir_regiones
 from sgm.frontend.program import analyze_program
 from sgm.proceso.analisis import analizar_regiones
-from sgm.proceso.colapso import SIN_ETAPA, colapsar, plantilla_por_etapa
+from sgm.proceso.colapso import colapsar, plantilla_por_etapa
 from sgm.proceso.entradas_salidas import entradas_y_salidas
 from sgm.proceso.etapas import Cobertura, cargar_etapas, cobertura, etapa_de
 from sgm.proceso.fontaneria import contar_fontaneria, seccion_equivalencias
 from sgm.proceso.pendientes import Pendiente, reunir_pendientes
 from sgm.proceso.secciones_decisiones import cargar_decisiones, seccion_decisiones
 from sgm.proceso.secciones_entrada import (
+    ORIGEN_DECLARADA,
     cargar_declaradas,
     origen_fuentes,
     origen_salidas,
     seccion_fuentes,
     seccion_salidas,
 )
+from sgm.proceso.secciones_intercambio import seccion_intercambio, seccion_periodo
+from sgm.proceso.secciones_jobs import componentes_emitidos, seccion_jobs
 from sgm.proceso.secciones_parametros import seccion_parametros
 from sgm.redaction import redact
+from sgm.talend_item.arquitectura import cargar_arquitectura
 
 Diseno = dict[str, dict[str, dict[str, str]]]
-SECCIONES_EMITIDAS = ("1.1", "1.4", "2.1")  # comparables con el diseño manual fila a fila
+# Comparables con el diseño manual fila a fila (la conformidad los evalúa).
+SECCIONES_EMITIDAS = ("1.1", "1.2", "1.3", "1.4", "2.1")
 # Sin comparación fila a fila: salen de hechos y reglas, o sus claves no son las del manual.
 SECCIONES_GENERICAS = ("3", "5", "6")
 
@@ -44,28 +49,13 @@ class DocumentoDiseno:
     pendientes: list[Pendiente]
     resumen: dict[str, int] = field(default_factory=dict)
     etapas: Cobertura | None = None
-    # Origen de cada fila de las secciones 1.1 y 1.4: `sas` o `declarada` (la conformidad lo usa).
+    # Origen de cada fila de las secciones emitidas: `sas` o `declarada` (la conformidad lo usa).
     origenes: dict[str, dict[str, str]] = field(default_factory=dict)
 
 
-def seccion_etapas(declaradas, etapas: Cobertura, bloques: dict[str, int]) -> Diseno:
-    """Sección 3: por etapa declarada, sus etiquetas y los bloques que quedan en las plantillas."""
-    filas: dict[str, dict[str, str]] = {}
-    for e in declaradas:
-        filas[e.nombre] = {
-            "etiquetas": str(etapas.por_etapa.get(e.nombre, 0)),
-            "bloques_en_plantillas": "0" if e.elimina else str(bloques.get(e.nombre, 0)),
-            "estado": "eliminada: el diseño no guarda tablas intermedias"
-            if e.elimina
-            else "se construye",
-        }
-    if bloques.get(SIN_ETAPA):
-        filas[SIN_ETAPA] = {
-            "etiquetas": str(len(etapas.sin_etapa)),
-            "bloques_en_plantillas": str(bloques[SIN_ETAPA]),
-            "estado": "pendiente: ninguna etapa declarada los cubre",
-        }
-    return filas
+def _jobs_yaml(programa: Path, decisiones_diseno: Path) -> Path:
+    """Ruta de `<programa>.jobs.yaml`, junto a las decisiones de diseño."""
+    return decisiones_diseno.with_name(f"{programa.stem}.jobs.yaml")
 
 
 def construir_documento(
@@ -76,7 +66,7 @@ def construir_documento(
     modelo = build_flows({programa.name: texto})[programa.name]
     declaracion = cargar_declaracion(agrupacion)
     es = entradas_y_salidas(modelo, declaracion.productos)
-    limpio = redact(texto.lstrip("\ufeff"), programa.name)
+    limpio = redact(texto.lstrip("﻿"), programa.name)
     items = analyze_program({programa.name: limpio}, {}).items
     fontaneria = contar_fontaneria(items)
     regiones = analizar_regiones(texto, declaracion)
@@ -97,16 +87,30 @@ def construir_documento(
         cargar_declaradas(decisiones_diseno, "parametros"), es
     )
     decisiones = cargar_decisiones(decisiones_diseno.with_name(f"{programa.stem}.decisiones.yaml"))
+    origen_1_1 = origen_fuentes(fuentes, es)
+    intercambio, origen_intercambio = seccion_intercambio(
+        cargar_declaradas(decisiones_diseno, "intercambios")
+    )
+    jobs_yaml = _jobs_yaml(programa, decisiones_diseno)
+    arq = cargar_arquitectura(jobs_yaml) if jobs_yaml.is_file() else None
+    fecha = arq.periodo if arq else None
+    origen_fecha = origen_1_1.get(fecha.fuente, ORIGEN_DECLARADA) if fecha else ""
+    periodo, origen_periodo = seccion_periodo(arq, origen_fecha)
+    conteo = componentes_emitidos(programa, agrupacion, decisiones_diseno, jobs_yaml) if arq else {}
     secciones: Diseno = {
         "1.1": seccion_fuentes(fuentes, es),
+        "1.2": intercambio,
+        "1.3": periodo,
         "1.4": seccion_salidas(salidas, es),
         "2.1": parametros,
-        "3": seccion_etapas(declaradas, etapas, bloques),
+        "3": seccion_jobs(conteo),
         "5": seccion_decisiones(decisiones),
         "6": seccion_equivalencias(fontaneria),
     }
     origenes = {
-        "1.1": origen_fuentes(fuentes, es),
+        "1.1": origen_1_1,
+        "1.2": origen_intercambio,
+        "1.3": origen_periodo,
         "1.4": origen_salidas(salidas, es),
         "2.1": origen_parametros,
     }

@@ -3872,3 +3872,140 @@ de `sgm talend`).
   falla por archivos sin commitear de otra sesión (`decisiones/client_large.diseno.yaml`); no se tocó.
 - La regla de `L8/05` y la tolerancia de prueba `0.005` de `caso.yaml` no son lo mismo: `0.005` es la
   tolerancia para comparar decimales en `esperado/`; la de negocio es `tolerancia_conciliacion`.
+
+## Hito 99d. R5-02 y R5-06: el documento emitido y la propuesta al manual siguen lo probado
+
+- Fecha: 2026-11-05. Tareas R5-02 y R5-06 de `docs/plan-reescritura/ruta-a-produccion.md` (T61).
+- Dependencia R3-05 sin cumplir: la sección 3 refleja el Job actual, no uno joblet.
+
+### Qué se hizo
+
+- **1.1 Fuentes externas** (`decisiones/client_large.diseno.yaml`, clave `fuentes`). Los depósitos
+  dejan de ser "Tabla Impala": son CSV `DBIFTCD.csv`, `DBIFTCS.csv` y `F_1019.csv`, con `;` y sin
+  cabecera (hito 64; `client_large.sas` líneas 284-294, 871-881 y 1510-1517). Se añade el auxiliar
+  `Base_datos_Nequi.csv` (R1-16). Las lecturas Impala que el SAS demuestra son tres:
+  `resultados_vspc_clientes.master_customer_data` (línea 167), `S_CANALES.SAI_SCILIBRAMD_SCIFFIMGFR`
+  (línea 215) y `proceso_vspc_finanzas.MCDQ` (línea 2071). El tipo y la ubicación de cada fila los
+  da el emisor al hallar la ruta en el SAS (`seccion_fuentes`); el DSN sale de la macro `%ambiente`
+  (D a IMPALA, C a IMPALAC, P a IMPALAP; línea 1770 y siguientes).
+- **1.2 Intercambio de totales y lookups (sin caché)**, sección nueva en
+  `src/sgm/proceso/secciones_intercambio.py`. Las filas vienen de la clave `intercambios` del YAML.
+  El SAS no tiene cachés; el texto lo fija el emisor. Los lookups de Excel se leen dentro de
+  `job_producto`: el de tipo de documento (CTE y AHO) sí; el de NEQUI, país y DANE no (R1-16, R1-05).
+  Los totales viajan en archivos por producto, mecanismo (b) del hito 97d; `job_producto` aún no los
+  escribe, y el documento lo dice.
+- **1.3 Variables del periodo**, `seccion_periodo`. El padre `job_exogena_depositos` lee la fecha
+  del Excel de validación y deja `periodo_anio`, `periodo_mes` y `periodo_dia` en el contexto; los
+  hijos las heredan (hito 63). No hay `job_insumos`. La fila sale de `decisiones/client_large.jobs.yaml`.
+- **3 Jobs emitidos y componentes**, `src/sgm/proceso/secciones_jobs.py`. `componentes_emitidos`
+  llama a `talend_command` (el mismo emisor que `sgm talend`) escribiendo en una carpeta temporal y
+  cuenta los `<node>` de cada `.item`. No se copia ninguna cifra. Un Job de un componente se marca
+  como esqueleto. `job_producto` queda por encima del límite de 20 del manual, con 21 componentes.
+  Se retiró la tabla de etapas de la sección 3 (sus conteos siguen en el resumen).
+- **Diferencias conocidas** (`src/sgm/conformidad/estado.py`). Se añaden F06 a F08 (depósitos como
+  tablas Impala), C01 a C10 (cachés) y G01 a G03 (periodo), cada una con su motivo. Cambio de
+  semántica: el motivo conocido solo se aplica cuando hay diferencia real con el manual. Antes ganaba
+  siempre, y así F06 marcaba como diferente un programa cuyo YAML sí coincide con el manual.
+- **Pruebas**: `tests/unit/test_proceso_secciones_intercambio.py` (5), `tests/unit/test_proceso_secciones_jobs.py`
+  (6), `tests/unit/test_proceso_diseno_real.py` (7, sobre `client_large.sas`) y una prueba nueva en
+  `test_conformidad_estado.py`. Las secciones 1.2 y 1.3 pasan a `SECCIONES_EMITIDAS`, así que sus
+  xfail de presencia se quitan porque la prueba pasa de verdad.
+- **Propuesta al manual (R5-06)**: `docs/propuesta-correcciones-diseno-manual.md`, 17 puntos con
+  hito, línea del SAS y recomendación. El manual no se toca.
+
+### Conformidad: antes y después (salida literal de `sgm conformidad`)
+
+Antes de los cambios:
+
+```text
+Conformidad de client_large.sas contra el diseño manual (118 filas)
+  derivadas:  9
+  declaradas: 7
+  pendientes: 99
+  diferencias: 3
+  porcentaje derivado: 7.6 %
+Diferencias con motivo:
+  F04 (sección 1.1, Códigos DANE): el SAS sí lee CODIGOS_DANE.xlsx; el manual lo daba por pendiente (el migrador halla más)
+  X01 (sección 2.1, ruta_insumos): el SAS da la misma carpeta de insumos; el manual pide confirmarla por entorno (DC-07) y el migrador no lo dice
+  X06 (sección 2.1, arch_dane): el SAS sí nombra CODIGOS_DANE.xlsx, como en F04; el manual lo daba por pendiente
+```
+
+Después de los cambios:
+
+```text
+Conformidad de client_large.sas contra el diseño manual (118 filas)
+  derivadas:  9
+  declaradas: 4
+  pendientes: 86
+  diferencias: 19
+  porcentaje derivado: 7.6 %
+Diferencias con motivo:
+  F04 (sección 1.1, Códigos DANE): el SAS sí lee CODIGOS_DANE.xlsx; el manual lo daba por pendiente (el migrador halla más)
+  F06 (sección 1.1, Depósitos corriente (origen CTE)): el origen es un CSV bajado con PROC DOWNLOAD (DBIFTCD.csv, DBIFTCS.csv, F_1019.csv; hito 64), no una tabla de Impala
+  F07 (sección 1.1, Depósitos ahorros (origen AHO)): el origen es un CSV bajado con PROC DOWNLOAD (DBIFTCD.csv, DBIFTCS.csv, F_1019.csv; hito 64), no una tabla de Impala
+  F08 (sección 1.1, Depósitos Nequi (origen NEQUI)): el origen es un CSV bajado con PROC DOWNLOAD (DBIFTCD.csv, DBIFTCS.csv, F_1019.csv; hito 64), no una tabla de Impala
+  C01 (sección 1.2, cache_hom_doc): no hay caché: job_producto lee el Excel de tipo de documento (hitos 70 y 85)
+  C02 (sección 1.2, cache_hom_nequi): no hay caché ni lookup de NEQUI en job_producto: pendiente (R1-16)
+  C03 (sección 1.2, cache_paises): no hay caché ni lookup: la validación de ubicación no está en el job_producto de este programa (R1-05)
+  C04 (sección 1.2, cache_dane): no hay caché ni lookup: la validación de ubicación no está en el job_producto de este programa (R1-05)
+  C05 (sección 1.2, totales_origen_cte): no hay caché: los totales viajan en archivos por producto en la carpeta de trabajo (hito 97d, mecanismo b); job_producto aún no los escribe
+  C06 (sección 1.2, totales_origen_aho): no hay caché: los totales viajan en archivos por producto en la carpeta de trabajo (hito 97d, mecanismo b); job_producto aún no los escribe
+  C07 (sección 1.2, totales_origen_nequi): no hay caché: los totales viajan en archivos por producto en la carpeta de trabajo (hito 97d, mecanismo b); job_producto aún no los escribe
+  C08 (sección 1.2, totales_salida_cte): no hay caché: los totales viajan en archivos por producto en la carpeta de trabajo (hito 97d, mecanismo b); job_producto aún no los escribe
+  C09 (sección 1.2, totales_salida_aho): no hay caché: los totales viajan en archivos por producto en la carpeta de trabajo (hito 97d, mecanismo b); job_producto aún no los escribe
+  C10 (sección 1.2, totales_salida_nequi): no hay caché: los totales viajan en archivos por producto en la carpeta de trabajo (hito 97d, mecanismo b); job_producto aún no los escribe
+  G01 (sección 1.3, periodo_anio): el padre lee la fecha y la pasa por contexto (hito 63); no la lee job_insumos, que se eliminó
+  G02 (sección 1.3, periodo_mes): el padre lee la fecha y la pasa por contexto (hito 63); no la lee job_insumos, que se eliminó
+  G03 (sección 1.3, periodo_dia): el padre lee la fecha y la pasa por contexto (hito 63); no la lee job_insumos, que se eliminó
+  X01 (sección 2.1, ruta_insumos): el SAS da la misma carpeta de insumos; el manual pide confirmarla por entorno (DC-07) y el migrador no lo dice
+  X06 (sección 2.1, arch_dane): el SAS sí nombra CODIGOS_DANE.xlsx, como en F04; el manual lo daba por pendiente
+```
+
+Las 9 derivadas no bajan (meta del hito: no bajar). Las declaradas bajan de 7 a 4 porque F06 a F08
+pasan a diferencias con motivo. Las diferencias suben de 3 a 19: 16 nuevas, todas en
+`DIFERENCIAS_CONOCIDAS`.
+
+### Pruebas
+
+- `uv run pytest -q -n auto`: 2094 pasan, 26 se saltan, 129 xfail.
+- `uv run ruff check .`: limpio.
+- Ajustes de pruebas existentes, sin borrar aserciones:
+  - `tests/conformidad/test_linea_base.py`: lista de diferencias medidas (19 ids).
+  - `tests/unit/test_tablero.py`: conformidad 16 a 13 filas cumplidas y 3 a 5 secciones emitidas.
+    El tablero cuenta filas emitidas que no están en `DIFERENCIAS_CONOCIDAS`; F06 a F08 salen de
+    ese conteo, no del de derivadas.
+  - `tests/unit/test_conformidad_estado.py`: la prueba de "diferencia conocida" tenía un caso sin
+    diferencia real; se le da una diferencia real y se añade la prueba del caso coincidente.
+  - `tests/unit/test_proceso_insumos.py`: la prueba de los cinco Excel elige solo las fuentes con
+    ubicación `ruta_insumos`; antes elegía todas las que tienen `busca`, y las fuentes CSV e Impala
+    nuevas la rompían. La aserción no cambia.
+
+### Métricas
+
+- Derivadas 9 de 118 (sin cambio), declaradas 4 (antes 7), pendientes 86 (antes 99), diferencias
+  19 (antes 3).
+- Componentes emitidos hoy para `client_large.sas` (por la sección 3): `job_producto` 21,
+  `job_exogena_depositos` 13, `job_totales` 13, `job_conciliacion` 16. El último número cambia
+  porque la otra sesión trabaja en `jobs_conciliacion.py` sin commitear; no es de este hito.
+
+### No verificado
+
+- No se ejecutó Studio. Este hito no toca Jobs ni `.item`; cambia el documento y la conformidad.
+- `componentes_emitidos` depende de la firma de `talend_command`, que la otra sesión modifica en
+  `cli_talend.py` sin commitear. Si cambia, la sección 3 falla con un mensaje claro.
+- `tCacheIn` y `tCacheOut` entre Jobs no se han probado; la propuesta lo dice (punto 4).
+- El tablero mide "filas cumplidas" con un criterio distinto del de `sgm conformidad`. No se corrigió.
+
+### Pendiente
+
+- R3-05 (joblets) para que `job_producto` baje de 20 componentes. Hasta entonces la sección 3 lo dice.
+- DC-04 (tolerancia) y la decisión de exógena frente a `TOTAL_*` (propuesta, punto 11).
+- Escritura de `totales_origen_<p>.csv` y `totales_salida_<p>.csv` en `job_producto` (R2-02).
+
+### Decisiones
+
+- Sección 3: el conteo viene del emisor real en una carpeta temporal, no de un valor fijo. Así el
+  documento no puede decir más de lo que el código emite.
+- Sección 1.2: el texto de cada intercambio está en `decisiones/`, con su evidencia en el hito que
+  lo sostiene. Lo que el emisor no hace aún dice "pendiente" con su motivo.
+- Diferencias conocidas: solo cuentan cuando hay diferencia real (ver arriba).

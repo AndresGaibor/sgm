@@ -50,7 +50,13 @@ def test_el_programa_grande_resuelve_las_cinco_fuentes_de_excel():
         encoding="utf-8", errors="replace"
     )
     declaradas = cargar_declaradas(raiz / "decisiones" / "client_large.diseno.yaml", "fuentes")
-    claves = [d["clave"] for d in declaradas if d.get("busca")]
+    # Solo los Excel de insumos (ubicación `ruta_insumos + ...`): los CSV de producto y las tablas
+    # Impala no son insumos de este resolutor (hito 99d).
+    claves = [
+        d["clave"]
+        for d in declaradas
+        if d.get("busca") and d.get("ubicacion", "").startswith("ruta_insumos")
+    ]
     r = resolver_insumos(texto, declaradas, claves)
     assert len(r.insumos) == 5
     assert {nombre_archivo(i.ruta) for i in r.insumos.values()} >= {"Cod_pais.xlsx"}

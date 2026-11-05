@@ -21,7 +21,14 @@ DECISIONES = RAIZ / "decisiones"
 
 TOTAL_FILAS = 118
 DERIVADAS = ["F01", "F02", "F03", "F05", "S03", "X03", "X04", "X05", "X07"]
-DIFERENCIAS = ["F04", "X01", "X06"]
+# Hito 99d (R5-02): F06 a F08 pasan de tablas Impala a CSV; la sección 1.2 (cachés) y la 1.3
+# (periodo) se emiten con sus diferencias, cada una con su motivo en DIFERENCIAS_CONOCIDAS.
+DIFERENCIAS = [
+    "F04", "F06", "F07", "F08",
+    "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10",
+    "G01", "G02", "G03",
+    "X01", "X06",
+]  # fmt: skip
 
 
 @lru_cache(maxsize=1)
@@ -44,6 +51,6 @@ def test_filas_derivadas_del_sas_son_la_linea_base() -> None:
     assert derivadas == DERIVADAS
 
 
-def test_unica_diferencia_medida_es_la_conocida() -> None:
+def test_diferencias_medidas_son_las_conocidas() -> None:
     diferencias = [d["id"] for d in _resumen()["resumen"]["diferencias"]]
     assert diferencias == DIFERENCIAS

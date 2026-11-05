@@ -55,8 +55,9 @@ def test_conformidad_cuenta_filas_y_secciones():
     datos = tablero.conformidad()
     # Hito 94: sección 2.1 emitida; sus filas X03, X04, X05 y X07 cumplen, X01, X02, X06, X08 y X09
     # no (ver DIFERENCIAS_CONOCIDAS y FILAS_PENDIENTES).
-    assert (datos["filas"], datos["filas_cumplidas"]) == (118, 16)
-    assert (datos["secciones"], datos["secciones_emitidas"]) == (22, 3)
+    # Hito 99d: F06 a F08 pasan a diferencias conocidas (16 a 13 cumplidas); 1.2 y 1.3 se emiten.
+    assert (datos["filas"], datos["filas_cumplidas"]) == (118, 13)
+    assert (datos["secciones"], datos["secciones_emitidas"]) == (22, 5)
 
 
 def test_pendientes_del_modelo_tienen_motivo(pendientes):

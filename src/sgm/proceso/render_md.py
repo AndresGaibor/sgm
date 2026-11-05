@@ -9,9 +9,11 @@ from sgm.proceso.diseno_doc import DocumentoDiseno
 
 TITULOS = {
     "1.1": "Fuentes externas",
+    "1.2": "Intercambio de totales y lookups (sin caché)",
+    "1.3": "Variables del periodo",
     "1.4": "Salidas (archivos)",
     "2.1": "Parámetros de ruta y de archivo",
-    "3": "Etapas y tamaño estimado",
+    "3": "Jobs emitidos y componentes",
     "5": "Decisiones abiertas y tomadas",
     "6": "Equivalencias con el SAS",
 }

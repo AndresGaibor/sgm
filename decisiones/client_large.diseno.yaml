@@ -31,9 +31,13 @@ fuentes:
   - {clave: 'Códigos de país', busca: 'Cod_pais\.xlsx$', ubicacion: 'ruta_insumos + arch_paises', uso: 'Lookup de país'}
   - {clave: 'Códigos DANE', busca: 'CODIGOS_DANE\.xlsx$', ubicacion: 'ruta_insumos + arch_dane', uso: 'Lookup de departamento y municipio'}
   - {clave: 'Validación de fecha', busca: 'Validacion_fecha\.xlsx$', ubicacion: 'ruta_insumos + arch_validacion_fecha', uso: 'Periodo (AÑO, MES, DIA)'}
-  - {clave: 'Depósitos corriente (origen CTE)', tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado_sin_hallar: 'pendiente (nombre de tabla)'}
-  - {clave: 'Depósitos ahorros (origen AHO)', tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado_sin_hallar: 'pendiente (nombre de tabla)'}
-  - {clave: 'Depósitos Nequi (origen NEQUI)', tipo: 'Tabla Impala', ubicacion: 'impala_dsn', uso: 'Entrada de job_producto', estado_sin_hallar: 'pendiente (nombre de tabla)'}
+  - {clave: 'Depósitos corriente (origen CTE)', busca: 'DBIFTCD\.csv$', ubicacion: 'CSV bajado con PROC DOWNLOAD (ruta_origen del producto CTE)', uso: 'Entrada de job_producto (CTE)', estado_sin_hallar: 'pendiente (archivo CSV no hallado)'}
+  - {clave: 'Depósitos ahorros (origen AHO)', busca: 'DBIFTCS\.csv$', ubicacion: 'CSV bajado con PROC DOWNLOAD (ruta_origen del producto AHO)', uso: 'Entrada de job_producto (AHO)', estado_sin_hallar: 'pendiente (archivo CSV no hallado)'}
+  - {clave: 'Depósitos Nequi (origen NEQUI)', busca: 'F_1019\.csv$', ubicacion: 'CSV bajado con PROC DOWNLOAD (ruta_origen del producto NEQUI)', uso: 'Entrada de job_producto (NEQUI)', estado_sin_hallar: 'pendiente (archivo CSV no hallado)'}
+  - {clave: 'Base de clientes Nequi (auxiliar)', busca: 'Base_datos_Nequi\.csv$', ubicacion: 'CSV bajado con PROC DOWNLOAD; 6 columnas', uso: 'Auxiliar de NEQUI; su destino en el Job está pendiente (R1-16)', estado_sin_hallar: 'pendiente (archivo CSV no hallado)'}
+  - {clave: 'Maestro de clientes (Impala)', busca: 'master_customer_data$', ubicacion: 'DSN según %ambiente (IMPALA, IMPALAC o IMPALAP)', uso: 'Último día de ingestión del mes y extracción MCDQ', estado_sin_hallar: 'pendiente (tabla no hallada)'}
+  - {clave: 'Firmas autorizadas (Impala)', busca: 'SAI_SCILIBRAMD_SCIFFIMGFR$', ubicacion: 'DSN según %ambiente (IMPALA, IMPALAC o IMPALAP)', uso: 'Último día de ingestión y cruce con reemplazos de NID (FA)', estado_sin_hallar: 'pendiente (tabla no hallada)'}
+  - {clave: 'MCDQ (Impala)', busca: 'MCDQ$', ubicacion: 'DSN según %ambiente (IMPALA, IMPALAC o IMPALAP)', uso: 'Cruce por llave_sistema con los depósitos (LEFT JOIN)', estado_sin_hallar: 'pendiente (tabla no hallada)'}
 
 # Salidas de archivo (sección 1.4). `equivalente_busca`: expresión regular sobre los nombres de
 # archivo que escribe el SAS; si casa, la columna `equivalente_sas` lista los que halló.
@@ -56,3 +60,18 @@ parametros:
   - {clave: 'arch_paises', busca: 'Cod_pais\.xlsx$'}
   - {clave: 'arch_dane', busca: 'CODIGOS_DANE\.xlsx$'}
   - {clave: 'arch_validacion_fecha', busca: 'Validacion_fecha\.xlsx$'}
+
+# Intercambio de datos entre Jobs y lookups (sección 1.2). El SAS no tiene cachés: es una decisión del
+# emisor con evidencia en PROGRESS.md. Los lookups de Excel se leen en `job_producto`; los totales
+# viajan en archivos por producto (hito 97d, mecanismo b). Lo que el emisor aún no hace va como pendiente.
+intercambios:
+  - {clave: cache_hom_doc, creada_en: 'no se crea: job_producto lee el Excel como lookup (CTE y AHO)', leida_en: 'job_producto (validación de tipo de documento)', contenido: 'Excel Homologacion_tpo_dto.xlsx, columna CNAME', clave_busqueda: 'CNAME'}
+  - {clave: cache_hom_nequi, creada_en: 'no se crea: pendiente (R1-16), job_producto no lee el Excel de NEQUI', leida_en: 'pendiente (R1-16)', contenido: 'Excel Homologacion_tpo_dto_Nequi.xlsx, columna CNAME', clave_busqueda: 'CNAME'}
+  - {clave: cache_paises, creada_en: 'no se crea: pendiente (R1-05), job_producto no lee Cod_pais.xlsx', leida_en: 'pendiente (R1-05)', contenido: 'Excel Cod_pais.xlsx, columnas Codigo_Pais y Nombre Pais', clave_busqueda: 'Codigo_Pais'}
+  - {clave: cache_dane, creada_en: 'no se crea: pendiente (R1-05), job_producto no lee CODIGOS_DANE.xlsx', leida_en: 'pendiente (R1-05)', contenido: 'Excel CODIGOS_DANE.xlsx, columna CODIGO_DANE', clave_busqueda: 'CODIGO_DANE'}
+  - {clave: totales_origen_cte, creada_en: 'job_producto (CTE), pendiente: aún no escribe el archivo (hito 97d)', leida_en: 'job_totales', contenido: 'archivo totales_origen_CTE.csv: registros y suma de FIN_SALDO_CTA', clave_busqueda: 'no aplica (una fila por archivo)'}
+  - {clave: totales_origen_aho, creada_en: 'job_producto (AHO), pendiente: aún no escribe el archivo (hito 97d)', leida_en: 'job_totales', contenido: 'archivo totales_origen_AHO.csv: registros y suma de FIN_SALDO_CTA', clave_busqueda: 'no aplica (una fila por archivo)'}
+  - {clave: totales_origen_nequi, creada_en: 'job_producto (NEQUI), pendiente: aún no escribe el archivo (R1-16)', leida_en: 'job_totales', contenido: 'archivo totales_origen_NEQUI.csv: registros y suma de FIN_SALDO_CTA', clave_busqueda: 'no aplica (una fila por archivo)'}
+  - {clave: totales_salida_cte, creada_en: 'job_producto (CTE), pendiente: aún no escribe el archivo (hito 97d)', leida_en: 'job_totales', contenido: 'archivo totales_salida_CTE.csv: registros y suma de saldo de la salida validada', clave_busqueda: 'no aplica (una fila por archivo)'}
+  - {clave: totales_salida_aho, creada_en: 'job_producto (AHO), pendiente: aún no escribe el archivo (hito 97d)', leida_en: 'job_totales', contenido: 'archivo totales_salida_AHO.csv: registros y suma de saldo de la salida validada', clave_busqueda: 'no aplica (una fila por archivo)'}
+  - {clave: totales_salida_nequi, creada_en: 'job_producto (NEQUI), pendiente: aún no escribe el archivo (R1-16)', leida_en: 'job_totales', contenido: 'archivo totales_salida_NEQUI.csv: registros y suma de saldo de la salida validada', clave_busqueda: 'no aplica (una fila por archivo)'}
