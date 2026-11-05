@@ -2365,3 +2365,125 @@ eglas_mapeo.py). La salida no cambia: goldens id�nticos.
   copiado y renombrado; no prueban el padre ni la corrida completa de `job_exogena_depositos`.
   `medir()` cuenta las líneas de `doc_incorrectos_<producto>.csv` y los dos `tLogRow`; si el
   diseño cambia el formato de esas salidas, el arnés debe actualizarse antes de volver a usarlo.
+
+## Hito 86. R1-04 (parte 1): `v02_vacios_ceros` separa los tres flujos en Studio y coincide fila por fila
+
+- Alcance: primera ejecución con datos de las reglas de vacíos y ceros. El hito **no** modifica
+  `cli_talend.py` ni `jobs_producto.py`: construye un Job mínimo con los módulos de producto, igual
+  que los arneses de R1-01/R1-02. La integración en el `job_producto` emitido queda para el hito 87.
+  Cuatro módulos nuevos en `src/` y `tools/`, todos por debajo de las 300 líneas de `AGENTS.md`.
+- Las reglas salen del SAS, no de YAML. `src/sgm/proceso/reglas_fila.py` reconoce sentencias
+  `CREATE TABLE ... AS SELECT ... WHERE` y las tres formas del filtro: titulares/cotitulares
+  (`NRO_DOC = 0 OR IS MISSING` con `RELACION <> 9902`), firmas autorizadas (lo mismo con
+  `RELACION = 9902`) y válidos (`IS NOT MISSING AND <> 0`). Cubre el alias del programa real
+  (`SABANA_NO_DUPLICADOS_AHO.NRO_DOC`) y el del corpus con macro (`SABANA_&sufijo..NRO_DOC`). En
+  `client_large.sas` detecta **10** reglas: las 6 de separación (3 por producto), una de NEQUI y 3
+  `FINAL_VALIDAR_NRO_DOC_*` que revalidan al final; se documentan, no se descartan en silencio. La
+  cadena larga de `Campos vacios` (19 `IS MISSING`) **no** entra: no tiene la forma `= 0 OR ...`,
+  queda para la parte 2 de R1-04 con su propio caso.
+- `src/sgm/talend_item/filtros_fila.py` traduce cada regla a un `expressionFilter` de Java puro
+  (sin punto y coma ni sentencias). Como `tMap_normalizacion` de R1-02 entrega `NRO_DOC` en texto,
+  el faltante de SAS es `""` y el cero es `"0"`:
+  `(row1.NRO_DOC == null || "".equals(row1.NRO_DOC) || "0".equals(row1.NRO_DOC))`. La comparación
+  de `RELACION` reutiliza `null_safe_equals` del hito 82, con el literal a la izquierda, para no
+  repetir el `NullPointerException` de R1-01. `valido` es la negación exacta de `vacio_o_cero`, y
+  `tit_cot` frente a `fa` se diferencian solo por la negación de `RELACION`. Un modo sin esquema
+  declarado lanza `ValueError`: no se inventan columnas.
+- `tools/vacios_ceros_datos.py` lee la verdad plantada de `esperado/` y `caso.yaml`, nunca la
+  calcula con la salida del Job. El caso declara `orden_relevante: false`, así que los tres flujos
+  se comparan como multisets (filas ordenadas), no por posición. Comprueba además el desglose
+  vacío/cero de las anomalías y las tres invariantes medibles. El esquema de 23 columnas queda
+  anclado por prueba unitaria a `origenes_producto().columnas_comunes` del SAS real.
+- `tools/prueba_vacios_ceros.py` monta `tFileInputDelimited -> tMap_normalizacion -> tMap_filtros
+  -> 3 tFileOutputDelimited`. Solo normaliza `NRO_DOC` con `(30, 0)`, que es lo que `v02`
+  demuestra (`input(left(NRO_DOC_TXT), 30.)`); aplicar los 15 informats del `client_large.sas`
+  borraría el texto `TD01..TD04` de `TIPO_DOC` y no correspondería a este caso. No se inventan
+  conversiones. El Job se renombra, se compila en Studio, se exporta y se corre dos veces (CTE y
+  AHO) contra `entradas/DETALLE_<producto>.csv`.
+- Corrida final en Studio 8.0.1, proyecto `PRJ_BANCOLOMBIA`, sufijo `v86c`, con el árbol exacto
+  que queda en el repositorio; código de salida 0 del arnés y de los dos lanzadores. Salida literal:
+
+  ```text
+  Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+  Sufijo: v86c
+  Código de salida CTE: 0
+  CTE tit_cot: esperadas 5 filas, obtenidas 5; OK
+  CTE fa: esperadas 5 filas, obtenidas 5; OK
+  CTE valido: esperadas 85 filas, obtenidas 85; OK
+  CTE anomalías plantadas {'tit_cot_vacio': 3, 'tit_cot_cero': 2, 'fa_vacio': 1, 'fa_cero': 4, 'validos': 85}; obtenidas {'tit_cot_vacio': 3, 'tit_cot_cero': 2, 'fa_vacio': 1, 'fa_cero': 4, 'validos': 85}; OK
+  Código de salida AHO: 0
+  AHO tit_cot: esperadas 3 filas, obtenidas 3; OK
+  AHO fa: esperadas 2 filas, obtenidas 2; OK
+  AHO valido: esperadas 70 filas, obtenidas 70; OK
+  AHO anomalías plantadas {'tit_cot_vacio': 2, 'tit_cot_cero': 1, 'fa_vacio': 2, 'fa_cero': 0, 'validos': 70}; obtenidas {'tit_cot_vacio': 2, 'tit_cot_cero': 1, 'fa_vacio': 2, 'fa_cero': 0, 'validos': 70}; OK
+  Limpieza: 2 archivos borrados del proyecto y build temporal borrado
+  Invariantes: sábana=válidos+rechazos sí; conteos=rechazos CTE+AHO sí; suma saldo CTE=1024505 frente a 1024505 sí
+  RESULTADO: 2 de 2 productos coinciden fila por fila
+  ```
+
+  Comando (log completo en `C:/tmp/sgm-hito86/v86c.log`, fuera del repositorio):
+
+  ```text
+  uv run python tools/prueba_vacios_ceros.py --proyecto "C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA" --java-bin "C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin" --m2 "C:/Talend/8.0.1/studio/configuration/.m2/repository" --sufijo v86c --trabajo "C:/tmp/sgm-hito86/v86c"
+  ```
+
+- Corridas exploratorias, registradas para no inflar la evidencia: `v86a` pasó CTE (5/5/85) y
+  luego cayó con `KeyError: 'fa_nro_doc_cero'` porque `caso.yaml` **no** declara esa anomalía para
+  AHO; el caso planta cero, no es un dato perdido. Se corrigió con `.get(..., 0)` y `v86b` pasó
+  completo. `v86c` repite la corrida ya con las pruebas unitarias añadidas, para que la evidencia
+  publicada corresponda exactamente al código versionado.
+- Hallazgos:
+  1. Los tres flujos son disjuntos y cubren la sábana: CTE `5 + 5 + 85 = 95` y AHO
+     `3 + 2 + 70 = 75`, y los conteos `CONTEO_NRO_DOC_TIT_COT + CONTEO_NRO_DOC_FA` igualan los
+     rechazos de ambos productos. La suma de `FIN_SALDO_CTA` de los válidos CTE es 1024505, la
+     misma que `SUMA_SALDO_CTE_VALIDAS.csv`.
+  2. La decisión de representación que R1-03 dejó abierta aquí sí está resuelta por el propio
+     caso: `v02` convierte `NRO_DOC` con `input(left(...), 30.)`, de modo que el faltante y el cero
+     llegan al filtro como `""` y `"0"` en texto. Comparar como número habría sido inventar
+     comportamiento; comparar como texto con el literal a la izquierda es nulo-seguro.
+  3. El `client_large.sas` real repite la misma terna por producto y además revalida al final.
+     El detector no colapsa esas 10 reglas en 3: deja constancia de las 4 adicionales para que la
+     futura integración en el emisor no pierda las etapas de NEQUI y `FINAL_VALIDAR`.
+  4. AHO no declara `fa_nro_doc_cero`. El comparador lo interpreta como cero plantado, no como
+     columna ausente: es la única lectura compatible con `caso.yaml` y con `esperado/`.
+- Bloqueos reales (el hito se detiene aquí, no se cruza ninguno):
+  1. **`v02` sigue `pendiente_revision`.** Sin SAS en el entorno no se demuestra el tipo que
+     `PROC IMPORT` da a las columnas ni el formato de `PROC EXPORT`; el propio caso anota la duda
+     del formato `30.` de `NRO_DOC` en la exportación. No se cambia el emisor apoyándose en eso.
+  2. **No es el `job_producto` emitido.** Es un Job aislado con tres salidas; falta integrar los
+     filtros en `jobs_producto.py` y en el padre, y producir `RECHAZO_NRO_DOC_*` y las tablas de
+     conteo como salidas reales (hito 87).
+  3. **Parte 2 de R1-04 pendiente**: la regla `Campos vacios` (cadena larga de `IS MISSING` sobre
+     19 columnas) no se ha traducido ni ejecutado.
+  4. La equivalencia N2 de G4 sigue exigiendo los insumos reales del cliente; aquí se usan las
+     entradas simuladas del corpus.
+- Decisiones: (a) R1-04 pasa de `pendiente` a **`parcial`**, no a `hecho`: el criterio pide que
+  `v02` coincida y eso se demostró, pero con un Job aislado y con el caso aún sin revisión humana.
+  (b) No se toca `src/sgm/cli_talend.py`, `jobs_producto.py` ni `decisiones/client_large.jobs.yaml`.
+  (c) Los siete archivos nuevos suman 914 líneas, ninguno supera 238; no hay desviación del límite
+  de 300 de `AGENTS.md`.
+- Pruebas: 33 nuevas (`test_proceso_reglas_fila.py` 10, `test_talend_filtros_fila.py` 11,
+  `test_vacios_ceros_datos.py` 12), incluidas las que anclan el esquema de 23 columnas al SAS real,
+  las que detectan una sola fila cambiada y un desglose de anomalías equivocado, y las que hacen
+  fallar las invariantes a propósito. `uv run pytest -q`: 1708 pasan, 26 se saltan, 132 xfail
+  (frente a 1675 del hito 85). `uv run ruff check .`: limpio.
+- Nota de infraestructura (falso fallo, no del producto):
+  `test_tools_ci.py::test_el_cierre_termina_en_cero_si_todo_pasa` lanza un `pytest -n0` anidado
+  para los "cruces del corpus". Tras muchas corridas acumuladas, ese pytest intenta purgar el
+  directorio temporal `pytest-of-.../garbage-*` con unos 1 900 archivos y el entorno bloquea el
+  borrado masivo (`SAFE_DELETE_BULK_CONFIRM_REQUIRED`): el subproceso muere antes de imprimir el
+  resumen y el test marca `FALLA`. Aislado, `tests/unit/test_tools_ci.py` da 7 pasan y los cruces
+  dan 78 pasan; con `PYTEST_DEBUG_TEMPROOT` apuntando a una carpeta nueva,
+  `uv run python tools/ci.py --sin-suite --sin-tablero` imprime `Todo verde.`. La cifra publicada
+  sale de una corrida **sin solape**, en serie y con raíz temporal nueva:
+  `PYTEST_DEBUG_TEMPROOT=C:/tmp/sgm-hito86/root3 uv run pytest -q -n0 --basetemp=C:/tmp/sgm-hito86/bt3`,
+  que termina con código 0 y `1708 passed, 26 skipped, 132 xfailed in 204.75s`. No se cambió
+  `tools/ci.py`: no hay nada que arreglar en el producto, solo se evitó la purga del directorio
+  temporal del entorno.
+- Métricas del tablero: sin cambios, 27 componentes emitidos, conformidad 12 de 118 filas y 2 de
+  22 secciones, 16 pendientes en 5 motivos, 117 casos del corpus. Este hito no añade componentes
+  al emisor.
+- Riesgo: el arnés escribe CSV sin cabecera con separador coma y compara tuplas ordenadas; los
+  esperados sí traen cabecera. `anomalias()` y `_suma_observada()` dependen de la posición de
+  `NRO_DOC` (5) y `FIN_SALDO_CTA` (6) en la proyección, declarada en `ESQUEMAS`; si el diseño
+  cambia la proyección, hay que actualizar `tools/vacios_ceros_datos.py` antes de reutilizarlo.
