@@ -13,16 +13,21 @@ texto contra texto: en el SAS `TIPO_DOC` es numérico (`input(left(VAR9), 8.)`),
 no casan igual. Esa diferencia está pendiente (R1-03).
 
 Desde el hito 87 el `tReplicate_1` tiene una tercera rama: los tres flujos de vacíos y ceros de
-R1-04 (`talend_item/flujos_fila.py`), con reglas y proyecciones leídas del SAS real. Los helpers de
-totales y de homologación viven en `totalizadores.py` para no pasar de 300 líneas.
+R1-04 (`talend_item/flujos_fila.py`), con reglas y proyecciones leídas del SAS real. Desde el hito
+89 tiene una cuarta: los dos rechazos de cuenta/codex de R1-06 en la **forma del SAS real**
+(`NOT BETWEEN` con `RELACION = 1000`), más los válidos y la consolidación con `INCONSISTENCIA`
+(`talend_item/flujos_cuenta_real.py`). Los helpers de totales y de homologación viven en
+`totalizadores.py` para no pasar de 300 líneas.
 """
 
 from __future__ import annotations
 
+from sgm.proceso.reglas_cuenta_real import ReglasCuentaReal
 from sgm.proceso.reglas_fila import ReglaFila
 from sgm.talend_item.arquitectura import Arquitectura, ValidacionProducto
 from sgm.talend_item.componentes import log_row
 from sgm.talend_item.conexiones import al_terminar_subjob, lookup
+from sgm.talend_item.flujos_cuenta_real import componentes as componentes_cuenta
 from sgm.talend_item.flujos_fila import componentes as componentes_flujos
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Conexion, Job, ParametroContexto
@@ -45,12 +50,14 @@ def job_producto(
     validacion: ValidacionProducto | None = None,
     numericas: dict[str, tuple[int, int]] | None = None,
     flujos: list[ReglaFila] | None = None,
+    cuenta: ReglasCuentaReal | None = None,
 ) -> Job:
     """Lee `context.ruta_origen`, normaliza, totaliza el origen y separa válidos de rechazos.
 
     `numericas` es columna -> (w, d) del informat que el SAS demuestra. Sin él no se emite el
     `tMap` de normalización, para no inventar conversiones que el programa no declara. `flujos` es
-    la terna canónica de R1-04 que `reglas_fila.flujos_producto` leyó del SAS; sin ella el Job
+    la terna canónica de R1-04 que `reglas_fila.flujos_producto` leyó del SAS; `cuenta` es la
+    pareja de reglas de R1-06 que `reglas_cuenta_real` leyó del programa real. Sin ellos el Job
     queda como en el hito 84.
     """
     cols = [Columna(c) for c in columnas]
@@ -58,7 +65,7 @@ def job_producto(
     parametros = ["producto", "ruta_origen", "sufijo", *variables_periodo]
     if validacion is not None:
         parametros += ["arch_hom_tipo_doc", "ruta_insumos", "hoja_excel"]
-    if validacion is not None or flujos:
+    if validacion is not None or flujos or cuenta is not None:
         parametros.append("ruta_resultados")
     mensaje = f"{arq.producto}: lee el archivo de origen del producto. Pendiente: {pendiente}"
     lineas = [f"System.out.println({java(mensaje)});"]
@@ -230,6 +237,10 @@ def job_producto(
         )
     if flujos:
         nuevos, nuevas = componentes_flujos(flujos, cols, informats, ruta_java)
+        nodos += nuevos
+        conexiones += nuevas
+    if cuenta is not None:
+        nuevos, nuevas = componentes_cuenta(cuenta, cols, informats, ruta_java)
         nodos += nuevos
         conexiones += nuevas
     valores = {"hoja_excel": HOJA_POR_DEFECTO}

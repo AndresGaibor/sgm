@@ -2682,3 +2682,116 @@ RESULTADO BUILD: {"job_conciliacion_v88b": {"generateMs": 158, "compileMs": 509,
   otro emisor conecta una columna sin normalizar hay que reutilizar `faltante()` antes de parsear.
   El `SELECT DISTINCT` de `SABANA_VALIDA` no se modela: las llaves del caso son únicas, y la
   comparación como multiset es la que lo comprueba.
+
+## Hito 89. R1-06 (parte 2): la forma del SAS real, integrada en el `job_producto` emitido
+
+Se cerró el punto que el hito 88 dejó explícitamente pendiente en la fila R1-06 del plan: el
+`client_large.sas` escribe la separación de cuenta/codex con `NOT BETWEEN` + `RELACION = 1000` y
+motivo `CODEX INVALIDO`, no con la forma de `v04`. Aquí **no se sustituye una forma por la otra**:
+se lee, se traduce y se cuelga del Job real que emite `sgm talend`.
+
+- Cadena nueva: `proceso/reglas_cuenta_real.py` parte de `proceso/reglas.py` (hito 74), exige los
+  dos pares CTE/AHO con la misma forma, verifica el control compartido `RELACION = 1000` y los
+  motivos del paso `DATA`, y lee por tabla las proyecciones de los `CREATE TABLE`: 19 columnas en
+  `INCONS_TIPO_CTA_INVALIDO_*`, `INCONS_CODEX_INVALIDO_*` y `SABANA_CODEX_VALIDO_*`, y esas 19 más
+  `INCONSISTENCIA` en `INCONS_PAQ_TIPO_CTA_INV_*` / `INCONS_PAQ_GMF_INV_*`. `SELECT *` de los
+  `OUTER UNION CORR` se rechaza en vez de interpretarse como proyección. `cli_talend._cuenta()`
+  publica como `Pendiente:` los 29 rangos fuera de la cadena, la consolidación de los `INCONS_PAQ_*`
+  y R1-07; si falta cualquier declaración, no emite la rama a medias.
+- `talend_item/filtros_cuenta_real.py` traduce los cuatro `expressionFilter`: control con el
+  literal a la izquierda (`"1000".equals(cuenta.RELACION)`, R1-01), rango con
+  `filtros_cuenta.fuera_de_rango` (el faltante cortocircuita antes de `Double.parseDouble`), y
+  **cascada**: `rechazo_codex` niega el rechazo de tipo de cuenta porque el SAS evalúa el codex
+  sobre `SABANA_TIPO_CTA_VALIDO_*`. Las filas con `RELACION <> 1000` quedan exentas. El
+  `INCONS_CUENTA_*` se consolida en una salida con `INCONSISTENCIA` ternaria, con prioridad del
+  motivo de tipo de cuenta. `talend_item/flujos_cuenta_real.py` añade la cuarta rama de
+  `tReplicate_1` (`tMap_cuenta` + 4 CSV con cabecera y `context.sufijo`) y exige que `GMF` esté en
+  `numericas`, igual que R1-04.
+- **Colisión de nombres resuelta**: el Job ya tenía una salida `valido` (R1-04) y la entrada de
+  este `tMap` se llama `cuenta`. Las cuatro salidas nuevas se llaman `cta_tipo_cta`, `cta_codex`,
+  `cta_valido` y `cta_incons`; se verificó en el `.item` que ninguna repite un `UNIQUE_NAME` de
+  conexión ya usado. Los nombres de los CSV son las tablas del SAS real
+  (`INCONS_TIPO_CTA_INVALIDO_*`, `INCONS_CODEX_INVALIDO_*`, `SABANA_CODEX_VALIDO_*`,
+  `INCONS_CUENTA_*`).
+- **Vectores propios**: `v05_codex_saldos` solo planta `codex_invalido` (3 en CTE, 2 en AHO) con
+  `TIPO_CTA` válido. Para no declarar cerrado lo que el corpus no ejerce, `cuenta_real_datos.py`
+  escribe 8 filas de 23 campos con clasificación esperada escrita a mano: `TIPO_CTA` 9 y `XX`
+  fuera de 1..5, `GMF` 99 y faltante, `RELACION = 1001`/`9902` exentas, bordes 1..5 y 1..10, y
+  una fila que viola las dos reglas a la vez para comprobar la prioridad del motivo.
+- **Salvedad no ocultada**: se comparan `RELACION`, `TIPO_CTA`, `NRO_CTA`, `GMF` y
+  `FIN_SALDO_CTA` por nombre de columna (`NRO_CTA` es única, así que el multiset es fila por
+  fila). R1-02 normaliza 15 columnas del SAS real, de modo que `TIPO_DOC=TDxx` y
+  `LLAVE_NOMBRE=LLVxxxxx` quedan vacías y `NRO_DOC=00000001` pierde los ceros (hito 85/87).
+  `SABANA_CODEX_VALIDO_*` **no** se compara con `SABANA_VALIDA_*`: R1-07 no está en el Job, y la
+  tercera invariante comprueba justamente que las filas de saldo negativo siguen en el flujo
+  válido.
+
+Evidencia literal en Studio 8.0.1 / `PRJ_BANCOLOMBIA`. Ejecución con datos del **`job_producto`
+emitido** por `sgm talend` (`uv run python tools/prueba_cuenta_real.py --proyecto <proyecto>
+--java-bin <jdk>/bin --m2 <studio>/.m2/repository --sufijo v89a --trabajo
+C:/tmp/sgm-hito89/v89a`, código de salida 0):
+```text
+Código de salida CTE: 0
+CTE codex: esperadas 3 filas, obtenidas 3; OK
+CTE cuenta: esperadas 3 filas, obtenidas 3; OK
+CTE tipo_cta: 0 filas (v05 no planta este rechazo); OK
+CTE válidos: 87 + rechazos 3 = 90 frente a sábana 90; OK
+CTE anomalías plantadas {'codex_invalido': 3}; obtenidas {'codex_invalido': 3}; OK
+Código de salida AHO: 0
+AHO codex: esperadas 2 filas, obtenidas 2; OK
+AHO cuenta: esperadas 2 filas, obtenidas 2; OK
+AHO tipo_cta: 0 filas (v05 no planta este rechazo); OK
+AHO válidos: 63 + rechazos 2 = 65 frente a sábana 65; OK
+AHO anomalías plantadas {'codex_invalido': 2}; obtenidas {'codex_invalido': 2}; OK
+Código de salida VECTORES: 0
+Vectores tipo_cta: esperadas 2 filas, obtenidas 2; OK
+Vectores codex: esperadas 2 filas, obtenidas 2; OK
+Vectores valido: esperadas 4 filas, obtenidas 4; OK
+Vectores cuenta: esperadas 4 filas, obtenidas 4; OK
+Limpieza: 2 archivos borrados del proyecto y build temporal borrado
+Invariantes: sábana=válidos+rechazos sí; codex del corpus=5 frente a 5 sí; saldo negativo sigue en válidos (R1-07 fuera) sí
+RESULTADO: 2 de 2 productos coinciden fila por fila; vectores OK
+```
+Filas reales escritas por el Job para los vectores (se ve el GMF faltante, el `XX` no numérico y
+la prioridad de `TIPO CTA INVALIDO` cuando `GMF=11` también está fuera de 1..10):
+```text
+RELACION,TIPO_CTA,NRO_CTA,GMF,INCONSISTENCIA
+1000,9,9000000001,11,TIPO CTA INVALIDO
+1000,2,9000000002,99,CODEX INVALIDO
+1000,3,9000000003,,CODEX INVALIDO
+1000,XX,9000000008,0,TIPO CTA INVALIDO
+```
+Compilación de los cuatro Jobs que `sgm talend` emite (`--solo-compilar`, sufijo `v89b`, código de
+salida 0):
+```text
+Compilando hijos: job_conciliacion_v89b, job_producto_v89b, job_totales_v89b
+Compilando padre: job_exogena_depositos_v89b
+RESULTADO BUILD: {"job_conciliacion_v89b": {"generateMs": 228, "compileMs": 1003, "ok": true}, "job_producto_v89b": {"generateMs": 2387, "compileMs": 1814, "ok": true}, "job_totales_v89b": {"generateMs": 415, "compileMs": 698, "ok": true}, "job_exogena_depositos_v89b": {"generateMs": 1455, "compileMs": 890, "ok": true}}
+```
+
+- Bloqueos reales (ninguno se cruza): `v05` y `v04` siguen `pendiente_revision` por el formato de
+  `PROC EXPORT`/`PROC IMPORT`; 29 reglas de rango del SAS real (NEQUI, `DOC_INCORRECTOS_*`,
+  `FINAL_VALIDAR_CTA_Y_GMF_*`), el `INNER JOIN` de `INCONS_PAQ_*` con `OUTER UNION CORR` completo
+  y R1-07 (saldos negativos) siguen fuera del Job y se publican como `Pendiente:`; la equivalencia
+  N2 de G4 exige los insumos reales del cliente y DC-12 (Negocio) sigue abierta. R1-05 y R1-08
+  siguen sin arnés con datos.
+- Decisiones: R1-06 sigue **`parcial`**, no `hecho`. Ahora las dos formas están traducidas y
+  ejecutadas, y la del programa real vive en el emisor, pero el criterio de la fila pide el caso
+  revisado (`pendiente_revision`), las salidas completas y la cadena larga de inconsistencias.
+  No se cambió `decisiones/client_large.jobs.yaml`. `job_producto.py` pasa de 242 a 249 líneas:
+  la lógica nueva vive en módulos separados para no cruzar el límite de 300 de `AGENTS.md`.
+- Pruebas: **40 nuevas** (`test_proceso_reglas_cuenta_real.py` 12,
+  `test_talend_filtros_cuenta_real.py` 11, `test_talend_emision_cuenta_real.py` 15,
+  `test_cuenta_real_datos.py` 10, `test_prueba_cuenta_real.py` 6; 4 ya existían en el hito 88).
+  Se corrigieron dos aserciones con mensajes de error desactualizados y se actualizaron los dos
+  conteos fijos del tablero (`test_tablero.py` y `test_talend_emision_flujos_fila.py`). Anclan
+  las líneas 3572/3656 del SAS, los siete `RELACION = 1000`, las proyecciones de 19/20 columnas,
+  los cuatro `expressionFilter` en el `.item` escapado como XML, la ausencia de colisiones de
+  etiquetas, los parámetros del lanzador y la detección de una sola fila o un solo motivo cambiado.
+- Métricas del tablero: **36 componentes emitidos** (antes 31; `job_producto` pasa de 16 a 21:
+  `tMap_cuenta` + 4 salidas), conformidad 12 de 118 filas y 2 de 22 secciones, 16 pendientes en
+  5 motivos, 117 casos del corpus. Los dos tests que fijan el conteo se actualizaron.
+- Riesgo: `INCONS_CUENTA_*` es una consolidación **derivada** de los `INCONS_PAQ_*`, no una tabla
+  única del SAS; su proyección está anclada a esas tablas, pero el `INNER JOIN` y el `OUTER UNION
+  CORR` completos no se modelan. El filtro de `GMF` exige la normalización de R1-02; `_validar()`
+  falla si `GMF` no está en `numericas` en vez de emitir un filtro sobre texto crudo.

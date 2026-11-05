@@ -39,11 +39,12 @@ def test_componentes_por_job_del_programa_grande(jobs):
     assert jobs == {
         "job_conciliacion": 1,
         "job_exogena_depositos": 13,
-        # hito 84 añade el tMap_normalizacion; hito 87 el tMap_flujos y sus 3 salidas.
-        "job_producto": 16,
+        # hito 84 añade el tMap_normalizacion; hito 87 el tMap_flujos y sus 3 salidas;
+        # hito 89 el tMap_cuenta y sus 4 salidas.
+        "job_producto": 21,
         "job_totales": 1,
     }
-    assert sum(jobs.values()) == 31
+    assert sum(jobs.values()) == 36
 
 
 def test_conformidad_cuenta_filas_y_secciones():

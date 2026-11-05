@@ -16,6 +16,7 @@ from sgm.agrupacion import cargar_declaracion
 from sgm.cli_proceso import _decision
 from sgm.proceso.insumos import InsumosResueltos, resolver_insumos
 from sgm.proceso.origen_producto import origenes_producto
+from sgm.proceso.reglas_cuenta_real import reglas_cuenta_real
 from sgm.proceso.reglas_fila import flujos_producto
 from sgm.proceso.secciones_entrada import cargar_declaradas
 from sgm.proceso.validaciones import validaciones
@@ -79,6 +80,14 @@ def _flujos(texto: str) -> tuple[list, list[str]]:
         return [], [f"R1-04: no se emiten flujos de vacíos y ceros: {error}"]
 
 
+def _cuenta(texto: str) -> tuple[object | None, list[str]]:
+    """Pareja de reglas de R1-06 del SAS real; sin la forma completa no se emite la rama."""
+    try:
+        return reglas_cuenta_real(texto)
+    except ValueError as error:
+        return None, [f"R1-06: no se emiten los flujos de cuenta y codex: {error}"]
+
+
 def talend_command(
     source: Annotated[Path, typer.Argument(help="Archivo .sas del programa.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
@@ -99,6 +108,7 @@ def talend_command(
     arq = cargar_arquitectura(_decision(jobs_yaml, source, "jobs"))
     texto = source.read_text(encoding="utf-8", errors="replace")
     flujos, pendientes_flujos = _flujos(texto)
+    cuenta, pendientes_cuenta = _cuenta(texto)
     origenes = origenes_producto(texto, declaracion.productos)
     declaradas = cargar_declaradas(_decision(diseno, source, "diseno"), "fuentes")
     claves = [*arq.lookups, *([arq.periodo.fuente] if arq.periodo else [])]
@@ -132,6 +142,7 @@ def talend_command(
             validacion=arq.validaciones[0] if arq.validaciones else None,
             numericas=origenes.numericas_comunes,
             flujos=flujos,
+            cuenta=cuenta,
         )
     jobs = [padre, *jobs_hijos(arq, variables, lookups, producto_real=producto)]
     destino = out / source.stem / "talend" / "process"
@@ -149,4 +160,6 @@ def talend_command(
     for pendiente in resueltos.pendientes:
         typer.echo(f"Pendiente: {pendiente}")
     for pendiente in pendientes_flujos:
+        typer.echo(f"Pendiente: {pendiente}")
+    for pendiente in pendientes_cuenta:
         typer.echo(f"Pendiente: {pendiente}")
