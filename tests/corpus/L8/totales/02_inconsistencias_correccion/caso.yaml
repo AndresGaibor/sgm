@@ -8,22 +8,16 @@ construcciones:
 - PROC EXPORT a CSV
 productos:
 - AHO
-capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
-estado: sin_esperado
+capa: C
+estado: pendiente_revision
 anomalias_plantadas:
   filas_origen: 60
   filas_corregibles: 5
   filas_por_corregir: 5
   filas_solapadas_cedula_y_tipo_cta: 1
-  filas_sabana_final: 55
-  suma_saldo_sabana_final: '236288.34'
-salidas_esperadas:
-  tablas_work:
-  - INCONS_DEP_CORREGIDA_AHO
-  - INCONS_DEP_AHO
-  - SABANA_FINAL_AHO
-  archivos:
-  - INCONS_DEP_AHO.csv
+  filas_sin_cuenta_que_vuelven_a_sabana: 1
+  filas_sabana_final: 56
+  suma_saldo_sabana_final: '236444.66'
 supuestos:
 - 'la precedencia es: primero por corregir; solo lo que no lo es, se corrige'
 fuentes_url:
@@ -31,3 +25,37 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
 - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
 - https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm
+motivo: OUTER UNION CORR no lo tiene SQLite; el cruce usa UNION ALL. El CSV de PROC EXPORT depende de
+  formatos no comprobados sin SAS.
+razonamiento: Las correcciones y la sábana (LEFT JOIN por NRO_CTA) se cruzaron con SQLite (OUTER UNION
+  CORR se cambia por UNION ALL para el cruce); la marca y las correcciones son el DATA step de MARCA_AHO,
+  en Python.
+observacion_revision: 'Hallazgo: la fila 31 tiene NRO_CTA vacío. El LEFT JOIN la empareja con sí misma
+  (un faltante casa con otro faltante en SAS), y IS MISSING es verdadero en esa fila, así que vuelve a
+  la sábana: 56 filas y no 55. Supuesto no comprobado con SAS real. PROC EXPORT: se asume que una celda
+  de texto vacía sale sin comillas, que los números salen en formato BEST y que el encabezado tiene los
+  26 nombres. PROC IMPORT DBMS=DLM puede inferir tipo numérico en columnas como VAL_CRED_MES; el esperado
+  asume texto tal como viene del CSV.'
+tolerancia: 0.005
+orden_relevante: false
+invariantes:
+- filas(INCONS_DEP_AHO) + filas(SABANA_FINAL_AHO) == 61
+- filas(INCONS_DEP_CORREGIDA_AHO) == valor(CONTROL_INCONS_AHO.NRO_REGISTROS_INCONS_CORREGIDOS)
+- suma(SABANA_FINAL_AHO.FORM_FIN_SALDO_CTA) == valor(SUMA_SABANA_AHO.SUMA_SALDO_SABANA_FINAL)
+salidas:
+- INCONS_DEP_CORREGIDA_AHO
+- INCONS_DEP_AHO
+- SABANA_FINAL_AHO
+- CONTROL_INCONS_AHO
+- SUMA_SABANA_AHO
+- SUMA_CORREGIDAS_AHO
+salidas_esperadas:
+  tablas_work:
+  - INCONS_DEP_CORREGIDA_AHO
+  - INCONS_DEP_AHO
+  - SABANA_FINAL_AHO
+  - CONTROL_INCONS_AHO
+  - SUMA_SABANA_AHO
+  - SUMA_CORREGIDAS_AHO
+  archivos:
+  - INCONS_DEP_AHO.csv

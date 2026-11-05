@@ -1,10 +1,12 @@
-"""Genera las entradas y los `caso.yaml` de los casos L8 de totales.
+"""Genera las entradas, el `esperado/` y los `caso.yaml` de los casos L8 de totales.
 
 Uso: uv run python tools/corpus_datos/totales.py [carpeta_destino]
 
-Los casos 01 a 04 están aquí; los 05 a 08 en `totales_casos_b.py`, y las piezas comunes en
-`totales_base.py`. Los `programa.sas` se escriben a mano en cada carpeta y no los genera este
-script. Escribe solo `entradas/` y `caso.yaml`, con semilla fija.
+Los casos 01 a 04 están aquí; los 05 a 08 en `totales_casos_b.py`, las piezas comunes en
+`totales_base.py`, el esperado en `totales_esperado*.py` y los metadatos (capa, estado, motivo,
+invariantes) en `totales_meta.py`. Los `programa.sas` se escriben a mano en cada carpeta.
+Escribe `entradas/`, `esperado/` y `caso.yaml`, con semilla fija. El esperado sale de las filas
+plantadas aplicando lo que hace el programa SAS, no de un traductor.
 """
 
 from __future__ import annotations
@@ -17,10 +19,11 @@ from pathlib import Path
 import yaml
 from totales_base import COLUMNAS, DESTINO, FUENTES_SAS, SEMILLA, base, caso, csv_bytes, saldo, suma
 from totales_casos_b import caso_05, caso_06, caso_07, caso_08
+from totales_esperado import esperado_01, esperado_02, esperado_03, esperado_04
+from totales_meta import META
+from totales_sas import escribir_tabla
 
-Caso = tuple[dict[str, bytes], dict]
-
-Caso = tuple[dict[str, bytes], dict]  # (entradas por ruta relativa, caso.yaml)
+Caso = tuple[dict[str, bytes], dict, dict[str, tuple]]  # (entradas, caso.yaml, esperado)
 
 
 def caso_01(rng: random.Random) -> Caso:
@@ -45,17 +48,14 @@ def caso_01(rng: random.Random) -> Caso:
         "suma_saldo_origen": suma(filas),
     }
     entradas = {"entradas/origen_aho.csv": csv_bytes(filas)}
-    salidas = {"tablas_work": ["FRECUENCIA_REGISTROS_AHO", "FILTRO_DUPLICADOS_AHO",
-                               "AHO_UNICOS", "AHO_SIN_DUPLICADOS_EXACTOS"],
-               "archivos": []}  # fmt: skip
     return entradas, caso(
         "01_duplicados_frecuencias", "duplicados y frecuencias",
         ["PROC SORT NODUPKEY", "PROC SORT NODUPREC", "PROC SQL GROUP BY HAVING COUNT(*)",
          "CASE WHEN en PROC SQL", "SUM sobre tabla de frecuencias"],
-        ["AHO"], anomalias_plantadas=anomalias, salidas_esperadas=salidas,
+        ["AHO"], anomalias_plantadas=anomalias,
         supuestos=["el NODUPKEY conserva la primera fila de cada llave (EQUALS por defecto)"],
         fuentes_url=FUENTES_SAS,
-    )  # fmt: skip
+    ), esperado_01(filas)  # fmt: skip
 
 
 def caso_02(rng: random.Random) -> Caso:
@@ -74,26 +74,27 @@ def caso_02(rng: random.Random) -> Caso:
                     or f["NRO_CTA"] == ""]  # fmt: skip
     corregibles = [i for i, f in enumerate(filas, 1) if i not in por_corregir
                    and (f["TIPO_DOC"] == "CEDULA" or f["NRO_DOC"] == "")]  # fmt: skip
+    # El LEFT JOIN de 02 excluye por NRO_CTA; la fila sin cuenta no sale de la sábana (IS MISSING).
+    excluidas = [i for i in por_corregir if filas[i - 1]["NRO_CTA"] != ""]
     anomalias = {
         "filas_origen": len(filas),
         "filas_corregibles": len(corregibles),
         "filas_por_corregir": len(por_corregir),
         "filas_solapadas_cedula_y_tipo_cta": 1,  # fila 8: gana por corregir, no se corrige
-        "filas_sabana_final": len(filas) - len(por_corregir),
+        "filas_sin_cuenta_que_vuelven_a_sabana": len(por_corregir) - len(excluidas),
+        "filas_sabana_final": len(filas) - len(excluidas),
         "suma_saldo_sabana_final": suma([f for i, f in enumerate(filas, 1)
-                                         if i not in por_corregir]),  # fmt: skip
+                                         if i not in excluidas]),  # fmt: skip
     }
     entradas = {"entradas/origen_aho.csv": csv_bytes(filas)}
-    salidas = {"tablas_work": ["INCONS_DEP_CORREGIDA_AHO", "INCONS_DEP_AHO", "SABANA_FINAL_AHO"],
-               "archivos": ["INCONS_DEP_AHO.csv"]}  # fmt: skip
     return entradas, caso(
         "02_inconsistencias_correccion", "inconsistencias corregidas y por corregir",
         ["OUTER UNION CORR", "IS MISSING en LEFT JOIN", "sustitución condicional en DATA step",
          "PROC EXPORT a CSV"],
-        ["AHO"], anomalias_plantadas=anomalias, salidas_esperadas=salidas,
+        ["AHO"], anomalias_plantadas=anomalias,
         supuestos=["la precedencia es: primero por corregir; solo lo que no lo es, se corrige"],
         fuentes_url=FUENTES_SAS,
-    )  # fmt: skip
+    ), esperado_02(filas)  # fmt: skip
 
 
 def caso_03(rng: random.Random) -> Caso:
@@ -117,16 +118,14 @@ def caso_03(rng: random.Random) -> Caso:
         "suma_saldo_resultado_ext": suma(validas_ext),
     }
     entradas = {"entradas/origen_aho.csv": csv_bytes(nal + ext)}
-    salidas = {"tablas_work": ["SABANA_NAL_AHO", "SABANA_EXT_AHO"],
-               "archivos": ["RESULTADO_AHO_NAL.csv", "RESULTADO_AHO_EXT.csv"]}  # fmt: skip
     return entradas, caso(
         "03_sabana_nal_ext", "sábana final nacional y extranjera",
         ["PROC SORT BY", "SELECT con orden de columnas", "WHERE IS NOT MISSING / NRO_CTA <> ''",
          "PROC EXPORT DBMS=CSV REPLACE", "SUM por archivo"],
-        ["AHO"], anomalias_plantadas=anomalias, salidas_esperadas=salidas,
+        ["AHO"], anomalias_plantadas=anomalias,
         supuestos=["extranjero = TIPO_DOC PA o CE: decisión de este caso, no del SAS"],
         fuentes_url=FUENTES_SAS,
-    )  # fmt: skip
+    ), esperado_03(nal + ext)  # fmt: skip
 
 
 def caso_04(rng: random.Random) -> Caso:
@@ -154,40 +153,53 @@ def caso_04(rng: random.Random) -> Caso:
     }
     entradas = {"entradas/origen_cte.csv": csv_bytes(cte),
                 "entradas/origen_aho.csv": csv_bytes(aho)}  # fmt: skip
-    salidas = {"tablas_work": ["TOTAL_ORIGEN_CTE", "TOTAL_SALIDA_CTE", "TOTAL_ORIGEN_AHO",
-                               "TOTAL_SALIDA_AHO"], "archivos": []}  # fmt: skip
     return entradas, caso(
         "04_totales_origen_salida", "totales de origen y de salida por producto",
         ["COUNT(*) y SUM(...) en PROC SQL", "input(left(...), 20.)", "SUM ignora faltantes",
          "WHERE TIPO_CTA <> '03'"],
-        ["CTE", "AHO"], anomalias_plantadas=anomalias, salidas_esperadas=salidas,
+        ["CTE", "AHO"], anomalias_plantadas=anomalias,
         supuestos=["la salida excluye TIPO_CTA 03; regla de este caso, no del SAS"],
         fuentes_url=FUENTES_SAS,
-    )  # fmt: skip
+    ), esperado_04(cte, aho)  # fmt: skip
 
 
 CASOS = (caso_01, caso_02, caso_03, caso_04, caso_05, caso_06, caso_07, caso_08)
 
 
 def generar() -> dict[str, Caso]:
-    """Entradas y `caso.yaml` de cada caso; el caso n usa la semilla SEMILLA + n."""
+    """Entradas, `caso.yaml` y `esperado` de cada caso; el caso n usa la semilla SEMILLA + n.
+
+    El `caso.yaml` recibe los metadatos de `META` y la lista de salidas que sale del esperado:
+    las claves que terminan en `.csv` son archivos que escribe el programa; el resto, tablas WORK.
+    """
     resultado: dict[str, Caso] = {}
     for n, funcion in enumerate(CASOS, 1):
-        entradas, datos = funcion(random.Random(SEMILLA + n))
-        resultado[datos["id"]] = (entradas, datos)
+        entradas, datos, esperado = funcion(random.Random(SEMILLA + n))
+        id_ = datos["id"]
+        datos.update(META[id_]["yaml"])
+        tablas = [k for k in esperado if not k.endswith(".csv")]
+        archivos = [k for k in esperado if k.endswith(".csv")]
+        datos["salidas"] = list(tablas)  # copias: sin anclas YAML en el caso.yaml
+        datos["salidas_esperadas"] = {
+            "tablas_work": list(tablas), "archivos": archivos, **META[id_].get("extra", {}),
+        }
+        resultado[id_] = (entradas, datos, esperado)
     return resultado
 
 
 def escribir(destino: Path) -> list[Path]:
-    """Escribe las entradas y el caso.yaml de cada caso bajo `destino/<id>/`."""
+    """Escribe entradas, `esperado/` y el caso.yaml de cada caso bajo `destino/<id>/`."""
     escritos: list[Path] = []
-    for id_, (entradas, datos) in generar().items():
+    for id_, (entradas, datos, esperado) in generar().items():
         carpeta = destino / id_
         for relativa, contenido in entradas.items():
             ruta = carpeta / relativa
             ruta.parent.mkdir(parents=True, exist_ok=True)
             ruta.write_bytes(contenido)
             escritos.append(ruta)
+        for nombre, (columnas, filas) in esperado.items():
+            stem = nombre[:-4] if nombre.endswith(".csv") else nombre
+            escritos.append(escribir_tabla(carpeta / "esperado", stem, columnas, filas))
         ruta = carpeta / "caso.yaml"
         texto = yaml.safe_dump(datos, allow_unicode=True, sort_keys=False, width=100)
         ruta.write_text(texto, encoding="utf-8", newline="\n")

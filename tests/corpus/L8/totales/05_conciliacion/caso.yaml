@@ -9,8 +9,8 @@ construcciones:
 productos:
 - CTE
 - AHO
-capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
-estado: sin_esperado
+capa: C
+estado: parcial
 anomalias_plantadas:
   tolerancia: '0.01'
   cte_filas_origen: 50
@@ -29,14 +29,6 @@ anomalias_plantadas:
   aho_suma_saldo_origen: '190101.63'
   aho_diferencia_saldo: '5.00'
   aho_estado: NO CONCILIA
-salidas_esperadas:
-  tablas_work:
-  - CONCILIACION_CTE
-  - CONCILIACION_AHO
-  archivos: []
-  mensajes:
-  - 'NOTE: CONCILIACION CTE: CONCILIA'
-  - 'NOTE: CONCILIACION AHO: NO CONCILIA'
 supuestos:
 - 'tolerancia 0.01 en saldo: supuesto del caso, pendiente con el equipo'
 - rechazada = TIPO_DOC fuera de CC, TI, CE, PA y no vacío
@@ -45,3 +37,34 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
 - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
 - https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm
+motivo: 'El oráculo no tiene INTO ni (OBS=1): las macrovariables y el estado los resuelve el cruce, no
+  el oráculo; el %put y las macros de mensaje no producen tablas.'
+razonamiento: Los totales, las válidas y rechazadas, y la diferencia se cruzaron con SQLite. ROUND(x,
+  0.01) se calcula como en SAS (múltiplo de 0.01); SQLite no lo hace así, ver observacion_revision.
+observacion_revision: 'Hallazgo del oráculo: traduce ROUND(x, 0.01) como round(x, 0.01) de SQLite, que
+  trunca el segundo argumento a entero (round(12.345, 0.01) da 12.0; SAS da 12.35). Con los datos de este
+  caso no cambia el resultado (0 y 5), por eso el cruce coincide; el oráculo es incorrecto en general.'
+tolerancia: 0.005
+orden_relevante: false
+invariantes:
+- valor(TOTALES_CONC_AHO.NRO_ORIGEN) == valor(TOTALES_CONC_AHO.NRO_VALIDOS) + valor(TOTALES_CONC_AHO.NRO_RECHAZADOS)
+  + 1
+- valor(CONCILIACION_AHO.DIF_SALDO) == 5
+- valor(CONCILIACION_CTE.DIF_FILAS) == 0
+salidas:
+- TOTALES_CONC_CTE
+- CONCILIACION_CTE
+- TOTALES_CONC_AHO
+- CONCILIACION_AHO
+- CONCILIACION_FINAL
+salidas_esperadas:
+  tablas_work:
+  - TOTALES_CONC_CTE
+  - CONCILIACION_CTE
+  - TOTALES_CONC_AHO
+  - CONCILIACION_AHO
+  - CONCILIACION_FINAL
+  archivos: []
+  mensajes:
+  - 'NOTE: CONCILIACION CTE: CONCILIA'
+  - 'NOTE: CONCILIACION AHO: NO CONCILIA'

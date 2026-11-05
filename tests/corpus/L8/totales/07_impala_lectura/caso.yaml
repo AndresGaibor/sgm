@@ -8,20 +8,14 @@ construcciones:
 - SELECT ... INTO :macro
 - connect to IMPALA (DSN = IMPALAP) sin escritura
 productos: []
-capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
-estado: sin_esperado
+capa: C
+estado: parcial
 anomalias_plantadas:
   filas_master_customer_data: 13
   maxdia_para_anio_2026_mes_9: '2026-09-28'
   filas_ultimo_dia: 6
   filas_mcdq: 4
   filas_mcdq_ultimo_dia: 4
-salidas_esperadas:
-  tablas_work:
-  - MAXDIA
-  - MCD_ULTIMO_DIA
-  - MCDQ_CONTEO
-  archivos: []
 supuestos:
 - el DSN IMPALAP es el del original; el contenedor de prueba lo define el equipo, no el SAS
 - los CSV son la carga de prueba, no datos reales
@@ -30,3 +24,35 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
 - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
 - https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm
+motivo: La conexión IMPALA y el pass-through son del motor de Impala; aquí se emula con SQLite sobre los
+  CSV. Los resultados salen del SELECT interior.
+razonamiento: El último día (MAX de ingestion_day con YEAR 2026 y MONTH 9), los conteos y el pass-through
+  se calculan sobre los CSV con SQLite. La conexión y la lectura del MAX por SELECT INTO no se ejecutan.
+tolerancia: 0.005
+orden_relevante: false
+invariantes:
+- valor(CONTROL_IMPALA.NRO_FILAS_ULTIMO_DIA) == filas(MCD_ULTIMO_DIA)
+- valor(CONTROL_IMPALA.NRO_MCDQ_ULTIMO_DIA) == valor(CONTROL_IMPALA.NRO_FILAS_MCDQ)
+- suma(MASTER_POR_MES.NRO_FILAS) == 13
+salidas:
+- MAXDIA
+- MCD_ULTIMO_DIA
+- MCD_CONTEO
+- MCDQ_CONTEO
+- MCDQ_MISMO_DIA
+- CONTROL_IMPALA
+- CLIENTES_POR_TIPO_DOC
+- CLIENTES_SIN_TIPO_DOC
+- MASTER_POR_MES
+salidas_esperadas:
+  tablas_work:
+  - MAXDIA
+  - MCD_ULTIMO_DIA
+  - MCD_CONTEO
+  - MCDQ_CONTEO
+  - MCDQ_MISMO_DIA
+  - CONTROL_IMPALA
+  - CLIENTES_POR_TIPO_DOC
+  - CLIENTES_SIN_TIPO_DOC
+  - MASTER_POR_MES
+  archivos: []

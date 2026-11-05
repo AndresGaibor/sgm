@@ -2,6 +2,7 @@
 
 El recuento de los CSV se hace aquí con reglas propias, por posición de columna, sin reutilizar
 las estructuras del generador. Así el `caso.yaml` se compara con una segunda lectura de los datos.
+Las comprobaciones del `esperado/` y del cruce SQL están en `test_corpus_totales_cruce.py`.
 """
 
 from __future__ import annotations
@@ -16,15 +17,22 @@ import yaml
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools" / "corpus_datos"))
+sys.path.insert(0, str(REPO / "tools"))
 
 import totales  # noqa: E402
+from corpus_lib import invariantes  # noqa: E402
+from corpus_lib.caso import cargar_caso  # noqa: E402
 
 CASOS_DIR = REPO / "tests" / "corpus" / "L8" / "totales"
+IDS = [p.name for p in sorted(CASOS_DIR.iterdir()) if (p / "caso.yaml").is_file()]
 
 # Posiciones (base 0) de las columnas del archivo de producto de 23 columnas.
 ANIO, MES, RELACION, TIPO_CTA, NRO_CTA = 0, 1, 3, 5, 6
 TIPO_DOC, NRO_DOC, GMF, FIN_SALDO = 8, 9, 10, 22
 VALIDOS = {"CC", "TI", "CE", "PA"}
+ESTADOS_PERMITIDOS = {"traducible", "parcial", "pendiente", "pendiente_revision", "revisado"}
+# Claves de la plantilla de totales que `corpus_lib/caso.py` no admite (hallazgo, no se toca aquí).
+CLAVES_SOLO_TOTALES = {"id", "productos", "supuestos"}
 
 
 def _filas(ruta: Path) -> list[list[str]]:
@@ -40,18 +48,15 @@ def _yaml(id_: str) -> dict:
     return yaml.safe_load((CASOS_DIR / id_ / "caso.yaml").read_text(encoding="utf-8"))
 
 
-def _entradas_guardadas() -> set[str]:
-    return {
-        str(p.relative_to(CASOS_DIR))
-        for p in CASOS_DIR.rglob("*")
-        if p.is_file() and p.name not in ("programa.sas",)
-    }
-
-
 def test_regeneracion_coincide_con_lo_guardado(tmp_path: Path) -> None:
     escritos = totales.escribir(tmp_path)
     generados = {str(p.relative_to(tmp_path)) for p in escritos}
-    assert generados == _entradas_guardadas()
+    guardados = {
+        str(p.relative_to(CASOS_DIR))
+        for p in CASOS_DIR.rglob("*")
+        if p.is_file() and p.name != "programa.sas"
+    }
+    assert generados == guardados
     for ruta in escritos:
         relativa = ruta.relative_to(tmp_path)
         assert ruta.read_bytes() == (CASOS_DIR / relativa).read_bytes(), str(relativa)
@@ -59,20 +64,41 @@ def test_regeneracion_coincide_con_lo_guardado(tmp_path: Path) -> None:
 
 def test_cada_caso_tiene_programa_y_longitud_adecuada() -> None:
     for id_ in totales.generar():
-        programa = CASOS_DIR / id_ / "programa.sas"
-        assert programa.is_file(), id_
-        lineas = programa.read_text(encoding="utf-8").count("\n")
+        lineas = (CASOS_DIR / id_ / "programa.sas").read_text(encoding="utf-8").count("\n")
         assert 120 <= lineas <= 300, (id_, lineas)
 
 
-def test_campos_obligatorios_del_caso() -> None:
-    for id_ in totales.generar():
-        datos = _yaml(id_)
-        for clave in ("nivel", "tema", "construcciones", "capa", "estado", "anomalias_plantadas",
-                      "salidas_esperadas", "fuentes_url"):
-            assert clave in datos, (id_, clave)
-        assert datos["nivel"] == "L8"
-        assert datos["estado"] == "sin_esperado"
+@pytest.mark.parametrize("id_", IDS)
+def test_campos_del_caso_y_salidas(id_: str) -> None:
+    datos = _yaml(id_)
+    for clave in ("nivel", "tema", "construcciones", "capa", "estado", "anomalias_plantadas",
+                  "salidas_esperadas", "fuentes_url", "tolerancia", "invariantes"):
+        assert clave in datos, clave
+    assert datos["estado"] in ESTADOS_PERMITIDOS
+    if datos["estado"] != "traducible":
+        assert datos.get("motivo"), "un caso no traducible declara su motivo"
+    esperados = {p.stem for p in (CASOS_DIR / id_ / "esperado").glob("*.csv")}
+    declaradas = set(datos["salidas_esperadas"]["tablas_work"])
+    declaradas |= {n[:-4] for n in datos["salidas_esperadas"]["archivos"]}
+    assert declaradas <= esperados, declaradas - esperados
+
+
+@pytest.mark.parametrize("id_", IDS)
+def test_caso_pasa_el_cargador_del_corpus(id_: str, tmp_path: Path) -> None:
+    """El resto del `caso.yaml` valida con `cargar_caso` (bajo un nivel L8, como exige el cargador)."""
+    datos = {k: v for k, v in _yaml(id_).items() if k not in CLAVES_SOLO_TOTALES}
+    destino = tmp_path / "L8" / id_
+    destino.mkdir(parents=True)
+    (destino / "caso.yaml").write_text(yaml.safe_dump(datos, allow_unicode=True), encoding="utf-8")
+    assert cargar_caso(destino).capa in ("A", "B", "C")
+
+
+@pytest.mark.parametrize("id_", IDS)
+def test_invariantes_se_cumplen_sobre_el_esperado(id_: str) -> None:
+    datos = _yaml(id_)
+    fallos = invariantes.comprobar(datos["invariantes"], [CASOS_DIR / id_ / "esperado"],
+                                   datos["tolerancia"])
+    assert fallos == [], fallos
 
 
 def test_duplicados_y_frecuencias() -> None:
@@ -100,11 +126,14 @@ def test_inconsistencias_corregidas_y_por_corregir() -> None:
         f for f in filas
         if f not in por_corregir and (f[TIPO_DOC] == "CEDULA" or f[NRO_DOC] == "")
     ]  # fmt: skip
+    # El LEFT JOIN del original excluye por NRO_CTA; la fila sin cuenta vuelve (IS MISSING).
+    excluidas = [f for f in por_corregir if f[NRO_CTA] != ""]
+    sabana = [f for f in filas if f not in excluidas]
     anomalias = _yaml("02_inconsistencias_correccion")["anomalias_plantadas"]
     assert anomalias["filas_por_corregir"] == len(por_corregir)
     assert anomalias["filas_corregibles"] == len(corregibles)
-    assert anomalias["filas_sabana_final"] == len(filas) - len(por_corregir)
-    sabana = [f for f in filas if f not in por_corregir]
+    assert anomalias["filas_sabana_final"] == len(sabana) == len(filas) - 4
+    assert anomalias["filas_sin_cuenta_que_vuelven_a_sabana"] == 1
     assert anomalias["suma_saldo_sabana_final"] == _saldo(sabana)
 
 
@@ -142,7 +171,7 @@ def test_conciliacion_concilia_y_no_concilia() -> None:
     for prod, archivo in (("cte", "origen_cte.csv"), ("aho", "origen_aho.csv")):
         filas = _filas(CASOS_DIR / "05_conciliacion" / "entradas" / archivo)
         validas = [f for f in filas if f[TIPO_DOC] in VALIDOS and f[NRO_CTA]]
-        rechazadas = [f for f in filas if f[TIPO_DOC] not in VALIDOS]
+        rechazadas = [f for f in filas if f[TIPO_DOC] not in VALIDOS and f[TIPO_DOC]]
         assert anomalias[f"{prod}_filas_validas"] == len(validas)
         assert anomalias[f"{prod}_filas_rechazadas"] == len(rechazadas)
         dif_filas = len(filas) - len(validas) - len(rechazadas)
@@ -161,6 +190,7 @@ def test_periodo_y_nombre_de_salida() -> None:
     assert anomalias["filas_del_periodo"] == sum(1 for f in filas if f[MES] == "09")
     assert anomalias["fecha_concatenada"] == "20260930"
     assert anomalias["archivo_salida"] == "RESULTADO_AHO_20260930.csv"
+    assert (CASOS_DIR / "06_periodo_fecha" / "esperado" / anomalias["archivo_salida"]).is_file()
 
 
 def test_impala_ultimo_dia() -> None:
@@ -178,7 +208,7 @@ def test_cadena_completa_por_producto(prod: str) -> None:
     filas = _filas(CASOS_DIR / "08_cadena_completa_macros" / "entradas" / f"origen_{prod}.csv")
     unicas = Counter(tuple(f) for f in filas)
     extra = sum(n - 1 for n in unicas.values())
-    base = [f for f in filas[:30]]
+    base = filas[:30]
     por_corregir = [f for f in base if f[TIPO_CTA] not in ("01", "02", "03")]
     sabana = [f for f in base if f not in por_corregir]
     anomalias = _yaml("08_cadena_completa_macros")["anomalias_plantadas"]

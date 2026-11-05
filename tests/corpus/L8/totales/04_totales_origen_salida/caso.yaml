@@ -9,8 +9,8 @@ construcciones:
 productos:
 - CTE
 - AHO
-capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
-estado: sin_esperado
+capa: A
+estado: traducible
 anomalias_plantadas:
   cte_filas_origen: 40
   cte_saldos_no_vacios_origen: 38
@@ -21,13 +21,6 @@ anomalias_plantadas:
   aho_filas_salida: 37
   aho_suma_saldo_origen: '211498.67'
   aho_suma_saldo_salida: '198645.97'
-salidas_esperadas:
-  tablas_work:
-  - TOTAL_ORIGEN_CTE
-  - TOTAL_SALIDA_CTE
-  - TOTAL_ORIGEN_AHO
-  - TOTAL_SALIDA_AHO
-  archivos: []
 supuestos:
 - la salida excluye TIPO_CTA 03; regla de este caso, no del SAS
 fuentes_url:
@@ -35,3 +28,26 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
 - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
 - https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm
+razonamiento: Todo el programa es PROC SQL sobre ORIGEN_CTE y ORIGEN_AHO; la conversión input(left())
+  se hace antes, como DATA step, en Python.
+tolerancia: 0.005
+orden_relevante: false
+invariantes:
+- valor(TOTAL_ORIGEN_CTE.NRO_FILAS_ORIGEN) == valor(TOTAL_SALIDA_CTE.NRO_FILAS_SALIDA) + 1
+- valor(TOTAL_ORIGEN_AHO.NRO_FILAS_ORIGEN) == valor(TOTAL_SALIDA_AHO.NRO_FILAS_SALIDA) + 3
+- valor(TOTAL_ORIGEN_CTE.NRO_FILAS_ORIGEN) - valor(TOTAL_ORIGEN_CTE.NRO_SALDOS_NO_VACIOS) == 2
+- valor(RESUMEN_TOTALES.FILAS_SALIDA_AHO) == valor(TOTAL_SALIDA_AHO.NRO_FILAS_SALIDA)
+salidas:
+- TOTAL_ORIGEN_CTE
+- TOTAL_SALIDA_CTE
+- TOTAL_ORIGEN_AHO
+- TOTAL_SALIDA_AHO
+- RESUMEN_TOTALES
+salidas_esperadas:
+  tablas_work:
+  - TOTAL_ORIGEN_CTE
+  - TOTAL_SALIDA_CTE
+  - TOTAL_ORIGEN_AHO
+  - TOTAL_SALIDA_AHO
+  - RESUMEN_TOTALES
+  archivos: []

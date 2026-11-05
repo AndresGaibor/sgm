@@ -9,8 +9,8 @@ construcciones:
 - SUM por archivo
 productos:
 - AHO
-capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
-estado: sin_esperado
+capa: C
+estado: pendiente_revision
 anomalias_plantadas:
   filas_origen: 50
   filas_nal_origen: 30
@@ -20,13 +20,6 @@ anomalias_plantadas:
   filas_resultado_ext: 18
   suma_saldo_resultado_nal: '110033.28'
   suma_saldo_resultado_ext: '106093.18'
-salidas_esperadas:
-  tablas_work:
-  - SABANA_NAL_AHO
-  - SABANA_EXT_AHO
-  archivos:
-  - RESULTADO_AHO_NAL.csv
-  - RESULTADO_AHO_EXT.csv
 supuestos:
 - 'extranjero = TIPO_DOC PA o CE: decisión de este caso, no del SAS'
 fuentes_url:
@@ -34,3 +27,34 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
 - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
 - https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm
+motivo: La clasificación nacional o extranjera es un DATA step; el PROC EXPORT a CSV depende de formatos
+  no comprobados sin SAS real.
+razonamiento: Los SELECT con WHERE y ORDER BY NRO_CTA se cruzaron con SQLite, con ORIGEN_PAIS calculado
+  en Python como lo hace el DATA step. El cruce coincide salvo NRO_FILAS_SIN_CUENTA (ver observacion_revision).
+observacion_revision: 'Hallazgo del oráculo: el corpus lee una celda vacía como NULL, y entonces NRO_CTA
+  = '''' no cuenta las filas sin cuenta (SQLite da 0; SAS da 4, porque el blanco es igual a ''''). Con
+  cadena vacía el cruce coincide aquí, pero en 02 falla el IS MISSING. El esperado sigue SAS. Además,
+  mismo supuesto de PROC EXPORT que en 02: comillas, formato BEST y tipo inferido por PROC IMPORT; VAL_CRED_MES
+  y similares van como ''0.00''.'
+tolerancia: 0.005
+orden_relevante: false
+invariantes:
+- filas(SABANA_NAL_AHO) + filas(SABANA_EXT_AHO) + valor(CONTROL_SABANA_AHO.NRO_FILAS_SIN_CUENTA) == 50
+- suma(SABANA_NAL_AHO.FORM_FIN_SALDO_CTA) == valor(SUMA_NAL_AHO.SUMA_SALDO_NAL)
+- filas(RESULTADO_AHO_NAL) == valor(CONTROL_SABANA_AHO.NRO_RESULTADO_NAL)
+salidas:
+- SABANA_NAL_AHO
+- SABANA_EXT_AHO
+- CONTROL_SABANA_AHO
+- SUMA_NAL_AHO
+- SUMA_EXT_AHO
+salidas_esperadas:
+  tablas_work:
+  - SABANA_NAL_AHO
+  - SABANA_EXT_AHO
+  - CONTROL_SABANA_AHO
+  - SUMA_NAL_AHO
+  - SUMA_EXT_AHO
+  archivos:
+  - RESULTADO_AHO_NAL.csv
+  - RESULTADO_AHO_EXT.csv

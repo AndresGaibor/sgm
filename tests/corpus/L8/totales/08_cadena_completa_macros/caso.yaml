@@ -11,8 +11,8 @@ construcciones:
 productos:
 - CTE
 - AHO
-capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
-estado: sin_esperado
+capa: C
+estado: pendiente_revision
 anomalias_plantadas:
   fecha_concatenada: '20260930'
   cte_filas_origen: 32
@@ -22,6 +22,7 @@ anomalias_plantadas:
   cte_por_corregir: 1
   cte_filas_sabana: 29
   cte_suma_saldo_sabana: '128734.00'
+  cte_dif_sin_duplicados_exactos: 1
   cte_estado: CONCILIA
   cte_archivo_salida: CIERRE_CTE_20260930.csv
   aho_filas_origen: 32
@@ -31,19 +32,9 @@ anomalias_plantadas:
   aho_por_corregir: 1
   aho_filas_sabana: 29
   aho_suma_saldo_sabana: '122531.60'
+  aho_dif_sin_duplicados_exactos: 1
   aho_estado: CONCILIA
   aho_archivo_salida: CIERRE_AHO_20260930.csv
-salidas_esperadas:
-  tablas_work:
-  - ORIGEN_CTE
-  - ORIGEN_AHO
-  - SABANA_CTE
-  - SABANA_AHO
-  archivos:
-  - CIERRE_CTE_20260930.csv
-  - CIERRE_AHO_20260930.csv
-  - INCONS_DEP_CTE.csv
-  - INCONS_DEP_AHO.csv
 supuestos:
 - la cadena deduplica antes de corregir, como en el original
 fuentes_url:
@@ -51,3 +42,54 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
 - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
 - https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm
+motivo: Cadena con macro por producto, NODUPREC, PROC EXPORT y una fórmula de conciliación que no hace
+  lo que dice su nombre (ver observacion_revision).
+razonamiento: 'Por producto: dedupe por construcción (NODUPREC), marca, sábana y totales; los SQL se cruzaron
+  con SQLite con las macros resueltas. Con la convención de vacío del corpus el cruce falla en la sábana
+  (INCONSISTENCIA = ''''); con cadena vacía coincide en todo.'
+observacion_revision: 'Hallazgo del oráculo: la convención de vacío como NULL rompe INCONSISTENCIA = ''''
+  (SABANA queda en 0 filas y arrastra TOTALES, CONCILIACION y RESUMEN). DIF_SIN_DUPLICADOS_EXACTOS resta
+  NRO_POR_CORREGIR de NRO_ORIGEN - NRO_UNICOS; el nombre sugiere los duplicados exactos (2 por producto),
+  pero la fórmula da 1. El esperado sigue la fórmula escrita. Además, el estado usa solo DIF_TOTAL (no
+  las filas), a diferencia de 05.'
+tolerancia: 0.005
+orden_relevante: false
+invariantes:
+- valor(TOTALES_CTE.NRO_ORIGEN) == valor(TOTALES_CTE.NRO_UNICOS) + 2
+- valor(TOTALES_CTE.NRO_SABANA) + valor(TOTALES_CTE.NRO_POR_CORREGIR) == valor(TOTALES_CTE.NRO_UNICOS)
+- suma(SABANA_CTE.FORM_FIN_SALDO_CTA) == valor(TOTALES_CTE.SUMA_SABANA)
+- valor(RESUMEN_CADENA.NRO_SABANA) == valor(TOTALES_CTE.NRO_SABANA)
+salidas:
+- ORIGEN_CTE
+- SABANA_CTE
+- TOTALES_CTE
+- CONCILIACION_CTE
+- INCONS_DEP_CTE
+- CORREGIDAS_CTE
+- ORIGEN_AHO
+- SABANA_AHO
+- TOTALES_AHO
+- CONCILIACION_AHO
+- INCONS_DEP_AHO
+- CORREGIDAS_AHO
+- RESUMEN_CADENA
+salidas_esperadas:
+  tablas_work:
+  - ORIGEN_CTE
+  - SABANA_CTE
+  - TOTALES_CTE
+  - CONCILIACION_CTE
+  - INCONS_DEP_CTE
+  - CORREGIDAS_CTE
+  - ORIGEN_AHO
+  - SABANA_AHO
+  - TOTALES_AHO
+  - CONCILIACION_AHO
+  - INCONS_DEP_AHO
+  - CORREGIDAS_AHO
+  - RESUMEN_CADENA
+  archivos:
+  - CIERRE_CTE_20260930.csv
+  - INCONS_DEP_CTE.csv
+  - CIERRE_AHO_20260930.csv
+  - INCONS_DEP_AHO.csv

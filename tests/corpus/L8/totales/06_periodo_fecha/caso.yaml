@@ -9,8 +9,8 @@ construcciones:
 - PROC IMPORT EXCELCS
 productos:
 - AHO
-capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
-estado: sin_esperado
+capa: C
+estado: pendiente_revision
 anomalias_plantadas:
   filas_origen: 5
   filas_del_periodo: 3
@@ -19,13 +19,6 @@ anomalias_plantadas:
   dia_texto: '30'
   fecha_concatenada: '20260930'
   archivo_salida: RESULTADO_AHO_20260930.csv
-salidas_esperadas:
-  tablas_work:
-  - VALIDACION_FECHA
-  - FECHA_TEXTO
-  - RESULTADO_AHO_PERIODO
-  archivos:
-  - RESULTADO_AHO_20260930.csv
 supuestos:
 - el periodo sale del Excel, no de Impala; el DIA se usa solo para el nombre
 fuentes_url:
@@ -33,3 +26,33 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
 - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
 - https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm
+motivo: El periodo sale de SELECT INTO y PUT(...,Z2.) de un Excel; el formato de PROC EXPORT del nombre
+  con fecha no se comprueba sin SAS.
+razonamiento: El filtro de periodo y los conteos se cruzaron con SQLite, con las macros resueltas a mano
+  (2026, 09, 30) a partir del Excel leído con zipfile.
+observacion_revision: 'Supuesto no comprobado: PROC IMPORT EXCELCS lee AÑO, MES y DIA como numéricos (2026,
+  9, 30); MES_PROCESO del CSV se lee como texto ''09''. Si PROC IMPORT lo infiere como número, el filtro
+  y el CSV de salida cambian.'
+tolerancia: 0.005
+orden_relevante: false
+invariantes:
+- filas(RESULTADO_AHO_PERIODO) == valor(CUENTA_PERIODO_AHO.NRO_REGISTROS_PERIODO)
+- valor(FUERA_DEL_PERIODO_AHO.NRO_FILAS_FUERA) + filas(RESULTADO_AHO_PERIODO) == 5
+- suma(RESULTADO_AHO_PERIODO.FORM_FIN_SALDO_CTA) == valor(CUENTA_PERIODO_AHO.SUMA_SALDO_PERIODO)
+salidas:
+- VALIDACION_FECHA
+- FORMATO_TEXTO_FECHA
+- RESULTADO_AHO_PERIODO
+- CUENTA_PERIODO_AHO
+- MESES_ORIGEN_AHO
+- FUERA_DEL_PERIODO_AHO
+salidas_esperadas:
+  tablas_work:
+  - VALIDACION_FECHA
+  - FORMATO_TEXTO_FECHA
+  - RESULTADO_AHO_PERIODO
+  - CUENTA_PERIODO_AHO
+  - MESES_ORIGEN_AHO
+  - FUERA_DEL_PERIODO_AHO
+  archivos:
+  - RESULTADO_AHO_20260930.csv
