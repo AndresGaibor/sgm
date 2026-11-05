@@ -2276,3 +2276,92 @@ eglas_mapeo.py). La salida no cambia: goldens id�nticos.
   comprobado compilando, no ejecutando. La segunda pasada de `renombrar` reescribe referencias
   en atributos `value="..."`; si Studio llegara a guardar alguna en otro atributo, habría que
   ampliarla. `metricas-base.md` conserva 26/11 porque es la línea base de G0, no el valor actual.
+
+## Hito 85. R1-03 (parte 1): el `job_producto` emitido se ejecuta con datos y se mide `01` frente a `1`
+
+- Alcance: primera ejecución **con datos** de un Job emitido por `sgm talend` desde R1-02. No
+  se construyó un Job a mano: `tools/prueba_tipo_doc.py` emite con `sgm talend`, toma solo el
+  `job_producto_0.1.item/.properties`, lo renombra con sufijo nuevo, compila, exporta y corre el
+  lanzador dos veces (CTE y AHO) contra las entradas de `L8/validaciones/v01_tipo_doc`, pasando
+  por contexto `ruta_origen`, `ruta_insumos`, `arch_hom_tipo_doc`, `ruta_resultados`,
+  `hoja_excel=Sheet1`, `sufijo` y periodo. `tools/tipo_doc_variantes.py` guarda la parte
+  determinista: las tres escrituras de los códigos, los esperados y la lectura de resultados.
+  **No se tocó `src/`**: este hito mide el emisor, no lo cambia.
+- Verdad plantada, leída de `esperado/` del corpus (fuente independiente, nunca calculada con la
+  salida del propio Job): CTE 95 filas, 88 válidas, 7 rechazadas; AHO 65, 60 y 5. En las doce
+  corridas se comprobó además el invariante de R1-03 `origen == válidos + rechazados`.
+- Matriz ejecutada en Studio 8.0.1, proyecto `PRJ_BANCOLOMBIA`. Las seis celdas se corrieron con
+  el arnés final; todas con código de salida 0 del lanzador y
+  `RESULTADO: 2 de 2 productos reproducen lo esperado`. Salidas literales:
+
+  ```text
+  v85g texto, normalizado:    CTE: v01 planta {'origen': 95, 'validos': 88, 'rechazados': 7}; combinación esperada {'origen': 95, 'validos': 0, 'rechazados': 95}; obtenido {'origen': 95, 'validos': 0, 'rechazados': 95}
+    invariante origen=válidos+rechazados: sí; OK (input(..., 8.) deja faltante un código de texto: todo se rechaza)
+  AHO: v01 planta {'origen': 65, 'validos': 60, 'rechazados': 5}; combinación esperada {'origen': 65, 'validos': 0, 'rechazados': 65}; obtenido {'origen': 65, 'validos': 0, 'rechazados': 65}
+  v85h texto, sin normalizar: CTE: obtenido {'origen': 95, 'validos': 88, 'rechazados': 7}; OK (coincide con la verdad plantada en v01)
+  AHO: obtenido {'origen': 65, 'validos': 60, 'rechazados': 5}; OK
+  v85i ceros, normalizado, Excel 01..04: CTE: obtenido {'origen': 95, 'validos': 0, 'rechazados': 95}; OK (el 01 del CSV llega como 1 y el Excel conserva 01: todo se rechaza)
+  AHO: obtenido {'origen': 65, 'validos': 0, 'rechazados': 65}; OK
+  v85j numérico, normalizado: CTE: obtenido {'origen': 95, 'validos': 88, 'rechazados': 7}; OK (coincide con la verdad plantada en v01)
+  AHO: obtenido {'origen': 65, 'validos': 60, 'rechazados': 5}; OK
+  v85k ceros, sin normalizar, Excel 01..04: CTE: obtenido {'origen': 95, 'validos': 88, 'rechazados': 7}; OK
+  AHO: obtenido {'origen': 65, 'validos': 60, 'rechazados': 5}; OK
+  v85l ceros, normalizado, Excel 1..4: CTE: obtenido {'origen': 95, 'validos': 88, 'rechazados': 7}; OK
+  AHO: obtenido {'origen': 65, 'validos': 60, 'rechazados': 5}; OK
+  ```
+
+  Los sufijos `v85a`..`v85f` fueron corridas exploratorias con versiones intermedias del arnés;
+  la evidencia publicada es `v85g`..`v85l`, repetida con el código que queda en el repositorio.
+  Comando de una celda (las otras cambian `--variante`, `--sin-normalizar` y `--excel-sin-ceros`):
+
+  ```text
+  uv run python tools/prueba_tipo_doc.py --proyecto "C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA" --java-bin "C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin" --m2 "C:/Talend/8.0.1/studio/configuration/.m2/repository" --variante ceros --excel-sin-ceros --sufijo v85l --trabajo "C:/tmp/sgm-hito85/final-v85l"
+  ```
+
+- Hallazgos:
+  1. El lookup emitido (`tMap` con `tFileInputExcel`, `union_interna` y salida de rechazo) **sí**
+     reproduce `v01` para CTE y AHO cuando los dos lados de la unión tienen la misma escritura:
+     `v85h` (texto/texto), `v85j` (número/número), `v85k` (`01`/`01`) y `v85l` (`1`/`1`).
+     Queda ejecutado, no solo compilado, el efecto colateral que el hito 84 dejó anotado.
+  2. Con el Job tal como lo emite hoy `sgm talend`, el caso original `v01` **no** coincide:
+     sus códigos son de texto (`TD01`..`TD04`, `TD99`) y `input(left(VAR9), 8.)` de R1-02 los deja
+     faltantes (`v85g`: 0 válidos, 95 y 65 rechazados). No es un fallo del lookup: es la
+     convención de datos del corpus frente al informat numérico que el SAS real sí demuestra.
+  3. La comparación `01` frente a `1` de T10 queda medida en las cuatro combinaciones `v85i`,
+     `v85k`, `v85l` y `v85j`. La causa estructural está en el `.item`: la clave compara
+     `row2.CNAME` (Excel, crudo) contra `copy2.TIPO_DOC` (flujo principal, ya normalizado); la
+     normalización de R1-02 solo se aplica al flujo principal, nunca a la entrada del lookup.
+     Por eso `01` normalizado a `1` no casa con un Excel que conserva `01`, y sí casa con un
+     Excel en `1..4`. No hay un error de Java: hay una decisión de representación pendiente.
+- Bloqueos reales (el hito se detiene aquí, no se cruza ninguno):
+  1. **Sin SAS en el entorno.** Tanto `v01_tipo_doc` como `v08_nequi_cadena` están
+     `pendiente_revision`: no está demostrado con SAS el tipo que `PROC IMPORT` da a `NRO_DOC` ni
+     el formato de `PROC EXPORT`. Sin eso no se puede decidir si `TIPO_DOC` y el Excel de
+     homologación deben compararse como texto o como número; hacerlo a ojo sería inventar
+     comportamiento (principio 2 del plan). DC-12, "significado de los códigos de tipo de
+     documento", sigue siendo decisión de Negocio.
+  2. **NEQUI no está en `v01`.** El criterio de R1-03 pide CTE, AHO y NEQUI, pero `v01` solo
+     planta CTE y AHO; la cadena NEQUI es `v08` (R1-16), con su propio Excel y también
+     `pendiente_revision`. Cerrar R1-03 exigiría datos reales o una revisión humana de ese caso.
+  3. No se modificó el emisor para "hacer pasar" `v01`: quitar la normalización de `TIPO_DOC`
+     contradiría el SAS real (`input(..., 8.)`), y normalizar también el Excel exigiría saber cómo
+     `PROC IMPORT` tipa esa columna. `--sin-normalizar` es un experimento del arnés sobre el
+     `.item` copiado, explícitamente **no** evidencia del producto.
+- Decisiones: (a) R1-03 sigue `parcial`, ahora con evidencia y el bloqueo escrito; no se marca
+  `hecho` para no inflar el plan. (b) Se retira parcialmente la salvedad de R1-02 "compilación,
+  no ejecución con datos" para `job_producto`: ya se ejecutó con datos, aunque con entradas
+  simuladas del corpus y no con los insumos reales del cliente; la equivalencia N2 de G4 sigue
+  abierta. (c) El arnés se partió en dos módulos (198 y 143 líneas) para cumplir el límite de
+  300 de `AGENTS.md` sin registrar otra desviación. (d) Los Excel de las variantes numéricas se
+  generan con `simular_insumos.escribir_xlsx`: son datos simulados, nunca copias de datos reales.
+- Pruebas: 40 nuevas en `tests/unit/test_prueba_tipo_doc.py` (variantes y esperados, matriz
+  `coincide()`, preparación de entradas, lectura de `tLogRow` y del archivo de rechazos,
+  invariantes y protocolo completo con dobles de Studio). `uv run pytest -q`: 1675 pasan,
+  26 se saltan, 132 xfail (frente a 1635 del hito 84). `uv run ruff check .`: limpio.
+- Métricas del tablero: sin cambios, 27 componentes emitidos, conformidad 12 de 118 filas y
+  2 de 22 secciones, 16 pendientes en 5 motivos, 117 casos del corpus. Este hito no añade
+  componentes ni traducciones: mide las que ya existen.
+- Riesgo: las cuatro celdas que coinciden lo hacen sobre insumos **simulados** y con un Job
+  copiado y renombrado; no prueban el padre ni la corrida completa de `job_exogena_depositos`.
+  `medir()` cuenta las líneas de `doc_incorrectos_<producto>.csv` y los dos `tLogRow`; si el
+  diseño cambia el formato de esas salidas, el arnés debe actualizarse antes de volver a usarlo.
