@@ -2926,3 +2926,167 @@ sábana válida.
 - **Salvedad de llave.** Los `NOT IN` y las proyecciones se cruzan por nombre. R1-02 deja
   `LLAVE_NOMBRE` y `TIPO_DOC` vacías y quita ceros de `NRO_DOC` (hitos 85 y 87), así que la
   comparación usa `NRO_CTA` (única) y las cinco columnas estables del hito 89.
+
+## Hito 91. R1-05: la ubicación del caso v03 coincide en Studio, dentro del `job_producto` emitido
+
+- Fecha: 2026-11-05
+- Qué se hizo: la regla de ubicación se **lee** del caso `v03_pais_dane/programa.sas` y se cuelga
+  del `job_producto` emitido por `sgm talend`, con el mismo patrón de R1-06 y R1-07.
+  - `proceso/reglas_ubicacion.py` (131 líneas) y `proceso/reglas_ubicacion_forma.py` (214, la
+    forma de cada pieza: `LEFT JOIN`, cinco alternativas del `WHERE`, ramas del `CASE`, `NOT IN`,
+    proyecciones). Si una pieza no tiene su forma, falla con `ValueError`. Lee los dos Excel
+    (`Cod_pais.xlsx` por `Codigo_Pais`, `CODIGOS_DANE.xlsx` por `CODIGO_DANE`) desde los
+    `PROC IMPORT`, y comprueba que los dos productos declaran la misma regla.
+  - `talend_item/filtros_ubicacion.py` (143): expresiones Java del `tMap`. Las cinco alternativas
+    del `WHERE` y las cuatro ramas del `CASE` salen de la misma definición, así que el rechazo y el
+    motivo no pueden desviarse.
+  - `talend_item/flujos_ubicacion.py` (136): `tMap_ubicacion` con dos lookups Excel en `LEFT JOIN`
+    (`tFileInputExcel_ubic_pais`, `tFileInputExcel_ubic_dane`), dos salidas (`ubic_rechazo` con
+    `INCONSISTENCIA`, `ubic_valida`) y dos CSV con cabecera y `context.sufijo`.
+  - `jobs_producto.py` (261 a 277) recibe `ubicacion`; `cli_talend.py` (182 a 196) lo calcula con
+    `_ubicacion(texto)`, igual que `_saldo`.
+  - `tools/ubicacion_datos.py` (281) y `tools/prueba_ubicacion.py` (243): vectores propios, unión
+    de sábana y ubicación por llave, y el protocolo de Studio.
+
+- Regla leída de `v03` (no inventada):
+  - Rechazo: `WHERE` con cinco alternativas. (1) `Codigo_Pais IS MISSING`. (2) `PAIS = '900' AND
+    CODIGO_DANE IS MISSING`. (3) `PAIS <> '900' AND CODIGO_UBICACION IS NOT MISSING`. (4)
+    `LENGTH(DIRECCION) < 8`. (5) `UPPER(DIRECCION) CONTAINS UPPER('sin dir')`.
+  - Motivos del `CASE`, en orden: `PAIS NO HOMOLOGADO`, `DANE NO HOMOLOGADO`, `UBICACION EXTRANJERA
+    CON CODIGO` y, en el `ELSE`, `DIRECCION INVALIDA`.
+  - Válidos: `LLAVE_NOMBRE NOT IN` la tabla de rechazo.
+
+- Traducción de las funciones que el oráculo SQL no cubre (regla Java exacta):
+  - **Blancos finales** (`recortado`): `expr.replaceAll(" +$", "")`. Un nulo da `""`. En SAS los
+    blancos finales no cuentan en una comparación, así que `'900 '` es igual a `'900'`.
+  - **Faltante** (`faltante`): el texto sin blancos finales está vacío. En SAS un texto en blanco es
+    faltante y es igual a `''`.
+  - **LENGTH** (`longitud`): sin blancos finales; un texto en blanco vale **1**, igual que el
+    faltante: `t.isEmpty() ? 1 : t.length()`.
+  - **CONTAINS** (`mayusculas` y `.contains`): subcadena literal sobre `toUpperCase(Locale.ROOT)`.
+    `'SIN  DIR'` (dos blancos) no contiene `'SIN DIR'`: ninguna compresión de blancos.
+  - **COMPBL** no aparece en `v03`. No se traduce ni se demuestra; la compresión de blancos de
+    R1-02 (`normalizacion.compbl`) no entra en esta rama.
+  - **Literal a la izquierda** en cada `equals` (`"900".equals(...)`). Con el lookup, `== null` sobre
+    la columna del lookup es el caso de "sin pareja" del `LEFT JOIN`.
+
+- Decisiones:
+  - **Unión por llave fuera del Job.** `SABANA_UBIC` (sábana `LEFT JOIN` ubicación por
+    `LLAVE_NOMBRE`) la hace el arnés (`ubicacion_datos.unir`) antes de correr el Job. La razón es
+    que R1-02 deja `LLAVE_NOMBRE` vacía (hitos 85 y 87): en el Job no habría clave con la que unir.
+    El Job recibe `PAIS`, `CODIGO_UBICACION` y `DIRECCION` como columnas de la sábana, y la regla
+    de rechazo es por fila, que es lo que el SAS hace después de la unión.
+  - **Cliente sin rama.** `reglas_ubicacion(client_large.sas)` falla (`INCONS_UBICACION_INVALIDA_AHO`
+    no tiene la forma del caso) y `sgm talend` publica `Pendiente:`. El SAS de cliente rechaza con
+    `'169'` y un solo motivo (`CAMPOS DE UBICACION INCORRECTOS`), y sus variantes Impala corrigen
+    valores (`SABANA_CORREGIR_UBICACION`) en vez de rechazar. Esa forma no se traduce aquí.
+  - **Lookups en LEFT JOIN** (`union_interna` falso): una fila sin pareja sigue, con el lookup en
+    nulo. La regla de DANE solo aplica con `PAIS = '900'`, como en el SAS.
+  - **Los Excel se comparan como texto.** `caso.yaml` declara que el tipo de `Codigo_Pais` y de
+    `CODIGO_DANE` es texto según la convención del corpus, no según SAS (sin SAS no está
+    demostrado). Además, la normalización de `Codigo_Pais` con `input(left(...), 10.)` quita
+    ceros: `01` queda `1`. En `v03` no hay códigos con ceros; la diferencia queda como pendiente.
+  - **Nombres de conexión.** `ubic_fuente`, `ubic_pais`, `ubic_dane`, `ubic_rechazo` y `ubic_valida`:
+    no repiten ninguno de R1-04, R1-06 ni R1-07 (`valido`, `cta_*`, `saldo_*`).
+  - **Parámetros.** `arch_hom_pais` y `arch_hom_dane` se suman al contexto con el nombre del SAS
+    como valor por omisión. El arnés pasa `ruta_insumos` con las entradas de `v03`, así que no usa
+    `Homologacion_tpo_dto.xlsx` y emite el Job sin la validación de tipo de documento (`validacion`
+    en `None`); eso no cambia la rama de ubicación, que sale de `tReplicate_1`.
+
+- Evidencia literal en Studio 8.0.1 / `PRJ_BANCOLOMBIA`. Corrida completa (`uv run python
+  tools/prueba_ubicacion.py --proyecto "C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA"
+  --java-bin "C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin" --m2
+  "C:/Talend/8.0.1/studio/configuration/.m2/repository" --sufijo v91b --trabajo
+  "C:/tmp/sgm-hito91/v91b"`, código de salida 0). Las líneas `Comando` se truncaron a 400 columnas en
+  la tubería que guardó la salida; el resto es literal:
+
+```text
+Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+Sufijo: v91b
+Trabajo: C:\tmp\sgm-hito91\v91b
+Pendiente: R1-05: `Codigo_Pais` pasa por `input()` y quita ceros a la izquierda; el Job compara como texto (sin códigos con ceros en el caso)
+Pendiente: R1-05: el `CASE` de PROC SQL fija la longitud de INCONSISTENCIA con su primera rama; el SAS del caso no se ejecutó, y el Job no trunca
+Pendiente: R1-05: la unión SABANA_UBIC por LLAVE_NOMBRE no está en el Job; R1-02 deja la llave vacía
+Unión CTE: 0 llaves sin ubicación (LEFT JOIN)
+Unión AHO: 0 llaves sin ubicación (LEFT JOIN)
+Comando CTE: "C:\Users\USUARI~1\AppData\Local\Temp\build-6v11x_a2\job_producto_v91b\job_producto_v91b_run.bat" --context="Default" --context_param "producto=CTE" --context_param "ruta_origen=C:/tmp/sgm-hito91/v91b/DETALLE_CTE_UBIC.csv" --context_param "sufijo=CTE" --context_param "periodo_anio=2026" --context_param "periodo_mes=10" --context_param "periodo_dia=01" --context_param "ruta_insumos=C:/
+Código de salida CTE: 0
+CTE rechazo: esperadas 8 filas, obtenidas 8; OK
+CTE valida: esperadas 80 filas, obtenidas 80; OK
+CTE anomalías plantadas {'pais_no_homologado': 2, 'dane_no_homologado': 3, 'ubicacion_extranjera_con_codigo': 1, 'direccion_invalida': 2, 'validos': 80}; obtenidas {'pais_no_homologado': 2, 'dane_no_homologado': 3, 'ubicacion_extranjera_con_codigo': 1, 'direccion_invalida': 2, 'validos': 80}; OK
+Comando AHO: "C:\Users\USUARI~1\AppData\Local\Temp\build-6v11x_a2\job_producto_v91b\job_producto_v91b_run.bat" --context="Default" --context_param "producto=AHO" --context_param "ruta_origen=C:/tmp/sgm-hito91/v91b/DETALLE_AHO_UBIC.csv" --context_param "sufijo=AHO" --context_param "periodo_anio=2026" --context_param "periodo_mes=10" --context_param "periodo_dia=01" --context_param "ruta_insumos=C:/
+Código de salida AHO: 0
+AHO rechazo: esperadas 5 filas, obtenidas 5; OK
+AHO valida: esperadas 55 filas, obtenidas 55; OK
+AHO anomalías plantadas {'pais_no_homologado': 1, 'dane_no_homologado': 2, 'ubicacion_extranjera_con_codigo': 1, 'direccion_invalida': 1, 'validos': 55}; obtenidas {'pais_no_homologado': 1, 'dane_no_homologado': 2, 'ubicacion_extranjera_con_codigo': 1, 'direccion_invalida': 1, 'validos': 55}; OK
+Comando VECTORES: "C:\Users\USUARI~1\AppData\Local\Temp\build-6v11x_a2\job_producto_v91b\job_producto_v91b_run.bat" --context="Default" --context_param "producto=VECTORES" --context_param "ruta_origen=C:/tmp/sgm-hito91/v91b/DETALLE_VECTORES.csv" --context_param "sufijo=VECTORES" --context_param "periodo_anio=2026" --context_param "periodo_mes=10" --context_param "periodo_dia=01" --context_param "r
+Código de salida VECTORES: 0
+Vectores rechazo: esperadas 14 filas, obtenidas 14; OK
+Vectores valida: esperadas 6 filas, obtenidas 6; OK
+Limpieza: 2 archivos borrados del proyecto y build temporal borrado
+CTE invariante sábana: rechazos 8 + válidos 80 = 88 frente a 88; OK
+AHO invariante sábana: rechazos 5 + válidos 55 = 60 frente a 60; OK
+RESULTADO: 2 de 2 productos coinciden fila por fila; vectores OK
+```
+
+- Filas que escribió el Job (columnas de salida tal cual, con sus blancos finales):
+
+```text
+INCONS_UBICACION_VECTORES.csv
+,1001,,10,900,99003,ABCDEFG,DIRECCION INVALIDA
+,1001,,12,900,99003,ABCDEFG   ,DIRECCION INVALIDA
+,1001,,17,900,,,DANE NO HOMOLOGADO
+UBIC_VALIDA_VECTORES.csv
+,1001,,3,900 ,99001,CALLE VALIDA 1 2 3
+,1001,,6,900,99002  ,CALLE VALIDA 1 2 3
+,1001,,9,902,   ,CALLE VALIDA 1 2 3
+```
+
+  Las columnas `LLAVE_NOMBRE` y `TIPO_DOC` salen vacías y `NRO_DOC` sin ceros a la izquierda (R1-02,
+  hitos 85 y 87); por eso no entran en la comparación.
+
+- Primera corrida (`v91a`): el Job de CTE salió con código 0 y escribió los CSV, pero el arnés
+  falló al leer la cabecera (separador `,` frente a `;`, error del propio arnés, no del Job). Se
+  comprobó CTE sin Studio sobre esos mismos archivos (`informe CTE = True`) y se corrigió el
+  arnés. La corrida que vale es `v91b`, completa.
+
+- Comprobación sin Studio, antes de la corrida: el oráculo Python (`ubicacion_datos.clasificar_sas`)
+  reproduce el esperado del caso en las 148 filas de CTE y AHO, y coincide con la clasificación a
+  mano de los 20 vectores.
+
+- Pruebas: **46 nuevas**. `test_proceso_reglas_ubicacion.py` (15): lee productos, motivos, literal,
+  umbral, Excel, proyecciones y pendientes; rechaza cada pieza quitada o cambiada (WHERE, CASE,
+  ELSE, LEFT JOIN, literal, NOT IN) y rechaza el SAS de cliente. `test_talend_filtros_ubicacion.py`
+  (13): forma de cada expresión (literal a la izquierda, blancos finales, `LENGTH` con 1,
+  `CONTAINS` en mayúsculas neutras, orden de motivos, rechazo y válido complementarios).
+  `test_talend_emision_ubicacion.py` (9): el cliente no emite la rama y publica el pendiente; con la
+  regla añade 5 componentes, `ubic_*` sin repetir y tres lookups de LEFT JOIN; falla sin la columna
+  `DIRECCION`; el Job sin regla no cambia. `test_ubicacion_datos.py` (9): vectores a mano contra el
+  oráculo, bordes pedidos, oráculo contra el esperado del caso fila por fila (CTE y AHO), unión y
+  llave repetida, forma de los CSV de vectores.
+- Suite: `uv run pytest -q -n auto`: **1909 pasadas, 26 omitidas y 132 `xfail`** (antes 1863; las
+  46 nuevas). `uv run ruff check .`: sin errores.
+- Tablero: `tests/unit/test_tablero.py` **no cambió**. El `job_producto` del cliente sigue en 21
+  nodos porque la rama no se emite. `sgm talend` sobre el cliente imprime una línea más de
+  `Pendiente:` (la de la ubicación no emitida).
+- Métricas: `jobs_producto.py` 261 a 277 líneas; `cli_talend.py` 182 a 196. Ningún archivo nuevo
+  pasa de 300 líneas: el lector se partió en dos módulos por eso.
+
+- **Bloqueos reales** (ninguno se cruza con esta fila):
+  - `v03` sigue `pendiente_revision` en el caso: sin SAS no se demuestra el formato de `PROC
+    EXPORT`, el tipo que `PROC IMPORT` da a `PAIS` (texto frente a numérico) ni el truncamiento del
+    `CASE`. El Job coincide con el esperado del caso, no con una ejecución de SAS.
+  - La unión por `LLAVE_NOMBRE` no está en el Job; el arnés la hace. Para llevarla al Job hay que
+    corregir R1-02 para que `LLAVE_NOMBRE` no se vacíe (hitos 85 y 87).
+  - El SAS de cliente tiene una regla distinta (`'169'`, motivo único, correcciones en Impala). Hasta
+    que se traduzca, el Job del cliente no tiene ubicación.
+  - `Codigo_Pais` con `input()` quita ceros: no se traduce el `input()` del Excel de país.
+  - Las llaves de los Excel se comparan sin blancos finales (el lado del lookup no se recorta);
+    `UNIQUE_MATCH` toma la primera pareja si una llave se repite, y el SAS duplicaría la fila. En los
+    datos del caso no hay llaves repetidas.
+- Salvedad no ocultada: el lado del Excel no se recorta. Si una clave del Excel traía blancos
+  finales no casaría con la sábana recortada. El caso no tiene ese Excel; solo los vectores de la
+  sábana (`'900 '`, `'99002  '`, `'   '`) ejercen los blancos finales, no los del Excel.
+- R1-05 sigue **`parcial`**. El criterio se cumple para `v03`: la regla se lee, su parte de `LENGTH`
+  y `CONTAINS` está en Java documentado, y el caso coincide fila por fila en Studio. No se cumple
+  para el cliente, y `COMPBL` no aparece en el caso.

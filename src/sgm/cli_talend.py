@@ -19,6 +19,7 @@ from sgm.proceso.origen_producto import origenes_producto
 from sgm.proceso.reglas_cuenta_real import reglas_cuenta_real
 from sgm.proceso.reglas_fila import flujos_producto
 from sgm.proceso.reglas_saldo import PENDIENTE_CERO, negativos_a_cero, reglas_saldo
+from sgm.proceso.reglas_ubicacion import reglas_ubicacion
 from sgm.proceso.secciones_entrada import cargar_declaradas
 from sgm.proceso.validaciones import validaciones
 from sgm.talend_item.arquitectura import cargar_arquitectura
@@ -101,6 +102,15 @@ def _saldo(texto: str, cuenta: object | None) -> tuple[object | None, list[str]]
     return regla, avisos + pendientes
 
 
+def _ubicacion(texto: str) -> tuple[object | None, list[str]]:
+    """Regla de ubicación de R1-05. Sin la forma del caso v03 no se emite la rama."""
+    try:
+        regla = reglas_ubicacion(texto)
+    except ValueError as error:
+        return None, [f"R1-05: no se emite la ubicación: {error}"]
+    return regla, list(regla.pendientes)
+
+
 def talend_command(
     source: Annotated[Path, typer.Argument(help="Archivo .sas del programa.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
@@ -123,6 +133,7 @@ def talend_command(
     flujos, pendientes_flujos = _flujos(texto)
     cuenta, pendientes_cuenta = _cuenta(texto)
     saldo, pendientes_saldo = _saldo(texto, cuenta)
+    ubic, pendientes_ubic = _ubicacion(texto)
     origenes = origenes_producto(texto, declaracion.productos)
     declaradas = cargar_declaradas(_decision(diseno, source, "diseno"), "fuentes")
     claves = [*arq.lookups, *([arq.periodo.fuente] if arq.periodo else [])]
@@ -158,6 +169,7 @@ def talend_command(
             flujos=flujos,
             cuenta=cuenta,
             regla_saldo=saldo,
+            ubicacion=ubic,
         )
     jobs = [padre, *jobs_hijos(arq, variables, lookups, producto_real=producto)]
     destino = out / source.stem / "talend" / "process"
@@ -179,4 +191,6 @@ def talend_command(
     for pendiente in pendientes_cuenta:
         typer.echo(f"Pendiente: {pendiente}")
     for pendiente in pendientes_saldo:
+        typer.echo(f"Pendiente: {pendiente}")
+    for pendiente in pendientes_ubic:
         typer.echo(f"Pendiente: {pendiente}")

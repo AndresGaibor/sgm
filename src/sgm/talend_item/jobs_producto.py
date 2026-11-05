@@ -26,12 +26,14 @@ from __future__ import annotations
 from sgm.proceso.reglas_cuenta_real import ReglasCuentaReal
 from sgm.proceso.reglas_fila import ReglaFila
 from sgm.proceso.reglas_saldo import ReglaSaldo
+from sgm.proceso.reglas_ubicacion import ReglaUbicacion
 from sgm.talend_item.arquitectura import Arquitectura, ValidacionProducto
 from sgm.talend_item.componentes import log_row
 from sgm.talend_item.conexiones import al_terminar_subjob, lookup
 from sgm.talend_item.flujos_cuenta_real import componentes as componentes_cuenta
 from sgm.talend_item.flujos_fila import componentes as componentes_flujos
 from sgm.talend_item.flujos_saldo import componentes as componentes_saldo
+from sgm.talend_item.flujos_ubicacion import componentes as componentes_ubicacion
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Conexion, Job, ParametroContexto
 from sgm.talend_item.normalizacion import as_text, input_left_wd
@@ -41,6 +43,10 @@ from sgm.talend_item.tmap import EntradaMap, SalidaMap, tmap
 from sgm.talend_item.totalizadores import a_decimal, homologacion, operaciones, totales
 
 MOTIVO = "motivo"
+# Parámetros que pide la ubicación de R1-05 (los Excel de homologación y la carpeta de resultados).
+UBICACION_PARAMETROS = (
+    "arch_hom_pais", "arch_hom_dane", "ruta_insumos", "hoja_excel", "ruta_resultados",
+)  # fmt: skip
 
 
 def job_producto(
@@ -55,6 +61,7 @@ def job_producto(
     flujos: list[ReglaFila] | None = None,
     cuenta: ReglasCuentaReal | None = None,
     regla_saldo: ReglaSaldo | None = None,
+    ubicacion: ReglaUbicacion | None = None,
 ) -> Job:
     """Lee `context.ruta_origen`, normaliza, totaliza el origen y separa válidos de rechazos.
 
@@ -71,6 +78,9 @@ def job_producto(
         parametros += ["arch_hom_tipo_doc", "ruta_insumos", "hoja_excel"]
     if validacion is not None or flujos or cuenta is not None or regla_saldo is not None:
         parametros.append("ruta_resultados")
+    if ubicacion is not None:
+        # Los parámetros de la ubicación se suman sin repetir los que ya pide la validación.
+        parametros += [p for p in UBICACION_PARAMETROS if p not in parametros]
     mensaje = f"{arq.producto}: lee el archivo de origen del producto. Pendiente: {pendiente}"
     lineas = [f"System.out.println({java(mensaje)});"]
     lineas += [f'System.out.println("  {p} = " + context.{p});' for p in parametros]
@@ -252,6 +262,12 @@ def job_producto(
         nodos += nuevos
         conexiones += nuevas
     valores = {"hoja_excel": HOJA_POR_DEFECTO}
+    if ubicacion is not None:
+        nuevos, nuevas = componentes_ubicacion(ubicacion, cols, ruta_java)
+        nodos += nuevos
+        conexiones += nuevas
+        valores["arch_hom_pais"] = ubicacion.archivo_pais
+        valores["arch_hom_dane"] = ubicacion.archivo_dane
     contextos = {
         "Default": [ParametroContexto(p, valor=valores.get(p, "")) for p in parametros]
     }
