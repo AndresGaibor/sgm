@@ -18,6 +18,7 @@ from sgm.proceso.insumos import InsumosResueltos, resolver_insumos
 from sgm.proceso.origen_producto import origenes_producto
 from sgm.proceso.reglas_cuenta_real import reglas_cuenta_real
 from sgm.proceso.reglas_fila import flujos_producto
+from sgm.proceso.reglas_saldo import PENDIENTE_CERO, negativos_a_cero, reglas_saldo
 from sgm.proceso.secciones_entrada import cargar_declaradas
 from sgm.proceso.validaciones import validaciones
 from sgm.talend_item.arquitectura import cargar_arquitectura
@@ -88,6 +89,18 @@ def _cuenta(texto: str) -> tuple[object | None, list[str]]:
         return None, [f"R1-06: no se emiten los flujos de cuenta y codex: {error}"]
 
 
+def _saldo(texto: str, cuenta: object | None) -> tuple[object | None, list[str]]:
+    """Regla de saldo negativo de R1-07. Sin la cascada de R1-06 tampoco se emite la rama."""
+    avisos = [PENDIENTE_CERO] if negativos_a_cero(texto) else []
+    try:
+        regla, pendientes = reglas_saldo(texto)
+    except ValueError as error:
+        return None, avisos + [f"R1-07: no se emiten los saldos negativos: {error}"]
+    if cuenta is None:
+        return None, avisos + ["R1-07: no se emiten los saldos negativos sin la cascada de R1-06"]
+    return regla, avisos + pendientes
+
+
 def talend_command(
     source: Annotated[Path, typer.Argument(help="Archivo .sas del programa.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
@@ -109,6 +122,7 @@ def talend_command(
     texto = source.read_text(encoding="utf-8", errors="replace")
     flujos, pendientes_flujos = _flujos(texto)
     cuenta, pendientes_cuenta = _cuenta(texto)
+    saldo, pendientes_saldo = _saldo(texto, cuenta)
     origenes = origenes_producto(texto, declaracion.productos)
     declaradas = cargar_declaradas(_decision(diseno, source, "diseno"), "fuentes")
     claves = [*arq.lookups, *([arq.periodo.fuente] if arq.periodo else [])]
@@ -143,6 +157,7 @@ def talend_command(
             numericas=origenes.numericas_comunes,
             flujos=flujos,
             cuenta=cuenta,
+            regla_saldo=saldo,
         )
     jobs = [padre, *jobs_hijos(arq, variables, lookups, producto_real=producto)]
     destino = out / source.stem / "talend" / "process"
@@ -162,4 +177,6 @@ def talend_command(
     for pendiente in pendientes_flujos:
         typer.echo(f"Pendiente: {pendiente}")
     for pendiente in pendientes_cuenta:
+        typer.echo(f"Pendiente: {pendiente}")
+    for pendiente in pendientes_saldo:
         typer.echo(f"Pendiente: {pendiente}")

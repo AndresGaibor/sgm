@@ -2795,3 +2795,134 @@ RESULTADO BUILD: {"job_conciliacion_v89b": {"generateMs": 228, "compileMs": 1003
   única del SAS; su proyección está anclada a esas tablas, pero el `INNER JOIN` y el `OUTER UNION
   CORR` completos no se modelan. El filtro de `GMF` exige la normalización de R1-02; `_validar()`
   falla si `GMF` no está en `numericas` en vez de emitir un filtro sobre texto crudo.
+
+## Hito 90. R1-07: los saldos negativos del caso v05 coinciden en Studio, dentro del `job_producto` emitido
+
+Se cerró la parte del saldo negativo de la fila R1-07 del plan con la forma que demuestra el caso
+`v05_codex_saldos`: `INCONS_SALDO_NEG_<P>` con `WHERE FIN_SALDO_CTA < 0` sobre la sábana entera,
+motivo `SALDO NEGATIVO` y `SABANA_VALIDA_<P>` que excluye, con dos `NOT IN`, las llaves de codex y
+de saldo. La regla se **lee** del SAS del caso; no se inventa ni se copia del cliente.
+
+- `proceso/reglas_saldo.py` expande las macros del caso por sustitución (`%saldo_negativo(CTE);` y
+  `&sufijo.`, con su punto delimitador) y lee, por producto, el `WHERE` (una sola comparación
+  `col < n`), el motivo del paso `DATA`, las proyecciones de `INCONS_SALDO_NEG_*` (8 columnas) y de
+  `SABANA_VALIDA_*` (9 columnas), y la llave de los dos `NOT IN`. Si falta cualquier pieza, o si los
+  productos no coinciden, falla con `ValueError` y no emite nada a medias.
+- `talend_item/filtros_saldo.py` traduce `FIN_SALDO_CTA < 0` con el faltante contado como verdadero
+  (`faltante` de R1-06 cortocircuita antes de `Double.parseDouble`). La sábana válida es la cuenta
+  válida de R1-06 y no negativa.
+- `talend_item/flujos_saldo.py` cuelga la quinta rama de `tReplicate_1`: `tMap_saldo` con dos
+  salidas, `saldo_neg` y `saldo_valida`, y dos CSV con cabecera y `context.sufijo`
+  (`INCONS_SALDO_NEG_<sufijo>.csv`, `SABANA_VALIDA_<sufijo>.csv`). Requiere la cascada de R1-06:
+  sin ella no hay sábana válida que calcular y la rama no se emite.
+- `jobs_producto.py` recibe `regla_saldo` (el parámetro se llama así porque el Job ya usa `saldo`
+  como columna) y `cli_talend.py` lo calcula con `_saldo(texto, cuenta)`.
+
+**Decisiones de este hito** (también en `PROGRESS.md` bajo "Decisiones", no repetidas aquí):
+
+- **El SAS de cliente no rechaza saldos negativos.** En `client_large.sas`, línea 8181, el bloque
+  "Eliminar negativos en campo fin_sal_cta" hace `FIN_SALDO_CTA=IFN(FIN_SALDO_CTA<0, 0,
+  FIN_SALDO_CTA)` sobre `CONS_SIN_NEG` y lo deja en `CONSOLIDADO_SIN_NEGATIVOS`, que alimenta
+  `SUMA_SALDOS_POR_NRO_DOC`. Es una puesta en cero para sumas, no un rechazo, y no hay tabla
+  `INCONS_SALDO_NEG_*`. `sgm talend` sobre el cliente no emite la rama y publica `Pendiente:` con
+  ese motivo (`negativos_a_cero` lo detecta). No se traduce la puesta en cero a rechazo.
+- **Faltante = negativo.** En SAS un faltante es menor que cualquier número
+  (`tests/corpus/semantica/vectores.yaml`, `cmp-missing-01`, documentado), así que `< 0` es
+  verdadero con faltante. El corpus `v05` no planta un faltante; ese caso lo ejercen solo los
+  vectores propios, con clasificación escrita a mano.
+- **`-0.00` no es negativo.** `input_left_wd` lo deja en cero (`BigDecimal`), y `0 < 0` es falso.
+- **Sin cascada de codex en el rechazo de saldo.** `INCONS_SALDO_NEG_*` sale de la sábana entera,
+  como en el SAS. Una fila con codex inválido y saldo negativo sale en las dos tablas. La cascada
+  solo entra en `SABANA_VALIDA_*`.
+- **Llave por fila.** El `NOT IN` cruza por `LLAVE_NOMBRE` en el SAS. El Job filtra por fila
+  porque R1-02 deja `LLAVE_NOMBRE` vacía. La equivalencia exige que la llave sea única; en el
+  corpus lo es (`NRO_CTA` también). Queda como pendiente en `reglas_saldo` y como salvedad.
+- **Emisión del Job de la prueba.** `v05_codex_saldos` no produce `job_producto` con `sgm talend`:
+  su `DETALLE_&sufijo..csv` no se resuelve a un producto (`origenes_producto` lo reporta como no
+  asignado) y no tiene decisiones propias. `tools/prueba_saldo.py` emite el `job_producto` con la
+  misma función que `sgm talend` (`job_producto` más `origenes_producto` del cliente, sus decisiones,
+  `_cuenta` y `_flujos` de `cli_talend`) y le pasa la regla leída de `v05`. Eso es una combinación
+  deliberada y se declara aquí; el Job no sale de un programa único.
+- **Validación en Studio sin SUMA del Job.** `SUMA_SALDO_VALIDA_*` se recalcula en Python (`Decimal`)
+  sobre el `SABANA_VALIDA_*` que escribió el Job y se compara con el esperado. El Job no tiene un
+  `tAggregateRow` de saldo válido en esta rama.
+
+Evidencia literal en Studio 8.0.1 / `PRJ_BANCOLOMBIA` (`uv run python tools/prueba_saldo.py
+--proyecto "C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA"
+--java-bin "C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin" --m2
+"C:/Talend/8.0.1/studio/configuration/.m2/repository" --sufijo v90a --trabajo
+"C:/tmp/sgm-hito90/v90a"`, código de salida 0):
+
+```text
+Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+Sufijo: v90a
+Trabajo: C:\tmp\sgm-hito90\v90a
+Pendiente: R1-07: el cruce de SABANA_VALIDA_* con la llave LLAVE_NOMBRE es un filtro por fila en el Job; la equivalencia del NOT IN depende de que la llave sea única por fila
+Comando CTE: "C:\Users\USUARI~1\AppData\Local\Temp\build-m5x70v9q\job_producto_v90a\job_producto_v90a_run.bat" --context="Default" --context_param "producto=CTE" --context_param "ruta_origen=C:/Users/USUARIO_BISOLUTION1/code/sgm-v2/tests/corpus/L8/validaciones/v05_codex_saldos/entradas/DETALLE_CTE.csv" --context_param "sufijo=CTE" --context_param "periodo_anio=2026" --context_param "periodo_mes=10" --context_param "periodo_dia=01" --context_param "arch_hom_tipo_doc=Homologacion_tpo_dto.xlsx" --context_param "ruta_insumos=C:/Users/USUARIO_BISOLUTION1/code/sgm-v2/tests/corpus/L8/validaciones/v01_tipo_doc/entradas/" --context_param "hoja_excel=Sheet1" --context_param "ruta_resultados=C:/tmp/sgm-hito90/v90a/salida/"
+Código de salida CTE: 0
+CTE neg: esperadas 4 filas, obtenidas 4; OK
+CTE valida: esperadas 83 filas, obtenidas 83; OK
+CTE suma valida: esperada 1000067, obtenida 1000067; OK
+CTE anomalías plantadas {'saldo_negativo': 4, 'validos': 83}; obtenidas {'saldo_negativo': 4, 'validos': 83}; OK
+Comando AHO: "C:\Users\USUARI~1\AppData\Local\Temp\build-m5x70v9q\job_producto_v90a\job_producto_v90a_run.bat" --context="Default" --context_param "producto=AHO" --context_param "ruta_origen=C:/Users/USUARIO_BISOLUTION1/code/sgm-v2/tests/corpus/L8/validaciones/v05_codex_saldos/entradas/DETALLE_AHO.csv" --context_param "sufijo=AHO" --context_param "periodo_anio=2026" --context_param "periodo_mes=10" --context_param "periodo_dia=01" --context_param "arch_hom_tipo_doc=Homologacion_tpo_dto.xlsx" --context_param "ruta_insumos=C:/Users/USUARIO_BISOLUTION1/code/sgm-v2/tests/corpus/L8/validaciones/v01_tipo_doc/entradas/" --context_param "hoja_excel=Sheet1" --context_param "ruta_resultados=C:/tmp/sgm-hito90/v90a/salida/"
+Código de salida AHO: 0
+AHO neg: esperadas 5 filas, obtenidas 5; OK
+AHO valida: esperadas 58 filas, obtenidas 58; OK
+AHO suma valida: esperada 698117, obtenida 698117; OK
+AHO anomalías plantadas {'saldo_negativo': 5, 'validos': 58}; obtenidas {'saldo_negativo': 5, 'validos': 58}; OK
+Comando VECTORES: "C:\Users\USUARI~1\AppData\Local\Temp\build-m5x70v9q\job_producto_v90a\job_producto_v90a_run.bat" --context="Default" --context_param "producto=VECTORES" --context_param "ruta_origen=C:/tmp/sgm-hito90/v90a/DETALLE_VECTORES.csv" --context_param "sufijo=VECTORES" --context_param "periodo_anio=2026" --context_param "periodo_mes=10" --context_param "periodo_dia=01" --context_param "arch_hom_tipo_doc=Homologacion_tpo_dto.xlsx" --context_param "ruta_insumos=C:/Users/USUARIO_BISOLUTION1/code/sgm-v2/tests/corpus/L8/validaciones/v01_tipo_doc/entradas/" --context_param "hoja_excel=Sheet1" --context_param "ruta_resultados=C:/tmp/sgm-hito90/v90a/salida/"
+Código de salida VECTORES: 0
+Vectores neg: esperadas 7 filas, obtenidas 7; OK
+Vectores valida: esperadas 6 filas, obtenidas 6; OK
+Vectores invariante: válidos 6 + rechazos 9 = 15 frente a 15; OK
+Limpieza: 2 archivos borrados del proyecto y build temporal borrado
+CTE invariante sábana: válidos 83 + rechazos 7 = 90 frente a 90; OK
+AHO invariante sábana: válidos 58 + rechazos 7 = 65 frente a 65; OK
+RESULTADO: 2 de 2 productos coinciden fila por fila; vectores OK
+```
+
+Filas que escribió el Job en los vectores propios (`INCONS_SALDO_NEG_VECTORES.csv`, columnas
+estables; `LLAVE_NOMBRE` y `TIPO_DOC` vacías por R1-02):
+
+```text
+RELACION,TIPO_CTA,NRO_CTA,LLAVE_NOMBRE,TIPO_DOC,NRO_DOC,GMF,FIN_SALDO_CTA,INCONSISTENCIA
+1000,1,9000000101,,,1,1,-1,SALDO NEGATIVO
+1000,1,9000000104,,,1,1,,SALDO NEGATIVO
+1000,1,9000000106,,,1,1,-0.01,SALDO NEGATIVO
+1000,1,9000000108,,,1,99,-5,SALDO NEGATIVO
+1001,1,9000000109,,,1,99,-3,SALDO NEGATIVO
+1000,9,9000000111,,,1,1,-7,SALDO NEGATIVO
+1000,5,9000000114,,,1,5,-12345678901234,SALDO NEGATIVO
+```
+
+Lectura de la evidencia: la fila `9000000104` es el faltante (saldo vacío) y entra como negativo;
+`9000000108` es codex por GMF 99 y saldo negativo, y sale en las dos tablas; `9000000102`
+(saldo `0`), `9000000105` (`-0.00`, que sale como `0.00`) y `9000000103` (`0.01`) quedan en la
+sábana válida.
+
+- **Qué no demuestra.** La regla viene del caso `v05`, que está en `pendiente_revision`: no se
+  demuestra con SAS que `input()` lea el negativo ni el formato de `PROC EXPORT`. El Job coincide
+  con el esperado del caso, no con la ejecución de SAS. El faltante y `-0.00` se demuestran solo
+  con los vectores propios, cuya clasificación es semántica de SAS escrita a mano, no un caso del
+  corpus.
+- **Bloqueos reales.** R1-07 sigue **`parcial`**. El saldo negativo del caso `v05` está traducido y
+  coincide. El cliente no se cubre: su SAS pone en cero (no rechaza), así que la separación de
+  saldo de `client_large.sas` no existe como regla. Los demás campos negativos del cliente
+  (`VAL_CRED_MES` con `IFN`, `INCONS_DEP_CAMPOS_NEGATIVOS_CTE/AHO`, y `negativos corriente` /
+  `negativos ahorros` del bloque de exógena) siguen sin traducir. El `NOT IN` por llave se traduce
+  por fila, con la salvedad de llave única.
+- **Pruebas.** 39 nuevas en cuatro archivos: `test_proceso_reglas_saldo.py` (11),
+  `test_talend_filtros_saldo.py` (8), `test_talend_emision_saldo.py` (11) y `test_saldo_datos.py`
+  (9). Anclan la lectura de v05, el rechazo de cada pieza que falte o cambie (un `<=`, un
+  `NOT IN` quitado, un motivo cambiado, un producto sin tabla), las expresiones con faltante primero,
+  la emisión con 24 nodos (21 de antes más 3) y 21 nodos sin la regla en el cliente, y que los
+  comparadores detectan una fila cambiada.
+- **Suite**: `uv run pytest -q -n auto`: 1863 pasadas, 26 omitidas y 132 `xfail`. `uv run ruff check .`:
+  sin errores. `tests/unit/test_tablero.py` no cambió: el Job del cliente no emite
+  la rama, así que sigue en 36 componentes emitidos y 21 nodos en `job_producto`.
+- **Métricas.** Archivos nuevos: `proceso/reglas_saldo.py` (206 líneas), `talend_item/filtros_saldo.py`
+  (76), `talend_item/flujos_saldo.py` (95), `tools/saldo_datos.py` (268), `tools/prueba_saldo.py`
+  (207). `jobs_producto.py` pasa de 253 a 261 líneas, `cli_talend.py` de 165 a 182.
+- **Salvedad de llave.** Los `NOT IN` y las proyecciones se cruzan por nombre. R1-02 deja
+  `LLAVE_NOMBRE` y `TIPO_DOC` vacías y quita ceros de `NRO_DOC` (hitos 85 y 87), así que la
+  comparación usa `NRO_CTA` (única) y las cinco columnas estables del hito 89.
