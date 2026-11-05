@@ -1,0 +1,51 @@
+id: opciones-sistema
+kind: catalogo
+version: 1
+description: Opciones de sistema que aparecen en los programas del corpus, con su página. 'reconocida' = el repo
+  las trata de forma explícita; hoy ninguna lo hace, porque todas son entorno o diagnóstico y no transforman datos.
+entries:
+- id: remote
+  nombre: REMOTE=
+  fuente: connref.pdf, p. 130
+  estado: no_verificada
+  nota: '41 usos; alias de CONNECTREMOTE= (SAS/CONNECT). Elige el servidor de la sesión remota: es entorno'
+- id: comamid
+  nombre: COMAMID=
+  fuente: connref.pdf, p. 123
+  estado: no_verificada
+  nota: '41 usos; protocolo de comunicaciones de SAS/CONNECT (TCP). Es entorno'
+- id: sascmd
+  nombre: SASCmd=
+  fuente: connref.pdf, p. 135
+  estado: no_verificada
+  nota: '30 usos; comando con que se arranca el SAS remoto. Es entorno'
+- id: symbolgen
+  nombre: SYMBOLGEN
+  fuente: mcrolref.pdf, p. 501
+  estado: no_verificada
+  nota: '60 usos, 30 en su forma NOSYMBOLGEN; traza la resolución de variables de macro. Es diagnóstico'
+- id: mlogic
+  nombre: MLOGIC
+  fuente: mcrolref.pdf, p. 485
+  estado: no_verificada
+  nota: '30 usos, 30 en su forma NOMLOGIC; traza la ejecución de las macros. Es diagnóstico'
+- id: mprint
+  nombre: MPRINT
+  fuente: mcrolref.pdf, p. 489
+  estado: no_verificada
+  nota: '30 usos, 30 en su forma NOMPRINT; escribe el SAS que genera la macro. Es diagnóstico'
+- id: source
+  nombre: SOURCE
+  fuente: lesysoptsref.pdf, p. 346
+  estado: no_verificada
+  nota: '60 usos, 30 en su forma NOSOURCE; lista el fuente en el log. Es diagnóstico'
+- id: source2
+  nombre: SOURCE2
+  fuente: lesysoptsref.pdf, p. 347
+  estado: no_verificada
+  nota: '30 usos, 30 en su forma NOSOURCE2; lista el fuente que genera la macro. Es diagnóstico'
+- id: syntaxcheck
+  nombre: SYNTAXCHECK
+  fuente: lesysoptsref.pdf, p. 381
+  estado: no_verificada
+  nota: '30 usos, todos NOSYNTAXCHECK; desactiva la comprobación de sintaxis en ejecución. Es compilación'

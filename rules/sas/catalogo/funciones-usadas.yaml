@@ -2,23 +2,25 @@ id: funciones-usadas
 kind: catalogo
 version: 1
 description: Funciones y CALL routines de SAS que aparecen en client_large.sas, con la página de la guía oficial. estado 'reconocida'
-  = hay regla en rules/sas/functions; 'no_verificada' = el repo no tiene regla para ella todavía.
+  = el traductor ya la convierte (regla en rules/sas/functions o rutina en src/sgm/expressions/talend_tabla.py);
+  'no_verificada' = el repo no la traduce todavía.
 entries:
 - id: substr-right-of-function
   nombre: SUBSTR (right of =) Function
   fuente: lefunctionsref.pdf, p. 1574
   estado: no_verificada
-  nota: 'usos en client_large.sas: 182'
+  nota: 'usos en client_large.sas: 182; el parser la clasifica como asignación y el emisor todavía no
+    escribe el reemplazo de la subcadena; la forma función sí se traduce (talend_tabla: substr)'
 - id: input-function
   nombre: INPUT Function
   fuente: lefunctionsref.pdf, p. 1080
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 157'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 157; implementada en src/sgm/expressions/talend_tabla.py (input)'
 - id: cats-function
   nombre: CATS Function
   fuente: lefunctionsref.pdf, p. 503
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 124'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 124; implementada en src/sgm/expressions/talend_tabla.py (cats)'
 - id: upcase-function
   nombre: UPCASE Function
   fuente: lefunctionsref.pdf, p. 1638
@@ -27,38 +29,38 @@ entries:
 - id: date-function
   nombre: DATE Function
   fuente: lefunctionsref.pdf, p. 637
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 100'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 100; implementada en src/sgm/expressions/talend_tabla.py (date)'
 - id: time-function
   nombre: TIME Function
   fuente: lefunctionsref.pdf, p. 1604
   estado: no_verificada
-  nota: 'usos en client_large.sas: 100'
+  nota: 'usos en client_large.sas: 100; no está en la tabla del traductor (sí today, date y datetime)'
 - id: datetime-function
   nombre: DATETIME Function
   fuente: lefunctionsref.pdf, p. 640
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 90'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 90; implementada en src/sgm/expressions/talend_tabla.py (datetime)'
 - id: sum-function
   nombre: SUM Function
   fuente: lefunctionsref.pdf, p. 1580
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 68'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 68; implementada en src/sgm/expressions/talend_tabla.py (sum)'
 - id: left-function
   nombre: LEFT Function
   fuente: lefunctionsref.pdf, p. 1178
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 67'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 67; implementada en src/sgm/expressions/talend_tabla.py (left)'
 - id: cat-function
   nombre: CAT Function
   fuente: lefunctionsref.pdf, p. 495
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 66'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 66; implementada en src/sgm/expressions/talend_tabla.py (cat)'
 - id: length-function
   nombre: LENGTH Function
   fuente: lefunctionsref.pdf, p. 1180
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 65'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 65; implementada en src/sgm/expressions/talend_tabla.py (length)'
 - id: system-function
   nombre: SYSTEM Function
   fuente: lefunctionsref.pdf, p. 1599
@@ -87,13 +89,13 @@ entries:
 - id: int-function
   nombre: INT Function
   fuente: lefunctionsref.pdf, p. 1087
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 60'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 60; implementada en src/sgm/expressions/talend_tabla.py (int)'
 - id: ranuni-function
   nombre: RANUNI Function
   fuente: lefunctionsref.pdf, p. 1474
   estado: no_verificada
-  nota: 'usos en client_large.sas: 60'
+  nota: 'usos en client_large.sas: 60; no determinista: no se traduce, se marca pendiente'
 - id: pathname-function
   nombre: PATHNAME Function
   fuente: lefunctionsref.pdf, p. 1319
@@ -107,8 +109,8 @@ entries:
 - id: count-function
   nombre: COUNT Function
   fuente: lefunctionsref.pdf, p. 608
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 51'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 51; implementada en src/sgm/expressions/talend_tabla.py (count)'
 - id: countw-function
   nombre: COUNTW Function
   fuente: lefunctionsref.pdf, p. 615
@@ -132,28 +134,28 @@ entries:
 - id: compress-function
   nombre: COMPRESS Function
   fuente: lefunctionsref.pdf, p. 587
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 28'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 28; implementada en src/sgm/expressions/talend_tabla.py (compress)'
 - id: ifn-function
   nombre: IFN Function
   fuente: lefunctionsref.pdf, p. 1067
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 26'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 26; implementada en src/sgm/expressions/talend_tabla.py (ifn)'
 - id: substrn-function
   nombre: SUBSTRN Function
   fuente: lefunctionsref.pdf, p. 1576
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 24'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 24; implementada en src/sgm/expressions/talend_tabla.py (substrn)'
 - id: round-function
   nombre: ROUND Function
   fuente: lefunctionsref.pdf, p. 1486
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 24'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 24; implementada en src/sgm/expressions/talend_tabla.py (round)'
 - id: ifc-function
   nombre: IFC Function
   fuente: lefunctionsref.pdf, p. 1065
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 18'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 18; implementada en src/sgm/expressions/talend_tabla.py (ifc)'
 - id: prxmatch-function
   nombre: PRXMATCH Function
   fuente: lefunctionsref.pdf, p. 1403
@@ -162,18 +164,18 @@ entries:
 - id: put-function
   nombre: PUT Function
   fuente: lefunctionsref.pdf, p. 1417
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 14'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 14; implementada en src/sgm/expressions/talend_tabla.py (put)'
 - id: max-function
   nombre: MAX Function
   fuente: lefunctionsref.pdf, p. 1230
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 7'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 7; implementada en src/sgm/expressions/talend_tabla.py (max)'
 - id: mod-function
   nombre: MOD Function
   fuente: lefunctionsref.pdf, p. 1240
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 7'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 7; implementada en src/sgm/expressions/talend_tabla.py (mod)'
 - id: prxchange-function
   nombre: PRXCHANGE Function
   fuente: lefunctionsref.pdf, p. 1398
@@ -182,5 +184,5 @@ entries:
 - id: year-function
   nombre: YEAR Function
   fuente: lefunctionsref.pdf, p. 1729
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 2'
+  estado: reconocida
+  nota: 'usos en client_large.sas: 2; implementada en src/sgm/expressions/talend_tabla.py (year)'

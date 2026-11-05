@@ -1,0 +1,27 @@
+id: opciones-resultado
+kind: catalogo
+version: 1
+description: Opciones de sistema que cambian el resultado de un programa sin que se vea en el código, con su página.
+  Ninguna aparece en el corpus; están aquí porque el traductor tiene que saber qué hacer si aparecen. La decisión
+  está en `docs/opciones-de-sistema.md`.
+entries:
+- id: mergenoby
+  nombre: MERGENOBY
+  fuente: lesysoptsref.pdf, p. 265
+  estado: no_verificada
+  nota: decide si un MERGE sin BY avisa (WARN, por omisión), falla (ERROR) o calla (NOWARN); cambia si el programa corre
+- id: missing
+  nombre: MISSING=
+  fuente: lesysoptsref.pdf, p. 266
+  estado: no_verificada
+  nota: elige qué caracteres cuentan como valor perdido además del blanco y el punto; afecta toda comparación
+- id: validvarname
+  nombre: VALIDVARNAME=
+  fuente: lesysoptsref.pdf, p. 412
+  estado: no_verificada
+  nota: V7, V6 o ANY; decide qué nombres de columna son válidos y cómo se leen los que traen caracteres raros
+- id: yearcutoff
+  nombre: YEARCUTOFF=
+  fuente: lesysoptsref.pdf, p. 432
+  estado: no_verificada
+  nota: fija el siglo de un año de dos dígitos; por omisión 1920, y con él cambia la fecha que devuelve un yymmdd6.

@@ -1,0 +1,91 @@
+id: informats-usados
+kind: catalogo
+version: 1
+description: Informats de SAS 9.4 que el traductor tipa o que aparecen en el corpus, con su página. 'reconocida' =
+  `rules/sas/informats.yaml` le da un tipo; 'no_verificada' = existe en la guía y el repo no la tipa.
+entries:
+- id: caracter
+  nombre: $w.
+  fuente: leforinforref.pdf, p. 616
+  estado: reconocida
+  nota: regla `caracter` de rules/sas/informats.yaml (marcador $)
+- id: numerico-entero
+  nombre: w.
+  fuente: leforinforref.pdf, p. 556
+  estado: reconocida
+  nota: 'regla `numerico`: 42 usos de 20., 31 de 30., 12 de 1., 7 de 3. y 6., 4 de 15., 3 de 32. y 2 de 10.'
+- id: numerico-decimales
+  nombre: w.d
+  fuente: leforinforref.pdf, p. 556
+  estado: reconocida
+  nota: 'regla `numerico` con decimales (BigDecimal): 8.2 y 6.2 en el corpus; sin punto, d son decimales'
+- id: date
+  nombre: DATEw.
+  fuente: leforinforref.pdf, p. 649
+  estado: reconocida
+  nota: regla `fecha`
+- id: datetime
+  nombre: DATETIMEw.
+  fuente: leforinforref.pdf, p. 650
+  estado: reconocida
+  nota: regla `fecha`
+- id: ddmmyy
+  nombre: DDMMYYw.
+  fuente: leforinforref.pdf, p. 653
+  estado: reconocida
+  nota: regla `fecha`
+- id: julian
+  nombre: JULIANw.
+  fuente: leforinforref.pdf, p. 678
+  estado: reconocida
+  nota: regla `fecha`
+- id: mmddyy
+  nombre: MMDDYYw.
+  fuente: leforinforref.pdf, p. 682
+  estado: reconocida
+  nota: regla `fecha`
+- id: monyy
+  nombre: MONYYw.
+  fuente: leforinforref.pdf, p. 684
+  estado: reconocida
+  nota: regla `fecha`
+- id: time
+  nombre: TIMEw.
+  fuente: leforinforref.pdf, p. 736
+  estado: reconocida
+  nota: regla `fecha`
+- id: yymmdd
+  nombre: YYMMDDw.
+  fuente: leforinforref.pdf, p. 755
+  estado: reconocida
+  nota: 'regla `fecha`; 1 uso de yymmdd10. en el corpus'
+- id: yyq
+  nombre: YYQw.
+  fuente: leforinforref.pdf, p. 759
+  estado: reconocida
+  nota: regla `fecha`
+- id: anydtdte
+  nombre: ANYDTDTEw.
+  fuente: leforinforref.pdf, p. 617
+  estado: no_verificada
+  nota: lee fecha, hora o fecha-hora en cualquier forma y extrae la fecha; el repo no la tipa
+- id: anydtdtm
+  nombre: ANYDTDTMw.
+  fuente: leforinforref.pdf, p. 620
+  estado: no_verificada
+  nota: como ANYDTDTE, pero devuelve el datetime completo; el repo no la tipa
+- id: anydttme
+  nombre: ANYDTTMEw.
+  fuente: leforinforref.pdf, p. 623
+  estado: no_verificada
+  nota: como ANYDTDTE, pero devuelve solo la hora; el repo no la tipa
+- id: b8601da
+  nombre: B8601DAw.
+  fuente: leforinforref.pdf, p. 628
+  estado: no_verificada
+  nota: fecha ISO 8601 básica (aaaammdd); el repo no la tipa
+- id: e8601da
+  nombre: E8601DAw.
+  fuente: leforinforref.pdf, p. 654
+  estado: no_verificada
+  nota: fecha ISO 8601 extendida (aaaa-mm-dd); el repo no la tipa

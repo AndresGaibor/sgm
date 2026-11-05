@@ -5,8 +5,10 @@ status: soportado
 description: "Tipo que fija un informat o formato de SAS. Lo lee src/sgm/ir/types_code.py (R7)."
 entries:
   # Informats de fecha u hora: `yymmdd8.`, `ddmmyy10.`, `datetime20.`. Tipo Date.
+  # Los nombres salen del diccionario de `leforinforref.pdf` (p. 553): DTDATE y DTMONYY son
+  # formats, no informats, y por eso no están en la lista.
   - id: fecha
-    names: [yymmdd, ddmmyy, mmddyy, date, datetime, time, monyy, yyq, julian, dtdate, dtmonyy]
+    names: [yymmdd, ddmmyy, mmddyy, date, datetime, time, monyy, yyq, julian]
     type: Date
   # `$w.` o `charw.`: texto de longitud w. Tipo String.
   - id: caracter

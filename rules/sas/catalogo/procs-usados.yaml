@@ -1,0 +1,51 @@
+id: procs-usados
+kind: catalogo
+version: 1
+description: Procedimientos que aparecen en client_large.sas, con su página. 'reconocida' = el repo lo lee; el resto
+  no tiene tratamiento propio. Los conteos son sentencias PROC del programa grande.
+entries:
+- id: sql
+  nombre: PROC SQL
+  fuente: sqlproc.pdf, p. 269
+  estado: reconocida
+  nota: '521 usos; reglas en rules/sas/catalogo/sentencias-proc-sql.yaml y parser propio'
+- id: delete
+  nombre: PROC DELETE
+  fuente: proc.pdf, p. 837
+  estado: no_verificada
+  nota: '216 usos; borra datasets de WORK antes de recrearlos. Es limpieza, no transformación'
+- id: sort
+  nombre: PROC SORT
+  fuente: proc.pdf, p. 2449
+  estado: no_verificada
+  nota: '31 usos; en el corpus siempre ordena para un MERGE o un BY posterior'
+- id: contents
+  nombre: PROC CONTENTS
+  fuente: proc.pdf, p. 541
+  estado: no_verificada
+  nota: '30 usos; describe la estructura de un dataset. Es inspección, no transformación'
+- id: upload
+  nombre: PROC UPLOAD
+  fuente: connref.pdf, p. 247
+  estado: no_verificada
+  nota: '22 usos; envía un dataset al servidor remoto de SAS/CONNECT. Es entorno'
+- id: export
+  nombre: PROC EXPORT
+  fuente: proc.pdf, p. 901
+  estado: no_verificada
+  nota: '22 usos; escribe CSV u otro formato. Equivale a la salida de archivo del Job'
+- id: import
+  nombre: PROC IMPORT
+  fuente: proc.pdf, p. 1373
+  estado: no_verificada
+  nota: '9 usos; lee CSV con DBMS=DLM y GETNAMES=. Equivale a tFileInputDelimited'
+- id: download
+  nombre: PROC DOWNLOAD
+  fuente: connref.pdf, p. 287
+  estado: no_verificada
+  nota: '4 usos; trae un dataset del servidor remoto. Es entorno'
+- id: pwencode
+  nombre: PROC PWENCODE
+  fuente: proc.pdf, p. 1997
+  estado: no_verificada
+  nota: '1 uso; cifra una contraseña en el propio programa. Es un secreto, no una transformación'

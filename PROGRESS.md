@@ -4116,3 +4116,79 @@ pasan a diferencias con motivo. Las diferencias suben de 3 a 19: 16 nuevas, toda
   búsquedas. Que el cliente use `MERGENOBY` o `YEARCUTOFF` con valores distintos del de omisión no se
   puede saber desde el repositorio: eso lo dirá una revisión de los `autoexec` y los scripts de
   lanzamiento.
+
+## Hito 101. Catálogos de opciones, informats y procedimientos; el de funciones pasa de 3 a 22 reconocidas
+
+- Fecha: 2026-11-05. Pedido del usuario: «hazlo todo» sobre las cinco acciones propuestas al revisar
+  el catálogo de documentación (opciones, informats, funciones, procedimientos y opciones que cambian
+  el resultado).
+- Qué se hizo:
+  - `rules/sas/catalogo/opciones-sistema.yaml` (nuevo, 9 entradas): las opciones que el corpus usa de
+    verdad, con página y clase. `REMOTE=` (41 usos, `connref.pdf` p. 130), `COMAMID=` (41, p. 123),
+    `SASCmd=` (30, p. 135), `SYMBOLGEN` (60, `mcrolref.pdf` p. 501), `MLOGIC` (30, p. 485), `MPRINT`
+    (30, p. 489), `SOURCE` (60, `lesysoptsref.pdf` p. 346), `SOURCE2` (30, p. 347) y `SYNTAXCHECK`
+    (30, p. 381). Todas `no_verificada`: el repo no las trata, y son entorno o diagnóstico, no
+    transformación.
+  - `rules/sas/catalogo/informats-usados.yaml` (nuevo, 17 entradas): los que el traductor tipa
+    (`$w.` p. 616, `w.` y `w.d` p. 556, DATE 649, DATETIME 650, DDMMYY 653, JULIAN 678, MMDDYY 682,
+    MONYY 684, TIME 736, YYMMDD 755, YYQ 759) y los cinco de la familia que no tipa (`ANYDTDTE` 617,
+    `ANYDTDTM` 620, `ANYDTTME` 623, `B8601DA` 628, `E8601DA` 654), estos como `no_verificada`.
+  - `rules/sas/catalogo/procs-usados.yaml` (nuevo, 9 entradas): los `PROC` del programa grande con su
+    página. `PROC SQL` (521 usos, `sqlproc.pdf` p. 269) es el único `reconocida`; DELETE (216,
+    `proc.pdf` p. 837), SORT (31, p. 2449), CONTENTS (30, p. 541), UPLOAD (22, `connref.pdf` p. 247),
+    EXPORT (22, p. 901), IMPORT (9, p. 1373), DOWNLOAD (4, p. 287) y PWENCODE (1, p. 1997) no tienen
+    tratamiento propio.
+  - `rules/sas/catalogo/opciones-resultado.yaml` (nuevo, 4 entradas): `MERGENOBY` (p. 265),
+    `MISSING=` (266), `VALIDVARNAME=` (412) y `YEARCUTOFF=` (432). Ninguna aparece en el corpus; el
+    catálogo existe para que la decisión quede con página y estado.
+  - `docs/opciones-de-sistema.md` (nuevo): la decisión escrita. Un `OPTIONS` nunca se convierte en
+    transformación; si el programa fija una de las cuatro que cambian el resultado, el paso lleva
+    `Pendiente:` con la opción y su página; si no la fija, no se emite nada, porque el valor de
+    omisión del cliente no está en el repositorio; y un informat de año de dos dígitos sin
+    `YEARCUTOFF` deja `Pendiente: fecha de dos dígitos sin YEARCUTOFF`.
+  - **Corrección del catálogo de funciones**: decía 3 reconocidas y el traductor ya convierte 22. El
+    criterio viejo medía el acomodo de los archivos («hay regla en `rules/sas/functions`»), no la
+    capacidad: las funciones de varios argumentos viven en la tabla del traductor de Talend
+    (`src/sgm/expressions/talend_tabla.py`), no en un YAML de una línea. Se actualizaron 19 entradas
+    con su sitio de implementación (`input`, `cats`, `cat`, `date`, `datetime`, `sum`, `left`,
+    `length`, `int`, `count`, `compress`, `ifn`, `ifc`, `substrn`, `round`, `put`, `max`, `mod`,
+    `year`), y quedan 14 `no_verificada` con nota cuando hay algo que decir: `SUBSTR (right of =)`
+    (el parser la clasifica como asignación y el emisor todavía no escribe el reemplazo de la
+    subcadena), `TIME` (no está en la tabla; sí `today`, `date` y `datetime`) y `RANUNI` (no
+    determinista: se marca pendiente).
+  - **Corrección de la regla de informats**: `rules/sas/informats.yaml` nombraba `dtdate` y `dtmonyy`
+    como informats de fecha. En la guía no existen como informats: son formats (cero títulos
+    `DTDATEw. Informat` en `leforinforref.txt`). Se quitaron; la regla queda con 9 nombres, todos
+    verificados en el diccionario.
+- Decisiones:
+  - «Reconocida» pasa a significar «el traductor ya la convierte», venga de una regla YAML o de la
+    tabla del traductor. El catálogo de funciones no servía para medir cobertura mientras midiera
+    otra cosa.
+  - Dos catálogos de opciones en vez de uno: `opciones-sistema` es lo que el corpus usa (y una prueba
+    exige que aparezca); `opciones-resultado` es lo que cambia resultados aunque hoy no se use. Juntar
+    los dos habría dejado entradas que la prueba de uso no puede sostener.
+  - La decisión de `docs/opciones-de-sistema.md` no se codifica en este hito. Tocar la pasada que lee
+    `OPTIONS` y el registro de pendientes es comportamiento, no documentación, y el pedido era dejar
+    la decisión escrita y con fuente. Queda anotado como lo que falta.
+- Pruebas: `tests/unit/test_catalogo_sas.py` (34, cuatro nuevas y una reescrita):
+  - el mapa de guías citables pasa de 5 a 9 (entran `leforinforref`, `lesysoptsref`, `connref` y
+    `proc`), así que toda página citada por los catálogos nuevos se comprueba contra su índice;
+  - `test_cada_funcion_reconocida_tiene_su_implementacion`: la regla YAML existe y su `sas` coincide,
+    o el nombre está en la tabla del traductor;
+  - `test_los_informats_de_la_regla_existen_en_la_guia`: cada nombre de la regla `fecha` tiene su
+    título `XXXw. Informat` en el diccionario. Es la prueba que habría detectado `DTDATE` y
+    `DTMONYY`;
+  - `test_los_informats_del_catalogo_coinciden_con_la_regla`: `reconocida` si la regla lo tipa,
+    `no_verificada` si no, en los dos sentidos;
+  - `test_las_opciones_del_catalogo_aparecen_en_el_corpus` y `test_los_procs_del_catalogo_aparecen_en_el_programa_grande`:
+    el catálogo es de lo que se usa, y una entrada inventada no pasa.
+- Verificación: `uv run ruff check .`: limpio. `uv run pytest -q tests/unit/test_catalogo_sas.py`:
+  34 pasadas. Suite completa: 2266 pruebas, 0 fallos, 0 errores, 155 omitidas (las series paralelas de
+  `talend_item` quedaron verdes entre tanto).
+- Métricas: 4 catálogos nuevos (9 + 17 + 9 + 4 = 39 entradas con página), 19 entradas de funciones
+  corregidas, 2 nombres falsos fuera de la regla de informats, 1 documento de decisión.
+- Bloqueos: la regla de `OPTIONS` sigue sin codificar; para cerrarla hacen falta el `autoexec` y los
+  scripts de lanzamiento del cliente, que el repositorio no tiene.
+- No verificado: los usos de cada función y de cada `PROC` salen del catálogo y del conteo sobre
+  `client_large.sas`, no de ejecutar el programa. Que la tabla del traductor haga lo mismo que SAS en
+  los bordes (missing, blancos finales) lo dicen sus avisos y las pruebas de expresión, no este hito.

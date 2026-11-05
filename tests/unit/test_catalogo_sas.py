@@ -14,6 +14,7 @@ import pytest
 import yaml
 
 from sgm import rules_validate
+from sgm.expressions import talend_tabla
 from sgm.frontend.datastep import classify_statement
 from sgm.frontend.sql import parse_sql_statement
 
@@ -28,6 +29,10 @@ GUIA_DE_CITA = {
     "sqlproc.pdf": "sqlproc.INDEX.md",
     "mcrolref.pdf": "mcrolref.INDEX.md",
     "ledsoptsref.pdf": "ledsoptsref.INDEX.md",
+    "leforinforref.pdf": "leforinforref.INDEX.md",
+    "lesysoptsref.pdf": "lesysoptsref.INDEX.md",
+    "connref.pdf": "connref.INDEX.md",
+    "proc.pdf": "proc.INDEX.md",
 }
 
 
@@ -69,11 +74,22 @@ def test_cada_pagina_citada_existe_en_el_indice_de_su_guia(nombre):
         assert f"(p. {pagina})" in indice, f"{nombre}: {entrada['nombre']} cita p. {pagina}"
 
 
-def test_cada_regla_de_funcion_citada_existe():
+def test_cada_funcion_reconocida_tiene_su_implementacion():
+    # "reconocida" puede venir de una regla de `rules/sas/functions/` (funciones de un argumento)
+    # o de la tabla del traductor de Talend (varios argumentos, rutinas). Cualquiera de las dos
+    # tiene que existir de verdad.
+    tabla = set(talend_tabla._FUNCTIONS)
     for entrada in _entradas("funciones-usadas"):
-        if entrada["estado"] == "reconocida":
-            ruta = re.search(r"rules/sas/functions/\S+\.yaml", entrada["nota"]).group(0)
-            assert (REPO / ruta).exists(), ruta
+        if entrada["estado"] != "reconocida":
+            continue
+        nombre = entrada["nombre"].split()[0].lower()
+        regla = re.search(r"rules/sas/functions/\S+\.yaml", entrada.get("nota", ""))
+        if regla:
+            assert (REPO / regla.group(0)).exists(), regla.group(0)
+            sas = yaml.safe_load((REPO / regla.group(0)).read_text(encoding="utf-8"))["sas"]
+            assert sas == nombre, f"{entrada['id']}: la regla dice {sas!r}"
+        else:
+            assert nombre in tabla, f"{entrada['id']}: {nombre} no está en la tabla del traductor"
 
 
 # Una muestra por palabra clave que el parser del DATA step reconoce.
@@ -176,3 +192,56 @@ def test_las_funciones_de_las_reglas_existen_en_la_guia():
     for regla in sorted((REPO / "rules" / "sas" / "functions").glob("fn-*.yaml")):
         nombre = yaml.safe_load(regla.read_text(encoding="utf-8"))["sas"].upper()
         assert f"{nombre} FUNCTION" in indice, f"{regla.name}: {nombre} no está en la guía"
+
+
+def _regla_informats() -> dict:
+    return yaml.safe_load((REPO / "rules" / "sas" / "informats.yaml").read_text(encoding="utf-8"))
+
+
+def _nombres_de_fecha() -> list[str]:
+    return [n for e in _regla_informats()["entries"] if e["id"] == "fecha" for n in e["names"]]
+
+
+def _base_del_informat(nombre: str) -> str:
+    """`YYMMDDw.` -> `yymmdd`; `$w.` -> `$`; `w.d` se deja igual."""
+    base = nombre.lower().rstrip(".")
+    if base.endswith("w") and base not in ("w", "w.d"):
+        base = base[:-1]
+    return base
+
+
+def test_los_informats_de_la_regla_existen_en_la_guia():
+    # DTDATE y DTMONYY estuvieron en la regla sin ser informats: son formats. Esta prueba es la
+    # que lo habría detectado, y la que impide que vuelva a pasar.
+    indice = (REF / "leforinforref.INDEX.md").read_text(encoding="utf-8").upper()
+    faltan = [n for n in _nombres_de_fecha() if f"{n.upper()}W. INFORMAT" not in indice]
+    assert faltan == []
+
+
+def test_los_informats_del_catalogo_coinciden_con_la_regla():
+    fecha = set(_nombres_de_fecha()) | {"w", "w.d", "$"}
+    for entrada in _entradas("informats-usados"):
+        base = _base_del_informat(entrada["nombre"])
+        if entrada["estado"] == "reconocida":
+            assert base in fecha, f"{entrada['id']}: la regla no tipa {base}"
+        else:
+            assert base not in fecha, f"{entrada['id']}: {base} sí está en la regla"
+
+
+def test_las_opciones_del_catalogo_aparecen_en_el_corpus():
+    # El catálogo es de lo que los programas usan: si una opción no aparece, sobra la entrada.
+    texto = (REPO / "tests" / "fixtures" / "sas" / "client" / "client_large.sas").read_text(
+        encoding="utf-8"
+    ).lower()
+    for entrada in _entradas("opciones-sistema"):
+        nombre = entrada["nombre"].lower().rstrip("=")
+        assert nombre in texto, f"{entrada['id']}: {nombre} no aparece en client_large.sas"
+
+
+def test_los_procs_del_catalogo_aparecen_en_el_programa_grande():
+    texto = (REPO / "tests" / "fixtures" / "sas" / "client" / "client_large.sas").read_text(
+        encoding="utf-8"
+    ).lower()
+    for entrada in _entradas("procs-usados"):
+        proc = entrada["nombre"].lower().replace("proc ", "proc ")
+        assert re.search(rf"\b{re.escape(proc)}\b", texto), f"{entrada['id']}: no aparece"
