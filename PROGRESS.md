@@ -1862,3 +1862,29 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Pruebas: `test_corpus_invariantes.py` (40), `test_corpus_preparacion.py`, y 5 nuevas en `test_corpus_oraculo_sql.py`. `tools/corpus.py oraculo todos --verificar`: 57 casos, 0 fallas.
 - Riesgos de dialecto sin SAS real (altos, no verificados): comparaciones `<`, `<=`, `<>` con faltantes (SAS trata el faltante como menor, SQLite da NULL; los casos lo evitan), blancos finales en claves de texto (SAS los ignora, SQLite no), `NOT IN` con NULL en la subconsulta y el orden de NULL en `ORDER BY`/`GROUP BY`.
 - Pendiente: generar el esperado de los casos L8; casos L4 a L7 (funciones, macros, `MERGE`, `FIRST.`/`LAST.`).
+
+
+## Hito 77. T19 (salidas): tablas finales, exportaciones y conciliacion
+
+- Fecha: 2026-11-04
+- Que se hizo: nuevo `src/sgm/proceso/salidas.py`.
+  - `tablas_finales(texto)`: tablas `SABANA_FINAL_<P>`, `RESULTADO_<P>_NAL|EXT`, `INCONS_DEP_<P>` e
+    `INCONS_DEP_CORREGIDA_<P>` con sus columnas en el orden del `SELECT` y la tabla con la que se
+    cruzan. Una tabla con `SELECT * ... OUTER UNION CORR` (varias de inconsistencias) se devuelve sin
+    columnas: es un esquema pendiente, no se supone.
+  - `exportaciones(texto)`: los `PROC EXPORT` con dataset, archivo, delimitador (que en el SAS va en
+    una sentencia aparte, `delimiter=';';`) y `replace`.
+  - `formula_conciliacion(texto)`.
+- Hallazgo del criterio nacional/extranjero: no depende de `TIPO_DOC` sino del cruce.
+  `RESULTADO_<P>_NAL` se arma con `SABANA_TIT_NAL_<P>` y `RESULTADO_<P>_EXT` con
+  `SABANA_TIT_EXT_<P>`. Queda demostrado por `fuente` en cada tabla.
+- Salidas reales: 22 `PROC EXPORT`, todas con `dbms=dlm`, `delimiter=';'` y `replace`, a
+  `/work_sasstudio/pcfiles/`. Incluyen `RESULTADO_AHO_NAL.csv`, `RESULTADO_AHO_EXT.csv`,
+  `INCONS_DEP_AHORROS.csv` y las de inconsistencias corregidas.
+- Conciliacion: `CONCILIACION_SALDOS=SUMA_SALDO_INICIAL-(SUMA_SALDO_FINAL_DEP_AHO+
+  SUMA_SALDO_INCONS_DEP_AHO)`.
+- Pruebas: `tests/unit/test_salidas_producto.py`, 8 pruebas; incluye el programa real (19 columnas
+  de la sabana final, 28 de la nacional con su fuente, 22 exportaciones con `;` y la formula).
+- Pendiente de T19 (parte de Job): escribir los archivos con esas columnas requiere las etapas de
+  validacion previas (T12 a T18), que siguen detras del filtro de Studio. La invariante
+  validos + rechazos = origen se podra comprobar cuando esten completas.
