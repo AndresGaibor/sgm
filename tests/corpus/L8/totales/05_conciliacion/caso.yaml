@@ -1,0 +1,47 @@
+id: 05_conciliacion
+nivel: L8
+tema: conciliación origen contra válidos más rechazados
+construcciones:
+- macrovariable por SELECT INTO
+- '%IF %THEN %ELSE en macro'
+- '%PUT NOTE'
+- PROC SQL con varias tablas en FROM (producto cartesiano de un registro)
+productos:
+- CTE
+- AHO
+capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
+estado: sin_esperado
+anomalias_plantadas:
+  tolerancia: '0.01'
+  cte_filas_origen: 50
+  cte_filas_validas: 45
+  cte_filas_rechazadas: 5
+  cte_filas_perdidas: 0
+  cte_diferencia_filas: 0
+  cte_suma_saldo_origen: '212379.85'
+  cte_diferencia_saldo: '0.00'
+  cte_estado: CONCILIA
+  aho_filas_origen: 45
+  aho_filas_validas: 40
+  aho_filas_rechazadas: 4
+  aho_filas_perdidas: 1
+  aho_diferencia_filas: 1
+  aho_suma_saldo_origen: '190101.63'
+  aho_diferencia_saldo: '5.00'
+  aho_estado: NO CONCILIA
+salidas_esperadas:
+  tablas_work:
+  - CONCILIACION_CTE
+  - CONCILIACION_AHO
+  archivos: []
+  mensajes:
+  - 'NOTE: CONCILIACION CTE: CONCILIA'
+  - 'NOTE: CONCILIACION AHO: NO CONCILIA'
+supuestos:
+- 'tolerancia 0.01 en saldo: supuesto del caso, pendiente con el equipo'
+- rechazada = TIPO_DOC fuera de CC, TI, CE, PA y no vacío
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/p1holnuvm8kon1n1wwhvrjnrab65.htm
+- https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
+- https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
+- https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm

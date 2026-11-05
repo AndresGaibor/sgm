@@ -13,11 +13,14 @@ from pathlib import Path
 import yaml
 
 CAPAS = ("A", "B", "C")
-ESTADOS = ("traducible", "parcial", "pendiente", "pendiente_revision")
+ESTADOS = (
+    "traducible", "parcial", "pendiente", "pendiente_revision", "revisado", "sin_esperado"
+)
 CAMPOS = frozenset(
     {
         "nivel", "construcciones", "capa", "tolerancia", "orden_relevante", "estado", "motivo",
-        "salidas", "razonamiento",
+        "salidas", "razonamiento", "revisor", "observacion_revision", "preparacion",
+        "invariantes", "anomalias_plantadas", "tema", "fuentes_url", "salidas_esperadas",
     }
 )
 _NIVEL = re.compile(r"L\d+$")

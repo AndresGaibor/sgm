@@ -3,8 +3,8 @@ construcciones: [PROC IMPORT, DATA, SET, ASIGNACION, ARITMETICA, PROC EXPORT]
 capa: C
 tolerancia: 0
 orden_relevante: true
-estado: pendiente_revision
-motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+estado: revisado
+motivo: "Esperado escrito a mano y recalculado por un segundo agente sin verlo: coincide."
 salidas: [inventario]
 razonamiento: |
   total_valor = precio * stock, por fila (enteros, sin faltantes):
@@ -12,3 +12,4 @@ razonamiento: |
   PRD-004 150*42 = 6300.   PRD-005 79*4 = 316.    PRD-006 206*27 = 5562.
   PRD-007 18*65 = 1170.
   total_valor es la ultima columna; las demas no cambian.
+revisor: segundo_agente

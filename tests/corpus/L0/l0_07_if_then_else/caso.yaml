@@ -3,8 +3,8 @@ construcciones: [PROC IMPORT, DATA, SET, LENGTH, IF, THEN, ELSE IF, ELSE, PROC E
 capa: C
 tolerancia: 0
 orden_relevante: true
-estado: pendiente_revision
-motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+estado: revisado
+motivo: "Esperado escrito a mano y recalculado por un segundo agente sin verlo: coincide."
 salidas: [clientes_nivel]
 razonamiento: |
   LENGTH nivel $ 5 fija el largo en 5, porque MEDIO tiene 5 letras y el primer valor asignado
@@ -12,3 +12,4 @@ razonamiento: |
   Reglas: saldo >= 2000 ALTO; saldo >= 500 MEDIO; si no, BAJO.
   101 1542 MEDIO.  102 356 BAJO.  103 2478 ALTO.  104 344 BAJO.  105 141 BAJO.
   106 1278 MEDIO.  107 1880 MEDIO (menor que 2000).  108 1374 MEDIO.  109 913 MEDIO.
+revisor: segundo_agente

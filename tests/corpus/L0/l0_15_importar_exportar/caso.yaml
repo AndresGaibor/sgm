@@ -3,10 +3,11 @@ construcciones: [PROC IMPORT, DATA, SET, ASIGNACION, ARITMETICA, KEEP, PROC EXPO
 capa: C
 tolerancia: 0
 orden_relevante: true
-estado: pendiente_revision
-motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+estado: revisado
+motivo: "Esperado escrito a mano y recalculado por un segundo agente sin verlo: coincide."
 salidas: [valor_stock]
 razonamiento: |
   valor_stock = precio * stock; KEEP codigo valor_stock.
   PRD-001 14*50 = 700.     PRD-002 96*13 = 1248.    PRD-003 122*48 = 5856.
   PRD-004 179*60 = 10740.  PRD-005 124*36 = 4464.   PRD-006 214*29 = 6206.
+revisor: segundo_agente

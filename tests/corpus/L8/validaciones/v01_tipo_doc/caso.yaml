@@ -1,0 +1,46 @@
+nivel: L8
+tema: tipo de documento invalido contra homologacion (CTE y AHO)
+construcciones:
+  - PROC IMPORT DBMS=EXCELCS (homologacion)
+  - PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM GETNAMES=NO
+  - macro con parametro de producto (%macro valida_tipo_doc(sufijo))
+  - PROC SQL LEFT JOIN ... WHERE IS MISSING (rechazo)
+  - PROC SQL INNER JOIN (valido)
+  - PROC SQL OUTER UNION CORR con conteos
+  - PROC EXPORT DBMS=DLM PUTNAMES=NO
+capa: A (PROC SQL sobre SQLite) para los joins y conteos
+estado: sin_esperado
+entradas:
+  - DETALLE_CTE.csv (23 columnas, sin cabecera, separado por ;)
+  - DETALLE_AHO.csv (23 columnas)
+  - Homologacion_tpo_dto.xlsx (columna CNAME: TD01 a TD04)
+anomalias_plantadas:
+  cte:
+    tipo_doc_invalido: 7
+    validos: 88
+  aho:
+    tipo_doc_invalido: 5
+    validos: 60
+salidas_esperadas:
+  tablas_work:
+    - SABANA_CTE
+    - SABANA_AHO
+    - TIPO_DOC_INVALIDO_CTE
+    - TIPO_DOC_INVALIDO_AHO
+    - TIPO_DOC_VALIDO_CTE
+    - TIPO_DOC_VALIDO_AHO
+    - RECHAZO_TIPO_DOC_CTE
+    - RECHAZO_TIPO_DOC_AHO
+    - CONTEO_RECHAZO_TIPO_DOC
+    - CONTEO_VALIDO_TIPO_DOC
+  archivos:
+    - RECHAZO_TIPO_DOC_CTE.csv
+    - RECHAZO_TIPO_DOC_AHO.csv
+fuentes_url:
+  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+  - https://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/a002473690.htm
+  - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
+  - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/p00e1u5k4v11agn1ffmgvkfoufmg.htm
+dudas:
+  - Las opciones de PROC IMPORT DBMS=EXCELCS (SERVER, PORT, TEXTSIZE, SHEET) se copian del original y no se verificaron en la documentacion.
+  - Los codigos TD01 a TD05 son ficticios; el significado real de los tipos de documento sigue pendiente.

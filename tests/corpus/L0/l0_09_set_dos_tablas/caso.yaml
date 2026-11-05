@@ -10,3 +10,4 @@ razonamiento: |
   SET concatena: primero todas las filas de ventas_enero (4) y despues las de ventas_febrero (3).
   Ambas tablas tienen las mismas seis columnas, en el mismo orden. Total: 7 filas.
   La fecha se lee como texto ISO y se copia sin cambios.
+observacion_revision: "El tipo que PROC IMPORT (DBMS=CSV) da a una fecha ISO yyyy-mm-dd no esta confirmado en la documentacion; el esperado la trata como texto. Si SAS la lee como fecha, PROC EXPORT puede escribirla con otro formato. Ver REVISION.md."

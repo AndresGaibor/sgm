@@ -1,0 +1,54 @@
+nivel: L8
+tema: codex invalido y saldos negativos por producto
+construcciones:
+  - input(left(...), 20.) con signo menos en texto (saldo negativo)
+  - PROC SQL WHERE GMF NOT BETWEEN 1 AND 10 AND RELACION = 1000 (codex)
+  - PROC SQL WHERE FIN_SALDO_CTA < 0
+  - PROC SQL NOT IN (SELECT ... FROM tabla de rechazos) con dos subconsultas
+  - PROC SQL SUM con GROUP BY (no usado en este caso: solo SUM simple)
+  - data step con INCONSISTENCIA constante por regla
+  - PROC SQL OUTER UNION CORR con literal REGLA
+  - PROC EXPORT DBMS=DLM PUTNAMES=NO
+capa: A (SQL, NOT IN, SUM) y B (input de texto con signo)
+estado: sin_esperado
+entradas:
+  - DETALLE_CTE.csv (23 columnas; saldo negativo como texto con signo menos)
+  - DETALLE_AHO.csv (23 columnas)
+anomalias_plantadas:
+  cte:
+    codex_invalido: 3
+    saldo_negativo: 4
+    validos: 83
+  aho:
+    codex_invalido: 2
+    saldo_negativo: 5
+    validos: 58
+salidas_esperadas:
+  tablas_work:
+    - SABANA_CTE
+    - SABANA_AHO
+    - INCONS_CODEX_INVALIDO_CTE
+    - INCONS_CODEX_INVALIDO_AHO
+    - INCONS_SALDO_NEG_CTE
+    - INCONS_SALDO_NEG_AHO
+    - SABANA_VALIDA_CTE
+    - SABANA_VALIDA_AHO
+    - SUMA_SALDO_VALIDA_CTE
+    - SUMA_SALDO_VALIDA_AHO
+    - RECHAZO_CODEX_CTE
+    - RECHAZO_CODEX_AHO
+    - RECHAZO_SALDO_CTE
+    - RECHAZO_SALDO_AHO
+    - CONTEO_CODEX_SALDO
+  archivos:
+    - RECHAZO_CODEX_CTE.csv
+    - RECHAZO_SALDO_CTE.csv
+    - RECHAZO_CODEX_AHO.csv
+    - RECHAZO_SALDO_AHO.csv
+fuentes_url:
+  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+dudas:
+  - Que input(left('-12001'), 20.) lea un negativo no se confirmo con un ejemplo de la documentacion; el caso lo supone.
+  - La suma SUM(FIN_SALDO_CTA) sobre datos sin faltantes es evidente, pero el tratamiento de faltantes no entra en este caso.
+  - Los codigos de codex (relacion 1000, GMF fuera de 1 a 10) son ficticios.

@@ -1,0 +1,56 @@
+nivel: L8
+tema: normalizacion de nombres (mayusculas, enie, tildes, espacios) y montos con espacios
+construcciones:
+  - input(left(...), 20.) sobre texto con espacios a la izquierda
+  - COMPRESS(...) para quitar todos los blancos
+  - COMPBL(STRIP(UPCASE(...))) para normalizar nombres
+  - PROC SQL CASE con CONTAINS sobre enie y tildes
+  - PROC SQL GROUP BY MOTIVO con ORDER BY
+  - PROC SQL WHERE ... IS NOT MISSING
+  - PROC SQL OUTER UNION CORR con SUM
+  - PROC EXPORT DBMS=DLM PUTNAMES=NO
+capa: B (funciones de cadena; vectores tomados de la documentacion de COMPRESS) y A (SQL)
+estado: sin_esperado
+entradas:
+  - DETALLE_CTE.csv (23 columnas; nombres con minusculas, enie, tildes y espacios)
+  - DETALLE_AHO.csv (23 columnas)
+anomalias_plantadas:
+  cte:
+    nombre_minusculas: 4
+    nombre_con_enie: 3
+    nombre_con_tildes: 2
+    nombre_con_espacios: 5
+    valor_con_espacios: 3
+    validos: 77
+  aho:
+    nombre_minusculas: 2
+    nombre_con_enie: 2
+    nombre_con_tildes: 1
+    nombre_con_espacios: 3
+    valor_con_espacios: 2
+    validos: 60
+salidas_esperadas:
+  tablas_work:
+    - SABANA_CTE
+    - SABANA_AHO
+    - SABANA_NORM_CTE
+    - SABANA_NORM_AHO
+    - MOTIVO_NORM_CTE
+    - MOTIVO_NORM_AHO
+    - CONTEO_MOTIVO_CTE
+    - CONTEO_MOTIVO_AHO
+    - SIN_FALTANTES_CTE
+    - SIN_FALTANTES_AHO
+    - SUMA_VALOR_NORM
+  archivos:
+    - SABANA_NORM_CTE.csv
+    - SABANA_NORM_AHO.csv
+fuentes_url:
+  - https://go.documentation.sas.com/doc/en/pgmsascdc/default/lefunctionsref/n0fcshr0ir3h73n1b845c4aq58hz.htm
+  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
+  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+dudas:
+  - STRIP y UPCASE no tienen pagina oficial consultada; su comportamiento (STRIP solo quita blancos de los extremos, UPCASE sube mayusculas) viene de fuentes secundarias y se marca como incierto.
+  - COMPBL no fue verificado en la documentacion consultada. El caso lo usa para reducir blancos internos dobles; es incierto.
+  - UPCASE y CONTAINS sobre Ñ y tildes dependen de la codificacion de la sesion SAS (UTF-8 o latin1). No se pudo confirmar. Es el punto mas incierto del caso.
+  - COMPRESS quita por defecto todos los blancos (confirmado en la documentacion).

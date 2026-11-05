@@ -3,8 +3,8 @@ construcciones: [PROC IMPORT, DATA, SET, IF, OR, PROC EXPORT]
 capa: C
 tolerancia: 0
 orden_relevante: true
-estado: pendiente_revision
-motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+estado: revisado
+motivo: "Esperado escrito a mano y recalculado por un segundo agente sin verlo: coincide."
 salidas: [ventas_web_o_grandes]
 razonamiento: |
   IF canal = 'WEB' OR monto > 700 es un IF de subconjunto: pasan las filas donde la condicion es verdadera.
@@ -12,3 +12,4 @@ razonamiento: |
   4: WEB, 524 -> pasa por canal.   5: TIENDA, 379 -> fuera.   6: TIENDA, 463 -> fuera.
   7: TELEFONO, 157 -> fuera.   8: TELEFONO, 62 -> fuera.
   Resultado: filas 1, 3 y 4.
+revisor: segundo_agente

@@ -1,0 +1,53 @@
+id: 08_cadena_completa_macros
+nivel: L8
+tema: cadena completa de duplicados a conciliación con macros
+construcciones:
+- '%macro con parámetros por producto'
+- PROC SORT NODUPREC
+- CASE / sustitución
+- OUTER UNION CORR
+- PROC EXPORT por producto
+- macrovariable de fecha
+productos:
+- CTE
+- AHO
+capa: A (SQL ejecutable en SQLite) y B (funciones input, left, put; vectores citados)
+estado: sin_esperado
+anomalias_plantadas:
+  fecha_concatenada: '20260930'
+  cte_filas_origen: 32
+  cte_duplicados_extra: 2
+  cte_filas_tras_dedup: 30
+  cte_corregidas: 1
+  cte_por_corregir: 1
+  cte_filas_sabana: 29
+  cte_suma_saldo_sabana: '128734.00'
+  cte_estado: CONCILIA
+  cte_archivo_salida: CIERRE_CTE_20260930.csv
+  aho_filas_origen: 32
+  aho_duplicados_extra: 2
+  aho_filas_tras_dedup: 30
+  aho_corregidas: 1
+  aho_por_corregir: 1
+  aho_filas_sabana: 29
+  aho_suma_saldo_sabana: '122531.60'
+  aho_estado: CONCILIA
+  aho_archivo_salida: CIERRE_AHO_20260930.csv
+salidas_esperadas:
+  tablas_work:
+  - ORIGEN_CTE
+  - ORIGEN_AHO
+  - SABANA_CTE
+  - SABANA_AHO
+  archivos:
+  - CIERRE_CTE_20260930.csv
+  - CIERRE_AHO_20260930.csv
+  - INCONS_DEP_CTE.csv
+  - INCONS_DEP_AHO.csv
+supuestos:
+- la cadena deduplica antes de corregir, como en el original
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/p1holnuvm8kon1n1wwhvrjnrab65.htm
+- https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/n0ku4pxzx3d2len10ozjgyjbrpl9.htm
+- https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/n06lm371ac8dj6n17xrbr5fofcgb.htm
+- https://go.documentation.sas.com/api/docsets/acreldb/9.4/content/n0l3rcy5ljom1ln1o34eq22rzedg.htm

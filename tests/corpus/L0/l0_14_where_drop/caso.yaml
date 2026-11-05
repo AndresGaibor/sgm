@@ -12,3 +12,4 @@ razonamiento: |
   5 301 pasa (301 > 300), 30.   6 249 fuera.   7 474 pasa, 50.   8 167 fuera.
   9 514 pasa, 50.
   Columnas: id_venta, fecha, monto, cantidad, recargo. Siete filas.
+observacion_revision: "El tipo que PROC IMPORT (DBMS=CSV) da a una fecha ISO yyyy-mm-dd no esta confirmado en la documentacion; el esperado la trata como texto. Si SAS la lee como fecha, PROC EXPORT puede escribirla con otro formato. Ver REVISION.md."

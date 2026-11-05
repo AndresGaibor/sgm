@@ -3,10 +3,11 @@ construcciones: [PROC IMPORT, DATA, SET, WHERE, PROC EXPORT]
 capa: C
 tolerancia: 0
 orden_relevante: true
-estado: pendiente_revision
-motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+estado: revisado
+motivo: "Esperado escrito a mano y recalculado por un segundo agente sin verlo: coincide."
 salidas: [activos]
 razonamiento: |
   La opcion WHERE=(estado = 'ACTIVO') filtra al leer. Estados de las 7 filas: 101 ACTIVO,
   102 ACTIVO, 103 ACTIVO, 104 INACTIVO, 105 INACTIVO, 106 PENDIENTE, 107 ACTIVO.
   Pasan 101, 102, 103 y 107, en ese orden. Los INACTIVO y PENDIENTE no entran.
+revisor: segundo_agente

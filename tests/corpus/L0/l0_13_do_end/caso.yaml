@@ -3,8 +3,8 @@ construcciones: [PROC IMPORT, DATA, SET, LENGTH, IF, THEN DO, END, ELSE, ASIGNAC
 capa: C
 tolerancia: 0
 orden_relevante: true
-estado: pendiente_revision
-motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+estado: revisado
+motivo: "Esperado escrito a mano y recalculado por un segundo agente sin verlo: coincide."
 salidas: [clientes_revisados]
 razonamiento: |
   Si saldo < 0: revision = 'SI' y saldo = 0 (bloque DO). Si no: revision = 'NO'.
@@ -12,3 +12,4 @@ razonamiento: |
   101 667 -> NO, saldo sin cambio.     102 -184 -> SI, saldo 0.   103 1136 -> NO.
   104 1879 -> NO.                      105 -198 -> SI, saldo 0.   106 1593 -> NO.
   107 885 -> NO.
+revisor: segundo_agente
