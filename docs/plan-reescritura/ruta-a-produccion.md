@@ -62,7 +62,7 @@ Estas decisiones desbloquean tareas. La columna "por omisión" es lo que el agen
 
 | ID | Decisión | Opciones | Por omisión | Quién | Bloquea |
 |---|---|---|---|---|---|
-| DC-01 | Alcance del producto | (a) migrar solo `client_large.sas`; (b) migrador general | (a) primero, (b) como fase N2 | Usuario | Fase 7 completa |
+| DC-01 | Alcance del producto | (a) migrar solo `client_large.sas`; (b) migrador general | (a) primero, (b) como fase N2 | Usuario | Fase 7 completa. **Decidido el 5 de noviembre de 2026: (b), migrador general.** `client_large.sas` pasa a ser un caso de prueba más; la Fase 7 pasa a ser la ruta crítica |
 | DC-02 | Archivos de rechazo (D2) | Uno por producto con columna `motivo`; o uno por tipo de error | Uno por producto con `motivo` | Negocio | R1-17 |
 | DC-03 | Un `job_producto` para NEQUI (D6, P6) | Comparte el Job; o Job propio | Comparte el Job (misma estructura de 23 columnas) | Negocio | R1-16 |
 | DC-04 | Tolerancia de conciliación | Valor numérico por producto | 0, marcada "confirmar con negocio" | Negocio | R2-03 |
