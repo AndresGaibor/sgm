@@ -20,6 +20,7 @@ from sgm.proceso.entradas_salidas import entradas_y_salidas
 from sgm.proceso.etapas import Cobertura, cargar_etapas, cobertura, etapa_de
 from sgm.proceso.fontaneria import contar_fontaneria, seccion_equivalencias
 from sgm.proceso.pendientes import Pendiente, reunir_pendientes
+from sgm.proceso.secciones_decisiones import cargar_decisiones, seccion_decisiones
 from sgm.proceso.secciones_entrada import (
     cargar_declaradas,
     origen_fuentes,
@@ -27,11 +28,13 @@ from sgm.proceso.secciones_entrada import (
     seccion_fuentes,
     seccion_salidas,
 )
+from sgm.proceso.secciones_parametros import seccion_parametros
 from sgm.redaction import redact
 
 Diseno = dict[str, dict[str, dict[str, str]]]
-SECCIONES_EMITIDAS = ("1.1", "1.4")  # comparables con el diseño manual fila a fila
-SECCIONES_GENERICAS = ("3", "6")  # salen de hechos y reglas; sus claves no son las del manual
+SECCIONES_EMITIDAS = ("1.1", "1.4", "2.1")  # comparables con el diseño manual fila a fila
+# Sin comparación fila a fila: salen de hechos y reglas, o sus claves no son las del manual.
+SECCIONES_GENERICAS = ("3", "5", "6")
 
 
 @dataclass
@@ -90,13 +93,23 @@ def construir_documento(
     bloques = plantilla_por_etapa(colapso, familias, list(regiones.familias.unicas), eliminadas)
     fuentes = cargar_declaradas(decisiones_diseno, "fuentes")
     salidas = cargar_declaradas(decisiones_diseno, "salidas")
+    parametros, origen_parametros = seccion_parametros(
+        cargar_declaradas(decisiones_diseno, "parametros"), es
+    )
+    decisiones = cargar_decisiones(decisiones_diseno.with_name(f"{programa.stem}.decisiones.yaml"))
     secciones: Diseno = {
         "1.1": seccion_fuentes(fuentes, es),
         "1.4": seccion_salidas(salidas, es),
+        "2.1": parametros,
         "3": seccion_etapas(declaradas, etapas, bloques),
+        "5": seccion_decisiones(decisiones),
         "6": seccion_equivalencias(fontaneria),
     }
-    origenes = {"1.1": origen_fuentes(fuentes, es), "1.4": origen_salidas(salidas, es)}
+    origenes = {
+        "1.1": origen_fuentes(fuentes, es),
+        "1.4": origen_salidas(salidas, es),
+        "2.1": origen_parametros,
+    }
     resumen = {
         "pasos": len(modelo.steps),
         "regiones": len(regiones.regiones),

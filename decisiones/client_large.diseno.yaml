@@ -43,3 +43,16 @@ salidas:
   - {clave: 'totales_exogena_<anio><mes><dia>.csv', creado_en: 'job_totales', contenido: 'Total global de cuentas y saldos', equivalente_busca: '^TOTAL_'}
   - {clave: 'conciliacion_<anio><mes><dia>.csv', creado_en: 'job_conciliacion', contenido: 'Diferencias origen vs salida por producto', equivalente_sas: '"Conciliacion final"'}
   - {clave: 'Log de errores', creado_en: 'jl_registro_errores', contenido: 'Fallos por componente', equivalente_sas: '— (SAS no tenía registro estructurado)'}
+
+# Parámetros de ruta y de archivo (sección 2.1). `busca` es una expresión regular sobre las fuentes
+# (`desde: fuentes`, por defecto) o sobre las salidas (`desde: salidas`) que halla el emisor en el
+# SAS. `valor: directorio` toma la carpeta de la ruta hallada; si las rutas casadas no están todas
+# en una misma carpeta, el parámetro no se emite. Sin `valor`, se emite el nombre del archivo.
+parametros:
+  - {clave: 'ruta_insumos', busca: '\.xlsx$', valor: 'directorio'}
+  - {clave: 'ruta_resultados', desde: 'salidas', busca: 'RESULTADOS', valor: 'directorio'}
+  - {clave: 'arch_hom_tpo_doc', busca: 'Homologacion_tpo_dto\.xlsx$'}
+  - {clave: 'arch_hom_tpo_doc_nequi', busca: 'Homologacion_tpo_dto_Nequi\.xlsx$'}
+  - {clave: 'arch_paises', busca: 'Cod_pais\.xlsx$'}
+  - {clave: 'arch_dane', busca: 'CODIGOS_DANE\.xlsx$'}
+  - {clave: 'arch_validacion_fecha', busca: 'Validacion_fecha\.xlsx$'}

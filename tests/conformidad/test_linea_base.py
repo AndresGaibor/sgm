@@ -1,8 +1,9 @@
 """Línea base de la conformidad: cuántas filas del manual salen hoy del SAS.
 
 Los números son los que mide `sgm conformidad tests/fixtures/sas/client/client_large.sas`
-(hito 93). Si un cambio baja las derivadas, esta prueba falla: hay que explicar por qué antes de
-cambiar la cifra. Si sube, también falla, para dejar constancia en `PROGRESS.md`.
+(hito 93; sección 2.1 y el alta de las filas X03, X04, X05 y X07 en el hito 94). Si un cambio baja
+las derivadas, esta prueba falla: hay que explicar por qué antes de cambiar la cifra. Si sube,
+también falla, para dejar constancia en `PROGRESS.md`.
 """
 
 from __future__ import annotations
@@ -19,8 +20,8 @@ PROGRAMA = RAIZ / "tests" / "fixtures" / "sas" / "client" / "client_large.sas"
 DECISIONES = RAIZ / "decisiones"
 
 TOTAL_FILAS = 118
-DERIVADAS = ["F01", "F02", "F03", "F05", "S03"]
-DIFERENCIAS = ["F04"]
+DERIVADAS = ["F01", "F02", "F03", "F05", "S03", "X03", "X04", "X05", "X07"]
+DIFERENCIAS = ["F04", "X01", "X06"]
 
 
 @lru_cache(maxsize=1)

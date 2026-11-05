@@ -66,18 +66,24 @@ def conformidad() -> dict[str, int]:
     """Filas y secciones de la referencia manual que el diseño emitido ya cumple.
 
     Son las mismas cuentas que hacen las pruebas de `tests/conformidad`: una fila se cumple si su
-    sección ya se emite y no está en `DIFERENCIAS_CONOCIDAS`; una sección, si está en
-    `SECCIONES_EMITIDAS`.
+    sección ya se emite y no está en `DIFERENCIAS_CONOCIDAS` ni en `FILAS_PENDIENTES`; una sección,
+    si está en `SECCIONES_EMITIDAS`.
     """
     from sgm.proceso.diseno_doc import SECCIONES_EMITIDAS
     from tests.conformidad.cargador import todas_las_filas
-    from tests.conformidad.test_conformidad import DIFERENCIAS_CONOCIDAS, SECCIONES
+    from tests.conformidad.test_conformidad import (
+        DIFERENCIAS_CONOCIDAS,
+        FILAS_PENDIENTES,
+        SECCIONES,
+    )
 
     filas = todas_las_filas(SECCIONES)
     cumplidas = [
         fila
         for fila in filas
-        if fila.seccion in SECCIONES_EMITIDAS and fila.id not in DIFERENCIAS_CONOCIDAS
+        if fila.seccion in SECCIONES_EMITIDAS
+        and fila.id not in DIFERENCIAS_CONOCIDAS
+        and fila.id not in FILAS_PENDIENTES
     ]
     return {
         "filas": len(filas),

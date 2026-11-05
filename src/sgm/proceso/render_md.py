@@ -10,7 +10,9 @@ from sgm.proceso.diseno_doc import DocumentoDiseno
 TITULOS = {
     "1.1": "Fuentes externas",
     "1.4": "Salidas (archivos)",
+    "2.1": "Parámetros de ruta y de archivo",
     "3": "Etapas y tamaño estimado",
+    "5": "Decisiones abiertas y tomadas",
     "6": "Equivalencias con el SAS",
 }
 ETIQUETA_RESUMEN = {

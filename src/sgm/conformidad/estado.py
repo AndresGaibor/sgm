@@ -19,6 +19,13 @@ DIFERENCIAS_CONOCIDAS = {
         "el SAS sí lee CODIGOS_DANE.xlsx; el manual lo daba por pendiente "
         "(el migrador halla más)"
     ),
+    "X01": (
+        "el SAS da la misma carpeta de insumos; el manual pide confirmarla por entorno (DC-07) "
+        "y el migrador no lo dice"
+    ),
+    "X06": (
+        "el SAS sí nombra CODIGOS_DANE.xlsx, como en F04; el manual lo daba por pendiente"
+    ),
 }
 MOTIVO_DECLARADA = "el SAS no demuestra el valor; sale de decisiones/"
 

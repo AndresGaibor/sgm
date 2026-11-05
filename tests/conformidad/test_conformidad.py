@@ -23,24 +23,43 @@ from tests.conformidad.interfaz import SECCIONES_EMITIDAS, diferencias_fila, obt
 PROGRAMA = RAIZ / "tests" / "fixtures" / "sas" / "client" / "client_large.sas"
 SECCIONES = cargar_secciones()
 
+# Secciones que el emisor produce pero no completas: su prueba de presencia queda en xfail con
+# el motivo. Sección 2.1: X08 es decisión humana y X09 es un valor fijo sin fuente en el SAS.
+# Sección 5: el emisor da las decisiones de decisiones/ (DC-01 a DC-12), no las filas D1 a D6.
+MOTIVOS_INCOMPLETA = {
+    "2.1": "faltan X08 (decisión humana) y X09 (valor fijo del emisor, sin fuente en el SAS)",
+    "5": "el emisor da las decisiones de decisiones/, no las filas D1 a D6 del manual",
+}
 
 
 def _marca_seccion(codigo: str):
     if codigo in SECCIONES_EMITIDAS:
         return []
-    return [
-        pytest.mark.xfail(strict=True, reason="el emisor de esta sección del diseño aún no existe")
-    ]
+    motivo = MOTIVOS_INCOMPLETA.get(codigo, "el emisor de esta sección del diseño aún no existe")
+    return [pytest.mark.xfail(strict=True, reason=motivo)]
 
 
 def _param_seccion(codigo: str):
-    return pytest.param(codigo, id=codigo, marks=_marca_seccion(codigo))
+    if codigo in MOTIVOS_INCOMPLETA:
+        marcas = [pytest.mark.xfail(strict=True, reason=MOTIVOS_INCOMPLETA[codigo])]
+    else:
+        marcas = _marca_seccion(codigo)
+    return pytest.param(codigo, id=codigo, marks=marcas)
+
+
+FILAS_PENDIENTES = {
+    "X02": "el SAS escribe la carpeta de resultados con PROC UPLOAD (EQ04), que el modelo no lee",
+    "X08": "decisión humana: la tolerancia de conciliación la confirma el negocio (P8)",
+    "X09": "valor fijo del emisor, sin fuente en el SAS",
+}
 
 
 def _param_fila(fila: Fila):
     marcas = _marca_seccion(fila.seccion)
     if fila.id in DIFERENCIAS_CONOCIDAS:
         marcas = [pytest.mark.xfail(strict=True, reason=DIFERENCIAS_CONOCIDAS[fila.id])]
+    elif fila.id in FILAS_PENDIENTES:
+        marcas = [pytest.mark.xfail(strict=True, reason=FILAS_PENDIENTES[fila.id])]
     return pytest.param(fila, id=f"{fila.seccion}:{fila.id}", marks=marcas)
 
 

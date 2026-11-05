@@ -3163,3 +3163,68 @@ Diferencias con motivo:
 - Sigue pendiente (R1-12 y R6-03 quedan `parcial`): plantilla `tUniqRow.json`, `flujos_duplicados.py`, `tools/prueba_duplicados.py`, integración en `job_producto` y ejecución con comparación contra `esperado/`. Supuestos sin demostrar: que `tUniqRow` conserve la primera fila que llega y que recortar la llave en un `tMap` previo baste.
 - Plan: se corrige la línea base de conformidad. `sgm conformidad` (hito 93) mide 5 filas derivadas de 118, no "42 de 168" (esos eran casos de prueba); la meta de R5-04 y de G3 pasa a derivadas 60 o más y derivadas más declaradas 100 o más.
 - Pruebas: `test_proceso_reglas_duplicados.py` (10).
+
+## Hito 94. R5-01: `sgm proceso` emite las secciones 2.1 y 5; `sgm conformidad` pasa de 5 a 9 filas derivadas
+
+- Fecha: 2026-11-05. Tarea R5-01 de `docs/plan-reescritura/ruta-a-produccion.md` (parcial). Mueve R5-04 (parcial).
+- Qué se hizo:
+  - `src/sgm/proceso/secciones_parametros.py`: sección 2.1 (parámetros de ruta y de archivo). Cada parámetro declarado en `decisiones/client_large.diseno.yaml` (clave `parametros`, con `busca` sobre las fuentes del SAS, o sobre sus salidas con `desde: salidas`) toma el valor de la ruta que el SAS demuestra: su nombre de archivo, o su carpeta con `valor: directorio`. La carpeta solo se emite si todas las rutas casadas están en la misma. Sin hallazgo, el parámetro no se emite.
+  - `src/sgm/proceso/secciones_decisiones.py`: sección 5 desde `decisiones/client_large.decisiones.yaml`, con DC-01 a DC-12 tomadas de la sección 3 de `ruta-a-produccion.md`. Cada decisión lleva id, texto, motivo, estado (`abierta` o `tomada`) y valor por omisión. El motivo dice quién decide y qué bloquea, porque la tabla no tiene columna de motivo. Todas figuran como abiertas. El cargador rechaza ids repetidos, campos vacíos y estados distintos.
+  - `src/sgm/proceso/diseno_doc.py`: `SECCIONES_EMITIDAS` pasa a `1.1, 1.4, 2.1`; `SECCIONES_GENERICAS` pasa a `3, 5, 6` (no se comparan fila a fila). Orden del documento: 1.1, 1.4, 2.1, 3, 5, 6. `render_md.py` añade los títulos.
+  - `src/sgm/conformidad/estado.py`: `DIFERENCIAS_CONOCIDAS` gana X01 (la carpeta de insumos coincide, pero el manual pide confirmarla por entorno, DC-07) y X06 (el SAS nombra `CODIGOS_DANE.xlsx`; el manual lo daba por pendiente, como F04).
+- Antes y después, con `uv run sgm conformidad tests/fixtures/sas/client/client_large.sas` (PYTHONUTF8=1):
+
+Antes (hito 93, mismo comando; el JSON de hoy da los mismos conteos: 5, 7, 105, 1):
+
+```
+Conformidad de client_large.sas contra el diseño manual (118 filas)
+  derivadas:  5
+  declaradas: 7
+  pendientes: 105
+  diferencias: 1
+  porcentaje derivado: 4.2 %
+Diferencias con motivo:
+  F04 (sección 1.1, Códigos DANE): el SAS sí lee CODIGOS_DANE.xlsx; el manual lo daba por pendiente (el migrador halla más)
+```
+
+Después:
+
+```
+Conformidad de client_large.sas contra el diseño manual (118 filas)
+  derivadas:  9
+  declaradas: 7
+  pendientes: 99
+  diferencias: 3
+  porcentaje derivado: 7.6 %
+Diferencias con motivo:
+  F04 (sección 1.1, Códigos DANE): el SAS sí lee CODIGOS_DANE.xlsx; el manual lo daba por pendiente (el migrador halla más)
+  X01 (sección 2.1, ruta_insumos): el SAS da la misma carpeta de insumos; el manual pide confirmarla por entorno (DC-07) y el migrador no lo dice
+  X06 (sección 2.1, arch_dane): el SAS sí nombra CODIGOS_DANE.xlsx, como en F04; el manual lo daba por pendiente
+```
+
+- Por sección, lo que se emite:
+  - 1.1, 1.4: sin cambio.
+  - 2.1: seis filas emitidas (`ruta_insumos`, `arch_hom_tpo_doc`, `arch_hom_tpo_doc_nequi`, `arch_paises`, `arch_dane`, `arch_validacion_fecha`). Derivadas: X03, X04, X05 y X07. Diferencias: X01 y X06. Pendientes de la sección: X02 (la carpeta de resultados se escribe con `PROC UPLOAD` dentro de `RSUBMIT`, y el modelo de salidas no lo lee), X08 (decisión humana) y X09 (valor fijo del emisor, sin fuente en el SAS).
+  - 3, 6: sin cambio.
+  - 5: doce decisiones DC-01 a DC-12. No mueve filas: las filas D1 a D6 del manual son decisiones de diseño con prosa, y sus claves no son DC.
+  - 2.2, 2.3, 2.4, 3.x, 4, 7, 8: no se emiten. E02 (`impala_dsn`) sale de la macro `%ambiente`, pero su columna `origen` es prosa del manual. Las filas de 2.3 y 2.4 y las de 4 y 8 son convenciones del emisor o prosa de diseño. Las de 7 son humanas (P4 a P8, R1 a R4) o tienen prosa (P1 a P3). Ninguna se puede demostrar desde el SAS sin copiar texto del manual.
+- Verificación de origen: un script (fuera del repo) comprueba que las nueve filas `derivada` tienen origen `sas` en `doc.origenes`. Las cuatro nuevas (X03, X04, X05, X07) lo tienen. El JSON de `sgm conformidad` es idéntico entre dos corridas.
+- Métricas: derivadas 5 a 9; declaradas 7 a 7; pendientes 105 a 99; diferencias 1 a 3; porcentaje derivado 4,2 % a 7,6 %. **Meta de 60 no alcanzada.**
+- Pruebas:
+  - Nuevas (16): `tests/unit/test_proceso_secciones_parametros.py` (8) y `tests/unit/test_proceso_secciones_decisiones.py` (8, incluido el YAML real con sus doce ids).
+  - Ajustes, sin debilitar: `tests/conformidad/test_linea_base.py` fija 9 derivadas (`F01, F02, F03, F05, S03, X03, X04, X05, X07`) y 3 diferencias (`F04, X01, X06`). `tests/conformidad/test_conformidad.py` añade `MOTIVOS_INCOMPLETA` (presencia de 2.1 y de 5, en xfail con motivo) y `FILAS_PENDIENTES` (X02, X08, X09, en xfail con motivo). `tests/unit/test_conformidad_estado.py` renombra los ids ficticios X01 a X04 a Z01 a Z04: ahora X01 es una diferencia conocida, y esas pruebas verifican reglas generales, no el manual. `tests/unit/test_tablero.py` pasa de 12 a 16 filas cumplidas y de 2 a 3 secciones emitidas. `tools/tablero.py` excluye también `FILAS_PENDIENTES`, como ya hacían las pruebas.
+  - Suite: `uv run pytest -q -n auto`: **1968 pasadas, 26 omitidas y 128 `xfail`** en las dos últimas corridas. Las dos primeras de la tarde dieron 1959 y 1961 pasadas; la recolección de nodos es la misma (2122) en las corridas que se compararon, y la causa de esa diferencia no se localizó. `uv run ruff check .`: sin errores.
+- Tamaño: `secciones_parametros.py` 59 líneas, `secciones_decisiones.py` 55, `diseno_doc.py` 135, `estado.py` 92.
+- Decisiones:
+  - Un parámetro sin valor demostrado por el SAS no se emite. El manual no se usa como fuente de valores.
+  - `nota` se emite vacía: el SAS no tiene notas. Por eso X01 queda como diferencia, y no como derivada.
+  - `tipo` es `String` para rutas y nombres: son literales de texto en el SAS.
+  - Las rutas en `decisiones/client_large.diseno.yaml` (`parametros`) usan los nombres de parámetro del manual (`arch_*`, `ruta_insumos`). Son nombres, no valores.
+  - `decisiones/client_large.decisiones.yaml` es opcional en el emisor: sin archivo, la sección 5 queda vacía.
+  - Los identificadores nuevos siguen el vocabulario de `secciones_entrada.py` (`seccion_*`, `cargar_*`), en español. AGENTS pide inglés; no se renombró aquí para no mezclar estilos dentro de `proceso/`.
+- Bloqueos:
+  - La meta de 60 no se alcanza. Las filas que faltan comparan columnas de prosa del manual (`nota`, `origen`, `tema`, `paso`, `decision`) que el SAS no demuestra, o son decisiones humanas (que nunca cuentan como derivadas). Copiar esa prosa al emisor haría pasar las filas, pero sería copiar valores del manual, así que no se hizo. El comparador no se cambió.
+  - Hace falta decidir (dueño del proyecto) si las columnas de prosa cuentan para "derivada". Sin esa decisión, R5-04 no pasa de unas pocas filas.
+  - X02 requiere que el modelo de salidas lea `PROC UPLOAD` dentro de `RSUBMIT` (EQ04).
+  - Las secciones 4, 7 y 8 no se emiten (ver arriba). La sección 5 emitida no coincide con la D1 a D6 del manual.
+- No verificado: Talend Studio no se usó y ningún Job se ejecutó. Los nombres de archivo y la carpeta salen de la lectura del SAS, no de una ejecución de SAS.

@@ -1,0 +1,69 @@
+# Decisiones del proyecto para client_large.sas (sección 5 del diseño emitido por `sgm proceso`).
+# Es contenido del equipo, no un hecho del SAS. Campos por decisión:
+#   id                 identificador (DC-01 a DC-12, según ruta-a-produccion.md, sección 3)
+#   texto              qué se decide
+#   motivo             quién la decide y qué tarea bloquea (de la misma tabla)
+#   estado             abierta | tomada
+#   valor_por_omision  lo que asume el agente si nadie decide
+# Todas figuran como abiertas: la tabla de decisiones aún no registra ninguna tomada.
+decisiones:
+  - id: 'DC-01'
+    texto: 'Alcance del producto'
+    motivo: 'La decide Usuario; bloquea Fase 7 completa'
+    estado: abierta
+    valor_por_omision: '(a) migrar primero solo client_large.sas; (b) migrador general como fase N2'
+  - id: 'DC-02'
+    texto: 'Archivos de rechazo (D2)'
+    motivo: 'La decide Negocio; bloquea R1-17'
+    estado: abierta
+    valor_por_omision: 'Uno por producto con columna motivo'
+  - id: 'DC-03'
+    texto: 'Un job_producto para NEQUI (D6, P6)'
+    motivo: 'La decide Negocio; bloquea R1-16'
+    estado: abierta
+    valor_por_omision: 'Comparte el Job, con la misma estructura de 23 columnas'
+  - id: 'DC-04'
+    texto: 'Tolerancia de conciliación'
+    motivo: 'La decide Negocio; bloquea R2-03'
+    estado: abierta
+    valor_por_omision: '0, marcada como confirmar con negocio'
+  - id: 'DC-05'
+    texto: 'Despliegue'
+    motivo: 'La decide Plataforma; bloquea Fase 9'
+    estado: abierta
+    valor_por_omision: 'Sin decidir'
+  - id: 'DC-06'
+    texto: 'Almacén de secretos'
+    motivo: 'La decide Seguridad; bloquea R4-05'
+    estado: abierta
+    valor_por_omision: 'Contexto sin valor; secreto en almacén externo'
+  - id: 'DC-07'
+    texto: 'Rutas y tablas reales por entorno'
+    motivo: 'La decide Plataforma; bloquea R4-06 y Fase 9'
+    estado: abierta
+    valor_por_omision: 'Vacías y marcadas como pendientes'
+  - id: 'DC-08'
+    texto: 'Código de fallo parcial'
+    motivo: 'La decide Negocio; bloquea R2-07'
+    estado: abierta
+    valor_por_omision: 'Falla todo (DIE_ON_CHILD_ERROR)'
+  - id: 'DC-09'
+    texto: 'Ventana y frecuencia de ejecución'
+    motivo: 'La decide Negocio; bloquea R9-03'
+    estado: abierta
+    valor_por_omision: 'Sin decidir'
+  - id: 'DC-10'
+    texto: 'Corrida paralela'
+    motivo: 'La deciden Negocio y auditoría; bloquea R9-10'
+    estado: abierta
+    valor_por_omision: 'Mínimo 3 cierres, diferencia 0 en conteos y dentro de tolerancia en sumas'
+  - id: 'DC-11'
+    texto: 'Dependencias del repositorio'
+    motivo: 'La decide Usuario; bloquea R0-04'
+    estado: abierta
+    valor_por_omision: 'Documentar en la sección Decisiones de PROGRESS.md'
+  - id: 'DC-12'
+    texto: 'Significado de los códigos de tipo de documento'
+    motivo: 'La decide Negocio; bloquea R1-03'
+    estado: abierta
+    valor_por_omision: 'Los del Excel de homologación'
