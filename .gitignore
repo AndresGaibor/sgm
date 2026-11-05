@@ -17,6 +17,9 @@ docs/referencia/sas/*.pdf
 # Estado local de CommandCode: ajustes y preferencias de la maquina.
 /.commandcode/
 
+# Bitacora local de la sesion (memoria del proyecto), nunca se versiona.
+/.workbuddy-ai/
+
 # Worktrees de las sesiones paralelas: estado local, nunca se versiona.
 /.claude/worktrees/
 
