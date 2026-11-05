@@ -51,6 +51,41 @@ def _column(text: str, aliases: set[str]) -> str:
     )
 
 
+def _tablas(spec: SelectSpec) -> dict[str, str]:
+    """Alias y nombre de tabla, en minúsculas, al nombre de tabla sin biblioteca (`work.x` -> `x`).
+
+    El `tMap` no conoce los alias del SAS: sus llaves y sus expresiones llevan la tabla delante.
+    """
+    mapa: dict[str, str] = {}
+    for source in [spec.base, *(join.source for join in spec.joins)]:
+        if source is None:
+            continue
+        tabla = source.name.lower().split(".")[-1]
+        mapa[source.alias.lower() if source.alias else tabla] = tabla
+        mapa.setdefault(tabla, tabla)
+    return mapa
+
+
+def _calificar(text: str, tablas: dict[str, str]) -> str:
+    """`v.monto` -> `ventas.monto` cuando `v` es un alias de la consulta."""
+
+    def cambiar(m: re.Match) -> str:
+        tabla = tablas.get(m.group(1).lower())
+        return f"{tabla}.{m.group(2)}" if tabla else m.group(0)
+
+    return _DOTTED.sub(cambiar, text)
+
+
+def _asignacion(item, tablas: dict[str, str], normalized: NormalizedSql) -> dict:
+    """Una columna del SELECT como asignación del `derive`: destino, expresión y origen."""
+    expresion = _calificar(_restore(item.expression, normalized), tablas)
+    return {
+        "target": item.alias or item.column or _target_name(expresion),
+        "expression": expresion,
+        "origin": "columna" if item.column else "expresion",
+    }
+
+
 class _Chain:
     """Constructor de la cadena de una rama: cada paso se enlaza con el anterior."""
 
@@ -91,17 +126,35 @@ def _plain_items(spec: SelectSpec) -> list[str]:
     ]
 
 
+def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
+    """Si el SELECT cambia algo: una unión deja columnas de más; un alias o una expresión, también.
+
+    `select a from s` no necesita proyección: la lectura ya trae `a`. Evitarla deja el `filter`
+    suelto en vez de fundirlo en un `tMap` que no aporta nada.
+    """
+    if spec.joins:
+        return True
+    return any(
+        item["origin"] == "expresion" or item["target"] != item["expression"].split(".")[-1]
+        for item in assignments
+    )
+
+
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
     """Operadores de una rama de SELECT, en el orden lógico de SQL. Devuelve el último."""
     aliases = {s.alias.lower() for s in [spec.base] if s and s.alias}
     aliases |= {j.source.alias.lower() for j in spec.joins if j.source.alias}
+    tablas = _tablas(spec)
     if spec.base is None:
         current = chain.b.op("derive", {"assignments": []}, chain.ev)
     else:
         current = chain.read(spec.base)
     for join in spec.joins:
         right = chain.read(join.source)
-        keys = [[left, right_key] for left, right_key in join.keys]
+        pares = join.qualified or join.keys
+        keys = [
+            [_calificar(left, tablas), _calificar(derecha, tablas)] for left, derecha in pares
+        ]
         params = {
             "by": [left for left, _ in join.keys],
             "keys": keys,
@@ -153,14 +206,15 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 current,
             )
     assignments = [
-        {
-            "target": it.alias or _target_name(it.expression),
-            "expression": _restore(_column(it.expression, aliases), normalized),
-        }
+        _asignacion(it, tablas, normalized)
         for it in spec.items
-        if not it.star and it not in aggregates and (it.alias or it.column is None)
+        if not it.star and it not in aggregates
     ]
-    if assignments or current.kind == "read" or current.kind == "join":
+    if (
+        (assignments and _necesita_proyeccion(spec, assignments))
+        or current.kind == "read"
+        or current.kind == "join"
+    ):
         current = chain.step(
             "derive",
             {"assignments": assignments},

@@ -42,6 +42,9 @@ class JoinSpec:
     keys: list[tuple[str, str]] = field(default_factory=list)  # pares de columnas `a = b` del ON
     condition: str | None = None  # resto del ON que no es igualdad entre columnas
     on: str | None = None  # texto completo del ON, con sus alias (para generar SQL de base)
+    # Los mismos pares que `keys` con la tabla delante (`ventas.id = clientes.id`): el `tMap` no
+    # conoce los alias del SAS y necesita el nombre de la tabla.
+    qualified: list[tuple[str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -87,27 +90,47 @@ def _source(node: exp.Expression) -> Source:
     return Source(_name(node), alias.name if alias else None)
 
 
-def _equality(condition: exp.Expression) -> tuple[str, str] | None:
-    """`a.x = b.y` entre dos columnas: (x, y). None en cualquier otro caso."""
-    if isinstance(condition, exp.EQ) and isinstance(condition.left, exp.Column):
-        if isinstance(condition.right, exp.Column):
-            return condition.left.name, condition.right.name
+def _unwrap(node: exp.Expression) -> exp.Expression:
+    """Quita los paréntesis que envuelven una condición: `( a = b )` es la misma igualdad."""
+    while isinstance(node, exp.Paren):
+        node = node.this
+    return node
+
+
+def _reference(column: exp.Column) -> str:
+    """`tabla.columna` si la columna trae tabla; si no, solo la columna."""
+    return f"{column.table}.{column.name}" if column.table else column.name
+
+
+def _equality(condition: exp.Expression) -> tuple[exp.Column, exp.Column] | None:
+    """`a.x = b.y` entre dos columnas: las dos columnas. None en cualquier otro caso."""
+    condition = _unwrap(condition)
+    if isinstance(condition, exp.EQ):
+        if isinstance(condition.left, exp.Column) and isinstance(condition.right, exp.Column):
+            return condition.left, condition.right
     return None
 
 
-def _join_keys(on: exp.Expression | None) -> tuple[list[tuple[str, str]], str | None]:
-    """Pares de igualdad del ON, y el resto de condiciones como texto."""
+def _join_keys(
+    on: exp.Expression | None,
+) -> tuple[list[tuple[str, str]], list[tuple[str, str]], str | None]:
+    """Pares de igualdad del ON (sin y con tabla) y el resto de condiciones como texto."""
     if on is None:
-        return [], None
+        return [], [], None
+    plano = _unwrap(on)
+    partes = plano.flatten() if isinstance(plano, exp.And) else [plano]
     keys: list[tuple[str, str]] = []
+    qualified: list[tuple[str, str]] = []
     rest: list[str] = []
-    for part in on.flatten() if isinstance(on, exp.And) else [on]:
+    for part in partes:
         pair = _equality(part)
-        if pair is None or isinstance(part, exp.Or):
+        if pair is None or isinstance(_unwrap(part), exp.Or):
             rest.append(part.sql())
         else:
-            keys.append(pair)
-    return keys, (" AND ".join(rest) if rest else None)
+            left, right = pair
+            keys.append((left.name, right.name))
+            qualified.append((_reference(left), _reference(right)))
+    return keys, qualified, (" AND ".join(rest) if rest else None)
 
 
 def _join(join: exp.Join) -> JoinSpec:
@@ -119,9 +142,11 @@ def _join(join: exp.Join) -> JoinSpec:
         flavor = "cross"
     else:
         flavor = "inner"
-    keys, condition = _join_keys(join.args.get("on"))
+    keys, qualified, condition = _join_keys(join.args.get("on"))
     on = join.args.get("on")
-    return JoinSpec(_source(join.this), flavor, keys, condition, on.sql() if on else None)
+    return JoinSpec(
+        _source(join.this), flavor, keys, condition, on.sql() if on else None, qualified
+    )
 
 
 def _item(node: exp.Expression) -> Item:
