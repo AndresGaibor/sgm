@@ -2,8 +2,7 @@
 
 Complementa `test_corpus_totales.py`. Aquí se comparan los CSV de `esperado/` con los conteos
 plantados (`anomalias_plantadas`), con los estados de conciliación y con el cruce que ejecuta el
-programa SAS sobre SQLite (`totales_cruce_casos.py`). Los bloqueos del oráculo (convención de
-vacío, ROUND, IS MISSING con cadena vacía) son `xfail` estrictos: si se arreglan, la prueba avisa.
+programa SAS sobre SQLite (`totales_cruce_casos.py`). El cruce pasa en los ocho casos.
 """
 
 from __future__ import annotations
@@ -25,9 +24,6 @@ from totales_cruce_casos import cruzar  # noqa: E402
 
 CASOS_DIR = REPO / "tests" / "corpus" / "L8" / "totales"
 IDS = [p.name for p in sorted(CASOS_DIR.iterdir()) if (p / "caso.yaml").is_file()]
-MOTIVO_CONVENCION = ("oráculo: la celda vacía es NULL y NRO_CTA = '' no la cuenta; SAS sí "
-                     "(el blanco es igual a ''). Ver observacion_revision de 03 y 08.")
-BLOQUEADOS = {"03_sabana_nal_ext": MOTIVO_CONVENCION, "08_cadena_completa_macros": MOTIVO_CONVENCION}
 
 
 def _yaml(id_: str) -> dict:
@@ -99,33 +95,11 @@ def test_estados_de_conciliacion_del_esperado() -> None:
         assert anomalias[f"{prod.lower()}_estado"] == estado
 
 
-CRUCE = [
-    pytest.param(i, marks=pytest.mark.xfail(strict=True, reason=BLOQUEADOS[i]))
-    if i in BLOQUEADOS else i
-    for i in IDS
-]
-
-
-@pytest.mark.parametrize("id_", CRUCE)
+@pytest.mark.parametrize("id_", IDS)
 def test_cruce_con_el_oraculo_sql(id_: str) -> None:
     """Lo que el programa hace con SQL, ejecutado en SQLite, coincide con `esperado/`."""
     resultado, diferencias, _ = cruzar(id_, CASOS_DIR / id_)
     assert resultado.tablas, "el cruce debe producir al menos una tabla"
-    assert diferencias == []
-
-
-@pytest.mark.parametrize("id_", ["03_sabana_nal_ext", "08_cadena_completa_macros"])
-def test_cadena_vacia_coincide_con_sas_en_03_y_08(id_: str) -> None:
-    """Con cadena vacía el cruce coincide en 03 y 08: el fallo es la convención del oráculo."""
-    _, diferencias, _ = cruzar(id_, CASOS_DIR / id_, vacio_nulo=False)
-    assert diferencias == []
-
-
-@pytest.mark.xfail(strict=True, reason="oráculo: con cadena vacía falla el IS MISSING del LEFT "
-                   "JOIN de 02; la fila sin cuenta no sale de la sábana. Ver observacion_revision.")
-def test_cruce_de_02_con_cadena_vacia() -> None:
-    caso = CASOS_DIR / "02_inconsistencias_correccion"
-    _, diferencias, _ = cruzar("02_inconsistencias_correccion", caso, vacio_nulo=False)
     assert diferencias == []
 
 
@@ -136,8 +110,7 @@ def test_macros_de_conciliacion_por_into() -> None:
     assert resultado.macros["estado_aho"] == "NO CONCILIA"
 
 
-@pytest.mark.xfail(strict=True, reason="oráculo: ROUND(x, 0.01) se traduce como round(x, 0.01) de "
-                   "SQLite, que trunca el 0.01 a entero; SAS redondea al centavo.")
 def test_round_a_centavo_en_el_oraculo() -> None:
+    """ROUND(x, 0.01) redondea al centavo como SAS (ver test_corpus_oraculo_faltantes.py)."""
     sql = a_sqlite("SELECT ROUND(12.345, 0.01) AS r")
     assert sqlite3.connect(":memory:").execute(sql).fetchone()[0] == pytest.approx(12.35)

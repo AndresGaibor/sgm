@@ -6,7 +6,7 @@ construcciones:
 - PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM
 - input(left(...), 30.) para NRO_DOC e input(left(...), 3.) para GMF, en un DATA step previo
 - macros por paso con parametro de producto (paso1_tipo_doc, paso2_tit_cot, paso2_fa, paso3_tipo_cta)
-- encadenamiento: cada paso lee la salida del anterior
+- 'encadenamiento: cada paso lee la salida del anterior'
 - PROC SQL LEFT JOIN ... IS MISSING, INNER JOIN, NOT IN y IN con lista de valores
 - PROC SQL SELECT tabla.* (todas las columnas)
 - PROC SQL OUTER UNION CORR con literal MOTIVO y conteos

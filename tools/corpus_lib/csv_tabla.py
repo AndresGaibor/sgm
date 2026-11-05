@@ -1,7 +1,9 @@
 """Tablas CSV del corpus: lectura con tipos, celdas vacías como NULL y formato de salida.
 
 Convenciones (ver `DIFERENCIAS.md`):
-- Una celda vacía es un faltante (NULL). En SAS, un faltante numérico es `.` y de texto es blanco.
+- Una celda vacía es un faltante. En una columna numérica es NULL (en SAS, `.`). En una columna de
+  texto es la cadena vacía `''`: en SAS un blanco es faltante y a la vez igual a `''`, así que
+  `col IS MISSING` y `col = ''` son verdaderos para él (ver DIFERENCIAS.md, "Faltantes de texto").
 - Un entero es un número sin ceros a la izquierda; "007" es texto (un código), no número.
 - El CSV de salida usa `,`, comillas solo cuando hacen falta y fin de línea `\n`.
 """
@@ -77,8 +79,9 @@ def leer_entradas(carpeta: Path) -> dict[str, Tabla]:
 
 
 def _convertir(valor: str | None, tipo: str) -> int | float | str | None:
+    """Valor de SQLite para una celda: el vacío es '' en texto y NULL en número."""
     if valor is None:
-        return None
+        return "" if tipo == "TEXT" else None
     if tipo == "INTEGER":
         return int(valor)
     if tipo == "REAL":

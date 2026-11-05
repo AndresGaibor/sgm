@@ -149,14 +149,14 @@ PREPARACION = {
 }
 
 
-def cruzar(id_: str, carpeta: Path, vacio_nulo: bool = True) -> tuple[Resultado, list[str], list]:
+def cruzar(id_: str, carpeta: Path) -> tuple[Resultado, list[str], list]:
     """Ejecuta el programa del caso sobre SQLite y compara lo que produce con `esperado/`.
 
     Devuelve (resultado, diferencias, tablas del esperado que el cruce no produjo)."""
     entradas, _ = PREPARACION[id_](carpeta)
     texto = (carpeta / "programa.sas").read_text(encoding="utf-8")
     datos = yaml.safe_load((carpeta / "caso.yaml").read_text(encoding="utf-8"))
-    corrida = Corrida(id_, entradas, vacio_nulo=vacio_nulo)
+    corrida = Corrida(id_, entradas)
     resultado = corrida.correr(texto)
     resultado.macros = dict(corrida.macros)
     diferencias: list[str] = []
@@ -186,11 +186,6 @@ def main() -> int:
             print(f"   SUST {patron} x{n}")
         if no_cruzadas:
             print(f"   sin cruzar (por construcción): {', '.join(map(str, no_cruzadas))}")
-        alterno, dif_alterno, _ = cruzar(id_, DESTINO / id_, vacio_nulo=False)
-        print(f"   variante vacío=cadena: {len(dif_alterno)} diferencias")
-        for linea in dif_alterno[:6]:
-            print(f"      ALT {linea}")
-        _ = alterno
     return 0
 
 

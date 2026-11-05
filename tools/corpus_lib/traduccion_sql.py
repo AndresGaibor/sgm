@@ -2,22 +2,21 @@
 
 Cada construcción que se traduce tiene su fila en `DIFERENCIAS.md`. Lo que no se puede traducir con
 fidelidad se rechaza con `NoSoportado`: nunca se deja pasar en silencio.
+
+`a_sqlite` recibe el `Esquema` de las tablas para decidir `IS MISSING` según el tipo de la columna.
+Sin esquema, o con una columna de tipo dudoso, usa la forma que vale para texto y para número.
 """
 
 from __future__ import annotations
 
 import re
 
+from . import traduccion_funciones, traduccion_union
+from .esquema_sql import NUMERICO, Esquema
 from .sas_texto import segmentos
+from .traduccion_error import NoSoportado
 
-
-class NoSoportado(Exception):
-    """Construcción de SAS que el oráculo no traduce con fidelidad."""
-
-    def __init__(self, construccion: str) -> None:
-        self.construccion = construccion
-        super().__init__(f"Construcción SAS no soportada por el oráculo: {construccion}")
-
+__all__ = ["NoSoportado", "a_sqlite"]
 
 # Funciones de SAS que tienen el mismo significado en SQLite.
 FUNCIONES = frozenset(
@@ -38,12 +37,18 @@ _FUNCION = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
 _CADENA_PROTEGIDA = re.compile("\x01(\\d+)\x01")
 _SUFIJO_NOMBRE = re.compile("\x01\\d+\x01[nN]\\b")
 _SUFIJO_FECHA = re.compile("\x01\\d+\x01[dDtT]\\b")
+# `col IS [NOT] MISSING` y `col IS [NOT] NULL` (PROC SQL acepta las dos formas).
+_FALTANTE = re.compile(
+    r"(?i)(?:\b([A-Za-z_]\w*)\.)?\b([A-Za-z_]\w*)\s+IS\s+(NOT\s+)?(?:MISSING|NULL)\b"
+)
+_IS_FALTANTE = re.compile(r"(?i)\bIS\s+(?:NOT\s+)?(?:MISSING|NULL)\b")
 
 
-def a_sqlite(sql_sas: str) -> str:
+def a_sqlite(sql_sas: str, esquema: Esquema | None = None) -> str:
     """Traduce una sentencia de PROC SQL de SAS a SQLite.
 
     Lanza `NoSoportado` con el nombre de la construcción si no puede traducirla con fidelidad.
+    `esquema` dice el tipo de cada columna (para `IS MISSING`) y las columnas de `SELECT *`.
     """
     cadenas: list[str] = []
     partes: list[str] = []
@@ -56,11 +61,11 @@ def a_sqlite(sql_sas: str) -> str:
             cadenas.append(trozo)
         else:
             partes.append(trozo)
-    texto = _traducir_codigo("".join(partes))
+    texto = _traducir_codigo("".join(partes), esquema or Esquema({}))
     return _restaurar_cadenas(texto, cadenas).strip()
 
 
-def _traducir_codigo(texto: str) -> str:
+def _traducir_codigo(texto: str, esquema: Esquema) -> str:
     """Aplica las reglas al texto donde las cadenas ya están protegidas por marcadores."""
     if _SUFIJO_NOMBRE.search(texto):
         raise NoSoportado('nombre SAS entre comillas con sufijo "n"')
@@ -69,9 +74,32 @@ def _traducir_codigo(texto: str) -> str:
     _rechazar_construcciones(texto)
     texto = re.sub(r"(?i)\bWORK\.(?=[A-Za-z_])", "", texto)
     texto = texto.replace("^=", "<>").replace("~=", "<>")
-    texto = re.sub(r"(?i)\bIS\s+NOT\s+MISSING\b", "IS NOT NULL", texto)
-    texto = re.sub(r"(?i)\bIS\s+MISSING\b", "IS NULL", texto)
-    return _renombrar_funciones(texto)
+    texto = re.sub(r"(?i)\bNE\b", "<>", texto)
+    texto = traduccion_union.expandir_outer_union(texto, esquema)
+    texto = traduccion_funciones.expandir_obs(texto)
+    texto = _renombrar_funciones(texto)
+    # Después de renombrar: el texto que genera `IS MISSING` usa `rtrim(` (nombre de SQLite).
+    texto = _traducir_faltantes(texto, esquema)
+    return traduccion_funciones.expandir_funciones(texto)
+
+
+def _traducir_faltantes(texto: str, esquema: Esquema) -> str:
+    """`col IS MISSING` según el tipo de la columna (ver DIFERENCIAS.md)."""
+
+    def reemplazo(m: re.Match[str]) -> str:
+        tabla, columna, negado = m.group(1), m.group(2), m.group(3) is not None
+        referencia = f"{tabla}.{columna}" if tabla else columna
+        if esquema.tipo(columna) == NUMERICO:
+            return f"{referencia} IS NOT NULL" if negado else f"{referencia} IS NULL"
+        if negado:
+            return f"({referencia} IS NOT NULL AND rtrim({referencia}) <> '')"
+        return f"({referencia} IS NULL OR rtrim({referencia}) = '')"
+
+    total = len(_IS_FALTANTE.findall(texto))
+    traducidos = len(_FALTANTE.findall(texto))
+    if total != traducidos:
+        raise NoSoportado("IS MISSING sobre una expresión (solo sobre una columna)")
+    return _FALTANTE.sub(reemplazo, texto)
 
 
 def _rechazar_construcciones(texto: str) -> None:
@@ -80,7 +108,9 @@ def _rechazar_construcciones(texto: str) -> None:
     if re.search(r"(?i)\b(format|informat|label)\s*=", texto):
         raise NoSoportado("FORMAT=, INFORMAT= o LABEL= en el SELECT")
     if re.search(r"(?i)\binto\b", texto):
-        raise NoSoportado("INTO (asignación a macrovariables)")
+        raise NoSoportado(
+            "INTO :macrovariable (el oráculo SQL no tiene macrovariables en tiempo de ejecución)"
+        )
     if "**" in texto:
         raise NoSoportado("potencia (**)")
     if "/" in texto:

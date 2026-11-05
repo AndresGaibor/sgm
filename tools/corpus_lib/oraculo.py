@@ -64,6 +64,14 @@ def ejecutar(caso: Caso, verificar: bool) -> Resultado:
         return Resultado(caso.nombre, "omitido", [mensaje])
     if caso.capa == "B":
         return Resultado(caso.nombre, "omitido", ["capa B: vectores de semántica pendientes (K06)"])
+    if caso.nivel == "L8":
+        # Las entradas de L8 son archivos SAS (`;`, sin cabecera) y el programa lleva PROC IMPORT y
+        # DATA step, que el oráculo SQL no reproduce. Su cruce está en tools/corpus_datos/.
+        motivo = (
+            "L8: entradas en formato SAS (`;`, sin cabecera) y PROC IMPORT o DATA step, sin "
+            "oráculo SQL ejecutable; su cruce está en tools/corpus_datos/*cruce*.py"
+        )
+        return Resultado(caso.nombre, "omitido", [motivo])
     try:
         salidas = calcular(caso)
     except (NoSoportado, ErrorSql, ValueError) as error:

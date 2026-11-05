@@ -182,7 +182,8 @@ def test_lectura_de_csv_infiere_tipos_y_vacios(tmp_path):
     )
     tabla = leer_entradas(carpeta)["DATOS"]
     assert tabla.tipos == ["TEXT", "REAL", "INTEGER", "TEXT"]
-    assert tabla.filas == [("007", 2.5, 3, "Peña, Ñandú"), ("010", None, 4, None)]
+    # El vacío de una columna de texto es '' (blanco SAS = faltante e igual a ''); el de número, NULL.
+    assert tabla.filas == [("007", 2.5, 3, "Peña, Ñandú"), ("010", None, 4, "")]
 
 
 def test_escritura_de_csv_cita_lo_necesario(tmp_path):
@@ -214,3 +215,61 @@ def test_corpus_real_pasa_la_verificacion_de_capa_a(capsys):
     """Prueba de consistencia: lo guardado en `esperado/` es lo que da el oráculo hoy."""
     assert main(["oraculo", "todos", "--verificar"]) == 0
     assert "0 con falla" in capsys.readouterr().out
+
+
+def _caso_anidado_l8(tmp_path, extra="", capa="A"):
+    """Caso en L8/<grupo>/<caso>/ con metadatos de L8 (como los de tests/corpus/L8)."""
+    corpus = tmp_path / "corpus"
+    carpeta = corpus / "L8" / "grupo_x" / "l8_01_anidado"
+    (carpeta / "entradas").mkdir(parents=True)
+    (carpeta / "programa.sas").write_text(PROGRAMA, encoding="utf-8")
+    (carpeta / "entradas" / "clientes.csv").write_text(CSV, encoding="utf-8")
+    texto = (
+        "id: 01_anidado\nnivel: L8\ntema: prueba\nproductos: [AHO]\nsupuestos: [uno]\n"
+        "construcciones: [PROC SQL]\nanomalias_plantadas: {filas: 4}\n"
+        "salidas_esperadas:\n  tablas_work: [altos]\n"
+        f"capa: {capa}\nestado: traducible\n{extra}"
+    )
+    (carpeta / "caso.yaml").write_text(texto, encoding="utf-8")
+    return corpus
+
+
+def test_caso_anidado_de_l8_se_carga_con_su_nivel_y_metadatos(tmp_path):
+    corpus = _caso_anidado_l8(tmp_path)
+    caso = resolver(corpus, "L8")[0]
+    assert caso.nivel == "L8"
+    assert caso.salidas == ("altos",)  # sin `salidas`, sale de `salidas_esperadas.tablas_work`
+    assert caso.extra == {
+        "id": "01_anidado",
+        "tema": "prueba",
+        "productos": ["AHO"],
+        "supuestos": ["uno"],
+        "anomalias_plantadas": {"filas": 4},
+        "salidas_esperadas": {"tablas_work": ["altos"]},
+    }
+    assert [c.nombre for c in resolver(corpus, "todos")] == ["l8_01_anidado"]
+
+
+def test_caso_anidado_de_l8_con_capa_a_se_omite_con_motivo(tmp_path, capsys):
+    corpus = _caso_anidado_l8(tmp_path)
+    assert main(["oraculo", "L8", "--verificar", "--corpus", str(corpus)]) == 0
+    salida = capsys.readouterr().out
+    assert "OMITIDO" in salida and "formato SAS" in salida
+    assert "0 con falla" in salida
+
+
+def test_caso_anidado_de_l8_con_nivel_distinto_se_rechaza(tmp_path):
+    corpus = _caso_anidado_l8(tmp_path, extra="")
+    yaml_path = corpus / "L8" / "grupo_x" / "l8_01_anidado" / "caso.yaml"
+    yaml_path.write_text(yaml_path.read_text(encoding="utf-8").replace("nivel: L8", "nivel: L1"),
+                         encoding="utf-8")
+    with pytest.raises(ValueError, match="nivel"):
+        cargar_caso(yaml_path.parent)
+
+
+def test_celda_de_texto_vacia_es_cadena_vacia_y_numerica_es_nula(tmp_path):
+    carpeta = tmp_path / "entradas"
+    carpeta.mkdir()
+    (carpeta / "t.csv").write_text("a,b\nx,\n,2\n", encoding="utf-8")
+    tabla = leer_entradas(carpeta)["T"]
+    assert tabla.filas == [("x", None), ("", 2)]

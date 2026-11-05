@@ -5,7 +5,7 @@ construcciones:
 - PROC SQL WHERE GMF NOT BETWEEN 1 AND 10 AND RELACION = 1000 (codex)
 - PROC SQL WHERE FIN_SALDO_CTA < 0
 - PROC SQL NOT IN (SELECT ... FROM tabla de rechazos) con dos subconsultas
-- PROC SQL SUM con GROUP BY (no usado en este caso: solo SUM simple)
+- 'PROC SQL SUM con GROUP BY (no usado en este caso: solo SUM simple)'
 - data step con INCONSISTENCIA constante por regla
 - PROC SQL OUTER UNION CORR con literal REGLA
 - PROC EXPORT DBMS=DLM PUTNAMES=NO

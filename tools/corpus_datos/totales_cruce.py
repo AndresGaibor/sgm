@@ -6,10 +6,11 @@ oráculo no puede ejecutar (INTO, `connect to IMPALA`) se anota como pendiente; 
 PROC SORT se reproducen antes, en Python, y entran como tablas de entrada
 (`totales_cruce_casos.py`).
 
-Las sustituciones (OUTER UNION CORR, NE, OBS=1, nombres 'AÑO'n) se aplican solo para que SQLite
-las acepte; cada una se cuenta y se informa. Las celdas vacías de los CSV son NULL por defecto,
-como en `corpus_lib.csv_tabla` (ver DIFERENCIAS.md); esa convención choca con `= ''` de SAS y el
-cruce lo reporta en vez de corregirlo. La variante `vacio_nulo=False` sirve para diagnosticar.
+Las celdas vacías siguen las convenciones de `corpus_lib` (ver DIFERENCIAS.md, "Faltantes de
+texto"): en una columna de texto el blanco es `''`; en una numérica, NULL. Las tablas se crean con
+`corpus_lib.esquema_sql` (COLLATE RTRIM), así que los blancos finales no cuentan al comparar.
+OBS=, NE y OUTER UNION CORR los traduce el propio oráculo. La única sustitución que queda es la de
+los nombres 'AÑO'n, que el traductor rechaza a propósito.
 """
 
 from __future__ import annotations
@@ -24,6 +25,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from corpus_lib.csv_tabla import Tabla as TablaCsv  # noqa: E402
+from corpus_lib.esquema_sql import Esquema, crear_desde_consulta, crear_entrada  # noqa: E402
 from corpus_lib.sas_texto import sentencias  # noqa: E402
 from corpus_lib.traduccion_sql import NoSoportado, a_sqlite  # noqa: E402
 from totales_cruce_io import Tabla, ordenado  # noqa: E402
@@ -31,9 +34,6 @@ from totales_cruce_io import Tabla, ordenado  # noqa: E402
 # Sustituciones que aplica el cruce a cada sentencia SQL: (patrón, reemplazo, motivo).
 SUSTITUCIONES_GENERALES = [
     (r"'([^']+)'n\b", r"\1", "nombre SAS con sufijo n ('AÑO'n) como identificador"),
-    (r"\(OBS=1\)", "LIMIT 1", "OBS= de SAS no existe en SQLite"),
-    (r"\bNE\b", "<>", "operador NE de SAS"),
-    (r"OUTER UNION CORR", "UNION ALL", "OUTER UNION CORR no existe en SQLite"),
 ]
 
 
@@ -63,24 +63,31 @@ def _texto(valor: object) -> str | None:
     return str(valor)
 
 
-def _sql(valor: object, vacio_nulo: bool = True) -> object:
-    """Valor de Python a SQLite: los decimales de SAS entran como REAL; el blanco, como NULL
-    (convención del corpus) o como cadena vacía (variante para diagnóstico)."""
+def _sql(valor: object, numerico: bool) -> object:
+    """Valor de Python a SQLite: los decimales de SAS entran como REAL. Un blanco es NULL en una
+    columna numérica y cadena vacía en una de texto (ver DIFERENCIAS.md)."""
     if isinstance(valor, Decimal):
         return float(valor)
-    if valor == "" and vacio_nulo:
+    if valor == "" and numerico:
         return None
     return valor
+
+
+def _numerica(columna: str, tipos: dict[str, str], valores: list) -> bool:
+    """Una columna es numérica si lo dice `tipos` o si todos sus valores presentes son números."""
+    if columna in tipos:
+        return tipos[columna] in ("INTEGER", "REAL")
+    presentes = [v for v in valores if v is not None and v != ""]
+    return bool(presentes) and all(isinstance(v, (Decimal, int)) for v in presentes)
 
 
 class Corrida:
     """Ejecuta un programa SAS sobre SQLite, con las tablas de entrada ya preparadas."""
 
-    def __init__(self, caso: str, entradas: dict[str, tuple], subs: list[tuple] = (),
-                 vacio_nulo: bool = True) -> None:
+    def __init__(self, caso: str, entradas: dict[str, tuple], subs: list[tuple] = ()) -> None:
         self.con = sqlite3.connect(":memory:")
+        self.con.execute("PRAGMA case_sensitive_like = ON")
         self.entradas = entradas
-        self.vacio_nulo = vacio_nulo
         self.res = Resultado(caso)
         self.macros: dict[str, str] = {}
         self.definiciones: dict[str, list[str]] = {}
@@ -88,25 +95,28 @@ class Corrida:
         for nombre, (cols, filas, tipos) in entradas.items():
             self._cargar(nombre, cols, filas, tipos)
 
-    def _cargar(self, nombre: str, cols: list[str], filas: list, tipos: dict[str, str]) -> None:
-        def tipo(columna: str, valores: list) -> str:
-            if columna in tipos:
-                return tipos[columna]
-            presentes = [v for v in valores if v is not None and v != ""]
-            if presentes and all(isinstance(v, Decimal) for v in presentes):
-                return "REAL"
-            if presentes and all(isinstance(v, int) for v in presentes):
-                return "INTEGER"
-            return "TEXT"
+    def _esquema(self) -> Esquema:
+        return Esquema.desde_conexion(self.con)
 
-        columnas = [tipo(c, [f[i] for f in filas]) for i, c in enumerate(cols)]
-        definicion = ", ".join(f'"{c}" {t}' for c, t in zip(cols, columnas, strict=True))
-        self.con.execute(f'CREATE TABLE "{nombre}" ({definicion})')
-        marcas = ", ".join("?" * len(cols))
-        self.con.executemany(
-            f'INSERT INTO "{nombre}" VALUES ({marcas})',
-            [[_sql(v, self.vacio_nulo) for v in f] for f in filas],
-        )
+    def _cargar(self, nombre: str, cols: list[str], filas: list, tipos: dict[str, str]) -> None:
+        """Crea la tabla de entrada con `corpus_lib`: texto, o número (INTEGER o REAL)."""
+        numericas: list[bool] = []
+        tipos_sql: list[str] = []
+        for i, columna in enumerate(cols):
+            valores = [f[i] for f in filas]
+            es_numerica = _numerica(columna, tipos, valores)
+            numericas.append(es_numerica)
+            if not es_numerica:
+                tipos_sql.append("TEXT")
+            elif columna in tipos:
+                tipos_sql.append(tipos[columna])
+            else:
+                decimal = any(isinstance(v, Decimal) for v in valores)
+                tipos_sql.append("REAL" if decimal else "INTEGER")
+        filas_sql = [
+            tuple(_sql(v, n) for v, n in zip(f, numericas, strict=True)) for f in filas
+        ]
+        crear_entrada(self.con, nombre, TablaCsv(list(cols), filas_sql, tipos_sql))
 
     def correr(self, texto: str) -> Resultado:
         """Recorre las sentencias del programa en orden y devuelve el resultado."""
@@ -201,7 +211,8 @@ class Corrida:
             raise Pendiente("conexión a IMPALA: se emula con CSV, no se ejecuta aquí")
         into = re.match(r"(?is)^SELECT\s+(.+?)\s+INTO\s*:\s*(\w+)\s+FROM\s+(.+)$", texto)
         if into:
-            cursor = self.con.execute(a_sqlite(f"SELECT {into.group(1)} FROM {into.group(3)}"))
+            consulta = a_sqlite(f"SELECT {into.group(1)} FROM {into.group(3)}", self._esquema())
+            cursor = self.con.execute(consulta)
             fila = cursor.fetchone()
             self.macros[into.group(2).lower()] = "" if fila is None else str(_texto(fila[0]))
             return
@@ -220,11 +231,12 @@ class Corrida:
         if nombre in self.entradas:
             self._comprobar_renombre(nombre, resto)
             return
-        self._crear_tabla(nombre, a_sqlite(resto))
+        self._crear_tabla(nombre, a_sqlite(resto, self._esquema()))
 
     def _crear_tabla(self, nombre: str, consulta: str) -> None:
+        """Crea `nombre` con el resultado del SELECT (con los tipos y el collation RTRIM)."""
         self.con.execute(f'DROP TABLE IF EXISTS "{nombre}"')
-        self.con.execute(f'CREATE TABLE "{nombre}" AS {consulta}')
+        crear_desde_consulta(self.con, nombre, consulta)
         cursor = self.con.execute(f'SELECT * FROM "{nombre}"')
         columnas = [d[0] for d in cursor.description]
         self.res.tablas[nombre] = (columnas, [[_texto(v) for v in f] for f in cursor.fetchall()])
@@ -234,10 +246,12 @@ class Corrida:
         se compara con la tabla preparada. Así el renombrado de VAR1..VARn se verifica."""
         self.res.preparadas.append(nombre)
         tmp = f"chequeo_{nombre}"
-        self._crear_tabla(tmp, a_sqlite(consulta))
+        self._crear_tabla(tmp, a_sqlite(consulta, self._esquema()))
         columnas, filas = self.res.tablas.pop(tmp)
         cols_py, filas_py, _ = self.entradas[nombre]
         posiciones = [cols_py.index(c) for c in columnas]
-        esperado = [[_texto(_sql(f[p], self.vacio_nulo)) for p in posiciones] for f in filas_py]
+        # El faltante se compara como '' en ambos lados: un blanco y un NULL son lo mismo aquí.
+        esperado = [[_texto(_sql(f[p], False)) or "" for p in posiciones] for f in filas_py]
+        filas = [[v or "" for v in fila] for fila in filas]
         estado = "coincide" if ordenado(esperado) == ordenado(filas) else "NO COINCIDE"
         self.res.renombres.append(f"{nombre}: renombrado {estado}")

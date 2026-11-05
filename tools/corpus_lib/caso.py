@@ -1,13 +1,14 @@
 """Formato de caso del corpus: lectura y validación de `caso.yaml` y búsqueda de casos.
 
 Un caso vive en `tests/corpus/<nivel>/<caso>/` con `programa.sas`, `entradas/`, `esperado/` y
-`caso.yaml`.
+`caso.yaml`. Los niveles de L8 agrupan sus casos en una carpeta intermedia:
+`tests/corpus/L8/<grupo>/<caso>/`. El nivel de un caso anidado es el de su carpeta de nivel.
 """
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
@@ -18,13 +19,20 @@ CAPAS = ("A", "B", "C")
 ESTADOS = (
     "traducible", "parcial", "pendiente", "pendiente_revision", "revisado", "sin_esperado"
 )
+# Metadatos de los casos de L8 que el cargador acepta y guarda en `Caso.extra` sin usarlos.
+METADATOS = frozenset(
+    {
+        "id", "productos", "supuestos", "anomalias_plantadas", "salidas_esperadas", "tema",
+        "fuentes_url",
+    }
+)
 CAMPOS = frozenset(
     {
         "nivel", "construcciones", "capa", "tolerancia", "orden_relevante", "estado", "motivo",
         "salidas", "razonamiento", "revisor", "observacion_revision", "preparacion",
-        "invariantes", "anomalias_plantadas", "tema", "fuentes_url", "salidas_esperadas",
+        "invariantes",
     }
-)
+) | METADATOS
 _NIVEL = re.compile(r"L\d+$")
 _IDENTIFICADOR = re.compile(r"[A-Za-z_]\w*$")
 
@@ -46,6 +54,7 @@ class Caso:
     razonamiento: str | None
     invariantes: tuple[str, ...] = ()
     preparacion: preparacion.Preparacion | None = None
+    extra: dict = field(default_factory=dict)
 
     @property
     def programa(self) -> Path:
@@ -78,9 +87,9 @@ def cargar_caso(directorio: Path) -> Caso:
     def error(mensaje: str) -> ValueError:
         return ValueError(f"{ruta}: {mensaje}")
 
-    nivel = datos.get("nivel")
-    if nivel != directorio.parent.name:
-        raise error(f"'nivel' debe ser '{directorio.parent.name}', no '{nivel}'")
+    nivel = _nivel_de(directorio)
+    if datos.get("nivel") != nivel:
+        raise error(f"'nivel' debe ser '{nivel}', no '{datos.get('nivel')}'")
     construcciones = datos.get("construcciones")
     if not isinstance(construcciones, list) or not construcciones:
         raise error("'construcciones' debe ser una lista no vacía")
@@ -103,7 +112,14 @@ def cargar_caso(directorio: Path) -> Caso:
         raise error("'motivo' debe ser texto")
     if estado != "traducible" and not motivo:
         raise error(f"con estado '{estado}' hace falta 'motivo'")
-    salidas = datos.get("salidas", [])
+    salidas = datos.get("salidas")
+    if salidas is None:
+        # Los casos de L8 solo declaran `salidas_esperadas.tablas_work`: esa lista vale aquí.
+        esperadas = datos.get("salidas_esperadas")
+        if isinstance(esperadas, dict) and isinstance(esperadas.get("tablas_work"), list):
+            salidas = esperadas["tablas_work"]
+        else:
+            salidas = []
     if not isinstance(salidas, list) or not all(
         isinstance(item, str) and _IDENTIFICADOR.match(item) for item in salidas
     ):
@@ -143,7 +159,16 @@ def cargar_caso(directorio: Path) -> Caso:
         razonamiento=razonamiento,
         invariantes=tuple(lista_invariantes),
         preparacion=prepara,
+        extra={clave: datos[clave] for clave in METADATOS if clave in datos},
     )
+
+
+def _nivel_de(directorio: Path) -> str:
+    """Nombre de la carpeta de nivel (L0...L9) que contiene el caso, directa o por un grupo."""
+    for ancestro in [directorio.parent, directorio.parent.parent]:
+        if _NIVEL.match(ancestro.name):
+            return ancestro.name
+    raise ValueError(f"{directorio}: el caso no está dentro de una carpeta de nivel (L0...L9)")
 
 
 def niveles(corpus: Path) -> list[Path]:
@@ -154,16 +179,29 @@ def niveles(corpus: Path) -> list[Path]:
     return sorted(carpetas, key=lambda p: int(p.name[1:]))
 
 
+def _carpetas_de_casos(carpeta: Path) -> list[Path]:
+    """Carpetas con `caso.yaml` dentro del nivel, o dentro de un grupo (L8/grupo/caso)."""
+    encontradas: list[Path] = []
+    for hijo in sorted(carpeta.iterdir()):
+        if not hijo.is_dir():
+            continue
+        if (hijo / "caso.yaml").is_file():
+            encontradas.append(hijo)
+            continue
+        encontradas += [
+            nieto
+            for nieto in sorted(hijo.iterdir())
+            if nieto.is_dir() and (nieto / "caso.yaml").is_file()
+        ]
+    return encontradas
+
+
 def casos_de_nivel(corpus: Path, nivel: str) -> list[Caso]:
     """Casos de un nivel, en orden por nombre. Una carpeta sin caso.yaml se ignora."""
     carpeta = corpus / nivel
     if not carpeta.is_dir():
         raise ValueError(f"no existe el nivel '{nivel}' en {corpus}")
-    return [
-        cargar_caso(p)
-        for p in sorted(carpeta.iterdir())
-        if p.is_dir() and (p / "caso.yaml").is_file()
-    ]
+    return [cargar_caso(p) for p in _carpetas_de_casos(carpeta)]
 
 
 def todos_los_casos(corpus: Path) -> list[Caso]:

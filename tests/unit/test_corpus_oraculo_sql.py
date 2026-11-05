@@ -15,9 +15,17 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools"))
 
 from corpus_lib.csv_tabla import Tabla  # noqa: E402
+from corpus_lib.esquema_sql import Esquema  # noqa: E402
 from corpus_lib.oraculo_sql import ErrorSql, ejecutar_proc_sql  # noqa: E402
 from corpus_lib.sas_texto import ErrorSas, sentencias, sentencias_proc_sql  # noqa: E402
 from corpus_lib.traduccion_sql import NoSoportado, a_sqlite  # noqa: E402
+
+# Esquema de la tabla FILAS (ver abajo) para las pruebas que llaman a `a_sqlite` directamente.
+ESQUEMA_DATOS = Esquema(
+    {
+        "datos": [("id", "INTEGER"), ("nombre", "TEXT"), ("monto", "INTEGER"), ("ciudad", "TEXT")],
+    }
+)
 
 FILAS = Tabla(
     ["id", "nombre", "monto", "ciudad"],
@@ -42,16 +50,20 @@ def test_work_se_quita_del_nombre_de_tabla():
     assert sql == "CREATE TABLE x AS SELECT id FROM datos"
 
 
-def test_is_missing_pasa_a_is_null():
-    sql = a_sqlite("SELECT id FROM datos WHERE monto IS MISSING")
+def test_is_missing_numerico_pasa_a_is_null():
+    sql = a_sqlite("SELECT id FROM datos WHERE monto IS MISSING", ESQUEMA_DATOS)
     assert sql == "SELECT id FROM datos WHERE monto IS NULL"
     resultado = _correr("CREATE TABLE WORK.r AS SELECT id FROM DATOS WHERE monto IS MISSING;", ["r"])
     assert resultado["r"].filas == [(2,)]
 
 
 def test_is_not_missing_pasa_a_is_not_null():
-    sql = a_sqlite("SELECT id FROM datos WHERE ciudad is not missing")
-    assert sql == "SELECT id FROM datos WHERE ciudad IS NOT NULL"
+    sql = a_sqlite("SELECT id FROM datos WHERE monto is not missing", ESQUEMA_DATOS)
+    assert sql == "SELECT id FROM datos WHERE monto IS NOT NULL"
+    resultado = _correr(
+        "CREATE TABLE WORK.r AS SELECT id FROM DATOS WHERE ciudad is not missing;", ["r"]
+    )
+    assert [fila[0] for fila in resultado["r"].filas] == [1, 2, 3]
 
 
 def test_distinto_con_caret_y_tilde_pasa_a_menor_mayor():
