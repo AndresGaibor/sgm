@@ -14,6 +14,7 @@ from sgm.backend_talend.base import (
     ResultadoLote,
     Veredicto,
 )
+from sgm.backend_talend.talend_cli import TalendCliBackend
 
 __all__ = [
     "NIVELES_VEREDICTO",
@@ -21,5 +22,6 @@ __all__ = [
     "BackendNoDisponible",
     "BackendTalend",
     "ResultadoLote",
+    "TalendCliBackend",
     "Veredicto",
 ]
