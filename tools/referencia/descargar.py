@@ -27,7 +27,7 @@ from fuentes import (
     TALEND_STUDIO_BASE,
     TALEND_STUDIO_RAICES,
     url_componente,
-    url_sas,
+    url_guia,
     url_studio,
 )
 
@@ -182,7 +182,7 @@ def descargar_sas(forzar: bool = False) -> dict[str, int]:
         if destino.exists() and not forzar:
             tamanos[guia.archivo] = destino.stat().st_size
             continue
-        req = urllib.request.Request(url_sas(guia.docset), headers=UA)
+        req = urllib.request.Request(url_guia(guia), headers=UA)
         with urllib.request.urlopen(req, timeout=300) as r:
             datos = r.read()
         destino.write_bytes(datos)

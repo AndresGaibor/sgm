@@ -5,7 +5,7 @@ internet. Cada carpeta dice qué se descargó, de dónde y cuándo.
 
 | Carpeta | Contenido | Fuente | Descargado |
 |---|---|---|---|
-| [`sas/`](sas/README.md) | 7 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` | 2026-11-03 (y `lepg`, 2026-11-05) |
+| [`sas/`](sas/README.md) | 8 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` y `/api/docsets/` | 2026-11-03 (y `lepg` y `lrcon`, 2026-11-05) |
 | [`talend/`](talend/README.md) | Páginas de 41 componentes de Talend Studio 8.0 y la guía de diseño de Jobs y contextos (R2026-09) | help.qlik.com | 2026-11-03 |
 
 ## Cómo se regenera
@@ -48,4 +48,4 @@ coincidan con los archivos que hay en esta carpeta.
 
 - `talend/catalogo/VERIFICACION.md`: el catálogo de componentes contra sus páginas.
 - `talend/cruce-con-el-codigo.md`: lo que dice la documentación frente al código, con las brechas.
-- `sas/*.INDEX.md`: índices por sección de las siete guías de SAS.
+- `sas/*.INDEX.md`: índices por sección de las ocho guías de SAS.

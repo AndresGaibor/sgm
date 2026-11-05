@@ -3391,7 +3391,7 @@ dsc_download.sas:55: sas_cifrado: BA***
   búsquedas en el texto extraído. Que la guía describa la misma versión que corre el cliente no se
   puede saber desde el repositorio.
 
-## Hito 97. R2-01 y R2-02: mecanismo de totales entre Jobs validado en Studio (b), y `job_totales` real
+## Hito 97d. R2-01 y R2-02: mecanismo de totales entre Jobs validado en Studio (b), y `job_totales` real
 
 - Fecha: 2026-11-05. Continúa el protocolo del hito 95 (`tools/prueba_duplicados.py`) y el cálculo de
   totales de origen del hito 85. Plan: `docs/plan-reescritura/ruta-a-produccion.md`, R2-01 y R2-02;
@@ -3668,3 +3668,48 @@ están en blanco en CTE; no suman y no cuentan como saldo no vacío, como exige 
 - **`sgm talend` para `client_large`**: la emisión del Job real está cubierta por pruebas unitarias
   y por el tablero; no se ejecutó en Studio el Job del programa grande.
 - **`tUnite`**: no validado; ver hallazgo 1.
+
+## Hito 98. Referencia SAS: `lrcon` (Language Reference: Concepts), 916 páginas, y la segunda forma de URL
+
+- Fecha: 2026-11-05. Pedido del usuario: revisar la guía `lrcon` y agregarla si sirve.
+- Qué se hizo:
+  - Se revisó antes de agregarla. `lrcon` es *SAS 9.4 Language Reference: Concepts*, Sixth Edition
+    (916 páginas, 7.7 MB). No repite a `lepg`: `lepg` muestra cómo se usa el lenguaje, con ejemplos;
+    `lrcon` fija la regla. Capítulos que sirven al traductor, con su página en el índice: reglas de
+    palabras y nombres (p. 43), variables (p. 61), valores perdidos (p. 123), expresiones (p. 133),
+    fechas e intervalos (p. 155), `BY` en programas (p. 229), procesamiento de `WHERE` (p. 231), paso
+    DATA (p. 491), leer/combinar/modificar conjuntos (p. 563) y arrays (p. 667).
+  - Sirve para una duda que quedó abierta en el hito 95: en una comparación los blancos finales no
+    cuentan, `'fox '` es igual a `'fox'` (p. 133 y siguientes). Es la regla que explica por qué la
+    llave del CSV sale recortada y la del SAS no, sin que la comparación cambie.
+  - `tools/referencia/fuentes.py`: `SAS_DOCSET_BASE`, la segunda plantilla de URL
+    (`/api/docsets/<docset>/9.4/content/<docset>.pdf`), un campo `base` en `SasDocset` con la
+    colección `pgmsascdc` por omisión, `url_sas(docset, base)` y `url_guia(guia)`. La octava entrada
+    del catálogo usa la plantilla nueva. `descargar.py` pide el PDF con `url_guia`.
+  - Artefactos: `docs/referencia/sas/lrcon.pdf` (7.7 MB, no versionado), `lrcon.txt` (1.5 MB, 916
+    páginas, 5 en blanco) y `lrcon.INDEX.md` (67 KB, 1306 secciones con su página).
+  - `docs/referencia/sas/README.md`: octava fila de la tabla, la excepción de URL explicada en las
+    notas y para qué se cita `lrcon` frente a `lepg`. `docs/referencia/README.md`: «8 guías» y la
+    segunda colección como fuente.
+  - Se volvió a comprobar el resto: `leforinfref` devuelve 404 también en la forma `/api/docsets/`,
+    así que la falta de la guía de formatos no es un problema de plantilla; `lesysoptsref` responde
+    por las dos.
+- Decisiones:
+  - Un campo `base` con valor por omisión, en vez de una tabla de URLs: siete guías comparten
+    plantilla y solo `lrcon` la cambia; una tabla habría repetido la misma cadena siete veces.
+  - `url_sas` conserva su firma (la usa una prueba y es la forma corta para las guías de la
+    colección); `url_guia` es la que decide por guía.
+  - `lesysoptsref` sigue sin bajarse: ninguna regla depende todavía de una opción de sistema.
+- Pruebas: `tests/unit/test_referencia_tools.py` (2 nuevas, 12 en el archivo): la URL de `lrcon` sale
+  de la plantilla nueva, y las otras siete siguen dando exactamente la URL de siempre.
+- Verificación: `uv run ruff check .`: limpio. `uv run pytest -q -n auto`: 2215 casos, **2060 pasadas,
+  26 omitidas y 128 `xfailed`**, con un fallo intermitente ajeno,
+  `tests/unit/test_tools_ci.py::test_el_cierre_termina_en_cero_si_todo_pasa`: ese cierre lanza los
+  pasos del corpus dentro de la suite y compite con los demás procesos; corrido solo pasa, y
+  `uv run python tools/ci.py --sin-suite --sin-tablero` a mano da los tres pasos en verde.
+- Métricas: `lrcon.txt` 1.5 MB (916 páginas), `lrcon.INDEX.md` 67 KB (1306 secciones), `fuentes.py`
+  con 8 guías, `docs/referencia/sas/` de 7 a 8 guías.
+- Bloqueos: la guía de formatos (`leforinfref`) sigue en 404 por las dos plantillas; la versión exacta
+  de SAS del cliente sigue sin confirmar (tarea 9).
+- No verificado: no se leyó la guía entera; la revisión fue por el índice y por búsquedas en el texto
+  extraído. Que `lrcon` y el SAS del cliente sean la misma edición no se puede saber desde el repo.

@@ -73,6 +73,22 @@ def test_urls_de_las_fuentes():
     assert fuentes.url_studio("defining-variables").endswith("/defining-variables")
 
 
+def test_una_guia_fuera_de_la_coleccion_usa_su_propia_url():
+    # `lrcon` devuelve 404 dentro de `pgmsascdc`: su PDF está en la otra forma de URL.
+    guia = next(g for g in fuentes.SAS_DOCSETS if g.docset == "lrcon")
+    assert (
+        fuentes.url_guia(guia)
+        == "https://documentation.sas.com/api/docsets/lrcon/9.4/content/lrcon.pdf"
+    )
+
+
+def test_las_guias_de_la_coleccion_conservan_la_url_de_siempre():
+    for guia in fuentes.SAS_DOCSETS:
+        if guia.docset == "lrcon":
+            continue
+        assert fuentes.url_guia(guia) == fuentes.url_sas(guia.docset), guia.archivo
+
+
 def test_cada_guia_sas_tiene_texto_e_indice_en_docs():
     # Los PDF no se versionan (ver .gitignore): se regeneran con descargar.py. Lo que sí se
     # versiona, el texto y el índice, debe estar para cada guía.

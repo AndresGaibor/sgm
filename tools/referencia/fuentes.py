@@ -12,6 +12,9 @@ SAS_BASE = (
     "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/"
     "docsets/{docset}/content/{docset}.pdf?locale=en"
 )
+# Segunda forma de URL, para las guías que no están en la colección `pgmsascdc` (por ejemplo
+# `lrcon`, que responde 404 en la colección y 200 por aquí).
+SAS_DOCSET_BASE = "https://documentation.sas.com/api/docsets/{docset}/9.4/content/{docset}.pdf"
 TALEND_BASE = "https://help.qlik.com/talend/en-US/components/8.0/"
 TALEND_STUDIO_BASE = "https://help.qlik.com/talend/en-US/studio-user-guide/8.0-R2026-09/"
 
@@ -21,6 +24,7 @@ class SasDocset:
     docset: str  # nombre de la colección en documentation.sas.com
     titulo: str  # título de la guía oficial
     archivo: str  # nombre local sin extensión, en docs/referencia/sas/
+    base: str = SAS_BASE  # plantilla de la URL; casi todas viven en `pgmsascdc`
 
 
 SAS_DOCSETS: tuple[SasDocset, ...] = (
@@ -31,6 +35,7 @@ SAS_DOCSETS: tuple[SasDocset, ...] = (
     SasDocset("lefunctionsref", "SAS 9.4 Functions and CALL Routines Reference", "lefunctionsref"),
     SasDocset("proc", "SAS 9.4 Procedures Guide", "proc"),
     SasDocset("lepg", "SAS 9.4 Programmer's Guide: Essentials", "lepg"),
+    SasDocset("lrcon", "SAS 9.4 Language Reference: Concepts", "lrcon", base=SAS_DOCSET_BASE),
 )
 
 # Componentes de Talend que usa el proyecto (ver rules/talend/official-component-inventory.json).
@@ -88,9 +93,14 @@ TALEND_STUDIO_RAICES: tuple[str, ...] = (
 )
 
 
-def url_sas(docset: str) -> str:
-    """URL del PDF oficial de una guía de SAS 9.4."""
-    return SAS_BASE.format(docset=docset)
+def url_sas(docset: str, base: str = SAS_BASE) -> str:
+    """URL del PDF oficial de una guía de SAS 9.4. `base` cambia la colección de origen."""
+    return base.format(docset=docset)
+
+
+def url_guia(guia: SasDocset) -> str:
+    """URL del PDF de una guía del catálogo, con la colección que le corresponde."""
+    return url_sas(guia.docset, guia.base)
 
 
 def url_componente(nombre: str) -> str:
