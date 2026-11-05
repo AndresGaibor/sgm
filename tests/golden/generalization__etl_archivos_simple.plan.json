@@ -241,12 +241,17 @@
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
-      "signature": "fb09f3a905678830",
+      "signature": "c16ca4f58c875312",
       "params": {
         "datafile": "\"C:\\datos\\entrada\\clientes.csv\"",
         "outputs": [
           "WORK.clientes"
-        ]
+        ],
+        "dbms": "csv",
+        "delimiter": null,
+        "getnames": true,
+        "sheet": null,
+        "guessingrows": null
       },
       "evidence": [
         {
@@ -457,12 +462,14 @@
       "kind": "write_file",
       "status": "soportado",
       "placement": "flow",
-      "signature": "a6534b409c7e21b9",
+      "signature": "a01107a2afb1dcfe",
       "params": {
         "inputs": [
           "WORK.pedidos_region"
         ],
-        "outfile": "\"C:\\datos\\salida\\pedidos_region.csv\""
+        "outfile": "\"C:\\datos\\salida\\pedidos_region.csv\"",
+        "dbms": "csv",
+        "delimiter": null
       },
       "evidence": [
         {
@@ -879,7 +886,7 @@
       "occurrences": 1
     },
     {
-      "signature": "fb09f3a905678830",
+      "signature": "c16ca4f58c875312",
       "options": [
         {
           "opcion": "tFileInputDelimited",
@@ -1158,7 +1165,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tFileInputDelimited; no aplicado"
       },
-      "signature": "fb09f3a905678830",
+      "signature": "c16ca4f58c875312",
       "fuente": []
     },
     {

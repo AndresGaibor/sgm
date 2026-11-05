@@ -23,6 +23,13 @@ GOLDEN = ROOT / "tests" / "golden"
 CAMPOS_ADITIVOS = {
     # Hito 14: candidatas Talend guardadas en `params` de los operadores con expresión traducida.
     "talend_expression_candidates": "candidatas Talend por validar (hito 14)",
+    # Hito 104m: `PROC IMPORT` y `PROC EXPORT` llevan sus opciones de archivo en el operador. La
+    # firma cambia con ellas (es la llave de las decisiones), y por eso la referencia se regeneró.
+    "dbms": "formato del archivo en read_file/write_file (hito 104m, proc p. 1333)",
+    "delimiter": "separador declarado en el SAS; `None` si no lo declara (hito 104m, p. 1386)",
+    "getnames": "cabecera de la primera fila; `YES` por omisión (hito 104m, p. 1387)",
+    "sheet": "hoja del libro de Excel (hito 104m)",
+    "guessingrows": "filas que el SAS escanea para tipar (hito 104m, p. 1388)",
 }
 
 CASES = [
