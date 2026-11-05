@@ -3297,3 +3297,47 @@ E5,1
   - Que `tUniqRow` conserve la primera fila **siempre** (con varios hilos, otros volúmenes o con datos nulos) no se probó: solo un Job de un hilo y 14 filas de vectores y 47 de AHO.
   - Las demás plantillas de R6-03 (`tFilterRow`, `tNormalize`, `tJoin`, `tConvertType`, `tFileList`, `tDBClose`, `tSendMail`) siguen pendientes; R6-03 solo tiene `tUniqRow`.
   - Ningún Job se abrió en el editor gráfico de Studio.
+
+## Hito 96. R4-05: `sgm secretos` escanea artefactos y decisiones; cero hallazgos en client_large; DC-06 sigue abierta
+
+- Fecha: 2026-11-05. Tarea R4-05 de `docs/plan-reescritura/ruta-a-produccion.md` (parcial). Relacionada con DC-06 (sección 3), que sigue abierta.
+- Qué se hizo:
+  - `src/sgm/seguridad/`: escáner de secretos en seis módulos pequeños. `enmascarado.py` (valor visible: 2 caracteres y `***`; por debajo de 6 caracteres solo `***`; marcadores vacío, `***`, `...`, `context.`, `$`, `&`, `%`, `<`), `reglas_texto.py` (asignaciones `password=`/`pwd=`/`passwd=`, `secret`/`token`/`api_key`, `proc pwencode in=` en claro, `{SAS00n}`, `Bearer`, clave privada PEM, `://usuario:clave@`), `reglas_xml.py` (atributos `field="PASSWORD"` o `"ENCRYPTED"` y `type="id_Password"` con valor no vacío, en `.item`, `.properties` y contextos), `lista_blanca.py`, `escaner_secretos.py` (orquestación, archivos binarios omitidos, carpetas `.git`, `__pycache__` y similares ignoradas, salida ordenada) y `__init__.py`.
+  - `src/sgm/cli_secretos.py` y registro en `src/sgm/cli.py`: `sgm secretos <ruta> [--formato texto|json]`. Sale con código 1 si hay hallazgos y 0 si no. La salida es determinista.
+  - `docs/secretos.md`: propuesta del método de entrega (contexto cargado fuera del repo o variable de entorno del lanzador), lista blanca y su auditoría, compuerta antes del despliegue y límites del escáner. El almacén no se elige: DC-06 queda abierta.
+- Lista blanca: una sola entrada, el marcador `"sgm_ref"` del parámetro `PASSWORD` de `tFileInputExcel`. Motivo: Studio no compila ese componente con `PASSWORD` vacío ni con `***`, y el Excel de insumo no tiene clave. La entrada solo vale dentro de ese componente; el mismo valor en otro componente sí da hallazgo (probado).
+- Salida literal de `sgm secretos` sobre los artefactos emitidos por `sgm talend` (client_large) y sobre `decisiones/`, con `uv run sgm talend tests/fixtures/sas/client/client_large.sas --out <carpeta temporal>` y después la compuerta:
+
+```
+0 hallazgo(s) en 0 archivo(s); 8 archivo(s) revisado(s)     (client_large/talend: 4 .item y 4 .properties; código 0)
+0 hallazgo(s) en 0 archivo(s); 4 archivo(s) revisado(s)     (decisiones/; código 0)
+0 hallazgo(s) en 0 archivo(s); 2 archivo(s) revisado(s)     (tests/fixtures/sas/client/; código 0)
+```
+
+- Hallazgo real fuera de la compuerta, reportado solo como archivo y línea. Salida literal de `sgm secretos tests/fixtures/sas/real/ci360-download-client/macros/dsc_download.sas` (código 1):
+
+```
+dsc_download.sas:55: password_en_cadena: "{***
+dsc_download.sas:55: sas_cifrado: BA***
+2 hallazgo(s) en 1 archivo(s); 1 archivo(s) revisado(s)
+```
+
+- Pruebas: `tests/unit/test_secretos_plantados.py` (un ejemplo plantado por tipo, con su detección, el enmascarado en texto y en JSON, la línea y la salida del CLI), `tests/unit/test_secretos_limpios.py` (valores limpios que no dan hallazgo, la lista blanca por componente y su efecto, el emisor sobre client_large con cero hallazgos, y `decisiones/` y `tests/fixtures/sas/client/` sin hallazgos), `tests/unit/test_secretos_cli.py` (códigos de salida, JSON, determinismo, binarios, errores de uso). Total: 74 pruebas nuevas. Los valores de los ejemplos son ficticios (`Zx9-ficticio-123`).
+- Verificación medida:
+  - Mis archivos: `uv run ruff check` sobre `src/sgm/seguridad`, `src/sgm/cli_secretos.py`, `src/sgm/cli.py` y los tres `tests/unit/test_secretos_*.py`: sin errores. `uv run pytest -q -n auto tests/unit/test_secretos_*.py`: 74 pasadas.
+  - Suite completa `uv run pytest -q -n auto` (última corrida): 2043 pasadas, 26 omitidas, 128 xfail y 1 fallo ajeno, `tests/unit/test_tools_ci.py::test_el_cierre_termina_en_cero_si_todo_pasa`, porque el paso de ruff del cierre falla por archivos de `tools/` que no son de este hito.
+  - `uv run ruff check .` del repositorio: 11 errores, todos ajenos a este hito y en `tools/`: `tools/prueba_totales_mecanismos.py` (3 E501) y `tools/totales_mecanismos_jobs.py` (1 I001 y 7 E501). No se tocaron.
+  - Ruff y la suite completa del repositorio los corre el coordinador al terminar ambos agentes.
+- Métricas: `src/sgm/seguridad/` suma 6 módulos, todos bajo 300 líneas. `cli.py` pasa de 292 a 294 líneas.
+- Decisiones:
+  - Enmascarado: 2 primeros caracteres y `***` solo si el valor tiene 6 caracteres o más. Un valor corto no muestra ninguno.
+  - Las reglas de texto se aplican al texto completo, así que una sentencia de varias líneas (`proc pwencode`, `libname ... password=`) también se detecta.
+  - La lista blanca es la única excepción. Se aplica al `.item` por componente y, en texto libre, por valor exacto.
+  - Un `pwd=`, `password=`, `token` o `secret` con valor que empieza por `context.`, `$`, `&`, `%` o `<` es una referencia y no un secreto.
+  - El escáner no revisa binarios (un byte nulo en los primeros 8 KB).
+  - Las carpetas de artefactos de la compuerta son `client_large`, `decisiones/` y `tests/fixtures/sas/client/`. El resto del repositorio no entra en la compuerta: `docs/referencia/` tiene ejemplos de manuales SAS (`pass=`, `pwencode`) y el código fuente nombra variables como `token`.
+- Bloqueos:
+  - DC-06 sigue abierta: falta elegir el almacén de secretos y el mecanismo de carga por entorno.
+  - `tests/fixtures/sas/real/ci360-download-client/macros/dsc_download.sas:55` contiene un valor con `{SAS002}`. No se modificó el fixture. Se recomienda que una persona revise si es un ejemplo público o un valor real; si es real, rotarlo y retirarlo del fixture.
+  - `tests/unit/test_talend_plantillas.py:20` usa el valor de prueba `"secreto"` en un nodo tJava. El escáner lo marca, lo cual es correcto para su contexto; no se cambió la prueba.
+- No verificado: Talend Studio no se usó y ningún Job se ejecutó. El escáner no lee logs reales porque el repositorio no tiene logs de ejecución. Las reglas cubren las formas listadas en `docs/secretos.md`; un secreto sin palabra clave reconocible puede pasar.

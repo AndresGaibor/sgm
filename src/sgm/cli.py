@@ -36,6 +36,7 @@ from sgm.cli_decisiones import decisions_app, gaps_app  # noqa: E402
 from sgm.cli_diseno import diseno_command  # noqa: E402
 from sgm.cli_flow import flujo_command  # noqa: E402
 from sgm.cli_proceso import proceso_command  # noqa: E402
+from sgm.cli_secretos import secretos_command  # noqa: E402
 from sgm.cli_talend import talend_command  # noqa: E402
 
 rules_app = typer.Typer(help="Reglas, casos y configuración.", no_args_is_help=True)
@@ -52,6 +53,7 @@ app.command("proceso")(proceso_command)
 app.command("talend")(talend_command)
 app.command("flujo")(flujo_command)
 app.command("conformidad")(conformidad_command)
+app.command("secretos")(secretos_command)
 
 
 @app.callback()
