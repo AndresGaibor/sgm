@@ -40,6 +40,8 @@ COLUMNAS_SABANA_V02 = [
 COLUMNAS_DOC = ["RELACION", "TIPO_CTA", "NRO_CTA", "LLAVE_NOMBRE", "TIPO_DOC", "NRO_DOC"]
 # Las ocho columnas del SELECT de v01 que pasan a la tabla de validos.
 COLUMNAS_VALIDO_V01 = [*COLUMNAS_DOC, "GMF", "FIN_SALDO_CTA"]
+# La tabla de validos de v02 agrega FIN_SALDO_CTA: la suma de saldos de CTE lee esa tabla.
+COLUMNAS_VALIDO_V02 = [*COLUMNAS_DOC, "FIN_SALDO_CTA"]
 
 
 def _sin_documento(f: Fila) -> bool:
@@ -85,6 +87,7 @@ def v02(spec: dict) -> Esperado:
     cuentas: dict[str, tuple[int, int]] = {}
     for producto in ("CTE", "AHO"):
         tit, fa, val, sab = [], [], [], []
+        saldos_validos: list[int | None] = []
         for f in detalle(spec, producto):
             fila = proyectar(f, SELECT_V02)
             fila["NRO_DOC"] = f.num(10)
@@ -93,6 +96,7 @@ def v02(spec: dict) -> Esperado:
             if f.etiqueta == "validos":
                 comprobar(f, _sin_documento(f), False, "NRO_DOC válido")
                 val.append(fila)
+                saldos_validos.append(f.num(23))
                 continue
             comprobar(f, _sin_documento(f), True, "NRO_DOC vacío o cero")
             # El SELECT tit-cot exige RELACION <> 9902; el de FA exige RELACION = 9902.
@@ -102,17 +106,16 @@ def v02(spec: dict) -> Esperado:
         esp.tablas[f"SABANA_{producto}"] = tabla(COLUMNAS_SABANA_V02, sab)
         esp.tablas[f"NRO_DOC_VACIO_0_TIT_COT_{producto}"] = tabla(COLUMNAS_DOC, tit)
         esp.tablas[f"INCONS_NRO_DOC_VACIO_0_FA_{producto}"] = tabla(COLUMNAS_DOC, fa)
-        esp.tablas[f"NRO_DOC_NO_VACIO_NI_0_{producto}"] = tabla(COLUMNAS_DOC, val)
+        esp.tablas[f"NRO_DOC_NO_VACIO_NI_0_{producto}"] = tabla(COLUMNAS_VALIDO_V02, val)
         rechazo = [{**r, "INCONSISTENCIA": "NRO DOC VACIO O CERO"} for r in [*tit, *fa]]
         rechazo_cols = [*COLUMNAS_DOC, "INCONSISTENCIA"]
         esp.tablas[f"RECHAZO_NRO_DOC_{producto}"] = tabla(rechazo_cols, rechazo)
         esp.archivos[f"RECHAZO_NRO_DOC_{producto}"] = esp.tablas[f"RECHAZO_NRO_DOC_{producto}"]
         cuentas[producto] = (len(tit), len(fa))
         if producto == "CTE":
-            # El programa suma FIN_SALDO_CTA sobre NRO_DOC_NO_VACIO_NI_0_CTE, que no tiene esa
-            # columna (su SELECT no la trae). En SAS la variable queda en faltante, y la suma
-            # también.
-            suma = None
+            # El programa suma el saldo de NRO_DOC_NO_VACIO_NI_0_CTE, que lo trae. Un saldo que
+            # no es número queda faltante y la suma lo deja fuera, como SUM de SAS.
+            suma = sum(s for s in saldos_validos if s is not None)
             esp.tablas["SUMA_SALDO_CTE_VALIDAS"] = tabla(
                 ["SUMA_SALDO_FINAL_CTE"], [{"SUMA_SALDO_FINAL_CTE": suma}]
             )

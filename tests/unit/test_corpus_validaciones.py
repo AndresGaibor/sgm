@@ -195,6 +195,22 @@ def test_v06_conteo_por_motivo_igual_a_las_etiquetas() -> None:
         assert _filas(esp / f"SABANA_NORM_{p}.csv") == sum(conteo.values()), p
 
 
+def test_suma_de_saldo_v02_lee_una_tabla_que_trae_la_columna() -> None:
+    """La suma de CTE lee FIN_SALDO_CTA de la tabla de válidos: esa tabla debe traerla."""
+    esp = CORPUS / "v02_vacios_ceros" / "esperado"
+    cabecera = (esp / "NRO_DOC_NO_VACIO_NI_0_CTE.csv").read_text(encoding="utf-8").splitlines()[0]
+    assert "FIN_SALDO_CTA" in cabecera.split(",")
+    suma = (esp / "SUMA_SALDO_CTE_VALIDAS.csv").read_text(encoding="utf-8").splitlines()[1]
+    assert suma.strip() != "", "la suma no puede quedar en faltante"
+
+
+def test_v07_convierte_gmf_antes_de_usarlo() -> None:
+    """PASO1 usa GMF: el programa debe convertir GMF_TXT antes, no pedir una columna que no existe."""
+    texto = (CORPUS / "v07_cadena_completa" / "programa.sas").read_text(encoding="utf-8")
+    assert "GMF=input(left(GMF_TXT), 3.)" in texto
+    assert texto.index("GMF=input(left(GMF_TXT)") < texto.index("CREATE TABLE WORK.PASO1_RECHAZO")
+
+
 def _rechazos_validos(caso: str, p: str, esp: Path) -> tuple[int, int]:
     """Filas rechazadas y válidas de un producto, según el caso, desde las tablas del esperado."""
     if caso.startswith("v01"):

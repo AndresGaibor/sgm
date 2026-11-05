@@ -30,23 +30,6 @@ REPO = _CARPETA.parents[1]
 CORPUS_L8 = REPO / "tests" / "corpus" / "L8" / "validaciones"
 
 
-def _gmf_supuesto(producto: str) -> str:
-    """v07 usa GMF en PASO1 sin convertirlo: el cruce supone la conversión que hacen los demás."""
-    return (
-        f"data WORK.SABANA_{producto}; set WORK.SABANA_{producto}; "
-        f"GMF=input(left(GMF_TXT), 3.); drop GMF_TXT; run;"
-    )
-
-
-# Supuestos por caso: (tabla cuyo PROC SQL va después, pasos SAS). Ver `validaciones_esp_cascada`.
-SUPUESTOS: dict[str, list[tuple[str, str]]] = {
-    "v07_cadena_completa": [
-        ("PASO1_RECHAZO_CTE", _gmf_supuesto("CTE")),
-        ("PASO1_RECHAZO_AHO", _gmf_supuesto("AHO")),
-    ],
-}
-
-
 @dataclass
 class Informe:
     """Resultado del cruce de un caso."""
@@ -81,7 +64,7 @@ def cruzar(caso: str, carpeta: Path | None = None) -> Informe:
     carpeta = carpeta or CORPUS_L8 / caso
     esperado = calcular(caso, CASOS[caso], EXCEL)
     programa = (carpeta / "programa.sas").read_text(encoding="utf-8")
-    corrida = ejecutar(programa, carpeta / "entradas", SUPUESTOS.get(caso))
+    corrida = ejecutar(programa, carpeta / "entradas")
     informe = Informe(caso)
     for nombre, esp in esperado.tablas.items():
         if nombre not in corrida.tablas:

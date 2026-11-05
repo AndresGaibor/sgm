@@ -1929,3 +1929,11 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Correcciones del propio generador al cruzar: el caso 02 tiene 56 filas y no 55 (la fila con `NRO_CTA` vacio vuelve a la sabana); en el 05, `CONCILIA` exige tambien `DIF_FILAS = 0`, como el `CASE` de SAS; en el 06 el nombre es `FORMATO_TEXTO_FECHA`.
 - Pruebas: `test_corpus_totales.py` y `test_corpus_totales_cruce.py` (71 pasan, 4 xfail estrictos documentados: 03 y 08 por la convencion de vacio, 02 con cadena vacia, ROUND).
 - Pendiente: arreglar las convenciones de faltantes y `ROUND` en el oraculo; corregir los programas v02 y v07 de validaciones; unificar `oraculo todos` con los casos L8.
+
+## Hito 76c. Corpus: correccion de los programas v02 y v07 de validaciones
+
+- Fecha: 2026-11-04
+- Que se hizo: v02 ahora trae `FIN_SALDO_CTA` en la tabla de documentos validos de CTE y AHO, de modo que `SUMA_SALDO_CTE_VALIDAS` suma una columna que existe (1024505 en lugar de faltante); v07 convierte `GMF=input(left(GMF_TXT), 3.)` en el DATA step previo y borra `GMF_TXT`, como el original. Se recorrio cada `CREATE TABLE` y `DATA` de ambos buscando otras columnas o tablas inexistentes: no hay mas. Salidas esperadas que cambiaron: 3 en v02; 0 en v07 (el esperado ya suponia la conversion).
+- Cruce con el oraculo SQL: 105 salidas coinciden sin diferencias; v02 15/15 y v07 22/22 ya sin el supuesto sobre GMF (se quito `SUPUESTOS`).
+- Pruebas: `test_corpus_validaciones.py` (41; 2 nuevas: la tabla de validos de v02 trae `FIN_SALDO_CTA` y la suma no es faltante; v07 convierte GMF antes de `PASO1`).
+- Sigue sin demostrarse con SAS el orden de columnas cuando `format` va antes de `set` (NRO_DOC y GMF al final): supuesto anotado en los casos.

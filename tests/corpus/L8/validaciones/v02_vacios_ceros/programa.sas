@@ -167,6 +167,7 @@ QUIT;
 
 /* Etiqueta: Nro doc no vacio ni cero */
 %macro doc_valido(sufijo);
+/* Conserva FIN_SALDO_CTA: la suma de saldos de CTE lee esta tabla. */
 %web_drop_table(WORK.NRO_DOC_NO_VACIO_NI_0_&sufijo);
 
 /* Código de query generado para SAS Studio por Common Query Services */
@@ -175,7 +176,8 @@ PROC SQL;
 CREATE TABLE WORK.NRO_DOC_NO_VACIO_NI_0_&sufijo
 AS
 SELECT SABANA_&sufijo..RELACION, SABANA_&sufijo..TIPO_CTA, SABANA_&sufijo..NRO_CTA,
-SABANA_&sufijo..LLAVE_NOMBRE, SABANA_&sufijo..TIPO_DOC, SABANA_&sufijo..NRO_DOC
+SABANA_&sufijo..LLAVE_NOMBRE, SABANA_&sufijo..TIPO_DOC, SABANA_&sufijo..NRO_DOC,
+SABANA_&sufijo..FIN_SALDO_CTA
 FROM WORK.SABANA_&sufijo SABANA_&sufijo
 WHERE
    ( SABANA_&sufijo..NRO_DOC IS NOT MISSING AND

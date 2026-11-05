@@ -4,9 +4,8 @@ Cada etapa del programa toma solo las filas que la etapa anterior dejó pasar. U
 en `PASO1` no llega a `PASO2`, y así sucesivamente. La decisión sale de la etiqueta de defecto; la
 condición del programa se aplica al contenido solo para comprobar la coherencia (`comprobar`).
 
-v07 no convierte GMF en su programa (usa `GMF_TXT`, y `PASO1` pide `GMF`). El esperado supone la
-conversión que hacen v04 a v06 y v08: GMF = `input(left(GMF_TXT), 3.)`, agregado al final. Es un
-supuesto del caso y queda anotado en `caso.yaml`.
+En v07 el programa convierte GMF igual que NRO_DOC (`GMF = input(left(GMF_TXT), 3.)`, con
+`GMF_TXT` borrada), así que la sabana trae GMF al final, como en v04 a v06 y v08.
 """
 
 from __future__ import annotations

@@ -76,13 +76,15 @@ QUIT;
 %nombres_columnas(CTE);
 %nombres_columnas(AHO);
 
-/* Etiqueta: Convierte NRO_DOC a numero */
-%macro convierte_nro_doc(sufijo);
+/* Etiqueta: Convierte NRO_DOC y GMF a numero */
+%macro convierte_numericos(sufijo);
+/* Un campo vacio queda faltante; el texto "0" queda en cero. GMF se convierte igual que NRO_DOC. */
 data work.temporal;
 format NRO_DOC 30.;
 set WORK.SABANA_&sufijo;
 NRO_DOC=input(left(NRO_DOC_TXT), 30.);
-drop NRO_DOC_TXT;
+GMF=input(left(GMF_TXT), 3.);
+drop NRO_DOC_TXT GMF_TXT;
 run;
 
 data WORK.SABANA_&sufijo;
@@ -91,10 +93,10 @@ run;
 
 proc delete data=work.temporal;
 run;
-%mend convierte_nro_doc;
+%mend convierte_numericos;
 
-%convierte_nro_doc(CTE);
-%convierte_nro_doc(AHO);
+%convierte_numericos(CTE);
+%convierte_numericos(AHO);
 
 /* Etiqueta: Paso 1 tipo doc invalido */
 %macro paso1_tipo_doc(sufijo);

@@ -48,16 +48,17 @@ razonamiento: 'Capa declarada originalmente: A (PROC SQL sobre SQLite) y B (inpu
   queda faltante). El esperado sale de la verdad plantada (validaciones_esperado); el cruce con el oráculo
   SQL está en validaciones_cruce.'
 estado: pendiente_revision
-motivo: 'Cruce completo sin diferencias. Hallazgo del programa: SUMA_SALDO_CTE_VALIDAS suma una columna
-  que su fuente no tiene; el resultado es faltante.'
+motivo: 'Cruce completo sin diferencias. Error del autor corregido: SUMA_SALDO_CTE_VALIDAS sumaba
+  FIN_SALDO_CTA desde NRO_DOC_NO_VACIO_NI_0_CTE, que no traía esa columna; ahora esa tabla la trae.'
 orden_relevante: false
 observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
   (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
-  Ninguna de esas dos cosas está demostrada con SAS. Hallazgo: SUMA_SALDO_CTE_VALIDAS suma FIN_SALDO_CTA
-  sobre NRO_DOC_NO_VACIO_NI_0_CTE, cuyo SELECT no trae esa columna. En SAS la variable queda sin inicializar
-  y la suma da faltante, no el saldo. Duda: formato 30. de NRO_DOC en PROC EXPORT.'
+  Ninguna de esas dos cosas está demostrada con SAS. Corregido: el SELECT de NRO_DOC_NO_VACIO_NI_0 (CTE y
+  AHO) agrega FIN_SALDO_CTA, y la suma de CTE la lee de ahí con input(left(...), 20.). El programa no tiene
+  suma de AHO. Duda: formato 30. de NRO_DOC en PROC EXPORT.'
 invariantes:
 - filas(SABANA_CTE) == filas(NRO_DOC_NO_VACIO_NI_0_CTE) + filas(RECHAZO_NRO_DOC_CTE)
 - filas(SABANA_AHO) == filas(NRO_DOC_NO_VACIO_NI_0_AHO) + filas(RECHAZO_NRO_DOC_AHO)
 - suma(CONTEO_NRO_DOC_TIT_COT.NRO_RECHAZOS) + suma(CONTEO_NRO_DOC_FA.NRO_RECHAZOS) == filas(RECHAZO_NRO_DOC_CTE)
   + filas(RECHAZO_NRO_DOC_AHO)
+- valor(SUMA_SALDO_CTE_VALIDAS.SUMA_SALDO_FINAL_CTE) == suma(NRO_DOC_NO_VACIO_NI_0_CTE.FIN_SALDO_CTA)

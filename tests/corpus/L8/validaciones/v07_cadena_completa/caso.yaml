@@ -4,7 +4,7 @@ tema: cadena completa (tipo de documento, documento vacio o cero y tipo de cuent
 construcciones:
 - PROC IMPORT DBMS=EXCELCS (homologacion)
 - PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM
-- input(left(...), 30.) para NRO_DOC
+- input(left(...), 30.) para NRO_DOC e input(left(...), 3.) para GMF, en un DATA step previo
 - macros por paso con parametro de producto (paso1_tipo_doc, paso2_tit_cot, paso2_fa, paso3_tipo_cta)
 - encadenamiento: cada paso lee la salida del anterior
 - PROC SQL LEFT JOIN ... IS MISSING, INNER JOIN, NOT IN y IN con lista de valores
@@ -58,14 +58,13 @@ capa: A
 razonamiento: 'Capa declarada originalmente: A (SQL encadenado sobre SQLite) y B (input de NRO_DOC). El
   esperado sale de la verdad plantada (validaciones_esperado); el cruce con el oráculo SQL está en validaciones_cruce.'
 estado: pendiente_revision
-motivo: 'Hallazgo del programa: PASO1_RECHAZO pide SABANA.GMF, que no existe (solo hay GMF_TXT, sin convertir).
-  El cruce supone la conversión (22 tablas y archivos sin diferencias con ese supuesto).'
+motivo: 'Error del autor corregido: PASO1_RECHAZO pedia SABANA.GMF, que no existe (solo estaba GMF_TXT,
+  sin convertir). Ahora el DATA step de NRO_DOC convierte tambien GMF; el cruce no necesita supuestos.'
 orden_relevante: false
 observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
   (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
-  Ninguna de esas dos cosas está demostrada con SAS. Programa no ejecutable tal cual en SAS: PASO1_RECHAZO
-  referencia GMF sin convertirlo. El esperado y el cruce suponen GMF = input(left(GMF_TXT), 3.) agregado
-  al final, como en v04 a v06 y v08. Dudas de PROC EXPORT como en los demás casos.'
+  Ninguna de esas dos cosas está demostrada con SAS. GMF = input(left(GMF_TXT), 3.) se agrega al final de
+  la sabana, con GMF_TXT borrada, como en v04 a v06 y v08. Dudas de PROC EXPORT como en los demás casos.'
 invariantes:
 - filas(SABANA_CTE) == filas(RECHAZOS_CTE) + filas(SABANA_FINAL_CTE)
 - filas(SABANA_AHO) == filas(RECHAZOS_AHO) + filas(SABANA_FINAL_AHO)
