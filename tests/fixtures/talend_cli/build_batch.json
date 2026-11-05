@@ -1,0 +1,1 @@
+{"ok":true,"source":"studio-bridge","confidence":"high","endpoint":"/automation/job/build-batch","data":{"ok":true,"source":"studio-bridge","confidence":"medium","endpoint":"/automation/build-batch","result":{"total":1,"correctos":0,"parallelism":4,"totalMs":0,"jobs":{"no_existe":{"ok":false,"error":"El job no existe en el repositorio"}}}}}

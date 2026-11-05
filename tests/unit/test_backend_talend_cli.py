@@ -2,7 +2,8 @@
 
 Las pruebas no arrancan Studio ni `bun`: el ejecutor falso devuelve la respuesta que se quiera y
 anota la línea de comandos, que es lo que hay que vigilar (nombres de herramienta, JSON de entrada,
-tiempo máximo y ausencia de secretos).
+tiempo máximo y ausencia de secretos). Las respuestas de los fixtures son las reales del puente:
+la forma de `result.jobs` y el mapa `findings` no se adivinan, se copian.
 """
 
 from __future__ import annotations
@@ -14,6 +15,12 @@ import pytest
 
 from sgm.backend_talend import BackendNoDisponible, ResultadoLote, Veredicto
 from sgm.backend_talend.talend_cli import TalendCliBackend
+
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "talend_cli"
+
+
+def _respuesta(nombre: str) -> str:
+    return (FIXTURES / nombre).read_text(encoding="utf-8").strip()
 
 
 class EjecutorFalso:
@@ -55,7 +62,40 @@ def test_compilar_lote_arma_la_linea_de_comandos(tmp_path):
     assert "--yes" in comando
 
 
-def test_compilar_lote_mapea_no_compilan(tmp_path):
+def test_compilar_lote_mapea_la_respuesta_real(tmp_path):
+    """La respuesta real del puente: un mapa `result.jobs` con `ok` y `error` por Job."""
+    ejecutor = EjecutorFalso(_respuesta("build_batch.json"))
+
+    resultado = _backend(ejecutor, tmp_path=tmp_path).compilar_lote(["no_existe"])
+
+    assert resultado == ResultadoLote(
+        compilan=(), no_compilan={"no_existe": "El job no existe en el repositorio"}
+    )
+
+
+def test_compilar_lote_separa_los_que_compilan(tmp_path):
+    salida = json.dumps(
+        {
+            "ok": True,
+            "data": {
+                "result": {
+                    "jobs": {
+                        "a": {"ok": True},
+                        "b": {"ok": False, "error": "x"},
+                        "c": {"ok": True},
+                    }
+                }
+            },
+        }
+    )
+
+    resultado = _backend(EjecutorFalso(salida), tmp_path=tmp_path).compilar_lote(["c", "b", "a"])
+
+    assert resultado.compilan == ("c", "a")
+    assert resultado.no_compilan == {"b": "x"}
+
+
+def test_compilar_lote_acepta_la_forma_resumida(tmp_path):
     ejecutor = EjecutorFalso(
         '{"ok": true, "data": {"noCompilan": [{"job": "b", "error": "x"}], "compilan": ["a"]}}'
     )
@@ -66,16 +106,36 @@ def test_compilar_lote_mapea_no_compilan(tmp_path):
 
 
 def test_verificar_mapea_el_veredicto(tmp_path):
-    ejecutor = EjecutorFalso(
-        '{"ok": true, "data": {"verdict": "ok_con_avisos", "findings": ["[WARN] algo"]}}'
+    salida = json.dumps(
+        {
+            "ok": True,
+            "data": {
+                "job": "a",
+                "compiles": True,
+                "verdict": "ok_con_avisos",
+                "findings": {"errors": [], "warnings": ["falta una etiqueta"]},
+            },
+        }
     )
+    ejecutor = EjecutorFalso(salida)
 
     veredicto = _backend(ejecutor, tmp_path=tmp_path).verificar("a", {"ruta_x": "/tmp/x"})
 
-    assert veredicto == Veredicto("ok_con_avisos", ("[WARN] algo",))
+    assert veredicto == Veredicto("ok_con_avisos", ("[WARN] falta una etiqueta",))
     comando, _ = ejecutor.llamadas[0]
     assert "talend_job_verify" in comando
-    assert _entrada(comando) == {"job": "a", "context": {"ruta_x": "/tmp/x"}}
+    # `talend_job_verify` no acepta contexto: se manda solo el Job, sin ejecutarlo.
+    assert _entrada(comando) == {"job": "a", "run": False}
+
+
+def test_verificar_un_job_que_no_compila_da_veredicto_de_error(tmp_path):
+    salida = json.dumps(
+        {"ok": False, "data": {"job": "a", "compiles": False, "verdict": "error", "findings": {}}}
+    )
+
+    veredicto = _backend(EjecutorFalso(salida), tmp_path=tmp_path).verificar("a", {})
+
+    assert veredicto == Veredicto("error", ())
 
 
 def test_cli_ausente_lanza_backend_no_disponible(tmp_path):
@@ -120,8 +180,11 @@ def test_contexto_con_password_se_rechaza_antes_de_llamar(tmp_path):
     assert ejecutor.llamadas == []
 
 
-def test_respuesta_con_ok_falso_lanza_backend_no_disponible(tmp_path):
-    ejecutor = EjecutorFalso('{"ok": false, "error": {"message": "Studio no responde"}}')
+def test_respuesta_con_error_lanza_backend_no_disponible(tmp_path):
+    """Un diálogo abierto en Studio llega así: `ok: false` con `error`, sin `data`."""
+    ejecutor = EjecutorFalso(
+        '{"ok": false, "error": {"code": "STUDIO_DIALOG_OPEN", "message": "Studio bloqueado"}}'
+    )
 
-    with pytest.raises(BackendNoDisponible, match="Studio no responde"):
-        _backend(ejecutor, tmp_path=tmp_path).compilar_lote(["a"])
+    with pytest.raises(BackendNoDisponible, match="Studio bloqueado"):
+        _backend(ejecutor, tmp_path=tmp_path).verificar("a", {})

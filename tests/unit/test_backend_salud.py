@@ -1,0 +1,123 @@
+"""Salud de Talend Studio: si responde, si deja escribir y si hay diálogos que bloquean.
+
+Las respuestas de prueba son las reales del puente, guardadas en `tests/fixtures/talend_cli/`: el
+ping devuelve `mode: "readWrite"` (no un booleano) y los diálogos vienen en `blocking`.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from sgm.backend_talend import BackendNoDisponible
+from sgm.backend_talend.salud import comprobar_salud
+from sgm.backend_talend.talend_cli import TalendCliBackend
+
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "talend_cli"
+
+
+def _respuesta(nombre: str) -> str:
+    return (FIXTURES / nombre).read_text(encoding="utf-8").strip()
+
+
+class EjecutorPorHerramienta:
+    """Ejecutor de prueba: responde según la herramienta que venga en la línea de comandos."""
+
+    def __init__(self, respuestas: dict[str, str]) -> None:
+        self.respuestas = respuestas
+        self.llamadas: list[tuple[list[str], float]] = []
+
+    def __call__(self, comando: list[str], tiempo_max: float) -> tuple[int, str]:
+        self.llamadas.append((list(comando), tiempo_max))
+        herramienta = comando[comando.index("call") + 1]
+        return 0, self.respuestas.get(herramienta, '{"ok": true, "data": {}}')
+
+
+class EjecutorQueFalla:
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+
+    def __call__(self, comando: list[str], tiempo_max: float) -> tuple[int, str]:
+        raise self.error
+
+
+def _backend(ejecutor) -> TalendCliBackend:
+    return TalendCliBackend(Path("."), Path("PRJ"), ejecutor=ejecutor, tiempo_max=120.0)
+
+
+def _libre() -> EjecutorPorHerramienta:
+    return EjecutorPorHerramienta(
+        {
+            "talend_bridge_ping": _respuesta("ping.json"),
+            "talend_studio_ui_dialogs": '{"ok": true, "data": {"blocked": false, "dialogs": []}}',
+        }
+    )
+
+
+def test_salud_ok_con_la_respuesta_real_del_puente():
+    ejecutor = _libre()
+
+    salud = comprobar_salud(_backend(ejecutor))
+
+    assert salud.ok is True
+    assert salud.motivo == ""
+    assert [comando[comando.index("call") + 1] for comando, _ in ejecutor.llamadas] == [
+        "talend_bridge_ping",
+        "talend_studio_ui_dialogs",
+    ]
+    assert all(tiempo == 10.0 for _, tiempo in ejecutor.llamadas)
+
+
+def test_salud_dialogo_bloqueado():
+    ejecutor = EjecutorPorHerramienta(
+        {
+            "talend_bridge_ping": _respuesta("ping.json"),
+            "talend_studio_ui_dialogs": (
+                '{"ok": true, "data": {"blocked": true, "blocking": '
+                '[{"title": "Network Issue Occured", "blocking": true}]}}'
+            ),
+        }
+    )
+
+    salud = comprobar_salud(_backend(ejecutor))
+
+    assert salud.ok is False
+    assert "revisa si hay un diálogo abierto en Talend Studio" in salud.motivo
+    assert "Network Issue Occured" in salud.motivo
+
+
+def test_salud_con_codigo_de_dialogo_en_el_ping():
+    ejecutor = EjecutorPorHerramienta(
+        {"talend_bridge_ping": '{"ok": false, "error": {"code": "STUDIO_DIALOG_OPEN"}}'}
+    )
+
+    salud = comprobar_salud(_backend(ejecutor))
+
+    assert salud.ok is False
+    assert "STUDIO_DIALOG_OPEN" in salud.motivo
+    assert "revisa si hay un diálogo abierto en Talend Studio" in salud.motivo
+
+
+def test_salud_tiempo_agotado():
+    salud = comprobar_salud(_backend(EjecutorQueFalla(BackendNoDisponible("no respondió"))))
+
+    assert salud.ok is False
+    assert "revisa si hay un diálogo abierto en Talend Studio" in salud.motivo
+
+
+def test_salud_sin_permiso_de_escritura():
+    ejecutor = EjecutorPorHerramienta(
+        {"talend_bridge_ping": '{"ok": true, "data": {"mode": "readOnly"}}'}
+    )
+
+    salud = comprobar_salud(_backend(ejecutor))
+
+    assert salud.ok is False
+    assert "escritura" in salud.motivo
+
+
+def test_la_respuesta_guardada_es_la_del_puente():
+    """El fixture no es inventado: trae los campos que el mapeo lee."""
+    datos = json.loads(_respuesta("ping.json"))["data"]
+
+    assert datos["mode"] == "readWrite"

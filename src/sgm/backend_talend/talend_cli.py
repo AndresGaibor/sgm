@@ -36,6 +36,29 @@ def _sin_secretos(contexto: dict[str, str]) -> None:
         raise ValueError(f"el contexto lleva secretos y no se pueden pasar por la CLI: {culpables}")
 
 
+def _compilo(estado: object) -> bool:
+    """Si un Job del lote compiló, según el mapa `result.jobs` del puente."""
+    return bool(estado.get("ok")) if isinstance(estado, dict) else False
+
+
+def _motivo(estado: object) -> str:
+    """Motivo por el que un Job del lote no compiló."""
+    if isinstance(estado, dict):
+        return str(estado.get("error") or estado.get("motivo") or "sin motivo")
+    return str(estado or "sin motivo")
+
+
+def _hallazgos(bruto: object) -> tuple[str, ...]:
+    """Hallazgos del veredicto como líneas: `findings` es un mapa de errores y avisos."""
+    if isinstance(bruto, dict):
+        errores = [f"[ERROR] {texto}" for texto in bruto.get("errors") or []]
+        avisos = [f"[WARN] {texto}" for texto in bruto.get("warnings") or []]
+        return tuple(errores + avisos)
+    if isinstance(bruto, list):
+        return tuple(str(item) for item in bruto)
+    return ()
+
+
 def ejecutor_subprocess(talend_dir: Path) -> Ejecutor:
     """Ejecutor real: `subprocess.run` en la carpeta de `talend-mcp`."""
 
@@ -97,9 +120,14 @@ class TalendCliBackend(ArchivosBackend):
             "--yes",
         ]
 
-    def _llamar(self, tool: str, entrada: dict) -> dict:
-        """Llama a una herramienta y devuelve su `data`, o lanza `BackendNoDisponible`."""
-        codigo, salida = self.ejecutor(self._comando(tool, entrada), self.tiempo_max)
+    def llamar(self, tool: str, entrada: dict, tiempo_max: float | None = None) -> dict:
+        """Llama a una herramienta y devuelve su `data`, o lanza `BackendNoDisponible`.
+
+        `tiempo_max` permite un corte más corto que el del backend (la comprobación de salud usa
+        diez segundos para no colgar el ciclo de desarrollo).
+        """
+        limite = self.tiempo_max if tiempo_max is None else tiempo_max
+        codigo, salida = self.ejecutor(self._comando(tool, entrada), limite)
         try:
             respuesta = json.loads(salida)
         except (TypeError, ValueError) as error:
@@ -109,29 +137,53 @@ class TalendCliBackend(ArchivosBackend):
             ) from error
         if not isinstance(respuesta, dict):
             raise BackendNoDisponible(f"respuesta no válida de la CLI de talend-mcp: {tool}")
-        if respuesta.get("ok") is False or codigo != 0:
+        datos = respuesta.get("data")
+        # `ok: false` con `error` es un fallo del puente; `ok: false` con `data` es un resultado
+        # negativo (un Job que no compila), que el llamador decide cómo tratar.
+        if respuesta.get("error") or (respuesta.get("ok") is False and not isinstance(datos, dict)):
             motivo = respuesta.get("error") or respuesta.get("message") or f"código {codigo}"
             raise BackendNoDisponible(f"la CLI de talend-mcp falló en {tool}: {motivo}")
-        datos = respuesta.get("data")
+        if codigo != 0:
+            raise BackendNoDisponible(f"la CLI de talend-mcp falló en {tool}: código {codigo}")
         return datos if isinstance(datos, dict) else respuesta
 
     def compilar_lote(self, nombres: list[str]) -> ResultadoLote:
-        datos = self._llamar(_TOOL_LOTE, {"jobs": list(nombres), "parallelism": _PARALELISMO})
+        """Compila los Jobs en una llamada; la respuesta real trae un mapa `result.jobs`."""
+        datos = self.llamar(_TOOL_LOTE, {"jobs": list(nombres), "parallelism": _PARALELISMO})
+        resultado = datos.get("result") if isinstance(datos.get("result"), dict) else datos
+        por_job = resultado.get("jobs")
+        if isinstance(por_job, dict):
+            orden = {nombre: i for i, nombre in enumerate(nombres)}
+            compilan = sorted(
+                (nombre for nombre, estado in por_job.items() if _compilo(estado)),
+                key=lambda nombre: orden.get(nombre, len(orden)),
+            )
+            fallos = {
+                nombre: _motivo(estado)
+                for nombre, estado in por_job.items()
+                if not _compilo(estado)
+            }
+            return ResultadoLote(compilan=tuple(compilan), no_compilan=fallos)
+        # Forma resumida (`compilan` y `noCompilan`): la deja un puente que no devuelve el detalle.
         fallos = {
             str(item.get("job")): str(item.get("error") or "sin motivo")
-            for item in datos.get("noCompilan") or []
+            for item in resultado.get("noCompilan") or []
         }
         return ResultadoLote(
-            compilan=tuple(str(nombre) for nombre in datos.get("compilan") or []),
+            compilan=tuple(str(nombre) for nombre in resultado.get("compilan") or []),
             no_compilan=fallos,
         )
 
     def verificar(self, nombre: str, contexto: dict[str, str]) -> Veredicto:
+        """Compila el Job y devuelve su veredicto, sin ejecutarlo.
+
+        `talend_job_verify` no acepta contexto: el de esta llamada se valida (para que ningún
+        secreto llegue a la CLI) y se guarda para cuando el Job se ejecute con `run: true`.
+        """
         _sin_secretos(contexto)
-        datos = self._llamar(_TOOL_VERIFICAR, {"job": nombre, "context": dict(contexto)})
+        datos = self.llamar(_TOOL_VERIFICAR, {"job": nombre, "run": False})
         nivel = str(datos.get("verdict") or datos.get("nivel") or "error")
-        hallazgos = tuple(str(h) for h in datos.get("findings") or datos.get("hallazgos") or [])
-        return Veredicto(nivel, hallazgos)
+        return Veredicto(nivel, _hallazgos(datos.get("findings")))
 
 
 __all__ = ["Ejecutor", "TalendCliBackend", "ejecutor_subprocess"]

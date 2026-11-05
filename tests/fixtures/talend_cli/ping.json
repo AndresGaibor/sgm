@@ -1,0 +1,1 @@
+{"ok":true,"source":"studio-bridge","confidence":"high","endpoint":"/ping","data":{"ok":true,"source":"studio-bridge","confidence":"high","endpoint":"/ping","plugin":"com.andres.talend.bridge","version":"0.1.0.202610280437","mode":"readWrite","unsafeActions":true,"hotReload":true,"pid":32152,"javaVersion":"21.0.11","startedAt":1793910398569,"uptimeMs":2077248}}
