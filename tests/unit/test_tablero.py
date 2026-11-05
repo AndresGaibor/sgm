@@ -37,7 +37,9 @@ def datos_corpus() -> dict:
 
 def test_componentes_por_job_del_programa_grande(jobs):
     assert jobs == {
-        "job_conciliacion": 1,
+        # hito 98d: job_conciliacion real (tJava; por producto, dos lectores, un tMap y una
+        # escritura; más el lector de chequeo, el tJavaRow y el tDie: 3 productos x 4 + 4).
+        "job_conciliacion": 16,
         "job_exogena_depositos": 13,
         # hito 84 añade el tMap_normalizacion; hito 87 el tMap_flujos y sus 3 salidas;
         # hito 89 el tMap_cuenta y sus 4 salidas.
@@ -46,7 +48,7 @@ def test_componentes_por_job_del_programa_grande(jobs):
         # x 2 tipos x 2 componentes + tJava).
         "job_totales": 13,
     }
-    assert sum(jobs.values()) == 48
+    assert sum(jobs.values()) == 63
 
 
 def test_conformidad_cuenta_filas_y_secciones():

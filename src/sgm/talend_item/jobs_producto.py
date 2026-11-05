@@ -108,6 +108,8 @@ def job_producto(
                 "FILENAME": "context.ruta_origen",
                 "FIELDSEPARATOR": java(delimitador),
                 "HEADER": "0",
+                # R2-07: un origen que no se lee hace fallar el Job (DC-08, hito 98d).
+                "DIE_ON_ERROR": "true",
             },
             columnas=cols,
             ruta_java=ruta_java,

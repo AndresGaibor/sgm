@@ -24,6 +24,7 @@ from sgm.proceso.secciones_entrada import cargar_declaradas
 from sgm.proceso.validaciones import validaciones
 from sgm.talend_item.arquitectura import cargar_arquitectura
 from sgm.talend_item.escritura import escribir_job
+from sgm.talend_item.jobs_conciliacion import job_conciliacion
 from sgm.talend_item.jobs_diseno import ProductoJob, job_padre, jobs_hijos
 from sgm.talend_item.jobs_producto import job_producto
 from sgm.talend_item.jobs_totales import job_totales
@@ -173,11 +174,21 @@ def talend_command(
             ubicacion=ubic,
         )
     totales = None
+    conciliacion = None
     if arq.periodo is not None and arq.archivo_totales and productos:
-        totales = job_totales(arq, tuple(p.sufijo for p in productos))
+        sufijos = tuple(p.sufijo for p in productos)
+        totales = job_totales(arq, sufijos)
+        conciliacion = job_conciliacion(arq, sufijos)
     jobs = [
         padre,
-        *jobs_hijos(arq, variables, lookups, producto_real=producto, totales_real=totales),
+        *jobs_hijos(
+            arq,
+            variables,
+            lookups,
+            producto_real=producto,
+            totales_real=totales,
+            conciliacion_real=conciliacion,
+        ),
     ]
     destino = out / source.stem / "talend" / "process"
     escritos = [escribir_job(job, destino) for job in jobs]
@@ -205,4 +216,14 @@ def talend_command(
         typer.echo(
             "Pendiente: job_producto aún no escribe totales_origen_<producto>.csv "
             "ni totales_salida_<producto>.csv; job_totales los lee (hito 97)."
+        )
+    if conciliacion is not None:
+        typer.echo("Pendiente: tolerancia_conciliacion vale 0 por omisión; confirmar con negocio.")
+        typer.echo(
+            "Pendiente: la salida de la conciliación del SAS (válidos más rechazados) no es "
+            "la salida de totales que hoy escribe el productor de tools/."
+        )
+        typer.echo(
+            "Pendiente: la conciliación de client_large usa fórmulas por producto distintas "
+            "de L8/05 (CONCILIACION_REG y CONCILIACION_SALDOS); aún no se decide cuál aplica."
         )

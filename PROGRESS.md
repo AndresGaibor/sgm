@@ -3713,3 +3713,162 @@ están en blanco en CTE; no suman y no cuentan como saldo no vacío, como exige 
   de SAS del cliente sigue sin confirmar (tarea 9).
 - No verificado: no se leyó la guía entera; la revisión fue por el índice y por búsquedas en el texto
   extraído. Que `lrcon` y el SAS del cliente sean la misma edición no se puede saber desde el repo.
+
+## Hito 98d. R2-03 y R2-07: `job_conciliacion` real en Studio, y el fallo de un hijo hace fallar al padre (DC-08 por omisión)
+
+- Fecha: 2026-11-05. Serie `d` (sesión paralela; el hito 98 es el de la referencia `lrcon`). Plan:
+  `docs/plan-reescritura/ruta-a-produccion.md`, filas R2-03 y R2-07; `tareas-agente.md`, T32 y T33.
+
+### Qué se hizo
+
+- `src/sgm/talend_item/jobs_conciliacion.py` (227 líneas): `job_conciliacion(arq, productos, ruta_java,
+  nombre)`. Por producto, en orden (`OnSubjobOk`): dos lectores de `totales_origen_<p>.csv` y
+  `totales_salida_<p>.csv` con `DIE_ON_ERROR=true`; un `tMap` con la salida como lookup por `PRODUCTO`
+  que calcula `DIF_FILAS` (entero exacto) y `DIF_SALDO` (`BigDecimal`); y una escritura a
+  `conciliacion_<anio><mes><dia>.csv` (la cabecera solo en el primero). Después un lector relee ese
+  archivo, un `tJavaRow` deja en `globalMap` el texto de cada producto que no concilia, y un `tDie`
+  (`EXIT_JVM=true`, `CODE=3`, mensaje desde `globalMap`) corre con `Run if` si hay texto.
+- `src/sgm/cli_talend.py`: `sgm talend` emite el `job_conciliacion` real cuando hay periodo,
+  `archivo_totales` y productos. Añade tres avisos `Pendiente:` (tolerancia, salida de la conciliación,
+  fórmula de `client_large`). `src/sgm/talend_item/jobs_diseno.py`: `jobs_hijos` acepta
+  `conciliacion_real`.
+- `src/sgm/talend_item/jobs_producto.py`: `DIE_ON_ERROR=true` en el lector del origen del producto
+  (dos líneas).
+- `tests/unit/test_talend_jobs_conciliacion.py` (13 funciones de prueba, 15 casos con las parametrizaciones).
+- `tests/unit/test_tablero.py`: el baseline de `job_conciliacion` pasa de 1 a 16 componentes y el total
+  de 48 a 63. Es el Job real con tres productos (3 x 4 componentes + `tJava`, `tJavaRow`, lector de
+  chequeo y `tDie`).
+- Herramientas de la prueba en Studio: `tools/prueba_conciliacion_caso.py` (249 líneas),
+  `tools/prueba_conciliacion_utiles.py` (97) y `tools/prueba_fallo_producto.py` (114).
+
+### Decisiones
+
+- **Regla de no conciliación, como en el SAS (L8/05).** `CONCILIA` solo si `ABS(DIF_SALDO) <= tolerancia`
+  y `DIF_FILAS = 0` (`programa.sas`, etiqueta "Estado de conciliación CTE"). La tolerancia es solo de
+  saldo; las filas no tienen tolerancia. La petición decía comparar filas y saldos con la tolerancia;
+  se siguió el SAS porque es lo que demuestra.
+- **Tolerancia de negocio** (DC-04): `context.tolerancia_conciliacion`, valor `0` por omisión, con el
+  comentario "confirmar con negocio". No se inventó otro valor.
+- **Código de salida 3 para "no concilia".** El SAS solo escribe `NOTE`/`WARNING`; el código es una
+  decisión del emisor, no un dato del SAS.
+- **Chequeo por relectura del archivo.** El `tMap` no puede dejar un valor en `globalMap` de forma
+  limpia, así que el chequeo lee `conciliacion_<fecha>.csv`, que ya contiene lo que se decidió.
+- **Columnas** `PRODUCTO;DIF_FILAS;DIF_SALDO`, las de `CONCILIACION_FINAL` del SAS. No se añadieron
+  `NRO_ORIGEN` ni un estado.
+- **DC-08 (fallo parcial), solo la opción por omisión.** Si un producto falla, falla todo el proceso:
+  `tRunJob` tiene `DIE_ON_CHILD_ERROR=true` y los lectores de totales, de conciliación y del producto
+  tienen `DIE_ON_ERROR=true`. La alternativa (seguir con los demás productos y registrar el fallo) no
+  se implementó: DC-08 es decisión de negocio y todavía no está tomada.
+- **Dos definiciones de "salida".** En `L8/totales/04` la salida es `TIPO_CTA <> '03'` (supuesto del
+  caso). En `L8/totales/05` la salida de la conciliación es válidos más rechazados (regla del SAS).
+  Son el mismo archivo con significados distintos. Queda pendiente decidir cuál escribe `job_producto`.
+- **Totales de entrada de la prueba.** Se escriben desde `esperado/TOTALES_CONC_<p>.csv` (origen:
+  `NRO_ORIGEN` y `SUMA_ORIGEN`; salida: válidos más rechazados). Así se prueba el Job de conciliación,
+  no el productor de totales, que `job_producto` todavía no escribe. Fecha de prueba: 2026-09-30.
+
+### Evidencia de Studio 8.0.1 (`PRJ_BANCOLOMBIA`, corrida `v98b`, la final)
+
+Comando: `uv run python tools/prueba_conciliacion_caso.py --proyecto
+"C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA" --java-bin
+"C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin" --m2 "C:/Talend/8.0.1/studio/configuration/.m2/repository"
+--sufijo v98b`. Se omiten las líneas `java -D...` y las de pila (`at ...`).
+
+```text
+Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+Sufijo: v98b
+Compilando hijos: ['caso_conc_cte_v98b', 'caso_conc_ambos_v98b']
+Compilando padre: caso_politica_v98b
+--- escenario concilia
+Código de salida: 0
+job_conciliacion: CTE
+Contenido literal de conciliacion_20260930.csv:
+PRODUCTO;DIF_FILAS;DIF_SALDO
+CTE;0;0.00
+RESULTADO concilia: OK
+--- escenario no_concilia
+Código de salida: 3
+job_conciliacion: CTE, AHO
+[ERROR] 14:18:21 prj_bancolombia.caso_conc_ambos_v98b_0_1.caso_conc_ambos_v98b- tDie_conc - The die message: NO CONCILIA AHO: diferencia de filas 1, diferencia de saldo 5.00 (tolerancia 0)
+routines.system.TDieException: NO CONCILIA AHO: diferencia de filas 1, diferencia de saldo 5.00 (tolerancia 0)
+[FATAL] 14:18:21 prj_bancolombia.caso_conc_ambos_v98b_0_1.caso_conc_ambos_v98b- tDie_conc - Exiting the VM.
+stderr: NO CONCILIA AHO: diferencia de filas 1, diferencia de saldo 5.00 (tolerancia 0)
+Contenido literal de conciliacion_20260930.csv:
+PRODUCTO;DIF_FILAS;DIF_SALDO
+CTE;0;0.00
+AHO;1;5.00
+RESULTADO no_concilia: OK
+--- escenario politica
+Código de salida: 1
+caso_politica: arranca
+job_conciliacion: CTE, AHO
+[FATAL] 14:18:54 prj_bancolombia.caso_conc_ambos_v98b_0_1.caso_conc_ambos_v98b- tFileInputDelimited_o2 C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_03_v98b\entradas_v98b_politica\totales_origen_AHO.csv (El sistema no puede encontrar el archivo especificado)
+[FATAL] 14:18:54 prj_bancolombia.caso_politica_v98b_0_1.caso_politica_v98b- tRunJob_1 Child job running failed.
+Exception in component tRunJob_1 (caso_politica_v98b)
+java.lang.RuntimeException: Child job running failed.
+RESULTADO politica: OK
+Limpieza: 6 archivos borrados del proyecto
+```
+
+El escenario `politica` no imprime `caso_politica: NO DEBIA CORRER`, así que el paso siguiente no corrió.
+El `conciliacion_20260930.csv` de ese escenario solo tiene la fila de CTE, porque el hijo escribió CTE
+antes de fallar en AHO.
+
+Prueba de R2-07 para el producto (`tools/prueba_fallo_producto.py`, corrida `v98c`): el `job_producto`
+emitido con `ruta_origen` inexistente sale con código 1:
+
+```text
+Código de salida: 1
+[FATAL] 14:22:57 prj_bancolombia.job_producto_v98c_0_1.job_producto_v98c- tFileInputDelimited_1 C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_07_v98c\no_existe_origen.csv (El sistema no puede encontrar el archivo especificado)
+RESULTADO: OK, el Job falla con código distinto de 0 al faltar el origen
+```
+
+Intentos sin valor de evidencia: `v98a` se corrió sin el JDK de Studio en el PATH; `java` no se
+reconoce, así que todos los escenarios salieron con 1 por eso. Su `RESULTADO politica: OK` es un
+falso positivo y no se usa. Se repitió con `--java-bin` y `--m2` como `v98b`. No apareció el diálogo
+"Network Issue".
+
+### Hallazgos de la fórmula de conciliación del SAS real
+
+`client_large.sas` no usa la fórmula de `L8/05` en sus conciliaciones. Los bloques `Calculo conciliacion`
+(líneas 4069 a 4140, 6585 a 6660, 7273 a 7360 y 9229 a 9620) calculan `CONCILIACION_REG` y
+`CONCILIACION_SALDOS` por producto, con sumas distintas (por ejemplo `NRO_REGISTROS` contra la sábana
+final más inconsistencias corregidas, o `SUMA_SALDO_INICIAL` contra la sábana y las inconsistencias).
+Este Job implementa `L8/05`. Qué fórmula aplica a `client_large` queda pendiente (aviso `Pendiente:`
+de `sgm talend`).
+
+### Pruebas y verificación
+
+- `uv run pytest -q -n auto`: **2094 pasadas, 26 omitidas y 129 `xfailed`**, sin fallos.
+- `uv run ruff check .`: limpio.
+- Pruebas nuevas: `tests/unit/test_talend_jobs_conciliacion.py` (13 funciones, 15 casos).
+- `sgm talend tests/fixtures/sas/client/client_large.sas` emite los cuatro Jobs (padre, producto, totales
+  y conciliación). Los avisos `Pendiente:` nuevos son tres.
+
+### Métricas
+
+- `jobs_conciliacion.py` 227 líneas; `cli_talend.py` 229; `prueba_conciliacion_caso.py` 249.
+- Dependencias nuevas: ninguna. Plantillas nuevas: ninguna (se usan `tFileInputDelimited`, `tMap`,
+  `tFileOutputDelimited`, `tJavaRow`, `tDie`, `tJava` y `tRunJob`).
+
+### Bloqueos y no verificado
+
+- **Tolerancia de negocio** (DC-04) sin valor: solo se probó con `0`. Con una tolerancia distinta de cero
+  no se ejecutó nada en Studio.
+- **Fórmula de `client_large`** distinta de `L8/05`: sin decidir (ver hallazgos).
+- **Salida de totales.** `job_producto` no escribe `totales_origen_<p>.csv` ni `totales_salida_<p>.csv`.
+  Los Jobs de totales y conciliación leen archivos que el padre real aún no produce. Los datos de
+  entrada de la prueba salen de `esperado/`, no de `job_producto`.
+- **Caso de conciliación de prueba.** La variante "concilia" usa un Job solo con CTE
+  (`caso_conc_cte`); en el caso no hay un dataset en que AHO concilie. No se inventaron datos.
+- **Padre real.** El `job_padre` de `client_large` no se ejecutó en Studio. La propagación se probó con un
+  padre de prueba (`caso_politica`).
+- **`tDie` dentro de un padre.** La prueba del `tDie` se hizo con el Job de conciliación directamente.
+  Que `EXIT_JVM` dentro de un hijo termine el padre no se ejecutó.
+- **Control negativo** (`DIE_ON_ERROR=false` en el lector de conciliación): no se corrió aquí. El
+  hito 97d lo midió con el mismo tipo de lector (`v97e`): el Job terminó con código 0.
+- **Casos no cubiertos del lookup**: un producto sin fila en la salida hace fallar el `tMap` (NPE, sin
+  mensaje claro) y un `SUMA_SALDO` vacío hace fallar la conversión `BigDecimal`. Ninguno se probó.
+- **Ajeno**: `tests/unit/test_proceso_insumos.py::test_el_programa_grande_resuelve_las_cinco_fuentes_de_excel`
+  falla por archivos sin commitear de otra sesión (`decisiones/client_large.diseno.yaml`); no se tocó.
+- La regla de `L8/05` y la tolerancia de prueba `0.005` de `caso.yaml` no son lo mismo: `0.005` es la
+  tolerancia para comparar decimales en `esperado/`; la de negocio es `tolerancia_conciliacion`.
