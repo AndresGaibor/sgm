@@ -1,0 +1,11 @@
+nivel: L2
+construcciones: [PROC SQL, LEFT JOIN, "ON", CLAVES REPETIDAS EN LOOKUP, WHERE, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [operaciones_cruzadas, operaciones_cc]
+invariantes:
+  - "filas(operaciones_cruzadas) == filas(operaciones) + filas(operaciones_cc)"
+  - "filas(operaciones_cc) >= 1"
+razonamiento: "CC aparece dos veces en la homologación: cada operación con CC se duplica en el cruce."

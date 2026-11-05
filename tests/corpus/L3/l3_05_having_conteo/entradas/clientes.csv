@@ -1,0 +1,15 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Elena Ficticia,Monte Verde,233,PENDIENTE
+102,Elena Ficticia,Puerto Sur,2977,PENDIENTE
+103,Hugo Simulado,Monte Verde,3591,PENDIENTE
+104,Elena Ficticia,Monte Verde,878,ACTIVO
+105,Hugo Simulado,Villa Norte,2265,PENDIENTE
+106,Jorge Caso,Puerto Sur,3347,INACTIVO
+107,Gabriela Test,Valle Alto,2564,ACTIVO
+108,Bruno Demo,Villa Norte,486,INACTIVO
+109,Jorge Caso,Villa Norte,1130,INACTIVO
+110,Bruno Demo,Villa Norte,4524,ACTIVO
+111,Bruno Demo,Puerto Sur,4746,INACTIVO
+112,Diego Ejemplo,Lago Azul,4904,INACTIVO
+113,Diego Ejemplo,Lago Azul,4080,INACTIVO
+114,Ana Prueba,Puerto Sur,4990,INACTIVO

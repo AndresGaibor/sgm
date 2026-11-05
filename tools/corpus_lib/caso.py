@@ -12,6 +12,8 @@ from pathlib import Path
 
 import yaml
 
+from . import invariantes, preparacion
+
 CAPAS = ("A", "B", "C")
 ESTADOS = (
     "traducible", "parcial", "pendiente", "pendiente_revision", "revisado", "sin_esperado"
@@ -42,6 +44,8 @@ class Caso:
     motivo: str | None
     salidas: tuple[str, ...]
     razonamiento: str | None
+    invariantes: tuple[str, ...] = ()
+    preparacion: preparacion.Preparacion | None = None
 
     @property
     def programa(self) -> Path:
@@ -50,6 +54,11 @@ class Caso:
     @property
     def entradas(self) -> Path:
         return self.directorio / "entradas"
+
+    @property
+    def entradas_preparadas(self) -> Path:
+        """Entradas del PROC SQL cuando hay un DATA step previo (ver `preparacion.py`)."""
+        return self.directorio / "entradas_preparadas"
 
     @property
     def esperado(self) -> Path:
@@ -104,6 +113,22 @@ def cargar_caso(directorio: Path) -> Caso:
     razonamiento = datos.get("razonamiento")
     if razonamiento is not None and not isinstance(razonamiento, str):
         raise error("'razonamiento' debe ser texto")
+    lista_invariantes = datos.get("invariantes", [])
+    if not isinstance(lista_invariantes, list) or not all(
+        isinstance(texto, str) and texto.strip() for texto in lista_invariantes
+    ):
+        raise error("'invariantes' debe ser una lista de textos no vacíos")
+    for texto in lista_invariantes:
+        try:
+            invariantes.analizar(texto)
+        except ValueError as fallo:
+            raise error(f"invariante no válida '{texto}': {fallo}") from None
+    prepara = None
+    if datos.get("preparacion") is not None:
+        try:
+            prepara = preparacion.validar(datos["preparacion"])
+        except ValueError as fallo:
+            raise error(str(fallo)) from None
     return Caso(
         nombre=directorio.name,
         directorio=directorio,
@@ -116,6 +141,8 @@ def cargar_caso(directorio: Path) -> Caso:
         motivo=motivo,
         salidas=tuple(salidas),
         razonamiento=razonamiento,
+        invariantes=tuple(lista_invariantes),
+        preparacion=prepara,
     )
 
 

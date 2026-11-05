@@ -1,0 +1,11 @@
+nivel: L3
+construcciones: [PROC SQL, GROUP BY, HAVING, SUM, COUNT, ORDER BY, FALTANTES, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: true
+estado: traducible
+salidas: [stock_por_categoria, categorias_altas]
+invariantes:
+  - "suma(stock_por_categoria.productos) == filas(productos)"
+  - "suma(stock_por_categoria.stock_total) == suma(productos.stock)"
+  - "filas(categorias_altas) <= filas(stock_por_categoria)"

@@ -1,0 +1,20 @@
+nivel: L3
+construcciones: [DATA STEP, INPUT, LEFT, PROC SQL, SUM, COUNT, FALTANTES, PREPARACION, CREATE TABLE AS]
+capa: A
+tolerancia: 0.005
+orden_relevante: false
+estado: traducible
+salidas: [total_saldo_final]
+preparacion:
+  origen: columnas_depositos
+  destino: FORM_SALDO_CTA_CTE
+  asignaciones:
+    - variable: FORM_FIN_SALDO_CTA
+      columna: fin_saldo_cta
+      pasos:
+        - [left]
+        - [input, 20, 0]
+invariantes:
+  - "valor(total_saldo_final.con_saldo) == filas(FORM_SALDO_CTA_CTE) - 2"
+  - "valor(total_saldo_final.suma_saldo_final) == suma(FORM_SALDO_CTA_CTE.FORM_FIN_SALDO_CTA)"
+razonamiento: "El DATA step (input(left(x), 20.)) no lo ejecuta el oraculo SQL: lo calcula la preparacion con corpus_semantica_funciones.evaluar y lo guarda en entradas_preparadas/."

@@ -1,0 +1,10 @@
+nivel: L2
+construcciones: [PROC SQL, INNER JOIN, "ON", NOT IN, SUBCONSULTA, SELECT alias.*, VALIDACION CON LOOKUP, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [aceptadas, rechazadas]
+invariantes:
+  - "filas(aceptadas) + filas(rechazadas) == filas(operaciones)"
+razonamiento: "Dos etapas de validación. Rechazadas se obtiene con NOT IN sobre la subconsulta de aceptadas."

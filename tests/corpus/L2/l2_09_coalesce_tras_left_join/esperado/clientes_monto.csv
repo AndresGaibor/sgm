@@ -1,0 +1,14 @@
+id_cliente,nombre,canal,monto
+101,Hugo Simulado,WEB,0
+102,Bruno Demo,TELEFONO,401
+103,Carla Muestra,TIENDA,394
+104,Diego Ejemplo,TIENDA,488
+105,Elena Ficticia,TIENDA,254
+105,Elena Ficticia,TIENDA,270
+106,Irene Modelo,SIN_VENTA,0
+107,Gabriela Test,WEB,718
+108,Carla Muestra,WEB,550
+109,Gabriela Test,TIENDA,399
+109,Gabriela Test,WEB,0
+109,Gabriela Test,WEB,671
+110,Carla Muestra,SIN_VENTA,0

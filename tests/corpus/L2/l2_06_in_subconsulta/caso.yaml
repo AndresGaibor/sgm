@@ -1,0 +1,9 @@
+nivel: L2
+construcciones: [PROC SQL, IN, SUBCONSULTA, WHERE, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [clientes_con_compras_altas]
+invariantes:
+  - "filas(clientes_con_compras_altas) <= filas(clientes)"

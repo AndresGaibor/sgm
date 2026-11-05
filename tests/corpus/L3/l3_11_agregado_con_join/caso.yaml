@@ -1,0 +1,11 @@
+nivel: L3
+construcciones: [PROC SQL, LEFT JOIN, "ON", GROUP BY, COUNT, SUM, IS MISSING, ORDER BY, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: true
+estado: traducible
+salidas: [por_ciudad, sin_ventas]
+invariantes:
+  - "suma(por_ciudad.filas_cruce) == filas(ventas) + filas(sin_ventas)"
+  - "suma(por_ciudad.ventas) == filas(ventas)"
+  - "suma(por_ciudad.monto_total) == suma(ventas.monto)"

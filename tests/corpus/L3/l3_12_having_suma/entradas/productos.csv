@@ -1,0 +1,15 @@
+codigo,descripcion,precio,stock,categoria
+PRD-001,Cinta,146,38,B
+PRD-002,Lapicero,120,45,A
+PRD-003,Borrador,87,26,B
+PRD-004,Lapicero,280,67,B
+PRD-005,Goma,196,71,B
+PRD-006,Borrador,66,0,B
+PRD-007,Cinta,231,42,B
+PRD-008,Goma,128,35,A
+PRD-009,Goma,155,,A
+PRD-010,Cuaderno,276,60,A
+PRD-011,Goma,295,68,A
+PRD-012,Lapicero,109,,B
+PRD-013,Regla,210,43,B
+PRD-014,Cuaderno,162,14,A

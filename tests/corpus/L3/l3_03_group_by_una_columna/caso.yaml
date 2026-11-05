@@ -1,0 +1,10 @@
+nivel: L3
+construcciones: [PROC SQL, GROUP BY, COUNT, SUM, ORDER BY, FALTANTES, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: true
+estado: traducible
+salidas: [por_ciudad]
+invariantes:
+  - "suma(por_ciudad.clientes) == filas(clientes)"
+  - "suma(por_ciudad.saldo_total) == suma(clientes.saldo)"

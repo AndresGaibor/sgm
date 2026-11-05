@@ -1,0 +1,10 @@
+nivel: L2
+construcciones: [PROC SQL, LEFT JOIN, "ON", IS MISSING, CREATE TABLE AS, PROC EXPORT]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [clientes_con_ventas]
+invariantes:
+  - "filas(clientes_con_ventas) >= filas(clientes)"
+  - "suma(clientes_con_ventas.monto) == suma(ventas.monto)"

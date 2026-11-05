@@ -1,0 +1,11 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Gabriela Test,Villa Norte,1347,INACTIVO
+102,Gabriela Test,Monte Verde,3331,PENDIENTE
+103,Hugo Simulado,Valle Alto,232,ACTIVO
+104,Elena Ficticia,Lago Azul,1420,ACTIVO
+105,Irene Modelo,Lago Azul,1362,PENDIENTE
+106,Felipe Dato,Puerto Sur,988,INACTIVO
+107,Diego Ejemplo,Puerto Sur,3040,ACTIVO
+108,Felipe Dato,Valle Alto,138,ACTIVO
+109,Ana Prueba,Monte Verde,943,INACTIVO
+110,Bruno Demo,Puerto Sur,3702,PENDIENTE

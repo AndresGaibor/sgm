@@ -1,0 +1,12 @@
+nivel: L3
+construcciones: [PROC SQL, SUM, MIN, MAX, AVG, COUNT, FALTANTES, CREATE TABLE AS]
+capa: A
+tolerancia: 0.001
+orden_relevante: false
+estado: traducible
+salidas: [resumen_monto]
+invariantes:
+  - "valor(resumen_monto.suma) == suma(ventas.monto)"
+  - "valor(resumen_monto.minimo) <= valor(resumen_monto.maximo)"
+  - "valor(resumen_monto.n) == filas(ventas) - 3"
+razonamiento: "AVG usa coma flotante: la tolerancia del caso cubre el redondeo de 12 cifras."

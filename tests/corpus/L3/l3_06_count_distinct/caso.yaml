@@ -1,0 +1,12 @@
+nivel: L3
+construcciones: [PROC SQL, COUNT, COUNT(DISTINCT), CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [resumen_ventas]
+invariantes:
+  - "valor(resumen_ventas.ventas) == filas(ventas)"
+  - "valor(resumen_ventas.clientes_distintos) <= valor(resumen_ventas.ventas)"
+  - "valor(resumen_ventas.clientes_distintos) <= filas(clientes)"
+  - "valor(resumen_ventas.canales) <= 3"

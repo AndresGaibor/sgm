@@ -1,0 +1,10 @@
+nivel: L3
+construcciones: [PROC SQL, GROUP BY VARIAS COLUMNAS, COUNT, AVG, FALTANTES, ORDER BY, CREATE TABLE AS]
+capa: A
+tolerancia: 0.001
+orden_relevante: true
+estado: traducible
+salidas: [por_ciudad_estado]
+invariantes:
+  - "suma(por_ciudad_estado.clientes) == filas(clientes)"
+  - "filas(por_ciudad_estado) <= filas(clientes)"

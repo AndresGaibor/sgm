@@ -1,0 +1,10 @@
+nivel: L2
+construcciones: [PROC SQL, INNER JOIN, "ON", "DOS CONDICIONES EN ON", CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [ventas_vs_meta]
+invariantes:
+  - "filas(ventas_vs_meta) <= filas(ventas)"
+  - "suma(ventas_vs_meta.monto) <= suma(ventas.monto)"

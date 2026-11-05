@@ -1,0 +1,9 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Hugo Simulado,Puerto Sur,4735,INACTIVO
+102,Carla Muestra,Valle Alto,117,PENDIENTE
+103,Jorge Caso,Puerto Sur,3655,ACTIVO
+104,Jorge Caso,Villa Norte,223,INACTIVO
+105,Irene Modelo,Valle Alto,431,ACTIVO
+106,Diego Ejemplo,Valle Alto,1390,ACTIVO
+107,Irene Modelo,Puerto Sur,207,INACTIVO
+108,Diego Ejemplo,Villa Norte,3649,INACTIVO

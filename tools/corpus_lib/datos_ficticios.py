@@ -48,7 +48,10 @@ class Entrada:
 
 
 def col(nombre: str, tipo: str, *args: object, vacios: int = 0) -> Columna:
-    """Atajo para declarar una columna. Tipos: secuencia, codigo, entero, decimal, fecha, elige."""
+    """Atajo para declarar una columna.
+
+    Tipos: secuencia, codigo, entero, decimal, texto_blancos, fecha, elige.
+    """
     return Columna(nombre, tipo, tuple(args), vacios)
 
 
@@ -78,6 +81,9 @@ def _valor(columna: Columna, indice: int, rng: random.Random) -> str:
         return str(rng.randint(args[0], args[1]))
     if columna.tipo == "decimal":
         return f"{rng.uniform(args[0], args[1]):.2f}"
+    if columna.tipo == "texto_blancos":
+        # Decimal en texto con blancos iniciales, como lo deja un archivo de ancho fijo.
+        return " " * rng.randint(1, 4) + f"{rng.uniform(args[0], args[1]):.2f}"
     if columna.tipo == "fecha":
         return f"{args[0]}-{rng.randint(args[1], args[2]):02d}-{rng.randint(1, 28):02d}"
     if columna.tipo == "elige":

@@ -1,0 +1,15 @@
+id_operacion,tipo_doc,DESCRIPCION
+1,CC,Cédula de ciudadanía
+1,CC,Cédula de ciudadanía (registro repetido)
+2,TI,Tarjeta de identidad
+3,CE,Cédula de extranjería
+4,CC,Cédula de ciudadanía
+4,CC,Cédula de ciudadanía (registro repetido)
+5,PP,
+6,PP,
+7,TI,Tarjeta de identidad
+8,NIT,
+9,TI,Tarjeta de identidad
+10,NIT,
+11,PA,
+12,TI,Tarjeta de identidad

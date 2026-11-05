@@ -1,0 +1,9 @@
+nivel: L2
+construcciones: [PROC SQL, INNER JOIN, "ON", WHERE, AND, ORDER BY, FALTANTES EN ORDEN, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: true
+estado: traducible
+salidas: [ventas_web_activas]
+invariantes:
+  - "filas(ventas_web_activas) <= filas(ventas)"

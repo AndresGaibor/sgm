@@ -1,0 +1,15 @@
+id_cliente,nombre,id_venta,monto
+101,Gabriela Test,,
+102,Gabriela Test,3,570
+103,Bruno Demo,,
+104,Bruno Demo,10,833
+105,Hugo Simulado,1,243
+105,Hugo Simulado,2,
+105,Hugo Simulado,6,
+105,Hugo Simulado,9,900
+106,Felipe Dato,4,314
+106,Felipe Dato,7,448
+107,Jorge Caso,8,354
+108,Gabriela Test,5,740
+109,Jorge Caso,,
+110,Ana Prueba,,

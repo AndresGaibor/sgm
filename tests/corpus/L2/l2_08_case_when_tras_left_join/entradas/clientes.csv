@@ -1,0 +1,9 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Gabriela Test,Villa Norte,559,ACTIVO
+102,Jorge Caso,Lago Azul,4738,ACTIVO
+103,Jorge Caso,Monte Verde,4007,INACTIVO
+104,Jorge Caso,Monte Verde,1290,PENDIENTE
+105,Jorge Caso,Valle Alto,3795,PENDIENTE
+106,Irene Modelo,Lago Azul,630,ACTIVO
+107,Hugo Simulado,Puerto Sur,3346,ACTIVO
+108,Hugo Simulado,Lago Azul,3110,PENDIENTE

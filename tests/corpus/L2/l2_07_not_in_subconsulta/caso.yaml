@@ -1,0 +1,9 @@
+nivel: L2
+construcciones: [PROC SQL, IN, NOT IN, SUBCONSULTA, WHERE, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [clientes_con_telefono, clientes_sin_telefono]
+invariantes:
+  - "filas(clientes_con_telefono) + filas(clientes_sin_telefono) == filas(clientes)"

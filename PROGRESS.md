@@ -1853,3 +1853,12 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Corregidos de paso dos fallos del propio emulador: comparaba objetos con `is` (nunca sumaba las
   columnas sin calificar) y trataba marcadores de macro sin biblioteca como tablas Impala.
 - Pendiente: los Jobs aun no leen Impala; la convencion queda escrita para el bloque B.
+
+## Hito 71. Corpus: casos L2 y L3 (joins, validacion con lookup, agregados) con invariantes
+
+- Fecha: 2026-11-04
+- Que se hizo: 27 casos en `tests/corpus/L2/` (15) y `tests/corpus/L3/` (12), capa A, todos `traducible`, con el patron de validacion del original (`LEFT JOIN ... ON (t.TIPO_DOC = h.CNAME) WHERE h.CNAME IS MISSING` para invalidos y `INNER JOIN` para validos), joins por varias columnas, `IN` y `NOT IN` con subconsulta, `CASE`, `COALESCE`, `COUNT(DISTINCT)`, `GROUP BY` y `HAVING`, totales de origen y de salida, y conciliacion con una diferencia plantada. Mecanismo de `preparacion` para casos que mezclan un DATA step (`input(left())`) con `PROC SQL`: el DATA step se calcula con la referencia de semantica de `tools/corpus_semantica_funciones.py`, se guarda en `entradas_preparadas/` y el oraculo falla si ese archivo no coincide. Campo `invariantes` en `caso.yaml` (por ejemplo `filas(validos) + filas(invalidos) == filas(origen)`) evaluado por `tools/corpus_lib/invariantes.py`; las diferencias plantadas (`l2_05`, `l3_09`) las declara.
+- Verificacion independiente sin el corpus: suma de `l3_08` = 21745.34 con 10 saldos presentes; `l2_04` = 9 validos y 3 invalidos; `l3_09` = 2 operaciones CC y diferencia de conciliacion -2. Coinciden con el oraculo.
+- Pruebas: `test_corpus_invariantes.py` (40), `test_corpus_preparacion.py`, y 5 nuevas en `test_corpus_oraculo_sql.py`. `tools/corpus.py oraculo todos --verificar`: 57 casos, 0 fallas.
+- Riesgos de dialecto sin SAS real (altos, no verificados): comparaciones `<`, `<=`, `<>` con faltantes (SAS trata el faltante como menor, SQLite da NULL; los casos lo evitan), blancos finales en claves de texto (SAS los ignora, SQLite no), `NOT IN` con NULL en la subconsulta y el orden de NULL en `ORDER BY`/`GROUP BY`.
+- Pendiente: generar el esperado de los casos L8; casos L4 a L7 (funciones, macros, `MERGE`, `FIRST.`/`LAST.`).

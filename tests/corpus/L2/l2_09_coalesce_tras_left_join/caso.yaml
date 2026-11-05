@@ -1,0 +1,9 @@
+nivel: L2
+construcciones: [PROC SQL, COALESCE, LEFT JOIN, "ON", CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [clientes_monto]
+invariantes:
+  - "suma(clientes_monto.monto) == suma(ventas.monto)"

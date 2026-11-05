@@ -1,0 +1,10 @@
+nivel: L3
+construcciones: [PROC SQL, SUM, WHERE, FALTANTES, TOTALES ORIGEN Y SALIDA, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [total_origen, total_web, total_resto]
+invariantes:
+  - "valor(total_origen.suma_origen) == suma(ventas.monto)"
+  - "valor(total_web.suma_salida) + valor(total_resto.suma_resto) == valor(total_origen.suma_origen)"

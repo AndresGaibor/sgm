@@ -1,0 +1,11 @@
+nivel: L3
+construcciones: [PROC SQL, SUM, DECIMALES, GROUP BY, COUNT, ORDER BY, CREATE TABLE AS]
+capa: A
+tolerancia: 0.005
+orden_relevante: true
+estado: traducible
+salidas: [total_por_canal]
+invariantes:
+  - "suma(total_por_canal.facturas) == filas(facturas)"
+  - "suma(total_por_canal.total) == suma(facturas.importe)"
+razonamiento: "Suma de decimales en coma flotante. La tolerancia de 0.005 es de un centavo."

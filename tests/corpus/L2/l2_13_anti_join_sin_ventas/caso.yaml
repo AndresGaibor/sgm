@@ -1,0 +1,9 @@
+nivel: L2
+construcciones: [PROC SQL, LEFT JOIN, INNER JOIN, "ON", IS MISSING, DISTINCT, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [clientes_sin_ventas, clientes_con_ventas]
+invariantes:
+  - "filas(clientes_sin_ventas) + filas(clientes_con_ventas) == filas(clientes)"

@@ -1,0 +1,6 @@
+id_operacion,tipo_doc,id_cliente,monto,canal
+2,PA,107,371,WEB
+4,PA,109,752,WEB
+6,TI,108,591,TIENDA
+8,PA,107,628,WEB
+14,CC,102,684,WEB

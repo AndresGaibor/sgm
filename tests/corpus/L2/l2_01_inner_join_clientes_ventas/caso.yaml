@@ -1,0 +1,10 @@
+nivel: L2
+construcciones: [PROC SQL, INNER JOIN, "ON", ALIAS DE TABLA, CREATE TABLE AS, PROC EXPORT]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [ventas_con_nombre]
+invariantes:
+  - "filas(ventas_con_nombre) <= filas(ventas)"
+  - "suma(ventas_con_nombre.monto) <= suma(ventas.monto)"

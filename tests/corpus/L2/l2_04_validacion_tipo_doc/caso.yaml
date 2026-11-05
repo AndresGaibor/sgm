@@ -1,0 +1,11 @@
+nivel: L2
+construcciones: [PROC SQL, INNER JOIN, LEFT JOIN, "ON", IS MISSING, WHERE, VALIDACION CON LOOKUP, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [operaciones_validas, operaciones_invalidas]
+invariantes:
+  - "filas(operaciones_validas) + filas(operaciones_invalidas) == filas(operaciones)"
+  - "suma(operaciones_validas.monto) + suma(operaciones_invalidas.monto) == suma(operaciones.monto)"
+razonamiento: "La homologación tiene CC, TI, CE y PA. NIT y PP son inválidos; un tipo vacío también."

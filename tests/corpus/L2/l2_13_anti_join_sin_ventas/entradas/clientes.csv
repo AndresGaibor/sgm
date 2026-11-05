@@ -1,0 +1,11 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Felipe Dato,Lago Azul,4219,PENDIENTE
+102,Felipe Dato,Lago Azul,4207,PENDIENTE
+103,Gabriela Test,Monte Verde,2477,INACTIVO
+104,Ana Prueba,Valle Alto,4667,PENDIENTE
+105,Ana Prueba,Villa Norte,1421,PENDIENTE
+106,Hugo Simulado,Lago Azul,644,INACTIVO
+107,Elena Ficticia,Lago Azul,2233,PENDIENTE
+108,Diego Ejemplo,Villa Norte,4329,ACTIVO
+109,Bruno Demo,Monte Verde,553,PENDIENTE
+110,Irene Modelo,Lago Azul,4713,INACTIVO

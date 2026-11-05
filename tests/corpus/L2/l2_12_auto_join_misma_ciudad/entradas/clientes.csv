@@ -1,0 +1,13 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Bruno Demo,Lago Azul,1721,ACTIVO
+102,Diego Ejemplo,Monte Verde,575,ACTIVO
+103,Gabriela Test,Valle Alto,1631,PENDIENTE
+104,Diego Ejemplo,Lago Azul,1385,ACTIVO
+105,Gabriela Test,Monte Verde,842,PENDIENTE
+106,Irene Modelo,Lago Azul,1183,ACTIVO
+107,Carla Muestra,Puerto Sur,4731,PENDIENTE
+108,Irene Modelo,Lago Azul,2328,PENDIENTE
+109,Ana Prueba,Lago Azul,3917,INACTIVO
+110,Irene Modelo,Monte Verde,271,INACTIVO
+111,Jorge Caso,Lago Azul,3122,ACTIVO
+112,Hugo Simulado,Monte Verde,2469,PENDIENTE

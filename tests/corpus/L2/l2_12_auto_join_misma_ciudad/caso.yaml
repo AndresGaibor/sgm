@@ -1,0 +1,9 @@
+nivel: L2
+construcciones: [PROC SQL, AUTO JOIN, INNER JOIN, "ON", WHERE, ALIAS DE TABLA, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [pares_misma_ciudad, pares_ordenados]
+invariantes:
+  - "filas(pares_ordenados) == filas(pares_misma_ciudad) + filas(pares_misma_ciudad)"

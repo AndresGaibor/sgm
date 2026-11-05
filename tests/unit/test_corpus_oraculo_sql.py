@@ -209,3 +209,48 @@ def test_sentencia_fuera_de_create_table_no_soportada():
 def test_salida_que_no_se_creo_es_error_claro():
     with pytest.raises(ErrorSql, match="no se creó"):
         _correr("CREATE TABLE WORK.r AS SELECT id FROM DATOS;", ["otra"])
+
+
+def test_not_in_con_subconsulta_se_pasa_igual():
+    # La subconsulta devuelve los ids 3 y 4 (monto 300 y 150); NOT IN deja 1 y 2.
+    resultado = _correr(
+        "CREATE TABLE WORK.r AS SELECT id FROM DATOS "
+        "WHERE id NOT IN (SELECT id FROM DATOS WHERE monto >= 150);",
+        ["r"],
+    )
+    assert [fila[0] for fila in resultado["r"].filas] == [1, 2]
+
+
+def test_count_distinct_se_pasa_igual():
+    resultado = _correr("CREATE TABLE WORK.r AS SELECT COUNT(DISTINCT nombre) AS n FROM DATOS;", ["r"])
+    assert resultado["r"].filas == [(3,)]
+
+
+def test_subconsulta_escalar_en_select_se_pasa_igual():
+    resultado = _correr(
+        "CREATE TABLE WORK.r AS SELECT (SELECT COUNT(*) FROM DATOS) AS total, COUNT(*) AS filas "
+        "FROM DATOS;",
+        ["r"],
+    )
+    assert resultado["r"].filas == [(4, 4)]
+
+
+def test_alias_asterisco_y_coalesce_con_faltante():
+    otra = Tabla(["id", "pais"], [(1, "Peru"), (3, "Chile")], ["INTEGER", "TEXT"])
+    sql = (
+        "CREATE TABLE WORK.r AS SELECT d.*, COALESCE(d.monto, 0) AS m FROM DATOS d "
+        "INNER JOIN OTRA o ON ( d.id = o.id );"
+    )
+    resultado = ejecutar_proc_sql(
+        sentencias_proc_sql(f"PROC SQL;\n{sql}\nQUIT;"),
+        {"DATOS": FILAS, "OTRA": otra},
+        ["r"],
+    )
+    assert resultado["r"].columnas == ["id", "nombre", "monto", "ciudad", "m"]
+    assert resultado["r"].filas == [(1, "Ana", 100, "Norte", 100), (3, "carla", 300, "Norte", 300)]
+
+
+def test_orden_descendente_pone_el_faltante_al_final():
+    # En SAS el faltante es menor que cualquier número: en DESC queda el último, como en SQLite.
+    resultado = _correr("CREATE TABLE WORK.r AS SELECT id FROM DATOS ORDER BY monto DESC;", ["r"])
+    assert [fila[0] for fila in resultado["r"].filas] == [3, 4, 1, 2]

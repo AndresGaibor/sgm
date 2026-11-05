@@ -1,0 +1,10 @@
+nivel: L2
+construcciones: [PROC SQL, CASE WHEN, IS MISSING, LEFT JOIN, "ON", GROUP BY, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [clientes_categoria, resumen_categoria]
+invariantes:
+  - "suma(resumen_categoria.filas) == filas(clientes_categoria)"
+  - "filas(clientes_categoria) >= filas(clientes)"

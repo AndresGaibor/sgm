@@ -1,0 +1,12 @@
+nivel: L3
+construcciones: [PROC SQL, COUNT, COUNT(*), FALTANTES, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [resumen_saldos]
+invariantes:
+  - "valor(resumen_saldos.total) == filas(clientes)"
+  - "valor(resumen_saldos.con_saldo) + valor(resumen_saldos.sin_saldo) == valor(resumen_saldos.total)"
+  - "valor(resumen_saldos.sin_saldo) == 3"
+razonamiento: "Se plantan tres saldos vacíos en clientes.csv."

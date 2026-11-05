@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from .caso import Caso
 from .csv_tabla import Tabla, comparar_con_guardado, escribir_csv, leer_entradas, ordenar_filas
 from .oraculo_sql import ErrorSql, ejecutar_proc_sql
+from .preparacion import verificar as verificar_preparacion
 from .sas_texto import sentencias_proc_sql
 from .traduccion_sql import NoSoportado
 
@@ -28,11 +29,20 @@ class Resultado:
         return self.estado != "falla"
 
 
+def _entradas_para_sql(caso: Caso) -> dict[str, Tabla]:
+    """Entradas del PROC SQL. Con `preparacion`, son las del DATA step, tras comprobarlas."""
+    if caso.preparacion is None:
+        return leer_entradas(caso.entradas)
+    diferencias = verificar_preparacion(caso.entradas, caso.entradas_preparadas, caso.preparacion)
+    if diferencias:
+        raise ValueError(f"entradas_preparadas no coincide con la preparación: {diferencias[0]}")
+    return leer_entradas(caso.entradas_preparadas)
+
+
 def calcular(caso: Caso) -> dict[str, Tabla]:
     """Calcula las salidas del caso (capa A) con SQLite. Aplica el orden declarado."""
     sentencias = sentencias_proc_sql(caso.programa.read_text(encoding="utf-8"))
-    entradas = leer_entradas(caso.entradas)
-    salidas = ejecutar_proc_sql(sentencias, entradas, list(caso.salidas))
+    salidas = ejecutar_proc_sql(sentencias, _entradas_para_sql(caso), list(caso.salidas))
     if not caso.orden_relevante:
         for tabla in salidas.values():
             tabla.filas = ordenar_filas(tabla.filas)

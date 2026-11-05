@@ -1,0 +1,13 @@
+id_cliente,nombre,categoria
+101,Gabriela Test,ALTA
+101,Gabriela Test,ALTA
+101,Gabriela Test,BAJA
+101,Gabriela Test,BAJA
+102,Jorge Caso,BAJA
+103,Jorge Caso,ALTA
+104,Jorge Caso,ALTA
+104,Jorge Caso,BAJA
+105,Jorge Caso,BAJA
+106,Irene Modelo,BAJA
+107,Hugo Simulado,SIN_VENTAS
+108,Hugo Simulado,BAJA

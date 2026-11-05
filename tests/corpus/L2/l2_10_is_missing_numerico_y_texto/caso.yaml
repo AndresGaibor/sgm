@@ -1,0 +1,10 @@
+nivel: L2
+construcciones: [PROC SQL, IS MISSING, IS NOT MISSING, OR, AND, WHERE, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [clientes_incompletos, clientes_completos]
+invariantes:
+  - "filas(clientes_incompletos) + filas(clientes_completos) == filas(clientes)"
+  - "suma(clientes_incompletos.saldo) + suma(clientes_completos.saldo) == suma(clientes.saldo)"

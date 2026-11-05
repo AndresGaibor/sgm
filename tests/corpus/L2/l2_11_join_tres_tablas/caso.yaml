@@ -1,0 +1,9 @@
+nivel: L2
+construcciones: [PROC SQL, INNER JOIN, "ON", TRES TABLAS, ALIAS DE TABLA, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [ventas_zona]
+invariantes:
+  - "filas(ventas_zona) == filas(ventas)"

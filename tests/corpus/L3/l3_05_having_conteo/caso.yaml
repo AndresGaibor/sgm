@@ -1,0 +1,11 @@
+nivel: L3
+construcciones: [PROC SQL, GROUP BY, HAVING, COUNT, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [todos_grupos, grupos_grandes, grupos_pequenos]
+invariantes:
+  - "suma(todos_grupos.n) == filas(clientes)"
+  - "suma(grupos_grandes.n) + suma(grupos_pequenos.n) == filas(clientes)"
+  - "filas(grupos_grandes) <= filas(todos_grupos)"

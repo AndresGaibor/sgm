@@ -1,0 +1,12 @@
+nivel: L3
+construcciones: [PROC SQL, INNER JOIN, LEFT JOIN, IS MISSING, CLAVES REPETIDAS EN LOOKUP, COUNT, SUBCONSULTA ESCALAR, CONCILIACION, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: traducible
+salidas: [validos, invalidos, cc_operaciones, conciliacion]
+invariantes:
+  - "valor(conciliacion.origen) == filas(operaciones)"
+  - "valor(conciliacion.validos) + valor(conciliacion.invalidos) == valor(conciliacion.origen) + filas(cc_operaciones)"
+  - "valor(conciliacion.diferencia) == 0 - filas(cc_operaciones)"
+razonamiento: "La diferencia plantada es negativa e igual al número de operaciones con CC, porque la homologación repite CC."
