@@ -1817,3 +1817,16 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Bloqueo de T14 (parte de Job): aplicar la regla como filtro de fila necesita `tFilterRow` o el
   filtro del `tMap`, que siguen sin ejecutarse nunca en Studio. Mismo bloqueo que T12 (Job) y T13.
 - Pendiente: T12/T13/T14 en su parte de Job, T15 a T19.
+
+
+## Hito 75. T11 (cierre): el YAML confirma, no declara
+
+- Fecha: 2026-11-04
+- Que se hizo: `sgm talend` contrasta las validaciones del YAML con las que el SAS demuestra, en las
+  dos direcciones. Si el YAML declara una validacion que el SAS no tiene, avisa; si el SAS tiene una
+  que nadie declaro, tambien, con su linea. Se imprime como `Pendiente: ...` junto a los demas.
+- Efecto: con `client_large.sas` salen avisos por las validaciones de ubicacion (`CODIGO_UBICACION`
+  contra `CODIGO_DANE` y `PAIS` contra `Codigo_Pais`), que estan en el SAS y no en el YAML. Es
+  exactamente la deuda que abre T12; deja de ser invisible.
+- Pruebas: dos nuevas en `tests/unit/test_validaciones_sas.py`; 27 pasan en los archivos tocados.
+- Pendiente: declarar esas validaciones en el YAML cuando T12 cierre la parte de Job.

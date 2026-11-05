@@ -134,3 +134,29 @@ def test_detecta_las_validaciones_de_ubicacion(sas_grande):
 
     assert ("CODIGO_UBICACION", "CODIGO_DANE", "IMPORT_CODIGOS_DANE") in encontradas
     assert ("PAIS", "CODIGO_PAIS", "IMPORT_CODIGOS_PAIS") in encontradas
+
+
+def test_el_yaml_se_confirma_contra_el_sas_en_las_dos_direcciones(arq_grande, sas_grande):
+    from sgm.cli_talend import _confirmar
+
+    avisos = _confirmar(arq_grande, sas_grande)
+
+    assert not any("TIPO_DOC" in aviso and "no aparece" in aviso for aviso in avisos)
+    assert any("CODIGO_UBICACION contra CODIGO_DANE" in aviso for aviso in avisos)
+    assert any("PAIS contra Codigo_Pais" in aviso for aviso in avisos)
+
+
+def test_una_validacion_declarada_que_el_sas_no_tiene_se_avisa(arq_grande):
+    from sgm.cli_talend import _confirmar
+
+    avisos = _confirmar(arq_grande, "proc sql;\ncreate table work.x as select 1 from work.y;\nquit;\n")
+
+    assert any("TIPO_DOC contra CNAME" in aviso and "no aparece" in aviso for aviso in avisos)
+
+
+@pytest.fixture(scope="module")
+def arq_grande():
+    from sgm.talend_item.arquitectura import cargar_arquitectura
+
+    raiz = Path(__file__).resolve().parents[2]
+    return cargar_arquitectura(raiz / "decisiones" / "client_large.jobs.yaml")

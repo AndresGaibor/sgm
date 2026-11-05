@@ -17,6 +17,7 @@ from sgm.cli_proceso import _decision
 from sgm.proceso.insumos import InsumosResueltos, resolver_insumos
 from sgm.proceso.origen_producto import origenes_producto
 from sgm.proceso.secciones_entrada import cargar_declaradas
+from sgm.proceso.validaciones import validaciones
 from sgm.talend_item.arquitectura import cargar_arquitectura
 from sgm.talend_item.escritura import escribir_job
 from sgm.talend_item.jobs_diseno import ProductoJob, job_padre, jobs_hijos
@@ -37,6 +38,27 @@ def _descripcion_lookups(arq, resueltos: InsumosResueltos) -> str:
 def _delimitador(origenes) -> str:
     """El delimitador del archivo principal de los productos (el primero; deberían coincidir)."""
     return next(iter(origenes.por_producto.values())).fuente.delimitador
+
+
+def _confirmar(arq, texto: str) -> list[str]:
+    """Contrasta lo declarado con lo que el SAS demuestra, en las dos direcciones."""
+    detectadas = {
+        (v.columna.casefold(), v.columna_lookup.casefold()): v for v in validaciones(texto)
+    }
+    declaradas = {
+        (v.columna.casefold(), v.columna_lookup.casefold()): v for v in arq.validaciones
+    }
+    avisos = [
+        f"validación declarada ({v.columna} contra {v.columna_lookup}) no aparece en el SAS"
+        for clave, v in declaradas.items()
+        if clave not in detectadas
+    ]
+    avisos += [
+        f"validación del SAS ({v.columna} contra {v.columna_lookup}, línea {v.linea}) sin declarar"
+        for clave, v in detectadas.items()
+        if clave not in declaradas
+    ]
+    return avisos
 
 
 def _archivo_homologacion(arq, resueltos: InsumosResueltos, producto: str) -> str:
@@ -108,6 +130,8 @@ def talend_command(
     sin_origen = [p.producto for p in productos if not p.ruta_origen]
     if sin_origen:
         typer.echo(f"Pendiente: archivo de origen de {', '.join(sin_origen)}.")
+    for aviso in _confirmar(arq, texto):
+        typer.echo(f"Pendiente: {aviso}")
     for pendiente in origenes.pendientes:
         typer.echo(f"Pendiente: {pendiente}")
     for pendiente in resueltos.pendientes:
