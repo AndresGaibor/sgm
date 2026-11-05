@@ -1909,3 +1909,12 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Estado: 101 casos con 0 fallas en `tools/corpus.py oraculo todos --verificar` (L4 20: 19 traducibles y 1 pendiente por PUT y fechas sin vector; L6 5 en `pendiente_revision`).
 - Sin fuente oficial consultada: `RETAIN`, la sentencia suma, `NODUP`, que fila conserva `NODUPKEY` (la documentacion no lo define) y que las macros no se resuelvan entre comilla simple.
 - Pruebas: `test_corpus_l4l6.py` (126 pasan, 25 se saltan por diseno).
+
+## Hito 74c. Corpus: esperado por construccion de los 8 casos L8 de validaciones
+
+- Fecha: 2026-11-04
+- Que se hizo: `tools/corpus_datos/validaciones_*.py` calcula 124 salidas esperadas (tablas WORK y archivos de `PROC EXPORT`) desde la etiqueta de anomalia que el generador planto en cada fila, sin pasar por SQL: es un oraculo independiente del traductor. `validaciones_cruce.py` contrasta esas salidas con el oraculo SQL (puente SAS a SQLite): 105 coinciden sin diferencias y 19 no se pudieron verificar porque el oraculo no traduce `LENGTH`, `COMPBL` ni `CONTAINS`. Resultado por caso: v01 12/12, v02 15/15, v04 16/16, v05 19/19, v07 22/22 (con un supuesto sobre GMF), v08 12/12, v03 7/15 y v06 2/13.
+- Estado: ningun caso llega a `traducible`: seis quedan `pendiente_revision` y dos `parcial`, porque el tipo que `PROC IMPORT` da a `NRO_DOC` y a las columnas con blancos, y los formatos de `PROC EXPORT` (`3.`, `20.`, `30.`) y el orden sin `ORDER BY` no se pueden demostrar sin SAS. Cada caso lo anota en `observacion_revision`.
+- Hallazgos en los programas del propio corpus (errores del autor, no del original): en v02, `SUMA_SALDO_CTE_VALIDAS` suma `FIN_SALDO_CTA` desde una tabla que no trae esa columna (en SAS daria faltante); en v07, `PASO1` usa `SABANA.GMF`, que no existe (solo `GMF_TXT`), y el `PROC SQL` fallaria en SAS. Hay que corregir esos dos programas.
+- Limites: `tools/corpus.py oraculo todos --verificar` no cubre los casos de `tests/corpus/L8/` porque `niveles()` solo lista carpetas `L<n>` y `caso.py` exige que el nivel coincida con la carpeta padre; los cubre la prueba de cruce. Las entradas plantan una sola anomalia por fila, asi que la precedencia entre reglas secuenciales (v07, v08) y la del `CASE` (v03) no queda probada.
+- Pruebas: `test_corpus_validaciones.py` (39).

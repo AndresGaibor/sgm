@@ -6,8 +6,10 @@ Uso (desde la raíz del repositorio):
 
 Escribe `tests/corpus/L8/validaciones/<caso>/entradas/`: un CSV de 23 columnas por producto (sin
 cabecera, separado por `;`), CSV auxiliares de ubicación y los xlsx de homologación, país y DANE.
-Imprime los conteos de anomalías por producto para copiarlos a `caso.yaml`. Es reproducible: dos
-ejecuciones dan los mismos bytes en los CSV y las mismas celdas en los xlsx.
+Escribe también `<caso>/esperado/` (tablas WORK y `archivos/` de PROC EXPORT) calculado desde la
+verdad plantada (`validaciones_esperado.py`), no desde el SQL del programa. Imprime los conteos de
+anomalías por producto para copiarlos a `caso.yaml`. Es reproducible: dos ejecuciones dan los
+mismos bytes en los CSV y las mismas celdas en los xlsx.
 
 Cada fila anómala tiene un único defecto, así que los conteos se suman sin solaparse.
 """
@@ -23,6 +25,7 @@ sys.path.insert(0, str(_CARPETA))
 sys.path.insert(0, str(REPO / "tools"))
 
 from simular_insumos import escribir_xlsx  # noqa: E402
+from validaciones_esperado import calcular, escribir  # noqa: E402
 from validaciones_filas import (  # noqa: E402
     PRODUCTOS,
     fila_detalle,
@@ -222,9 +225,13 @@ def escribir_caso(caso: str, carpeta: Path) -> list[Path]:
 
 
 def generar_todo(destino: Path = CORPUS_L8) -> dict[str, dict[str, dict[str, int]]]:
-    """Escribe los ocho casos y devuelve sus conteos."""
+    """Escribe entradas y `esperado/` de los ocho casos, y devuelve sus conteos.
+
+    El `esperado/` sale de la verdad plantada (`validaciones_esperado.calcular`), no del SQL.
+    """
     for caso in CASOS:
         escribir_caso(caso, destino / caso / "entradas")
+        escribir(destino / caso / "esperado", calcular(caso, CASOS[caso], EXCEL))
     return {caso: conteos_caso(caso) for caso in CASOS}
 
 

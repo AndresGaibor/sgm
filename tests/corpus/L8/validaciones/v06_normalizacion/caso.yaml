@@ -1,19 +1,14 @@
 nivel: L8
 tema: normalizacion de nombres (mayusculas, enie, tildes, espacios) y montos con espacios
 construcciones:
-  - input(left(...), 20.) sobre texto con espacios a la izquierda
-  - COMPRESS(...) para quitar todos los blancos
-  - COMPBL(STRIP(UPCASE(...))) para normalizar nombres
-  - PROC SQL CASE con CONTAINS sobre enie y tildes
-  - PROC SQL GROUP BY MOTIVO con ORDER BY
-  - PROC SQL WHERE ... IS NOT MISSING
-  - PROC SQL OUTER UNION CORR con SUM
-  - PROC EXPORT DBMS=DLM PUTNAMES=NO
-capa: B (funciones de cadena; vectores tomados de la documentacion de COMPRESS) y A (SQL)
-estado: sin_esperado
-entradas:
-  - DETALLE_CTE.csv (23 columnas; nombres con minusculas, enie, tildes y espacios)
-  - DETALLE_AHO.csv (23 columnas)
+- input(left(...), 20.) sobre texto con espacios a la izquierda
+- COMPRESS(...) para quitar todos los blancos
+- COMPBL(STRIP(UPCASE(...))) para normalizar nombres
+- PROC SQL CASE con CONTAINS sobre enie y tildes
+- PROC SQL GROUP BY MOTIVO con ORDER BY
+- PROC SQL WHERE ... IS NOT MISSING
+- PROC SQL OUTER UNION CORR con SUM
+- PROC EXPORT DBMS=DLM PUTNAMES=NO
 anomalias_plantadas:
   cte:
     nombre_minusculas: 4
@@ -31,26 +26,39 @@ anomalias_plantadas:
     validos: 60
 salidas_esperadas:
   tablas_work:
-    - SABANA_CTE
-    - SABANA_AHO
-    - SABANA_NORM_CTE
-    - SABANA_NORM_AHO
-    - MOTIVO_NORM_CTE
-    - MOTIVO_NORM_AHO
-    - CONTEO_MOTIVO_CTE
-    - CONTEO_MOTIVO_AHO
-    - SIN_FALTANTES_CTE
-    - SIN_FALTANTES_AHO
-    - SUMA_VALOR_NORM
+  - SABANA_CTE
+  - SABANA_AHO
+  - SABANA_NORM_CTE
+  - SABANA_NORM_AHO
+  - MOTIVO_NORM_CTE
+  - MOTIVO_NORM_AHO
+  - CONTEO_MOTIVO_CTE
+  - CONTEO_MOTIVO_AHO
+  - SIN_FALTANTES_CTE
+  - SIN_FALTANTES_AHO
+  - SUMA_VALOR_NORM
   archivos:
-    - SABANA_NORM_CTE.csv
-    - SABANA_NORM_AHO.csv
+  - SABANA_NORM_CTE.csv
+  - SABANA_NORM_AHO.csv
 fuentes_url:
-  - https://go.documentation.sas.com/doc/en/pgmsascdc/default/lefunctionsref/n0fcshr0ir3h73n1b845c4aq58hz.htm
-  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
-  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
-dudas:
-  - STRIP y UPCASE no tienen pagina oficial consultada; su comportamiento (STRIP solo quita blancos de los extremos, UPCASE sube mayusculas) viene de fuentes secundarias y se marca como incierto.
-  - COMPBL no fue verificado en la documentacion consultada. El caso lo usa para reducir blancos internos dobles; es incierto.
-  - UPCASE y CONTAINS sobre Ñ y tildes dependen de la codificacion de la sesion SAS (UTF-8 o latin1). No se pudo confirmar. Es el punto mas incierto del caso.
-  - COMPRESS quita por defecto todos los blancos (confirmado en la documentacion).
+- https://go.documentation.sas.com/doc/en/pgmsascdc/default/lefunctionsref/n0fcshr0ir3h73n1b845c4aq58hz.htm
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: B (funciones de cadena; vectores tomados de la documentacion
+  de COMPRESS) y A (SQL). El esperado sale de la verdad plantada (validaciones_esperado); el cruce con
+  el oráculo SQL está en validaciones_cruce.'
+estado: parcial
+motivo: 'El oráculo no traduce COMPBL() ni CONTAINS: cruzadas 2 de 13 tablas (SABANA_CTE y SABANA_AHO).
+  Sin verificar: normalización, motivos, conteos y suma.'
+orden_relevante: false
+observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. Dudas que el oráculo no cruza: (1) COMPBL, STRIP
+  y CONTAINS sobre Ñ y Í dependen de la codificación de la sesión SAS. (2) VAL_CRED_TXT ('' 1200 '') se
+  tipa texto; si PROC IMPORT lo toma numérico, la comparación con COMPRESS no ve el blanco y las 5 filas
+  VALOR CON ESPACIOS salen SIN CAMBIO.'
+invariantes:
+- filas(SABANA_NORM_CTE) == filas(SABANA_CTE)
+- suma(CONTEO_MOTIVO_CTE.NRO_FILAS) == filas(SABANA_CTE)
+- suma(CONTEO_MOTIVO_AHO.NRO_FILAS) == filas(SABANA_AHO)

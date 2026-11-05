@@ -1,22 +1,15 @@
 nivel: L8
 tema: pais y codigo DANE contra dos Excel de homologacion, con rechazo
 construcciones:
-  - PROC IMPORT DBMS=EXCELCS (pais y DANE)
-  - data step con rename= y COMPRESS(input(left(...))) (formato de codigo pais, copiado del original)
-  - PROC DOWNLOAD (dos archivos por producto dentro de RSUBMIT)
-  - macro importa_archivo con nombre parametrizado y comillas dobles
-  - PROC SQL LEFT JOIN a dos tablas de homologacion
-  - PROC SQL CASE ... END AS INCONSISTENCIA
-  - PROC SQL NOT IN (SELECT ...) para la lista de validos
-  - LENGTH(...) < 8 y UPPER(...) CONTAINS
-  - PROC EXPORT DBMS=DLM
-capa: A (joins y conteos) y B (IS MISSING, comparacion de texto)
-estado: sin_esperado
-entradas:
-  - DETALLE_CTE.csv y DETALLE_AHO.csv (23 columnas; una fila valida por llave de UBICACION)
-  - UBICACION_CTE.csv y UBICACION_AHO.csv (4 campos: llave, pais, codigo DANE, direccion)
-  - Cod_pais.xlsx (Codigo_Pais, Nombre Pais)
-  - CODIGOS_DANE.xlsx (CODIGO_DANE)
+- PROC IMPORT DBMS=EXCELCS (pais y DANE)
+- data step con rename= y COMPRESS(input(left(...))) (formato de codigo pais, copiado del original)
+- PROC DOWNLOAD (dos archivos por producto dentro de RSUBMIT)
+- macro importa_archivo con nombre parametrizado y comillas dobles
+- PROC SQL LEFT JOIN a dos tablas de homologacion
+- PROC SQL CASE ... END AS INCONSISTENCIA
+- PROC SQL NOT IN (SELECT ...) para la lista de validos
+- LENGTH(...) < 8 y UPPER(...) CONTAINS
+- PROC EXPORT DBMS=DLM
 anomalias_plantadas:
   cte:
     pais_no_homologado: 2
@@ -32,27 +25,41 @@ anomalias_plantadas:
     validos: 55
 salidas_esperadas:
   tablas_work:
-    - SABANA_CTE
-    - SABANA_AHO
-    - UBIC_CTE
-    - UBIC_AHO
-    - SABANA_UBIC_CTE
-    - SABANA_UBIC_AHO
-    - FORMATO_CODIGO_DANE
-    - INCONS_UBICACION_CTE
-    - INCONS_UBICACION_AHO
-    - UBIC_VALIDA_CTE
-    - UBIC_VALIDA_AHO
-    - CONTEO_UBICACION
-    - CONTEO_UBICACION_VALIDA
+  - SABANA_CTE
+  - SABANA_AHO
+  - UBIC_CTE
+  - UBIC_AHO
+  - SABANA_UBIC_CTE
+  - SABANA_UBIC_AHO
+  - FORMATO_CODIGO_DANE
+  - INCONS_UBICACION_CTE
+  - INCONS_UBICACION_AHO
+  - UBIC_VALIDA_CTE
+  - UBIC_VALIDA_AHO
+  - CONTEO_UBICACION
+  - CONTEO_UBICACION_VALIDA
   archivos:
-    - INCONS_UBICACION_CTE.csv
-    - INCONS_UBICACION_AHO.csv
+  - INCONS_UBICACION_CTE.csv
+  - INCONS_UBICACION_AHO.csv
 fuentes_url:
-  - https://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/a002473690.htm
-  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
-  - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
-dudas:
-  - El tipo de la columna Codigo_Pais del Excel (texto o numero) no se pudo confirmar; el caso lo trata como texto.
-  - El orden de las ramas del CASE asume que cada fila tiene un solo defecto (dato del generador).
-  - Los codigos de pais (900, 902, 903) y el DANE (99001 a 99003) son ficticios; las reglas de ubicacion son de ejemplo.
+- https://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/a002473690.htm
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+- https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: A (joins y conteos) y B (IS MISSING, comparacion de texto).
+  El esperado sale de la verdad plantada (validaciones_esperado); el cruce con el oráculo SQL está en
+  validaciones_cruce.'
+estado: parcial
+motivo: 'El oráculo no traduce LENGTH() ni CONTAINS: cruzadas 7 de 15 tablas y archivos, sin diferencias.
+  Quedan sin cruzar INCONS_UBICACION_* y sus dependientes.'
+orden_relevante: false
+observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. Excel: el tipo de Codigo_Pais y de CODIGO_DANE es
+  texto (EXCELCS); PAIS y CODIGO_UBICACION son numéricos por la convención del corpus. El CASE de INCONSISTENCIA
+  puede truncarse a la longitud de su primera rama en PROC SQL (PAIS NO HOMOLOGADO, 18 caracteres); el
+  esperado no trunca.'
+invariantes:
+- filas(SABANA_CTE) == filas(INCONS_UBICACION_CTE) + filas(UBIC_VALIDA_CTE)
+- filas(SABANA_AHO) == filas(INCONS_UBICACION_AHO) + filas(UBIC_VALIDA_AHO)
+- suma(CONTEO_UBICACION_VALIDA.NRO_VALIDOS) == filas(UBIC_VALIDA_CTE) + filas(UBIC_VALIDA_AHO)

@@ -1,19 +1,13 @@
 nivel: L8
 tema: tipo de documento invalido contra homologacion (CTE y AHO)
 construcciones:
-  - PROC IMPORT DBMS=EXCELCS (homologacion)
-  - PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM GETNAMES=NO
-  - macro con parametro de producto (%macro valida_tipo_doc(sufijo))
-  - PROC SQL LEFT JOIN ... WHERE IS MISSING (rechazo)
-  - PROC SQL INNER JOIN (valido)
-  - PROC SQL OUTER UNION CORR con conteos
-  - PROC EXPORT DBMS=DLM PUTNAMES=NO
-capa: A (PROC SQL sobre SQLite) para los joins y conteos
-estado: sin_esperado
-entradas:
-  - DETALLE_CTE.csv (23 columnas, sin cabecera, separado por ;)
-  - DETALLE_AHO.csv (23 columnas)
-  - Homologacion_tpo_dto.xlsx (columna CNAME: TD01 a TD04)
+- PROC IMPORT DBMS=EXCELCS (homologacion)
+- PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM GETNAMES=NO
+- macro con parametro de producto (%macro valida_tipo_doc(sufijo))
+- PROC SQL LEFT JOIN ... WHERE IS MISSING (rechazo)
+- PROC SQL INNER JOIN (valido)
+- PROC SQL OUTER UNION CORR con conteos
+- PROC EXPORT DBMS=DLM PUTNAMES=NO
 anomalias_plantadas:
   cte:
     tipo_doc_invalido: 7
@@ -23,24 +17,38 @@ anomalias_plantadas:
     validos: 60
 salidas_esperadas:
   tablas_work:
-    - SABANA_CTE
-    - SABANA_AHO
-    - TIPO_DOC_INVALIDO_CTE
-    - TIPO_DOC_INVALIDO_AHO
-    - TIPO_DOC_VALIDO_CTE
-    - TIPO_DOC_VALIDO_AHO
-    - RECHAZO_TIPO_DOC_CTE
-    - RECHAZO_TIPO_DOC_AHO
-    - CONTEO_RECHAZO_TIPO_DOC
-    - CONTEO_VALIDO_TIPO_DOC
+  - SABANA_CTE
+  - SABANA_AHO
+  - TIPO_DOC_INVALIDO_CTE
+  - TIPO_DOC_INVALIDO_AHO
+  - TIPO_DOC_VALIDO_CTE
+  - TIPO_DOC_VALIDO_AHO
+  - RECHAZO_TIPO_DOC_CTE
+  - RECHAZO_TIPO_DOC_AHO
+  - CONTEO_RECHAZO_TIPO_DOC
+  - CONTEO_VALIDO_TIPO_DOC
   archivos:
-    - RECHAZO_TIPO_DOC_CTE.csv
-    - RECHAZO_TIPO_DOC_AHO.csv
+  - RECHAZO_TIPO_DOC_CTE.csv
+  - RECHAZO_TIPO_DOC_AHO.csv
 fuentes_url:
-  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
-  - https://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/a002473690.htm
-  - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
-  - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/p00e1u5k4v11agn1ffmgvkfoufmg.htm
-dudas:
-  - Las opciones de PROC IMPORT DBMS=EXCELCS (SERVER, PORT, TEXTSIZE, SHEET) se copian del original y no se verificaron en la documentacion.
-  - Los codigos TD01 a TD05 son ficticios; el significado real de los tipos de documento sigue pendiente.
+- https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+- https://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/a002473690.htm
+- https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
+- https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/p00e1u5k4v11agn1ffmgvkfoufmg.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: A (PROC SQL sobre SQLite) para los joins y conteos. El esperado
+  sale de la verdad plantada (validaciones_esperado); el cruce con el oráculo SQL está en validaciones_cruce.'
+estado: pendiente_revision
+motivo: Cruce completo (12 tablas y archivos) sin diferencias. Falta confirmar el tipo de NRO_DOC en PROC
+  IMPORT y el formato de PROC EXPORT.
+orden_relevante: false
+observacion_revision: Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. NRO_DOC (VAR10) queda texto, con sus ceros (00000001),
+  por la convención del corpus. Si PROC IMPORT lo toma numérico, PROC EXPORT escribe 1 en RECHAZO_TIPO_DOC
+  y pierde los ceros.
+invariantes:
+- filas(SABANA_CTE) == filas(TIPO_DOC_INVALIDO_CTE) + filas(TIPO_DOC_VALIDO_CTE)
+- filas(SABANA_AHO) == filas(TIPO_DOC_INVALIDO_AHO) + filas(TIPO_DOC_VALIDO_AHO)
+- filas(RECHAZO_TIPO_DOC_CTE) == filas(TIPO_DOC_INVALIDO_CTE)
+- suma(CONTEO_RECHAZO_TIPO_DOC.NRO_RECHAZOS) == filas(RECHAZO_TIPO_DOC_CTE) + filas(RECHAZO_TIPO_DOC_AHO)

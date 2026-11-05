@@ -1,19 +1,14 @@
 nivel: L8
 tema: tipo de cuenta invalido (lista de valores) y GMF invalido (rango), con missing
 construcciones:
-  - data step con input(left(...), 3.) para GMF (texto no numerico queda faltante)
-  - PROC SQL WHERE TIPO_CTA NOT IN ('1','2','3','4','5') y su complemento IN
-  - PROC SQL WHERE GMF IS MISSING OR GMF NOT BETWEEN 1 AND 10
-  - PROC SQL CASE WHEN ... IS MISSING THEN ... ELSE ... END AS MOTIVO
-  - PROC SQL LEFT JOIN ... WHERE ... IS MISSING para excluir rechazos
-  - PROC SQL DISTINCT
-  - PROC SQL OUTER UNION CORR con literal como columna
-  - PROC EXPORT DBMS=DLM PUTNAMES=NO
-capa: "A (SQL) y B (faltante en comparaciones: un faltante cuenta como menor que cualquier numero)"
-estado: sin_esperado
-entradas:
-  - DETALLE_CTE.csv (23 columnas)
-  - DETALLE_AHO.csv (23 columnas)
+- data step con input(left(...), 3.) para GMF (texto no numerico queda faltante)
+- PROC SQL WHERE TIPO_CTA NOT IN ('1','2','3','4','5') y su complemento IN
+- PROC SQL WHERE GMF IS MISSING OR GMF NOT BETWEEN 1 AND 10
+- PROC SQL CASE WHEN ... IS MISSING THEN ... ELSE ... END AS MOTIVO
+- PROC SQL LEFT JOIN ... WHERE ... IS MISSING para excluir rechazos
+- PROC SQL DISTINCT
+- PROC SQL OUTER UNION CORR con literal como columna
+- PROC EXPORT DBMS=DLM PUTNAMES=NO
 anomalias_plantadas:
   cte:
     tipo_cta_invalido: 4
@@ -27,28 +22,41 @@ anomalias_plantadas:
     validos: 56
 salidas_esperadas:
   tablas_work:
-    - SABANA_CTE
-    - SABANA_AHO
-    - INCONS_TIPO_CTA_INVALIDO_CTE
-    - INCONS_TIPO_CTA_INVALIDO_AHO
-    - SABANA_TIPO_CTA_OK_CTE
-    - SABANA_TIPO_CTA_OK_AHO
-    - INCONS_GMF_INVALIDO_CTE
-    - INCONS_GMF_INVALIDO_AHO
-    - SABANA_VALIDA_CTE
-    - SABANA_VALIDA_AHO
-    - INCONS_CUENTA_CTE
-    - INCONS_CUENTA_AHO
-    - CONTEO_CUENTA
-    - CONTEO_CUENTA_VALIDA
+  - SABANA_CTE
+  - SABANA_AHO
+  - INCONS_TIPO_CTA_INVALIDO_CTE
+  - INCONS_TIPO_CTA_INVALIDO_AHO
+  - SABANA_TIPO_CTA_OK_CTE
+  - SABANA_TIPO_CTA_OK_AHO
+  - INCONS_GMF_INVALIDO_CTE
+  - INCONS_GMF_INVALIDO_AHO
+  - SABANA_VALIDA_CTE
+  - SABANA_VALIDA_AHO
+  - INCONS_CUENTA_CTE
+  - INCONS_CUENTA_AHO
+  - CONTEO_CUENTA
+  - CONTEO_CUENTA_VALIDA
   archivos:
-    - INCONS_CUENTA_CTE.csv
-    - INCONS_CUENTA_AHO.csv
+  - INCONS_CUENTA_CTE.csv
+  - INCONS_CUENTA_AHO.csv
 fuentes_url:
-  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
-  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
-  - https://support.sas.com/documentation/cdl/en/fedsqlref/69925/HTML/default/n0oscngsxq7ognn1rqh8zysr1fqy.htm
-dudas:
-  - La regla de que un faltante es menor que cualquier numero (NOT BETWEEN lo marca) viene de la documentacion de IS NULL e IS MISSING; el caso depende de ella para separar GMF no numerico de GMF fuera de rango.
-  - Las listas 1 a 5 (tipo de cuenta) y 1 a 10 (GMF) son reglas ficticias de ejemplo.
-  - No se confirmo que NOT IN con literales de texto se evalue igual que en SQLite; se usa como oraculo de capa A.
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+- https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+- https://support.sas.com/documentation/cdl/en/fedsqlref/69925/HTML/default/n0oscngsxq7ognn1rqh8zysr1fqy.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: A (SQL) y B (faltante en comparaciones: un faltante cuenta
+  como menor que cualquier numero). El esperado sale de la verdad plantada (validaciones_esperado); el
+  cruce con el oráculo SQL está en validaciones_cruce.'
+estado: pendiente_revision
+motivo: Cruce completo (16 tablas y archivos) sin diferencias. Falta confirmar el formato 3. de GMF en
+  PROC EXPORT.
+orden_relevante: false
+observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. GMF_TXT tiene XX: PROC IMPORT tipa texto toda la
+  columna y el input convierte; el XX queda faltante. En PROC EXPORT, GMF 99 se escribe sin relleno (formato
+  3. de SAS). SABANA_VALIDA sale de SELECT DISTINCT: el orden no está garantizado.'
+invariantes:
+- filas(SABANA_CTE) == filas(SABANA_VALIDA_CTE) + filas(INCONS_CUENTA_CTE)
+- filas(SABANA_AHO) == filas(SABANA_VALIDA_AHO) + filas(INCONS_CUENTA_AHO)
+- suma(CONTEO_CUENTA.NRO_RECHAZOS) == filas(INCONS_CUENTA_CTE) + filas(INCONS_CUENTA_AHO)

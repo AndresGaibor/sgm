@@ -1,19 +1,14 @@
 nivel: L8
 tema: campos de documento vacios o cero (tit-cot y FA)
 construcciones:
-  - PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM GETNAMES=NO
-  - input(left(...), 30.) con campo vacio y con cero
-  - macros con parametro de producto (tit_cot_vacio, fa_vacio, doc_valido)
-  - PROC SQL WHERE (NRO_DOC = 0 OR NRO_DOC IS MISSING) AND RELACION <> 9902
-  - PROC SQL WHERE NRO_DOC IS NOT MISSING AND NRO_DOC <> 0
-  - data step con SET de dos tablas y campo INCONSISTENCIA
-  - PROC SQL SUM sobre texto convertido con input(left(...))
-  - PROC EXPORT DBMS=DLM PUTNAMES=NO
-capa: A (PROC SQL sobre SQLite) y B (input de texto a numero, vacio queda faltante)
-estado: sin_esperado
-entradas:
-  - DETALLE_CTE.csv (23 columnas, sin cabecera)
-  - DETALLE_AHO.csv (23 columnas)
+- PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM GETNAMES=NO
+- input(left(...), 30.) con campo vacio y con cero
+- macros con parametro de producto (tit_cot_vacio, fa_vacio, doc_valido)
+- PROC SQL WHERE (NRO_DOC = 0 OR NRO_DOC IS MISSING) AND RELACION <> 9902
+- PROC SQL WHERE NRO_DOC IS NOT MISSING AND NRO_DOC <> 0
+- data step con SET de dos tablas y campo INCONSISTENCIA
+- PROC SQL SUM sobre texto convertido con input(left(...))
+- PROC EXPORT DBMS=DLM PUTNAMES=NO
 anomalias_plantadas:
   cte:
     tit_cot_nro_doc_vacio: 3
@@ -28,26 +23,41 @@ anomalias_plantadas:
     validos: 70
 salidas_esperadas:
   tablas_work:
-    - SABANA_CTE
-    - SABANA_AHO
-    - NRO_DOC_VACIO_0_TIT_COT_CTE
-    - NRO_DOC_VACIO_0_TIT_COT_AHO
-    - INCONS_NRO_DOC_VACIO_0_FA_CTE
-    - INCONS_NRO_DOC_VACIO_0_FA_AHO
-    - NRO_DOC_NO_VACIO_NI_0_CTE
-    - NRO_DOC_NO_VACIO_NI_0_AHO
-    - RECHAZO_NRO_DOC_CTE
-    - RECHAZO_NRO_DOC_AHO
-    - CONTEO_NRO_DOC_TIT_COT
-    - CONTEO_NRO_DOC_FA
-    - SUMA_SALDO_CTE_VALIDAS
+  - SABANA_CTE
+  - SABANA_AHO
+  - NRO_DOC_VACIO_0_TIT_COT_CTE
+  - NRO_DOC_VACIO_0_TIT_COT_AHO
+  - INCONS_NRO_DOC_VACIO_0_FA_CTE
+  - INCONS_NRO_DOC_VACIO_0_FA_AHO
+  - NRO_DOC_NO_VACIO_NI_0_CTE
+  - NRO_DOC_NO_VACIO_NI_0_AHO
+  - RECHAZO_NRO_DOC_CTE
+  - RECHAZO_NRO_DOC_AHO
+  - CONTEO_NRO_DOC_TIT_COT
+  - CONTEO_NRO_DOC_FA
+  - SUMA_SALDO_CTE_VALIDAS
   archivos:
-    - RECHAZO_NRO_DOC_CTE.csv
-    - RECHAZO_NRO_DOC_AHO.csv
+  - RECHAZO_NRO_DOC_CTE.csv
+  - RECHAZO_NRO_DOC_AHO.csv
 fuentes_url:
-  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
-  - https://support.sas.com/documentation/cdl/en/lrdict/62618/HTML/default/a000180357.htm
-  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
-dudas:
-  - Que input(left(''), 30.) devuelva faltante con nota (no vista en la documentacion consultada) es supuesto del caso.
-  - La comparacion NRO_DOC = 0 con faltante: se asume que el faltante no es igual a 0 (confirmar con la documentacion de faltantes en SAS).
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+- https://support.sas.com/documentation/cdl/en/lrdict/62618/HTML/default/a000180357.htm
+- https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: A (PROC SQL sobre SQLite) y B (input de texto a numero, vacio
+  queda faltante). El esperado sale de la verdad plantada (validaciones_esperado); el cruce con el oráculo
+  SQL está en validaciones_cruce.'
+estado: pendiente_revision
+motivo: 'Cruce completo sin diferencias. Hallazgo del programa: SUMA_SALDO_CTE_VALIDAS suma una columna
+  que su fuente no tiene; el resultado es faltante.'
+orden_relevante: false
+observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. Hallazgo: SUMA_SALDO_CTE_VALIDAS suma FIN_SALDO_CTA
+  sobre NRO_DOC_NO_VACIO_NI_0_CTE, cuyo SELECT no trae esa columna. En SAS la variable queda sin inicializar
+  y la suma da faltante, no el saldo. Duda: formato 30. de NRO_DOC en PROC EXPORT.'
+invariantes:
+- filas(SABANA_CTE) == filas(NRO_DOC_NO_VACIO_NI_0_CTE) + filas(RECHAZO_NRO_DOC_CTE)
+- filas(SABANA_AHO) == filas(NRO_DOC_NO_VACIO_NI_0_AHO) + filas(RECHAZO_NRO_DOC_AHO)
+- suma(CONTEO_NRO_DOC_TIT_COT.NRO_RECHAZOS) + suma(CONTEO_NRO_DOC_FA.NRO_RECHAZOS) == filas(RECHAZO_NRO_DOC_CTE)
+  + filas(RECHAZO_NRO_DOC_AHO)

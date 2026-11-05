@@ -1,20 +1,16 @@
 nivel: L8
-tema: cadena completa (tipo de documento, documento vacio o cero y tipo de cuenta) con sabana final y rechazos
+tema: cadena completa (tipo de documento, documento vacio o cero y tipo de cuenta) con sabana final y
+  rechazos
 construcciones:
-  - PROC IMPORT DBMS=EXCELCS (homologacion)
-  - PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM
-  - input(left(...), 30.) para NRO_DOC
-  - macros por paso con parametro de producto (paso1_tipo_doc, paso2_tit_cot, paso2_fa, paso3_tipo_cta)
-  - encadenamiento: cada paso lee la salida del anterior
-  - PROC SQL LEFT JOIN ... IS MISSING, INNER JOIN, NOT IN y IN con lista de valores
-  - PROC SQL SELECT tabla.* (todas las columnas)
-  - PROC SQL OUTER UNION CORR con literal MOTIVO y conteos
-  - PROC EXPORT DBMS=DLM PUTNAMES=NO
-capa: A (SQL encadenado sobre SQLite) y B (input de NRO_DOC)
-estado: sin_esperado
-entradas:
-  - DETALLE_CTE.csv y DETALLE_AHO.csv (23 columnas)
-  - Homologacion_tpo_dto.xlsx (columna CNAME: TD01 a TD04)
+- PROC IMPORT DBMS=EXCELCS (homologacion)
+- PROC DOWNLOAD dentro de RSUBMIT y PROC IMPORT DBMS=DLM
+- input(left(...), 30.) para NRO_DOC
+- macros por paso con parametro de producto (paso1_tipo_doc, paso2_tit_cot, paso2_fa, paso3_tipo_cta)
+- encadenamiento: cada paso lee la salida del anterior
+- PROC SQL LEFT JOIN ... IS MISSING, INNER JOIN, NOT IN y IN con lista de valores
+- PROC SQL SELECT tabla.* (todas las columnas)
+- PROC SQL OUTER UNION CORR con literal MOTIVO y conteos
+- PROC EXPORT DBMS=DLM PUTNAMES=NO
 anomalias_plantadas:
   cte:
     tipo_doc_invalido: 6
@@ -30,35 +26,47 @@ anomalias_plantadas:
     validos: 50
 salidas_esperadas:
   tablas_work:
-    - SABANA_CTE
-    - SABANA_AHO
-    - PASO1_RECHAZO_CTE
-    - PASO1_RECHAZO_AHO
-    - PASO1_VALIDO_CTE
-    - PASO1_VALIDO_AHO
-    - PASO2_RECHAZO_TC_CTE
-    - PASO2_RECHAZO_TC_AHO
-    - PASO2_RECHAZO_FA_CTE
-    - PASO2_RECHAZO_FA_AHO
-    - PASO2_VALIDO_CTE
-    - PASO2_VALIDO_AHO
-    - PASO3_RECHAZO_CTE
-    - PASO3_RECHAZO_AHO
-    - SABANA_FINAL_CTE
-    - SABANA_FINAL_AHO
-    - RECHAZOS_CTE
-    - RECHAZOS_AHO
+  - SABANA_CTE
+  - SABANA_AHO
+  - PASO1_RECHAZO_CTE
+  - PASO1_RECHAZO_AHO
+  - PASO1_VALIDO_CTE
+  - PASO1_VALIDO_AHO
+  - PASO2_RECHAZO_TC_CTE
+  - PASO2_RECHAZO_TC_AHO
+  - PASO2_RECHAZO_FA_CTE
+  - PASO2_RECHAZO_FA_AHO
+  - PASO2_VALIDO_CTE
+  - PASO2_VALIDO_AHO
+  - PASO3_RECHAZO_CTE
+  - PASO3_RECHAZO_AHO
+  - SABANA_FINAL_CTE
+  - SABANA_FINAL_AHO
+  - RECHAZOS_CTE
+  - RECHAZOS_AHO
   archivos:
-    - SABANA_FINAL_CTE.csv
-    - SABANA_FINAL_AHO.csv
-    - RECHAZOS_CTE.csv
-    - RECHAZOS_AHO.csv
+  - SABANA_FINAL_CTE.csv
+  - SABANA_FINAL_AHO.csv
+  - RECHAZOS_CTE.csv
+  - RECHAZOS_AHO.csv
 fuentes_url:
-  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
-  - https://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/a002473690.htm
-  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
-  - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
-dudas:
-  - Se asume que cada fila anomala tiene un solo defecto; con ese supuesto la suma de rechazos por paso es exacta.
-  - La sabana final no usa DISTINCT en este caso; si una llave se repitiera, el conteo cambiaria. El generador no repite llaves.
-  - Los codigos de tipo de cuenta y de documento son ficticios.
+- https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+- https://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/a002473690.htm
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+- https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: A (SQL encadenado sobre SQLite) y B (input de NRO_DOC). El
+  esperado sale de la verdad plantada (validaciones_esperado); el cruce con el oráculo SQL está en validaciones_cruce.'
+estado: pendiente_revision
+motivo: 'Hallazgo del programa: PASO1_RECHAZO pide SABANA.GMF, que no existe (solo hay GMF_TXT, sin convertir).
+  El cruce supone la conversión (22 tablas y archivos sin diferencias con ese supuesto).'
+orden_relevante: false
+observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. Programa no ejecutable tal cual en SAS: PASO1_RECHAZO
+  referencia GMF sin convertirlo. El esperado y el cruce suponen GMF = input(left(GMF_TXT), 3.) agregado
+  al final, como en v04 a v06 y v08. Dudas de PROC EXPORT como en los demás casos.'
+invariantes:
+- filas(SABANA_CTE) == filas(RECHAZOS_CTE) + filas(SABANA_FINAL_CTE)
+- filas(SABANA_AHO) == filas(RECHAZOS_AHO) + filas(SABANA_FINAL_AHO)
+- filas(PASO1_RECHAZO_CTE) + filas(PASO1_VALIDO_CTE) == filas(SABANA_CTE)

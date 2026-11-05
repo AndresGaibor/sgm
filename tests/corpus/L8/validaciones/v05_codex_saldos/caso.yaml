@@ -1,19 +1,14 @@
 nivel: L8
 tema: codex invalido y saldos negativos por producto
 construcciones:
-  - input(left(...), 20.) con signo menos en texto (saldo negativo)
-  - PROC SQL WHERE GMF NOT BETWEEN 1 AND 10 AND RELACION = 1000 (codex)
-  - PROC SQL WHERE FIN_SALDO_CTA < 0
-  - PROC SQL NOT IN (SELECT ... FROM tabla de rechazos) con dos subconsultas
-  - PROC SQL SUM con GROUP BY (no usado en este caso: solo SUM simple)
-  - data step con INCONSISTENCIA constante por regla
-  - PROC SQL OUTER UNION CORR con literal REGLA
-  - PROC EXPORT DBMS=DLM PUTNAMES=NO
-capa: A (SQL, NOT IN, SUM) y B (input de texto con signo)
-estado: sin_esperado
-entradas:
-  - DETALLE_CTE.csv (23 columnas; saldo negativo como texto con signo menos)
-  - DETALLE_AHO.csv (23 columnas)
+- input(left(...), 20.) con signo menos en texto (saldo negativo)
+- PROC SQL WHERE GMF NOT BETWEEN 1 AND 10 AND RELACION = 1000 (codex)
+- PROC SQL WHERE FIN_SALDO_CTA < 0
+- PROC SQL NOT IN (SELECT ... FROM tabla de rechazos) con dos subconsultas
+- PROC SQL SUM con GROUP BY (no usado en este caso: solo SUM simple)
+- data step con INCONSISTENCIA constante por regla
+- PROC SQL OUTER UNION CORR con literal REGLA
+- PROC EXPORT DBMS=DLM PUTNAMES=NO
 anomalias_plantadas:
   cte:
     codex_invalido: 3
@@ -25,30 +20,43 @@ anomalias_plantadas:
     validos: 58
 salidas_esperadas:
   tablas_work:
-    - SABANA_CTE
-    - SABANA_AHO
-    - INCONS_CODEX_INVALIDO_CTE
-    - INCONS_CODEX_INVALIDO_AHO
-    - INCONS_SALDO_NEG_CTE
-    - INCONS_SALDO_NEG_AHO
-    - SABANA_VALIDA_CTE
-    - SABANA_VALIDA_AHO
-    - SUMA_SALDO_VALIDA_CTE
-    - SUMA_SALDO_VALIDA_AHO
-    - RECHAZO_CODEX_CTE
-    - RECHAZO_CODEX_AHO
-    - RECHAZO_SALDO_CTE
-    - RECHAZO_SALDO_AHO
-    - CONTEO_CODEX_SALDO
+  - SABANA_CTE
+  - SABANA_AHO
+  - INCONS_CODEX_INVALIDO_CTE
+  - INCONS_CODEX_INVALIDO_AHO
+  - INCONS_SALDO_NEG_CTE
+  - INCONS_SALDO_NEG_AHO
+  - SABANA_VALIDA_CTE
+  - SABANA_VALIDA_AHO
+  - SUMA_SALDO_VALIDA_CTE
+  - SUMA_SALDO_VALIDA_AHO
+  - RECHAZO_CODEX_CTE
+  - RECHAZO_CODEX_AHO
+  - RECHAZO_SALDO_CTE
+  - RECHAZO_SALDO_AHO
+  - CONTEO_CODEX_SALDO
   archivos:
-    - RECHAZO_CODEX_CTE.csv
-    - RECHAZO_SALDO_CTE.csv
-    - RECHAZO_CODEX_AHO.csv
-    - RECHAZO_SALDO_AHO.csv
+  - RECHAZO_CODEX_CTE.csv
+  - RECHAZO_SALDO_CTE.csv
+  - RECHAZO_CODEX_AHO.csv
+  - RECHAZO_SALDO_AHO.csv
 fuentes_url:
-  - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
-  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
-dudas:
-  - Que input(left('-12001'), 20.) lea un negativo no se confirmo con un ejemplo de la documentacion; el caso lo supone.
-  - La suma SUM(FIN_SALDO_CTA) sobre datos sin faltantes es evidente, pero el tratamiento de faltantes no entra en este caso.
-  - Los codigos de codex (relacion 1000, GMF fuera de 1 a 10) son ficticios.
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+- https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: A (SQL, NOT IN, SUM) y B (input de texto con signo). El esperado
+  sale de la verdad plantada (validaciones_esperado); el cruce con el oráculo SQL está en validaciones_cruce.'
+estado: pendiente_revision
+motivo: Cruce completo (19 tablas y archivos) sin diferencias. Falta confirmar que input() lee el negativo
+  y el formato 20. y 3. de PROC EXPORT.
+orden_relevante: false
+observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. FIN_SALDO_TXT y GMF se tipan numéricos; el negativo
+  se lee con signo (input(left(''-12001''), 20.)). Duda: formatos 20. y 3. en PROC EXPORT, que el esperado
+  no rellena.'
+invariantes:
+- filas(SABANA_CTE) == filas(SABANA_VALIDA_CTE) + filas(RECHAZO_CODEX_CTE) + filas(RECHAZO_SALDO_CTE)
+- filas(SABANA_AHO) == filas(SABANA_VALIDA_AHO) + filas(RECHAZO_CODEX_AHO) + filas(RECHAZO_SALDO_AHO)
+- suma(CONTEO_CODEX_SALDO.NRO_RECHAZOS) == filas(RECHAZO_CODEX_CTE) + filas(RECHAZO_SALDO_CTE) + filas(RECHAZO_CODEX_AHO)
+  + filas(RECHAZO_SALDO_AHO)

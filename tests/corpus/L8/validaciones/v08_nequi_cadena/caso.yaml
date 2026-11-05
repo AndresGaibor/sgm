@@ -1,21 +1,16 @@
 nivel: L8
 tema: cadena Nequi con otra homologacion y sin la etapa de tipo de cuenta
 construcciones:
-  - PROC IMPORT DBMS=EXCELCS (homologacion Nequi, otra lista)
-  - RSUBMIT con PROC DOWNLOAD de un archivo de 23 columnas
-  - PROC IMPORT DBMS=DLM GETNAMES=NO
-  - input(left(...)) para NRO_DOC y GMF
-  - PROC SQL LEFT JOIN ... IS MISSING sobre homologacion Nequi
-  - PROC SQL INNER JOIN (valido)
-  - PROC SQL SELECT DISTINCT
-  - PROC SQL OUTER UNION CORR con literal MOTIVO
-  - macro de sistema del visor (%web_drop_table, %web_open_table) y TITLE/FOOTNOTE
-  - PROC EXPORT DBMS=DLM PUTNAMES=NO
-capa: A (SQL) y B (input)
-estado: sin_esperado
-entradas:
-  - DETALLE_NEQUI.csv (23 columnas)
-  - Homologacion_tpo_dto_Nequi.xlsx (columna CNAME: TD01, TD02, TD03, TD05; no tiene TD04)
+- PROC IMPORT DBMS=EXCELCS (homologacion Nequi, otra lista)
+- RSUBMIT con PROC DOWNLOAD de un archivo de 23 columnas
+- PROC IMPORT DBMS=DLM GETNAMES=NO
+- input(left(...)) para NRO_DOC y GMF
+- PROC SQL LEFT JOIN ... IS MISSING sobre homologacion Nequi
+- PROC SQL INNER JOIN (valido)
+- PROC SQL SELECT DISTINCT
+- PROC SQL OUTER UNION CORR con literal MOTIVO
+- macro de sistema del visor (%web_drop_table, %web_open_table) y TITLE/FOOTNOTE
+- PROC EXPORT DBMS=DLM PUTNAMES=NO
 anomalias_plantadas:
   nequi:
     tipo_doc_invalido: 5
@@ -25,25 +20,35 @@ anomalias_plantadas:
     validos: 70
 salidas_esperadas:
   tablas_work:
-    - SABANA_NEQUI
-    - TIPO_DOC_INVALIDO_NEQUI
-    - TIPO_DOC_VALIDO_NEQUI
-    - NRO_DOC_VACIO_0_TIT_COT_NEQUI
-    - INCONS_NRO_DOC_FA_NEQUI
-    - SABANA_SIN_VACIOS_NEQUI
-    - SABANA_FINAL_NEQUI
-    - RECHAZOS_NEQUI
-    - SUMA_SALDO_NEQUI_FINAL
-    - CONTEO_NEQUI
+  - SABANA_NEQUI
+  - TIPO_DOC_INVALIDO_NEQUI
+  - TIPO_DOC_VALIDO_NEQUI
+  - NRO_DOC_VACIO_0_TIT_COT_NEQUI
+  - INCONS_NRO_DOC_FA_NEQUI
+  - SABANA_SIN_VACIOS_NEQUI
+  - SABANA_FINAL_NEQUI
+  - RECHAZOS_NEQUI
+  - SUMA_SALDO_NEQUI_FINAL
+  - CONTEO_NEQUI
   archivos:
-    - SABANA_FINAL_NEQUI.csv
-    - RECHAZOS_NEQUI.csv
+  - SABANA_FINAL_NEQUI.csv
+  - RECHAZOS_NEQUI.csv
 fuentes_url:
-  - https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
-  - https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
-  - https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/p00e1u5k4v11agn1ffmgvkfoufmg.htm
-dudas:
-  - La sabana final esperada tiene 72 filas (70 validas mas 2 con tipo de cuenta 9 que este paso no valida): es la trampa del caso.
-  - Que la region Nequi del original no tenga etapa de tipo de cuenta se verifico por etiquetas entre las lineas 7380 y 16400 de client_large.sas; no se verifico que no exista en otra parte del original.
-  - El paso SABANA_FINAL usa un LEFT JOIN sobre tipo de documento invalido que nunca casa, por diseno del caso (como en el original). No cambia el conteo.
-  - Los codigos TD01 a TD05 son ficticios.
+- https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm
+- https://support.sas.com/documentation/cdl/en/acpcref/63181/HTML/default/p07k868np8cd18n1teen33x5bym7.htm
+- https://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/p00e1u5k4v11agn1ffmgvkfoufmg.htm
+capa: A
+razonamiento: 'Capa declarada originalmente: A (SQL) y B (input). El esperado sale de la verdad plantada
+  (validaciones_esperado); el cruce con el oráculo SQL está en validaciones_cruce.'
+estado: pendiente_revision
+motivo: Cruce completo (12 tablas y archivos) sin diferencias. Falta confirmar el formato de PROC EXPORT
+  y el tipo de NRO_DOC.
+orden_relevante: false
+observacion_revision: 'Sin SAS en el entorno. PROC IMPORT tipa las columnas con la convención del corpus
+  (DIFERENCIAS.md, tipo de columna); PROC EXPORT se supone sin comillas, con faltante vacío y sin formato.
+  Ninguna de esas dos cosas está demostrada con SAS. TIPO_CTA no se valida en Nequi: las 2 filas con TIPO_CTA
+  9 pasan y dan 72 válidas (70 más 2). SABANA_FINAL sale de SELECT DISTINCT: el orden no está garantizado.
+  Duda: formatos 3. y 30. en PROC EXPORT, y el tipo de NRO_DOC.'
+invariantes:
+- filas(SABANA_NEQUI) == filas(SABANA_FINAL_NEQUI) + filas(RECHAZOS_NEQUI)
+- suma(CONTEO_NEQUI.NRO_FILAS) == filas(SABANA_NEQUI)
