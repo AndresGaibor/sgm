@@ -4549,3 +4549,51 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
   155 omitidas.
 - No verificado: que un agente respete el orden de lectura no se puede probar. Las pruebas garantizan
   que la instrucción está, que nombra el plan maestro y que las rutas a las que manda existen.
+
+## Hito 103m. MG-01 cerrado: backend de Talend, salud de Studio, lote y ciclo rápido
+
+- Fecha: 2026-11-05. Ejecución del plan `docs/superpowers/plans/2026-11-05-mg-01-fundacion-rapida.md`
+  (seis tareas, un commit por tarea).
+- Qué se hizo:
+  - **`src/sgm/backend_talend/`** (`base.py`, `archivos.py`, `talend_cli.py`, `salud.py`): interfaz
+    `BackendTalend` con `escribir`, `compilar_lote` y `verificar`. `ArchivosBackend` escribe el par
+    `.item`/`.properties` con lo que ya había y no necesita Studio; `TalendCliBackend` hereda de él y
+    añade la CLI con el ejecutor inyectado, tiempo máximo y traducción de `FileNotFoundError` y
+    `TimeoutExpired` a `BackendNoDisponible`. Un contexto con credenciales se rechaza con
+    `ValueError` antes de armar la línea de comandos.
+  - **`tools/studio_salud.py`**: ping y diálogos, diez segundos de corte, una línea de salida y
+    código 0 o 1. En esta máquina tarda 4,5 s y nombra los dos modales abiertos.
+  - **`tools/corpus_lib/studio_lote.py`** y `corpus_studio.py lote`: copian los Jobs a `process/`
+    con sufijo nuevo reutilizando `_copiar_jobs`, `sufijo_nuevo` y `renombrar` de `studio_validar`,
+    compilan en **una** llamada y borran lo copiado en un `finally`, sin tocar Jobs ajenos.
+  - **`tools/ciclo_rapido.py`**: `ruff` sobre los `.py` tocados, la suite sin la marca `studio` y el
+    oráculo de cada caso tocado; corta en el primer fallo. La marca `studio` queda registrada en
+    `pyproject.toml` y `addopts` pasa a `-n auto -m 'not studio'`.
+  - **`tests/unit/test_backend_aislado.py`**: recorre los 199 módulos de `src/sgm/` y exige que
+    ninguno nombre `talend-mcp`, `mcp_cliente` ni `"bun"` fuera de `backend_talend/`.
+- **Lo que el plan suponía y no era así** (corregido contra la CLI real, respuestas guardadas en
+  `tests/fixtures/talend_cli/`):
+  1. `talend_bridge_ping` no devuelve un booleano `readWrite` sino `mode: "readWrite"`. La primera
+     versión de la comprobación decía «no da permiso de escritura» con Studio en modo escritura.
+  2. El ping **no ve los diálogos**: decía `readWrite` con dos modales bloqueando el IDE. La salud
+     ahora pregunta también a `talend_studio_ui_dialogs` y nombra los títulos.
+  3. `talend_job_build_batch` devuelve `data.result.jobs` (mapa nombre → `{ok, error}`), no las
+     listas `compilan`/`noCompilan` del plan. Se acepta también la forma resumida como respaldo.
+  4. `talend_job_verify` no acepta `context` (solo `job`, `run`, `installMissing`, `timeoutMs`): se
+     manda `run: false` y el contexto se usa solo para rechazar secretos.
+  5. `findings` es un mapa `{errors, warnings}`, no una lista: se aplana a `[ERROR] ...`/`[WARN] ...`.
+- Decisiones:
+  - Los nombres de la interfaz son los del plan (`BackendNoDisponible`, `ResultadoLote`,
+    `Veredicto`, `comprobar_salud`), en español, como los módulos de `talend_item/`. `AGENTS.md`
+    pide identificadores en inglés en archivos nuevos; se sigue el plan, que es más específico y fue
+    aprobado, y se anota aquí.
+  - `verificar` no ejecuta el Job (`run: false`): compilar no es ejecutar y el flujo de migración no
+    quiere efectos externos.
+- Pruebas: `test_backend_archivos.py` (4), `test_backend_talend_cli.py` (13),
+  `test_backend_salud.py` (6), `test_backend_aislado.py` (2), `test_corpus_studio_lote.py` (4),
+  `test_ciclo_rapido.py` (8). Suite completa: 2153 pruebas, 0 fallos, 26 omitidas, 129 xfailed.
+- Medidas: salud de Studio 4,5 s; oráculo de un caso 2,0 s; veinte casos 38,7 s; suite completa
+  94 s; ciclo con veinte casos ≈ 133 s (objetivo 90 s, no cumplido: el cuello es la suite).
+- Bloqueo: **no se pudo compilar en lote contra Studio**. Hay dos modales abiertos y la salud lo
+  detecta; `corpus_studio.py lote` llega a la comprobación y sale con 1 sin copiar Jobs. Falta
+  medir el lote real (MG-P0-03 y MG-P0-09) cuando se cierren.

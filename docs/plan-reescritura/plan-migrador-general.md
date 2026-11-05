@@ -450,6 +450,24 @@ hito, `PROGRESS.md` y commit.
 | MG-P0-08 | `src/sgm/backend_talend/`: interfaz y las dos implementaciones (`archivos` y `talend_cli`), con pruebas con un doble de la CLI; tiempo máximo y salida `--json`; sin secretos en la línea de comandos ni en el registro | S | `sgm migrar --backend talend_cli` compila un lote con `talend_job_build_batch`; sin Studio el error es claro y la salida de archivos se conserva | 8 |
 | MG-P0-09 | Aprovechar el modo offline de talend-mcp en el anillo C: `corpus_studio.py lote` usa `talend_job_build_batch` (unos 0,2 s por Job) y `talend_job_verify` solo para la muestra; medir y documentar el tiempo | H | 50 Jobs compilados en menos de 2 min | 4 |
 
+**Estado (hito 103m, 5 de noviembre de 2026).** Hechos MG-P0-02, MG-P0-03, MG-P0-04, MG-P0-07,
+MG-P0-08 y MG-P0-09: `src/sgm/backend_talend/` (interfaz, archivos, CLI, salud),
+`tools/studio_salud.py`, `tools/corpus_lib/studio_lote.py`, `corpus_studio.py lote`,
+`tools/ciclo_rapido.py` y `tests/unit/test_backend_aislado.py`. MG-P0-01, MG-P0-05 y MG-P0-06 pasan
+al plan MG-02, que es quien los usa.
+
+Dos criterios de aceptación **no se pudieron comprobar** porque Talend Studio tenía dos modales
+abiertos («Network Issue Occured» y «Talend Cloud Data Fabric»): la compilación en lote real
+(MG-P0-03 y MG-P0-09) y el tiempo de 50 Jobs. La comprobación de salud los detecta y el arnés se
+detiene antes de copiar nada; falta la medición cuando se cierren. El ciclo rápido mide 94 s de
+suite más 2 s por caso tocado (133 s con veinte), por encima de los 90 s pedidos: el cuello de
+botella es la suite completa, no la herramienta.
+
+Las respuestas reales de la CLI de `talend-mcp` no coincidían con lo que suponía este plan y se
+corrigieron contra ellas: `talend_job_build_batch` devuelve un mapa `result.jobs` (no listas
+`compilan`/`noCompilan`), `talend_job_verify` no acepta `context` y sus `findings` son un mapa de
+`errors` y `warnings`. Las respuestas quedan guardadas en `tests/fixtures/talend_cli/`.
+
 ### MG-P1. Modelo semántico y plan lógico (70 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
