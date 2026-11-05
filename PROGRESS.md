@@ -1037,7 +1037,8 @@ Pendiente de F1: F1.4 (reglas fuera del cÃ³digo: fontanerÃ­a, sentencias, inform
 - Fecha: 2026-11-03
 - Qué se hizo: el árbol llevaba cambios sin confirmar desde antes de la fase 0. Se verificó la suite y se confirmaron en dos commits. El usuario decidió incluirlos (paso 0.1).
   - hito 28: sql_normalize.py (más reglas de sqlglot: nombres con espacios, LABEL, informatos, literal ., ^=, NOT =, CONTAINS), lower_sql.py (OUTER UNION pasa a SEMANTICA_DUDOSA en vez de parsearse mal), metrics/baseline.json (PARSE_ERROR 42 -> 8, FUNCION_NO_MAPEADA 394 -> 177, componentes 1328 -> 1383), 	ests/unit/test_sql_normalize.py.
-  - hito 29: división de los archivos de más de 300 líneas (R9, fase 3.10): cli.py queda en 276 (comandos a cli_decisiones.py y cli_util.py), expressions.py en 131 (más expressions_base.py, expressions_funciones.py, expressions_parser.py), 	alend_translator.py en 43 (más 	alend_base.py, 	alend_parser.py, 	alend_funciones.py, 	alend_tabla.py), macros.py en 163 (más macros_modelo.py, macros_control.py, macros_llamadas.py), steps.py en 216 (más steps_tipos.py), p10_components.py en 194 (más eglas_mapeo.py). La salida no cambia: goldens idénticos.
+  - hito 29: división de los archivos de más de 300 líneas (R9, fase 3.10): cli.py queda en 276 (comandos a cli_decisiones.py y cli_util.py), expressions.py en 131 (más expressions_base.py, expressions_funciones.py, expressions_parser.py), 	alend_translator.py en 43 (más 	alend_base.py, 	alend_parser.py, 	alend_funciones.py, 	alend_tabla.py), macros.py en 163 (más macros_modelo.py, macros_control.py, macros_llamadas.py), steps.py en 216 (más steps_tipos.py), p10_components.py en 194 (más 
+eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Reparación incluida en hito 29: el trabajo de división venía sin terminar y la suite no importaba (	alend_parser.py con un import vacío y un error de sintaxis; _FUNCTIONS a medio mover a 	alend_tabla.py). Se completó el movimiento y se dejó el árbol en verde.
 - Verificación: uv run pytest -q: 428 pasan, 1 se salta; uv run ruff check .: limpio; metrics --check: sin empeorar. Ningún archivo de src/ supera 300 líneas.
 
@@ -1641,3 +1642,36 @@ Pendiente de F1: F1.4 (reglas fuera del cÃ³digo: fontanerÃ­a, sentencias, inform
 - Fecha: 2026-11-04
 - Que se hizo: `docs/plan-reescritura/plan-corpus-y-equivalencia.md` (propuesta del usuario): programas SAS de dificultad creciente (niveles L0 a L9) con entradas simuladas, resultado esperado por oraculo ejecutable (SQLite para PROC SQL, vectores de semantica de funciones con fuente, dorados revisados) y el Job de Talend validado en Studio; hitos M1 a M5 y tareas K01 a K12. Docker esta instalado pero su motor esta apagado; los contenedores (PostgreSQL, Hive) quedan para cuando el usuario lo encienda. Excepcion a la regla 3 de AGENTS.md solo para pruebas locales de los Jobs generados.
 - Estado: sin cambios de codigo.
+
+
+## Hito 68. Bloque 0 del plan de tareas: validador externo, poms y prueba de humo
+
+- Fecha: 2026-11-04
+- Que se hizo:
+  - `tools/validar_en_studio.py`: convierte el protocolo de Studio (seccion 3 de
+    `docs/plan-reescritura/tareas-agente.md`) en un comando. Emite con `sgm talend`, renombra los Jobs
+    con sufijo nuevo (Studio cachea el modelo por identificador), parchea `env_nombre=DEV` y las rutas
+    de insumos y de CSV de producto, copia al `process/` del proyecto, refresca el workspace, compila
+    los hijos, luego el padre, exporta el Build Job y ejecuta el launcher con `--context`. Borra
+    siempre los Jobs de prueba en un `finally`, aunque falle.
+  - `tools/mcp_cliente.py`: cliente JSON-RPC minimo del MCP por `urllib` y descarga de los poms
+    publicos que falten en la cache de Studio, hasta 8 rondas de exportacion (T02).
+  - `tests/unit/test_talend_humo.py`: prueba de humo sin Studio (T04) sobre los cuatro Jobs emitidos:
+    ninguna conexion con `ACTIVATE=false`, todo `tRunJob` apunta a un Job emitido, cada conexion
+    referencia nodos existentes, `UNIQUE_NAME` unicos por Job, ningun `PASSWORD` en claro, toda
+    variable `context.X` usada esta declarada y todo `.item` es XML bien formado.
+- Hallazgos:
+  - `UNIQUE_NAME` se repite fuera de los nodos: las conexiones y el `<subjob>` lo vuelven a declarar.
+    La prueba debe contar solo `node/elementParameter[@name='UNIQUE_NAME']`.
+  - `tFileInputExcel` se emite con `PASSWORD = "sgm_ref"`, el marcador que evita el fallo de
+    compilacion. No es un secreto; la prueba de humo lo admite junto con vacio y `***`.
+- Pruebas:
+  - `uv run pytest -q`: 935 pasan (928 previas + 7 nuevas), 1 se salta,
+    132 xfail.
+  - `uv run ruff check .`: limpio.
+  - `tools/validar_en_studio.py --dry-run` valida la ruta del proyecto y resume el plan.
+- No verificado: la ejecucion completa del validador contra Studio real (emitir, compilar, exportar y
+  ejecutar hasta reproducir `3|603.00`). Queda pendiente de una corrida con el servidor de talend-mcp
+  arrancado con permiso de escritura y con los datos simulados.
+- Pendiente: T10 (validacion de tipo de documento en `job_producto`), que es la siguiente tarea del
+  plan y depende de este bloque.
