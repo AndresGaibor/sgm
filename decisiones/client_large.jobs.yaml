@@ -24,3 +24,8 @@ lookups_producto:
   - 'Homologación de tipo de documento Nequi'
   - 'Códigos de país'
   - 'Códigos DANE'
+
+# Totales de origen de job_producto: el SAS cuenta los registros y suma esta columna (convertida con
+# input(left(col), 20.)) antes de validar; son la base de la conciliación.
+total_origen:
+  columna_saldo: FIN_SALDO_CTA

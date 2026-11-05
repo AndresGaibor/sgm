@@ -1593,3 +1593,29 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Pruebas: `test_proceso_origen_producto.py`. `ruff check .`: limpio.
 - No verificado: orden y tipos reales de las columnas (todas se leen como texto; el SAS convierte con `input()`); anchuras de Nequi en archivos reales; sin pruebas propias de `fuentes_csv` y `esquema_csv` (solo las cubre `origen_producto`).
 - Pendiente: validaciones, correcciones y salidas del producto (RESULTADO_<P>_NAL/EXT.csv, INCONS_DEP_<P>.csv), totales y conciliacion; lookups en tMap; documentar en `docs/plan-reescritura/` (no se actualizo en este hito).
+
+## Hito 65. Reescritura, Fase 5: totales de origen del producto (conteo y suma de saldo), pruebas de fuentes CSV y simulador numérico
+
+- Fecha: 2026-11-04
+- Qué se hizo:
+  - `tools/simular_productos.py` acepta `--saldo COLUMNA`. Esa columna se escribe como número (`100.50 * n`) y el resto sigue como texto `SIM_<columna>_<n>`.
+  - `job_producto` convierte la columna de saldo (`FIN_SALDO_CTA`) a BigDecimal en un `tMap` y calcula `suma_saldo_origen` con `tAggregateRow`. El `tLogRow` imprime `registros_origen|suma_saldo_origen`.
+  - Pruebas nuevas: `test_tools_simular_productos.py` (3), `test_proceso_fuentes_csv.py` (`fuentes_csv` y `esquema_csv` sobre un SAS sintético) y `test_talend_jobs_producto.py` (4).
+- Resultado en Studio real (talend-mcp contra Studio 8.0.1): los cuatro Jobs `_t1` compilaron con `ok: true`. El padre exportado terminó con `Proceso terminado` y salida 0. Líneas de totales impresas, una por producto:
+  ```
+  3|603.00   (CTE, DBIFTCD.csv)
+  3|603.00   (AHO, DBIFTCS.csv)
+  3|603.00   (NEQUI, F_1019.csv)
+  ```
+  Los saldos simulados son 100.50, 201.00 y 301.50, que suman 603.00. La suma del Job coincide con esa cifra.
+- Decisiones:
+  - Ninguna nueva. `--saldo` es opción explícita del simulador; por defecto todas las columnas siguen como texto.
+  - Sin cambios en `talend_item/jobs_producto.py` respecto al hito anterior: el Job compiló y ejecutó tal cual.
+- Pruebas:
+  - `uv run pytest -q`: 916 pasan, 1 se salta y 132 xfail.
+  - `uv run ruff check .`: limpio.
+- No verificado:
+  - La suma usa `new java.math.BigDecimal(valor.trim())`. No reproduce la semántica exacta de `input(left(col), 20.)`: espacios internos, signos, decimales con coma y valores no numéricos no se probaron.
+  - Solo se probaron saldos simulados con punto decimal. No se vieron saldos reales de FIN_SALDO_CTA ni se comparó la suma con un total real del SAS.
+  - Los nombres de columna son los que el SAS demuestra. Las columnas que el SAS no nombra quedan como `VARn`.
+- Pendiente: validaciones, correcciones, salidas y conciliación del producto, sin cambios en este hito.

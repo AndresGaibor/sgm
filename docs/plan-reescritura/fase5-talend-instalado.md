@@ -108,3 +108,12 @@ prohíbe MCP dentro de `sgm`, y el producto no depende de él.
 - Si la exportación falla por poms de Maven (`logging-parent` 11.3.0, `log4j-bom` 2.24.2 y 2.24.3), bajar esos poms
   públicos a la caché de Studio con un script temporal fuera del repositorio.
 - `PASSWORD` de `tFileInputExcel` no puede quedar vacío ni con `***`. Ver hallazgo 1 del hito 62 en `PROGRESS.md`.
+
+## Origen de datos de producto
+
+- Cómo se deduce: el SAS baja cada archivo con `PROC DOWNLOAD` y lo importa con `PROC IMPORT DBMS=DLM`, `DELIMITER=';'` y `GETNAMES=NO`. Sin cabecera, SAS nombra las columnas `VARn`; el programa las renombra (`DS.VAR1 AS NOMBRE`) o las convierte con `input()`, y eso demuestra el nombre y el carácter numérico. Lo que no se nombra queda como `VARn`.
+- El producto sale de la etiqueta `/* Etiqueta: ... */` previa al import. El archivo principal de cada producto es el más ancho que importa; los demás quedan como auxiliares pendientes.
+- Simulación sin datos reales: `uv run python tools/simular_productos.py <programa.sas> <carpeta> --filas 3 --saldo FIN_SALDO_CTA`. Escribe CSV con `;` y 23 columnas. La columna de saldo sale como número con punto (`100.50`, `201.00`, ...); sin `--saldo`, todas son texto `SIM_<columna>_<n>`.
+- Validación en Studio: el padre exportado lee esos CSV y cada producto imprime `registros_origen|suma_saldo_origen`. Con los saldos anteriores, la salida es `3|603.00`.
+- `parchear.py`, del scratchpad de la sesión (no del repositorio), prepara el `.item` del padre para correrlo localmente: fija `env_nombre` en DEV, apunta la ruta de insumos a la carpeta local y sustituye las rutas UNC de los CSV por la carpeta de productos simulados. No toca datos reales ni el repositorio.
+- Sin verificar: la suma usa BigDecimal y no reproduce todavía `input(left(col), 20.)` (espacios internos, signos, decimales con coma).

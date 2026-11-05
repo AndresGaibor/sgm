@@ -33,7 +33,7 @@ Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca
 | 2 | Modelo de proceso | **En curso** (hitos 52 a 54) | `fase2-familias.md`, `src/sgm/proceso/` |
 | 3 | Emisor del documento de diseño | **En curso** (hitos 55 y 56): secciones 1.1, 1.4 y 6 | `proceso/diseno_doc.py` |
 | 4 | Joblets por sub-cadena compartida | Sin empezar | |
-| 5 | Emisión de Jobs de Talend | **Empezada** (hitos 59 a 63): Jobs del diseño generados desde el modelo y validados ejecutando en Studio real; padre completo con periodo, hijos esqueleto, sin caché (desviación del diseño manual por el límite probado de tHash entre Jobs) | `fase5-talend-instalado.md`, `src/sgm/talend_item/` |
+| 5 | Emisión de Jobs de Talend | **Empezada** (hitos 59 a 65): Jobs del diseño generados desde el modelo y validados ejecutando en Studio real; padre completo con periodo, hijos esqueleto, sin caché (desviación del diseño manual por el límite probado de tHash entre Jobs) | `fase5-talend-instalado.md`, `src/sgm/talend_item/` |
 | 6 | Segundo programa e informe de complejidad | Sin empezar | |
 
 ### Lo que cambió respecto al plan original
@@ -51,6 +51,7 @@ Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca
 - **Los nombres del manual no están en el SAS** (`ruta_insumos`, `arch_hom_tpo_doc`, `cache_hom_doc`):
   los puse yo al diseñar. Por eso la conformidad se mide en dos niveles (estructura derivada y nombres
   declarados en YAML) y no se pasan filas copiando el manual al YAML.
+- Los datos de cada producto vienen de CSV (DBIFTCD, DBIFTCS, F_1019), sin cabecera, de 23 columnas con nombres que el SAS demuestra en la mayoría (el resto queda como `VARn`); no de tablas Impala como supone el diseño manual (1.1). Un solo job_producto es coherente con D6 en la capa de datos.
 
 ### Pendientes de la fase 1
 

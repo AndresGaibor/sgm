@@ -33,6 +33,7 @@ class Arquitectura:
     mensaje_fin: str
     periodo: PeriodoDecl | None = None
     lookups: tuple[str, ...] = ()  # fuentes Excel que job_producto usa como lookup
+    columna_saldo: str = ""  # columna cuya suma son los totales de origen (el SAS la suma)
 
 
 def _periodo(path: Path, item: dict | None) -> PeriodoDecl | None:
@@ -65,4 +66,5 @@ def cargar_arquitectura(path: Path) -> Arquitectura:
         mensaje_fin=str(data.get("mensaje_fin") or "").strip(),
         periodo=_periodo(path, data.get("periodo")),
         lookups=tuple(str(x).strip() for x in (data.get("lookups_producto") or [])),
+        columna_saldo=str((data.get("total_origen") or {}).get("columna_saldo") or "").strip(),
     )
