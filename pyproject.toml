@@ -35,7 +35,10 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-n auto"
+# `studio` son las pruebas que necesitan Talend Studio libre: no corren por omisión (ver
+# `tools/ciclo_rapido.py` y `tests/studio/`). Se piden con `-m studio`.
+addopts = "-n auto -m 'not studio'"
+markers = ["studio: necesita Talend Studio; no corre por omisión"]
 
 [tool.ruff]
 line-length = 100
