@@ -1,0 +1,10 @@
+id_cliente,nombre,ciudad,saldo,estado,nivel
+101,Ana Prueba,Monte Verde,1542,INACTIVO,MEDIO
+102,Carla Muestra,Puerto Sur,356,PENDIENTE,BAJO
+103,Ana Prueba,Monte Verde,2478,PENDIENTE,ALTO
+104,Elena Ficticia,Lago Azul,344,INACTIVO,BAJO
+105,Bruno Demo,Monte Verde,141,PENDIENTE,BAJO
+106,Bruno Demo,Puerto Sur,1278,PENDIENTE,MEDIO
+107,Gabriela Test,Valle Alto,1880,ACTIVO,MEDIO
+108,Bruno Demo,Valle Alto,1374,PENDIENTE,MEDIO
+109,Diego Ejemplo,Puerto Sur,913,PENDIENTE,MEDIO

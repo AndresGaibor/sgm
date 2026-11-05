@@ -1,0 +1,7 @@
+codigo,descripcion,precio,stock,categoria,valor,grande
+PRD-001,Cinta,87,56,B,4872,1
+PRD-002,Lapicero,247,22,C,5434,1
+PRD-003,Goma,246,39,B,9594,1
+PRD-004,Goma,17,15,C,255,0
+PRD-005,Goma,100,28,A,2800,1
+PRD-006,Cuaderno,20,40,C,800,0

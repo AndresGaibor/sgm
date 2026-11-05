@@ -1,0 +1,13 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, ASIGNACION, ARITMETICA, IF, THEN, ELSE, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [bandera]
+razonamiento: |
+  valor = precio * stock; grande = 1 si valor > 2000, si no 0.
+  PRD-001 87*56 = 4872 -> 1.   PRD-002 247*22 = 5434 -> 1.   PRD-003 246*39 = 9594 -> 1.
+  PRD-004 17*15 = 255 -> 0.    PRD-005 100*28 = 2800 -> 1.  PRD-006 20*40 = 800 -> 0.
+  Las columnas originales no cambian; valor y grande van al final, en ese orden.

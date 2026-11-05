@@ -1,0 +1,5 @@
+id_venta,id_cliente,fecha,monto,canal,cantidad
+1,109,2026-02-16,587,TIENDA,1
+2,107,2026-04-14,748,WEB,8
+3,105,2026-03-01,189,WEB,7
+4,109,2026-03-26,270,TIENDA,4

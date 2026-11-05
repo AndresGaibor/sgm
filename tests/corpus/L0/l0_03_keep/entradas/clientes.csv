@@ -1,0 +1,9 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Diego Ejemplo,Lago Azul,1146,PENDIENTE
+102,Elena Ficticia,Puerto Sur,3098,PENDIENTE
+103,Diego Ejemplo,Monte Verde,2223,ACTIVO
+104,Elena Ficticia,Monte Verde,3611,PENDIENTE
+105,Irene Modelo,Lago Azul,1417,PENDIENTE
+106,Gabriela Test,Monte Verde,3119,PENDIENTE
+107,Gabriela Test,Valle Alto,74,ACTIVO
+108,Diego Ejemplo,Monte Verde,740,INACTIVO

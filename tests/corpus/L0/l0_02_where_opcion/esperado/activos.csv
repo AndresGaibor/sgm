@@ -1,0 +1,5 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Hugo Simulado,Valle Alto,550,ACTIVO
+102,Diego Ejemplo,Villa Norte,271,ACTIVO
+103,Elena Ficticia,Monte Verde,1604,ACTIVO
+107,Diego Ejemplo,Puerto Sur,1311,ACTIVO

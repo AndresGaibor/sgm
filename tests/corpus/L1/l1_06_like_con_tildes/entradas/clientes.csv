@@ -1,0 +1,9 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,José Ejemplo,Puerto Sur,3909,PENDIENTE
+102,Lucía Prueba,Lago Azul,524,INACTIVO
+103,Mónica Demo,Lago Azul,3462,ACTIVO
+104,Rocío Muestra,Valle Alto,3604,ACTIVO
+105,Óscar Modelo,Valle Alto,1264,ACTIVO
+106,Mónica Demo,Lago Azul,3657,INACTIVO
+107,Óscar Modelo,Villa Norte,4786,PENDIENTE
+108,Pepé Simulado,Puerto Sur,3875,PENDIENTE

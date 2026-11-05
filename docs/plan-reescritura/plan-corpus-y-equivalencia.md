@@ -49,8 +49,13 @@ El diseño manual lee tablas de Impala. No hay Impala. Opciones, de la más simp
    al de Impala; con el controlador HiveServer2.
 4. Impala real en contenedor: pesado y de poco valor sobre el punto 3. Solo si el usuario lo pide.
 
-Estado: Docker 29.7.2 está instalado pero **el motor no está encendido** (Docker Desktop apagado). Para
-usar los puntos 2 y 3 hay que encenderlo.
+Estado (actualizado el 4 de noviembre de 2026): Docker 29.7.2 está encendido (16 CPU, 6,4 GiB de
+memoria) y ya hay imágenes locales de **Impala 4.5.3** (`statestored`, `catalogd`, `impalad_coordinator`,
+`impalad_coord_exec`, `impala_quickstart_hms`, `impala_quickstart_client`), `apache/hive:4.0.1`,
+`postgres:16-alpine`, `mysql:8.4`, SQL Server 2022, Oracle Free y Db2. Por tanto la opción 4 ya es posible
+sin descargar nada: un Impala real en contenedor, que es lo que el programa original usa
+(`connect to IMPALA (DSN=...)`). Con 6,4 GiB de memoria hay que limitar los servicios de Impala; si no
+alcanza, la opción 3 (Hive) o la 1 (CSV) son el respaldo.
 
 Excepción a `AGENTS.md`, regla 3 ("no conectarte a Impala ni a ninguna base"): el usuario autorizó el uso
 de contenedores locales para pruebas. La regla sigue vigente para el producto: `sgm` nunca se conecta a
@@ -113,13 +118,25 @@ explícito, porque tarda minutos.
   que el programa sin pasar por el oráculo ejecutable (capas A y B) o por revisión de un segundo agente
   (capa C).
 
-## 8. Lo que seguirá haciendo falta de una persona
+## 8. Lo que no se va a poder comprobar
 
-Una corrida real mínima: el usuario, o quien tenga SAS, ejecuta uno o dos de los programas del corpus
-(L4 y L8) con datos pequeños y entrega la salida real. Con eso se comprueba que el oráculo no tiene un
-malentendido compartido. También sigue en manos del equipo: D2, NEQUI, tolerancia de conciliación, rutas
-y tablas reales, y el significado de los códigos de tipo de documento. El corpus mide y reduce el riesgo,
-no lo elimina.
+El usuario aclaró (4 de noviembre de 2026) que no habrá más datos de producción ni una corrida real en SAS:
+todo ejemplo se construye desde la documentación. Por eso el riesgo de un malentendido compartido entre
+oráculo y traductor se acepta y se controla de otra manera:
+
+- Cada vector de semántica (capa B) cita su fuente en la documentación pública de SAS, y los que no la
+  tienen se marcan `incierto` y no cuentan como prueba.
+- Los programas del corpus se escriben en el estilo exacto del original (etiquetas `/* Etiqueta: */`,
+  consultas generadas por SAS Studio, `PROC DOWNLOAD` y `PROC IMPORT` con `DBMS=DLM`, conversiones con
+  `input(left(...))`, `connect to IMPALA`), y el propio frontend de `sgm` debe poder analizarlos: si no
+  los entiende, el caso está mal escrito o el frontend tiene un hueco, y ambos hallazgos sirven.
+- Cada caso complejo se contrasta con una segunda implementación independiente (oráculo SQL más la
+  referencia en Python) y las diferencias entre ambas se investigan, no se promedian.
+- El informe final declara qué quedó verificado solo contra el oráculo y qué contra la documentación.
+
+Sigue en manos del equipo, sin que yo lo pueda cerrar: D2, NEQUI, la tolerancia de conciliación, las rutas
+y tablas reales y el significado de los códigos de tipo de documento. El emisor las deja marcadas como
+pendientes.
 
 ## 9. Camino hacia la meta, por hitos
 

@@ -1,0 +1,8 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Ana Prueba,Villa Norte,667,ACTIVO
+102,Irene Modelo,Puerto Sur,-184,ACTIVO
+103,Elena Ficticia,Monte Verde,1136,ACTIVO
+104,Gabriela Test,Puerto Sur,1879,ACTIVO
+105,Hugo Simulado,Villa Norte,-198,PENDIENTE
+106,Diego Ejemplo,Villa Norte,1593,INACTIVO
+107,Carla Muestra,Villa Norte,885,INACTIVO

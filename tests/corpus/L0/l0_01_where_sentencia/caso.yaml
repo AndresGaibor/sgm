@@ -1,0 +1,13 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, WHERE, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [saldo_alto]
+razonamiento: |
+  WHERE saldo >= 1000 se evalua fila a fila; se conservan las filas con saldo >= 1000 en su orden.
+  101: 780 < 1000, fuera.   102: 2021 >= 1000, dentro.   103: 951 < 1000, fuera.
+  104: 2000 >= 1000, dentro (el limite entra).   105: 1043 >= 1000, dentro.   106: 462, fuera.
+  Resultado: filas 102, 104 y 105, sin cambiar ninguna columna.

@@ -1,0 +1,11 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, DROP, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [catalogo]
+razonamiento: |
+  DROP stock categoria quita dos columnas de las cinco. Quedan codigo, descripcion y precio,
+  en ese orden. Las seis filas se copian tal cual.

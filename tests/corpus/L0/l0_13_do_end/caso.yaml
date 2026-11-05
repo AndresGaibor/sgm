@@ -1,0 +1,14 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, LENGTH, IF, THEN DO, END, ELSE, ASIGNACION, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [clientes_revisados]
+razonamiento: |
+  Si saldo < 0: revision = 'SI' y saldo = 0 (bloque DO). Si no: revision = 'NO'.
+  LENGTH revision $ 2 fija el largo antes del IF.
+  101 667 -> NO, saldo sin cambio.     102 -184 -> SI, saldo 0.   103 1136 -> NO.
+  104 1879 -> NO.                      105 -198 -> SI, saldo 0.   106 1593 -> NO.
+  107 885 -> NO.

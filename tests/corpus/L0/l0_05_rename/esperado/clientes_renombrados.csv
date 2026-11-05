@@ -1,0 +1,6 @@
+id_cliente,nombre,sede,saldo_actual,estado
+101,Ana Prueba,Lago Azul,4147,INACTIVO
+102,Ana Prueba,Valle Alto,1842,PENDIENTE
+103,Irene Modelo,Monte Verde,1745,INACTIVO
+104,Ana Prueba,Villa Norte,2477,PENDIENTE
+105,Bruno Demo,Lago Azul,4186,PENDIENTE

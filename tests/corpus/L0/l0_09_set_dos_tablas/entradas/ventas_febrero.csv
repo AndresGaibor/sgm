@@ -1,0 +1,4 @@
+id_venta,id_cliente,fecha,monto,canal,cantidad
+101,106,2026-01-08,240,TELEFONO,8
+102,102,2026-04-09,531,TELEFONO,7
+103,105,2026-04-04,366,TELEFONO,9

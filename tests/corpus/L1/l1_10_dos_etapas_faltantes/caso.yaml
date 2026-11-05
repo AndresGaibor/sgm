@@ -1,0 +1,7 @@
+nivel: L1
+construcciones: [PROC SQL, SELECT, WHERE, ALIAS, ARITMETICA, ORDER BY, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: true
+estado: traducible
+salidas: [resumen_disp]

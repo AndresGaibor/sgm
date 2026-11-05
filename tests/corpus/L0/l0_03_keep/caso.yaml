@@ -1,0 +1,11 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, KEEP, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [resumen_clientes]
+razonamiento: |
+  KEEP id_cliente nombre saldo quita ciudad y estado. Las columnas conservan el orden del
+  archivo de entrada (id_cliente, nombre, saldo). Las 8 filas no cambian de orden ni de valor.

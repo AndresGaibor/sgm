@@ -1,0 +1,12 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [ventas_todas]
+razonamiento: |
+  SET concatena: primero todas las filas de ventas_enero (4) y despues las de ventas_febrero (3).
+  Ambas tablas tienen las mismas seis columnas, en el mismo orden. Total: 7 filas.
+  La fecha se lee como texto ISO y se copia sin cambios.

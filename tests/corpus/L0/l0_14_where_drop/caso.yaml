@@ -1,0 +1,14 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, WHERE, DROP, ASIGNACION, ARITMETICA, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [ventas_grandes]
+razonamiento: |
+  WHERE monto > 300 filtra; DROP quita id_cliente y canal; recargo = cantidad * 10 se agrega al final.
+  1 679 pasa, recargo 40.   2 701 pasa, 30.   3 824 pasa, 80.   4 802 pasa, 20.
+  5 301 pasa (301 > 300), 30.   6 249 fuera.   7 474 pasa, 50.   8 167 fuera.
+  9 514 pasa, 50.
+  Columnas: id_venta, fecha, monto, cantidad, recargo. Siete filas.

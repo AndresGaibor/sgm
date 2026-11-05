@@ -1,0 +1,12 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, RENAME, KEEP, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [lista]
+razonamiento: |
+  RENAME precio = precio_lista cambia el nombre en el sitio que ocupaba precio. KEEP codigo
+  precio_lista stock conserva esas tres columnas en su orden original: codigo, precio_lista, stock.
+  Se quitan descripcion y categoria. Los valores de las cinco filas no cambian.

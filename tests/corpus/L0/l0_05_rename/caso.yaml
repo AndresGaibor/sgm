@@ -1,0 +1,11 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, RENAME, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [clientes_renombrados]
+razonamiento: |
+  RENAME ciudad = sede y saldo = saldo_actual cambia dos nombres y deja el orden de las columnas:
+  id_cliente, nombre, sede, saldo_actual, estado. Los valores no cambian.

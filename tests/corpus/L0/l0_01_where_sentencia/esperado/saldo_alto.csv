@@ -1,0 +1,4 @@
+id_cliente,nombre,ciudad,saldo,estado
+102,Jorge Caso,Puerto Sur,2021,ACTIVO
+104,Hugo Simulado,Monte Verde,2000,ACTIVO
+105,Irene Modelo,Villa Norte,1043,INACTIVO

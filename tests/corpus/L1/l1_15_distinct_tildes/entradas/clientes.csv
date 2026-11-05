@@ -1,0 +1,10 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Ñandú Ficticio,Lago Azul,3416,ACTIVO
+102,Lucía Prueba,Villa Norte,1573,INACTIVO
+103,Ñandú Ficticio,Puerto Sur,2715,ACTIVO
+104,Jaime Ñuñez,Valle Alto,2637,INACTIVO
+105,José Ejemplo,Monte Verde,3131,PENDIENTE
+106,Mónica Demo,Lago Azul,690,PENDIENTE
+107,Mónica Demo,Valle Alto,675,ACTIVO
+108,Iñaki Dato,Villa Norte,2693,INACTIVO
+109,José Ejemplo,Valle Alto,2353,PENDIENTE

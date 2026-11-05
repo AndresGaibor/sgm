@@ -1,0 +1,9 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Felipe Dato,Monte Verde,3600,ACTIVO
+102,Felipe Dato,Villa Norte,,ACTIVO
+103,Carla Muestra,Lago Azul,,INACTIVO
+104,Felipe Dato,Valle Alto,4062,ACTIVO
+105,Felipe Dato,Lago Azul,4930,PENDIENTE
+106,Elena Ficticia,Monte Verde,2727,PENDIENTE
+107,Elena Ficticia,Monte Verde,1189,INACTIVO
+108,Felipe Dato,Villa Norte,286,INACTIVO

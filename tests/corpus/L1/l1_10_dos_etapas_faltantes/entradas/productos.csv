@@ -1,0 +1,9 @@
+codigo,descripcion,precio,stock,categoria
+PRD-001,Borrador,144,71,A
+PRD-002,Cinta,225,65,A
+PRD-003,Goma,109,,C
+PRD-004,Regla,265,64,C
+PRD-005,Borrador,96,31,A
+PRD-006,Carpeta,284,,A
+PRD-007,Cuaderno,271,39,A
+PRD-008,Borrador,84,40,C

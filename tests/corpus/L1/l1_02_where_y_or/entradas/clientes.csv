@@ -1,0 +1,10 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Carla Muestra,Villa Norte,2984,PENDIENTE
+102,Elena Ficticia,Villa Norte,911,PENDIENTE
+103,Jorge Caso,Valle Alto,722,ACTIVO
+104,Bruno Demo,Villa Norte,3048,PENDIENTE
+105,Carla Muestra,Monte Verde,3304,INACTIVO
+106,Irene Modelo,Lago Azul,341,PENDIENTE
+107,Elena Ficticia,Villa Norte,2050,PENDIENTE
+108,Hugo Simulado,Valle Alto,2798,PENDIENTE
+109,Bruno Demo,Valle Alto,2131,ACTIVO

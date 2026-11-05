@@ -1,0 +1,4 @@
+id_venta,id_cliente,fecha,monto,canal,cantidad
+1,103,2026-02-07,808,WEB,4
+3,105,2026-03-25,758,TELEFONO,3
+4,104,2026-03-20,524,WEB,7

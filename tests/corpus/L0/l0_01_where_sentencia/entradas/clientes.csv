@@ -1,0 +1,7 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Gabriela Test,Puerto Sur,780,INACTIVO
+102,Jorge Caso,Puerto Sur,2021,ACTIVO
+103,Bruno Demo,Valle Alto,951,ACTIVO
+104,Hugo Simulado,Monte Verde,2000,ACTIVO
+105,Irene Modelo,Villa Norte,1043,INACTIVO
+106,Elena Ficticia,Puerto Sur,462,ACTIVO

@@ -1728,3 +1728,12 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - `ruff check` de los dos archivos: limpio.
 - Pendiente: T12 y siguientes, que consumen el detector; catalogo de pais y DANE importados pero sin
   patron de validacion en el SAS (sus datasets solo se usan en cruces de enriquecimiento).
+
+## Hito 69. Corpus: ejecutor, oraculo SQL, vectores de semantica y casos L0 y L1
+
+- Fecha: 2026-11-04
+- Que se hizo: (a) `tools/corpus.py` con `oraculo` e `informe` y `tools/corpus_lib/` (formato de caso `tests/corpus/<nivel>/<caso>/`); (b) oraculo capa A: `PROC SQL` ejecutado en SQLite con una tabla de diferencias de dialecto (`tools/corpus_lib/DIFERENCIAS.md`); lo no soportado falla con `NoSoportado`, nunca se traduce mal en silencio; (c) 69 vectores de semantica de funciones SAS con fuente (52 documentados, 15 deducidos, 2 inciertos) y su implementacion de referencia (`tools/corpus_semantica*.py`); (d) 30 casos: L0 (15, esperado escrito a mano con razonamiento, estado `pendiente_revision`) y L1 (15, capa A verificada).
+- Hallazgos de semantica: COMPRESS sin modificadores quita blancos; SUBSTR sobre un numero lo toma alineado a la derecha; SCAN trata delimitadores consecutivos como uno; ROUND redondea empates alejandose de cero; un faltante numerico es menor que cualquier numero; el texto se compara con relleno de blancos. Con `w.d` los ultimos `d` digitos son decimales: `0023` con `6.2` da `0.23`.
+- Riesgos de dialecto declarados: celda vacia igual a faltante; LIKE sensible a mayusculas; fechas ISO como texto en `PROC IMPORT`; orden de faltantes en `ORDER BY`; expresion sin alias (`_TEMA001`); blancos finales en `||`; comparaciones con faltantes en `WHERE` sin cubrir.
+- Pruebas: `test_corpus_ejecutor.py`, `test_corpus_oraculo_sql.py`, `test_corpus_semantica.py` (133). `tools/corpus.py oraculo todos --verificar`: 30 casos, 0 fallas.
+- No verificado: ningun resultado contra un SAS real (no hay). Los 15 casos L0 necesitan revision de un segundo agente.

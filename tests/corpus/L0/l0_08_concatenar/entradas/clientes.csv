@@ -1,0 +1,7 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Jorge Caso,Villa Norte,3501,INACTIVO
+102,Felipe Dato,Valle Alto,2454,PENDIENTE
+103,Bruno Demo,Puerto Sur,3256,INACTIVO
+104,Irene Modelo,Lago Azul,194,PENDIENTE
+105,Irene Modelo,Villa Norte,862,PENDIENTE
+106,Carla Muestra,Monte Verde,4697,INACTIVO

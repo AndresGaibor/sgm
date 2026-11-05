@@ -1,0 +1,509 @@
+# Vectores de semántica de funciones SAS (capa B del oráculo).
+#
+# Cada vector cita la documentación pública de SAS (SAS 9.x, Functions and CALL Routines,
+# Language Reference, PROC SQL). `cita` es una frase corta que aparece en la página consultada.
+# `confianza`:
+#   documentado: la fuente da el resultado o la regla explícita.
+#   deducido:    sale de una regla documentada; la fuente no da ese caso exacto.
+#   incierto:    no se encontró fuente; no cuenta como fallo de `verificar`.
+# `entrada` es una lista JSON de argumentos; `null` es un faltante numérico de SAS.
+# `esperado` es un valor JSON, o la palabra `faltante`.
+# Formato: subconjunto de YAML que también es JSON válido, leído por tools/corpus_semantica.py.
+vectores:
+  # INPUT con informat numérico w.d
+  - id: input-01
+    funcion: input
+    entrada: ["23.0", 6, 2]
+    esperado: 23
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "If the data contain decimal points, the d value is ignored."
+    confianza: documentado
+  - id: input-02
+    funcion: input
+    entrada: ["23.", 6, 2]
+    esperado: 23
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "If the data contain decimal points, the d value is ignored."
+    confianza: documentado
+  - id: input-03
+    funcion: input
+    entrada: ["123.456", 8, 2]
+    esperado: 123.456
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "If the data contain decimal points, the d value is ignored."
+    confianza: documentado
+  - id: input-04
+    funcion: input
+    entrada: ["2300", 6, 2]
+    esperado: 23
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "If the data contain decimal points, the d value is ignored."
+    confianza: deducido
+  - id: input-05
+    funcion: input
+    entrada: ["-2300", 6, 2]
+    esperado: -23
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "If the data contain decimal points, the d value is ignored."
+    confianza: deducido
+  - id: input-06
+    funcion: input
+    entrada: ["0023", 6, 2]
+    esperado: 0.23
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "If the data contain decimal points, the d value is ignored."
+    confianza: deducido
+  - id: input-07
+    funcion: input
+    entrada: [" 2300", 6, 2]
+    esperado: 23
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "The w.d informat reads numeric values that are located anywhere in the field."
+    confianza: deducido
+  - id: input-08
+    funcion: input
+    entrada: ["23    ", 6, 2]
+    esperado: 0.23
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "the w.d informat ignores trailing blanks in the numeric values"
+    confianza: deducido
+  - id: input-09
+    funcion: input
+    entrada: [".", 6, 2]
+    esperado: faltante
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "it interprets a single period as a missing value."
+    confianza: documentado
+  - id: input-10
+    funcion: input
+    entrada: ["abc", 6, 2]
+    esperado: faltante
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm"
+    cita: "The ? modifier suppresses the invalid data message."
+    confianza: deducido
+  - id: input-11
+    funcion: input
+    entrada: ["", 6, 2]
+    esperado: faltante
+    fuente_url: ninguna
+    cita: "sin cita: no se encontró la frase en la documentación consultada"
+    confianza: incierto
+  - id: input-12
+    funcion: input
+    entrada: ["23 45", 6, 0]
+    esperado: faltante
+    fuente_url: ninguna
+    cita: "sin cita: no se encontró la regla para blancos embebidos en w.d"
+    confianza: incierto
+  # LEFT
+  - id: left-01
+    funcion: left
+    entrada: ["  ab"]
+    esperado: "ab  "
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n1awii5zy0u6g0n1fy6yu1hwqiw4.htm"
+    cita: "LEFT returns an argument with leading blanks moved to the end of the value."
+    confianza: documentado
+  - id: left-02
+    funcion: left
+    entrada: ["a  b"]
+    esperado: "a  b"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n1awii5zy0u6g0n1fy6yu1hwqiw4.htm"
+    cita: "LEFT returns an argument with leading blanks moved to the end of the value."
+    confianza: deducido
+  - id: left-03
+    funcion: left
+    entrada: ["   "]
+    esperado: "   "
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n1awii5zy0u6g0n1fy6yu1hwqiw4.htm"
+    cita: "The argument's length does not change."
+    confianza: deducido
+  # COMPRESS
+  - id: compress-01
+    funcion: compress
+    entrada: ["AB C D "]
+    esperado: "ABCD"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "a='AB C D '; b=compress(a); -> ABCD"
+    confianza: documentado
+  - id: compress-02
+    funcion: compress
+    entrada: ["A1B2-3", "12"]
+    esperado: "AB-3"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "All characters that appear in the second argument are removed from the result."
+    confianza: documentado
+  - id: compress-03
+    funcion: compress
+    entrada: ["1 2 3 4 5", null, "s"]
+    esperado: "12345"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "S: adds space characters to the list of characters."
+    confianza: documentado
+  - id: compress-04
+    funcion: compress
+    entrada: ["ABCABX", "ABCD", "k"]
+    esperado: "ABCAB"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "If you specify the K modifier in the third argument, then only the characters in this list are kept in the result."
+    confianza: documentado
+  - id: compress-05
+    funcion: compress
+    entrada: ["a1b2", "", "d"]
+    esperado: "ab"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "D: adds digits to the list of characters."
+    confianza: documentado
+  - id: compress-06
+    funcion: compress
+    entrada: ["a1 b", "", "a"]
+    esperado: "1 "
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "A: adds alphabetic characters to the list of characters."
+    confianza: documentado
+  - id: compress-07
+    funcion: compress
+    entrada: ["Ab1", "a", "i"]
+    esperado: "b1"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "I: ignores the case of the characters to be kept or removed."
+    confianza: documentado
+  - id: compress-08
+    funcion: compress
+    entrada: ["a1 2b", "", "l"]
+    esperado: "1 2"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm"
+    cita: "L: adds lowercase letters to the list of characters."
+    confianza: documentado
+  # STRIP y TRIM
+  - id: strip-01
+    funcion: strip
+    entrada: ["  abcd  "]
+    esperado: "abcd"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0xk6tl87f4b4qn1sp1ywen1ntan.htm"
+    cita: "Returns a character string with all leading and trailing blanks removed."
+    confianza: documentado
+  - id: strip-02
+    funcion: strip
+    entrada: ["   "]
+    esperado: ""
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0xk6tl87f4b4qn1sp1ywen1ntan.htm"
+    cita: "If the argument is blank, STRIP returns a string with a length of zero."
+    confianza: documentado
+  - id: strip-03
+    funcion: trim
+    entrada: ["   "]
+    esperado: " "
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0xk6tl87f4b4qn1sp1ywen1ntan.htm"
+    cita: "whereas the TRIM function returns a single blank."
+    confianza: documentado
+  - id: strip-04
+    funcion: strip
+    entrada: [" x y z"]
+    esperado: "x y z"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0xk6tl87f4b4qn1sp1ywen1ntan.htm"
+    cita: "Returns a character string with all leading and trailing blanks removed."
+    confianza: deducido
+  # UPCASE y LOWCASE
+  - id: upcase-01
+    funcion: upcase
+    entrada: ["John B. Smith"]
+    esperado: "JOHN B. SMITH"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/fedsqlref/69925/HTML/default/p0mxlt0skz6lqmn185wt6zk5sz14.htm"
+    cita: "select upcase('John B. Smith'); returns JOHN B. SMITH (pagina de FedSQL)."
+    confianza: documentado
+  - id: lowcase-01
+    funcion: lowcase
+    entrada: ["INTRODUCTION"]
+    esperado: "introduction"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0rrwqm16uiv4vn1t0jj0jvidgao.htm"
+    cita: "x='INTRODUCTION'; y=lowcase(x); put y; -> introduction"
+    confianza: documentado
+  # SUBSTR y SUBSTRN
+  - id: substr-01
+    funcion: substr
+    entrada: ["abcd", 4, 2]
+    esperado: "d"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm"
+    cita: "returns the substring that extends from the position that you specified to the end of the string"
+    confianza: documentado
+  - id: substr-02
+    funcion: substr
+    entrada: ["abcd", 2, 3]
+    esperado: "bcd"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm"
+    cita: "Returns a substring, allowing a result with a length of zero."
+    confianza: deducido
+  - id: substr-03
+    funcion: substr
+    entrada: [1234.5678, 2, 6]
+    esperado: "  1234"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm"
+    cita: "SUBSTR returns \"  1234\", while SUBSTRN returns \"234.56\""
+    confianza: documentado
+  - id: substrn-01
+    funcion: substrn
+    entrada: [1234.5678, 2, 6]
+    esperado: "234.56"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm"
+    cita: "SUBSTR returns \"  1234\", while SUBSTRN returns \"234.56\""
+    confianza: documentado
+  - id: substrn-02
+    funcion: substrn
+    entrada: ["abcd", 4, 2]
+    esperado: "d"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm"
+    cita: "Returns a substring, allowing a result with a length of zero."
+    confianza: documentado
+  # SCAN
+  - id: scan-01
+    funcion: scan
+    entrada: ["ABC.DEF(X=Y)", 3]
+    esperado: "X=Y"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm"
+    cita: "ASCII defaults: blank ! $ % & ( ) * + , - . / ; < ^ |"
+    confianza: documentado
+  - id: scan-02
+    funcion: scan
+    entrada: ["a  b", 2]
+    esperado: "b"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm"
+    cita: "treats two or more consecutive delimiters as if they were a single delimiter"
+    confianza: documentado
+  - id: scan-03
+    funcion: scan
+    entrada: [" ab cd", 1]
+    esperado: "ab"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm"
+    cita: "ignores delimiters at the beginning or end of the string"
+    confianza: documentado
+  - id: scan-04
+    funcion: scan
+    entrada: ["ab cd", 3]
+    esperado: " "
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm"
+    cita: "In a DATA step, it returns \"a single blank.\""
+    confianza: documentado
+  - id: scan-05
+    funcion: scan
+    entrada: ["a,b,,c", 3, ","]
+    esperado: "c"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm"
+    cita: "treats two or more consecutive delimiters as if they were a single delimiter"
+    confianza: documentado
+  - id: scan-06
+    funcion: scan
+    entrada: ["ab-cd", 2, ","]
+    esperado: " "
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm"
+    cita: "In a DATA step, it returns \"a single blank.\""
+    confianza: deducido
+  # Concatenación || y CATX
+  - id: concat-01
+    funcion: concat
+    entrada: ["ab ", "cd"]
+    esperado: "ab cd"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0p7wxtk0hvn83n1pveisbcp2ae9.htm"
+    cita: "Using trim(color)||name instead gives a value of 'blackjack'."
+    confianza: deducido
+  - id: concat-02
+    funcion: trim_concat
+    entrada: ["ab ", "cd"]
+    esperado: "abcd"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "Using trim(color)||name instead gives a value of 'blackjack'."
+    confianza: documentado
+  - id: catx-01
+    funcion: catx
+    entrada: [",", " a ", "b ", "  ", "c"]
+    esperado: "a,b,c"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0p7wxtk0hvn83n1pveisbcp2ae9.htm"
+    cita: "Blank items do not produce delimiters at the beginning or end of the result"
+    confianza: documentado
+  - id: catx-02
+    funcion: catx
+    entrada: [" ", "x", ""]
+    esperado: "x"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0p7wxtk0hvn83n1pveisbcp2ae9.htm"
+    cita: "Blank items do not produce delimiters at the beginning or end of the result"
+    confianza: documentado
+  - id: catx-03
+    funcion: catx
+    entrada: [",", " a ", " b "]
+    esperado: "a,b"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0p7wxtk0hvn83n1pveisbcp2ae9.htm"
+    cita: "omitting leading and trailing blanks from item-i."
+    confianza: documentado
+  # COALESCE y COALESCEC
+  - id: coalesce-01
+    funcion: coalesce
+    entrada: [null, 7, null, null, 42]
+    esperado: 7
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1vjttz6nuankzn1gh4z3wgcu0bf.htm"
+    cita: "COALESCE(., 7, ., ., 42) returns 7."
+    confianza: documentado
+  - id: coalesce-02
+    funcion: coalesce
+    entrada: [42, null]
+    esperado: 42
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1vjttz6nuankzn1gh4z3wgcu0bf.htm"
+    cita: "COALESCE(42, .) returns 42."
+    confianza: documentado
+  - id: coalesce-03
+    funcion: coalesce
+    entrada: [null, null]
+    esperado: faltante
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1vjttz6nuankzn1gh4z3wgcu0bf.htm"
+    cita: "If all the values of all arguments are missing, then the COALESCE function returns a missing value."
+    confianza: documentado
+  - id: coalescec-01
+    funcion: coalescec
+    entrada: ["", "Hello"]
+    esperado: "Hello"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1g9btrql8d9x6n1iz6yowaqrq1v.htm"
+    cita: "A character value is considered missing if it has a length of zero or if all the characters are blank."
+    confianza: documentado
+  - id: coalescec-02
+    funcion: coalescec
+    entrada: ["", "Goodbye", "Hello"]
+    esperado: "Goodbye"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1g9btrql8d9x6n1iz6yowaqrq1v.htm"
+    cita: "A character value is considered missing if it has a length of zero or if all the characters are blank."
+    confianza: documentado
+  - id: coalescec-03
+    funcion: coalescec
+    entrada: ["   ", "x"]
+    esperado: "x"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1g9btrql8d9x6n1iz6yowaqrq1v.htm"
+    cita: "A character value is considered missing if it has a length of zero or if all the characters are blank."
+    confianza: documentado
+  # ROUND
+  - id: round-01
+    funcion: round
+    entrada: [1234.56789, 100]
+    esperado: 1200
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm"
+    cita: "Rounds the first argument to the nearest multiple of the second argument"
+    confianza: documentado
+  - id: round-02
+    funcion: round
+    entrada: [1234.56789, 0.1]
+    esperado: 1234.6
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm"
+    cita: "round(1234.56789,.1) se documenta con el resultado 1234.6"
+    confianza: documentado
+  - id: round-03
+    funcion: round
+    entrada: [1234.56789, 0.01]
+    esperado: 1234.57
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm"
+    cita: "d5 = round(1234.56789,.01) - 1234.57"
+    confianza: documentado
+  - id: round-04
+    funcion: round
+    entrada: [1234.56789, 0.11111]
+    esperado: 1234.54321
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm"
+    cita: "round(1234.56789,.11111) se documenta con el resultado 1234.54321"
+    confianza: documentado
+  - id: round-05
+    funcion: round
+    entrada: [2.5]
+    esperado: 3
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm"
+    cita: "returns the multiple with the larger absolute value when the first argument is approximately halfway"
+    confianza: documentado
+  - id: round-06
+    funcion: round
+    entrada: [-2.5]
+    esperado: -3
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm"
+    cita: "returns the multiple with the larger absolute value when the first argument is approximately halfway"
+    confianza: documentado
+  # Comparación con faltantes
+  - id: cmp-missing-01
+    funcion: cmp
+    entrada: [null, "<", -1000000]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "A missing numeric value is smaller than any other numeric value"
+    confianza: documentado
+  - id: cmp-missing-02
+    funcion: cmp
+    entrada: [3, ">", null]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "3>null: true"
+    confianza: documentado
+  - id: cmp-missing-03
+    funcion: cmp
+    entrada: [0, ">", null]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "0>null: true"
+
+    confianza: documentado
+  - id: cmp-missing-04
+    funcion: cmp
+    entrada: [null, "=", null]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "Missing values are the lowest in any comparison operation."
+    confianza: deducido
+  # Comparación de texto
+  - id: cmp-texto-01
+    funcion: cmp
+    entrada: ["fox ", "=", "fox"]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "Since trailing blanks are ignored in a comparison, 'fox ' is equivalent to 'fox'."
+    confianza: documentado
+  - id: cmp-texto-02
+    funcion: cmp
+    entrada: [" fox", "=", "fox"]
+    esperado: false
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "compared as if blanks were attached to the end of the shorter value before the comparison is made"
+    confianza: deducido
+  - id: cmp-texto-03
+    funcion: cmp
+    entrada: ["C. Jones", "<", "Charles Jones"]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "'C. Jones'<'Charles Jones' is true."
+    confianza: documentado
+  - id: cmp-texto-04
+    funcion: cmp
+    entrada: ["ab", "=", "ab  "]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "compared as if blanks were attached to the end of the shorter value before the comparison is made"
+    confianza: documentado
+  # IS MISSING / IS NULL en PROC SQL
+  - id: ismissing-01
+    funcion: is_missing
+    entrada: [null]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "resolves to true if the SQL expression's result is missing"
+    confianza: documentado
+  - id: ismissing-02
+    funcion: is_missing
+    entrada: ["   "]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "SAS stores a numeric missing value as a period (.) and a character missing value as a blank space."
+    confianza: documentado
+  - id: ismissing-03
+    funcion: is_missing
+    entrada: ["x"]
+    esperado: false
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "and false if it is not missing."
+    confianza: documentado
+  - id: ismissing-04
+    funcion: is_missing
+    entrada: [0]
+    esperado: false
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "and false if it is not missing."
+    confianza: deducido

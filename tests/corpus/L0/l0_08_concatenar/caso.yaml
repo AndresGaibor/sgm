@@ -1,0 +1,14 @@
+nivel: L0
+construcciones: [PROC IMPORT, DATA, SET, LENGTH, '||', TRIM, KEEP, PROC EXPORT]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: pendiente_revision
+motivo: "Esperado escrito a mano; falta la revision de un segundo agente."
+salidas: [etiquetas]
+razonamiento: |
+  etiqueta = TRIM(nombre) || ' (' || TRIM(ciudad) || ')'. TRIM quita los blancos finales del
+  campo de longitud fija; LENGTH 60 evita el corte. KEEP deja id_cliente y etiqueta.
+  101 "Jorge Caso (Villa Norte)"; 102 "Felipe Dato (Valle Alto)"; 103 "Bruno Demo (Puerto Sur)";
+  104 "Irene Modelo (Lago Azul)"; 105 "Irene Modelo (Villa Norte)"; 106 "Carla Muestra (Monte Verde)".
+  No hay comas en el texto, asi que el CSV no lleva comillas.

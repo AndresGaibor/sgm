@@ -1,0 +1,8 @@
+id_cliente,nombre,ciudad,saldo,estado
+101,Elena Ficticia,Lago Azul,3253,INACTIVO
+102,Ana Prueba,Monte Verde,2503,INACTIVO
+103,Ana Prueba,Lago Azul,480,PENDIENTE
+104,Felipe Dato,Lago Azul,917,INACTIVO
+105,Hugo Simulado,Puerto Sur,1541,PENDIENTE
+106,Ana Prueba,Lago Azul,2047,INACTIVO
+107,Bruno Demo,Puerto Sur,4718,INACTIVO
