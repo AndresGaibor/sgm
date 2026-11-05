@@ -6,6 +6,11 @@ y de `plan-corpus-y-equivalencia.md` (que queda como detalle del corpus). Cada t
 identificador `R<fase>-<n>`, quién la hace, de qué depende, qué entrega y cómo se sabe que terminó.
 Léelo completo antes de tomar una tarea.
 
+**Actualización del 5 de noviembre de 2026 (DC-01 decidida):** el producto es un **migrador general**. La Fase 7 de
+este documento queda reemplazada por `plan-migrador-general.md`, que define el 100 % medible, la arquitectura, el catálogo
+SAS a Talend, la estrategia de pruebas rápidas, el uso de `talend-mcp` y las fases MG-P0 a MG-P14 hasta producción.
+Las fases R0 a R6 y R8 a R10 de aquí siguen vigentes, salvo donde el plan nuevo las absorba.
+
 ## 0. Cómo leer este documento
 
 - **Tipos de tarea.** **[H]** la puede hacer un subagente `haiku` con la especificación de la tarea.

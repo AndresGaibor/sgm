@@ -4423,3 +4423,11 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
   155 omitidas (las dos de este hito incluidas).
 - No verificado: que un agente lea la sección no se puede probar. Las pruebas garantizan que está y
   que nombra las guías; que se use depende de que se lea, como el resto de `AGENTS.md`.
+
+## Hito 102m. Plan del migrador general hasta producción
+
+- Fecha: 2026-11-05
+- Qué se hizo: se escribió `docs/plan-reescritura/plan-migrador-general.md` (DC-01 decidida: migrador general). Define el 100 % con siete criterios medibles (C1 a C7), la arquitectura por capas con contratos, el catálogo de traducciones SAS a Talend, la pirámide de pruebas rápida (anillos A a D, Studio solo en lote), 15 controles de calidad de los Jobs, 11 decisiones con valor por omisión (MG-D01 a MG-D11), 15 fases MG-P0 a MG-P14 con tareas, aceptación y horas (895 h de agente más las tareas de personas), compuertas GM0 a GM8, riesgos y el protocolo de cierre. Incorpora el uso opcional de `talend-mcp` por CLI o MCP como backend de verificación y construcción (MG-D11, MG-P0-07 a MG-P0-09 y la sección 4.1).
+- Medido antes de escribirlo: `sgm talend`, `sgm proceso` y `sgm diseno` sobre un programa del corpus distinto de `client_large.sas` fallan o devuelven 0 Jobs (exigen YAML por programa).
+- Pendiente: confirmación escrita del usuario para actualizar la regla 1 de `AGENTS.md` (MG-P0-07). Otra sesión editó `AGENTS.md` en paralelo y no se tocó.
+- Sin cambios de código: no se corrieron pruebas nuevas.
