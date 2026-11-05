@@ -55,6 +55,8 @@ class Arquitectura:
     lookups: tuple[str, ...] = ()  # fuentes Excel que job_producto usa como lookup
     columna_saldo: str = ""  # columna cuya suma son los totales de origen (el SAS la suma)
     validaciones: tuple[ValidacionProducto, ...] = ()
+    # Nombre del archivo final de totales, sin fecha ni extensión (la decisión del programa).
+    archivo_totales: str = ""
 
 
 def _validaciones(path: Path, items: list | None) -> tuple[ValidacionProducto, ...]:
@@ -117,4 +119,5 @@ def cargar_arquitectura(path: Path) -> Arquitectura:
         lookups=tuple(str(x).strip() for x in (data.get("lookups_producto") or [])),
         columna_saldo=str((data.get("total_origen") or {}).get("columna_saldo") or "").strip(),
         validaciones=_validaciones(path, data.get("validaciones_producto")),
+        archivo_totales=str(data.get("archivo_totales") or "").strip(),
     )

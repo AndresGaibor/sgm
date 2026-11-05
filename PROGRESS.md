@@ -3390,3 +3390,281 @@ dsc_download.sas:55: sas_cifrado: BA***
 - No verificado: no se abrió el PDF a mano página por página; la revisión fue por el índice y por
   búsquedas en el texto extraído. Que la guía describa la misma versión que corre el cliente no se
   puede saber desde el repositorio.
+
+## Hito 97. R2-01 y R2-02: mecanismo de totales entre Jobs validado en Studio (b), y `job_totales` real
+
+- Fecha: 2026-11-05. Continúa el protocolo del hito 95 (`tools/prueba_duplicados.py`) y el cálculo de
+  totales de origen del hito 85. Plan: `docs/plan-reescritura/ruta-a-produccion.md`, R2-01 y R2-02;
+  `tareas-agente.md`, T30 y T31.
+- Aviso de numeración: el commit `64786a4` ya publicó un `## Hito 97` (referencia SAS `lepg`). Esta
+  entrada usa el 97 porque así lo encargó la sesión. Hay que renumerar una de las dos antes de
+  publicar; no se renumeró ninguna por cuenta propia.
+
+### Qué se hizo
+
+- **R2-01.** `tools/prueba_totales_mecanismos.py` (235 líneas) y `tools/totales_mecanismos_jobs.py`
+  (297): tres mecanismos con dos productos de ejemplo (CTE: 3 filas, suma 15.00; AHO: 2 filas, suma
+  120.50), cada uno con padre e hijo; (b) añade el Job de totales. Los totales esperados se calculan a
+  mano en el arnés, no con Studio.
+- Plantilla `src/sgm/talend_item/plantillas/tBufferOutput.json`. El fixture que devuelve
+  `talend_components_generate_template` no trae metadatos ni cabecera completa; se completó con la
+  cabecera de `tUnite.json`. Studio la compiló y la ejecutó; no es un nodo guardado por Studio.
+- **R2-02.** `src/sgm/talend_item/jobs_totales.py` (141): `job_totales(arq, productos)` lee
+  `totales_origen_<p>.csv` y `totales_salida_<p>.csv` en orden y los añade con `APPEND` a
+  `<archivo_totales>_<anio><mes><dia>.csv`. El nombre `archivo_totales` es la decisión del programa
+  (`decisiones/client_large.jobs.yaml`, valor `totales_exogena`); la fecha sale de `context.periodo_*`.
+  No usa `tUnite` (ver hallazgos).
+- `src/sgm/talend_item/arquitectura.py`: campo `archivo_totales` (vacío por omisión).
+- `src/sgm/talend_item/jobs_diseno.py`: `jobs_hijos` acepta `totales_real`.
+- `src/sgm/cli_talend.py`: `sgm talend` emite el `job_totales` real cuando hay periodo y productos.
+  Además avisa con `Pendiente:` que `job_producto` todavía no escribe los archivos de totales.
+- `tools/totales_caso_jobs.py` (200) y `tools/prueba_totales_caso.py` (262): productor mínimo del
+  caso 04 con la lógica que ya calcula `job_producto` (saldo con `a_decimal` del hito 85; origen =
+  conteo de todas las filas y suma de los saldos no faltantes; salida = filas con `TIPO_CTA` distinto
+  de `03`) y padre de prueba. Compara la salida con `esperado/` fila por fila con la tolerancia de
+  `caso.yaml` (0,005).
+- `tests/unit/test_talend_jobs_totales.py` (12 pruebas nuevas). `tests/unit/test_tablero.py`: la
+  línea base de `job_totales` pasa de 1 a 13 componentes y el total de 36 a 48, por el Job real.
+
+### R2-01. Tabla comparativa de los tres mecanismos
+
+Las tres corridas finales son `v97i` (R2-01) y `v97j` (R2-02). Cada columna cita la corrida que la
+sostiene.
+
+| Criterio | (a) `tBufferOutput` + `PROPAGATE_CHILD_RESULT` | (b) archivos por producto en la carpeta de trabajo | (c) variables de contexto y `globalMap` |
+|---|---|---|---|
+| Facilidad de emitir | Requiere plantilla nueva (`tBufferOutput`) y un `tRunJob` con esquema de salida. Compiló y corrió. | Solo plantillas ya existentes (`tFileInputDelimited`, `tFileOutputDelimited`, `tAggregateRow`). Un archivo por producto y tipo. | Fácil de escribir, pero no transporta el total: ver resultado. |
+| Auditable | Las filas viven en memoria; la evidencia es el archivo que escribe el padre. | Sí. El total queda en disco con nombre propio y se puede revisar después de la corrida. | No deja rastro en disco; solo se ve en la consola. |
+| Fallos si un hijo falla | Con `DIE_ON_ERROR=true` en el lector del hijo: el padre sale con código 1 y no escribe el archivo del producto (`v97i`, fallo a). | Igual: el padre sale con código 1 y el Job de totales no corre (`v97i`, fallo b). | El padre sale con código 1 y no ejecuta el paso siguiente (`v97i`, fallo c). |
+| Paralelizable | No probado en paralelo. Cada hijo entregaría sus filas al padre. | En principio sí: cada hijo escribe su propio archivo (`totales_origen_<sufijo>.csv`). No probado en paralelo. | No: el valor del hijo no vuelve al padre. |
+| Resultado en Studio | Coincide: `totales_a_CTE.csv` = 3;15.00 y `totales_a_AHO.csv` = 2;120.50 (`v97i`). | Coincide: `totales_origen_CTE.csv`, `totales_origen_AHO.csv` y `totales_unidos_b.csv` (`v97i`). | Refutado: tras cada hijo el padre ve `resultado=SIN_VALOR globalMap=null`, aunque el hijo calcula 3\|15.00 y 2\|120.50 (`v97i`). |
+
+**Recomendación: (b), confirmada por la ejecución.** Es el único que deja el total en disco con
+nombre propio y que el Job de totales puede leer por separado, y falla bien con `DIE_ON_ERROR`. (a)
+también funciona y podría usarse sin archivos intermedios, pero exige la plantilla de `tBufferOutput`
+y no se probó en paralelo. (c) no sirve: el hijo no devuelve variables de contexto ni `globalMap`.
+
+### Evidencia literal de R2-01 (corrida `v97i`, la final)
+
+Los comandos `java -D...` y los prompts `C:\...>` se omiten; las líneas de pila (`at ...`) también.
+
+```text
+Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+Sufijo: v97i
+Trabajo: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i
+Emitidos mecanismo a: ['mec_a_hijo', 'mec_a_padre']
+Emitidos mecanismo b: ['mec_b_hijo', 'mec_b_totales', 'mec_b_padre']
+Emitidos mecanismo c: ['mec_c_hijo', 'mec_c_padre']
+Compilando hijos: ['mec_a_hijo_v97i', 'mec_b_hijo_v97i', 'mec_b_totales_v97i', 'mec_c_hijo_v97i']
+Compilando padres: ['mec_a_padre_v97i', 'mec_b_padre_v97i', 'mec_c_padre_v97i']
+--- ok mecanismo a (mec_a_padre_v97i) código de salida 0
+mec_a_padre arranca
+mec_a_hijo arranca, sufijo=CTE
+mec_a_hijo arranca, sufijo=AHO
+--- ok mecanismo b (mec_b_padre_v97i) código de salida 0
+mec_b_padre arranca
+mec_b_hijo arranca, sufijo=CTE
+mec_b_hijo arranca, sufijo=AHO
+mec_b_totales arranca
+--- ok mecanismo c (mec_c_padre_v97i) código de salida 0
+mec_c_padre antes: resultado=SIN_VALOR globalMap=null
+mec_c_hijo fija resultado=HIJO_CTE
+3|15.00
+mec_c_padre tras CTE: resultado=SIN_VALOR globalMap=null
+mec_c_hijo fija resultado=HIJO_AHO
+2|120.50
+mec_c_padre tras AHO: resultado=SIN_VALOR globalMap=null
+--- fallo mecanismo a (mec_a_padre_v97i) código de salida 1
+mart-2.4.11.jar;../lib/commons-beanutils-1.11.0.jar;../lib/commons-text-1.14.0.jar;../lib/javassist-3.30.2-GA.jar;../lib/dom4j-2.1.3.jar;../lib/crypto-utils-7.1.28.jar;../lib/job-audit-1.6.1.jar;../lib/system-routines-dq.jar;../lib/accessors-smart-2.4.11.jar;../lib/talendCBP-1.1.9.jar;../lib/antlr-runtime-3.5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_a_padre_v97i_0_1.jar;mec_a_hijo_v97i_0_1.jar; prj_bancolombia.mec_a_padre_v97i_0_1.mec_a_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_a_fallo_v97i/" --context_param "sufijo=v97i" 
+mec_a_padre arranca
+mec_a_hijo arranca, sufijo=CTE
+mec_a_hijo arranca, sufijo=AHO
+[FATAL] 13:54:41 prj_bancolombia.mec_a_hijo_v97i_0_1.mec_a_hijo_v97i- tFileInputDelimited_1 C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+[FATAL] 13:54:41 prj_bancolombia.mec_a_padre_v97i_0_1.mec_a_padre_v97i- tRunJob_2 Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+java.lang.RuntimeException: Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+stderr:
+Exception in component tFileInputDelimited_1 (mec_a_hijo_v97i)
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+Exception in component tRunJob_2 (mec_a_padre_v97i)
+java.lang.RuntimeException: Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+--- fallo mecanismo b (mec_b_padre_v97i) código de salida 1
+ons-beanutils-1.11.0.jar;../lib/commons-text-1.14.0.jar;../lib/javassist-3.30.2-GA.jar;../lib/dom4j-2.1.3.jar;../lib/crypto-utils-7.1.28.jar;../lib/job-audit-1.6.1.jar;../lib/system-routines-dq.jar;../lib/accessors-smart-2.4.11.jar;../lib/talendCBP-1.1.9.jar;../lib/antlr-runtime-3.5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_b_padre_v97i_0_1.jar;mec_b_totales_v97i_0_1.jar;mec_b_hijo_v97i_0_1.jar; prj_bancolombia.mec_b_padre_v97i_0_1.mec_b_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_b_fallo_v97i/" --context_param "sufijo=v97i" 
+mec_b_padre arranca
+mec_b_hijo arranca, sufijo=CTE
+mec_b_hijo arranca, sufijo=AHO
+[FATAL] 13:55:01 prj_bancolombia.mec_b_hijo_v97i_0_1.mec_b_hijo_v97i- tFileInputDelimited_1 C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+[FATAL] 13:55:01 prj_bancolombia.mec_b_padre_v97i_0_1.mec_b_padre_v97i- tRunJob_2 Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+java.lang.RuntimeException: Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+stderr:
+Exception in component tFileInputDelimited_1 (mec_b_hijo_v97i)
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+Exception in component tRunJob_2 (mec_b_padre_v97i)
+java.lang.RuntimeException: Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+--- fallo mecanismo c (mec_c_padre_v97i) código de salida 1
+5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_c_padre_v97i_0_1.jar;mec_c_hijo_v97i_0_1.jar; prj_bancolombia.mec_c_padre_v97i_0_1.mec_c_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_c_fallo_v97i/" --context_param "sufijo=v97i" 
+mec_c_padre antes: resultado=SIN_VALOR globalMap=null
+mec_c_hijo fija resultado=HIJO_CTE
+3|15.00
+mec_c_padre tras CTE: resultado=SIN_VALOR globalMap=null
+mec_c_hijo fija resultado=HIJO_AHO
+[FATAL] 13:55:20 prj_bancolombia.mec_c_hijo_v97i_0_1.mec_c_hijo_v97i- tFileInputDelimited_1 C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+[FATAL] 13:55:20 prj_bancolombia.mec_c_padre_v97i_0_1.mec_c_padre_v97i- tRunJob_2 Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+java.lang.RuntimeException: Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+stderr:
+Exception in component tFileInputDelimited_1 (mec_c_hijo_v97i)
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+Exception in component tRunJob_2 (mec_c_padre_v97i)
+java.lang.RuntimeException: Child job running failed.
+java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
+Limpieza: 14 archivos borrados del proyecto
+RESULTADO: OK
+```
+
+Contenido de los archivos que escribieron los hijos y el Job de totales:
+
+```text
+totales_a_CTE.csv (padre, mecanismo a):
+registros;suma_saldo
+3;15.00
+
+totales_a_AHO.csv (padre, mecanismo a):
+registros;suma_saldo
+2;120.50
+
+totales_origen_CTE.csv (hijo, mecanismo b):
+registros;suma_saldo
+3;15.00
+
+totales_unidos_b.csv (Job de totales, mecanismo b):
+registros;suma_saldo
+3;15.00
+2;120.50
+```
+
+### Evidencia literal de R2-02 (corrida `v97j`, la final)
+
+Comando y salida de `tools/prueba_totales_caso.py`, sin los `java -D...`:
+
+```text
+Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+Sufijo: v97j
+Trabajo: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_02_v97j
+Compilando hijos: ['caso_producto_v97j', 'job_totales_v97j']
+Compilando padre: caso_padre_v97j
+Limpieza: 6 archivos borrados del proyecto
+Comando: "C:\Users\USUARI~1\AppData\Local\Temp\build-i8jhhlgg\caso_padre_v97j\caso_padre_v97j_run.bat" --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_02_v97j/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_02_v97j/entradas/origen_aho.csv" --context_param "ruta_resultados=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_02_v97j/resultados_v97j/" --context_param "sufijo=v97j" --context_param "periodo_anio=2026" --context_param "periodo_mes=09" --context_param "periodo_dia=30"
+Código de salida: 0
+stdout:
+caso_padre: arranca
+caso_totales: origen y salida del producto
+caso_totales: origen y salida del producto
+job_totales: une 4 archivos de totales
+Contenido literal de totales_exogena_20260930.csv:
+PRODUCTO;TIPO;NRO_FILAS;NRO_SALDOS_NO_VACIOS;SUMA_SALDO
+CTE;origen;40;38;170632.98
+CTE;salida;39;;163686.34
+AHO;origen;40;40;211498.67
+AHO;salida;37;;198645.97
+RESULTADO: coincide con esperado/
+```
+
+Comparación con `esperado/` (caso `L8/totales/04_totales_origen_salida`):
+
+| Producto | Tipo | NRO_FILAS | NRO_SALDOS_NO_VACIOS | SUMA_SALDO | Esperado (filas / saldos / suma) |
+|---|---|---|---|---|---|
+| CTE | origen | 40 | 38 | 170632.98 | 40 / 38 / 170632.98 |
+| CTE | salida | 39 | (vacío) | 163686.34 | 39 / (no definido) / 163686.34 |
+| AHO | origen | 40 | 40 | 211498.67 | 40 / 40 / 211498.67 |
+| AHO | salida | 37 | (vacío) | 198645.97 | 37 / (no definido) / 198645.97 |
+
+Coincide en filas, conteo de saldos no faltantes y sumas (tolerancia 0,005). Las invariantes del
+`caso.yaml` se cumplen con esas filas: 40 - 39 = 1, 40 - 37 = 3, 40 - 38 = 2. Dos saldos del caso
+están en blanco en CTE; no suman y no cuentan como saldo no vacío, como exige la semántica de
+`vectores.yaml`.
+
+### Hallazgos (ejecutados)
+
+1. **`tUnite` no compila en Studio 8.0.1 con este Job.** Tres variantes (metadato de salida
+   `tUnite_1`, `out1` y entradas `row1`/`row2`) dieron el mismo error:
+   `Cannot invoke "org.talend.core.model.metadata.IMetadataTable.getListColumns()" because
+   "preMetadata" is null`, en `TUniteMainJava.generate(TUniteMainJava.java:98)` (log de Studio,
+   `workspace/.metadata/.log`). No hay ningún Job de ejemplo con `tUnite` en el workspace. Por eso
+   R2-02 une con `APPEND` secuencial. `tUnite` queda sin validar.
+2. **`DIE_ON_ERROR` vale `false` por defecto en `tFileInputDelimited`.** Con el archivo de AHO
+   inexistente (corrida `v97e`, sin `DIE_ON_ERROR`), el hijo registra un error y termina bien, el padre
+   sigue y sale con código 0. Por ejemplo: `--- fallo mecanismo b (mec_b_padre_v97e) código de salida 0`
+   seguido de `mec_b_totales arranca`, y `--- fallo mecanismo c ...` seguido de `mec_c_padre tras AHO:`.
+   Con `DIE_ON_ERROR=true` (corrida `v97i`) el hijo falla, el `tRunJob` informa
+   `Child job running failed.` y el padre sale con código 1. Por eso `job_totales` pone
+   `DIE_ON_ERROR=true` en sus entradas. Es relevante para R2-07 (DC-08): sin esto, un producto sin
+   archivo pasa en silencio.
+3. **`tRunJob` con `DIE_ON_CHILD_ERROR=true` (valor de la plantilla)** detiene al padre cuando el
+   hijo muere. Confirmado en los tres mecanismos.
+4. **Infraestructura.** La corrida `v97h` (código final, sin cambios respecto de `v97i`) fue
+   rechazada por el puente de Studio con `El job no existe en el repositorio` para los cuatro Jobs
+   hijos, y el arnés borró las copias al terminar. La corrida `v97i` con el mismo código y un
+   sufijo nuevo pasó. No apareció el diálogo "Network Issue".
+
+### Decisiones
+
+- Mecanismo de totales: (b), por la tabla. (a) y (c) quedan como comparativa, no como código de producción.
+- Unión por `APPEND` secuencial, en lugar de `tUnite`, mientras `tUnite` no compile.
+- `DIE_ON_ERROR=true` en las entradas de totales, para que un archivo faltante falle el Job.
+- `archivo_totales` en la decisión del programa, no en `src/`: el nombre `totales_exogena` es un nombre
+  de salida del cliente y las pruebas de nombres prohíben literales de scripts del cliente en `src/`.
+- Esquema del archivo de totales: `PRODUCTO;TIPO;NRO_FILAS;NRO_SALDOS_NO_VACIOS;SUMA_SALDO`, una fila
+  por producto y tipo. Es el esquema de las columnas del caso 04 (`NRO_FILAS_*`, `SUMA_SALDO_*`), no
+  el de `TOTAL_AHORROS_CONS` y `TOTAL_CORRIENTE`.
+- `NRO_SALDOS_NO_VACIOS` de la salida va vacío: el caso no define ese conteo para la salida.
+- Fecha de la prueba `2026-09-30`: valor de prueba. El caso no declara la fecha del proceso.
+- Plantilla `tBufferOutput.json` generada por el servidor y validada en Studio, no extraída de un Job
+  guardado (no hay ninguno en el workspace).
+
+### Pruebas
+
+- `uv run ruff check .`: sin errores.
+- `uv run pytest -q -n auto`: **2061 pasadas, 26 omitidas y 128 `xfailed`**.
+- Studio, R2-01, corridas con sufijo nuevo: `v97a` (`tUnite`, NPE en el generador), `v97b` (`tUnite`
+  con metadato `out1`, mismo NPE), `v97c` (`tUnite` con entradas `row1`/`row2`, mismo NPE), `v97d`
+  (unión por `APPEND`: a, b y c dan lo esperado; sin escenario de fallo), `v97e` (escenario de fallo
+  con `DIE_ON_ERROR` en falso: código 0), `v97f` (con `DIE_ON_ERROR=true`: código 1 en los tres),
+  `v97h` (rechazada por el puente, ver hallazgo 4) y `v97i` (código final: todo como se esperaba).
+- Studio, R2-02: `v97g` (primera corrida: coincide con `esperado/`), tras pasar el nombre del archivo a
+  la decisión y limpiar el código, `v97j` (código final: `RESULTADO: coincide con esperado/`).
+
+### Métricas
+
+- `jobs_totales.py` 141 líneas; `prueba_totales_caso.py` 262; `prueba_totales_mecanismos.py` 235;
+  `totales_caso_jobs.py` 200; `totales_mecanismos_jobs.py` 297; `test_talend_jobs_totales.py` 12 pruebas.
+- Plantillas nuevas: 1 (`tBufferOutput`). Dependencias nuevas: ninguna.
+
+### Bloqueos y no verificado
+
+- **Numeración duplicada** con el commit `64786a4` (ver arriba).
+- **`job_producto` no escribe `totales_origen_<p>.csv` ni `totales_salida_<p>.csv`.** Lo hace el
+  productor mínimo de `tools/`. Integrarlo en `job_producto` (módulo propio, para no pasar de 300
+  líneas) queda para el siguiente hito. Mientras tanto `sgm talend` avisa con `Pendiente:`.
+- **Columnas de la exógena.** R2-02 exige columnas iguales a `TOTAL_AHORROS_CONS` y `TOTAL_CORRIENTE`.
+  No se cumple: el SAS de `client_large.sas` (líneas 24693 a 24800) escribe esos dos archivos con
+  13 sumas (`FIN_SAL_CTA`, `PROM_SAL_CTA`, ... `PROM_DEB_MES`) sobre las tablas `TOTAL_CORRIENTE` y
+  `TOTAL_AHORROS_CONS`, no origen y salida por producto. Pendiente: decidir con el SAS y con negocio
+  cuál es la exógena real. R2-02 queda parcial.
+- **Regla de salida `TIPO_CTA <> '03'`.** Es un supuesto del caso 04 (`caso.yaml`, "regla de este caso, no
+  del SAS"). No está demostrada en el SAS real.
+- **Fecha.** La fecha la pasa la prueba como parámetro. La lectura real del Excel de la fecha (R2-04)
+  no se probó aquí.
+- **Paralelismo** de los tres mecanismos: no probado.
+- **`sgm talend` para `client_large`**: la emisión del Job real está cubierta por pruebas unitarias
+  y por el tablero; no se ejecutó en Studio el Job del programa grande.
+- **`tUnite`**: no validado; ver hallazgo 1.

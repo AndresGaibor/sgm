@@ -188,11 +188,13 @@ def jobs_hijos(
     lookups: str = "",
     ruta_java: str | None = None,
     producto_real: Job | None = None,
+    totales_real: Job | None = None,
 ) -> list[Job]:
     """Hijos del padre. Mientras no se traduzca su lógica, cada uno dice qué le falta.
 
     Cada hijo declara las variables del periodo que hereda del padre y las imprime, para que se
     vea que el contexto llega. `lookups` describe los Excel que `job_producto` usará en su `tMap`.
+    `totales_real` es el `job_totales` ya emitido (R2-02); sin él queda como pendiente.
     """
     producto = ("producto", "ruta_origen", "sufijo", *variables_periodo)
     return [
@@ -203,8 +205,12 @@ def jobs_hijos(
             producto,
             ruta_java,
         ),
-        job_pendiente(
-            arq.totales, "falta unir totales de origen y de salida", variables_periodo, ruta_java
+        totales_real
+        or job_pendiente(
+            arq.totales,
+            "falta unir totales de origen y de salida",
+            variables_periodo,
+            ruta_java,
         ),
         job_pendiente(
             arq.conciliacion, "falta conciliar origen contra salida", variables_periodo, ruta_java

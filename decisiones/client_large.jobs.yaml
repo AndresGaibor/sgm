@@ -25,6 +25,9 @@ lookups_producto:
   - 'Códigos de país'
   - 'Códigos DANE'
 
+# Archivo final de totales (R2-02): job_totales escribe <archivo>_<anio><mes><dia>.csv.
+archivo_totales: totales_exogena
+
 # Totales de origen de job_producto: el SAS cuenta los registros y suma esta columna (convertida con
 # input(left(col), 20.)) antes de validar; son la base de la conciliación.
 total_origen:

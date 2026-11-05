@@ -42,9 +42,11 @@ def test_componentes_por_job_del_programa_grande(jobs):
         # hito 84 añade el tMap_normalizacion; hito 87 el tMap_flujos y sus 3 salidas;
         # hito 89 el tMap_cuenta y sus 4 salidas.
         "job_producto": 21,
-        "job_totales": 1,
+        # hito 97: job_totales real (tJava y una entrada y una salida por archivo: 3 productos
+        # x 2 tipos x 2 componentes + tJava).
+        "job_totales": 13,
     }
-    assert sum(jobs.values()) == 36
+    assert sum(jobs.values()) == 48
 
 
 def test_conformidad_cuenta_filas_y_secciones():

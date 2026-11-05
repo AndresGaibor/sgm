@@ -26,6 +26,7 @@ from sgm.talend_item.arquitectura import cargar_arquitectura
 from sgm.talend_item.escritura import escribir_job
 from sgm.talend_item.jobs_diseno import ProductoJob, job_padre, jobs_hijos
 from sgm.talend_item.jobs_producto import job_producto
+from sgm.talend_item.jobs_totales import job_totales
 from sgm.talend_item.periodo import contextos_de_periodo, nodos_periodo
 
 
@@ -171,7 +172,13 @@ def talend_command(
             regla_saldo=saldo,
             ubicacion=ubic,
         )
-    jobs = [padre, *jobs_hijos(arq, variables, lookups, producto_real=producto)]
+    totales = None
+    if arq.periodo is not None and arq.archivo_totales and productos:
+        totales = job_totales(arq, tuple(p.sufijo for p in productos))
+    jobs = [
+        padre,
+        *jobs_hijos(arq, variables, lookups, producto_real=producto, totales_real=totales),
+    ]
     destino = out / source.stem / "talend" / "process"
     escritos = [escribir_job(job, destino) for job in jobs]
     for item, _ in escritos:
@@ -194,3 +201,8 @@ def talend_command(
         typer.echo(f"Pendiente: {pendiente}")
     for pendiente in pendientes_ubic:
         typer.echo(f"Pendiente: {pendiente}")
+    if totales is not None:
+        typer.echo(
+            "Pendiente: job_producto aún no escribe totales_origen_<producto>.csv "
+            "ni totales_salida_<producto>.csv; job_totales los lee (hito 97)."
+        )

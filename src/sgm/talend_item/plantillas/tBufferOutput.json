@@ -1,0 +1,85 @@
+{
+ "componente": "tBufferOutput",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tBufferOutput",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.101 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "Misc",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "true",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.tBufferOutput",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "",
+   "false"
+  ],
+  [
+   "TEXT",
+   "SCHEMA",
+   null,
+   null
+  ],
+  [
+   "TEXT",
+   "USE_BASE64",
+   "true",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  }
+ ]
+}
