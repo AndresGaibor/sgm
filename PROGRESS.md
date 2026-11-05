@@ -1797,3 +1797,23 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
 - Pruebas: `test_corpus_validaciones.py` (5), `test_corpus_totales.py` (12) y las de los hitos anteriores; `tools/corpus.py oraculo todos --verificar`: 30 casos, 0 fallas.
 - No verificado: ningun resultado contra SAS real. Dudas de sintaxis y semantica anotadas por caso: UPCASE, STRIP y COMPBL con Ã‘ y tildes segun la codificacion de sesion, opciones de EXCELCS copiadas del original, `input(left(''), n.)` como faltante.
 - Pendiente: generar el esperado de los casos L8 (hoy `sin_esperado`) con el oraculo y las anomalias plantadas, arreglar los huecos del frontend, y traducir estos casos a Jobs de Talend.
+
+
+## Hito 74. T14 (reglas): tipo de cuenta, Codex y GMF invalidos
+
+- Fecha: 2026-11-04
+- Hallazgo: el SAS no usa listas `IN (...)`. Rechaza con `NOT BETWEEN` sobre una columna y una
+  columna de control: `( TIPO_CTA NOT BETWEEN 1 AND 5 ) AND ( RELACION = 1000 )` con motivo
+  `TIPO CTA INVALIDO`, y `( GMF NOT BETWEEN 1 AND 10 ) AND ( RELACION = 1000 )` con motivo
+  `CODEX INVALIDO` (la etiqueta dice Codex pero filtra GMF). NEQUI usa el mismo par sin `RELACION` y
+  con motivos propios: `TIPO DE CUENTA INVALIDO` y `GMF INVALIDO`. El motivo sale del paso `DATA`
+  que etiqueta la tabla de rechazos, no se inventa.
+- Que se hizo: nuevo `src/sgm/proceso/reglas.py`. Devuelve `ReglaRango(destino, columna, desde,
+  hasta, permite, motivo, linea, control)` y una `condicion` en Java con el rango agrupado antes del
+  control. Detecta ademas las reglas de longitud de documento por tipo (`NRO_DOC BETWEEN ...` por
+  `TIPO_DOC`), que son de T19/T15.
+- Pruebas: `tests/unit/test_reglas_rango.py`, 6 pruebas: rango negado con control y motivo, rango
+  permitido, agrupacion de la condicion y las cuatro reglas reales de AHO, CTE y NEQUI.
+- Bloqueo de T14 (parte de Job): aplicar la regla como filtro de fila necesita `tFilterRow` o el
+  filtro del `tMap`, que siguen sin ejecutarse nunca en Studio. Mismo bloqueo que T12 (Job) y T13.
+- Pendiente: T12/T13/T14 en su parte de Job, T15 a T19.
