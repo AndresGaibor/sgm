@@ -123,7 +123,7 @@ SAS no puede demostrar.
 
 | ID | Tarea | Tipo | dep | Casos y criterio | h-ag | Estado |
 |---|---|---|---|---|---|---|
-| R1-01 | Validar el filtro del `tMap` (`expressionFilter`) aislado en Studio; si falla, plantilla de `tFilterRow` validada ejecutando | R+H | | Job mínimo: filas que pasan y que no; resultado en `PROGRESS.md`. Desbloquea R1-04 a R1-09 | 3 | hecho (hito 81; `tools/prueba_filtro_tmap.py`; falta probar el filtro con valores nulos) |
+| R1-01 | Validar el filtro del `tMap` (`expressionFilter`) aislado en Studio; si falla, plantilla de `tFilterRow` validada ejecutando | R+H | | Job mínimo: filas que pasan y que no; resultado en `PROGRESS.md`. Desbloquea R1-04 a R1-09 | 3 | hecho (hito 81 y cierre en el 82: filtro seguro e inseguro ejecutados con filas sin pareja; `null_safe_equals` en `expresiones.py`) |
 | R1-02 | Normalización inicial: `tMap` que convierte las columnas numéricas (las marcadas `numerica` por `esquema_csv`) con la semántica fiel de `input(left(x), N.)`, `compress`, mayúsculas y caracteres especiales | R+H | | `L4`, `L8/validaciones/v06`; vectores con fuente (blancos internos, signo, decimales con coma, ceros a la izquierda, no numérico a faltante) | 5 | pendiente |
 | R1-03 | Tipo de documento: cerrar T10 con el caso `v01` y `L2`; el Excel de homologación cambia por producto; documentar la comparación de texto frente a número (`01` y `1`) | H | R1-02 | `v01` coincide para CTE, AHO y NEQUI; válidos más rechazados igual al origen | 3 | parcial |
 | R1-04 | Vacíos y ceros: titulares y cotitulares, firmas autorizadas, número de documento no vacío ni cero | H | R1-01 | `v02` coincide, incluidos los conteos de anomalías plantadas | 4 | pendiente |

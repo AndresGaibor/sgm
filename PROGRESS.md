@@ -2080,3 +2080,48 @@ eglas_mapeo.py). La salida no cambia: goldens id�nticos.
 - Estado en el plan: R1-01 `hecho`; R0-02 pasa a `hecho` (las cuatro correcciones con demostracion
   real: busqueda recursiva, comillas con espacios y borrado del build; la version distinta de 0.1
   solo con doble).
+
+## Hito 82. R1-01 (cierre): el filtro del `tMap` aguanta columnas nulas de un `LEFT JOIN`
+
+- Fecha: 2026-11-05
+- Que se hizo: se cierra la salvedad que el hito 81 dejo anotada. En un `LEFT JOIN` del `tMap` las
+  columnas del lookup quedan a `null` cuando la fila principal no tiene pareja; el filtro probado
+  en el 81 (`row1.tipo.equals("CC")`) solo servia con texto no nulo y era el bloqueo de R1-04 a
+  R1-09. `src/sgm/talend_item/expresiones.py` deja `null_safe_equals(expresion, valor)`, que pone
+  el literal a la izquierda (`"CC".equals(row2.valor)`), y `tools/prueba_filtro_nulo.py` arma un
+  Job minimo con dos `tFixedFlowInput` (principal de seis filas, lookup de tres: D, E y F sin
+  pareja), un `tMap` sin `innerJoin` con salida filtrada y salida de rechazo, y dos
+  `tFileOutputDelimited`. El comando corre cada forma del filtro en Studio con un sufijo nuevo.
+- Corrida 1 (Studio 8.0.1, proyecto `PRJ_BANCOLOMBIA`, sufijo `v82a`, forma `segura`, filtro
+  `"CC".equals(row2.valor)`): `validos.csv: ['1', '3']`, `rechazados.csv: ['2', '4', '5', '6']`,
+  codigo de salida 0, `RESULTADO: el filtro seguro separa las filas con y sin pareja`. Las tres
+  filas sin pareja salen por el rechazo sin lanzar excepcion.
+- Corrida 2 (sufijo `v82b`, forma `insegura`, filtro `row2.valor.equals("CC")`): codigo de salida
+  1, `[FATAL] tMap_1 Cannot invoke "String.equals(Object)" because "row2.valor" is null`, con
+  `java.lang.NullPointerException` en stdout y stderr; `validos.csv: ['1', '3']` y
+  `rechazados.csv: ['2']` (el Job se corta en la primera fila sin pareja). `RESULTADO: el filtro
+  inseguro falla con NullPointerException`. Es la demostracion del riesgo, no un fallo del cierre.
+- Hallazgos: (1) el riesgo del hito 81 era real y aparece ejecutando, no solo en teoria; (2) un
+  `LEFT JOIN` del emisor (`EntradaMap` sin `union_interna`) deja las columnas del lookup a `null`,
+  asi que toda comparacion de texto en `expressionFilter` o en expresiones de salida debe llevar
+  el literal a la izquierda; (3) la conexion `LOOKUP` con `lineStyle` 8 y el `catch output reject`
+  funcionan juntos: el rechazo recoge tanto las filas que no cumplen el filtro como las que no
+  tienen pareja; (4) los dos Jobs de prueba se borraron del proyecto al terminar (`process/` sin
+  residuales).
+- No verificado: filtro con columnas numericas o `BigDecimal`; filtro con varias condiciones
+  unidas por `&&`; el mismo filtro dentro de `job_producto` (eso es R1-04); comparaciones con
+  `Relational.IS_EQUALS`, que no hizo falta.
+- Pruebas: `tests/unit/test_talend_expresiones.py` (4) y `tests/unit/test_prueba_filtro_nulo.py`
+  (11): el `.item` con el filtro seguro, el `LEFT JOIN` y la conexion de busqueda, el escapado del
+  literal de Java, las seis filas y sus tres sin pareja, la limpieza de salidas previas y el
+  protocolo con doble del servidor para ambos desenlaces. `uv run pytest -q`: 1578 pasan, 26 se
+  saltan, 132 xfail. `uv run ruff check .`: limpio.
+- Metricas antes (tablero del hito 81): 26 componentes, conformidad 12 de 118 filas y 2 de 22
+  secciones, 16 pendientes, 117 casos del corpus, suite 1563 pasan. Despues: las mismas de
+  producto (este hito no cambia la salida de `sgm talend` ni el documento de diseno); suite 1578
+  pasan, 26 se saltan, 132 xfail (15 pruebas nuevas); `ruff` limpio.
+- Estado en el plan: R1-01 `hecho` sin salvedades. Quedan desbloqueadas R1-04 a R1-09, que deben
+  usar `null_safe_equals` en vez de `.equals` sobre la columna. El camino critico sigue por R1-02.
+- Riesgo: `null_safe_equals` solo compara texto; las validaciones de R1-06 (GMF, Codex) y R1-07
+  (saldos negativos) comparan numeros y necesitan su propia forma de tratar el faltante, que no
+  se inventa aqui.
