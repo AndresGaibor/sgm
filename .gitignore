@@ -13,3 +13,6 @@ corpus/*
 
 # Referencia: los PDF oficiales pesan decenas de MB. Se regeneran con tools/referencia/descargar.py.
 docs/referencia/sas/*.pdf
+
+# Estado local de CommandCode: ajustes y preferencias de la maquina.
+/.commandcode/
