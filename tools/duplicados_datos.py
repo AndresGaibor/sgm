@@ -136,9 +136,9 @@ def informe_vectores(unicas: list[dict[str, str]], repetidas: list[dict[str, str
     return errores
 
 
-def leer_csv(ruta: Path) -> list[dict[str, str]]:
+def leer_csv(ruta: Path, delimitador: str = ",") -> list[dict[str, str]]:
     with ruta.open(encoding="utf-8", newline="") as entrada:
-        return list(csv.DictReader(entrada))
+        return list(csv.DictReader(entrada, delimiter=delimitador))
 
 
 def caso_origen() -> Path:

@@ -3228,3 +3228,72 @@ Diferencias con motivo:
   - X02 requiere que el modelo de salidas lea `PROC UPLOAD` dentro de `RSUBMIT` (EQ04).
   - Las secciones 4, 7 y 8 no se emiten (ver arriba). La sección 5 emitida no coincide con la D1 a D6 del manual.
 - No verificado: Talend Studio no se usó y ningún Job se ejecutó. Los nombres de archivo y la carpeta salen de la lectura del SAS, no de una ejecución de SAS.
+
+## Hito 95. R1-12 (parte 2) y R6-03 (tUniqRow): `NODUPKEY` se ejecuta en Studio y la primera fila por llave se confirma
+
+- Fecha: 2026-11-05. Continúa el hito 92 (parte 1, `8c3f170`), que dejó la regla leída y el oráculo, y la prueba en Studio bloqueada por el diálogo "Network Issue Occured". El usuario lo cerró y Studio respondió.
+- Qué se hizo:
+  - Plantilla `tUniqRow` (`talend_item/plantillas/tUniqRow.json`), extraída con `tools/extraer_plantilla.py` de `ref_tuniqrow_v92a_0.1.item`, guardado por Studio 8.0.1. Tabla `UNIQUE_KEY` con una fila por columna (`SCHEMA_COLUMN`, `KEY_ATTRIBUTE`, `CASE_SENSITIVE`). Los parámetros de contraseña y de entorno no aparecen. Lo que cambia: los bloques `FLOW` de tUniqRow, `UNIQUE` y `DUPLICATE` llevan sus columnas (ver Hallazgos).
+  - `src/sgm/talend_item/flujos_duplicados.py` (185 líneas): `componentes(regla, columnas, entrada)` cuelga la rama de una entrada existente (`tMap_dup` que recorta las llaves, `tUniqRow_dup` con `CASE_SENSITIVE`, y dos `tFileOutputDelimited` con cabecera y `context.sufijo`, para únicos `<tabla>_<sufijo>.csv` y repetidos `<tabla>_DUPLICADOS_<sufijo>.csv`). `job_duplicados(regla, columnas, delimitador)` monta un Job propio con `tFileInputDelimited` sobre `context.ruta_origen`. Falla con `ValueError` si la regla no es `EQUALS` o si una llave no está en el esquema.
+  - `tools/prueba_duplicados.py` (265) y `tools/duplicados_datos.py` (168, con `leer_csv(ruta, delimitador)`): emite dos Jobs (`dup_vectores` con 14 filas de vectores propios, y `dup_aho_unicos` con `origen_aho.csv` del caso L8/01, 23 columnas, `;`), los compila, exporta, ejecuta con sufijo nuevo y compara.
+  - `tests/unit/test_talend_flujos_duplicados.py` (7): llave recortada en el `tMap`, marcas de `UNIQUE_KEY` (solo la llave con `KEY_ATTRIBUTE=true`, y las dos con `CASE_SENSITIVE=true`), dos CSV con cabecera y sufijo, conexiones `dup_*` sin chocar, job propio con `context.ruta_origen` y cabecera, y los dos `ValueError`.
+- Regla que el Job implementa: primera fila que llega por cada llave, con llaves recortadas por la derecha y sensibles a mayúsculas. Es la regla de `reglas_duplicados` (hito 92): `NODUPKEY EQUALS` conserva la primera fila del grupo en el orden de entrada.
+
+- Evidencia literal en Studio 8.0.1 / `PRJ_BANCOLOMBIA`, corrida `v92d` (`uv run python tools/prueba_duplicados.py --proyecto "C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA" --java-bin "C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin" --m2 "C:/Talend/8.0.1/studio/configuration/.m2/repository" --sufijo v92d --trabajo "C:/tmp/sgm-hito92/v92d"`). Las líneas `stdout` se omiten por su longitud; el resto es literal:
+
+```text
+Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+Sufijo: v92d
+Trabajo: C:\tmp\sgm-hito92\v92d
+Comando dup_vectores_v92d: "C:\Users\USUARI~1\AppData\Local\Temp\build-f2jalwze\dup_vectores_v92d\dup_vectores_v92d_run.bat" --context="Default" --context_param "ruta_origen=C:/tmp/sgm-hito92/v92d/entradas/VECTORES.csv" --context_param "ruta_resultados=C:/tmp/sgm-hito92/v92d/salida_dup_vectores_v92d/" --context_param "sufijo=v92d"
+Código de salida dup_vectores_v92d: 0
+Vectores: 8 únicas, 6 repetidas; OK
+Comando dup_aho_unicos_v92d: "C:\Users\USUARI~1\AppData\Local\Temp\build-jtmy29zz\dup_aho_unicos_v92d\dup_aho_unicos_v92d_run.bat" --context="Default" --context_param "ruta_origen=C:/tmp/sgm-hito92/v92d/entradas/origen_aho_cabecera.csv" --context_param "ruta_resultados=C:/tmp/sgm-hito92/v92d/salida_dup_aho_unicos_v92d/" --context_param "sufijo=v92d"
+Código de salida dup_aho_unicos_v92d: 0
+AHO: 40 únicas (esperado 40), 7 repetidas (esperado 7)
+Limpieza: 4 archivos borrados del proyecto
+RESULTADO: vectores y AHO coinciden con el oráculo y con esperado/AHO_UNICOS.csv
+[exited with code 0]
+```
+
+- Salida que escribió el Job para los vectores (`VECTORES_v92d.csv`, únicas; y `VECTORES_DUPLICADOS_v92d.csv`, repetidas). Entrada en el orden del archivo: `A1,10`, `A1,10`, `G7,11`, `B2,30`, `B2,40`, `C3 ,50`, `C3,60`, `d4,1`, `D4,2`, `,5`, `   ,6`, `E5,1`, `E5,2`, `E5,3`.
+
+```text
+VECTORES_v92d.csv (únicas)            VECTORES_DUPLICADOS_v92d.csv (repetidas)
+CLAVE,SALDO                           CLAVE,SALDO
+A1,10                                 A1,10
+G7,11                                 B2,40
+B2,30                                 C3,60
+C3,50                                 ,6
+d4,1                                  E5,2
+D4,2                                  E5,3
+,5
+E5,1
+```
+
+- Confirmación de la regla (ejecutada, no supuesta): `B2` sale con `30` y no con `40`; `C3 ` y `C3` son una sola llave con el primer saldo (`50`); `,5` gana a `   ,6` (blanco y vacío son el mismo faltante); `E5` sale con `1`; `d4` y `D4` no se mezclan. En `AHO_UNICOS_v92d.csv` salen 40 filas, con el mismo multiconjunto de 23 columnas que `esperado/AHO_UNICOS.csv` y el mismo orden que el oráculo (primera fila de cada llave en el orden de entrada); `AHO_UNICOS_DUPLICADOS_v92d.csv` tiene 7 filas, igual que 47 - 40.
+
+- Hallazgos de la construcción (no obvios):
+  1. Con el bloque `FLOW` propio de `tUniqRow` vacío, Studio saca **filas en blanco** por `UNIQUE` y `DUPLICATE`, aunque el Job compila y sale con código 0. Lo vieron el Job de referencia (`ref_tuniqrow_v92a`, ejecutado: solo líneas vacías) y un Job mínimo sin `tMap` (`dup_diag2`: 14 filas en blanco en cada salida). Con las columnas también en el bloque `FLOW` propio (`dup_diag3`), los valores salen y el reparto es correcto: 10 únicas y 4 repetidas en la entrada sin recortar. Por eso `flujos_duplicados` pone el esquema en ese bloque.
+  2. `talend_job_verify` compila el Job aunque la clave `KEY_ATTRIBUTE` quede vacía: se escribió `KEY_ATTRIBUTE=""` para `CLAVE` hasta usar la forma por filas `[["CLAVE","true","true"],...]` de `talend_job_configure_node`. Verificar el `.item` guardado, no solo la compilación.
+  3. La primera corrida `v92c` dio `DIFERENCIA` en el orden de AHO: fallo del arnés (leía el `;` del caso con el lector de `,`), no del Job. Se corrigió `leer_csv(ruta, delimitador)` y se repitió con `v92d`.
+  4. Studio no creó el Job de referencia mientras el hilo de interfaz estuvo ocupado (unos 10 min) y tampoco con el diálogo "Network Issue" abierto. Se reintentó tras cerrarlo el usuario. El Job `ref_tuniqrow_v92a` se borró del proyecto; quedó una carpeta vacía en `process/`, que se quitó a mano.
+
+- Decisiones:
+  - `tUniqRow` sin `tSortRow`. El orden de salida no forma parte de la regla (el SAS deja las filas ordenadas por la llave, pero el caso compara por multiconjunto; la salida del Job sale en orden de llegada, que coincide con el del oráculo para estos datos).
+  - La llave sale recortada en el CSV. El SAS la conserva con blancos finales; la comparación de llaves es igual en los dos, pero el texto del CSV no. Es una salvedad, no un hecho del SAS.
+  - Nombres de salida: `<tabla>_<sufijo>.csv` y `<tabla>_DUPLICADOS_<sufijo>.csv`. El SAS no escribe los repetidos; el nombre de los repetidos es una decisión de esta rama.
+  - Conexiones `dup_fuente`, `dup_fila`, `dup_unica` y `dup_repetida`: no repiten `cta_*`, `saldo_*`, `ubic_*` ni `valido`.
+
+- Pruebas:
+  - `test_talend_flujos_duplicados.py` (7, nuevas) y `test_proceso_reglas_duplicados.py` (10, hito 92).
+  - Suite: `uv run pytest -q -n auto`: **1967 pasadas, 26 omitidas y 128 `xfailed`**. Falla una: `test_tools_ci.py::test_el_cierre_termina_en_cero_si_todo_pasa`, porque `uv run ruff check .` marca `src/sgm/seguridad/enmascarado.py:6` (E501, 102 columnas). Ese archivo no es de este hito (es de la otra serie en paralelo, sin commitear) y no se toca. Ruff sobre los archivos de este hito: limpio.
+
+- Métricas: `flujos_duplicados.py` 185 líneas; `prueba_duplicados.py` 265; `duplicados_datos.py` 168; la plantilla `tUniqRow.json` tiene 16 parámetros y 4 bloques de metadatos.
+
+- Bloqueos y no verificado:
+  - **No integrado en `job_producto` ni en `cli_talend`** (opcional en el encargo). La rama existe y se ejecuta como Job propio; cuelgue de `tReplicate_1` está previsto en `componentes`, pero no se emite en el Job del cliente.
+  - `NOEQUALS`, `DESCENDING` y `NODUPREC` quedan `Pendiente:` (`reglas_duplicados`). El caso `L8/01` tiene un `NODUPREC` que no se traduce.
+  - Que `tUniqRow` conserve la primera fila **siempre** (con varios hilos, otros volúmenes o con datos nulos) no se probó: solo un Job de un hilo y 14 filas de vectores y 47 de AHO.
+  - Las demás plantillas de R6-03 (`tFilterRow`, `tNormalize`, `tJoin`, `tConvertType`, `tFileList`, `tDBClose`, `tSendMail`) siguen pendientes; R6-03 solo tiene `tUniqRow`.
+  - Ningún Job se abrió en el editor gráfico de Studio.

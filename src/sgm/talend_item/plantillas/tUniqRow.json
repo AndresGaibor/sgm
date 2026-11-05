@@ -1,0 +1,189 @@
+{
+ "componente": "tUniqRow",
+ "version": "0.101",
+ "parametros": [
+  [
+   "TEXT",
+   "UNIQUE_NAME",
+   "@@UNICO@@",
+   "false"
+  ],
+  [
+   "TEXT",
+   "COMPONENT_NAME",
+   "tUniqRow",
+   "false"
+  ],
+  [
+   "TEXT",
+   "VERSION",
+   "0.101 (ALPHA)",
+   "false"
+  ],
+  [
+   "TEXT",
+   "FAMILY",
+   "Data_Quality",
+   "false"
+  ],
+  [
+   "CHECK",
+   "STARTABLE",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "SUBTREE_START",
+   "false",
+   "false"
+  ],
+  [
+   "CHECK",
+   "END_OF_FLOW",
+   "false",
+   "false"
+  ],
+  [
+   "TEXT",
+   "HELP",
+   "org.talend.help.tUniqRow",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "IREPORT_PATH",
+   "",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "JAVA_LIBRARY_PATH",
+   "C:\\Talend\\8.0.1\\studio\\configuration\\lib\\java",
+   "false"
+  ],
+  {
+   "tabla": "UNIQUE_KEY",
+   "show": null,
+   "por_columna": [
+    [
+     "KEY_ATTRIBUTE",
+     "true"
+    ],
+    [
+     "CASE_SENSITIVE",
+     "true"
+    ]
+   ]
+  },
+  [
+   "CHECK",
+   "ONLY_ONCE_EACH_DUPLICATED_KEY",
+   "false",
+   null
+  ],
+  [
+   "CHECK",
+   "IS_VIRTUAL_COMPONENT",
+   "false",
+   null
+  ],
+  [
+   "OPENED_LIST",
+   "BUFFER_SIZE",
+   "M",
+   "false"
+  ],
+  [
+   "DIRECTORY",
+   "TEMP_DIRECTORY",
+   "",
+   "false"
+  ],
+  [
+   "CHECK",
+   "CHANGE_HASH_AND_EQUALS_FOR_BIGDECIMAL",
+   "false",
+   null
+  ]
+ ],
+ "metadatas": [
+  {
+   "conector": "FLOW",
+   "nombre": "@@UNICO@@",
+   "columnas": []
+  },
+  {
+   "conector": "FLOW",
+   "nombre": "tFixedFlowInput_2",
+   "columnas": [
+    {
+     "nombre": "CLAVE",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": -1,
+     "precision": -1,
+     "patron": ""
+    },
+    {
+     "nombre": "SALDO",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": -1,
+     "precision": -1,
+     "patron": ""
+    }
+   ]
+  },
+  {
+   "conector": "UNIQUE",
+   "nombre": "UNIQUE",
+   "columnas": [
+    {
+     "nombre": "CLAVE",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": -1,
+     "precision": -1,
+     "patron": ""
+    },
+    {
+     "nombre": "SALDO",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": -1,
+     "precision": -1,
+     "patron": ""
+    }
+   ]
+  },
+  {
+   "conector": "DUPLICATE",
+   "nombre": "DUPLICATE",
+   "columnas": [
+    {
+     "nombre": "CLAVE",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": -1,
+     "precision": -1,
+     "patron": ""
+    },
+    {
+     "nombre": "SALDO",
+     "tipo": "id_String",
+     "nulable": true,
+     "clave": false,
+     "longitud": -1,
+     "precision": -1,
+     "patron": ""
+    }
+   ]
+  }
+ ]
+}
