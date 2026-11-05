@@ -21,6 +21,28 @@ El corpus y el plan de equivalencia están en `plan-corpus-y-equivalencia.md`.
    (leer una regla del SAS, traducirla a Talend, ejecutarla en Studio, compararla con un esperado
    independiente).
 
+### 0.1b Principio de automatización total (instrucción directa del usuario)
+**El migrador debe ser automático.** Se le entrega un programa SAS y devuelve los Jobs sin que nadie escriba YAML,
+responda preguntas ni tome decisiones. Consecuencias que el agente debe respetar:
+
+1. **Cero configuración obligatoria.** `sgm migrar programa.sas` (o una carpeta) funciona solo. Los YAML de
+   `decisiones/` son opcionales y solo sirven para *cambiar* lo que el migrador decidió.
+2. **Cada decisión la toma el migrador con una regla determinista y la deja escrita.** Si hay varias opciones
+   válidas (nombre de un Job, cómo agrupar, dónde cortar un Job grande, cómo pasar datos entre Jobs, qué hacer
+   ante un fallo parcial), el migrador aplica la regla por omisión de la sección 8 y registra en
+   `decisiones-tomadas.md` qué eligió, por qué y cómo cambiarlo. **Nunca se detiene a preguntar.**
+3. **Lo que no se puede traducir no bloquea.** Se traduce todo lo demás y lo que queda va a `pendientes.md` con
+   código y motivo (criterio C2).
+4. **Los valores que solo conoce una persona** (rutas reales de producción, usuarios, contraseñas, servidores) no
+   se piden ni se inventan: se **deducen del SAS cuando están** (rutas de `LIBNAME`, `INFILE`, `FILENAME`,
+   macrovariables) y, si no están, se generan como parámetros de contexto con nombre claro y valor vacío o de
+   ejemplo, listados en `contextos/<entorno>.yaml` para completar al desplegar. El Job se genera igual.
+5. **Las personas intervienen solo en tres momentos, fuera del código**: entregar los valores reales de cada
+   entorno al desplegar, aceptar los resultados (UAT) y firmar el corte. Nada de eso detiene el desarrollo.
+
+La sección 8 ya no es una lista de preguntas: es la lista de **reglas automáticas por omisión** del migrador, con la
+persona opcional que podría cambiarlas.
+
 ### 0.2 Principio rector de velocidad (instrucción directa del usuario)
 **Desarrollar rápido y no depender de pruebas lentas.** Talend Studio se usa cuando es rápido y sobre todo en
 lote, no en cada cambio. Para eso el plan define una pirámide de pruebas (sección 6.1) con cuatro anillos:
@@ -48,8 +70,8 @@ secretos.
 - **MCP y CLI de Talend: permitidos, con una separación** (instrucción del usuario del 5 de noviembre de 2026,
   ver la sección 4.1 y la decisión MG-D11). El núcleo de `sgm` escribe `.item` directamente y funciona sin Studio ni
   MCP; el MCP o la CLI `talend` de `talend-mcp` se usan como **backend opcional de verificación, compilación en
-  lote, construcción y ejecución**. Hasta que MG-P0-07 actualice `AGENTS.md`, la regla 1 de ese archivo sigue
-  vigente para `src/`.
+  lote, construcción y ejecución**. El usuario lo autorizó sin condiciones y la regla 1 de `AGENTS.md` ya se
+  actualizó (5 de noviembre de 2026).
 - Sin API web ni frontend. Sin conexión a bases desde `sgm` (los contenedores son solo para probar Jobs generados).
 - Nada de nombres de scripts del cliente en `src/` ni `rules/`. Las reglas se basan en estructura.
 - Ninguna equivalencia sin fuente: cada regla cita guía y página (SAS) o prueba ejecutada. Si no hay
@@ -379,9 +401,12 @@ Cada salida de `sgm migrar` pasa estos controles; un control que falle rompe la 
 | Q14 | Abre en Studio sin que Studio "repare" el Job (ida y vuelta) | `tools/comparar_item.py` (persona, una vez, y luego automatizado donde se pueda) |
 | Q15 | Rendimiento razonable: lookups en `LOAD_ONCE` o `RELOAD` justificados, sin productos cartesianos, `tMap` en memoria acotada | revisión estática más prueba de volumen |
 
-## 8. Decisiones que necesita el usuario (con valor por omisión del agente)
+## 8. Reglas automáticas por omisión (el migrador decide solo; una persona puede cambiarlas después)
 
-| Id | Decisión | Opciones | Valor por omisión | Bloquea |
+Ninguna de estas filas bloquea el desarrollo ni la ejecución del migrador. La columna "Valor por omisión" es lo
+que el migrador hace sin preguntar; cualquier otra opción se activa después con una sobreescritura opcional (`decisiones/<programa>.*.yaml` o una opción de `sgm migrar`).
+
+| Id | Regla | Opciones posibles | Valor por omisión (lo que hace el migrador solo) | Afecta a |
 |---|---|---|---|---|
 | MG-D01 | Versión de SAS del cliente (9.3, 9.4M3...) | confirmar | 9.4 (edición 3.5), lo de las guías | casos de borde de funciones |
 | MG-D02 | Dependencias nuevas | `sqlglot` o analizador propio para `PROC SQL`; `jsonschema` | analizador propio sobre `sql_tree` ya existente; sin dependencias nuevas | MG-P5 |
@@ -393,7 +418,7 @@ Cada salida de `sgm migrar` pasa estos controles; un control que falle rompe la 
 | MG-D08 | Quién da programas reales del cliente (aunque sea uno) y cuándo | Tecnología | sin programas reales: solo corpus | MG-P14 |
 | MG-D09 | Quién valida en un SAS real el comportamiento de `PROC IMPORT`/`EXPORT` (DC-12) | Negocio | casos marcados `pendiente_revision` | cierre de C3 |
 | MG-D10 | Plataforma de despliegue (TMC, Remote Engine, servidor propio, solo Build Job) | Tecnología | Build Job exportado | MG-P14 |
-| MG-D11 | Uso de `talend-mcp` dentro del producto | (a) prohibido como hasta hoy; (b) backend opcional por CLI o MCP; (c) obligatorio | (b), el usuario lo permitió el 5 de noviembre de 2026; requiere actualizar `AGENTS.md` (MG-P0-07) | MG-P0, MG-P9, MG-P10 |
+| MG-D11 | Uso de `talend-mcp` dentro del producto | (a) prohibido; (b) backend opcional por CLI o MCP; (c) obligatorio | **Decidida: (b)**, autorizada por el usuario el 5 de noviembre de 2026 | ninguna |
 
 ## 9. Plan de trabajo por fases
 
@@ -410,7 +435,7 @@ hito, `PROGRESS.md` y commit.
 | MG-P0-04 | `tools/ciclo_rapido.py`: corre A y B sobre los casos tocados por el cambio (por diferencias de git) | H | Menos de 90 s con 20 casos | 3 |
 | MG-P0-05 | Tablero único: cobertura del corpus, traducidos, verificados, regresiones | H | `uv run python tools/tablero.py` incluye las cifras de la sección 1 | 3 |
 | MG-P0-06 | Resolver MG-D02 (analizador propio) y dejar el diseño del plan lógico escrito en `docs/arquitectura/ir-logica.md` | S | Documento revisado con ejemplos de cada operador | 5 |
-| MG-P0-07 | Actualizar `AGENTS.md`: la regla 1 pasa de "nada de MCP" a "el núcleo no depende de MCP; el MCP y la CLI de Talend son un backend opcional, solo mediante `src/sgm/backend_talend/`". **Pedir confirmación escrita al usuario antes de editar `AGENTS.md`** (hoy solo hay una instrucción verbal en la conversación) | S | `AGENTS.md` actualizado con fecha y motivo; sin otras reglas debilitadas | 1 |
+| MG-P0-07 | Regla 1 de `AGENTS.md` actualizada (hecho el 5 de noviembre de 2026); queda por añadir una prueba que impida que `src/sgm/` fuera de `backend_talend/` importe o llame al MCP | H | prueba en `tests/unit/` | 1 |
 | MG-P0-08 | `src/sgm/backend_talend/`: interfaz y las dos implementaciones (`archivos` y `talend_cli`), con pruebas con un doble de la CLI; tiempo máximo y salida `--json`; sin secretos en la línea de comandos ni en el registro | S | `sgm migrar --backend talend_cli` compila un lote con `talend_job_build_batch`; sin Studio el error es claro y la salida de archivos se conserva | 8 |
 | MG-P0-09 | Aprovechar el modo offline de talend-mcp en el anillo C: `corpus_studio.py lote` usa `talend_job_build_batch` (unos 0,2 s por Job) y `talend_job_verify` solo para la muestra; medir y documentar el tiempo | H | 50 Jobs compilados en menos de 2 min | 4 |
 

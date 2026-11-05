@@ -4,7 +4,7 @@ Instrucciones para agentes de IA que trabajen en `sgm-v2`.
 
 ## Prohibido en esta tarea
 
-1. **Nada de MCP.** No uses herramientas MCP, no arranques `talend-mcp`, no copies `mcp/`, `contract/` ni `talend_adapter/`, no agregues dependencias `mcp` ni crees `.mcp.json`. La salida es solo Markdown y JSON.
+1. **MCP y CLI de Talend: permitidos (decisión del usuario, 5 de noviembre de 2026).** Se pueden usar `talend-mcp` (por MCP o por su CLI `talend`) para crear, compilar, ejecutar y verificar Jobs, y desde el producto solo a través de `src/sgm/backend_talend/`. El núcleo de `sgm` no debe depender de ellos: tiene que seguir escribiendo los Jobs sin Studio abierto. Sigue prohibido copiar `mcp/`, `contract/` ni `talend_adapter/` del repositorio viejo, agregar la dependencia de Python `mcp` o crear `.mcp.json` en este repositorio.
 2. Nada de API web ni frontend. Solo librería Python y CLI.
    **Excepción aprobada por el usuario (hito 43):** `sgm flujo` escribe un HTML estático de revisión
    (`<programa>.flujo.html`) con CSS y SVG en línea. No tiene scripts, servidor ni recursos externos,
@@ -49,6 +49,27 @@ documentación de SAS. Está en `docs/referencia/`; el estado y la deuda de cada
 - Lo vigilan `tests/unit/test_catalogo_sas.py` (toda página citada tiene que existir en el índice de
   su guía) y `tests/unit/test_referencia_tools.py`. Un catálogo con página inventada no pasa.
 - Los `.pdf` están en `.gitignore` (unos 50 MB): no se commitean, se bajan con `tools/referencia/`.
+
+## Planes y orden de lectura
+
+Hay tres documentos de plan y **no dicen lo mismo**: leerlos en mal orden hace que un agente trabaje
+sobre una secuencia de fases ya superada.
+
+- **`docs/plan-reescritura/ruta-a-produccion.md` es el plan maestro.** Tareas `R<fase>-<n>` con dueño,
+  dependencias, entrega y criterio de terminado, y los tres niveles de la meta: N1 paridad con el
+  diseño manual, N2 equivalencia verificada, N3 producción. Reemplaza el orden de trabajo de
+  `tareas-agente.md` y de `plan-corpus-y-equivalencia.md`, que quedan como detalle.
+- **`docs/plan-reescritura/plan.md`** trae la arquitectura (frontend → grafo de linaje → modelo de
+  proceso → emisores) y la tabla «Estado por fase», que es la foto más reciente del avance.
+- **`docs/plan-sgm-v2/`** sigue vigente para reparto (`01`), contratos (`05`), ciclo de huecos (`03`),
+  puntos de extensión (`04`) y calidad (`06`). **Su secuencia de fases (`02-fases.md`) no:** quedó
+  superada por `plan.md`, y su propio README lo advierte en la primera línea.
+- Antes de tomar una tarea: `ruta-a-produccion.md` entero (§0 explica cómo leerlo) y luego
+  `PROGRESS.md`, que registra lo que pasó de verdad. El plan es la intención; `PROGRESS.md`, el hecho.
+  Si el plan contradice el código, se corrige el plan o el código en el mismo cambio, nunca se deja la
+  contradicción.
+- Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca a `src/` ni a
+  `rules/`.
 
 ## Numeración de hitos
 
