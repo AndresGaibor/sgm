@@ -39,6 +39,15 @@ def _delimitador(origenes) -> str:
     return next(iter(origenes.por_producto.values())).fuente.delimitador
 
 
+def _archivo_homologacion(arq, resueltos: InsumosResueltos, producto: str) -> str:
+    """Excel de homologación que el padre pasa a ese producto; vacío si el SAS no lo demuestra."""
+    for validacion in arq.validaciones:
+        insumo = resueltos.insumos.get(validacion.fuente_de(producto))
+        if insumo is not None:
+            return insumo.archivo
+    return ""
+
+
 def talend_command(
     source: Annotated[Path, typer.Argument(help="Archivo .sas del programa.")],
     out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
@@ -59,13 +68,18 @@ def talend_command(
     arq = cargar_arquitectura(_decision(jobs_yaml, source, "jobs"))
     texto = source.read_text(encoding="utf-8", errors="replace")
     origenes = origenes_producto(texto, declaracion.productos)
-    productos = [
-        ProductoJob(p, o.fuente.ruta_origen if (o := origenes.por_producto.get(p)) else "", p)
-        for p in declaracion.productos
-    ]
     declaradas = cargar_declaradas(_decision(diseno, source, "diseno"), "fuentes")
     claves = [*arq.lookups, *([arq.periodo.fuente] if arq.periodo else [])]
     resueltos = resolver_insumos(texto, declaradas, claves)
+    productos = [
+        ProductoJob(
+            p,
+            o.fuente.ruta_origen if (o := origenes.por_producto.get(p)) else "",
+            p,
+            _archivo_homologacion(arq, resueltos, p),
+        )
+        for p in declaracion.productos
+    ]
     padre = job_padre(
         arq,
         productos,
@@ -78,7 +92,12 @@ def talend_command(
     if origenes.por_producto:
         pendiente = "validaciones, correcciones y salidas del producto" + lookups
         producto = job_producto(
-            arq, origenes.columnas_comunes, variables, pendiente, _delimitador(origenes)
+            arq,
+            origenes.columnas_comunes,
+            variables,
+            pendiente,
+            _delimitador(origenes),
+            validacion=arq.validaciones[0] if arq.validaciones else None,
         )
     jobs = [padre, *jobs_hijos(arq, variables, lookups, producto_real=producto)]
     destino = out / source.stem / "talend" / "process"

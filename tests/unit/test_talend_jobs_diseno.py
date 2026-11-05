@@ -165,6 +165,20 @@ def test_las_filas_de_productos_salen_en_mayuscula_y_la_tabla_pendiente_queda_va
     assert valores[:3] == ['"CTE"', '""', '"cte"']
 
 
+def test_la_tabla_de_productos_lleva_el_excel_de_homologacion(arq):
+    productos = [ProductoJob("cte", "", "cte", "Homologacion_tpo_dto.xlsx")]
+    raiz = ET.fromstring(render_item(job_padre(arq, productos)))
+    (tabla,) = [
+        n
+        for n in raiz.findall("node")
+        if n.find("elementParameter[@name='UNIQUE_NAME']").get("value") == "tFixedFlowInput_1"
+    ]
+    valores = [
+        v.get("value") for v in tabla.findall("elementParameter[@name='INTABLE']/elementValue")
+    ]
+    assert valores == ['"CTE"', '""', '"cte"', '"Homologacion_tpo_dto.xlsx"']
+
+
 def test_el_prejob_marca_el_entorno_y_un_tdie_condicionado_detiene_el_job(padre):
     codigo = codigo_validar_entorno(("DEV", "QA"))
     assert '"DEV", "QA"' in codigo and 'globalMap.put("env_valido"' in codigo

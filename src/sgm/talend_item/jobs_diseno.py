@@ -28,6 +28,8 @@ class ProductoJob:
     producto: str
     ruta_origen: str  # archivo de datos del producto, tal como lo baja el SAS; vacío = pendiente
     sufijo: str
+    # Excel de homologación de tipo de documento de ese producto; vacío = sin validación.
+    arch_hom_tipo_doc: str = ""
 
 
 def java(valor: str) -> str:
@@ -94,7 +96,13 @@ def job_padre(
     """
     nodos_p, conexiones_p = periodo
     texto = [Columna("producto"), Columna("ruta_origen"), Columna("sufijo")]
-    filas = [[java(p.producto.upper()), java(p.ruta_origen), java(p.sufijo)] for p in productos]
+    if any(p.arch_hom_tipo_doc for p in productos):
+        texto.append(Columna("arch_hom_tipo_doc"))
+    filas = [
+        [java(p.producto.upper()), java(p.ruta_origen), java(p.sufijo)]
+        + ([java(p.arch_hom_tipo_doc)] if len(texto) == 4 else [])
+        for p in productos
+    ]
     y = 2 * PASO_Y  # el periodo ocupa la fila de y = PASO_Y
     nodos = [
         nodo_desde_plantilla("tPrejob", "tPrejob_1", 0, 0, ruta_java=ruta_java),
@@ -152,7 +160,8 @@ def job_padre(
         al_terminar_componente("tPostjob_1", "tFixedFlowInput_2", 2),
         Conexion("tFixedFlowInput_2", "tLogRow_1", "row2"),
     ]
-    contextos = {"Default": [ParametroContexto("env_nombre"), *(contextos_periodo or [])]}
+    extras = [ParametroContexto("ruta_resultados")] if arq.validaciones else []
+    contextos = {"Default": [ParametroContexto("env_nombre"), *extras, *(contextos_periodo or [])]}
     contextos.update({e: [ParametroContexto("env_nombre", valor=e)] for e in arq.entornos})
     return Job(arq.padre, nodos=nodos, conexiones=conexiones, contextos=contextos)
 

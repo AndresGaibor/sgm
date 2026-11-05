@@ -23,6 +23,26 @@ class PeriodoDecl:
 
 
 @dataclass(frozen=True)
+class ValidacionProducto:
+    """Validación de fila por lookup declarada por el equipo (sección 3.3 del diseño).
+
+    `fuente` es la clave de la tabla 1.1 cuyo Excel sirve de homologación; un producto puede usar
+    otro archivo (Nequi tiene su propia homologación), y eso va en `excepciones`.
+    """
+
+    nombre: str  # tipo_documento
+    columna: str  # TIPO_DOC: columna de la sábana que se valida
+    columna_lookup: str  # CNAME: columna del Excel contra la que se une
+    motivo: str  # TIPO_DOC_INVALIDO: valor de la columna `motivo` del rechazo
+    fuente: str  # clave de la tabla 1.1 para los productos sin excepción
+    excepciones: tuple[tuple[str, str], ...] = ()  # producto -> otra clave
+
+    def fuente_de(self, producto: str) -> str:
+        """Clave de la fuente para un producto: su excepción si la tiene, la común si no."""
+        return dict(self.excepciones).get(producto.upper(), self.fuente)
+
+
+@dataclass(frozen=True)
 class Arquitectura:
     proyecto: str
     entornos: tuple[str, ...]
@@ -34,6 +54,35 @@ class Arquitectura:
     periodo: PeriodoDecl | None = None
     lookups: tuple[str, ...] = ()  # fuentes Excel que job_producto usa como lookup
     columna_saldo: str = ""  # columna cuya suma son los totales de origen (el SAS la suma)
+    validaciones: tuple[ValidacionProducto, ...] = ()
+
+
+def _validaciones(path: Path, items: list | None) -> tuple[ValidacionProducto, ...]:
+    """Lee `validaciones_producto`. Una declaración incompleta falla con el nombre que falta."""
+    resultado: list[ValidacionProducto] = []
+    for item in items or []:
+        faltan = [
+            clave
+            for clave in ("nombre", "columna", "columna_lookup", "motivo", "fuente")
+            if not str(item.get(clave) or "").strip()
+        ]
+        if faltan:
+            raise ValueError(f"{path}: validaciones_producto necesita {faltan} en {item}")
+        excepciones = tuple(
+            (str(producto).upper(), str(fuente).strip())
+            for producto, fuente in (item.get("excepciones") or {}).items()
+        )
+        resultado.append(
+            ValidacionProducto(
+                str(item["nombre"]).strip(),
+                str(item["columna"]).strip(),
+                str(item["columna_lookup"]).strip(),
+                str(item["motivo"]).strip(),
+                str(item["fuente"]).strip(),
+                excepciones,
+            )
+        )
+    return tuple(resultado)
 
 
 def _periodo(path: Path, item: dict | None) -> PeriodoDecl | None:
@@ -67,4 +116,5 @@ def cargar_arquitectura(path: Path) -> Arquitectura:
         periodo=_periodo(path, data.get("periodo")),
         lookups=tuple(str(x).strip() for x in (data.get("lookups_producto") or [])),
         columna_saldo=str((data.get("total_origen") or {}).get("columna_saldo") or "").strip(),
+        validaciones=_validaciones(path, data.get("validaciones_producto")),
     )

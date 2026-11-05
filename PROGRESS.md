@@ -1675,3 +1675,34 @@ eglas_mapeo.py). La salida no cambia: goldens idénticos.
   arrancado con permiso de escritura y con los datos simulados.
 - Pendiente: T10 (validacion de tipo de documento en `job_producto`), que es la siguiente tarea del
   plan y depende de este bloque.
+
+
+## Hito 70. T10: validacion de tipo de documento con lookup en job_producto
+
+- Fecha: 2026-11-04
+- Que se hizo:
+  - `decisiones/client_large.jobs.yaml`: seccion `validaciones_producto` con la validacion declarada
+    (columna `TIPO_DOC`, columna del Excel `CNAME`, motivo `TIPO_DOC_INVALIDO`, fuente comun y
+    excepcion de NEQUI con su propio Excel).
+  - `arquitectura.py`: `ValidacionProducto` con `fuente_de(producto)`, y lectura de la seccion con
+    error explicito si falta un campo.
+  - `jobs_producto.py`: el Job ahora lee el archivo una vez y lo replica. Rama A: totales de origen
+    (conteo y suma del saldo), como antes. Rama B: `tMap` con lookup al Excel de homologacion,
+    `union_interna` (INNER JOIN) y salida `rechazos` por `rechazo_union`, igual que el SAS
+    (`LEFT JOIN ... WHERE CNAME IS MISSING` para rechazos, `INNER JOIN` para validos). Los validos
+    se totalizan (conteo y suma) y los rechazos se escriben en `doc_incorrectos_<sufijo>.csv` con la
+    columna `motivo`.
+  - `jobs_diseno.py`: la tabla de productos del padre lleva `arch_hom_tipo_doc` por producto (NEQUI
+    usa su Excel) y el padre declara `ruta_resultados`.
+  - `cli_talend.py`: resuelve el Excel de homologacion de cada producto desde el SAS y pasa la
+    validacion al Job.
+- Pruebas: `test_talend_jobs_producto.py` (5 nuevas: replica y separa, motivo y sufijo, contexto
+  declarado, excepcion de NEQUI, lectura del YAML) y `test_talend_jobs_diseno.py` (tabla de
+  productos con el Excel). `uv run pytest -q`: 1017 pasan, 1 se salta, 132 xfail.
+- `ruff check` sobre los archivos tocados: limpio. La suite completa de `ruff` sigue en rojo por los
+  archivos `tools/corpus*` que otra sesion tiene sin commitear; no son de este hito.
+- No verificado en Studio: el lookup con el Excel real y la comparacion de texto contra texto. En el
+  SAS `TIPO_DOC` es numerico (`input(left(VAR9), 8.)`), asi que `01` y `1` no casan igual; queda
+  pendiente y hay que comprobarlo con los datos simulados (99 en TIPO_DOC para CTE/AHO y tambien 3
+  para NEQUI).
+- Pendiente: T11 (detectar el patron en lugar de declararlo), T12 a T19.

@@ -29,3 +29,14 @@ lookups_producto:
 # input(left(col), 20.)) antes de validar; son la base de la conciliación.
 total_origen:
   columna_saldo: FIN_SALDO_CTA
+
+# Validaciones de fila por lookup (sección 3.3). El SAS demuestra el patrón para el tipo de documento:
+# LEFT JOIN al Excel de homologación con `WHERE CNAME IS MISSING` (rechazo) e INNER JOIN (válidos).
+# El motivo es el texto que llevará la columna `motivo` del archivo de rechazos.
+validaciones_producto:
+  - nombre: tipo_documento
+    columna: TIPO_DOC
+    columna_lookup: CNAME
+    motivo: TIPO_DOC_INVALIDO
+    fuente: 'Homologación de tipo de documento'
+    excepciones: {NEQUI: 'Homologación de tipo de documento Nequi'}
