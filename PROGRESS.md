@@ -2584,3 +2584,101 @@ fallo del producto.
   --sin-tablero` imprime `Todo verde.` (ruff, 78 cruces y oráculo OK) y la suite completa repetida
   en serie da **1733 pasan, 26 se saltan, 132 xfail en 216.48s**, código 0. No se modificó
   `tools/ci.py` ni `src/`: es un requisito del entorno, no un defecto del producto.
+
+## Hito 88. R1-06 (parte 1): `v04_tipo_cta_gmf` coincide fila por fila en Studio
+
+Se cerró el siguiente punto del camino crítico (sección 16.2: R1-03 a R1-08). El hito 74 solo
+había detectado los `NOT BETWEEN` del SAS real con `proceso/reglas.py`; faltaba traducirlos y
+ejecutar el caso con datos. Aquí la separación de cuenta y GMF sale del propio `v04/programa.sas`
+y se ejecuta en Studio, con los cuatro flujos comparados contra `esperado/`.
+
+- Cadena nueva: `proceso/reglas_cuenta.py` lee `TIPO_CTA NOT IN ('1'..'5')`, el
+  `GMF IS MISSING OR GMF NOT BETWEEN 1 AND 10`, los tres motivos (`CASE` y `OUTER UNION CORR`), el
+  `GMF=input(left(GMF_TXT), 3.)`, los ocho alias `VARn AS ...` y las proyecciones de los cuatro
+  `CREATE TABLE`. `talend_item/filtros_cuenta.py` las traduce a cuatro salidas de `tMap` con
+  `expressionFilter`; `tools/prueba_cuenta_gmf.py` monta el Job aislado y `cuenta_gmf_datos.py`
+  compara por nombre de columna. En `normalizacion.py` solo se añadió la función pública
+  `numero_valido()` para reutilizar el patrón numérico del oráculo en vez de copiarlo.
+- **Semántica demostrada**: el faltante de SAS cuenta como **menor que cualquier número**. El Java
+  cortocircuita `null`, `""` y texto no numérico antes de `Double.parseDouble`, así que el `XX`
+  plantado cae en el rango inválido con motivo `GMF NO NUMERICO` y el `99` con
+  `GMF FUERA DE RANGO`. La lista de tipos de cuenta usa el literal a la izquierda de `equals`
+  (R1-01), nunca `row1.TIPO_CTA.equals(...)`.
+- **Decisión de traducción, validada por datos**: el `OUTER UNION CORR` de `INCONS_CUENTA` se emite
+  como **una sola salida** `cuenta` con un filtro `(!dentro || fuera)` y una `INCONSISTENCIA`
+  ternaria, no como dos componentes. Las nueve filas de CTE y las nueve de AHO coinciden fila por
+  fila con la tabla esperada.
+- **Hallazgo de diseño, no unificado**: el programa real escribe la misma idea de otra forma.
+  `client_large.sas` usa `TIPO_CTA NOT BETWEEN 1 AND 5 AND RELACION = 1000` y
+  `GMF NOT BETWEEN 1 AND 10 AND RELACION = 1000` con motivos `TIPO CTA INVALIDO` y
+  **`CODEX INVALIDO`**; `v04` usa `NOT IN`, un `IS MISSING` explícito, dos motivos para GMF y
+  ningún control de `RELACION`. Los rangos 1..5 y 1..10 coinciden (anclado por prueba unitaria
+  contra `reglas.py`), pero los motivos no. No se sustituyó una forma por la otra: este hito
+  traduce `v04`, y la forma del programa real queda pendiente para la integración en el emisor.
+- **Salvedad no ocultada**: se comparan las **tablas** `esperado/*.csv` (con cabecera, coma), no los
+  archivos de `esperado/archivos/` (sin cabecera, `;`). Esos archivos son la salida supuesta de
+  `PROC EXPORT`, y `caso.yaml` sigue `pendiente_revision` porque el formato `3.` de exportación y
+  el tipado de `PROC IMPORT` no están demostrados con SAS.
+
+Evidencia literal en Studio 8.0.1 / `PRJ_BANCOLOMBIA`. Ejecución con datos del Job aislado
+(`uv run python tools/prueba_cuenta_gmf.py --proyecto <proyecto> --java-bin <jdk>/bin --m2
+<studio>/.m2/repository --sufijo v88a --trabajo C:/tmp/sgm-hito88/v88a`, código de salida 0):
+```text
+Código de salida CTE: 0
+CTE tipo_cta: esperadas 4 filas, obtenidas 4; OK
+CTE gmf: esperadas 5 filas, obtenidas 5; OK
+CTE valido: esperadas 81 filas, obtenidas 81; OK
+CTE cuenta: esperadas 9 filas, obtenidas 9; OK
+CTE anomalías plantadas {'tipo_cta_invalido': 4, 'gmf_invalido': 2, 'gmf_fuera_rango': 3, 'validos': 81}; obtenidas {'tipo_cta_invalido': 4, 'gmf_invalido': 2, 'gmf_fuera_rango': 3, 'validos': 81}; OK
+Código de salida AHO: 0
+AHO tipo_cta: esperadas 6 filas, obtenidas 6; OK
+AHO gmf: esperadas 3 filas, obtenidas 3; OK
+AHO valido: esperadas 56 filas, obtenidas 56; OK
+AHO cuenta: esperadas 9 filas, obtenidas 9; OK
+AHO anomalías plantadas {'tipo_cta_invalido': 6, 'gmf_invalido': 1, 'gmf_fuera_rango': 2, 'validos': 56}; obtenidas {'tipo_cta_invalido': 6, 'gmf_invalido': 1, 'gmf_fuera_rango': 2, 'validos': 56}; OK
+Limpieza: 2 archivos borrados del proyecto y build temporal borrado
+Invariantes: sábana=válidos+rechazos sí; conteo de rechazos=18 frente a 18 sí; conteo de válidos=137 frente a 137 sí
+RESULTADO: 2 de 2 productos coinciden fila por fila
+```
+Fila real escrita por el Job (se ve el GMF vacío del `XX` y el `99` fuera de rango):
+```text
+RELACION,TIPO_CTA,LLAVE_NOMBRE,GMF,INCONSISTENCIA
+9902,9,LLV00001,1,TIPO CTA INVALIDO
+1001,5,LLV00005,,GMF NO NUMERICO
+1001,2,LLV00007,99,GMF FUERA DE RANGO
+```
+El emisor no se tocó; aun así se repitió la compilación de los cuatro Jobs que `sgm talend` emite
+(`--solo-compilar`, sufijo `v88b`, código de salida 0):
+```text
+Compilando hijos: job_conciliacion_v88b, job_producto_v88b, job_totales_v88b
+Compilando padre: job_exogena_depositos_v88b
+RESULTADO BUILD: {"job_conciliacion_v88b": {"generateMs": 158, "compileMs": 509, "ok": true}, "job_producto_v88b": {"generateMs": 987, "compileMs": 938, "ok": true}, "job_totales_v88b": {"generateMs": 210, "compileMs": 414, "ok": true}, "job_exogena_depositos_v88b": {"generateMs": 580, "compileMs": 656, "ok": true}}
+```
+
+- Bloqueos reales (ninguno se cruza): `v04` sigue `pendiente_revision` por el formato de
+  `PROC EXPORT`/`PROC IMPORT`; la forma del SAS real (`RELACION = 1000`, motivo `CODEX INVALIDO`)
+  no está traducida ni integrada en el `job_producto` emitido; la equivalencia N2 de G4 exige los
+  insumos reales del cliente; DC-12 (Negocio) sigue abierta. R1-05 (ubicación) y R1-07 (saldos
+  negativos) siguen sin arnés con datos.
+- Decisiones: R1-06 pasa de `parcial (reglas)` a **`parcial` con evidencia en Studio**, no a
+  `hecho`: el criterio pide que `v04` coincida y eso se demostró, pero con un Job aislado, con el
+  caso aún sin revisión humana y sin la forma del programa real en el emisor. No se cambió
+  `decisiones/client_large.jobs.yaml`, `jobs_producto.py` ni `cli_talend.py`. Un programa que no
+  declara la lista, el rango, el `CASE`, el informat o una proyección no emite reglas a medias:
+  `reglas_cuenta()` falla.
+- Pruebas: **37 nuevas** (`test_proceso_reglas_cuenta.py` 13, `test_talend_filtros_cuenta.py` 10,
+  `test_cuenta_gmf_datos.py` 7, `test_prueba_cuenta_gmf.py` 7). Anclan las proyecciones a las
+  cabeceras de `esperado/`, comparan los rangos con los del SAS real, comprueban los cuatro
+  `expressionFilter` en el `.item` escapado como XML, detectan una sola fila cambiada, un desglose
+  equivocado y una invariante rota. `uv run pytest -q`: **1770 pasan, 26 se saltan, 132 xfail**
+  (frente a 1733 del hito 87), en serie con raíz temporal creada antes de la corrida
+  (`PYTEST_DEBUG_TEMPROOT=C:/tmp/sgm-hito88/root-full ... --basetemp=C:/tmp/sgm-hito88/bt-full`,
+  253.52s). `uv run ruff check .`: limpio.
+- Métricas del tablero: **sin cambios**, 31 componentes emitidos, conformidad 12 de 118 filas y 2
+  de 22 secciones, 16 pendientes en 5 motivos, 117 casos del corpus. Este hito no añade
+  componentes al emisor.
+- Riesgo: `Double.parseDouble` exige texto numérico; la precondición es que `GMF` venga de
+  `as_text(input_left_wd(...))`. El cortocircuito del faltante la garantiza en este Job, pero si
+  otro emisor conecta una columna sin normalizar hay que reutilizar `faltante()` antes de parsear.
+  El `SELECT DISTINCT` de `SABANA_VALIDA` no se modela: las llaves del caso son únicas, y la
+  comparación como multiset es la que lo comprueba.

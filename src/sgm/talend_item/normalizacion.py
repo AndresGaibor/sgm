@@ -66,6 +66,16 @@ def as_text(expression: str) -> str:
     return f"java.util.Objects.toString({expression}, \"\")"
 
 
+def numero_valido(expression: str) -> str:
+    """`x.matches(...)` con el mismo patrón que `input`: un texto no numérico es faltante.
+
+    Lo reutilizan los filtros de R1-06 para no repetir el patrón del oráculo: si la columna ya
+    viene normalizada por `input_left_wd`, siempre da verdadero salvo en el faltante, que se
+    comprueba antes con cortocircuito.
+    """
+    return f"{expression}.matches({_NUMERO_JAVA})"
+
+
 def left(expression: str) -> str:
     """LEFT: mueve los blancos iniciales al final, sin cambiar la longitud."""
     return _nulo_seguro(
@@ -185,6 +195,7 @@ __all__ = [
     "left",
     "lowcase",
     "normalizar_nombre",
+    "numero_valido",
     "strip",
     "trim",
     "upcase",
