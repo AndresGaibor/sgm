@@ -2125,3 +2125,71 @@ eglas_mapeo.py). La salida no cambia: goldens id�nticos.
 - Riesgo: `null_safe_equals` solo compara texto; las validaciones de R1-06 (GMF, Codex) y R1-07
   (saldos negativos) comparan numeros y necesitan su propia forma de tratar el faltante, que no
   se inventa aqui.
+
+## Hito 83. R1-02 (parte 1): las expresiones de normalización coinciden con el oráculo en Studio
+
+- Fecha: 2026-11-05
+- Que se hizo: `src/sgm/talend_item/normalizacion.py` da expresiones Java puras para el `tMap` (sin
+  rutinas de Studio, sin sentencias, sin `;`): `left`, `strip`, `trim`, `upcase`, `lowcase`,
+  `compbl`, `normalizar_nombre` (`COMPBL(STRIP(UPCASE(x)))`), `compress` (clases a/d/f/h/l/n/p/s/u
+  y modificadores `k` e `i`) e `input_left_wd` (`input(left(x), w.d)`: `BigDecimal` o `null`).
+  Todas aguantan columna nula con `x == null ? null : ...` y `as_text` convierte el faltante en
+  cadena vacia para el CSV. Los caracteres no ASCII salen como escapes Unicode de Java, asi que
+  las Ñ/Í de v06 no dependen de la codificacion del `.java` generado; `UPCASE`/`LOWCASE` usan
+  `java.util.Locale.ROOT` para no depender del locale del motor.
+- Oraculo independiente: `tools/prueba_normalizacion.py` arma un Job de una sola fila y 45
+  columnas (un `tFixedFlowInput`, un `tMap` con una expresion por columna y un
+  `tFileOutputDelimited` en UTF-8). El esperado NO lo calcula el traductor: los 29 vectores con
+  fuente de `tests/corpus/semantica/vectores.yaml` los evalua
+  `tools/corpus_semantica_funciones.py`, y los 16 nombres de
+  `L8/validaciones/v06_normalizacion` salen del `esperado/SABANA_NORM_CTE.csv` construido por el
+  corpus. El comando compara columna por columna: numeros con `Decimal`, texto exacto y
+  `Faltante` con cadena vacia.
+- Corrida (Studio 8.0.1, proyecto `PRJ_BANCOLOMBIA`, sufijo `v83a`): codigo de salida 0,
+  `Vectores: 45; coinciden: 45; fallan: 0`,
+  `RESULTADO: la normalización coincide con el oráculo`. Lineas literales de la salida:
+  `OK  input-02: esperado '23.0', obtenido '23'`;
+  `OK  input-04: esperado '23.0', obtenido '23.00'`;
+  `OK  input-06: esperado '0.23', obtenido '0.23'`;
+  `OK  input-09: esperado '', obtenido ''`;
+  `OK  nombre_v06_05: esperado 'NIÑO FICTICIO 00005', obtenido 'NIÑO FICTICIO 00005'`;
+  `OK  nombre_v06_10: esperado 'CLIENTE FICTICIO 00010', obtenido 'CLIENTE FICTICIO 00010'`.
+  Lanzador ejecutado:
+  `".../prueba_normalizacion_v83a_run.bat" --context="Default" --context_param "ruta_salida=C:/tmp/sgm-normalizacion/primera/salida"`.
+- Hallazgos: (1) `new java.math.BigDecimal` acepta `.5`, `-.5`, `+23`, `23.` y `0023` en el JDK
+  21.0.11 de Studio (comprobado antes con `jshell`); con `w.d` sin punto decimal basta
+  `movePointLeft(d)`. `23.00` y `23.0` son distintos como texto pero iguales como numero, y la
+  comparacion los trata como tales. (2) `matches` con `[+-]?(\d+\.?\d*|\.\d+)` reproduce el
+  `_NUMERO` del oraculo: punto solo, campo vacio, blancos internos (`23 45`) y texto no numerico
+  dan faltante. (3) `compress` con clases que incluyen caracteres de control funciona porque el
+  patron llega al motor de regex como `\u0009` (doble barra en el codigo Java), no como un control
+  crudo que romperia el `.java`. (4) Los nombres con Ñ, Í y blancos multiples de v06 pasan por
+  `COMPBL(STRIP(UPCASE(x)))` sin depender del locale. (5) El Job de prueba se borro del proyecto
+  al terminar; `process/` quedo sin residuales.
+- No verificado (no se inventa): **decimales con coma**. El criterio de R1-02 los menciona, pero
+  ni `vectores.yaml` ni `L4` ni `v06` aportan un caso con coma decimal y fuente: no hay semantica
+  que contrastar, asi que no se implemento. Tampoco se verificaron `compress` con `chars` que
+  contengan comillas, ni informats con `d > 0` combinados con punto decimal fuera de los vectores.
+- Alcance: este hito valida las **expresiones** sueltas, no las conecta al emisor. R1-02 pide
+  ademas que `sgm talend` las aplique a las columnas marcadas `numerica` por `esquema_csv`; eso es
+  el hito 84. Por eso R1-02 queda `parcial` en el plan y no `hecho`.
+- Pruebas: `tests/unit/test_talend_normalizacion.py` (21) y
+  `tests/unit/test_prueba_normalizacion.py` (14): escapado de literales, nulo-seguridad, ausencia
+  de sentencias, truncado y `movePointLeft`, clases y modificadores de `compress`, composicion de
+  `normalizar_nombre`, origen de los 45 vectores, `.item` con una expresion por columna,
+  comparacion, lectura del CSV, limpieza de salidas previas y protocolo con doble del servidor
+  para los tres desenlaces. `uv run pytest -q`: 1613 pasan, 26 se saltan, 132 xfail (35 pruebas
+  nuevas sobre las 1578 del hito 82). `uv run ruff check .`: limpio.
+- Metricas del tablero: sin cambios (26 componentes, conformidad 12 de 118 filas y 2 de 22
+  secciones, 16 pendientes, 117 casos del corpus, 81 `traducible`, 0 traducidos por un traductor
+  automatico y pasados en Studio). Este hito no cambia la salida de `sgm talend` ni el documento
+  de diseno.
+- Estado en el plan: R1-02 pasa de `pendiente` a `parcial` (expresiones verificadas con evidencia
+  en Studio; integracion pendiente). El camino critico sigue por el hito 84, que no depende de
+  decision humana, SAS real ni datos reales.
+- Riesgo: `input_left_wd` quita los blancos iniciales antes de truncar a `w`, mientras el oraculo
+  `input_wd` trunca primero y quita blancos despues. En los 29 vectores actuales ningun caso
+  supera `w` teniendo blancos iniciales, asi que coinciden; si apareciera, hay que decidir con un
+  vector con fuente cual de las dos lecturas es la de SAS antes de cambiar el codigo. El SAS de
+  `client_large.sas` usa `input(left(x), 30.)`, es decir, primero `LEFT`, lo que respalda el orden
+  elegido aqui, pero el oraculo de los vectores modela `input(x, w.d)` sin `LEFT`.
