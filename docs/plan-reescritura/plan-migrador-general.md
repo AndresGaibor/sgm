@@ -31,13 +31,22 @@ responda preguntas ni tome decisiones. Consecuencias que el agente debe respetar
    válidas (nombre de un Job, cómo agrupar, dónde cortar un Job grande, cómo pasar datos entre Jobs, qué hacer
    ante un fallo parcial), el migrador aplica la regla por omisión de la sección 8 y registra en
    `decisiones-tomadas.md` qué eligió, por qué y cómo cambiarlo. **Nunca se detiene a preguntar.**
-3. **Lo que no se puede traducir no bloquea.** Se traduce todo lo demás y lo que queda va a `pendientes.md` con
-   código y motivo (criterio C2).
-4. **Los valores que solo conoce una persona** (rutas reales de producción, usuarios, contraseñas, servidores) no
+3. **Nada falla: se degrada con elegancia** (instrucción del usuario). El migrador **nunca aborta ni lanza una
+   excepción hacia el usuario**, ni siquiera con un archivo ilegible, un operador raro o una configuración que
+   falta. Cada operador se traduce en un bloque aislado: si uno falla, se omite, se documenta en `pendientes.md`
+   (código, motivo, línea del SAS y, en el registro técnico, la causa) y el resto sigue. El código de salida es 0
+   salvo uso incorrecto de la línea de comandos. Se llega **al máximo posible** y lo que falta lo completa después
+   la persona.
+4. **Lo que depende de configuración o credenciales queda listo para configurar, no bloquea.** Conexiones a bases,
+   usuarios, contraseñas, servidores y rutas reales se crean como parámetros de contexto (grupos Default, DEV, QA
+   y PROD, mismas claves) con valor vacío y un comentario de qué son, y el migrador escribe
+   `configuracion-pendiente.md` con la lista exacta de lo que hay que rellenar y dónde. Si un Job necesita una base
+   que no está, el Job se genera igual (no se ejecutará hasta configurarlo).
+5. **Los valores que solo conoce una persona** (rutas reales de producción, usuarios, contraseñas, servidores) no
    se piden ni se inventan: se **deducen del SAS cuando están** (rutas de `LIBNAME`, `INFILE`, `FILENAME`,
    macrovariables) y, si no están, se generan como parámetros de contexto con nombre claro y valor vacío o de
    ejemplo, listados en `contextos/<entorno>.yaml` para completar al desplegar. El Job se genera igual.
-5. **Las personas intervienen solo en tres momentos, fuera del código**: entregar los valores reales de cada
+6. **Las personas intervienen solo en tres momentos, fuera del código**: entregar los valores reales de cada
    entorno al desplegar, aceptar los resultados (UAT) y firmar el corte. Nada de eso detiene el desarrollo.
 
 La sección 8 ya no es una lista de preguntas: es la lista de **reglas automáticas por omisión** del migrador, con la
@@ -91,7 +100,7 @@ estadísticos, código generado en tiempo de ejecución). Lo que sí se puede ex
 | Criterio | Definición | Cómo se mide | Meta de producción |
 |---|---|---|---|
 | C1 Cobertura declarada | Existe una lista pública y generada automáticamente de construcciones SAS soportadas, parciales y no soportadas, cada una con su motivo | `sgm cobertura` genera `docs/cobertura.md` desde las reglas y el corpus | 100 % de las construcciones que aparecen en el corpus y en los programas reales están clasificadas |
-| C2 Traducción completa o explícita | Para cualquier programa, cada paso queda traducido o aparece en el informe de pendientes con su motivo; **nunca se omite en silencio** | prueba de propiedad: pasos del SAS igual a pasos traducidos más pasos pendientes | 100 % |
+| C2 Traducción completa o explícita, y sin fallos | Para cualquier programa, cada paso queda traducido o aparece en el informe de pendientes con su motivo; **nunca se omite en silencio** | propiedad: pasos del SAS igual a pasos traducidos más pasos pendientes; y robustez: `sgm migrar` termina con código 0 y escribe sus archivos sobre **cada** programa del repositorio (189) y sobre entradas basura (archivo vacío, binario, SAS truncado) | 100 % |
 | C3 Equivalencia verificada | Cada construcción soportada tiene casos del corpus cuyo resultado en Talend coincide con un esperado independiente | arnés de Studio y anillo B | 100 % de los casos `traducible` pasan; cero regresiones |
 | C4 Calidad de los Jobs | Jobs legibles y mantenibles: padre e hijos, joblets para repetidos, contextos DEV/QA/PROD, nada fijo en el código, errores y registro, sin secretos | lista de verificación automática (sección 7) sobre cada salida | 100 % de la lista en cada programa del corpus |
 | C5 Reproducible | La misma entrada da exactamente los mismos bytes | prueba de determinismo | 100 % |
@@ -186,6 +195,8 @@ programa.sas
   7. emisor           .item y .properties, contextos, layout, notas       (extiende talend_item/, MG-P9)
   8. informe          traza SAS a componente, pendientes, cobertura       (nuevo, MG-P11)
 ```
+
+**Se reutiliza lo que ya existe.** `sgm compile` ya produce un `Plan` (`ir/models.py`) con operadores (`read_file`, `write_file`, `map`, `sort`...), candidatos de componente por reglas YAML (`rules/mapping/`), subjobs, joblets detectados y contextos (`compile.compile_file`). Hoy sus parámetros son de nivel de guía (por ejemplo `read_file` solo trae la ruta y el `derive` de un `SELECT` trae `assignments: []`) y no hay emisor de `Plan` a `.item`. El trabajo es **enriquecer los parámetros** y **escribir ese emisor**, no crear un IR nuevo. El plan ejecutable de esta primera parte es `docs/superpowers/plans/2026-11-05-mg-02-rebanada-vertical.md`.
 
 Contratos entre capas (cada contrato tiene un `dataclass` o modelo `pydantic` y una prueba de forma):
 
@@ -409,7 +420,7 @@ que el migrador hace sin preguntar; cualquier otra opción se activa después co
 | Id | Regla | Opciones posibles | Valor por omisión (lo que hace el migrador solo) | Afecta a |
 |---|---|---|---|---|
 | MG-D01 | Versión de SAS del cliente (9.3, 9.4M3...) | confirmar | 9.4 (edición 3.5), lo de las guías | casos de borde de funciones |
-| MG-D02 | Dependencias nuevas | `sqlglot` o analizador propio para `PROC SQL`; `jsonschema` | analizador propio sobre `sql_tree` ya existente; sin dependencias nuevas | MG-P5 |
+| MG-D02 | Dependencias nuevas | `sqlglot` y `jsonschema` | **Decidida en el hito 80 (R0-04, DC-11): ya aprobadas y en `pyproject.toml`.** `ir/sql_tree.py` usa `sqlglot`; no hay analizador propio. Cualquier otra dependencia se anota en `PROGRESS.md` | ninguna |
 | MG-D03 | Qué hacer con datasets `.sas7bdat` permanentes | tabla de base, archivo de preparación, fuera de alcance | archivo de preparación con aviso | MG-P2 |
 | MG-D04 | Paso a producción de código dinámico (`CALL EXECUTE`) | pendiente con motivo, o reescribir a mano | pendiente con motivo | MG-P7 |
 | MG-D05 | Destino de bases (Impala, Oracle, Teradata, Postgres) | cuáles se soportan primero | Impala, Postgres y archivos | MG-P2 |
@@ -434,7 +445,7 @@ hito, `PROGRESS.md` y commit.
 | MG-P0-03 | Arnés en lote: `tools/corpus_studio.py lote <casos...>` compila los Jobs de varios casos en una sola pasada y los ejecuta; reutiliza el JDK y Maven; limpia siempre | S | 10 casos en menos de 10 min; mismo resultado que uno por uno | 8 |
 | MG-P0-04 | `tools/ciclo_rapido.py`: corre A y B sobre los casos tocados por el cambio (por diferencias de git) | H | Menos de 90 s con 20 casos | 3 |
 | MG-P0-05 | Tablero único: cobertura del corpus, traducidos, verificados, regresiones | H | `uv run python tools/tablero.py` incluye las cifras de la sección 1 | 3 |
-| MG-P0-06 | Resolver MG-D02 (analizador propio) y dejar el diseño del plan lógico escrito en `docs/arquitectura/ir-logica.md` | S | Documento revisado con ejemplos de cada operador | 5 |
+| MG-P0-06 | Dejar escrito en `docs/arquitectura/ir-logica.md` cómo se **reutiliza** el IR que ya existe (`ir/models.py`: `Operator`, `Graph`, `Plan`; candidatos de componente por `rules/mapping/*.yaml`) y qué parámetros hay que enriquecer; no se crea un IR paralelo | S | Documento revisado con ejemplos de cada operador | 5 |
 | MG-P0-07 | Regla 1 de `AGENTS.md` actualizada (hecho el 5 de noviembre de 2026); queda por añadir una prueba que impida que `src/sgm/` fuera de `backend_talend/` importe o llame al MCP | H | prueba en `tests/unit/` | 1 |
 | MG-P0-08 | `src/sgm/backend_talend/`: interfaz y las dos implementaciones (`archivos` y `talend_cli`), con pruebas con un doble de la CLI; tiempo máximo y salida `--json`; sin secretos en la línea de comandos ni en el registro | S | `sgm migrar --backend talend_cli` compila un lote con `talend_job_build_batch`; sin Studio el error es claro y la salida de archivos se conserva | 8 |
 | MG-P0-09 | Aprovechar el modo offline de talend-mcp en el anillo C: `corpus_studio.py lote` usa `talend_job_build_batch` (unos 0,2 s por Job) y `talend_job_verify` solo para la muestra; medir y documentar el tiempo | H | 50 Jobs compilados en menos de 2 min | 4 |

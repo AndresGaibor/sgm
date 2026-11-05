@@ -4431,3 +4431,11 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
 - Medido antes de escribirlo: `sgm talend`, `sgm proceso` y `sgm diseno` sobre un programa del corpus distinto de `client_large.sas` fallan o devuelven 0 Jobs (exigen YAML por programa).
 - Pendiente: confirmación escrita del usuario para actualizar la regla 1 de `AGENTS.md` (MG-P0-07). Otra sesión editó `AGENTS.md` en paralelo y no se tocó.
 - Sin cambios de código: no se corrieron pruebas nuevas.
+
+## Hito 105m. Planes ejecutables del migrador general (MG-01 y MG-02) y degradación elegante
+
+- Fecha: 2026-11-05
+- Qué se hizo: con la habilidad `superpowers:writing-plans` se escribieron `docs/superpowers/plans/2026-11-05-mg-01-fundacion-rapida.md` (6 tareas: backend de Talend por archivos o CLI de `talend-mcp`, salud de Studio, compilación en lote, ciclo rápido) y `2026-11-05-mg-02-rebanada-vertical.md` (10 tareas: `sgm migrar` sin YAML para `PROC IMPORT`, `PROC SQL` simple y `PROC EXPORT`, contextos, validador, intérprete y aceptación del corpus L0 a L2), más un índice (`README.md`) con los diez planes siguientes.
+- Hallazgos que cambian el plan maestro: (1) `sqlglot` y `jsonschema` ya están aprobadas desde el hito 80, así que MG-D02 no es una decisión pendiente; (2) el pipeline `analyze_program` y `compile_file` ya produce un `Plan` con operadores y candidatos de componente: no hace falta un IR nuevo, sino enriquecer sus parámetros y escribir el emisor de `Plan` a `.item`; (3) `sgm compile` sobre `l2_01` deja `read_file` solo con la ruta y el `derive` del `SELECT` con `assignments: []`.
+- Requisito del usuario incorporado: el migrador no falla nunca, omite y documenta lo que no puede, y deja la configuración y las credenciales pendientes en contextos y en `configuracion-pendiente.md`.
+- Sin cambios de código; no se corrieron pruebas nuevas.
