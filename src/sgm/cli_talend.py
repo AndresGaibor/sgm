@@ -157,6 +157,10 @@ def talend_command(
     )
     variables = tuple(v for _, v in arq.periodo.variables) if arq.periodo else ()
     lookups = _descripcion_lookups(arq, resueltos)
+    # R2-02: job_producto escribe totales_origen/salida_<sufijo>.csv cuando job_totales los lee.
+    escribe_totales = (
+        arq.periodo is not None and bool(arq.archivo_totales) and bool(arq.validaciones)
+    )
     producto = None
     if origenes.por_producto:
         pendiente = "validaciones, correcciones y salidas del producto" + lookups
@@ -172,6 +176,7 @@ def talend_command(
             cuenta=cuenta,
             regla_saldo=saldo,
             ubicacion=ubic,
+            escribe_totales=escribe_totales,
         )
     totales = None
     conciliacion = None
@@ -212,10 +217,20 @@ def talend_command(
         typer.echo(f"Pendiente: {pendiente}")
     for pendiente in pendientes_ubic:
         typer.echo(f"Pendiente: {pendiente}")
+    if totales is not None and not escribe_totales:
+        typer.echo(
+            "Pendiente: sin validación de producto job_producto no escribe "
+            "totales_origen_<producto>.csv ni totales_salida_<producto>.csv."
+        )
     if totales is not None:
         typer.echo(
-            "Pendiente: job_producto aún no escribe totales_origen_<producto>.csv "
-            "ni totales_salida_<producto>.csv; job_totales los lee (hito 97)."
+            "Pendiente: la salida de totales son los saldos validados del manual; L8/05 usa "
+            "válidos más rechazados. Decisión pendiente (hito 100d)."
+        )
+    if producto is not None and len(producto.nodos) > 20:
+        typer.echo(
+            f"Pendiente: job_producto tiene {len(producto.nodos)} componentes; "
+            "el límite de G3 es 20. Dividir pendiente."
         )
     if conciliacion is not None:
         typer.echo("Pendiente: tolerancia_conciliacion vale 0 por omisión; confirmar con negocio.")

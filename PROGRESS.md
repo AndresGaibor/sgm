@@ -4192,3 +4192,186 @@ pasan a diferencias con motivo. Las diferencias suben de 3 a 19: 16 nuevas, toda
 - No verificado: los usos de cada función y de cada `PROC` salen del catálogo y del conteo sobre
   `client_large.sas`, no de ejecutar el programa. Que la tabla del traductor haga lo mismo que SAS en
   los bordes (missing, blancos finales) lo dicen sus avisos y las pruebas de expresión, no este hito.
+
+## Hito 100d. R2-02 (parte 2): `job_producto` escribe los totales que leen `job_totales` y `job_conciliacion`; prueba en Studio parcial
+
+- Fecha: 2026-11-05. Serie `d` (sesión sin Studio para R5-02 en paralelo; esta sesión sí usó Studio).
+  Plan: `docs/plan-reescritura/ruta-a-produccion.md`, fila R2-02. Diseño: `docs/diseno-talend-exogena-depositos.md`,
+  sección 1.2 (salidas de `job_producto`) y secciones 3.4 y 3.5.
+- Estado: **parcial, no cerrado.** La parte que faltaba (que el `job_producto` emitido escriba los archivos que
+  leen `job_totales` y `job_conciliacion`) está hecha y probada en Studio en una corrida. El intento siguiente
+  quedó bloqueado por Studio (ver "Bloqueos").
+
+### Qué se hizo
+
+- `src/sgm/talend_item/flujos_totales.py` (nuevo, en el límite de 300 líneas): dos formatos (`tMap_tot_origen` y
+  `tMap_tot_salida`) y dos escrituras con el esquema de `jobs_totales.COLUMNAS_TOTALES`:
+  - `totales_origen_<sufijo>.csv`: el agregado de origen que ya tenía `job_producto` (`tAggregateRow_1`). Se
+    añadió una operación: `saldos_origen`, conteo de saldos no nulos (un faltante no cuenta).
+  - `totales_salida_<sufijo>.csv`: el agregado de la rama `validos` (`tAggregateRow_2`), que ya existía. El conteo
+    de saldos no vacíos va vacío, como en el caso `L8/totales/04`.
+  - Un campo nulo se escribe vacío, nunca como cero (`x == null ? "" : ...`). La suma sale con `toPlainString()`.
+- `src/sgm/talend_item/jobs_producto.py` (285 líneas): parámetro `escribe_totales` (por omisión `False`; sin él el
+  Job queda como antes). Exige la columna de saldo y la validación de producto; si falta una, falla con `ValueError`.
+  Cuando hay totales, los logs `tLogRow_1` y `tLogRow_2` cuelgan del formato y no del agregado (ver hallazgo 1).
+- `src/sgm/cli_talend.py`: `escribe_totales` vale cuando hay periodo, `archivo_totales` y validación. Pendientes
+  nuevos: la definición de la salida (ver decisiones) y el conteo real de componentes de `job_producto` si pasa de 20.
+  El aviso `Pendiente:` de que `job_producto` no escribe los totales solo sale si el flag no aplica.
+- Pruebas: `tests/unit/test_talend_jobs_producto_totales.py` (8 pruebas nuevas). Ajustes legítimos de conteos fijos:
+  `tests/unit/test_tablero.py` (`job_producto` de 21 a 25 componentes; total del programa grande de 63 a 67),
+  `tests/unit/test_talend_emision_cuenta_real.py` y `tests/unit/test_talend_emision_flujos_fila.py` (21 a 25).
+  Son 4 componentes netos: dos formatos y dos escrituras nuevas, más los dos logs que cuelgan del formato, menos
+  los dos logs de los agregados que se quitan.
+- Herramientas: `tools/prueba_totales_producto.py` (harness de Studio: emite, compila, exporta y corre los tres Jobs)
+  y `tools/prueba_totales_producto_datos.py` (oráculo independiente con `csv`, `zipfile` y `Decimal`, sin usar el Job
+  ni el productor de `tools/`).
+
+### Decisiones
+
+- **Definición de `totales_salida` (no cerrada).** Se usó "saldos validados" del manual (sección 1.2): las filas de
+  la rama `validos` de `job_producto`, es decir, con `TIPO_DOC` homologado. Motivo: el encargo lo fija y es la única
+  definición de `totales_salida` que da el manual. Las otras dos no se usaron:
+  - `L8/totales/05` (válidos más rechazados, `CONCILIACION_*` del SAS): sí es una regla que el SAS demuestra para
+    conciliar, pero el manual define la salida de otra forma.
+  - `L8/totales/04` (`TIPO_CTA <> '03'`): el propio caso lo declara "regla de este caso, no del SAS".
+  Consecuencia medida en Studio: con un rechazo, `origen - salida = rechazados` y `job_conciliacion` dice NO CONCILIA.
+  Con la definición de `L8/05` el mismo caso concilia. El manual y `L8/05` no coinciden. Queda como decisión
+  pendiente para negocio y el equipo; no se cambió el manual ni el caso.
+- **Componentes de `job_producto`: 25, por encima del límite de 20 de G3 (antes 21, ya por encima).** No se
+  dividió en un hijo `job_producto_totales`: la salida necesita las filas validadas, que solo existen en memoria
+  dentro del Job. Un hijo tendría que repetir la validación del tipo de documento. El aviso `Pendiente:` de
+  `sgm talend` lleva el conteo real.
+- **Fecha de la prueba: `2026-10-01`** (`periodo_anio=2026`, `periodo_mes=10`, `periodo_dia=01`). El caso no declara fecha.
+- **Codificación de `TIPO_DOC` en la prueba (ver salvedad 1).** Los códigos `TD01`..`TD04` del corpus se escriben como
+  `1`..`4`, y el Excel de homologación se genera con `CNAME` numérico 1..4.
+- **Oráculo:** calculado desde el CSV de origen (fila por fila, con `Decimal`). Un faltante no suma y un campo en
+  blanco es faltante (`tests/corpus/semantica/vectores.yaml`). La tolerancia de comparación es 0,005 (`caso.yaml`).
+
+### Hallazgos de Studio
+
+1. **Un agregado no puede alimentar dos componentes.** Con dos conexiones principales, la segunda (el `tMap` de
+   formato) recibía filas con los campos nulos. Las corridas `v100a` y `v100b` lo mostraron: `totales_origen_CTE.csv`
+   con `CTE;origen;;;`. El log del agregado seguía bien (`90|90|988051`). Solución: un solo flujo principal del
+   agregado al `tMap`, y el log sale del `tMap` como segunda salida (`log_origen`, `log_salida`).
+2. **Salida sin filas en `v100a`.** Con `TIPO_DOC` tal cual (normalizado como numérico, ver salvedad 1) todas las filas
+   salieron rechazadas y `totales_salida` quedó solo con cabecera. En `v100b`, con códigos numéricos, la salida sí
+   tuvo fila, pero con los campos vacíos por el fan-out del hallazgo 1. Qué hace `tAggregateRow` cuando no entra
+   ninguna fila sigue sin comprobarse (salvedad 3).
+
+### Evidencia de Studio 8.0.1 (`PRJ_BANCOLOMBIA`, corrida `v100c`, la última completa)
+
+Comando: `uv run python tools/prueba_totales_producto.py --proyecto "C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA" --java-bin "C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin" --m2 "C:/Talend/8.0.1/studio/configuration/.m2/repository" --sufijo v100c`.
+Se quitan las líneas de `--context_param` y de pila (`at ...`) y el texto de `job_producto` del log, que es fijo.
+
+```text
+Proyecto: C:\Talend\8.0.1\studio\workspace\talendbancolombia-963626413\PRJ_BANCOLOMBIA
+Sufijo: v100c
+Compilando: ['job_producto_v100c', 'job_totales_v100c', 'job_conciliacion_v100c']
+[tal_cual] job_producto CTE: código 0
+CTE|origen|90|90|988051
+CTE|salida|90||988051
+[tal_cual] job_producto AHO: código 0
+AHO|origen|65|65|662095
+AHO|salida|65||662095
+[tal_cual] job_totales: código 0
+[tal_cual] job_conciliacion: código 0
+job_conciliacion: CTE, AHO
+Contenido literal de totales_exogena_20261001.csv:
+PRODUCTO;TIPO;NRO_FILAS;NRO_SALDOS_NO_VACIOS;SUMA_SALDO
+CTE;origen;90;90;988051
+CTE;salida;90;;988051
+AHO;origen;65;65;662095
+AHO;salida;65;;662095
+Contenido literal de conciliacion_20261001.csv:
+PRODUCTO;DIF_FILAS;DIF_SALDO
+CTE;0;0
+AHO;0;0
+RESULTADO tal_cual: OK
+[planta] job_producto CTE: código 0
+CTE|origen|90|90|988051
+CTE|salida|89||1000056
+[planta] job_producto AHO: código 0
+AHO|origen|65|65|662095
+AHO|salida|65||662095
+[planta] job_totales: código 0
+[planta] job_conciliacion: código 3
+job_conciliacion: CTE, AHO
+[ERROR] 14:57:47 prj_bancolombia.job_conciliacion_v100c_0_1.job_conciliacion_v100c- tDie_conc - The die message: NO CONCILIA CTE: diferencia de filas 1, diferencia de saldo -12005 (tolerancia 0)
+Contenido literal de totales_exogena_20261001.csv:
+PRODUCTO;TIPO;NRO_FILAS;NRO_SALDOS_NO_VACIOS;SUMA_SALDO
+CTE;origen;90;90;988051
+CTE;salida;89;;1000056
+AHO;origen;65;65;662095
+AHO;salida;65;;662095
+Contenido literal de conciliacion_20261001.csv:
+PRODUCTO;DIF_FILAS;DIF_SALDO
+CTE;1;-12005
+AHO;0;0
+RESULTADO planta: OK
+Limpieza: 6 archivos de Jobs borrados de process/ y builds borrados
+Código de salida del harness: 0
+```
+
+Lectura: el oráculo (sin el Job) da origen CTE 90 filas, 90 saldos no vacíos y suma 988051; salida CTE 90 y 988051
+(`tal_cual`), y en `planta` salida 89 y 1000056, con origen 90 = 89 + 1 rechazado. La fila plantada tiene saldo
+`-12005`, así que la diferencia de saldo es `988051 - 1000056 = -12005`. `job_conciliacion` sale con 0 en
+`tal_cual` y con 3 en `planta`, y el mensaje nombra a CTE con diferencia de filas 1 y de saldo -12005.
+
+La corrida `v100c` se hizo antes de un cambio que no toca la lógica: la variable local `exogena` del harness se
+renombró a `final` para pasar la regla de nombres (`test_no_script_specific_names`). Ver salvedad 5.
+
+### Salvedades y lo no verificado
+
+1. **Códigos de `TIPO_DOC` no originales.** El corpus `v05` trae `TD01`..`TD04`. El Job normaliza `TIPO_DOC` con el
+   informat numérico del SAS (`input(left(VAR9), 8.)`, R1-03), así que `TD01` queda vacío y todas las filas se
+   rechazan (`v100a`, `v100b`: 90 y 65). Por eso la prueba usa `1`..`4`. Con los códigos del corpus, la validación
+   no se prueba de extremo a extremo. R1-03 sigue pendiente.
+2. **Ubicación (R1-05) fuera del Job probado.** El harness no tiene insumos de ubicación. El Job que `sgm talend`
+   emite sí la incluiría si el programa la declara. No se probó esa rama con totales.
+3. **Sin filas validadas.** Si ninguna fila pasa la validación, `tAggregateRow_2` puede no emitir fila y
+   `totales_salida` quedaría solo con cabecera. No se comprobó en Studio. `job_totales` y `job_conciliacion` no
+   tienen tratamiento para ese caso.
+4. **Definición de la salida.** Ver decisiones. Mientras no se decida, la conciliación de `client_large` no
+   concilia cuando hay rechazos de tipo de documento.
+5. **Harness modificado después de `v100c`.** Solo un renombre de variable local (`exogena` a `final`). El intento
+   `v100d` con el harness final no llegó a ejecutarse (ver bloqueos).
+6. **Protocolo.** El harness habla con el puente de Studio (`127.0.0.1:3927` y `3930`), el mismo protocolo de los
+   hitos 85 a 98d. `AGENTS.md` prohíbe MCP en este trabajo; el encargo pidió Studio, y el puente no está en `src/`.
+   Queda anotado para decidir si el protocolo de `tools/` se mantiene.
+7. **No verificado:** paralelismo; `tUnite` (sigue sin compilar en Studio 8.0.1, hito 97d); las columnas de
+   `TOTAL_AHORROS_CONS` y `TOTAL_CORRIENTE` (el SAS escribe 13 sumas, hito 97d); la tolerancia de negocio (DC-04).
+   La corrida no repitió el caso `L8/totales/04` con este Job. Ese caso sigue cubierto por `v97j`, con el productor
+   mínimo de `tools/`.
+
+### Bloqueos
+
+- **Studio dejó de responder durante la corrida `v100d`.** La compilación del lote falló con
+  `BRIDGE_UNAVAILABLE`: "El bridge de Talend Studio en http://127.0.0.1:3930 no contesto en 25000 ms: Studio puede
+  estar ocupado (compilando o con un dialogo abierto)". Una segunda llamada de salud
+  (`talend_bridge_refresh_workspace`) devolvió `HTTP_500`: "El hilo de la interfaz de Studio esta ocupado (se acabo
+  el tiempo de espera)". Puede haber un diálogo modal abierto. **No se reinició Studio.** La limpieza de la corrida
+  fallida borró los 6 archivos copiados a `process/`; no quedó ningún Job `v100*` en el proyecto.
+  Pendiente: repetir la corrida con un sufijo nuevo cuando Studio responda, para que el harness final quede con
+  evidencia propia.
+
+### Pruebas
+
+- `uv run ruff check .`: sin errores.
+- `uv run pytest -q -n auto` (corrida final, 171 s): 2111 pasadas, 26 omitidas y 129 `xfailed`, sin fallos. Una corrida
+  anterior, hecha en paralelo con otra, falló en `tests/unit/test_invariantes_produccion.py::test_archivo_grande_compila_dentro_del_limite`
+  por carga; pasa al correrla sola (5 de 5).
+- Studio: `v100a` (fallo de fan-out y de codificación), `v100b` (fallo de fan-out, con códigos numéricos), `v100c` (OK, ambos escenarios), `v100d` (bloqueado en el puente).
+
+### Métricas
+
+- `flujos_totales.py`, `jobs_producto.py` (285 líneas), `cli_talend.py`, `tools/prueba_totales_producto.py` y
+  `tools/prueba_totales_producto_datos.py` (cada uno debajo de 300 líneas).
+- Componentes: `job_producto` 21 a 25; `job_totales` 13 y `job_conciliacion` 16 sin cambios. Total del programa grande: 63 a 67.
+- Dependencias nuevas: ninguna.
+
+### Bloqueos y pendientes de este hito
+
+- Decisión de la salida de totales (validos del manual frente a validos más rechazados de `L8/05`).
+- Repetir `v100d` cuando Studio responda.
+- Dividir `job_producto` (25 componentes frente al límite de 20 de G3), o aceptar la excepción.
+- Columnas de la exógena (`TOTAL_AHORROS_CONS`, `TOTAL_CORRIENTE`), tolerancia de negocio (DC-04) y `tUnite`.

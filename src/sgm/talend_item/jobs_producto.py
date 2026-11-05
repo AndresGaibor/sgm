@@ -33,6 +33,8 @@ from sgm.talend_item.conexiones import al_terminar_subjob, lookup
 from sgm.talend_item.flujos_cuenta_real import componentes as componentes_cuenta
 from sgm.talend_item.flujos_fila import componentes as componentes_flujos
 from sgm.talend_item.flujos_saldo import componentes as componentes_saldo
+from sgm.talend_item.flujos_totales import columnas_origen, operaciones_origen
+from sgm.talend_item.flujos_totales import componentes as componentes_totales
 from sgm.talend_item.flujos_ubicacion import componentes as componentes_ubicacion
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Conexion, Job, ParametroContexto
@@ -62,6 +64,7 @@ def job_producto(
     cuenta: ReglasCuentaReal | None = None,
     regla_saldo: ReglaSaldo | None = None,
     ubicacion: ReglaUbicacion | None = None,
+    escribe_totales: bool = False,
 ) -> Job:
     """Lee `context.ruta_origen`, normaliza, totaliza el origen y separa válidos de rechazos.
 
@@ -92,9 +95,7 @@ def job_producto(
     expresiones = {llave.nombre: f"row1.{llave.nombre}"}
     if con_saldo:
         expresiones["saldo"] = a_decimal(arq.columna_saldo, ancho=w_saldo, decimales=d_saldo)
-    totales_origen = [Columna("registros_origen", "id_Long")]
-    if con_saldo:
-        totales_origen.append(Columna("suma_saldo_origen", "id_BigDecimal"))
+    totales_origen = columnas_origen(con_saldo)
     nodos = [
         nodo_desde_plantilla(
             "tJava", "tJava_1", 0, 0, {"CODE": "\n".join(lineas)}, ruta_java=ruta_java
@@ -143,13 +144,15 @@ def job_producto(
         totales(
             "tAggregateRow_1",
             totales_origen,
-            operaciones(con_saldo, llave.nombre, "registros_origen", "suma_saldo_origen"),
+            operaciones_origen(con_saldo, llave.nombre),
             720,
             60,
             ruta_java,
         ),
-        log_row("tLogRow_1", totales_origen, 960, 60, ruta_java or ""),
     ]
+    # Con totales, el log del origen sale de su formato (flujos_totales), no del agregado.
+    if not escribe_totales:
+        nodos.append(log_row("tLogRow_1", totales_origen, 960, 60, ruta_java or ""))
     conexiones = [al_terminar_subjob("tJava_1", "tFileInputDelimited_1")]
     if informats:
         conexiones += [
@@ -161,8 +164,9 @@ def job_producto(
     conexiones += [
         Conexion("tReplicate_1", "tMap_1", "row1"),
         Conexion("tMap_1", "tAggregateRow_1", "out1"),
-        Conexion("tAggregateRow_1", "tLogRow_1", "row2"),
     ]
+    if not escribe_totales:
+        conexiones.append(Conexion("tAggregateRow_1", "tLogRow_1", "row2"))
     if validacion is not None:
         motivo = Columna(MOTIVO)
         valido = [llave, *([saldo] if con_saldo else [])]
@@ -234,23 +238,20 @@ def job_producto(
             lookup("tFileInputExcel_1", "tMap_2", "row2"),
             Conexion("tReplicate_1", "tMap_2", "copy2"),
             Conexion("tMap_2", "tAggregateRow_2", "validos"),
-            Conexion(
-                "tAggregateRow_2",
-                "tLogRow_2",
-                "row3",
-            ),
             Conexion("tMap_2", "tFileOutputDelimited_1", "rechazados", "REJECT"),
         ]
-        nodos.append(
-            log_row(
-                "tLogRow_2",
-                [Columna("registros_validos", "id_Long")]
-                + ([Columna("suma_saldo_valido", "id_BigDecimal")] if con_saldo else []),
-                960,
-                300,
-                ruta_java or "",
+        if not escribe_totales:
+            conexiones.append(Conexion("tAggregateRow_2", "tLogRow_2", "row3"))
+            nodos.append(
+                log_row(
+                    "tLogRow_2",
+                    [Columna("registros_validos", "id_Long")]
+                    + ([Columna("suma_saldo_valido", "id_BigDecimal")] if con_saldo else []),
+                    960,
+                    300,
+                    ruta_java or "",
+                )
             )
-        )
     if flujos:
         nuevos, nuevas = componentes_flujos(flujos, cols, informats, ruta_java)
         nodos += nuevos
@@ -261,6 +262,11 @@ def job_producto(
         conexiones += nuevas
     if regla_saldo is not None:
         nuevos, nuevas = componentes_saldo(regla_saldo, cuenta, cols, informats, ruta_java)
+        nodos += nuevos
+        conexiones += nuevas
+    if escribe_totales:
+        # R2-02: los dos archivos que lee job_totales; exige saldo y la rama de validos.
+        nuevos, nuevas = componentes_totales(con_saldo, validacion, ruta_java)
         nodos += nuevos
         conexiones += nuevas
     valores = {"hoja_excel": HOJA_POR_DEFECTO}

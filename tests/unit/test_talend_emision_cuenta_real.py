@@ -139,7 +139,8 @@ def test_el_contexto_del_item_declara_ruta_resultados(item):
 
 
 def test_el_item_emitido_tiene_21_nodos(item):
-    assert len(list(_raiz(item).iter("node"))) == 21
+    # 21 del hito 89 + 4 de totales del hito 100d (dos formatos y dos escrituras).
+    assert len(list(_raiz(item).iter("node"))) == 25
 
 
 def test_sin_cuenta_el_job_no_emite_la_rama():

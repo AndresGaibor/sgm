@@ -117,8 +117,8 @@ def test_el_contexto_del_item_declara_ruta_resultados(item):
 
 
 def test_el_item_emitido_tiene_21_nodos(item):
-    # 16 del hito 87 + tMap_cuenta y sus 4 salidas del hito 89.
-    assert len(list(_raiz(item).iter("node"))) == 21
+    # 16 del hito 87 + tMap_cuenta y sus 4 salidas del hito 89 + 4 de totales del hito 100d.
+    assert len(list(_raiz(item).iter("node"))) == 25
 
 
 def test_sin_flujos_el_job_queda_como_en_el_hito_84():
