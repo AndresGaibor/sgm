@@ -120,10 +120,6 @@ _DATE_FORMATS = {
     "date9.": "ddMMMyyyy",
     "datetime20.": "ddMMMyyyy:HH:mm:ss",
 }
-#: Intervalos de intnx/intck y su unidad de TalendDate.
-_INTERVALS = {"day": "dd", "week": "dd", "month": "mm", "year": "yy"}
-
-
 def _date_format(literal: str) -> str | None:
     return _DATE_FORMATS.get(literal.strip('"').lower())
 
@@ -144,38 +140,6 @@ def _f_datepart(args: list[str]) -> str:
     return _guard(
         value, f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-MM-dd", {value}))'
     )
-
-
-def _f_intnx(args: list[str]) -> str:
-    if len(args) not in (3, 4):
-        raise _Unsupported("intnx() con intervalo, fecha y desplazamiento (alineación opcional)")
-    interval, value, step = args[0], args[1], args[2]
-    alignment = args[3].strip('"').lower() if len(args) == 4 else "same"
-    name = interval.strip('"').lower()
-    unit = _INTERVALS.get(name)
-    if unit is None:
-        raise _Unsupported(f"intnx() con intervalo {name} sin equivalente")
-    if alignment not in ("same", "begin"):
-        raise _Unsupported(f"intnx() con alineación {alignment}: solo same y begin")
-    amount = f"({step}) * 7" if name == "week" else step
-    moved = f'TalendDate.addDate({value}, (int) ({amount}), "{unit}")'
-    if alignment == "begin" and unit == "mm":
-        moved = f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-MM-01", {moved}))'
-    elif alignment == "begin" and unit == "yy":
-        moved = f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-01-01", {moved}))'
-    return _guard(value, moved)
-
-
-def _f_intck(args: list[str]) -> str:
-    if len(args) != 3:
-        raise _Unsupported("intck() sin los tres argumentos (intervalo, inicio, fin)")
-    interval, start, end = args
-    name = interval.strip('"').lower()
-    unit = _INTERVALS.get(name)
-    if unit is None:
-        raise _Unsupported(f"intck() con intervalo {name} sin equivalente")
-    divisor = " / 7" if name == "week" else ""
-    return _guard(start, f'(TalendDate.diffDate({end}, {start}, "{unit}"){divisor})')
 
 
 def _f_today(args: list[str]) -> str:
@@ -220,8 +184,6 @@ def _f_put(args: list[str]) -> str:
 _FUNCTIONS = {
     "mdy": _f_mdy,
     "datepart": _f_datepart,
-    "intnx": _f_intnx,
-    "intck": _f_intck,
     "today": _f_today,
     "year": _f_date_part("YEAR"),
     "month": _f_date_part("MONTH"),
@@ -259,12 +221,6 @@ _FUNCTION_WARNINGS = {
     "mdy": ["mdy(): devuelve un Date de Talend; con missing en mes, día o año devuelve null"],
     "datepart": [
         "datepart(): quita la hora; validar con datetimes SAS (época 1960 frente a Date de Talend)"
-    ],
-    "intnx": [
-        "intnx(): alineación same/begin; end no se traduce. Validar la unidad con datos reales"
-    ],
-    "intck": [
-        "intck(): cuenta fronteras de unidad como SAS; diffDate devuelve la diferencia de la unidad, validar el signo"
     ],
     "input": [
         "input(): convierte texto con el formato indicado; un texto no válido lanza excepción"

@@ -51,41 +51,6 @@ def test_fecha_iso_extendida_tiene_una_conversion_determinista():
     assert result.java == 'TalendDate.parseDate("yyyy-MM-dd", input_row.fecha)'
 
 
-def test_funciones_de_fecha_conservan_las_rutinas_talend_validadas():
-    assert translate_to_talend("today()").java == "TalendDate.getCurrentDate()"
-    assert translate_to_talend("datetime()").java == "TalendDate.getCurrentDate()"
-    assert translate_to_talend("'01JAN2020'd").java == (
-        'TalendDate.parseDateLocale("ddMMMyyyy", "01JAN2020", "en")'
-    )
-    assert translate_to_talend("put(d,yymmdd10.)").java == (
-        'TalendDate.formatDate("yyyy-MM-dd", input_row.d)'
-    )
-    assert translate_to_talend("year(d)").java == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("YEAR", input_row.d)))'
-    )
-    assert translate_to_talend("month(d)").java == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("MONTH", input_row.d) + 1))'
-    )
-    assert translate_to_talend("weekday(d)").java == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("DAY_OF_WEEK", input_row.d)))'
-    )
-    assert translate_to_talend("intnx('month',fecha,1)").java == (
-        "(input_row.fecha == null ? null : TalendDate.getFirstDayOfMonth("
-        'TalendDate.addDate(input_row.fecha, (int) 1, "MM")))'
-    )
-    assert translate_to_talend("intnx('month',d,2,'e')").java == (
-        "(input_row.d == null ? null : TalendDate.getLastDayOfMonth("
-        'TalendDate.addDate(input_row.d, (int) 2, "MM")))'
-    )
-    assert translate_to_talend("intck('month',a,b)").java == (
-        "(input_row.a == null || input_row.b == null ? null : Long.valueOf("
-        'TalendDate.diffDate(input_row.b, input_row.a, "MM")))'
-    )
-    assert translate_to_talend("mdy(1,15,2020)").java == (
-        '(TalendDate.parseDate("yyyy-MM-dd", String.format("%04d-%02d-%02d", (int) 2020, (int) 1, (int) 15)))'
-    )
-
-
 def test_informat_comma_usa_limpieza_y_escala_decimal_del_manual_sas():
     result = translate_to_talend("input(importe, comma12.2)")
 

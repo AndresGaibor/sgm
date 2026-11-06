@@ -558,6 +558,22 @@ L4 revisado (suite completa: 2361 passed, 27 skipped, 149 xfailed; Ruff limpio).
 ampliada no se ejecutó: el bridge de Studio no estaba disponible (`ECONNREFUSED` en
 `127.0.0.1:3930`). No se declara C validado para estos cambios; queda por reintentar con Studio abierto.
 
+**Actualización (hito 123, 6 de noviembre de 2026).** MG-P3-04 avanza parcialmente con candidatos
+para `INTNX` de fecha en `MONTH`, `YEAR`, `DAY` y `WEEK/SAME`, y `INTCK` discreto en `MONTH`, `YEAR`
+y `DAY`. `INTNX` conserva los límites de año y las alineaciones de mes soportadas, comprueba que el
+incremento literal sea entero y agrega una guarda para incrementos de columna; aún exige validar
+época SAS (1960), tipos y resultados en Studio. `INTCK` acepta `DISCRETE`, `D` y `DISC` explícitos, además del método
+predeterminado. No se inventa `WEEKSTART`: `INTNX WEEK` con alineación de límites, `MIDDLE`, los
+intervalos de hora/minuto/segundo, `INTCK WEEK` y los métodos `CONTINUOUS` quedan pendientes.
+La fachada pública `translate()` delega `INTNX` e `INTCK` a estos mismos constructores y ya no conserva
+un emisor inline de fechas con semántica distinta.
+Los intervalos compuestos o desplazados (`YEAR2`, `YEAR.3`), personalizados, dinámicos y los que
+no sean unidades exactas del subconjunto soportado también quedan pendientes.
+`DATDIF`/`YRDIF` siguen pendientes hasta modelar y probar cada base (`30/360`, `ACT/ACT`, `ACT/360`,
+`ACT/365`, `AGE`). La suite verifica el Java candidato y sus guardas, pero no sustituye vectores de
+ejecución SAS/Talend; el criterio de aceptación de MG-P3-04 sigue abierto. Referencia: `lefunctionsref`,
+INTCK pp. 1072–1074 e INTNX pp. 1111–1115.
+
 ### MG-P4. DATA step (90 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -784,9 +800,9 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (6 de noviembre de 2026, hito 122)
+## 11b. Avance medido (6 de noviembre de 2026, hito 123)
 
-**Avance global: 19,9 % de las 895 horas de agente (177,75 h), es decir, cerca de 20 %.** C7 (producción
+**Avance global: 20,5 % de las 895 horas de agente (183,75 h), es decir, cerca de 21 %.** C7 (producción
 con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía.
 
 **Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
@@ -801,7 +817,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
 | MG-P1 Modelo y plan lógico | 70 | 40,5 | 58 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; esquemas sin tipos |
 | MG-P2 Entrada y salida | 50 | 17,0 | 34 % | CSV/DLM y Excel parcial; `INFILE/INPUT` modelados; informats numéricos puntuales candidatos y fechas con opciones pendientes; sin lector posicional, bases, `FILENAME` ni `RSUBMIT` |
-| MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
+| MG-P3 Expresiones y funciones | 80 | 17,5 | 22 % | Funciones puntuales; candidatos parciales `INTNX`/`INTCK` de fecha sin validar en SAS/Talend; faltan `DATDIF`/`YRDIF`, PRX y `PROC FORMAT` |
 | MG-P4 DATA step | 90 | 7,0 | 8 % | `WHERE`, `IF/ELSE IF`, `KEEP/DROP/RENAME`; sin `MERGE`, `RETAIN`, `OUTPUT` múltiple |
 | MG-P5 `PROC SQL` | 80 | 12,0 | 15 % | `filter`, `derive`, `join`; L1 completos 3 de 15, L2 5 de 15 |
 | MG-P6 Procedimientos | 50 | 2,5 | 5 % | `NODUPKEY` probado en la pista del programa grande |
@@ -813,10 +829,11 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
-| **Total** | **895** | **175,75** | **19,6 %** | |
+| **Total** | **895** | **183,75** | **20,5 %** | Suma recalculada de los créditos visibles por fase |
 
-**Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
-(359,0 h y 360,25 h).
+**Saldo por créditos medidos: 711,25 h.** El reparto nominal entre Andres y Byron en
+`reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 8,0 h por
+conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
 anillo B, 56 de 62 casos elegibles pasan (90 %; hito 115m); anillo A, 28 de los 45 casos de `L0` a

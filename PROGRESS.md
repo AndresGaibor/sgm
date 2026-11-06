@@ -5182,3 +5182,43 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Bloqueos: faltan vectores ejecutados contra SAS y Talend para informats/formats de fecha, `PUT`
   numérico y todos los formatos usados por el corpus; la disponibilidad del catálogo local no prueba
   equivalencia de ejecución.
+
+## Hito 123. Precisar límites de INTNX e INTCK
+
+- Fecha: 2026-11-06. Alcance: MG-P3-04, parcial.
+- Qué se hizo:
+  - Se separaron `INTNX`/`INTCK` a `talend_funciones_fecha.py`; la tabla activa conserva ambos
+    constructores. El módulo general quedó bajo 300 líneas.
+  - `INTNX` genera candidatos para límites de año, límites/alineación SAME de mes, días y
+    `WEEK/SAME`. Acepta incrementos literales enteros (incluido `1.0`) y protege las columnas contra
+    nulos, fracciones, valores no finitos y desbordamiento; para semanas limita el valor antes de
+    multiplicar por siete.
+  - `INTCK` cuenta límites discretos de mes/año por componentes del calendario y conserva día como
+    diferencia fin-menos-inicio. Acepta los alias documentados `DISCRETE`, `D` y `DISC`.
+  - Las advertencias de ambas funciones piden validar conversión de época SAS 1960, tipos y resultado
+    en Studio; el candidato no se presenta como equivalencia ejecutada.
+  - La fachada pública dejó de usar el emisor inline anterior para `INTNX`/`INTCK` y ahora delega al
+    traductor Talend activo; también queda probado que no emite `INTNX WEEK` con alineación por
+    defecto no comprobada.
+  - Se regeneró el golden de `p1_merge_first_last.sas` para registrar la candidata discreta de
+    `INTCK DAY`; el resto de sus expresiones y sus pendientes se conservaron.
+  - Se dejan pendientes explícitos los intervalos compuestos/desplazados/personalizados/dinámicos,
+    `MIDDLE`, límites de semana, hora/minuto/segundo, `INTCK WEEK`, métodos continuos y
+    `DATDIF`/`YRDIF` mientras falten equivalencias y vectores. Las pruebas comprueban el Java
+    candidato, no una ejecución del motor Talend.
+  - Las pruebas de rutina de fechas se ubicaron en MG-P3 en lugar de MG-P2.
+- Pruebas: `uv run pytest -q`: **2571 aprobadas, 26 omitidas y 144 xfailed**; `uv run ruff check .`
+  limpio; `git -c core.whitespace=cr-at-eol diff --check` limpio. Las pruebas focalizadas de fechas,
+  informats y contrato de Studio: **61 aprobadas**.
+- Métricas: crédito MG-P3-04 0,25 (3 h puntuales); MG-P3 **17,5/80 h (22 %)**. Se recalculó la
+  suma de créditos visibles en la sección 11b: **183,75/895 h (20,5 %)**, saldo medido 711,25 h.
+  La tabla anterior sumaba 180,75 h por fases pero declaraba 177,75 h; se corrigió la diferencia.
+  El reparto nominal entre carriles suma 719,25 h y queda una discrepancia de 8 h por conciliar;
+  los responsables y horas asignadas no se cambiaron.
+- Decisiones: conservar el método discreto explícito porque es equivalente al predeterminado SAS;
+  no aceptar variantes de tiempo ni intervalos sin tipo, límites o basis probados. Un incremento
+  dinámico inválido produce `null` en el candidato, pendiente de validar la respuesta exacta del
+  runtime SAS/Talend.
+- Bloqueos: faltan vectores de salida SAS y compilación/ejecución en Talend Studio para fin de mes,
+  bisiestos, incrementos inválidos y las funciones candidatas. `DATDIF`, `YRDIF`, intervalos no
+  exactos y fechas/hora siguen fuera de aceptación completa.

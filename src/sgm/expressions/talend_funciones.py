@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 from sgm.expressions.talend_base import (
     _PART,
-    _UNIT,
     E,
     Unsupported,
     _date_pattern,
@@ -181,35 +180,6 @@ def _put(p: _P, args: list[E]) -> E:
     if re.fullmatch(r"\$?\d*", fmt) or fmt.startswith("$"):
         return E(f"String.valueOf({args[0].java})", "str")
     raise Unsupported("put con formato no soportado; queda pendiente de revisión")
-
-
-def _intnx(_p: _P, args: list[E]) -> E:
-    _need(args, 3, 4, "intnx")
-    unit_arg, d, n = args[0], args[1], args[2]
-    unit = unit_arg.java.strip('"').lower()
-    if unit_arg.kind != "str" or unit not in _UNIT:
-        raise Unsupported("intnx con un intervalo que no es literal o no está soportado")
-    count = f"(int) ({_num(n)} * 7)" if unit == "week" else f"(int) {_num(n)}"
-    moved = f'TalendDate.addDate({d.java}, {count}, "{_UNIT[unit]}")'
-    align = args[3].java.strip('"').lower() if len(args) == 4 else "b"
-    if unit == "month" and align == "e":
-        moved = f"TalendDate.getLastDayOfMonth({moved})"
-    elif unit == "month" and align == "b":
-        moved = f"TalendDate.getFirstDayOfMonth({moved})"
-    return E(_guard([d], moved), "date")
-
-
-def _intck(_p: _P, args: list[E]) -> E:
-    _need(args, 3, 3, "intck")
-    unit = args[0].java.strip('"').lower()
-    if args[0].kind != "str" or unit not in _UNIT:
-        raise Unsupported("intck con un intervalo que no es literal o no está soportado")
-    return E(
-        _guard(
-            args[1:],
-            f'Long.valueOf(TalendDate.diffDate({args[2].java}, {args[1].java}, "{_UNIT[unit]}"))',
-        )
-    )
 
 
 def _part(name: str):
