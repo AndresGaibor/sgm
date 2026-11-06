@@ -470,6 +470,50 @@ def _unir(izquierda: list[dict], derecha: list[dict], params: dict) -> list[dict
     return resultado
 
 
+def _mezclar(entradas: list[list[dict]], banderas: list[str | None], params: dict) -> list[dict]:
+    """`MERGE ... BY k` de un DATA step: junta por grupo de llave, fila con fila, no por producto.
+
+    Dentro de un grupo la fila `j` de cada tabla va con la fila `j` de las demás. A la tabla que se
+    queda sin filas se le mantienen los últimos valores; a la que no tiene el grupo, ninguno. Las
+    columnas con el mismo nombre las pisa la última tabla que aporta fila. `IN=` vale 1 solo si la
+    tabla aportó una fila a esa salida. Salida ordenada por la llave, como exige el `BY`.
+    """
+    llaves = [str(n).split(".")[-1].lower() for n in params.get("by") or []]
+    grupos: list[dict[tuple, list[dict]]] = []
+    for filas in entradas:
+        por_llave: dict[tuple, list[dict]] = {}
+        for fila in filas:
+            por_llave.setdefault(tuple(_clave(_columna(fila, k)) for k in llaves), []).append(fila)
+        grupos.append(por_llave)
+    columnas: list[str] = []
+    for filas in entradas:
+        for fila in filas[:1]:
+            columnas += [c for c in fila if c not in columnas]
+    tipo = str(params.get("join_type") or "full").strip().lower()
+    resultado: list[dict] = []
+    for llave in sorted({k for g in grupos for k in g}):
+        miembros = [g.get(llave, []) for g in grupos]
+        for posicion in range(max(len(m) for m in miembros)):
+            fila = dict.fromkeys(columnas)
+            presentes = []
+            for filas in miembros:
+                if filas:
+                    fila.update(filas[min(posicion, len(filas) - 1)])
+                # La bandera `IN=` sigue en 1 mientras la tabla tiene valores retenidos en el grupo.
+                presentes.append(bool(filas))
+            if tipo == "inner" and not all(presentes):
+                continue
+            if tipo == "left" and not presentes[0]:
+                continue
+            if tipo == "right" and not presentes[1]:
+                continue
+            for nombre, aporto in zip(banderas, presentes, strict=True):
+                if nombre:
+                    fila[nombre.lower()] = 1 if aporto else 0
+            resultado.append(fila)
+    return resultado
+
+
 def _derecha(params: dict) -> str | None:
     """Tabla del lado derecho de la unión: la que califica el segundo elemento de la primera llave.
 
@@ -494,13 +538,24 @@ def _nombre_de_columna(filas: list[dict], nombre: object) -> str:
     return texto
 
 
+def _llaves(filas: list[dict], params: dict) -> list[str]:
+    """Columnas del `BY`; `_ALL_` son todas las de la fila."""
+    nombres: list[str] = []
+    for nombre in params.get("by") or []:
+        if str(nombre).strip().lower() == "_all_":
+            nombres += list(filas[0]) if filas else []
+        else:
+            nombres.append(_nombre_de_columna(filas, nombre))
+    return nombres
+
+
 def _ordenar(filas: list[dict], params: dict) -> list[dict]:
     """`ORDER BY` de PROC SQL: el faltante va primero en ascendente (`sqlproc`); orden estable.
 
     Se ordena de la última llave a la primera, cada una con su sentido; como el orden de Python es
     estable, las filas que empatan en todas las llaves conservan el orden en que llegaron.
     """
-    llaves = [_nombre_de_columna(filas, nombre) for nombre in params.get("by") or []]
+    llaves = _llaves(filas, params)
     sentidos = list(params.get("descending") or [])
     resultado = list(filas)
     for posicion in range(len(llaves) - 1, -1, -1):
@@ -514,7 +569,7 @@ def _ordenar(filas: list[dict], params: dict) -> list[dict]:
 
 def _unicos(filas: list[dict], params: dict) -> list[dict]:
     """`SELECT DISTINCT`: la primera fila de cada combinación de llaves; faltante = faltante."""
-    llaves = [_nombre_de_columna(filas, nombre) for nombre in params.get("by") or []]
+    llaves = _llaves(filas, params)
     vistas: set[tuple] = set()
     resultado: list[dict] = []
     for fila in filas:
@@ -654,7 +709,21 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
     for paso in pasos:
         clase = str(paso.get("kind") or "")
         params = paso.get("params") or {}
-        if clase == "join":
+        if clase == "join" and not params.get("keys") and params.get("by"):
+            fuentes = [_tabla(s) for s in params.get("sources") or []]
+            if len(fuentes) < 2 or any(f not in por_tabla for f in fuentes):
+                raise NoSoportadoEnInterprete("join", "MERGE sin las tablas de sus fuentes")
+            banderas = {
+                _tabla(plan.graph.operator(p).params.get("dataset", "")): plan.graph.operator(
+                    p
+                ).params.get("in")
+                for p in plan.graph.predecessors(op.id)
+                if plan.graph.operator(p).kind == "read"
+            }
+            actual = _mezclar(
+                [por_tabla[f] for f in fuentes], [banderas.get(f) for f in fuentes], params
+            )
+        elif clase == "join":
             tabla = _derecha(params)
             if tabla not in por_tabla:
                 raise NoSoportadoEnInterprete(

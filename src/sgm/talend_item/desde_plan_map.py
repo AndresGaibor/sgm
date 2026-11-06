@@ -42,6 +42,8 @@ class Fuente:
     # Resultado de un cruce anterior (`a JOIN b JOIN c`): ya trae las columnas de las dos tablas y
     # es el lado izquierdo del cruce siguiente.
     compuesta: bool = False
+    # Nombre de la bandera `IN=` que el `MERGE` le puso a esta tabla, si se la puso.
+    bandera: str | None = None
 
 
 @dataclass
@@ -127,15 +129,23 @@ def _principal(fuentes: list[Fuente], join: dict | None) -> int:
             return indice
     if join:
         declaradas = [str(s).lower().split(".")[-1] for s in join.get("sources", [])]
-        for indice, fuente in enumerate(fuentes):
-            if fuente.tabla in declaradas:
-                return indice
+        for tabla in declaradas:
+            for indice, fuente in enumerate(fuentes):
+                if fuente.tabla == tabla:
+                    return indice
     return 0
 
 
 def _llaves(meseta: _Meseta, join: dict, armado: Armado, op: Operator) -> dict[int, dict]:
     """Por cada lookup, la columna de la unión y su expresión sobre la principal."""
     union: dict[int, dict[str, str]] = {i: {} for i in range(1, len(meseta.fuentes))}
+    if not join.get("keys") and join.get("by"):
+        # `MERGE ... BY k`: la llave es la misma columna en todas las tablas.
+        for indice in union:
+            for columna in join["by"]:
+                propia = meseta.nombre_real(indice, str(columna))
+                union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, str(columna))}"
+        return union
     for par in join.get("keys") or []:
         if len(par) != 2:
             armado.pendientes.append(
@@ -157,6 +167,20 @@ def _llaves(meseta: _Meseta, join: dict, armado: Armado, op: Operator) -> dict[i
                 propia = meseta.nombre_real(indice, columna_izq)
                 union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, columna_der)}"
     return union
+
+
+def _tipo_soportado(join: dict | None, armado: Armado, op: Operator) -> bool:
+    """El `tMap` hace cruces internos y externos por la izquierda; el resto no se supone."""
+    if not join:
+        return True
+    tipo = str(join.get("join_type") or "").strip().lower()
+    if tipo in ("inner", "left", "left outer"):
+        return True
+    motivo = (
+        f"unión '{tipo}'" if tipo else "tipo de unión no deducible"
+    ) + ": un tMap solo hace INNER y LEFT OUTER; se necesita un tMap por lado y un tUnite"
+    armado.pendientes.append(PendienteMigracion("P-UNION-TIPO-SIN-SOPORTE", motivo, _linea(op)))
+    return False
 
 
 def _entradas(meseta: _Meseta, join: dict | None, armado: Armado, op: Operator) -> list[EntradaMap]:
@@ -207,7 +231,18 @@ def _filtro(meseta: _Meseta, op: Operator, armado: Armado) -> str:
     if not textos:
         return ""
     texto = " AND ".join(f"({t})" for t in textos)
-    traducido, motivo = expresion(texto, meseta.filas, meseta.tipos)
+    # Las banderas `IN=` de un MERGE no son columnas de ninguna entrada: se resuelven como la
+    # pregunta «¿aportó esta tabla una fila?», que en Java es un booleano.
+    booleanas = _banderas_booleanas(meseta, op)
+    filas = {**meseta.filas, "bandera": set(booleanas)}
+    tipos = {**meseta.tipos, **{f"bandera.{n}": "id_Boolean" for n in booleanas}}
+    traducido, motivo = expresion(texto, filas, tipos)
+    if traducido is not None and booleanas:
+        if "(Number) bandera." in traducido:
+            traducido, motivo = None, "una bandera IN= se usa como número en la condición"
+        else:
+            for nombre, java in booleanas.items():
+                traducido = traducido.replace(f"bandera.{nombre}", f"({java})")
     if traducido is None:
         armado.pendientes.append(
             PendienteMigracion("P-FILTRO-SIN-TRADUCIR", f"filtro '{texto}': {motivo}", _linea(op))
@@ -431,6 +466,7 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
         columnas = list(principal.columnas)
         expresiones = {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas}
         if _pasos(op, "join"):
+            _banderas(meseta, op, columnas, expresiones)
             # `SELECT *` sobre un cruce trae las columnas de todas las tablas; si un nombre se
             # repite, queda el de la primera.
             for indice, fuente in enumerate(meseta.fuentes[1:], start=1):
@@ -494,6 +530,41 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
     return [SalidaMap("out1", columnas, expresiones, filtro=filtro)]
 
 
+def _banderas_booleanas(meseta: _Meseta, op: Operator) -> dict[str, str]:
+    """Nombre de cada bandera `IN=` -> expresión Java booleana de «la tabla aportó fila»."""
+    unir = _pasos(op, "join")
+    llaves = [str(k) for k in (unir[-1].get("by") or [])] if unir else []
+    resultado: dict[str, str] = {}
+    for indice, fuente in enumerate(meseta.fuentes):
+        if not fuente.bandera:
+            continue
+        if indice == 0 or not llaves:
+            resultado[fuente.bandera.lower()] = "true"
+        else:
+            llave = f"{meseta.fila(indice)}.{meseta.nombre_real(indice, llaves[0])}"
+            resultado[fuente.bandera.lower()] = f"{llave} != null"
+    return resultado
+
+
+def _banderas(meseta: _Meseta, op: Operator, columnas: list[Columna], expresiones: dict) -> None:
+    """Las banderas `IN=` de un `MERGE`: 1 si la tabla aportó una fila, 0 si no.
+
+    La principal siempre aporta (el cruce parte de ella); una tabla de consulta aportó si su llave
+    no es nula tras el cruce izquierdo.
+    """
+    unir = _pasos(op, "join")
+    llaves = [str(k) for k in (unir[-1].get("by") or [])] if unir else []
+    for indice, fuente in enumerate(meseta.fuentes):
+        if not fuente.bandera or fuente.bandera.lower() in {c.nombre.lower() for c in columnas}:
+            continue
+        columnas.append(Columna(fuente.bandera, "id_Long"))
+        if indice == 0 or not llaves:
+            expresiones[fuente.bandera] = "1L"
+        else:
+            llave = f"{meseta.fila(indice)}.{meseta.nombre_real(indice, llaves[0])}"
+            expresiones[fuente.bandera] = f"({llave} != null ? 1L : 0L)"
+
+
 def construir(
     op: Operator,
     fuentes: list[Fuente],
@@ -513,6 +584,8 @@ def construir(
         return armado
     uniones = _pasos(op, "join")
     join = uniones[-1] if uniones else None
+    if not _tipo_soportado(join, armado, op):
+        return armado
     principal = _principal(fuentes, join)
     ordenadas = [fuentes[principal], *(f for i, f in enumerate(fuentes) if i != principal)]
     meseta = _Meseta(ordenadas)

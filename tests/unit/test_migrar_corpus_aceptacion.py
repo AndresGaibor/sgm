@@ -9,7 +9,7 @@ Cuatro propiedades, y cada una cubre una forma distinta de perder información:
    desapareció sin que nadie lo diga.
 3. **Nada se inventa.** Los casos con pendientes de traducción son **exactamente** los de la lista
    viva `tests/corpus/migrar_pendientes.yaml`, y la lista no guarda casos ya resueltos.
-4. **Los Jobs abren.** `validar_job` no devuelve nada en los 57 casos.
+4. **Los Jobs abren.** `validar_job` no devuelve nada en los 101 casos.
 """
 
 from __future__ import annotations
@@ -35,10 +35,10 @@ FIXTURES = RAIZ / "fixtures" / "sas"
 LISTA = CORPUS / "migrar_pendientes.yaml"
 
 # El tipo sin demostrar no es una pérdida de traducción: sin catálogo del entorno no hay tipo que
-# demostrar, el Job se ejecuta igual con `String`, y contarlo dejaría los 57 casos en la lista para
+# demostrar, el Job se ejecuta igual con `String`, y contarlo dejaría los 101 casos en la lista para
 # siempre. Lo que cuenta es lo que no se tradujo. El porqué está en el encabezado del YAML.
-NOTAS = frozenset({"P-TIPO-DESCONOCIDO"})
-NIVELES = ("L0", "L1", "L2", "L3")
+NOTAS = frozenset({"P-TIPO-DESCONOCIDO", "P-CONFIGURACION-RESUELTA"})
+NIVELES = ("L0", "L1", "L2", "L3", "L4", "L5", "L6")
 
 
 def _casos() -> list[Path]:

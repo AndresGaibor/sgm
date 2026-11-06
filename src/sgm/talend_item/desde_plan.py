@@ -35,6 +35,7 @@ from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
 from sgm.talend_item.desde_plan_union import nodo_union
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 
+CONFIG_RESUELTA = "P-CONFIGURACION-RESUELTA"
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
 SIN_SOPORTE = "P-OPERADOR-SIN-SOPORTE"
 # Operadores que el emisor sabe traducir a un componente del Job.
@@ -206,6 +207,13 @@ class _Job:
 
     # -- piezas ------------------------------------------------------------------------------
     def _sin_soporte(self, op: Operator) -> None:
+        sentencia = str(op.params.get("statement") or "").strip()
+        if op.params.get("reason") == "CONFIGURACION" and sentencia.lower().startswith("%let"):
+            # La macro variable ya está sustituida en el resto del programa: no se pierde nada, pero
+            # tampoco queda una variable de contexto que el Job pueda cambiar sin recompilar.
+            motivo = f"{sentencia}: el valor se sustituyó al migrar; no hay variable de contexto"
+            self.pendientes.append(PendienteMigracion(CONFIG_RESUELTA, motivo, _linea(op)))
+            return
         motivo = op.notes[0] if op.notes else f"el operador '{op.kind}' no tiene componente"
         self.pendientes.append(PendienteMigracion(SIN_SOPORTE, motivo, _linea(op)))
 
@@ -281,6 +289,7 @@ class _Job:
                     self._tabla_de.get(nodo.unico, "") if nodo else "",
                     self._salida[representante],
                     compuesta=previo in cruces,
+                    bandera=self.plan.graph.operator(previo).params.get("in") or None,
                 )
             )
         return fuentes

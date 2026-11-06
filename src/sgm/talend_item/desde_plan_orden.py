@@ -63,6 +63,17 @@ def _resolver(nombre: str, columnas: list[Columna]) -> Columna | None:
     return None
 
 
+def _llaves(op: Operator, columnas: list[Columna]) -> list[str]:
+    """Llaves del `BY` o del `DISTINCT`; `_ALL_` son todas las columnas de la entrada."""
+    nombres: list[str] = []
+    for nombre in op.params.get("by") or []:
+        if str(nombre).strip().lower() == "_all_":
+            nombres += [c.nombre for c in columnas]
+        else:
+            nombres.append(nombre)
+    return nombres
+
+
 def _sin_entrada(op: Operator, linea: int | None, columnas: list[Columna]) -> ResultadoOrden | None:
     if columnas:
         return None
@@ -82,7 +93,7 @@ def nodo_orden(
     vacio = _sin_entrada(op, linea, columnas)
     if vacio is not None:
         return vacio
-    nombres = list(op.params.get("by") or [])
+    nombres = _llaves(op, columnas)
     descendentes = list(op.params.get("descending") or [])
     celdas: list[tuple[str, str]] = []
     pendientes: list[PendienteMigracion] = []
@@ -128,7 +139,7 @@ def nodo_unicos(
         return vacio
     llaves: set[str] = set()
     pendientes: list[PendienteMigracion] = []
-    for nombre in op.params.get("by") or []:
+    for nombre in _llaves(op, columnas):
         columna = _resolver(nombre, columnas)
         if columna is None:
             motivo = f"DISTINCT {nombre}: la entrada no tiene esa columna"

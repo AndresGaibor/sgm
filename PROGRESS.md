@@ -5179,3 +5179,34 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `l2_12` (auto-`JOIN`: el plan pierde los alias y la misma tabla tendría que entrar dos veces al
   `tMap`), `l3_01` y `l3_09` (expresión sobre agregados y subconsulta escalar: piden un `tMap` detrás
   del `tAggregateRow`).
+
+## Hito 120m. L4 a L6 entran en el anillo A; `MERGE`, `BY _ALL_` y `%LET` resuelto
+
+- Fecha: 2026-11-06. MG-P4-01 (parte, `MERGE`), MG-P6-01 (parte, `PROC SORT NODUP`).
+- Alcance del anillo A: ahora L0 a L6 (101 casos). **L4: 20 de 20 sin pendientes.** L5 y L6 traen la
+  lista de lo que falta; el total pasa a 78 de 101 sin pendientes de traducción (77 %).
+- Qué se hizo:
+  - `MERGE ... BY k` (emisor): las llaves salen del `BY` cuando el paso no trae pares de columnas;
+    la tabla principal es la primera de `sources`; las banderas `IN=` son columnas `Long` (1 en la
+    principal; en una consulta, «su llave no es nula tras el cruce izquierdo») y también valen dentro
+    de un `IF` posterior como booleano. Un tipo de unión que no sea `inner`/`left` (el `full` de un
+    `MERGE` sin `IF`, `right`, o no deducible) **ya no se emite como `left` en silencio**: queda
+    `P-UNION-TIPO-SIN-SOPORTE`, porque un `tMap` no hace `full outer`.
+  - `MERGE` (intérprete, zona de Byron, excepción anotada): junta por grupo de llave fila con fila,
+    sin producto; la tabla que se queda sin filas conserva sus últimos valores y su `IN=` sigue en 1;
+    salida por llave. Cubre `l6_01` a `l6_04`.
+  - `BY _ALL_` (`PROC SORT ... NODUP`): son todas las columnas de la entrada, en `tSortRow`,
+    `tUniqRow` y el intérprete (`l6_09`).
+  - `%LET` ya sustituido en el programa deja de ser un pendiente de traducción: es la nota
+    `P-CONFIGURACION-RESUELTA` (como `P-TIPO-DESCONOCIDO`, no cuenta como pérdida), que dice que el
+    valor está dentro del Job y no hay variable de contexto.
+- Lista viva (anillo A): `l0_12`, `l2_12`, `l3_01`, `l3_09` (como antes) y de L5/L6: `l5_03`, `l5_12`
+  (`iterate` sin `tRunJob`), `l5_06` (`%sysfunc`, es de macros), `l5_09` (`SELECT INTO` sin
+  `tSetGlobalVar`), `l6_01` a `l6_04` y `l6_11` (`MERGE` completo: falta `full outer`),
+  `l6_05`, `l6_06`, `l6_07`, `l6_10` (`stateful_row`: `RETAIN` y `FIRST./LAST.` piden `tJavaRow`),
+  `l6_12` (`iterate`).
+- Pruebas: 2524 pasan, 55 fallan (los de Byron), `ruff` limpio. Nueva: `test_merge_y_all.py` (5).
+- Lo que sigue y por qué es lo mayor: (a) `full outer` de `MERGE` = dos `tMap` (uno por lado, el
+  segundo con rechazo de unión), `tUnite` y `tSortRow`, y la tabla que se usa dos veces pide
+  `tReplicate`; (b) `RETAIN`/`FIRST.`/`LAST.` a `tJavaRow` con estado y entrada ordenada; (c)
+  `iterate`/`tRunJob` (padre e hijos, fase 8). Ninguno se puede verificar sin Studio.

@@ -27,7 +27,7 @@ from corpus_lib import caso as casos  # noqa: E402
 from corpus_lib.csv_tabla import Tabla, comparar_con_guardado, leer_entradas  # noqa: E402
 
 CORPUS = REPO / "tests" / "corpus"
-NIVELES = ("L0", "L1", "L2", "L3", "L4")
+NIVELES = ("L0", "L1", "L2", "L3", "L4", "L6")
 ESTADOS = ("traducible", "revisado")
 
 # Caso -> motivo por el que el intérprete todavía no lo ejecuta. Las entradas son de dos clases: pasos
@@ -47,6 +47,9 @@ CONOCIDOS: dict[str, str] = {
         "tres SELECT con WHERE sobre la misma tabla se funden en un map con ramas sin salidas"
     ),
     "l3_09_conciliacion_diferencia_plantada": "subconsulta escalar dentro del SELECT",
+    "l6_05_last_una_fila_por_grupo": _NO_LO_EJECUTA.format(paso="stateful_row"),
+    "l6_10_ultimo_por_llave": _NO_LO_EJECUTA.format(paso="stateful_row"),
+    "l6_12_ordenar_antes_de_merge": _NO_LO_EJECUTA.format(paso="iterate"),
     "l2_15_validacion_en_cascada": "el intérprete no expande `t.*` tras un JOIN: no sabe qué columnas son de t",
 }
 
