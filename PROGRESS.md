@@ -4652,3 +4652,27 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
   `test_migrar_corpus_anillo_b.py` (43, 29 de ellos `xfail`), `test_cli_migrar.py` (10),
   `test_migrar_corpus_aceptacion.py` (49). Suite completa: **2273 pruebas, 0 fallos, 27 omitidas,
   158 xfailed** en 133 s.
+
+### Hito 104m (cierre). Anillo C del migrador: el lote en Studio está escrito y no se pudo medir
+
+- Fecha: 2026-11-05. Tarea 10 del plan `2026-11-05-mg-02-rebanada-vertical.md`.
+- Qué se hizo: `tests/studio/test_migrar_lote.py`, con la marca `studio`. Migra los casos de `L0` a
+  `L2` que la lista viva da por completos —los mismos que vigila la aceptación, ni uno más—, los
+  compila **en una sola llamada** con `compilar_en_lote` y exige `no_compilan == {}` y que el número
+  de compilados sea el de carpetas. Se salta con el motivo a la vista si faltan `TALEND_MCP_DIR` y
+  `TALEND_PROJECT` o si `comprobar_salud` no da `Salud(True, ...)`: no se finge que pasó.
+- **Lo que no se pudo medir, y por qué.** Dos comprobaciones seguidas, las dos con el mismo resultado:
+  - `uv run pytest tests/studio -m studio -v` → `SKIPPED: faltan TALEND_MCP_DIR y TALEND_PROJECT en el
+    entorno`.
+  - Con las rutas documentadas en `docs/plan-reescritura/fase5-talend-instalado.md`
+    (`C:/Users/USUARIO_BISOLUTION1/code/talend-mcp` y
+    `C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA`),
+    `uv run python tools/studio_salud.py --talend-dir ... --proyecto ...` sale con 1 y dice: «Studio
+    no está disponible: no se pudo comprobar si hay diálogos abiertos: la CLI de talend-mcp no
+    respondió en 10 s».
+- Consecuencia: quedan sin hacer el paso 2 (medir el lote y anotar el tiempo) y el paso 3 (ejecutar
+  con datos `l0_01`, `l2_01` y `l2_02` con `tools/corpus_studio.py validar` y pegar la salida). No es
+  un fallo del migrador: la prueba está escrita, se salta sola y el día que Studio responda mide lo
+  que tiene que medir. Es el mismo bloqueo que dejó abierto el hito 103m.
+- Plan maestro: `docs/plan-reescritura/plan-migrador-general.md` gana el estado de MG-P1, MG-P2,
+  MG-P5, MG-P8, MG-P10 y MG-P11 al 5 de noviembre, con lo hecho y lo que falta de cada uno.

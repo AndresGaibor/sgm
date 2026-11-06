@@ -480,6 +480,16 @@ corrigieron contra ellas: `talend_job_build_batch` devuelve un mapa `result.jobs
 | MG-P1-07 | Informe de pendientes con motivo estable (códigos `P-xxx`), usado en todas las capas | H | Cada pendiente tiene código, motivo y línea | 3 |
 | MG-P1-08 | Propiedad: pasos del SAS igual a pasos del plan más pendientes (sin pérdidas) | H | Prueba que recorre los 189 programas del repositorio | 3 |
 
+**Estado (hito 104m, 5 de noviembre de 2026).** Hechos MG-P1-07 y MG-P1-08. Los pendientes
+llevan código, motivo y línea del SAS en las tres capas (`PendienteMigracion` en `migrar/`, los
+códigos `P-xxx` en el emisor y en los informes), y la propiedad «pasos del SAS = pasos del plan +
+pendientes» se comprueba sobre los 190 programas de `tests/fixtures/sas` y sobre los 45 del corpus:
+`ResultadoMigracion.visitados` tiene todos los operadores del plan y cada uno dejó su línea en la
+traza o en un pendiente. MG-P1-02 está a medias: `esquemas_de_entrada` deduce las tablas de
+`PROC IMPORT` sin YAML (catálogo, cabecera de la muestra, columnas usadas) pero **sin tipos**: lo que
+no está en el catálogo sale `String` con su `P-TIPO-DESCONOCIDO`. MG-P1-01 y MG-P1-04 resuelven `L0`
+a `L2` sin YAML; MG-P1-03, MG-P1-05 y MG-P1-06 son de los planes siguientes.
+
 ### MG-P2. Entrada y salida (50 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -490,6 +500,11 @@ corrigieron contra ellas: `talend_job_build_batch` devuelve un mapa `result.jobs
 | MG-P2-05 | Paso directo (`CONNECT TO ... FROM CONNECTION TO`) a lector con SQL literal | H | prueba con Postgres del contenedor | 4 |
 | MG-P2-06 | `FILENAME` (archivo, pipe, FTP) y `PROC DOWNLOAD/UPLOAD/RSUBMIT` (cierra el hueco R7-12) | S | caso del corpus con `RSUBMIT` | 6 |
 | MG-P2-07 | Decisión MG-D03 aplicada: datasets permanentes a archivo de preparación con aviso | H | casos con `lib.tabla` generan lectura y escritura coherentes | 2 |
+
+**Estado (hito 104m, 5 de noviembre de 2026).** MG-P2-01 a medias: `PROC IMPORT` y `PROC EXPORT`
+de CSV y DLM generan `tFileInputDelimited` y `tFileOutputDelimited` con cabecera y delimitador, y los
+15 casos de `L0` se migran enteros —7 de ellos completos, sin un pendiente que no sea de tipo—. El
+`DBMS=XLSX` y `GUESSINGROWS` todavía no tienen emisor, y los tipos de columna esperan a MG-P1-02.
 
 ### MG-P3. Expresiones y funciones (80 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -529,6 +544,13 @@ corrigieron contra ellas: `talend_job_build_batch` devuelve un mapa `result.jobs
 | MG-P5-07 | `SELECT INTO :macro` y `DICTIONARY.*` | S | `L5` | 8 |
 | MG-P5-08 | Funciones SAS dentro de SQL y portabilidad de dialecto | H | consistente con `rules/sas/sql-functions.json` | 8 |
 
+**Estado (hito 104m, 5 de noviembre de 2026).** MG-P5-01 y MG-P5-02 a medias: `filter`, `derive`
+y `join` se emiten como `tMap` —con conexión `LOOKUP` para las búsquedas— y el intérprete los ejecuta
+con la semántica de SAS. De los 15 casos de `L1` quedan completos 3, y de los 15 de `L2`, 5; el resto
+está en `tests/corpus/migrar_pendientes.yaml` por `P-FILTRO-SIN-TRADUCIR` (11), 
+`P-ASIGNACION-SIN-TRADUCIR` (6) y los pasos que el emisor no cubre (`sort`, `dedup`, subconsultas).
+MG-P5-03 en adelante, sin empezar.
+
 ### MG-P6. Procedimientos (50 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -564,6 +586,12 @@ Convierte el plan lógico en la organización de Jobs. Es el paso que hoy no exi
 | MG-P8-06 | Errores y registro por defecto: `OnSubjobError`, `tDie` con código, `tLogCatcher`, política de fallo parcial (DC-08) configurable | S | cada Job emitido pasa Q6 y Q7 | 6 |
 | MG-P8-07 | Nombres, etiquetas, notas y trazabilidad (`trace.json`) | H | Q10 | 6 |
 
+**Estado (hito 104m, 5 de noviembre de 2026).** MG-P8-04 hecho: cada Job sale con los cuatro
+grupos `Default`, `DEV`, `QA` y `PROD` con las mismas claves, una variable `ruta_<tabla>` por ruta
+literal del SAS, el valor solo en `Default` y los demás vacíos, más un `contextos/<grupo>.yaml` por
+grupo; ninguna ruta queda dentro del `.item`. MG-P8-07 a medias: `trace.json` da las líneas del SAS
+de cada nodo. MG-P8-01, MG-P8-02, MG-P8-03, MG-P8-05 y MG-P8-06 son de los planes siguientes.
+
 ### MG-P9. Emisor de Talend: plantillas, joblets, contextos, disposición (108 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -591,6 +619,13 @@ Convierte el plan lógico en la organización de Jobs. Es el paso que hoy no exi
 | MG-P10-08 | Informe de cobertura `sgm cobertura` (C1) generado desde reglas y corpus | H | `docs/cobertura.md` y JSON | 6 |
 | MG-P10-09 | Segundo y tercer programa del cliente (los de `tests/fixtures/sas/real` y `synthetic`): medir cobertura y cerrar las brechas más frecuentes de forma iterativa | S | cobertura medida y creciente | 15 |
 
+**Estado (hito 104m, 5 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis
+reglas de Studio sobre el modelo y los 45 Jobs de `L0` a `L2` salen limpios; encontró un defecto real
+del emisor —dos salidas `row1` del mismo nodo cuando la tabla se lee dos veces—. MG-P10-01 a medias: el
+intérprete ejecuta `read_file`, `write_file` y `map` con `join`, `filter` y `derive`, y 14 de los 43
+casos `traducible` o `revisado` dan su `esperado/`; los otros 29 son `xfail(strict=True)` con el
+motivo escrito. La semántica vive en `migrar/semantica.py` y sale de `semantica/vectores.yaml`.
+
 ### MG-P11. Experiencia de uso (30 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -600,6 +635,12 @@ Convierte el plan lógico en la organización de Jobs. Es el paso que hoy no exi
 | MG-P11-04 | `sgm explicar <línea>` (qué se tradujo y a qué componente) y `sgm comparar` (SAS contra Talend) integrados | H | usan `trace.json` | 4 |
 | MG-P11-05 | Mensajes de error y de pendiente claros, en español, con código estable y sugerencia | H | todos los códigos tienen texto | 4 |
 | MG-P11-06 | Documentación: guía de usuario, guía de operación, catálogo de construcciones soportadas | H | generada y revisada | 2 |
+
+**Estado (hito 104m, 5 de noviembre de 2026).** MG-P11-01 a medias: `sgm migrar <programa.sas>
+--out <carpeta>` corre todas las capas sin ningún YAML y escribe `process/`, `contextos/`,
+`pendientes.md`, `configuracion-pendiente.md`, `decisiones-tomadas.md`, `trace.json` y
+`migracion.log`, con salida determinista y código 0 siempre. Falta la carpeta completa (MG-P11-03),
+`cobertura.md` y las sobreescrituras por YAML (MG-P11-02).
 
 ### MG-P12. Rendimiento y escala (30 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
