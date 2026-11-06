@@ -28,6 +28,15 @@ _COLUMNA = re.compile(r"input_row\.(\w+)")
 # `(row1.saldo < 500)`. Es la forma que se puede hacer segura sin adivinar nada.
 _ORDEN_LITERAL = re.compile(r"\(([A-Za-z_][\w.]*)\s*(<=|>=|<|>)\s*(-?\d+(?:\.\d+)?)\)")
 _OPERADOR_ORDEN = re.compile(r"<=|>=|<|>")
+# Las comparaciones que el traductor ya escribe con su guarda de faltante (`x != null && ...` para
+# `>` y `>=`, `x == null || ...` para `<` y `<=`): no hay que envolverlas, solo comprobar que el
+# tipo de la columna sea el que la forma supone.
+_NUMERO_GUARDADO = re.compile(
+    r"\(\(Number\)\s*([A-Za-z_][\w.]*)\)\.doubleValue\(\)\s*(?:<=|>=|<|>)\s*-?\d+(?:\.\d+)?"
+)
+_TEXTO_GUARDADO = re.compile(
+    r"\(\(Comparable\)\s*([A-Za-z_][\w.]*)\)\.compareTo\(\"[^\"]*\"\)\s*(?:<=|>=|<|>)\s*0"
+)
 _ORDEN_COMPARABLE = re.compile(
     r"\(\(Comparable\)\s*([A-Za-z_][\w.]*)\)\.compareTo\(([A-Za-z_][\w.]*)\)\s*(<=|>=|<|>)\s*0"
 )
@@ -42,18 +51,24 @@ def resolver_filas(java: str, filas: dict[str, set[str]]) -> tuple[str | None, s
     usadas = _COLUMNA.findall(java)
     if not usadas:
         return java, None
-    destino: dict[str, str] = {}
+    destino: dict[str, tuple[str, str]] = {}
     for columna in dict.fromkeys(usadas):
-        candidatas = [fila for fila, nombres in filas.items() if columna in nombres]
+        # SAS no distingue mayúsculas en los nombres de columna: `CNAME` y `cname` son la misma.
+        candidatas = [
+            (fila, propio)
+            for fila, nombres in filas.items()
+            for propio in nombres
+            if propio.lower() == columna.lower()
+        ]
         if not candidatas:
             return None, f"la columna '{columna}' no está en ninguna entrada del mapa"
         if len(candidatas) > 1:
             return None, (
                 f"la columna '{columna}' está en varias entradas "
-                f"({', '.join(sorted(candidatas))}); el SAS no dice de cuál"
+                f"({', '.join(sorted(fila for fila, _ in candidatas))}); el SAS no dice de cuál"
             )
         destino[columna] = candidatas[0]
-    return _COLUMNA.sub(lambda m: f"{destino[m.group(1)]}.{m.group(1)}", java), None
+    return _COLUMNA.sub(lambda m: ".".join(destino[m.group(1)]), java), None
 
 
 def _segura(columna: str, operador: str, literal: str, tipos: dict[str, str]) -> str:
@@ -103,6 +118,17 @@ def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str |
     partes.append(java[ultimo:])
     # Lo que quedó fuera de las comparaciones cubiertas: si tiene un orden, no está demostrado.
     resto = _ORDEN_LITERAL.sub(" ", java)
+    for patron, admitidos, descripcion in (
+        (_NUMERO_GUARDADO, NUMERICAS, "numérica"),
+        (_TEXTO_GUARDADO, {"id_String"}, "de texto"),
+    ):
+        for encontrada in patron.finditer(resto):
+            if tipos.get(encontrada.group(1)) not in admitidos:
+                return None, (
+                    f"la comparación de orden de '{encontrada.group(1)}' supone una columna "
+                    f"{descripcion} y el tipo no lo demuestra"
+                )
+        resto = patron.sub(" ", resto)
     for comparacion in comparaciones_seguras:
         resto = resto.replace(comparacion, " ")
     sobrante = _OPERADOR_ORDEN.search(resto)

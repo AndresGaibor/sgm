@@ -16,12 +16,9 @@ l0_07_if_then_else: P-ESQUEMA-VACIO
 l0_09_set_dos_tablas: P-ESQUEMA-VACIO
 l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
 l0_13_do_end: P-FILTRO-SIN-TRADUCIR
-l1_09_between_fechas: P-FILTRO-SIN-TRADUCIR
-l1_14_expresion_compuesta: P-FILTRO-SIN-TRADUCIR
-l2_04_validacion_tipo_doc: P-FILTRO-SIN-TRADUCIR
 l2_06_in_subconsulta: P-ESQUEMA-VACIO
 l2_07_not_in_subconsulta: P-ESQUEMA-VACIO
-l2_08_case_when_tras_left_join: P-ASIGNACION-SIN-TRADUCIR
+l2_08_case_when_tras_left_join: P-OPERADOR-SIN-SOPORTE
 l2_11_join_tres_tablas: P-ASIGNACION-SIN-TRADUCIR
 l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
 l2_13_anti_join_sin_ventas: P-FILTRO-SIN-TRADUCIR

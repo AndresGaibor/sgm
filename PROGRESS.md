@@ -5050,3 +5050,35 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   que hacerlo estricto, o esta clase de defecto pasa sin que nadie lo vea.
 - Pendiente sin tocar en este hito: `P-FILTRO-SIN-TRADUCIR` (8 casos), `P-ESQUEMA-VACIO` (6),
   `P-ASIGNACION-SIN-TRADUCIR` (3) y `P-OPERADOR-SIN-SOPORTE` (1).
+
+## Hito 116m. El `tMap` lee los nombres como SAS y admite el orden que el traductor ya guarda
+
+- Fecha: 2026-11-06. MG-P5 (parte, filtros y uniones) y MG-P1-02 (parte, tipos).
+- Qué se hizo:
+  - **Defecto real (excepción):** con `--muestra`, `ON t.tipo_doc = h.CNAME` rompía con
+    `KeyError: El lookup 'row2' no tiene las columnas ['cname']` (`P-FALLO-INTERNO`). El traductor baja
+    los nombres a minúsculas y la cabecera trae `CNAME`. Ahora llaves, filtros y asignaciones del
+    `tMap` resuelven el nombre sin distinguir mayúsculas y escriben el que trae la fuente.
+  - `cubrir_faltante` reconocía solo las comparaciones de orden que él mismo envolvía, y rechazaba
+    las que el traductor ya escribe con su guarda (`x != null && ...` para `>`/`>=`, `x == null || ...`
+    para `<`/`<=`). Ahora las admite sin envolverlas, con una condición de tipo: la forma `Number` pide
+    columna numérica y la forma `Comparable` contra un literal de texto pide columna de texto. Si el
+    tipo no lo demuestra, queda pendiente con ese motivo.
+  - `migrar/esquemas.py`: comparar por orden con un número literal (`x >= 5`, `5 < x`,
+    `x BETWEEN 2 AND 5`) demuestra que la columna es numérica; y los textos de las ramas de un
+    `CASE WHEN` (condición, resultado, `ELSE`) ahora cuentan al deducir tipos.
+  - Prueba nueva `test_tmap_nombres_y_ordenes.py` (7 casos).
+- Efecto en el corpus: la lista viva `migrar_pendientes.yaml` baja de 17 a 14 casos
+  (`l1_09_between_fechas`, `l1_14_expresion_compuesta` y `l2_04_validacion_tipo_doc` salen).
+  **Con `--muestra`** (la forma de uso real, la cabecera dice las columnas) son 10 casos con
+  pendiente, no 14; la diferencia son los filtros sobre columnas sin calificar tras un `JOIN`
+  (`l2_13`, `l2_14`, `l2_04`), que sin cabecera no se pueden atribuir a una tabla.
+- Lo que queda con `--muestra` y su causa: `l0_09` (`union` sin emisor), `l0_12` (decisión vieja:
+  columna derivada numérica en condición), `l0_13` (`IF/ELSE` con `DO`/`END`), `l2_06`, `l2_07` y
+  `l2_15` (subconsulta en `IN`), `l2_08` (`aggregate` sin emisor), `l2_11` (tres tablas: sin llave
+  para la tercera), `l2_12` (auto-`JOIN`: el plan pierde los alias `a` y `b` y el filtro queda
+  `id_cliente < id_cliente`), `l2_14` (`ORDER BY` tras el `map` sin columnas para la escritura).
+- Pruebas: suite completa 2418 pasan más las 7 nuevas, 57 fallan (los 55 de Byron y las 2 de la
+  lista viva, que se regeneró en este mismo hito), `ruff` limpio.
+- Aviso para quien edite con scripts: `\b` dentro de un texto normal de Python es el carácter de
+  retroceso, no el límite de palabra; las expresiones regulares van en cadenas crudas.

@@ -89,6 +89,19 @@ def _nombre_base(tabla: str) -> str:
     return tabla.split(".")[-1].lower()
 
 
+def _de_asignacion(asignacion: dict) -> list[str]:
+    """Textos de una asignación: su expresión y, si es condicional, cada condición y rama."""
+    textos = [str(asignacion.get("expression") or "")]
+    condicional = asignacion.get("conditional")
+    if isinstance(condicional, dict):
+        textos.append(str(condicional.get("condition") or ""))
+        textos.append(str(condicional.get("otherwise") or ""))
+        for rama in condicional.get("branches") or []:
+            textos.append(str(rama.get("condition") or ""))
+            textos.append(str(rama.get("expression") or ""))
+    return textos
+
+
 def _textos(plan: Plan) -> list[str]:
     """Expresiones que pueden nombrar columnas: asignaciones, llaves, filtros y condiciones."""
     encontrados: list[str] = []
@@ -97,7 +110,7 @@ def _textos(plan: Plan) -> list[str]:
         if op.kind == "filter":
             encontrados.append(str(params.get("expression") or ""))
         for asignacion in params.get("assignments") or []:
-            encontrados.append(str(asignacion.get("expression") or ""))
+            encontrados.extend(_de_asignacion(asignacion))
         for llave in params.get("keys") or []:
             encontrados.extend(str(parte) for parte in llave)
         if params.get("condition"):
@@ -107,7 +120,7 @@ def _textos(plan: Plan) -> list[str]:
             if paso.get("kind") == "filter":
                 encontrados.append(str(propios.get("expression") or ""))
             for asignacion in propios.get("assignments") or []:
-                encontrados.append(str(asignacion.get("expression") or ""))
+                encontrados.extend(_de_asignacion(asignacion))
             for llave in propios.get("keys") or []:
                 encontrados.extend(str(parte) for parte in llave)
             if propios.get("condition"):
@@ -140,6 +153,29 @@ def _columnas_aritmeticas(texto: str) -> set[str]:
         else:
             continue
         nombres |= {_sin_tabla(lado) for tipo_lado, lado in lados if tipo_lado == "ident"}
+    return {nombre for nombre in nombres if nombre not in _PALABRAS}
+
+
+_NUMERO = r"-?\d+(?:\.\d+)?"
+_NOMBRE = r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?"
+# `cantidad >= 2`, `2 < cantidad`, `cantidad BETWEEN 2 AND 5`: un orden contra un número literal.
+_ORDEN_NUMERICO = re.compile(
+    rf"\b({_NOMBRE})\s*(?:<=|>=|<|>)\s*{_NUMERO}\b"
+    rf"|(?<![\w.]){_NUMERO}\s*(?:<=|>=|<|>)\s*({_NOMBRE})\b"
+    rf"|\b({_NOMBRE})\s+BETWEEN\s+{_NUMERO}\s+AND\s+{_NUMERO}\b",
+    re.IGNORECASE,
+)
+
+
+def _columnas_ordenadas(texto: str) -> set[str]:
+    """Nombres comparados por orden con un número literal: SAS no ordena texto contra un número."""
+    sin_cadenas = _CADENA.sub(" ", texto)
+    nombres = {
+        _sin_tabla(nombre)
+        for encontrada in _ORDEN_NUMERICO.finditer(sin_cadenas)
+        for nombre in encontrada.groups()
+        if nombre
+    }
     return {nombre for nombre in nombres if nombre not in _PALABRAS}
 
 
@@ -210,6 +246,7 @@ def _columnas_numericas(plan: Plan) -> set[str]:
     numericas: set[str] = set()
     for texto in _textos(plan):
         numericas |= _columnas_aritmeticas(texto)
+        numericas |= _columnas_ordenadas(texto)
         for funcion, argumentos in _llamadas(texto):
             if funcion in _FUNCIONES_NUMERICAS:
                 numericas |= _nombres(argumentos)

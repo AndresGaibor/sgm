@@ -86,6 +86,13 @@ class _Meseta:
                     return propia.tipo
         return "id_String"
 
+    def nombre_real(self, indice: int, columna: str) -> str:
+        """Nombre de `columna` tal como lo trae la fuente: SAS no distingue mayúsculas."""
+        for propia in self.fuentes[indice].columnas:
+            if propia.nombre.lower() == columna.lower():
+                return propia.nombre
+        return columna
+
 
 def _linea(op: Operator) -> int | None:
     return op.evidence[0].line_start if op.evidence else None
@@ -137,10 +144,12 @@ def _llaves(meseta: _Meseta, join: dict, armado: Armado, op: Operator) -> dict[i
             if indice == 0:
                 continue
             if fuente.tabla == tabla_der:
-                union[indice][columna_der] = f"{PRINCIPAL}.{columna_izq}"
+                propia = meseta.nombre_real(indice, columna_der)
+                union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, columna_izq)}"
             elif fuente.tabla == tabla_izq:
                 # El `ON` escrito al revés: la principal quedó a la derecha.
-                union[indice][columna_izq] = f"{PRINCIPAL}.{columna_der}"
+                propia = meseta.nombre_real(indice, columna_izq)
+                union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, columna_der)}"
     return union
 
 
@@ -331,15 +340,16 @@ def _fila_de_columna(meseta: _Meseta, valor: str) -> tuple[str | None, str]:
     if tabla:
         for indice, fuente in enumerate(meseta.fuentes):
             if fuente.tabla == tabla:
-                return f"{meseta.fila(indice)}.{columna}", ""
+                return f"{meseta.fila(indice)}.{meseta.nombre_real(indice, columna)}", ""
         return None, f"la tabla '{tabla}' no es una entrada del mapa"
     candidatas = [
         indice
         for indice, fuente in enumerate(meseta.fuentes)
-        if any(propia.nombre == columna for propia in fuente.columnas)
+        if any(propia.nombre.lower() == columna.lower() for propia in fuente.columnas)
     ]
     if len(candidatas) == 1:
-        return f"{meseta.fila(candidatas[0])}.{columna}", ""
+        real = meseta.nombre_real(candidatas[0], columna)
+        return f"{meseta.fila(candidatas[0])}.{real}", ""
     if not candidatas:
         return None, f"la columna '{columna}' no está en ninguna entrada del mapa"
     return None, f"la columna '{columna}' está en varias entradas y el SAS no dice de cuál"
