@@ -4990,3 +4990,28 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `l4_02`, `l4_03`, `l4_18` y `l4_19` cuando Studio y el bridge estén disponibles.
 - Decisiones: no se declara C pasado ni se marca MG-03 global completo. `OUTPUT` parcial no se emite;
   MG-04 no se inicia.
+
+## Hitos 111m a 114m. Cuatro tareas H del carril de Andres, hechas por agentes haiku y revisadas
+
+- Fecha: 2026-11-06. Cada tarea la hizo un subagente `haiku` en su propio worktree; yo revisé el
+  diff y la integré. No se corrió la suite completa en cada una; sí al final (ver abajo).
+- **111m, MG-P9-06 (disposición en el lienzo).** `talend_item/disposicion.py`: `disponer(job)` pone
+  `x = 200 * profundidad` (camino más largo, Kahn con corte de ciclos) e `y = 96 * fila`. El validador
+  gana la regla 7: dos nodos en la misma (x, y) es error. **Falta** llamar a `disponer` desde el
+  emisor (`desde_plan*.py`); mientras no se llame, el control Q11 está probado pero no activo.
+- **112m, MG-P9-07 y MG-P8-07 (parcial).** Solo el modelo: `Job.proposito`, `descripcion`, `autor` y
+  `Nodo.comentario`. **No se escribe nada en el `.item` ni en el `.properties`**: ningún fixture ni
+  guía trae una nota, `COMMENT`, `purpose`, `description` o `author` de Studio, y no se inventa el
+  formato. Bloqueo: hace falta un Job y un `.properties` guardados por Studio con esos campos. Ojo con
+  el nombre: `render_properties(autor=...)` es un id de usuario; `Job.autor` es un nombre.
+- **113m, MG-P9-05 (parcial).** `tests/unit/test_conexiones_tipos.py`: `Main` pasa contra el Job real
+  de `tests/fixtures`; los otros 9 tipos (OnSubjobOk, OnComponentOk, Run if, OnSubjobError, Iterate,
+  Lookup, Reject, Filter, ORDER) son `xfail` estricto porque no hay Job de Studio en el repo con qué
+  compararlos. Hay Jobs reales en el proyecto de talend-mcp (`workspace/.../PRJ_BANCOLOMBIA/process/`)
+  con SUBJOB_OK, COMPONENT_OK, RUN_IF, ITERATE y FILTER; **copiar uno saneado a
+  `tests/fixtures/talend/` necesita la aprobación del usuario** (es de un cliente). ORDER no es un tipo
+  de conexión en Talend; falta aclarar qué quería probar la tarea. Aviso: el `lineStyle 4` de
+  SUBJOB_ERROR que dice la documentación de talend-mcp no está en ningún `.item`; no se tomó.
+- **114m, MG-P14-01.** Versión única (`importlib.metadata`), `sgm --version`, `CHANGELOG.md` y
+  `uv build --wheel` correcto (`sgm-0.2.0`). Se corrigió una frase obsoleta del changelog.
+- Decisión: las pruebas en `xfail` estricto cuentan 0 para el crédito del avance (sección 11b).
