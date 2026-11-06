@@ -134,14 +134,44 @@ def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
     resultado de SAS trae solo `a` y `b`. Sin ella, la tabla de salida arrastra columnas de más y el
     Job escribe un archivo que no es el del SAS. Solo `select *` la evita, porque no recorta nada.
     """
-    if spec.joins:
-        return True
     if spec.group_by or any(
         not it.star and _AGGREGATE.search(it.expression) for it in spec.items
     ):
-        # El agregado ya entrega solo su llave y sus agregados: proyectar detrás no recorta nada.
+        # El agregado ya entrega solo su llave y sus agregados: proyectar detrás no recorta nada,
+        # tenga o no uniones delante.
         return False
+    if spec.joins:
+        return True
     return bool(assignments)
+
+
+_ARGUMENTO = re.compile(
+    r"(?is)^\s*\w+\s*\(\s*(?:distinct\s+)?([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\s*\)\s*$"
+)
+
+
+def _columnas_del_agregado(
+    spec: SelectSpec, aggregates: list, tablas: dict[str, str], normalized: NormalizedSql
+) -> list[dict]:
+    """Columnas que un `GROUP BY` lee de un cruce: las llaves y el argumento de cada agregado.
+
+    Tras un `JOIN` el agregado no puede leer «lo que haya»: necesita que el cruce entregue, con el
+    nombre y la tabla de origen, las columnas que agrupa y suma. Un argumento que no es una columna
+    sola (`SUM(a * b)`) no se proyecta: el agregado lo deja pendiente.
+    """
+    textos = [str(g) for g in spec.group_by]
+    for it in aggregates:
+        encontrado = _ARGUMENTO.match(it.expression)
+        if encontrado:
+            textos.append(encontrado.group(1))
+    columnas: dict[str, dict] = {}
+    for texto in textos:
+        expresion = _calificar(_restore(texto, normalized), tablas)
+        destino = expresion.split(".")[-1]
+        columnas.setdefault(
+            destino.lower(), {"target": destino, "expression": expresion, "origin": "columna"}
+        )
+    return list(columnas.values())
 
 
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
@@ -179,6 +209,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
             status="parcial" if spec.subqueries else "soportado",
         )
     aggregates = [it for it in spec.items if not it.star and _AGGREGATE.search(it.expression)]
+    if spec.joins and (spec.group_by or aggregates):
+        leidas = _columnas_del_agregado(spec, aggregates, tablas, normalized)
+        if leidas:
+            current = chain.step("derive", {"assignments": leidas}, current)
     if spec.group_by or aggregates:
         params = {
             "group_by": [_column(g, aliases) for g in spec.group_by],

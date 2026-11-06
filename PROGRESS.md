@@ -5082,3 +5082,50 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   lista viva, que se regeneró en este mismo hito), `ruff` limpio.
 - Aviso para quien edite con scripts: `\b` dentro de un texto normal de Python es el carácter de
   retroceso, no el límite de palabra; las expresiones regulares van en cadenas crudas.
+
+## Hito 117m. `GROUP BY` se emite (tAggregateRow) y L3 entra en los anillos A y B
+
+- Fecha: 2026-11-06. MG-P5-03 (parte: agregados simples), MG-P9 (parte) y MG-P10-01 (parte).
+- Qué se hizo:
+  - `talend_item/desde_plan_agregado.py`: `aggregate` a `tAggregateRow`. Tabla `GROUPBYS` con las
+    columnas de grupo y `OPERATIONS` con `FUNCION(columna)` para `COUNT`, `SUM`, `AVG`/`MEAN`, `MIN`,
+    `MAX` y `COUNT(DISTINCT col)`. `COUNT(*)` cuenta filas (`IGNORE_NULL=false`); el resto ignora el
+    faltante, como SAS. El esquema de salida lleva los tipos (`count` es `Long`; `sum` de entero es
+    `Long`, de real `Double`; `avg` es `Double`). Todo o nada: un agregado que no es
+    `FUNCION(columna)` (`COUNT(*) - COUNT(x)`, una subconsulta escalar, `SUM` sobre texto) deja el
+    nodo pendiente con `P-AGREGADO-SIN-TRADUCIR` o `P-AGREGADO-COLUMNA-DESCONOCIDA`.
+  - `migrar/interprete.py` (zona de Byron, excepción anotada: verifica mi emisor): ejecuta `aggregate`
+    con la semántica de `sqlproc` (faltante ignorado, sin valores da faltante, faltante en la llave es
+    un grupo, grupos en orden de llaves, un agregado total sobre cero filas da una fila).
+  - `ir/lower_sql_flow.py`: tras un `JOIN` el agregado lee un `derive` con las columnas que agrupa y
+    suma (calificadas por tabla), porque el cruce no las entregaba; y la proyección del `SELECT` ya no
+    se aplica detrás de un agregado aunque haya cruce (borraba las columnas agregadas).
+  - `talend_item/validador.py`: la regla de columnas por conexión también se salta `tAggregateRow`,
+    como ya hacía con `tMap`: su esquema de entrada lo da la conexión, no su bloque de metadatos.
+  - `desde_plan.py`: `sort`, `dedup` y `aggregate` figuran como productores de su tabla (la escritura
+    de detrás encontraba su columna sin esto solo por casualidad), y si el nodo falla su salida queda
+    vacía, para que la escritura sea un pendiente y no un nodo sin entrada (Job inválido).
+  - `migrar/esquemas.py`: los agregados cuentan al deducir tipos (`SUM(x)`, `AVG(x)` hacen numérica a
+    `x`).
+  - **Instrumento de medida:** el anillo A (`test_migrar_corpus_aceptacion.py`) ahora migra cada caso
+    con su `entradas/` como muestra, que es como se usa `sgm migrar --muestra`, y cubre L0 a L3
+    (57 casos). Sin muestra, un filtro sobre columna sin calificar tras un `JOIN` no se puede atribuir
+    a una tabla. El anillo B también corre L3.
+- Resultado: **47 de 57 casos migran sin pendientes de traducción** (82 %). El anillo B: 66 pasan y 8
+  `xfail` conocidos. Lista viva: 10 casos (`l0_09` union, `l0_12`, `l0_13` DO/END, `l2_06`, `l2_07`,
+  `l2_15` IN con subconsulta, `l2_11` tres tablas, `l2_12` auto-JOIN, `l3_01` agregado compuesto,
+  `l3_09` subconsulta escalar).
+- Pruebas: suite completa 2455 pasan, 55 fallan (los de Byron, sin cambios), `ruff` limpio. Pruebas
+  nuevas: `test_emisor_orden_y_agregado.py` (6; cubre también `tSortRow` y `tUniqRow`, que hasta hoy
+  no tenían prueba propia).
+- **No verificado en Studio** (ni `tSortRow`, ni `tUniqRow`, ni `tAggregateRow`):
+  * el valor `distinct` del `FUNCTION` para `COUNT(DISTINCT)` sale de la memoria del componente, no
+    de un Job guardado;
+  * qué devuelve `sum` de un grupo cuyos valores son todos nulos (SAS da faltante; Talend podría dar
+    cero o nulo): `l3_02` lo prueba y solo el anillo C lo dirá;
+  * el orden de los grupos que entrega `tAggregateRow` no es el de SAS (que sale por llave); los
+    casos de L3 piden `ORDER BY`, y el intérprete sí ordena por llave.
+- **Decisión que queda para el usuario:** una columna sin tipo demostrado se escribe `String`, y un
+  `ORDER BY saldo` sobre ella ordena como texto (`"100" < "50"`). La muestra podría demostrar el tipo
+  por su contenido, como hace `PROC IMPORT`; cambiaría los tipos de lectura de todos los Jobs y hay
+  que verificarlo en Studio antes. No se tocó.

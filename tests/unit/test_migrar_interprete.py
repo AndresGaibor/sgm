@@ -35,6 +35,15 @@ RUN;
 """
 
 
+# Un agregado que es una expresión sobre otros agregados: no es FUNCION(columna).
+AGREGADO_COMPUESTO = (
+    "PROC IMPORT DATAFILE='.../clientes.csv' OUT=WORK.CLIENTES DBMS=CSV REPLACE;"
+    " GETNAMES=YES; RUN;"
+    " PROC SQL; CREATE TABLE WORK.r AS"
+    " SELECT COUNT(*) - COUNT(saldo) AS sin_saldo FROM WORK.clientes; QUIT;"
+)
+
+
 def _plan(texto: str) -> Plan:
     return compile_file(analyze_program({"p.sas": texto}), "p.sas", project_base()).plan
 
@@ -233,10 +242,11 @@ def test_subsetting_if_conserva_no_cero_y_descarta_cero_o_faltante():
 
 def test_un_operador_no_soportado_no_se_salta():
     """Un paso sin implementar detiene la ejecución con su nombre, no devuelve filas sin calcular."""
-    plan = _caso("l2_08_case_when_tras_left_join")
+    # Una expresión sobre agregados no es FUNCION(columna): el intérprete no la adivina.
+    plan = _plan(AGREGADO_COMPUESTO)
 
     with pytest.raises(NoSoportadoEnInterprete) as error:
-        ejecutar_plan(plan, {"clientes": [], "ventas": []})
+        ejecutar_plan(plan, {"clientes": []})
 
     assert error.value.kind == "aggregate"
     assert str(error.value).startswith("aggregate")

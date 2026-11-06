@@ -27,7 +27,7 @@ from corpus_lib import caso as casos  # noqa: E402
 from corpus_lib.csv_tabla import Tabla, comparar_con_guardado, leer_entradas  # noqa: E402
 
 CORPUS = REPO / "tests" / "corpus"
-NIVELES = ("L0", "L1", "L2", "L4")
+NIVELES = ("L0", "L1", "L2", "L3", "L4")
 ESTADOS = ("traducible", "revisado")
 
 # Caso -> motivo por el que el intérprete todavía no lo ejecuta. Las entradas son de dos clases: pasos
@@ -40,7 +40,13 @@ CONOCIDOS: dict[str, str] = {
         "el plan pierde el alias del auto-unión: las dos referencias quedan 'id_cliente < id_cliente'"
     ),
     # Pasos que el intérprete todavía no ejecuta.
-    "l2_08_case_when_tras_left_join": _NO_LO_EJECUTA.format(paso="aggregate"),
+    "l3_01_count_star_vs_count_col": (
+        "una expresión sobre agregados (COUNT(*) - COUNT(saldo)) no es FUNCION(columna)"
+    ),
+    "l3_07_total_origen_y_salida": (
+        "tres SELECT con WHERE sobre la misma tabla se funden en un map con ramas sin salidas"
+    ),
+    "l3_09_conciliacion_diferencia_plantada": "subconsulta escalar dentro del SELECT",
     "l2_06_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
     "l2_07_not_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
     "l2_15_validacion_en_cascada": "el intérprete no ejecuta un IN con subconsulta",

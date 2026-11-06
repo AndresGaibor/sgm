@@ -23,6 +23,7 @@ from dataclasses import dataclass, field, replace
 from sgm.ir.models import Column, Operator, Plan
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.conexiones import lookup
+from sgm.talend_item.desde_plan_agregado import nodo_agregado
 from sgm.talend_item.desde_plan_contextos import (
     contextos_de_plan,
     reemplazar_rutas,
@@ -67,7 +68,8 @@ def _tabla(dataset: str) -> str:
 
 
 def _produce(op: Operator) -> list[str]:
-    if op.kind in ("read_file", "map", "filter", "derive", "select", "rename", "join"):
+    producen = ("read_file", "map", "filter", "derive", "select", "rename", "join")
+    if op.kind in (*producen, "sort", "dedup", "aggregate"):
         return [str(d).lower() for d in op.params.get("outputs", [])]
     return []
 
@@ -309,8 +311,8 @@ class _Job:
                 op, fuente.columnas, unico, fuente.origen, x, _linea(op), self.ruta_java
             )
         self.pendientes += resultado.pendientes
-        # Aunque el nodo falle, la salida conserva el esquema de la entrada, como con el `tMap`.
-        self._salida[op.id] = list(fuente.columnas)
+        # Sin nodo no hay de dónde escribir (ver `_agregado`): la escritura queda pendiente.
+        self._salida[op.id] = []
         if resultado.nodo is None:
             return
         tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
@@ -318,6 +320,25 @@ class _Job:
         self._pasos.add(op.id)
         if op.kind == "dedup":
             self._conector_de[resultado.nodo.unico] = "UNIQUE"
+
+    def _agregado(self, op: Operator, x: int) -> None:
+        """`aggregate` a `tAggregateRow`: sale con las columnas de grupo y los agregados."""
+        fuentes = self._fuentes(op)
+        if len(fuentes) != 1:
+            motivo = f"el operador '{op.kind}' espera una sola entrada y tiene {len(fuentes)}"
+            self.pendientes.append(PendienteMigracion(SIN_SOPORTE, motivo, _linea(op)))
+            return
+        unico = self._unico("tAggregateRow")
+        resultado = nodo_agregado(op, fuentes[0].columnas, unico, x, _linea(op), self.ruta_java)
+        self.pendientes += resultado.pendientes
+        # Sin nodo no hay de dónde escribir: una escritura detrás quedaría sin entrada y el Job
+        # sería inválido. Sin columnas, la escritura lo dice como pendiente y no se emite.
+        self._salida[op.id] = []
+        if resultado.nodo is None:
+            return
+        tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
+        self._registrar(op, resultado.nodo, resultado.columnas, tabla)
+        self._pasos.add(op.id)
 
     def _registrar(
         self,
@@ -434,6 +455,8 @@ class _Job:
             self._mapa(op, x)
         elif op.kind in ("sort", "dedup"):
             self._orden(op, x)
+        elif op.kind == "aggregate":
+            self._agregado(op, x)
         elif op.kind in CON_NODO:
             # Las transformaciones sueltas son un `tMap` de una sola entrada.
             self._mapa(op, x)

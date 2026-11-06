@@ -51,6 +51,11 @@ CONSUMEN = frozenset(
 )
 
 
+# Componentes cuyo esquema de entrada lo da la conexión que llega y no el suyo: lo que ellos
+# declaran es el de su salida (el `tMap` y el `tAggregateRow` cambian las columnas).
+ENTRADA_PROPIA = frozenset({"tMap", "tAggregateRow"})
+
+
 def _columnas(nodo: Nodo, nombre: str) -> list[Columna]:
     """Columnas del conector `nombre`; si el nodo no tiene uno con ese nombre, las del primero.
 
@@ -111,7 +116,7 @@ def _flujos(job: Job) -> list[str]:
             continue
         origen = por_unico.get(conexion.origen)
         destino = por_unico.get(conexion.destino)
-        if origen is None or destino is None or destino.componente == "tMap":
+        if origen is None or destino is None or destino.componente in ENTRADA_PROPIA:
             continue
         dan = [columna.nombre for columna in _columnas(origen, conexion.nombre)]
         piden = [columna.nombre for columna in _columnas(destino, conexion.nombre)]

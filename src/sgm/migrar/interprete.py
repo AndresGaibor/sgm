@@ -33,6 +33,8 @@ from sgm.migrar import semantica
 SOPORTADOS = frozenset(
     {"read", "read_file", "write", "write_file", "map", "join", "filter", "derive"}
 )
+# Pasos que el plan también deja sueltos, sin el `map` que los envuelve.
+_PASOS_SUELTOS = ("filter", "derive", "select", "rename", "sort", "dedup", "aggregate")
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
 _FUNCIONES_SAS = re.compile(r"(?i)\b(input|left|substrn|substr|coalescec|compress|scan)\s*(?=\()")
 
@@ -523,6 +525,74 @@ def _unicos(filas: list[dict], params: dict) -> list[dict]:
     return resultado
 
 
+_AGREGADO = re.compile(
+    r"^\s*(count|sum|avg|mean|min|max)\s*\(\s*(distinct\s+)?(\*|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\s*\)\s*$",
+    re.IGNORECASE,
+)
+
+
+def _calcular(funcion: str, distinto: bool, nombre: str, filas: list[dict]) -> object:
+    """Un agregado de `PROC SQL` sobre un grupo: ignora los faltantes; sin valores, es faltante.
+
+    `COUNT(*)` cuenta filas; `COUNT(col)` las no faltantes; `SUM`, `AVG`, `MIN` y `MAX` solo miran
+    valores presentes (`sqlproc`, funciones de resumen).
+    """
+    if nombre == "*":
+        return len(filas)
+    presentes = [
+        valor
+        for valor in (_columna(fila, nombre.split(".")[-1]) for fila in filas)
+        if not semantica.es_faltante(valor)
+    ]
+    if funcion == "count":
+        return len({_clave(v) for v in presentes}) if distinto else len(presentes)
+    if not presentes:
+        return None
+    if funcion in ("min", "max"):
+        elegir = min if funcion == "min" else max
+        return elegir(presentes, key=_clave)
+    numeros = [n for n in (_numero(v) for v in presentes) if n is not None]
+    if not numeros:
+        return None
+    return sum(numeros) if funcion == "sum" else sum(numeros) / len(numeros)
+
+
+def _agregar(filas: list[dict], params: dict) -> list[dict]:
+    """`GROUP BY` de PROC SQL: una fila por grupo, en orden de llaves; el faltante es un grupo."""
+    if params.get("pendiente"):
+        raise NoSoportadoEnInterprete("aggregate", "columnas sin agregar junto a un agregado")
+    grupos = [str(g).split(".")[-1].lower() for g in params.get("group_by") or []]
+    llamadas = []
+    for agregado in params.get("aggregations") or []:
+        texto = str(agregado.get("expression") or "")
+        encontrada = _AGREGADO.match(texto)
+        if encontrada is None:
+            raise NoSoportadoEnInterprete("aggregate", f"'{texto}' no es FUNCION(columna)")
+        funcion = encontrada.group(1).lower()
+        llamadas.append(
+            (
+                str(agregado.get("alias") or texto).lower(),
+                "avg" if funcion == "mean" else funcion,
+                encontrada.group(2) is not None,
+                encontrada.group(3),
+            )
+        )
+    por_grupo: dict[tuple, list[dict]] = {}
+    for fila in filas:
+        llave = tuple(_clave(_columna(fila, g)) for g in grupos)
+        por_grupo.setdefault(llave, []).append(fila)
+    if not grupos and not por_grupo:
+        por_grupo[()] = []  # sin filas, un agregado total sigue dando una fila: COUNT(*) es 0
+    resultado = []
+    for llave in sorted(por_grupo):
+        miembros = por_grupo[llave]
+        salida = {g: _columna(miembros[0], g) for g in grupos} if miembros else {}
+        for alias, funcion, distinto, nombre in llamadas:
+            salida[alias] = _calcular(funcion, distinto, nombre, miembros)
+        resultado.append(salida)
+    return resultado
+
+
 def _entradas(plan: Plan, op: Operator, por_operador: dict) -> dict[str, list[dict]]:
     """Filas de cada predecesor, por la tabla que entrega."""
     por_tabla: dict[str, list[dict]] = {}
@@ -577,6 +647,8 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
             actual = _ordenar(actual, params)
         elif clase == "dedup":
             actual = _unicos(actual, params)
+        elif clase == "aggregate":
+            actual = _agregar(actual, params)
         else:
             raise NoSoportadoEnInterprete(clase or "paso", "el intérprete no lo ejecuta")
     return actual
@@ -584,7 +656,7 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
 
 def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
-    clases = ("read_file", "map", "filter", "derive", "select", "rename", "join", "sort", "dedup")
+    clases = (*_PASOS_SUELTOS, "read_file", "map", "join")
     if op.kind in clases:
         return [_tabla(nombre) for nombre in op.params.get("outputs") or []]
     if op.kind == "write_file":
@@ -630,7 +702,7 @@ def _ejecutar(
             raise NoSoportadoEnInterprete(op.kind, "sin operador de origen")
         filas = por_operador.get(previos[0], [])
         return filas, {nombre: tablas.get(nombre, filas) for nombre in _nombres(op)}
-    if op.kind in ("map", "join", "filter", "derive", "select", "rename", "sort", "dedup"):
+    if op.kind in ("map", "join", *_PASOS_SUELTOS):
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches") and not op.params.get("steps"):
             primera = por_operador.get(previos[0], []) if previos else []

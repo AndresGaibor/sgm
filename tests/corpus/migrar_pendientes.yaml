@@ -1,4 +1,4 @@
-# Casos de `L0` a `L2` que `sgm migrar` todavía no traduce por completo.
+# Casos de `L0` a `L3` que `sgm migrar` todavía no traduce por completo.
 #
 # Una entrada es un caso con al menos un pendiente de traducción, y el motivo es el primero que sale
 # en `pendientes.md` —el de la línea más temprana del SAS—. La lista es viva en los dos sentidos:
@@ -7,20 +7,20 @@
 # obligar a quitar su entrada.
 #
 # Los pendientes de tipo (`P-TIPO-DESCONOCIDO`) **no cuentan**: sin catálogo del entorno no hay tipo
-# que demostrar, el Job se ejecuta igual con `String`, y una lista que los incluyera tendría los 45
+# que demostrar, el Job se ejecuta igual con `String`, y una lista que los incluyera tendría los 57
 # casos para siempre y no diría nada. Lo que cuenta es lo que no se tradujo.
+#
+# Cada caso se migra con su carpeta `entradas/` como muestra (`sgm migrar --muestra`), que es como se
+# usa la herramienta: la cabecera de la CSV da las columnas, y sin ella un `WHERE` sobre una columna
+# sin calificar tras un `JOIN` no se puede atribuir a ninguna tabla.
 
-l0_04_drop: P-OPERADOR-SIN-SOPORTE
-l0_05_rename: P-ESQUEMA-VACIO
-l0_07_if_then_else: P-ESQUEMA-VACIO
-l0_09_set_dos_tablas: P-ESQUEMA-VACIO
+l0_09_set_dos_tablas: P-OPERADOR-SIN-SOPORTE
 l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
 l0_13_do_end: P-FILTRO-SIN-TRADUCIR
-l2_06_in_subconsulta: P-ESQUEMA-VACIO
-l2_07_not_in_subconsulta: P-ESQUEMA-VACIO
-l2_08_case_when_tras_left_join: P-OPERADOR-SIN-SOPORTE
+l2_06_in_subconsulta: P-FILTRO-SIN-TRADUCIR
+l2_07_not_in_subconsulta: P-FILTRO-SIN-TRADUCIR
 l2_11_join_tres_tablas: P-ASIGNACION-SIN-TRADUCIR
 l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
-l2_13_anti_join_sin_ventas: P-FILTRO-SIN-TRADUCIR
-l2_14_inner_join_where_orden: P-FILTRO-SIN-TRADUCIR
 l2_15_validacion_en_cascada: P-ASIGNACION-SIN-TRADUCIR
+l3_01_count_star_vs_count_col: P-AGREGADO-SIN-TRADUCIR
+l3_09_conciliacion_diferencia_plantada: P-ASIGNACION-SIN-TRADUCIR

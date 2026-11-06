@@ -115,6 +115,8 @@ def _textos(plan: Plan) -> list[str]:
             encontrados.extend(str(parte) for parte in llave)
         if params.get("condition"):
             encontrados.append(str(params["condition"]))
+        encontrados.extend(str(g) for g in params.get("group_by") or [])
+        encontrados.extend(str(a.get("expression") or "") for a in params.get("aggregations") or [])
         for paso in params.get("steps") or []:
             propios = paso.get("params") or {}
             if paso.get("kind") == "filter":
