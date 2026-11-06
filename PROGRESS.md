@@ -5156,3 +5156,29 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Bloqueos: no hay plantilla de `tFileInputPositional` ni una corrida de SAS/Talend que permita
   aceptar el lector. MG-P2-02 no cumple todavía toda su aceptación; crédito provisional del plan:
   3,0 h de 12 h.
+
+## Hito 122. Precisar informats numéricos y cerrar fechas ambiguas
+
+- Fecha: 2026-11-06. Alcance: MG-P2-03, parcial.
+- Qué se hizo:
+  - El informat numérico `w.` demuestra `Double`, no `Long`; un formato desconocido deja el tipo sin
+    resolver en vez de presumir que es numérico. `ANYDTDTE` y `E8601DA` quedan reconocidos como fecha.
+  - `INPUT` con `COMMAw.d`/`DOLLARw.d` genera una expresión candidata con validación de caracteres,
+    paréntesis negativos, escala decimal implícita y preservación de decimales explícitos. El caso
+    `PUT` numérico con `COMMA` sigue pendiente porque no se implementaron anchura, redondeo y salida
+    de separadores.
+  - Los informats de fecha dependientes de opciones del proyecto quedan pendientes. La referencia
+    SAS documenta `YEARCUTOFF` (predeterminado 1940) y el corpus local contiene configuraciones 1910
+    y 1920; fijar un valor global inventaría semántica. `E8601DA` conserva una conversión ISO
+  determinista. Los diagnósticos de informats/formats desconocidos son genéricos y no reflejan su
+  texto literal de entrada.
+  - Se corrigió la clasificación DATA step: una asignación cuyo destino coincide con una palabra de
+    declaración (`label`, `format`, `informat`, `length`, `attrib`, entre otras) ya no se descarta.
+    Una prueba de compilación confirma que el `PUT` no soportado se registra como pendiente.
+- Pruebas: `uv run pytest -q`: **2531 aprobadas, 26 omitidas, 144 `xfail`**; `uv run ruff check .`
+  limpio. Pruebas focalizadas del clasificador, informats y DATA step: **81 aprobadas**.
+- Decisiones: no inferir parseo de fechas sin las opciones reales SAS (`YEARCUTOFF`, `DATESTYLE` y
+  locale). Los candidatos generados no se consideran validados hasta comprobarlos en Talend Studio.
+- Bloqueos: faltan vectores ejecutados contra SAS y Talend para informats/formats de fecha, `PUT`
+  numérico y todos los formatos usados por el corpus; la disponibilidad del catálogo local no prueba
+  equivalencia de ejecución.

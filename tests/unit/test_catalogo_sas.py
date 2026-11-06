@@ -221,7 +221,7 @@ def test_los_informats_de_la_regla_existen_en_la_guia():
 
 
 def test_los_informats_del_catalogo_coinciden_con_la_regla():
-    fecha = set(_nombres_de_fecha()) | {"w", "w.d", "$"}
+    fecha = set(_nombres_de_fecha()) | {"w", "w.d", "$", "commaw.d"}
     for entrada in _entradas("informats-usados"):
         base = _base_del_informat(entrada["nombre"])
         if entrada["estado"] == "reconocida":

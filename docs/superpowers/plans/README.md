@@ -14,7 +14,7 @@ termina, con las firmas reales que dejó el anterior.
 | MG-05 (por escribir) | `MERGE`, `RETAIN`, `FIRST.`/`LAST.`, arrays, `UPDATE` (MG-P4-03 a 07) | MG-03 | pendiente |
 | MG-06 (por escribir) | Macros: expansión estática completa y huecos del analizador (MG-P7) | MG-02 | pendiente |
 | MG-07 (por escribir) | Arquitectura por omisión: padre, hijos, tamaño, joblets (investigar primero si Studio los carga) y paso de datos entre Jobs (MG-P8, MG-P9-03) | MG-04 | pendiente |
-| MG-08 (por escribir) | Entrada y salida avanzada: `INFILE`/`INPUT`, bases (Impala, Postgres), `FILENAME`, `RSUBMIT`; configuración pendiente por entorno (MG-P2) | MG-02 | en curso: MG-P2-02 parcial (hito 121) |
+| MG-08 (por escribir) | Entrada y salida avanzada: `INFILE`/`INPUT`, bases (Impala, Postgres), `FILENAME`, `RSUBMIT`; configuración pendiente por entorno (MG-P2) | MG-02 | en curso: MG-P2-02 parcial (hito 121), MG-P2-03 parcial (hito 122) |
 | MG-09 (por escribir) | Biblioteca de plantillas de componentes, emisor completo y comparación con `talend-mcp` (MG-P9) | MG-02 | pendiente |
 | MG-10 (por escribir) | Verificación: generador de programas SAS, corrida nocturna, `sgm cobertura`, casos L7 y L9 (MG-P10) | MG-03 | pendiente |
 | MG-11 (por escribir) | Rendimiento, seguridad y experiencia de uso (MG-P11 a MG-P13) | MG-07 | pendiente |

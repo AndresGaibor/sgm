@@ -42,17 +42,17 @@ def test_dynamic_informat_compiles_as_gap_without_candidate():
     assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
 
 
-def test_macro_informat_resuelto_a_literal_sigue_traduciendose():
+def test_macro_informat_resuelto_conserva_literal_y_deja_pendiente_la_fecha():
     plan = _plan(
         "%let fmt = yymmdd10.; data target; set source; parsed=input(value, &fmt); run;"
     )
     operator = _derive_for(plan, "parsed")
     expression = operator.params["assignments"][0]["expression"]
     assert expression == "input(value, yymmdd10.)"
-    assert not any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
-    result = translate(expression)
-    assert result.engine == "inline"
-    assert "TalendDate.parseDate(" in result.talend
+    assert "talend_expression_candidates" not in operator.params
+    assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+    with pytest.raises(Unsupported, match="opciones de fecha"):
+        translate_to_talend(expression)
 
 
 def _plan(source):
@@ -77,9 +77,9 @@ def test_dynamic_informat_error_does_not_echo_source(informat):
 
 
 @pytest.mark.parametrize("informat", ["'yymmdd10.'", '"yymmdd10."', "yymmdd10."])
-def test_literal_date_informat_keeps_current_result(informat):
-    result = translate_to_talend(f"input(value, {informat})")
-    assert result.java == 'TalendDate.parseDate("yyyy-MM-dd", input_row.value)'
+def test_literal_date_informat_waits_for_project_date_options(informat):
+    with pytest.raises(Unsupported, match="opciones de fecha"):
+        translate_to_talend(f"input(value, {informat})")
 
 
 def test_numeric_literals_outside_formats_keep_numeric_kind():
@@ -105,16 +105,19 @@ def test_double_quoted_macro_informat_stays_dynamic(function, informat):
 
 
 @pytest.mark.parametrize("function", ["input", "inputn"])
-def test_single_quoted_macro_text_keeps_literal_behavior(function):
-    assert translate_to_talend(f"{function}(value, '&private_marker')").warnings
+def test_single_quoted_macro_text_is_not_assumed_to_be_an_informat(function):
+    with pytest.raises(Unsupported, match="informat no soportado"):
+        translate_to_talend(f"{function}(value, '&private_marker')")
 
 
-def test_expanded_double_quoted_macro_informat_stays_literal():
+def test_expanded_double_quoted_date_macro_stays_pending():
     plan = _plan('%let fmt = yymmdd10.; data target; set source; parsed=input(value, "&fmt"); run;')
     expression = _derive_for(plan, "parsed").params["assignments"][0]["expression"]
     assert expression == 'input(value, "yymmdd10.")'
-    assert "TalendDate.parseDate(" in translate(expression).talend
-    assert not any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+    assert "talend_expression_candidates" not in _derive_for(plan, "parsed").params
+    assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+    with pytest.raises(Unsupported, match="opciones de fecha"):
+        translate_to_talend(expression)
 
 
 @pytest.mark.parametrize("informat", ["row.informat", "e8601da. || row.informat"])
@@ -138,10 +141,21 @@ def test_dynamic_assignment_gap_has_precise_file_and_lines(filter_step):
     assert [(e.file, e.line_start, e.line_end) for e in gap.evidence] == [("program.sas", start, start + 1)]
 
 
-@pytest.mark.parametrize("function,method", [("input", "parseDate"), ("put", "formatDate")])
-@pytest.mark.parametrize("format_name,pattern", [("e8601da.", "yyyy-MM-dd"), ("e8601dt.", "yyyy-MM-dd'T'HH:mm:ss")])
+@pytest.mark.parametrize(
+    "function,method,format_name,pattern",
+    [
+        ("input", "parseDate", "e8601da.", "yyyy-MM-dd"),
+        ("put", "formatDate", "e8601da.", "yyyy-MM-dd"),
+        ("put", "formatDate", "e8601dt.", "yyyy-MM-dd'T'HH:mm:ss"),
+    ],
+)
 def test_iso_literal_formats_keep_previous_java(function, method, format_name, pattern):
     assert translate_to_talend(f"{function}(value, {format_name})").java == f'TalendDate.{method}("{pattern}", input_row.value)'
+
+
+def test_iso_datetime_informat_remains_pending_until_timezone_semantics_are_modeled():
+    with pytest.raises(Unsupported, match="informat no soportado"):
+        translate_to_talend("input(value, e8601dt.)")
 
 
 
@@ -190,8 +204,12 @@ def test_compiled_macro_informat_respects_sas_quotes(literal):
     expression = _derive_for(plan, "parsed").params["assignments"][0]["expression"]
     expected = '"yymmdd10."' if literal == '"&fmt"' else literal
     assert expression == f"inputn(value, {expected})"
-    java = translate(expression).talend
-    assert ("TalendDate.parseDate(" in java) == (literal == '"&fmt"')
+    if literal == '"&fmt"':
+        with pytest.raises(Unsupported, match="opciones de fecha"):
+            translate_to_talend(expression)
+    else:
+        with pytest.raises(Unsupported, match="informat no soportado"):
+            translate_to_talend(expression)
 
 
 @pytest.mark.parametrize("prefix", ["parsed=", "where "])

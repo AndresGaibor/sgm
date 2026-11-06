@@ -507,7 +507,7 @@ a `L2` sin YAML; MG-P1-03, MG-P1-05 y MG-P1-06 son de los planes siguientes.
 | MG-P2-06 | `FILENAME` (archivo, pipe, FTP) y `PROC DOWNLOAD/UPLOAD/RSUBMIT` (cierra el hueco R7-12) | S | caso del corpus con `RSUBMIT` | 6 |
 | MG-P2-07 | Decisión MG-D03 aplicada: datasets permanentes a archivo de preparación con aviso | H | casos con `lib.tabla` generan lectura y escritura coherentes | 2 |
 
-**Estado (hito 121, 6 de noviembre de 2026).** MG-P2-01 sigue parcial: CSV/DLM conservan lectura,
+**Estado (hito 122, 6 de noviembre de 2026).** MG-P2-01 sigue parcial: CSV/DLM conservan lectura,
 escritura, cabecera y delimitador; `DBMS=XLSX/XLS` se clasifica por el formato declarado y la lectura
 Excel ajusta el indicador del libro XLS/XLSX. `SHEET` de `PROC EXPORT` y `GUESSINGROWS` literal,
 `MAX` o dinámico se conservan en la IR; cuando se usa `GUESSINGROWS`, el emisor deja pendiente validar
@@ -516,7 +516,13 @@ mientras falte una plantilla extraída de un Job real de Studio. `EXCELCS` y for
 siguen pendientes. MG-P2-02 tiene avance parcial: se modelan `INFILE/INPUT`, se enruta la lista con
 `DLM` literal de un carácter y `FIRSTOBS`, y se preservan `FILE/PUT` y `DATALINES` como pendientes.
 No se emite lectura posicional, `DSD`, `MISSOVER` ni `TRUNCOVER`; faltan plantilla real y verificación
-de semántica en Studio. Los tipos todavía requieren evidencia de catálogo, muestra o informat.
+de semántica en Studio. MG-P2-03 avanza parcialmente: `w.` se tipa como `Double`; `COMMAw.d` y
+`DOLLARw.d` producen candidatos `INPUT` con guardas y escala decimal; informats dinámicos,
+desconocidos y fechas dependientes de opciones SAS quedan pendientes, salvo la fecha ISO determinista
+`E8601DA`. No se inventa un `YEARCUTOFF`: la referencia documenta 1940 como predeterminado y el
+corpus local configura 1910 y 1920. `PUT` numérico con `COMMA` sigue pendiente por anchura,
+redondeo y separadores. Ninguna equivalencia queda validada en Studio; hacen falta vectores de
+ejecución SAS/Talend y completar la cobertura de formatos del corpus.
 
 ### MG-P3. Expresiones y funciones (80 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -778,9 +784,9 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (6 de noviembre de 2026, hito 107)
+## 11b. Avance medido (6 de noviembre de 2026, hito 122)
 
-**Avance global: 19,6 % de las 895 horas de agente (175,75 h), es decir, cerca de 20 %.** C7 (producción
+**Avance global: 19,9 % de las 895 horas de agente (177,75 h), es decir, cerca de 20 %.** C7 (producción
 con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía.
 
 **Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
@@ -794,7 +800,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 |---|---|---|---|---|
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
 | MG-P1 Modelo y plan lógico | 70 | 40,5 | 58 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; esquemas sin tipos |
-| MG-P2 Entrada y salida | 50 | 15,0 | 30 % | CSV/DLM y Excel parcial; `INFILE/INPUT` modelado, sin lector posicional verificado, bases, `FILENAME` ni `RSUBMIT` |
+| MG-P2 Entrada y salida | 50 | 17,0 | 34 % | CSV/DLM y Excel parcial; `INFILE/INPUT` modelados; informats numéricos puntuales candidatos y fechas con opciones pendientes; sin lector posicional, bases, `FILENAME` ni `RSUBMIT` |
 | MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
 | MG-P4 DATA step | 90 | 7,0 | 8 % | `WHERE`, `IF/ELSE IF`, `KEEP/DROP/RENAME`; sin `MERGE`, `RETAIN`, `OUTPUT` múltiple |
 | MG-P5 `PROC SQL` | 80 | 12,0 | 15 % | `filter`, `derive`, `join`; L1 completos 3 de 15, L2 5 de 15 |

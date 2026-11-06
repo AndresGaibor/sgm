@@ -106,6 +106,12 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
     head = word.group(0) if word else ""
     if body == "<datalines>":
         return DsStatement("datalines", body, line, {"rows": len(rows), "data": list(rows)})
+    # Un nombre de variable puede coincidir con una palabra de sentencia, por ejemplo
+    # `label = ...` o `input = ...`; reconoce primero la forma inequívoca de asignación.
+    if m := _ASSIGN.match(body):
+        target, expression = m.group(1).strip(), m.group(2).strip()
+        kind = "lag" if _LAG.search(expression) else "assign"
+        return DsStatement(kind, body, line, {"target": target, "expression": expression})
     if head == "set":
         return DsStatement("set", body, line, {"sources": _dataset_refs(body[3:])})
     if head == "merge":
@@ -145,8 +151,4 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
         return DsStatement("if", body, line, {"first_last": flags})
     if m := _SYMPUT.match(body):
         return DsStatement("call_symput", body, line, {"name": m.group(1)})
-    if m := _ASSIGN.match(body):
-        target, expression = m.group(1).strip(), m.group(2).strip()
-        kind = "lag" if _LAG.search(expression) else "assign"
-        return DsStatement(kind, body, line, {"target": target, "expression": expression})
     return DsStatement("other", body, line)

@@ -196,10 +196,13 @@ def _f_date_part(part: str):
 def _f_input(args: list[str]) -> str:
     """input(texto, formato numérico): conversión a número; las fechas de SAS quedan fuera (sin equivalente simple)."""
     if len(args) == 2 and _date_format(args[1]):
-        text = args[0]
-        return _guard(text, f'TalendDate.parseDate("{_date_format(args[1])}", {text})')
+        raise _Unsupported(
+            "informato de fecha requiere YEARCUTOFF, DATESTYLE o locale del proyecto"
+        )
     if len(args) != 2 or not _NUMERIC_FORMAT.fullmatch(args[1]):
         raise _Unsupported("input() solo con formato numérico (best./comma.)")
+    if args[1].strip('"').lower().startswith("comma"):
+        raise _Unsupported("input() con COMMA requiere limpiar separadores según el informato SAS")
     return _guard(args[0], f"Double.parseDouble({args[0]})")
 
 
@@ -207,6 +210,8 @@ def _f_put(args: list[str]) -> str:
     """put(número, formato numérico): conversión a texto."""
     if len(args) == 2 and _date_format(args[1]):
         return _guard(args[0], f'TalendDate.formatDate("{_date_format(args[1])}", {args[0]})')
+    if len(args) == 2 and _NUMERIC_FORMAT.fullmatch(args[1]):
+        raise _Unsupported("put() con BEST/COMMA no conserva anchura, redondeo y separadores SAS")
     if len(args) != 2 or not _NUMERIC_FORMAT.fullmatch(args[1]):
         raise _Unsupported("put() solo con formato numérico (best./comma.)")
     return _guard(args[0], f"String.valueOf({args[0]})")
