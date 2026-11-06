@@ -53,6 +53,9 @@ class Nodo:
     metadatas: list[Metadata] | None = None
     # XML de `<nodeData>` ya escrito (el mapeo de un tMap); vacío si el componente no lo tiene.
     datos: str = ""
+    # Texto libre del nodo, por ejemplo la línea del SAS de origen ("SAS línea 42").
+    # Todavía no se escribe: falta el formato verificado del parámetro COMMENT (ver PROGRESS).
+    comentario: str = ""
 
 
 @dataclass(frozen=True)
@@ -88,3 +91,8 @@ class Job:
     conexiones: list[Conexion] = field(default_factory=list)
     # Grupo de contexto -> sus parámetros. Sin entradas, el grupo Default va vacío como antes.
     contextos: dict[str, list[ParametroContexto]] = field(default_factory=dict)
+    # Propiedades del Job. Vacías por defecto; todavía no se escriben en el `.properties`
+    # porque los nombres de clave de Studio no están verificados en ningún fixture.
+    proposito: str = ""
+    descripcion: str = ""
+    autor: str = ""  # nombre legible; el `<author>` del `.properties` es una referencia a un id
