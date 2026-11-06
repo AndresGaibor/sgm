@@ -20,6 +20,7 @@ comparten nombre de columna y la última en entrar gana. Es una limitación cono
 from __future__ import annotations
 
 import re
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 import sqlglot
 from sqlglot import exp
@@ -33,6 +34,7 @@ SOPORTADOS = frozenset(
     {"read", "read_file", "write", "write_file", "map", "join", "filter", "derive"}
 )
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
+_FUNCIONES_SAS = re.compile(r"(?i)\b(input|left|substrn|substr|coalescec|compress|scan)\s*(?=\()")
 
 
 class NoSoportadoEnInterprete(RuntimeError):
@@ -58,7 +60,8 @@ def _primero(params: dict, clave: str) -> str:
 def _arbol(expresion: str):
     """Árbol de una expresión SQL; lo que no se puede leer no se adivina."""
     try:
-        return sqlglot.parse_one(expresion)
+        preparada = _FUNCIONES_SAS.sub(lambda m: f"sgm_{m.group(1).lower()}", expresion)
+        return sqlglot.parse_one(preparada)
     except ParseError as error:
         raise NoSoportadoEnInterprete("expresion", f"'{expresion}': {error}") from None
 
@@ -68,8 +71,11 @@ def _numero(valor: object) -> float | None:
 
 
 def _verdad(valor: object) -> bool:
-    """Un faltante es falso en una condición, como en SAS."""
-    return False if semantica.es_faltante(valor) else bool(valor)
+    """True si la expresión no es cero ni faltante (`lestmtsref`, p. 130)."""
+    if isinstance(valor, bool):
+        return valor
+    numero = _numero(valor)
+    return numero is not None and numero != 0
 
 
 def _patron(patron: str) -> re.Pattern[str]:
@@ -87,9 +93,13 @@ def _patron(patron: str) -> re.Pattern[str]:
 
 
 def _funcion(nombre: str, argumentos: list) -> object:
+    if nombre.startswith("sgm_"):
+        nombre = nombre[4:]
     if nombre == "missing":
         return semantica.es_faltante(argumentos[0] if argumentos else None)
     if nombre == "coalesce":
+        return next((valor for valor in argumentos if not semantica.es_faltante(valor)), None)
+    if nombre == "coalescec":
         return next((valor for valor in argumentos if not semantica.es_faltante(valor)), None)
     if nombre == "trim":
         return semantica.como_texto(argumentos[0] if argumentos else None).rstrip()
@@ -101,7 +111,104 @@ def _funcion(nombre: str, argumentos: list) -> object:
         return semantica.como_texto(argumentos[0] if argumentos else None).lower()
     if nombre == "length":
         return len(semantica.como_texto(argumentos[0] if argumentos else None))
+    if nombre == "left":
+        texto = semantica.como_texto(argumentos[0] if argumentos else None)
+        return texto.lstrip(" ") + " " * (len(texto) - len(texto.lstrip(" ")))
+    if nombre in ("substr", "substrn"):
+        if len(argumentos) < 2 or semantica.es_faltante(argumentos[0]):
+            return " "
+        texto = _texto_substr(argumentos[0], nombre)
+        inicio = int(_numero(argumentos[1]) or 1) - 1
+        longitud = (
+            None
+            if len(argumentos) < 3 or semantica.es_faltante(argumentos[2])
+            else int(_numero(argumentos[2]) or 0)
+        )
+        if inicio < 0:
+            inicio = max(len(texto) + inicio, 0)
+        return texto[inicio:] if longitud is None else texto[inicio : inicio + max(longitud, 0)]
+    if nombre == "input":
+        return _input_wd(argumentos)
+    if nombre == "compress":
+        return _compress(argumentos)
+    if nombre == "scan":
+        return _scan(argumentos)
+    if nombre == "abs":
+        numero = _numero(argumentos[0] if argumentos else None)
+        return None if numero is None else abs(numero)
+    if nombre == "sum":
+        valores = [_numero(valor) for valor in argumentos]
+        return sum(valor for valor in valores if valor is not None)
     raise NoSoportadoEnInterprete("funcion", nombre)
+
+
+def _texto_substr(valor: object, funcion: str) -> str:
+    """Conversión numérica documentada para SUBSTR/SUBSTRN en las expresiones del corpus."""
+    if isinstance(valor, (int, float)):
+        texto = format(valor, ".12g")
+        return texto if funcion == "substrn" else texto.rjust(12)
+    return semantica.como_texto(valor)
+
+
+def _input_wd(argumentos: list) -> float | None:
+    """Subconjunto documentado INPUT(x,w.d): convierte números y aplica d solo sin punto decimal."""
+    if len(argumentos) < 2:
+        raise NoSoportadoEnInterprete("funcion", "INPUT requiere el valor y un informat w.d")
+    texto = semantica.como_texto(argumentos[0]).strip()
+    informat = _numero(argumentos[1])
+    if not texto or texto == "." or informat is None:
+        return None
+    decimales = int(round((informat - int(informat)) * 10))
+    try:
+        if "." in texto:
+            return float(texto)
+        numero = Decimal(texto) / (Decimal(10) ** decimales)
+        return float(numero)
+    except (InvalidOperation, ValueError):
+        return None
+
+
+def _compress(argumentos: list) -> str:
+    """COMPRESS con lista de caracteres y modificadores usados por los vectores documentados."""
+    texto = semantica.como_texto(argumentos[0] if argumentos else None)
+    lista = semantica.como_texto(argumentos[1]) if len(argumentos) > 1 else " "
+    modificadores = semantica.como_texto(argumentos[2]).lower() if len(argumentos) > 2 else ""
+    quitar: set[str] = set(lista)
+    if "d" in modificadores:
+        quitar.update("0123456789")
+    if "a" in modificadores:
+        quitar.update("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    if "l" in modificadores:
+        quitar.update("abcdefghijklmnopqrstuvwxyz")
+    if "u" in modificadores:
+        quitar.update("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    if "s" in modificadores:
+        quitar.update(" \t\n\r\f\v")
+    if "i" in modificadores:
+        quitar.update(caracter.lower() for caracter in tuple(quitar))
+        quitar.update(caracter.upper() for caracter in tuple(quitar))
+    if "k" in modificadores:
+        return "".join(caracter for caracter in texto if caracter in quitar)
+    return "".join(caracter for caracter in texto if caracter not in quitar)
+
+
+def _scan(argumentos: list) -> str:
+    """SCAN con delimitadores explícitos y blancos por omisión, según vectores del corpus."""
+    if len(argumentos) < 2:
+        return " "
+    texto = semantica.como_texto(argumentos[0])
+    posicion = int(_numero(argumentos[1]) or 0)
+    delimitadores = (
+        semantica.como_texto(argumentos[2])
+        if len(argumentos) > 2
+        else " \t\n\r!$%&()*+,-./;<^|"
+    )
+    if not delimitadores:
+        delimitadores = " \t\n\r!$%&()*+,-./;<^|"
+    patron = "[" + re.escape(delimitadores) + "]+"
+    tokens = [token for token in re.split(patron, texto) if token]
+    indice = posicion - 1 if posicion > 0 else len(tokens) + posicion
+    return tokens[indice] if 0 <= indice < len(tokens) else " "
 
 
 def _aritmetica(operador: str, izquierda: object, derecha: object) -> object:
@@ -146,6 +253,15 @@ def _valor(nodo, fila: dict) -> object:
     if isinstance(nodo, exp.Neg):
         valor = _numero(_valor(nodo.this, fila))
         return None if valor is None else -valor
+    if isinstance(nodo, exp.Round):
+        valor = _numero(_valor(nodo.this, fila))
+        precision = nodo.args.get("decimals")
+        multiplo = _numero(_valor(precision, fila)) if precision is not None else 1
+        if valor is None or multiplo in (None, 0):
+            return None
+        cociente = Decimal(str(valor)) / Decimal(str(multiplo))
+        redondeado = cociente.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        return float(redondeado * Decimal(str(multiplo)))
     if isinstance(nodo, exp.Cast):
         return _valor(nodo.this, fila)
     if isinstance(nodo, exp.And):
@@ -229,9 +345,29 @@ def _filtrar(filas: list[dict], expresion: str) -> list[dict]:
     return [fila for fila in filas if _verdad(_valor(arbol, fila))]
 
 
-def _fila_de(pares: list[tuple[str, object]], fila: dict) -> dict:
+def _fila_de(
+    pares: list[tuple[str, object, object | None]], fila: dict, secuencial: bool = False
+) -> dict:
     """Las columnas de la salida, en el orden de las asignaciones."""
-    return {destino: semantica.a_texto(_valor(arbol, fila)) for destino, arbol in pares}
+    resultado = {}
+    for destino, arbol, condicional in pares:
+        contexto = {**fila, **resultado} if secuencial else fila
+        if condicional is None:
+            valor = _valor(arbol, contexto)
+        elif isinstance(condicional, dict):
+            valor = None
+            for condicion, rama in condicional["branches"]:
+                if _verdad(_valor(condicion, contexto)):
+                    valor = _valor(rama, contexto)
+                    break
+            else:
+                valor = _valor(condicional["otherwise"], contexto)
+        else:
+            condicion, alternativa = condicional
+            rama = arbol if _verdad(_valor(condicion, contexto)) else alternativa
+            valor = _valor(rama, contexto)
+        resultado[destino] = semantica.a_texto(valor)
+    return resultado
 
 
 def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> list[dict]:
@@ -243,16 +379,66 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
     """
     if not asignaciones:
         return filas
-    pares = [
-        (
-            str(asignacion.get("target") or ""),
-            _arbol(str(asignacion.get("expression") or "")),
+    pares = []
+    for asignacion in asignaciones:
+        condicion = asignacion.get("conditional")
+        condicional = None
+        if isinstance(condicion, dict):
+            if condicion.get("branches"):
+                condicional = {
+                    "branches": [
+                        (
+                            _arbol(str(rama.get("condition") or "")),
+                            _arbol(str(rama.get("expression") or "")),
+                        )
+                        for rama in condicion["branches"]
+                    ],
+                    "otherwise": _arbol(str(condicion.get("otherwise") or "")),
+                }
+            else:
+                condicional = (
+                    _arbol(str(condicion.get("condition") or "")),
+                    _arbol(str(condicion.get("otherwise") or "")),
+                )
+        pares.append(
+            (
+                str(asignacion.get("target") or ""),
+                _arbol(str(asignacion.get("expression") or "")),
+                condicional,
+            )
         )
-        for asignacion in asignaciones
-    ]
     if aditivo:
-        return [{**fila, **_fila_de(pares, fila)} for fila in filas]
+        return [{**fila, **_fila_de(pares, fila, secuencial=True)} for fila in filas]
     return [_fila_de(pares, fila) for fila in filas]
+
+
+def _seleccionar(filas: list[dict], params: dict) -> list[dict]:
+    """Aplica KEEP o DROP como proyección de columnas, sin cambiar el orden de la fila."""
+    nombres = {str(nombre).lower() for nombre in params.get("names") or []}
+    modo = str(params.get("mode") or "").lower()
+    if modo == "keep":
+        return [
+            {nombre: valor for nombre, valor in fila.items() if nombre.lower() in nombres}
+            for fila in filas
+        ]
+    if modo == "drop":
+        return [
+            {nombre: valor for nombre, valor in fila.items() if nombre.lower() not in nombres}
+            for fila in filas
+        ]
+    raise NoSoportadoEnInterprete("select", f"modo '{modo}'")
+
+
+def _renombrar(filas: list[dict], params: dict) -> list[dict]:
+    """Renombra variables solo en la fila de salida (`lestmtsref`, pp. 326-327)."""
+    cambios = {
+        str(origen).lower(): str(destino).lower()
+        for origen, destino in params.get("pairs") or []
+    }
+    return [
+        {cambios.get(str(nombre).lower(), nombre): valor for nombre, valor in fila.items()}
+        for fila in filas
+    ]
 
 
 def _unir(izquierda: list[dict], derecha: list[dict], params: dict) -> list[dict]:
@@ -341,6 +527,10 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
             actual = _proyectar(
                 actual, params.get("assignments") or [], aditivo=params.get("modo") == "agrega"
             )
+        elif clase == "select":
+            actual = _seleccionar(actual, params)
+        elif clase == "rename":
+            actual = _renombrar(actual, params)
         else:
             raise NoSoportadoEnInterprete(clase or "paso", "el intérprete no lo ejecuta")
     return actual
@@ -348,7 +538,7 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
 
 def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
-    if op.kind in ("read_file", "map", "filter", "derive", "join"):
+    if op.kind in ("read_file", "map", "filter", "derive", "select", "rename", "join"):
         return [_tabla(nombre) for nombre in op.params.get("outputs") or []]
     if op.kind == "write_file":
         return [_tabla(nombre) for nombre in op.params.get("inputs") or []]
@@ -393,7 +583,7 @@ def _ejecutar(
             raise NoSoportadoEnInterprete(op.kind, "sin operador de origen")
         filas = por_operador.get(previos[0], [])
         return filas, {nombre: tablas.get(nombre, filas) for nombre in _nombres(op)}
-    if op.kind in ("map", "join", "filter", "derive"):
+    if op.kind in ("map", "join", "filter", "derive", "select", "rename"):
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches") and not op.params.get("steps"):
             primera = por_operador.get(previos[0], []) if previos else []

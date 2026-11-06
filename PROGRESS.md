@@ -4676,3 +4676,52 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
   que tiene que medir. Es el mismo bloqueo que dejó abierto el hito 103m.
 - Plan maestro: `docs/plan-reescritura/plan-migrador-general.md` gana el estado de MG-P1, MG-P2,
   MG-P5, MG-P8, MG-P10 y MG-P11 al 5 de noviembre, con lo hecho y lo que falta de cada uno.
+
+## Hito 106m. MG-03: expresiones con evidencia y DATA step básico en los anillos A/B
+
+- Fecha: 2026-11-06.
+- Qué se hizo:
+  - `SET(dataset(WHERE=(...)))` conserva la expresión al analizar fuentes, la baja a filtro en el plan
+    y la emite en `expressionFilter` del `tMap`. `l0_02_where_opcion` ya no figura en la lista viva
+    de pendientes.
+  - Se añadieron regresiones de anillo A para `WHERE=` y para transformaciones aisladas `KEEP`,
+    `DROP` y `RENAME`; esos modificadores sin asignación ahora se emiten como `tMap`.
+  - El intérprete de referencia evalúa subsetting `IF` con la regla SAS documentada: verdadero si el
+    valor numérico no es cero ni faltante (`lestmtsref`, p. 130). Añadidas implementaciones puntuales
+    y pruebas del anillo B para las funciones L4 respaldadas por los vectores del repositorio: `INPUT`
+    con informat `w.d`, `LEFT`, `SUBSTR`/`SUBSTRN`, `COALESCEC`, `COMPRESS`, `SCAN` y `ROUND`.
+  - El anillo B compara nombres de tablas y columnas sin distinguir mayúsculas, conforme al contrato
+    del intérprete; no altera ni regenera los CSV esperados.
+- Continuación A/B:
+  - Se implementaron ramas encadenadas `IF/THEN`, `ELSE IF` y `ELSE` para asignaciones al mismo
+    destino, tanto en la evaluación del plan como en la expresión ternaria emitida por `tMap`.
+    El intérprete ahora evalúa asignaciones DATA step en orden; `l0_12_bandera_numerica` pasa en B y
+    salió de la lista viva de pendientes.
+  - Se actualizó el golden de `generalization/etl_archivos_simple.sas`: la cadena `ELSE IF` deja de
+    generar un `filter` inválido y pasa a una derivación ternaria única. La prueba de equivalencia
+    sigue activa contra ese nuevo plan; la coincidencia de filas no se toma del golden.
+  - `l0_07_if_then_else` también pasa en B y se quitó su `xfail`. Sigue en la lista A con
+    `P-ESQUEMA-VACIO`: sin catálogo ni ruta de muestra resoluble, `sgm migrar` no demuestra la
+    columna `saldo`; no se inventó su esquema.
+  - La aceptación del corpus compara la clave real del primer pendiente y confirmó los motivos
+    vigentes para `l0_07` y `l0_13`.
+- Pruebas: anillo B completo: 42 pasan y 20 quedan `xfail` con sus motivos; suite completa:
+  **2335 passed, 27 skipped, 149 xfailed**. `uv run ruff check .`: limpio. La verificación
+  focalizada de B, emisor, aceptación y goldens: 130 pasan, 1 se salta y 20 `xfail`.
+- Anillo C: el lote `tests/studio/test_migrar_lote.py -m studio` pasó; compilaron los 17 Jobs
+  completos de L0–L2 en una sola llamada. La ejecución representativa pasó en Studio para
+  `l0_06_asignacion` (cálculo) y `l0_02_where_opcion` (filtro), ambos comparados contra sus CSV
+  esperados. Se migraron con `--muestra` para que la cabecera demostrara todas las columnas; sin la
+  muestra, la prueba de ejecución inicial evidenció columnas faltantes y no se contó como éxito.
+  `--java-bin` apuntó al JDK Zulu 21 incluido con Studio, pues no hay `java` en el `PATH`.
+- Alcance pendiente de MG-03: `OUTPUT` condicional, catálogo íntegro de vectores y funciones, y
+  verificación C. MG-P3-02/03/05 permanecen parciales, y MG-P3-04/06/09 y MG-P4-02 a 09 siguen
+  pendientes. El estado detallado queda en
+  `docs/plan-reescritura/plan-migrador-general.md`.
+- Decisiones: solo se amplía la cobertura B a casos L4 marcados traducibles/revisados; los casos cuyo
+  alcance excede el plan conservan su `xfail`. Se mantiene `l0_04_drop` en la lista viva mientras sus
+  pendientes no estén resueltos.
+- No se completan por este plan `OUTPUT` condicional/múltiple, el catálogo íntegro de funciones y
+  vectores, ni los bloques MG-P3-04/06/07/08/09 y MG-P4-02 a 09. Cada sentencia sin representación
+  completa permanece pendiente; no se declara soporte de `MERGE`, estado por fila ni macros. El
+  estado de MG-03 se limita a las capacidades descritas arriba, no a cerrar MG-P3 o MG-P4 globales.

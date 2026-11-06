@@ -10,6 +10,9 @@ from sgm.ir.models import Evidence, Operator
 from sgm.ir.types_code import declared_types
 
 _HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
+_IF_ASSIGN = re.compile(r"(?is)^if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
+_ELSE_IF_ASSIGN = re.compile(r"(?is)^else\s+if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
+_ELSE_ASSIGN = re.compile(r"(?is)^else\s+([\w]+)\s*=\s*(.+)$")
 
 
 def _join_type(stmts: list[DsStatement], refs: list[dict]) -> str | None:
@@ -47,6 +50,15 @@ def _lower_sources(
     reads = [
         b.op("read", {"dataset": qualify(r["name"]), "in": (r.get("in") or None)}, ev) for r in refs
     ]
+    entradas: list[Operator] = []
+    for ref, read in zip(refs, reads, strict=True):
+        where = ref.get("where")
+        if where:
+            filtrado = b.op("filter", {"expression": where}, ev)
+            b.link(read, filtrado)
+            entradas.append(filtrado)
+        else:
+            entradas.append(read)
     if any(s.kind == "merge" for s in stmts):
         by = next((s.fields["names"] for s in stmts if s.kind == "by"), [])
         join_type = _join_type(stmts, refs)
@@ -65,15 +77,15 @@ def _lower_sources(
             status=status,
             notes=notes,
         )
-        for read in reads:
+        for read in entradas:
             b.link(read, join)
         return reads, join
     if len(reads) > 1:
         union = b.op("union", {"sources": [qualify(r["name"]) for r in refs]}, ev)
-        for read in reads:
+        for read in entradas:
             b.link(read, union)
         return reads, union
-    return reads, None
+    return reads, entradas[0] if refs and refs[0].get("where") else None
 
 
 def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator | None:
@@ -112,10 +124,26 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     pending_derive: Operator | None = None
     loose: list[str] = []
     prev: DsStatement | None = None
-    for s in stmts:
+    omit: set[int] = set()
+    for index, s in enumerate(stmts):
+        if index in omit:
+            continue
         kind = s.kind
         before, prev = prev, s
         if kind in _HEAD_KINDS:
+            continue
+        conditional = _conditional_assignment(stmts, index)
+        if conditional is not None:
+            assignment, siguiente = conditional
+            if pending_derive is None:
+                pending_derive = b.op("derive", {"assignments": [], "modo": "agrega"}, ev)
+                if current is not None:
+                    b.link(current, pending_derive)
+                current = pending_derive
+            pending_derive.params["assignments"].append(assignment)
+            b.refresh(pending_derive)
+            omit.update(range(index + 1, siguiente))
+            prev = stmts[siguiente - 1]
             continue
         if kind == "assign":
             assignment = {"target": s.fields["target"], "expression": s.fields["expression"]}
@@ -167,6 +195,54 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         current.notes.append("salida _NULL_: no escribe dataset")
     current.params["outputs"] = [qualify(o) for o in outputs if o.lower() != "_null_"]
     b.refresh(current)
+
+
+def _conditional_assignment(
+    stmts: list[DsStatement], index: int
+) -> tuple[dict, int] | None:
+    """Combina ramas de asignación con destino común.
+
+    SAS exige que ELSE siga inmediatamente al IF-THEN; se conserva esa condición del lenguaje
+    (`lestmtsref`, p. 132-133) y no se emparejan ramas separadas por otras sentencias.
+    """
+    current = stmts[index]
+    if current.kind != "if":
+        return None
+    first = _IF_ASSIGN.fullmatch(current.text.strip())
+    if first is None:
+        return None
+    target = first.group(2).lower()
+    branches = [{"condition": first.group(1).strip(), "expression": first.group(3).strip()}]
+    cursor = index + 1
+    while cursor < len(stmts):
+        else_if = _ELSE_IF_ASSIGN.fullmatch(stmts[cursor].text.strip())
+        if else_if is None:
+            break
+        if else_if.group(2).lower() != target:
+            return None
+        branches.append(
+            {"condition": else_if.group(1).strip(), "expression": else_if.group(3).strip()}
+        )
+        cursor += 1
+    if cursor >= len(stmts):
+        return None
+    otherwise = _ELSE_ASSIGN.fullmatch(stmts[cursor].text.strip())
+    if otherwise is None or otherwise.group(1).lower() != target:
+        return None
+    alternativa = otherwise.group(2).strip()
+    condicional = (
+        {"condition": branches[0]["condition"], "otherwise": alternativa}
+        if len(branches) == 1
+        else {"branches": branches, "otherwise": alternativa}
+    )
+    return (
+        {
+            "target": target,
+            "expression": branches[0]["expression"],
+            "conditional": condicional,
+        },
+        cursor + 1,
+    )
 
 
 def _statement_op(

@@ -34,7 +34,9 @@ class EntradaMap:
 
     conexion: str
     columnas: list[Columna] = field(default_factory=list)
-    # `matchingMode` de Studio: UNIQUE_MATCH o ALL_ROWS (vistos en Jobs reales).
+    # `matchingMode` de Studio: ALL_ROWS devuelve todas las parejas de la llave y UNIQUE_MATCH solo
+    # la primera. Un `ON` de SQL es ALL_ROWS: la llave puede repetirse a la derecha y cada pareja es
+    # una fila.
     union: str = "UNIQUE_MATCH"
     # `lookupMode` de Studio: LOAD_ONCE (el único visto en Jobs reales).
     lookup: str = "LOAD_ONCE"

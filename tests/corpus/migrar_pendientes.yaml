@@ -10,13 +10,11 @@
 # que demostrar, el Job se ejecuta igual con `String`, y una lista que los incluyera tendría los 45
 # casos para siempre y no diría nada. Lo que cuenta es lo que no se tradujo.
 
-l0_02_where_opcion: P-ESQUEMA-VACIO
-l0_03_keep: P-OPERADOR-SIN-SOPORTE
 l0_04_drop: P-OPERADOR-SIN-SOPORTE
 l0_05_rename: P-ESQUEMA-VACIO
-l0_07_if_then_else: P-FILTRO-SIN-TRADUCIR
-l0_09_set_dos_tablas: P-ESQUEMA-VACIO
+l0_07_if_then_else: P-ESQUEMA-VACIO
 l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
+l0_09_set_dos_tablas: P-ESQUEMA-VACIO
 l0_13_do_end: P-FILTRO-SIN-TRADUCIR
 l1_03_orden_con_faltantes: P-OPERADOR-SIN-SOPORTE
 l1_04_distinct_orden: P-OPERADOR-SIN-SOPORTE

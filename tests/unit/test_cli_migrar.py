@@ -145,3 +145,18 @@ def test_un_fallo_interno_no_deja_carpeta_a_medias(tmp_path, monkeypatch):
     assert {"pendientes.md", "configuracion-pendiente.md", "trace.json", "migracion.log"} <= archivos
     assert "disco lleno" in _leer(carpeta, "migracion.log")
     assert "P-FALLO-ESCRITURA" in _leer(carpeta, "pendientes.md")
+
+
+def test_un_programa_que_no_se_puede_leer_no_lanza(tmp_path):
+    """La fecha de los `.properties` sale del archivo; sin archivo tiene que haber respaldo.
+
+    En Windows `datetime.fromtimestamp(0)` levanta `OSError`, así que el respaldo de un programa
+    ilegible tumbaba `migrar` justo cuando el informe importa.
+    """
+    from sgm.cli_migrar import migrar
+
+    resultado = migrar(tmp_path / "no_existe.sas", tmp_path / "salida")
+
+    assert resultado.carpeta.is_dir()
+    assert {p.codigo for p in resultado.pendientes} == {"P-PROGRAMA-ILLEGIBLE"}
+    assert (resultado.carpeta / "pendientes.md").is_file()

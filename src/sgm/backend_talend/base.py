@@ -48,6 +48,15 @@ class BackendTalend(Protocol):
         """Compila los Jobs nombrados, ya copiados al proyecto, en una sola llamada."""
         ...
 
+    def refrescar(self) -> None:
+        """Hace que Studio vea los Jobs escritos por archivo en `process/`.
+
+        Studio guarda el repositorio en memoria: un `.item` copiado a mano no existe para él hasta
+        que se refresca el workspace, y la compilación falla con «el job no existe en el
+        repositorio». Un backend que no habla con Studio no tiene nada que refrescar.
+        """
+        ...
+
     def verificar(self, nombre: str, contexto: dict[str, str]) -> Veredicto:
         """Verifica un Job ya compilado con un contexto dado."""
         ...

@@ -15,17 +15,20 @@ reparto para que el Job conecte cada nodo con el nombre que el `tMap` espera.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Operator
-from sgm.migrar.esquemas import PendienteMigracion
+from sgm.migrar.esquemas import PendienteMigracion, tipo_de_expresion
 from sgm.talend_item.desde_plan_expresiones import expresion
+from sgm.talend_item.desde_plan_nodos import TIPOS
 from sgm.talend_item.modelo import Columna, Nodo
 from sgm.talend_item.tmap import EntradaMap, SalidaMap, tmap
 
 PRINCIPAL = "row1"
 NO_SOPORTADO = "P-OPERADOR-SIN-SOPORTE"
 SIN_TRADUCIR = "P-ASIGNACION-SIN-TRADUCIR"
+FILTRO_SIN_TRADUCIR = "P-FILTRO-SIN-TRADUCIR"
 FALLO = "P-FALLO-INTERNO"
 
 
@@ -170,6 +173,12 @@ def _entradas(meseta: _Meseta, join: dict | None, armado: Armado, op: Operator) 
                 meseta.fila(indice),
                 list(fuente.columnas),
                 expresiones_union=propias,
+                # Un `ON` de SQL produce una fila por cada pareja: un cliente con cuatro ventas
+                # sale cuatro veces. `UNIQUE_MATCH` —el modo de omisión de Studio— devuelve solo
+                # la primera pareja y se come las demás en silencio: `l2_02` daba 10 filas donde
+                # el SAS da 14. `ALL_ROWS` recorre todas y, si la llave es única, se comporta
+                # igual que `UNIQUE_MATCH`.
+                union="ALL_ROWS" if propias else "UNIQUE_MATCH",
                 union_interna=interna and bool(propias),
             )
         )
@@ -193,11 +202,114 @@ def _filtro(meseta: _Meseta, op: Operator, armado: Armado) -> str:
 
 
 def _valor(
-    meseta: _Meseta, asignacion: dict, armado: Armado, op: Operator
+    meseta: _Meseta,
+    asignacion: dict,
+    armado: Armado,
+    op: Operator,
+    previas: dict[str, tuple[str, str]] | None = None,
 ) -> tuple[str | None, str]:
     """Java de una asignación: la columna tal cual, o la expresión traducida."""
     destino = str(asignacion.get("target", "")).strip()
     valor = str(asignacion.get("expression", "")).strip()
+
+    def traducir(texto: str) -> tuple[str | None, str | None]:
+        filas = {fila: set(columnas) for fila, columnas in meseta.filas.items()}
+        tipos = dict(meseta.tipos)
+        for nombre, (_, tipo) in (previas or {}).items():
+            filas[PRINCIPAL].add(nombre)
+            tipos[f"{PRINCIPAL}.{nombre}"] = tipo
+        java, motivo = expresion(texto, filas, tipos)
+        if java is None:
+            return None, motivo
+        for nombre, (java_previa, _) in (previas or {}).items():
+            if java_previa == f"{PRINCIPAL}.{nombre}":
+                continue
+            java = re.sub(
+                rf"\b{re.escape(PRINCIPAL)}\.{re.escape(nombre)}\b",
+                f"({java_previa})",
+                java,
+            )
+        return java, None
+
+    condicional = asignacion.get("conditional")
+    if isinstance(condicional, dict):
+        condiciones = (
+            [str(rama.get("condition") or "") for rama in condicional["branches"]]
+            if condicional.get("branches")
+            else [str(condicional.get("condition") or "")]
+        )
+        for nombre, (java_previa, tipo_previo) in (previas or {}).items():
+            if (
+                java_previa != f"{PRINCIPAL}.{nombre}"
+                and tipo_previo in {"id_Double", "id_Float", "id_BigDecimal"}
+                and any(
+                    re.search(rf"\b{re.escape(nombre)}\b", condicion)
+                    for condicion in condiciones
+                )
+            ):
+                motivo = (
+                    f"la condición usa la columna derivada numérica '{nombre}'; el `tMap` la emite "
+                    "como primitivo y no se puede preservar el faltante SAS en Java"
+                )
+                armado.pendientes.append(
+                    PendienteMigracion(
+                        FILTRO_SIN_TRADUCIR,
+                        f"columna '{destino}', condición: {motivo}",
+                        _linea(op),
+                    )
+                )
+                return None, motivo
+        if condicional.get("branches"):
+            ramas = []
+            for rama in condicional["branches"]:
+                condicion = traducir(str(rama.get("condition") or ""))
+                resultado = traducir(str(rama.get("expression") or ""))
+                ramas.append((condicion, resultado))
+            falsa = traducir(str(condicional.get("otherwise") or ""))
+            traducidas = [java for pareja in ramas for java, _ in pareja] + [falsa[0]]
+            motivos = [motivo for pareja in ramas for java, motivo in pareja if java is None]
+            if falsa[0] is None:
+                motivos.append(falsa[1])
+            if any(java is None for java in traducidas):
+                armado.pendientes.append(
+                    PendienteMigracion(
+                        SIN_TRADUCIR,
+                        f"columna '{destino}', rama: "
+                        f"{motivos[0] or 'expresión condicional sin traducir'}",
+                        _linea(op),
+                    )
+                )
+                return None, motivos[0] if motivos else "expresión condicional sin traducir"
+            java = falsa[0]
+            for condicion, resultado in reversed(ramas):
+                if condicion[0] is None:
+                    armado.pendientes.append(
+                        PendienteMigracion(
+                            FILTRO_SIN_TRADUCIR,
+                            f"columna '{destino}', condición: {condicion[1]}",
+                            _linea(op),
+                        )
+                    )
+                    return None, condicion[1]
+                java = f"({condicion[0]} ? {resultado[0]} : {java})"
+            return java, ""
+        condicion = traducir(str(condicional.get("condition") or ""))
+        verdadera = traducir(valor)
+        falsa = traducir(str(condicional.get("otherwise") or ""))
+        for indice, (java, motivo) in enumerate((condicion, verdadera, falsa)):
+            if java is None:
+                codigo = FILTRO_SIN_TRADUCIR if indice == 0 else SIN_TRADUCIR
+                concepto = "condición" if indice == 0 else "rama"
+                armado.pendientes.append(
+                    PendienteMigracion(
+                        codigo,
+                        f"columna '{destino}', {concepto}: "
+                        f"{motivo or 'expresión condicional sin traducir'}",
+                        _linea(op),
+                    )
+                )
+                return None, motivo or f"{concepto} condicional sin traducir"
+        return f"({condicion[0]} ? {verdadera[0]} : {falsa[0]})", ""
     if asignacion.get("origin") == "columna":
         fila, motivo = _fila_de_columna(meseta, valor)
         if fila is None:
@@ -205,7 +317,7 @@ def _valor(
                 PendienteMigracion(SIN_TRADUCIR, f"columna '{destino}': {motivo}", _linea(op))
             )
         return fila, ""
-    java, motivo = expresion(valor, meseta.filas, meseta.tipos)
+    java, motivo = traducir(valor)
     if java is None:
         armado.pendientes.append(
             PendienteMigracion(SIN_TRADUCIR, f"columna '{destino}': {motivo}", _linea(op))
@@ -233,6 +345,23 @@ def _fila_de_columna(meseta: _Meseta, valor: str) -> tuple[str | None, str]:
     return None, f"la columna '{columna}' está en varias entradas y el SAS no dice de cuál"
 
 
+def _tipo_de_salida(meseta: _Meseta, java: str, asignacion: dict) -> str:
+    """Tipo de la columna que produce una asignación.
+
+    Una columna copiada conserva el tipo que trae. Una expresión que opera con números produce un
+    número aunque el esquema no lo demuestre —`precio * stock` es doble en SAS—, y si no, texto.
+    Sin esto la salida quedaba `id_String` y Studio no compilaba: `double cannot be converted to
+    String`.
+    """
+    demostrado = tipo_de_expresion(str(asignacion.get("expression") or ""))
+    if demostrado is not None:
+        return TIPOS.get(demostrado, "id_String")
+    fila, _, nombre = java.partition(".")
+    if fila.startswith("row"):
+        return meseta.tipo_de(fila, nombre)
+    return "id_String"
+
+
 def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
     """Salidas del `tMap`: las asignaciones del `SELECT` y, si hay, el `WHERE` como filtro.
 
@@ -242,38 +371,67 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
     """
     filtro = _filtro(meseta, op, armado)
     derivaciones = _pasos(op, "derive")
+    selecciones = _pasos(op, "select")
     asignaciones = derivaciones[-1].get("assignments", []) if derivaciones else []
     agrega = bool(derivaciones) and derivaciones[-1].get("modo") == "agrega"
-    if not asignaciones and not agrega:
-        principal = meseta.fuentes[0]
-        return [
-            SalidaMap(
-                "out1",
-                list(principal.columnas),
-                {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas},
-                filtro=filtro,
-            )
-        ]
     columnas: list[Columna] = []
     expresiones: dict[str, str] = {}
     if agrega:
         principal = meseta.fuentes[0]
         columnas = list(principal.columnas)
         expresiones = {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas}
+    elif not asignaciones:
+        principal = meseta.fuentes[0]
+        columnas = list(principal.columnas)
+        expresiones = {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas}
+    tipos_previos = {c.nombre: c.tipo for c in columnas}
     for asignacion in asignaciones:
         destino = str(asignacion.get("target", "")).strip()
         if not destino or not str(asignacion.get("expression", "")).strip():
             continue
-        java, _ = _valor(meseta, asignacion, armado, op)
+        previas = {
+            nombre: (java_previa, tipos_previos[nombre])
+            for nombre, java_previa in expresiones.items()
+        }
+        java, _ = _valor(meseta, asignacion, armado, op, previas)
         if java is None:
             continue
-        fila, _, nombre = java.partition(".")
-        tipo = meseta.tipo_de(fila, nombre) if fila.startswith("row") else "id_String"
+        tipo = _tipo_de_salida(meseta, java, asignacion)
+        tipos_previos[destino] = tipo
         if destino in expresiones:
             columnas = [Columna(destino, tipo) if c.nombre == destino else c for c in columnas]
         else:
             columnas.append(Columna(destino, tipo))
         expresiones[destino] = java
+    for seleccion in selecciones:
+        nombres = {str(nombre).lower() for nombre in seleccion.get("names") or []}
+        modo = str(seleccion.get("mode") or "").lower()
+        if modo == "keep":
+            columnas = [columna for columna in columnas if columna.nombre.lower() in nombres]
+        elif modo == "drop":
+            columnas = [columna for columna in columnas if columna.nombre.lower() not in nombres]
+        else:
+            armado.pendientes.append(
+                PendienteMigracion(
+                    NO_SOPORTADO, f"modo de selección '{modo}' sin traducir", _linea(op)
+                )
+            )
+            return []
+        expresiones = {columna.nombre: expresiones[columna.nombre] for columna in columnas}
+    renombrados = _pasos(op, "rename")
+    if renombrados:
+        cambios = {
+            str(origen).lower(): str(destino).lower()
+            for origen, destino in renombrados[-1].get("pairs") or []
+        }
+        columnas = [
+            Columna(cambios.get(columna.nombre.lower(), columna.nombre), columna.tipo)
+            for columna in columnas
+        ]
+        expresiones = {
+            cambios.get(nombre.lower(), nombre): expresion
+            for nombre, expresion in expresiones.items()
+        }
     if not columnas:
         return []
     return [SalidaMap("out1", columnas, expresiones, filtro=filtro)]

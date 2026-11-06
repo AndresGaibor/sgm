@@ -78,5 +78,5 @@ def test_los_jobs_de_l0_a_l2_compilan_en_lote(tmp_path):
     segundos = time.perf_counter() - inicio
 
     print(f"{len(carpetas)} Jobs en una llamada, {segundos:.1f} s")
-    assert resultado.no_compilan == {}
+    assert resultado.no_compilan == {}, repr(resultado.no_compilan)
     assert len(resultado.compilan) == len(carpetas)

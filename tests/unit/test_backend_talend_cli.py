@@ -62,6 +62,16 @@ def test_compilar_lote_arma_la_linea_de_comandos(tmp_path):
     assert "--yes" in comando
 
 
+def test_refrescar_pide_el_refresco_del_workspace(tmp_path):
+    """Studio no ve un `.item` copiado a mano hasta que se refresca el workspace."""
+    ejecutor = EjecutorFalso('{"ok": true, "data": {}}')
+
+    _backend(ejecutor, tmp_path=tmp_path).refrescar()
+
+    comando, _ = ejecutor.llamadas[0]
+    assert "talend_bridge_refresh_workspace" in comando
+
+
 def test_compilar_lote_mapea_la_respuesta_real(tmp_path):
     """La respuesta real del puente: un mapa `result.jobs` con `ok` y `error` por Job."""
     ejecutor = EjecutorFalso(_respuesta("build_batch.json"))

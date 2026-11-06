@@ -24,7 +24,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -55,6 +55,9 @@ ILLEGIBLE = "P-PROGRAMA-ILLEGIBLE"
 FALLO = "P-FALLO-INTERNO"
 # Un nombre de variable que huele a credencial no se escribe con su valor, ni en el YAML.
 _SECRETO = re.compile(r"(pass|pwd|secret|token|clave)", re.IGNORECASE)
+# Fecha de los `.properties` si el programa no se puede leer: determinista y sin `fromtimestamp`,
+# que falla en Windows por debajo de 1970.
+_FECHA_SIN_ARCHIVO = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
 @dataclass
@@ -83,12 +86,16 @@ def _fecha(source: Path) -> str:
 
     No es la del reloj a propósito: con la fecha del archivo, dos corridas sobre el mismo programa
     dan los mismos bytes y dos migraciones se pueden comparar con `diff`.
+
+    Un programa que no se puede leer no puede tumbar la migración. En Windows
+    `datetime.fromtimestamp` levanta `OSError` con marcas por debajo de 1970 —y el respaldo de un
+    archivo ilegible era justo la marca 0—, así que la fecha de respaldo se construye sin pasar por
+    la marca de tiempo.
     """
     try:
-        marca = source.stat().st_mtime
-    except OSError:
-        marca = 0.0
-    return fecha_studio(datetime.fromtimestamp(marca).astimezone())
+        return fecha_studio(datetime.fromtimestamp(source.stat().st_mtime).astimezone())
+    except (OSError, OverflowError, ValueError):
+        return fecha_studio(_FECHA_SIN_ARCHIVO)
 
 
 def _catalogo(esquemas: Path | None) -> dict[str, list[Column]]:

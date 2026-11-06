@@ -24,6 +24,7 @@ Ejecutor = Callable[[list[str], float], tuple[int, str]]
 
 _TOOL_LOTE = "talend_job_build_batch"
 _TOOL_VERIFICAR = "talend_job_verify"
+_TOOL_REFRESCO = "talend_bridge_refresh_workspace"
 _PARALELISMO = 4
 # Un nombre de variable de contexto que huela a credencial no se manda: la CLI no debe verla.
 _SECRETO = re.compile(r"(pass|pwd|secret|token|clave)", re.IGNORECASE)
@@ -148,6 +149,10 @@ class TalendCliBackend(ArchivosBackend):
         if codigo != 0:
             raise BackendNoDisponible(f"la CLI de talend-mcp falló en {tool}: código {codigo}")
         return datos if isinstance(datos, dict) else respuesta
+
+    def refrescar(self) -> None:
+        """Pide a Studio que relea el workspace: sin eso, un `.item` copiado a mano no existe."""
+        self.llamar(_TOOL_REFRESCO, {})
 
     def compilar_lote(self, nombres: list[str]) -> ResultadoLote:
         """Compila los Jobs en una llamada; la respuesta real trae un mapa `result.jobs`."""

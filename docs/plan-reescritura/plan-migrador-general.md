@@ -519,6 +519,15 @@ de CSV y DLM generan `tFileInputDelimited` y `tFileOutputDelimited` con cabecera
 | MG-P3-08 | Generador automático de la tabla de funciones soportadas y de `docs/funciones.md` | H | documento generado, sin edición manual | 4 |
 | MG-P3-09 | Cierre de brechas del oráculo (`LENGTH`, `COMPBL`, `CONTAINS`, `IS MISSING` sobre expresión) | H | los 19 resultados sin verificar de `L8/validaciones` pasan a verificados | 6 |
 
+**Estado (hito 106m, 6 de noviembre de 2026).** MG-P3-01 sigue parcial: el intérprete de referencia
+ejecuta el subconjunto de expresiones ejercido por los vectores y casos L0/L4, y los 42 casos
+seleccionados del anillo B pasan; quedan 20 `xfail` con motivo. No se ejecutaron todos los vectores
+de `semantica/vectores.yaml` ni el lote C. MG-P3-02, 03 y 05 avanzan solo en funciones concretas
+respaldadas por esos vectores (`INPUT`, `LEFT`, `SUBSTR`/`SUBSTRN`, `COALESCEC`, `COMPRESS`,
+`SCAN`, `ROUND`, y las funciones ya cubiertas); no se declaran cerradas como catálogos completos.
+MG-P3-04 y 06 a 09 siguen pendientes. Studio está bloqueado por el diálogo `Confirm` detectado por
+`studio_salud.py`.
+
 ### MG-P4. DATA step (90 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -531,6 +540,19 @@ de CSV y DLM generan `tFileInputDelimited` y `tFileOutputDelimited` con cabecera
 | MG-P4-07 | `UPDATE`, `MODIFY` (si aparecen) | S | casos nuevos | 6 |
 | MG-P4-08 | `_N_`, `_ERROR_`, `CALL SYMPUT` | H | `L5` | 6 |
 | MG-P4-09 | Hash objects: soporte mínimo o pendiente con motivo | S | decisión documentada | 6 |
+
+**Estado (hito 106m, 6 de noviembre de 2026).** MG-P4-01 parcial: el frontend y lowering conservan
+`WHERE=` en fuente `SET`, y el plan/emisor representan `WHERE`, subsetting `IF`, asignaciones,
+`KEEP`, `DROP`, `RENAME` y asignaciones `IF/THEN/ELSE`, incluso cadenas `ELSE IF` con destino común.
+El intérprete evalúa las asignaciones del DATA step en orden, por lo que una asignación posterior
+puede usar una columna calculada antes; el emisor sustituye esa referencia por la expresión previa
+en el mismo `tMap`. `l0_07` y `l0_12` coinciden en B; `l0_07` sigue
+pendiente en A porque `sgm migrar` no dispone de un esquema de entrada demostrable para resolver
+`saldo`, no por el ELSE. `SELECT/WHEN` y `DELETE` no se declaran cubiertos. MG-P4-02 a 09 siguen
+pendientes; en particular no se extiende la semántica de `MERGE`, estado por fila ni macros. En
+Studio compilaron en lote 17 Jobs completos de L0–L2; con esquemas basados en cabeceras de muestra,
+`l0_06_asignacion` y `l0_02_where_opcion` se ejecutaron y coincidieron con sus CSV esperados. La
+cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
 ### MG-P5. `PROC SQL` (80 h)
 | Id | Tarea | Tipo | Aceptación | Horas |

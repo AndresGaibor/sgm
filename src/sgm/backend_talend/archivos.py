@@ -36,6 +36,9 @@ class ArchivosBackend:
     def compilar_lote(self, nombres: list[str]) -> ResultadoLote:
         raise BackendNoDisponible(_SIN_STUDIO)
 
+    def refrescar(self) -> None:
+        """No hay nada que refrescar: sin Studio, el repositorio es el propio disco."""
+
     def verificar(self, nombre: str, contexto: dict[str, str]) -> Veredicto:
         raise BackendNoDisponible(_SIN_STUDIO)
 

@@ -54,9 +54,43 @@ def _names(text: str) -> list[str]:
 def _dataset_refs(text: str) -> list[dict]:
     """Datasets de `set`/`merge` con sus opciones; `in=` se guarda como variable indicadora."""
     refs = []
-    for name, _, opts in _SOURCE.findall(text):
+    position = 0
+    while position < len(text):
+        match = re.search(r"[A-Za-z_&][\w.&]*", text[position:])
+        if match is None:
+            break
+        start = position + match.start()
+        name = match.group(0)
+        position = start + len(name)
+        while position < len(text) and text[position].isspace():
+            position += 1
+        opts = ""
+        if position < len(text) and text[position] == "(":
+            inicio = position
+            depth = 0
+            quote = ""
+            while position < len(text):
+                caracter = text[position]
+                if quote:
+                    if caracter == quote:
+                        quote = ""
+                elif caracter in "'\"":
+                    quote = caracter
+                elif caracter == "(":
+                    depth += 1
+                elif caracter == ")":
+                    depth -= 1
+                    if depth == 0:
+                        position += 1
+                        break
+                position += 1
+            opts = text[inicio + 1 : position - 1]
         in_match = _IN_OPTION.search(opts)
-        refs.append({"name": name, "options": opts, "in": in_match.group(1) if in_match else None})
+        ref = {"name": name, "options": opts, "in": in_match.group(1) if in_match else None}
+        where = re.search(r"(?is)\bwhere\s*=\s*\((.*)\)\s*$", opts)
+        if where:
+            ref["where"] = where.group(1).strip()
+        refs.append(ref)
     return refs
 
 

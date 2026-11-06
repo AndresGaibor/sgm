@@ -7,9 +7,13 @@ Por cada `PROC IMPORT`, el esquema de su tabla sale de la primera fuente que lo 
 3. **Columnas que el programa usa aguas abajo** (origen `derived`): los nombres salen de las
    asignaciones, de las llaves de unión y de los filtros.
 
-Una tabla que no llega al catálogo sale con `String`, el tipo por omisión documentado, y su
-pendiente `P-TIPO-DESCONOCIDO` con la línea del `PROC IMPORT`: quien migre sabe que el tipo no está
-demostrado. Un tipo numérico o una fecha nunca se suponen.
+Los nombres no son lo único que el programa demuestra: una columna que el SAS multiplica, divide,
+suma o resta es numérica, porque en SAS solo los números se operan así, y una columna que se pasa a
+`SUM`, `MEAN`, `ROUND` o a un `COALESCE` con un número también. Esas columnas salen `Double` —SAS
+guarda todo número como doble— y no cuentan como tipo desconocido. Lo demás sale con `String`, el
+tipo por omisión documentado, y su pendiente `P-TIPO-DESCONOCIDO` con la línea del `PROC IMPORT`:
+quien migre sabe que el tipo no está demostrado. Un tipo numérico o una fecha nunca se suponen por
+el nombre de la columna ni por el aspecto de sus datos.
 """
 
 from __future__ import annotations
@@ -19,9 +23,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from sgm.ir.models import Column, Operator, Plan
+from sgm.ir.types_code import expression_type
 
 # El tipo que se escribe cuando no hay ninguno demostrado; va siempre con su pendiente.
 TIPO_POR_OMISION = "String"
+# El tipo que el propio programa demuestra cuando opera con una columna: SAS guarda todo número como
+# un doble, así que el tipo fiel es `Double`.
+TIPO_NUMERICO = "Double"
 _TIPO_DESCONOCIDO = "P-TIPO-DESCONOCIDO"
 _REFERENCIA = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b")
 # Identificador suelto que no es llamada a función: `select a, b from t` no califica las columnas.
@@ -36,6 +44,31 @@ _PALABRAS = frozenset(
         "desc", "asc", "work",
     }
 )
+
+
+# Operando de una expresión: una cadena, un nombre quizá calificado con su tabla, un número o un
+# operador. Se recorre así y no con una expresión regular por caso porque `a*b` y `sum(a, 1)` tienen
+# la misma forma por dentro y distinto significado.
+_TOKEN = re.compile(
+    r"'[^']*'|\"[^\"]*\""
+    r"|(?P<ident>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)"
+    r"|(?P<numero>\d+(?:\.\d+)?)"
+    r"|(?P<operador>[+\-*/])"
+    r"|(?P<otro>\S)"
+)
+_LLAMADA = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+# Una expresión que es solo un nombre de columna, quizá con su tabla: el tipo lo da el esquema.
+_SOLO_NOMBRE = re.compile(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?")
+# Funciones que solo aceptan números: cualquiera de sus argumentos con nombre es numérico.
+_FUNCIONES_NUMERICAS = frozenset(
+    {
+        "sum", "mean", "avg", "round", "abs", "int", "floor", "ceil", "sqrt", "exp", "log",
+        "nmiss", "n", "min", "max",
+    }
+)
+# Funciones que conservan el tipo de sus argumentos: junto a un número, el nombre es numérico.
+# `coalescec` e `ifc` quedan fuera a propósito: son las de texto.
+_FUNCIONES_MIXTAS = frozenset({"coalesce", "ifn"})
 
 
 @dataclass(frozen=True)
@@ -80,6 +113,109 @@ def _textos(plan: Plan) -> list[str]:
             if propios.get("condition"):
                 encontrados.append(str(propios["condition"]))
     return [texto for texto in encontrados if texto]
+
+
+def _sin_tabla(nombre: str) -> str:
+    """`ventas.precio` -> `precio`, en minúsculas: como se compara con el esquema."""
+    return nombre.split(".")[-1].lower()
+
+
+def _columnas_aritmeticas(texto: str) -> set[str]:
+    """Nombres que aparecen como operando de `*`, `/`, `+` o `-`.
+
+    `*` y `/` solo unen números en SAS, así que un nombre a cualquiera de sus lados es numérico.
+    `+` y `-` pueden ser un signo (`-x`), así que solo cuentan con algo a los dos lados.
+    """
+    piezas = [(m.lastgroup, m.group(0)) for m in _TOKEN.finditer(texto)]
+    nombres: set[str] = set()
+    for indice, (tipo, valor) in enumerate(piezas):
+        if tipo != "operador":
+            continue
+        izquierda = piezas[indice - 1] if indice else (None, "")
+        derecha = piezas[indice + 1] if indice + 1 < len(piezas) else (None, "")
+        if valor in "*/":
+            lados = (izquierda, derecha)
+        elif izquierda[0] in ("ident", "numero") and derecha[0] in ("ident", "numero"):
+            lados = (izquierda, derecha)
+        else:
+            continue
+        nombres |= {_sin_tabla(lado) for tipo_lado, lado in lados if tipo_lado == "ident"}
+    return {nombre for nombre in nombres if nombre not in _PALABRAS}
+
+
+def _llamadas(texto: str) -> list[tuple[str, str]]:
+    """Cada llamada de la expresión como `(nombre, argumentos)`, con los paréntesis balanceados."""
+    encontradas: list[tuple[str, str]] = []
+    for coincidencia in _LLAMADA.finditer(texto):
+        nivel = 0
+        for posicion in range(coincidencia.end() - 1, len(texto)):
+            if texto[posicion] == "(":
+                nivel += 1
+            elif texto[posicion] == ")":
+                nivel -= 1
+                if nivel == 0:
+                    argumentos = texto[coincidencia.end() : posicion]
+                    encontradas.append((coincidencia.group(1).lower(), argumentos))
+                    break
+    return encontradas
+
+
+def _nombres(texto: str) -> set[str]:
+    """Nombres de columna del texto: sin cadenas, sin llamadas y sin palabras del SQL."""
+    limpio = _CADENA.sub(" ", texto)
+    return {
+        _sin_tabla(nombre)
+        for nombre in re.findall(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?(?!\s*\()", limpio)
+        if _sin_tabla(nombre) not in _PALABRAS
+    }
+
+
+def _es_numerica(texto: str) -> bool:
+    """La expresión opera con números: `a * b`, `a / 2`, `sum(a, b)`, `coalesce(a, 0)`."""
+    piezas = [(m.lastgroup, m.group(0)) for m in _TOKEN.finditer(texto)]
+    for indice, (tipo, valor) in enumerate(piezas):
+        if tipo != "operador":
+            continue
+        izquierda = piezas[indice - 1] if indice else (None, "")
+        derecha = piezas[indice + 1] if indice + 1 < len(piezas) else (None, "")
+        if valor in "*/":
+            return True
+        if izquierda[0] in ("ident", "numero") and derecha[0] in ("ident", "numero"):
+            return True
+    for funcion, argumentos in _llamadas(texto):
+        if funcion in _FUNCIONES_NUMERICAS:
+            return True
+        if funcion in _FUNCIONES_MIXTAS and re.search(r"\d", _CADENA.sub(" ", argumentos)):
+            return True
+    return False
+
+
+def tipo_de_expresion(texto: str) -> str | None:
+    """Tipo que la propia expresión demuestra, sin mirar el esquema de las columnas.
+
+    `Double` si opera con números o pasa por una función numérica; `String` si es texto o una
+    concatenación; y `None` cuando es una columna suelta, porque ahí el tipo lo dice el esquema.
+    """
+    limpio = texto.strip()
+    if not limpio or _SOLO_NOMBRE.fullmatch(limpio):
+        return None
+    demostrado = expression_type(limpio)
+    if demostrado is not None:
+        return demostrado.type
+    return TIPO_NUMERICO if _es_numerica(limpio) else TIPO_POR_OMISION
+
+
+def _columnas_numericas(plan: Plan) -> set[str]:
+    """Columnas cuyo tipo numérico demuestra el propio programa, sin catálogo ni muestra."""
+    numericas: set[str] = set()
+    for texto in _textos(plan):
+        numericas |= _columnas_aritmeticas(texto)
+        for funcion, argumentos in _llamadas(texto):
+            if funcion in _FUNCIONES_NUMERICAS:
+                numericas |= _nombres(argumentos)
+            elif funcion in _FUNCIONES_MIXTAS and re.search(r"\d", _CADENA.sub(" ", argumentos)):
+                numericas |= _nombres(argumentos)
+    return numericas
 
 
 def _columnas_usadas(plan: Plan, tabla: str) -> list[str]:
@@ -188,6 +324,7 @@ def esquemas_de_entrada(
     """Esquema de cada tabla que el plan lee y los pendientes de tipo que quedan."""
     esquemas: dict[str, list[Column]] = {}
     pendientes: list[PendienteMigracion] = []
+    numericas = _columnas_numericas(plan)
     for op in plan.graph.operators():
         if op.kind != "read_file":
             continue
@@ -207,12 +344,23 @@ def esquemas_de_entrada(
         else:
             origen = "derived"
             nombres = _columnas_usadas(plan, tabla)
-        esquemas[tabla] = [Column(nombre, TIPO_POR_OMISION, None, origen) for nombre in nombres]
+        esquemas[tabla] = [
+            Column(
+                nombre,
+                TIPO_NUMERICO if nombre.lower() in numericas else TIPO_POR_OMISION,
+                None,
+                origen,
+            )
+            for nombre in nombres
+        ]
+        sin_tipo = [nombre for nombre in nombres if nombre.lower() not in numericas]
+        if not sin_tipo:
+            continue
         pendientes.append(
             PendienteMigracion(
                 _TIPO_DESCONOCIDO,
-                f"{tabla}: {len(nombres)} columnas sin tipo demostrado; se escribe "
-                f"{TIPO_POR_OMISION} hasta que haya catálogo o muestra",
+                f"{tabla}: {len(sin_tipo)} de {len(nombres)} columnas sin tipo demostrado; se "
+                f"escriben {TIPO_POR_OMISION} hasta que haya catálogo o muestra",
                 _linea(op),
             )
         )

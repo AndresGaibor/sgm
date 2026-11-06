@@ -208,3 +208,16 @@ def test_keep_drop_rename_output_infile_input_datalines_symput():
     ]
     datalines = _ds(steps).statements[-1]
     assert datalines.fields["rows"] == 1
+
+
+def test_set_con_where_optiona_conserva_la_expresion_en_la_fuente():
+    step = _ds(_steps("data activos; set clientes(where=(estado = 'ACTIVO')); run;"))
+
+    assert step.statements[0].fields["sources"] == [
+        {
+            "name": "clientes",
+            "options": "where=(estado = 'ACTIVO')",
+            "in": None,
+            "where": "estado = 'ACTIVO'",
+        }
+    ]

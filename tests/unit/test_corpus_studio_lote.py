@@ -20,9 +20,14 @@ class BackendFalso:
 
     def __init__(self, error: Exception | None = None) -> None:
         self.llamadas: list[list[str]] = []
+        self.orden: list[str] = []
         self.error = error
 
+    def refrescar(self) -> None:
+        self.orden.append("refrescar")
+
     def compilar_lote(self, nombres: list[str]) -> ResultadoLote:
+        self.orden.append("compilar")
         self.llamadas.append(list(nombres))
         if self.error is not None:
             raise self.error
@@ -54,9 +59,32 @@ def test_copia_llama_una_vez_y_limpia(tmp_path):
 
     resultado = compilar_en_lote(carpetas, proyecto, backend, "cs1")
 
-    assert backend.llamadas == [["job_a_cs1", "job_b_cs1"]]
-    assert resultado.compilan == ("job_a_cs1", "job_b_cs1")
+    assert backend.llamadas == [["job_a_cs100", "job_b_cs101"]]
+    assert resultado.compilan == ("job_a_cs100", "job_b_cs101")
     assert list((proyecto / "process").iterdir()) == []
+
+
+def test_refresca_antes_de_compilar(tmp_path):
+    """Studio tiene el repositorio en memoria: sin refrescar, los Jobs copiados no existen."""
+    proyecto = _proyecto(tmp_path)
+    backend = BackendFalso()
+
+    compilar_en_lote([_job(tmp_path / "a", "job_a")], proyecto, backend, "cs1")
+
+    assert backend.orden == ["refrescar", "compilar"]
+
+
+def test_dos_programas_con_el_mismo_nombre_no_se_pisan(tmp_path):
+    """Los dos programas del corpus se llaman `programa.sas`: sin posición, el segundo pisa al primero."""
+    proyecto = _proyecto(tmp_path)
+    carpetas = [_job(tmp_path / "a", "job_programa"), _job(tmp_path / "b", "job_programa")]
+    backend = BackendFalso()
+
+    compilar_en_lote(carpetas, proyecto, backend, "cs1")
+
+    (nombres,) = backend.llamadas
+    assert nombres == ["job_programa_cs100", "job_programa_cs101"]
+    assert len(set(nombres)) == 2
 
 
 def test_limpia_aunque_el_backend_falle(tmp_path):
@@ -90,4 +118,4 @@ def test_nombres_con_sufijo_unico(tmp_path):
     compilar_en_lote(carpetas, proyecto, backend, "cs1")
     compilar_en_lote(carpetas, proyecto, backend, "cs2")
 
-    assert backend.llamadas == [["job_a_cs1"], ["job_a_cs2"]]
+    assert backend.llamadas == [["job_a_cs100"], ["job_a_cs200"]]

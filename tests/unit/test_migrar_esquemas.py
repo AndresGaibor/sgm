@@ -126,3 +126,37 @@ def test_dos_tablas_no_se_atribuyen_las_columnas_sueltas():
     assert "id_cliente" in _nombres(esquemas["work.clientes"])
     assert "id_cliente" in _nombres(esquemas["work.ventas"])
     assert "monto" not in _nombres(esquemas["work.clientes"])
+
+
+
+
+def test_la_aritmetica_demuestra_el_tipo_numerico():
+    """`precio * stock` no deja dudas: en SAS solo se multiplican números.
+
+    Sin catálogo, esas dos columnas salían `String` y el Job no compilaba en Studio
+    (`bad operand types for binary operator '*'`). El programa demuestra el tipo; no se adivina.
+    """
+    plan = _plan_de("L0", "l0_06_asignacion")
+    esquemas, _ = esquemas_de_entrada(plan, {}, muestra=None)
+
+    tipos = {columna.name: columna.type for columnas in esquemas.values() for columna in columnas}
+    assert tipos["precio"] == "Double"
+    assert tipos["stock"] == "Double"
+
+
+def test_coalesce_con_un_numero_demuestra_el_tipo():
+    """`coalesce(monto, 0)` mezcla la columna con un número: la columna es numérica."""
+    plan = _plan_de("L2", "l2_09_coalesce_tras_left_join")
+    esquemas, _ = esquemas_de_entrada(plan, {}, muestra=None)
+
+    tipos = {columna.name: columna.type for columnas in esquemas.values() for columna in columnas}
+    assert tipos["monto"] == "Double"
+
+
+def test_el_pendiente_cuenta_solo_las_columnas_sin_tipo():
+    plan = _plan_de("L0", "l0_06_asignacion")
+    _, pendientes = esquemas_de_entrada(plan, {}, muestra=None)
+
+    mensajes = [p.mensaje for p in pendientes]
+    assert all("de" in mensaje for mensaje in mensajes), mensajes
+    assert not any(": 0 de" in mensaje for mensaje in mensajes), mensajes

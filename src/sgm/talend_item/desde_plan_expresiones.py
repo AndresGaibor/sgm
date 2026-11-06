@@ -28,6 +28,9 @@ _COLUMNA = re.compile(r"input_row\.(\w+)")
 # `(row1.saldo < 500)`. Es la forma que se puede hacer segura sin adivinar nada.
 _ORDEN_LITERAL = re.compile(r"\(([A-Za-z_][\w.]*)\s*(<=|>=|<|>)\s*(-?\d+(?:\.\d+)?)\)")
 _OPERADOR_ORDEN = re.compile(r"<=|>=|<|>")
+_ORDEN_COMPARABLE = re.compile(
+    r"\(\(Comparable\)\s*([A-Za-z_][\w.]*)\)\.compareTo\(([A-Za-z_][\w.]*)\)\s*(<=|>=|<|>)\s*0"
+)
 
 
 def resolver_filas(java: str, filas: dict[str, set[str]]) -> tuple[str | None, str | None]:
@@ -76,9 +79,20 @@ def _segura(columna: str, operador: str, literal: str, tipos: dict[str, str]) ->
 def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str | None]:
     """Hace seguras las comparaciones de orden de una expresión Java ya traducida.
 
-    Solo se tocan las comparaciones de columna contra literal numérico. Si queda alguna otra
-    comparación de orden, no se puede demostrar su semántica con faltantes y se devuelve el motivo.
+    Cubre comparaciones de columna numérica contra literal y entre columnas numéricas tipadas.
+    Si queda alguna otra comparación de orden, no se puede demostrar su semántica con faltantes y
+    se devuelve el motivo.
     """
+    comparaciones_seguras: list[str] = []
+
+    def comparar_columnas(encontrada: re.Match[str]) -> str:
+        izquierda, derecha, operador = encontrada.groups()
+        if tipos.get(izquierda) not in NUMERICAS or tipos.get(derecha) not in NUMERICAS:
+            return encontrada.group(0)
+        comparaciones_seguras.append(f"({izquierda} {operador} {derecha})")
+        return f"({izquierda} {operador} {derecha})"
+
+    java = _ORDEN_COMPARABLE.sub(comparar_columnas, java)
     partes: list[str] = []
     ultimo = 0
     for encontrada in _ORDEN_LITERAL.finditer(java):
@@ -89,6 +103,8 @@ def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str |
     partes.append(java[ultimo:])
     # Lo que quedó fuera de las comparaciones cubiertas: si tiene un orden, no está demostrado.
     resto = _ORDEN_LITERAL.sub(" ", java)
+    for comparacion in comparaciones_seguras:
+        resto = resto.replace(comparacion, " ")
     sobrante = _OPERADOR_ORDEN.search(resto)
     if sobrante is not None:
         inicio = max(0, sobrante.start() - 40)

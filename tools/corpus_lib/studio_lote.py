@@ -32,16 +32,22 @@ def compilar_en_lote(
     temporales: list[Path] = []
     try:
         nombres: list[str] = []
-        for carpeta in carpetas:
+        for posicion, carpeta in enumerate(carpetas):
             temporal = Path(tempfile.mkdtemp(prefix="lote-"))
             temporales.append(temporal)
             _copiar_jobs(Path(carpeta), temporal)
-            nombres.extend(renombrar(temporal, sufijo, tecnico).values())
+            # El sufijo lleva la posición: dos programas distintos pueden producir Jobs con el
+            # mismo nombre —`programa.sas` en dos carpetas da `job_programa` dos veces— y sin la
+            # posición la segunda copia pisa a la primera y Studio solo ve un Job.
+            nombres.extend(renombrar(temporal, f"{sufijo}{posicion:02d}", tecnico).values())
             for archivo in sorted(temporal.iterdir()):
                 if archivo.suffix in _EXTENSIONES and archivo.is_file():
                     destino = proceso / archivo.name
                     shutil.copyfile(archivo, destino)
                     copiados.append(destino)
+        # Studio tiene el repositorio en memoria: los `.item` recién copiados no existen para él
+        # hasta que se refresca, y compilar sin refrescar da «el job no existe en el repositorio».
+        backend.refrescar()
         return backend.compilar_lote(nombres)
     finally:
         for archivo in copiados:

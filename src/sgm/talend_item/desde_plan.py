@@ -35,7 +35,9 @@ from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
 SIN_SOPORTE = "P-OPERADOR-SIN-SOPORTE"
 # Operadores que el emisor sabe traducir a un componente del Job.
-CON_NODO = frozenset({"read_file", "write_file", "map", "filter", "derive", "join"})
+CON_NODO = frozenset(
+    {"read_file", "write_file", "map", "filter", "derive", "select", "rename", "join"}
+)
 
 
 @dataclass
@@ -64,7 +66,7 @@ def _tabla(dataset: str) -> str:
 
 
 def _produce(op: Operator) -> list[str]:
-    if op.kind in ("read_file", "map", "filter", "derive", "join"):
+    if op.kind in ("read_file", "map", "filter", "derive", "select", "rename", "join"):
         return [str(d).lower() for d in op.params.get("outputs", [])]
     return []
 
@@ -392,7 +394,7 @@ class _Job:
         elif op.kind == "map":
             self._mapa(op, x)
         elif op.kind in CON_NODO:
-            # `filter`, `derive` y `join` sueltos son un `tMap` de una sola entrada.
+            # Las transformaciones sueltas son un `tMap` de una sola entrada.
             self._mapa(op, x)
         elif componente == "none":
             self._sin_soporte(op)

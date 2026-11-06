@@ -132,7 +132,7 @@
       "valor_componente": null
     },
     {
-      "id": "op00012",
+      "id": "op00008",
       "kind": "sort",
       "status": "soportado",
       "placement": "flow",
@@ -185,7 +185,7 @@
       }
     },
     {
-      "id": "op00013",
+      "id": "op00009",
       "kind": "dedup",
       "status": "soportado",
       "placement": "flow",
@@ -237,7 +237,7 @@
       }
     },
     {
-      "id": "op00014",
+      "id": "op00010",
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
@@ -292,7 +292,7 @@
       }
     },
     {
-      "id": "op00015",
+      "id": "op00011",
       "kind": "sort",
       "status": "soportado",
       "placement": "flow",
@@ -347,7 +347,7 @@
       }
     },
     {
-      "id": "op00016",
+      "id": "op00012",
       "kind": "sort",
       "status": "soportado",
       "placement": "flow",
@@ -402,7 +402,7 @@
       }
     },
     {
-      "id": "op00017",
+      "id": "op00013",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -430,7 +430,7 @@
       "valor_componente": null
     },
     {
-      "id": "op00018",
+      "id": "op00014",
       "kind": "read",
       "status": "soportado",
       "placement": "flow",
@@ -458,7 +458,7 @@
       "valor_componente": null
     },
     {
-      "id": "op00021",
+      "id": "op00017",
       "kind": "write_file",
       "status": "soportado",
       "placement": "flow",
@@ -508,11 +508,11 @@
       }
     },
     {
-      "id": "op00022",
+      "id": "op00018",
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
-      "signature": "52e583d16e78c7d8",
+      "signature": "11be8ffe44451db0",
       "params": {
         "steps": [
           {
@@ -533,55 +533,24 @@
                 {
                   "target": "importe",
                   "expression": "round(cantidad * precio, 0.01)"
-                }
-              ],
-              "modo": "agrega",
-              "declared": {
-                "prefijo": [
-                  "String",
-                  3
-                ]
-              }
-            },
-            "signature": "216261ba7e2e261a"
-          },
-          {
-            "kind": "derive",
-            "params": {
-              "conditional": "if canal = 'WEB' then descuento = 0.05",
-              "declared": {
-                "prefijo": [
-                  "String",
-                  3
-                ]
-              }
-            },
-            "signature": "535ca095796c915d"
-          },
-          {
-            "kind": "derive",
-            "params": {
-              "conditional": "else if canal = 'TIENDA' then descuento = 0.02",
-              "declared": {
-                "prefijo": [
-                  "String",
-                  3
-                ]
-              }
-            },
-            "signature": "b0e8820e20381953"
-          },
-          {
-            "kind": "filter",
-            "params": {
-              "expression": "else descuento = 0"
-            },
-            "signature": "269cfdb0db10d702"
-          },
-          {
-            "kind": "derive",
-            "params": {
-              "assignments": [
+                },
+                {
+                  "target": "descuento",
+                  "expression": "0.05",
+                  "conditional": {
+                    "branches": [
+                      {
+                        "condition": "canal = 'WEB'",
+                        "expression": "0.05"
+                      },
+                      {
+                        "condition": "canal = 'TIENDA'",
+                        "expression": "0.02"
+                      }
+                    ],
+                    "otherwise": "0"
+                  }
+                },
                 {
                   "target": "importe_neto",
                   "expression": "importe * (1 - descuento)"
@@ -595,7 +564,7 @@
                 ]
               }
             },
-            "signature": "2837ee4a031fdb9f"
+            "signature": "11fe62d377e85858"
           },
           {
             "kind": "rename",
@@ -631,12 +600,11 @@
         }
       ],
       "notes": [
-        "7 operadores de flujo unidos en un tMap (pasada 6)",
+        "3 operadores de flujo unidos en un tMap (pasada 6)",
         "missing(): null (y cadena vacía si es texto) en Java",
         "tipo no confirmado: el tipo numérico se infiere del literal de la comparación; validar que la columna es numérica",
         "substr(): posición de 1 base convertida a 0; con cadena más corta puede fallar",
-        "round(): redondeo al múltiplo indicado (la mitad sube, como en SAS)",
-        "expresión sin equivalente Talend: else descuento = 0"
+        "round(): redondeo al múltiplo indicado (la mitad sube, como en SAS)"
       ],
       "component": {
         "name": "tMap",
@@ -666,7 +634,7 @@
       }
     },
     {
-      "id": "op00023",
+      "id": "op00019",
       "kind": "map",
       "status": "soportado",
       "placement": "flow",
@@ -758,73 +726,73 @@
     },
     {
       "src": "op00004",
-      "dst": "op00022",
+      "dst": "op00018",
       "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00008",
+      "dst": "op00009",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00009",
+      "dst": "op00012",
+      "dataset": "WORK.pedidos_dedup",
+      "materialize": null
+    },
+    {
+      "src": "op00010",
+      "dst": "op00011",
+      "dataset": "WORK.clientes",
+      "materialize": null
+    },
+    {
+      "src": "op00011",
+      "dst": "op00014",
+      "dataset": "WORK.clientes@v2",
+      "materialize": null
+    },
+    {
+      "src": "op00011",
+      "dst": "op00019",
+      "dataset": "WORK.clientes@v2",
       "materialize": null
     },
     {
       "src": "op00012",
       "dst": "op00013",
-      "dataset": "(interno)",
+      "dataset": "WORK.pedidos_dedup@v2",
+      "materialize": null
+    },
+    {
+      "src": "op00012",
+      "dst": "op00019",
+      "dataset": "WORK.pedidos_dedup@v2",
       "materialize": null
     },
     {
       "src": "op00013",
-      "dst": "op00016",
-      "dataset": "WORK.pedidos_dedup",
+      "dst": "op00019",
+      "dataset": "(interno)",
       "materialize": null
     },
     {
       "src": "op00014",
-      "dst": "op00015",
-      "dataset": "WORK.clientes",
-      "materialize": null
-    },
-    {
-      "src": "op00015",
-      "dst": "op00018",
-      "dataset": "WORK.clientes@v2",
-      "materialize": null
-    },
-    {
-      "src": "op00015",
-      "dst": "op00023",
-      "dataset": "WORK.clientes@v2",
-      "materialize": null
-    },
-    {
-      "src": "op00016",
-      "dst": "op00017",
-      "dataset": "WORK.pedidos_dedup@v2",
-      "materialize": null
-    },
-    {
-      "src": "op00016",
-      "dst": "op00023",
-      "dataset": "WORK.pedidos_dedup@v2",
-      "materialize": null
-    },
-    {
-      "src": "op00017",
-      "dst": "op00023",
+      "dst": "op00019",
       "dataset": "(interno)",
       "materialize": null
     },
     {
       "src": "op00018",
-      "dst": "op00023",
-      "dataset": "(interno)",
-      "materialize": null
-    },
-    {
-      "src": "op00022",
-      "dst": "op00012",
+      "dst": "op00008",
       "dataset": "WORK.pedidos_ok",
       "materialize": null
     },
     {
-      "src": "op00023",
-      "dst": "op00021",
+      "src": "op00019",
+      "dst": "op00017",
       "dataset": "WORK.pedidos_region",
       "materialize": null
     }
@@ -944,7 +912,7 @@
   ],
   "gaps": [
     {
-      "signature": "52e583d16e78c7d8",
+      "signature": "11be8ffe44451db0",
       "reason": "TIPO_DESCONOCIDO",
       "evidence": [
         {
@@ -994,19 +962,6 @@
           "call": null
         }
       ]
-    },
-    {
-      "signature": "52e583d16e78c7d8/else descuento = 0",
-      "reason": "FUNCION_NO_MAPEADA",
-      "evidence": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
-          "label": null,
-          "call": null
-        }
-      ]
     }
   ],
   "jobs": [
@@ -1015,14 +970,14 @@
       "subjobs": [
         [
           "op00003",
-          "op00014",
-          "op00015",
-          "op00022",
+          "op00010",
+          "op00011",
+          "op00018",
+          "op00008",
+          "op00009",
           "op00012",
-          "op00013",
-          "op00016",
-          "op00023",
-          "op00021"
+          "op00019",
+          "op00017"
         ]
       ],
       "contexts": {},
@@ -1039,7 +994,7 @@
         "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
         "nota": ""
       },
-      "signature": "52e583d16e78c7d8",
+      "signature": "11be8ffe44451db0",
       "fuente": [
         {
           "file": "generalization/etl_archivos_simple.sas",
@@ -1102,25 +1057,6 @@
           "file": "generalization/etl_archivos_simple.sas",
           "line_start": 40,
           "line_end": 42,
-          "label": null,
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "FUNCION_NO_MAPEADA",
-        "dueno": "joseph",
-        "se_cierra_con": "rules/sas/functions/",
-        "nota": "else descuento = 0"
-      },
-      "signature": "52e583d16e78c7d8/else descuento = 0",
-      "fuente": [
-        {
-          "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
           "label": null,
           "call": null
         }

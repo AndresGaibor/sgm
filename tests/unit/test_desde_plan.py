@@ -20,6 +20,7 @@ from sgm.ir.models import Column, Plan
 from sgm.migrar.esquemas import esquemas_de_entrada
 from sgm.talend_item import desde_plan_map
 from sgm.talend_item.desde_plan import plan_a_jobs
+from sgm.talend_item.desde_plan_expresiones import expresion
 from sgm.talend_item.modelo import Job
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L2"
@@ -102,6 +103,14 @@ def test_left_join_no_activa_union_interna():
     assert 'expression="row1.id_cliente"' in _tmap(job)  # la llave sigue declarada
 
 
+def test_un_lookup_de_sql_trae_todas_las_parejas():
+    """Un cliente con cuatro ventas sale cuatro veces: `UNIQUE_MATCH` solo daría la primera."""
+    for caso in ("l2_01_inner_join_clientes_ventas", "l2_02_left_join_con_faltantes"):
+        datos = _tmap(_job(_caso(caso)))
+
+        assert 'name="row2" matchingMode="ALL_ROWS"' in datos, caso
+
+
 def test_traza_apunta_a_las_lineas_del_sas():
     plan = _caso("l2_01_inner_join_clientes_ventas")
 
@@ -138,6 +147,237 @@ def test_filtro_sobre_texto_comprueba_que_sea_numero():
     assert "row1.saldo == null" in filtro
     assert "matches(" in filtro
     assert "Double.parseDouble(row1.saldo)" in filtro
+
+
+@pytest.mark.parametrize("operador", ["<", "<=", ">", ">="])
+def test_comparacion_entre_columnas_numericas_cubre_faltantes(operador):
+    java, motivo = expresion(
+        f"saldo_actual {operador} saldo_anterior",
+        {"row1": {"saldo_actual", "saldo_anterior"}},
+        {"row1.saldo_actual": "id_Double", "row1.saldo_anterior": "id_Double"},
+    )
+
+    assert motivo is None
+    assert java is not None
+    assert "== null" in java
+    assert "!= null" in java
+    assert f"row1.saldo_actual {operador} row1.saldo_anterior" in java
+    assert ".compareTo(" not in java
+
+
+def test_comparacion_de_orden_entre_columnas_sin_tipo_queda_pendiente():
+    java, motivo = expresion(
+        "saldo_actual < saldo_anterior",
+        {"row1": {"saldo_actual", "saldo_anterior"}},
+        {},
+    )
+
+    assert java is None
+    assert motivo is not None
+    assert "semántica de faltante" in motivo
+
+
+def test_data_step_emite_asignacion_aditiva_en_tmap():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.ventas DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA con_totales;\nSET ventas;\ntotal = monto * 2;\nRUN;"
+    )
+    esquema = {"work.ventas": [Column("id_venta", "String"), Column("monto", "Double")]}
+
+    job = _job(plan, esquema)
+    datos = _tmap(job)
+
+    assert 'name="id_venta" type="id_String"' in datos
+    assert 'name="monto" type="id_Double"' in datos
+    assert 'name="total"' in datos
+    assert 'expression="(row1.monto * 2)" type="id_Double"' in datos
+    assert "row1.monto" in datos and "* 2" in datos
+
+
+def test_data_step_if_then_else_emite_ternario_en_tmap():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.saldos DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA clasificados;\nSET saldos;\n"
+        "IF saldo >= 0 THEN estado = 'positivo';\n"
+        "ELSE estado = 'negativo';\nRUN;"
+    )
+    esquema = {"work.saldos": [Column("id", "String"), Column("saldo", "Double")]}
+    resultado = plan_a_jobs(plan, esquema)
+    assert not resultado.pendientes, resultado.pendientes
+    job = resultado.jobs[0]
+    datos = _tmap(job)
+
+    assert "outputTables" in datos, datos
+    assert 'name="estado"' in datos
+    assert 'expression="' in datos
+    assert "row1.saldo != null" in datos
+    assert ' ? &quot;positivo&quot; : &quot;negativo&quot;' in datos
+
+
+def test_data_step_else_if_encadenado_emite_ternarios_en_orden():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.saldos DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA clasificados;\nSET saldos;\n"
+        "IF saldo >= 2000 THEN nivel = 'ALTO';\n"
+        "ELSE IF saldo >= 500 THEN nivel = 'MEDIO';\n"
+        "ELSE nivel = 'BAJO';\nRUN;"
+    )
+    esquema = {"work.saldos": [Column("id", "String"), Column("saldo", "Double")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not resultado.pendientes, resultado.pendientes
+    datos = _tmap(resultado.jobs[0])
+    assert "2000" in datos and "500" in datos, datos
+    assert datos.index("2000") < datos.index("500")
+    assert all(f"&quot;{valor}&quot;" in datos for valor in ("ALTO", "MEDIO", "BAJO"))
+
+
+def test_asignacion_condicional_numerica_derivada_queda_pendiente_por_faltante_sas():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.productos DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA bandera;\nSET productos;\n"
+        "valor = precio * stock;\nIF valor > 2000 THEN grande = 1;\n"
+        "ELSE grande = 0;\nRUN;"
+    )
+    esquema = {
+        "work.productos": [
+            Column("codigo", "String"),
+            Column("precio", "Double"),
+            Column("stock", "Double"),
+        ]
+    }
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert len(resultado.pendientes) == 1
+    assert resultado.pendientes[0].codigo == "P-FILTRO-SIN-TRADUCIR"
+    assert "primitivo" in resultado.pendientes[0].mensaje
+    datos = _tmap(resultado.jobs[0])
+    assert 'name="valor"' in datos
+    assert 'name="grande"' not in datos
+
+
+@pytest.mark.parametrize(
+    ("seleccion", "esperadas", "excluidas"),
+    [
+        ("KEEP id saldo;", ("id", "saldo"), ("secreto",)),
+        ("DROP secreto;", ("id", "saldo"), ("secreto",)),
+    ],
+)
+def test_data_step_keep_drop_limita_esquema_de_salida(seleccion, esperadas, excluidas):
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.privadas DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        f"DATA publicas;\nSET privadas;\ntotal = saldo * 2;\n{seleccion}\nRUN;"
+    )
+    esquema = {
+        "work.privadas": [
+            Column("id", "String"),
+            Column("saldo", "Double"),
+            Column("secreto", "String"),
+        ]
+    }
+
+    job = _job(plan, esquema)
+    datos = _tmap(job)
+    salida = datos.partition("<outputTables")[2].partition("</outputTables>")[0]
+
+    assert all(f'name="{nombre}"' in salida for nombre in esperadas)
+    assert all(f'name="{nombre}"' not in salida for nombre in excluidas)
+
+
+def test_data_step_rename_emite_nuevo_nombre_y_expresion_de_origen():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.privadas DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA publicas;\nSET privadas;\ntotal = saldo * 2;\nRENAME saldo=balance;\nRUN;"
+    )
+    esquema = {"work.privadas": [Column("id", "String"), Column("saldo", "Double")]}
+
+    job = _job(plan, esquema)
+    datos = _tmap(job)
+    salida = datos.partition("<outputTables")[2].partition("</outputTables>")[0]
+
+    assert 'name="balance"' in salida
+    assert 'expression="row1.saldo"' in salida
+    assert 'name="saldo"' not in salida
+
+
+def test_set_where_option_emite_filtro_en_tmap():
+    programa = (RAIZ / "L0" / "l0_02_where_opcion" / "programa.sas").read_text(
+        encoding="utf-8"
+    )
+    plan = _plan(programa)
+    esquema = {
+        "work.clientes": [
+            Column("id_cliente", "String"),
+            Column("nombre", "String"),
+            Column("ciudad", "String"),
+            Column("saldo", "Double"),
+            Column("estado", "String"),
+        ]
+    }
+
+    job = _job(plan, esquema)
+    datos = _tmap(job)
+
+    assert "outputTables" in datos, datos
+    assert "expressionFilter=" in datos
+    assert "row1.estado" in datos
+    assert "ACTIVO" in datos
+
+
+def test_subsetting_if_emite_filtro_nulo_seguro_para_numeros():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.valores DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA seleccionados;\nSET valores;\nIF cantidad;\nRUN;"
+    )
+    esquema = {"work.valores": [Column("id", "String"), Column("cantidad", "Double")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+    assert not resultado.pendientes, resultado.pendientes
+    datos = _tmap(resultado.jobs[0])
+
+    assert "expressionFilter=" in datos
+    assert "row1.cantidad" in datos
+    assert "null" in datos
+
+
+@pytest.mark.parametrize(
+    ("sentencia", "esperadas"),
+    [
+        ("KEEP id saldo;", ("id", "saldo")),
+        ("DROP secreto;", ("id", "saldo")),
+        ("RENAME saldo=balance;", ("id", "balance")),
+    ],
+)
+def test_data_step_modificador_aislado_emite_tmap(sentencia, esperadas):
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.privadas DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        f"DATA publicas;\nSET privadas;\n{sentencia}\nRUN;"
+    )
+    esquema = {
+        "work.privadas": [
+            Column("id", "String"),
+            Column("saldo", "Double"),
+            Column("secreto", "String"),
+        ]
+    }
+
+    resultado = plan_a_jobs(plan, esquema)
+    assert not resultado.pendientes, resultado.pendientes
+    salida = _tmap(resultado.jobs[0]).partition("<outputTables")[2].partition(
+        "</outputTables>"
+    )[0]
+
+    assert all(f'name="{nombre}"' in salida for nombre in esperadas)
 
 
 @pytest.mark.skipif(shutil.which("javac") is None, reason="sin JDK para compilar la expresión")
