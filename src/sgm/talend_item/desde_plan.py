@@ -30,7 +30,7 @@ from sgm.talend_item.desde_plan_contextos import (
 )
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
-from sgm.talend_item.modelo import Columna, Conexion, Job, Nodo
+from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
 SIN_SOPORTE = "P-OPERADOR-SIN-SOPORTE"
@@ -74,6 +74,16 @@ def _como_paso(op: Operator) -> Operator:
     return replace(op, kind="map", params={"steps": [paso], **op.params})
 
 
+def _renombrar(nodo: Nodo, unico: str) -> list[Fila | Tabla]:
+    """Parámetros del nodo con su `UNIQUE_NAME` cambiado: una copia con el nombre viejo no sirve."""
+    parametros: list[Fila | Tabla] = []
+    for parametro in nodo.parametros:
+        if isinstance(parametro, tuple) and parametro[1] == "UNIQUE_NAME":
+            parametro = (parametro[0], parametro[1], unico, parametro[3])
+        parametros.append(parametro)
+    return parametros
+
+
 class _Job:
     """Armado de un Job: un recorrido hacia adelante sobre los operadores de sus subjobs."""
 
@@ -89,6 +99,7 @@ class _Job:
         self.traza: dict[str, list[int]] = {}
         self._usados: dict[str, int] = {}
         self._nodo: dict[str, Nodo] = {}  # id de operador -> nodo del Job
+        self._instancias: dict[tuple[str, str | None], Nodo] = {}  # (operador, consumidor) -> nodo
         self._alias: dict[str, str] = {}  # id de operador plegado -> id que lo representa
         self._salida: dict[str, list[Columna]] = {}  # id de operador -> columnas que entrega
         self._tabla_de: dict[str, str] = {}  # UNIQUE_NAME del nodo -> tabla que entrega
@@ -138,6 +149,36 @@ class _Job:
         self._usados[componente] = self._usados.get(componente, 0) + 1
         return f"{componente}_{self._usados[componente]}"
 
+    def _consumidores(self, op_id: str) -> list[str]:
+        """Operadores que consumen el flujo de este, atravesando los `read` que solo lo renombran.
+
+        Una tabla que el SAS lee dos veces —dos `PROC SQL` sobre el mismo `WORK.x`— tiene un solo
+        `read_file` en el plan, pero en Talend no puede salir dos veces del mismo componente: cada
+        salida de un nodo tiene un nombre y un dueño. Se emite un nodo por consumidor, que es lo que
+        hace una persona al copiar el componente.
+        """
+        destinos: list[str] = []
+        por_ver = [op_id]
+        vistos = {op_id}
+        while por_ver:
+            actual = por_ver.pop(0)
+            for arista in self.plan.graph.edges():
+                if arista.src != actual or arista.dst in vistos:
+                    continue
+                siguiente = self.plan.graph.operator(arista.dst)
+                vistos.add(siguiente.id)
+                dataset = str(siguiente.params.get("dataset", "")).lower()
+                if siguiente.kind == "read" and self._productor.get(dataset) == op_id:
+                    por_ver.append(siguiente.id)
+                elif siguiente.kind != "read":
+                    destinos.append(siguiente.id)
+        return destinos
+
+    def _instancia(self, op_id: str, consumidor: str | None) -> Nodo | None:
+        """Nodo que representa al operador cuando lo consume `consumidor`."""
+        return self._instancias.get((op_id, consumidor)) or self._nodo.get(op_id)
+
+
     # -- piezas ------------------------------------------------------------------------------
     def _sin_soporte(self, op: Operator) -> None:
         motivo = op.notes[0] if op.notes else f"el operador '{op.kind}' no tiene componente"
@@ -159,7 +200,14 @@ class _Job:
         self.pendientes += resultado.pendientes
         if resultado.nodo is None:
             return
-        self._registrar(op, resultado.nodo, resultado.columnas, _tabla(tabla))
+        for posicion, consumidor in enumerate(self._consumidores(op.id) or [None]):
+            nodo = resultado.nodo
+            if posicion:
+                otro = self._unico(nodo.componente)
+                nodo = replace(
+                    nodo, unico=otro, y=96 * posicion, parametros=_renombrar(nodo, otro)
+                )
+            self._registrar(op, nodo, resultado.columnas, _tabla(tabla), consumidor)
 
     def _escritura(self, op: Operator, x: int) -> None:
         consumido = str((op.params.get("inputs") or [""])[0]).lower()
@@ -194,10 +242,11 @@ class _Job:
             if representante is None or representante in vistos:
                 continue
             vistos.add(representante)
+            nodo = self._instancia(representante, op.id)
             fuentes.append(
                 Fuente(
                     representante,
-                    self._tabla_de.get(self._nodo[representante].unico, ""),
+                    self._tabla_de.get(nodo.unico, "") if nodo else "",
                     self._salida[representante],
                 )
             )
@@ -220,9 +269,17 @@ class _Job:
             armado.nodo.metadatas[0].nombre if armado.nodo.metadatas else "out1"
         )
 
-    def _registrar(self, op: Operator, nodo: Nodo, salida: list[Columna], tabla: str) -> None:
+    def _registrar(
+        self,
+        op: Operator,
+        nodo: Nodo,
+        salida: list[Columna],
+        tabla: str,
+        consumidor: str | None = None,
+    ) -> None:
         self.nodos.append(nodo)
-        self._nodo[op.id] = nodo
+        self._nodo.setdefault(op.id, nodo)
+        self._instancias[(op.id, consumidor)] = nodo
         self._salida[op.id] = list(salida)
         self._tabla_de[nodo.unico] = tabla
         evidencia = op.evidence[0] if op.evidence else None
@@ -239,7 +296,11 @@ class _Job:
             nombre = self._nombre(desde, hasta)
             if nombre is None:
                 continue
-            origen, destino = self._nodo[desde].unico, self._nodo[hasta].unico
+            nodo_origen = self._instancia(desde, hasta)
+            nodo_destino = self._nodo.get(hasta)
+            if nodo_origen is None or nodo_destino is None:
+                continue
+            origen, destino = nodo_origen.unico, nodo_destino.unico
             clave = (origen, destino, nombre)
             if clave in vistas:
                 continue

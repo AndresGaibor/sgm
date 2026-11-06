@@ -204,3 +204,22 @@ def test_un_operador_que_falla_no_detiene_a_los_demas(monkeypatch):
     assert len(fallos) == 1
     assert fallos[0].linea == 15
     assert "mapper sin salida" in fallos[0].mensaje
+
+
+def test_la_misma_tabla_leida_dos_veces_da_un_nodo_por_consumidor():
+    """Dos `PROC SQL` sobre la misma tabla son dos lecturas, no una que sale dos veces.
+
+    En Talend cada salida de un nodo tiene nombre y dueño: dos conexiones `row1` desde el mismo
+    componente no existen. El SAS sí lee la tabla dos veces, así que el Job la lee dos veces.
+    """
+    plan = _caso("l2_04_validacion_tipo_doc")
+
+    job = _job(plan)
+
+    lecturas = [nodo for nodo in job.nodos if nodo.componente == "tFileInputDelimited"]
+    assert len(lecturas) == 4  # dos tablas, dos consumidores cada una
+    assert len({nodo.unico for nodo in lecturas}) == 4
+    salidas = [(c.origen, c.nombre) for c in job.conexiones if c.conector == "FLOW"]
+    assert len(salidas) == len(set(salidas))
+    for nodo in lecturas:
+        assert sum(1 for c in job.conexiones if c.origen == nodo.unico) == 1
