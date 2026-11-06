@@ -35,9 +35,10 @@ def _dbms(opciones: dict[str, str]) -> str | None:
     return _sin_comillas(valor).lower() if valor else None
 
 
-def _entero(valor: str | None) -> int | None:
+def _entero(valor: str | None) -> int | str | None:
+    """Convierte el límite literal y conserva MAX o una expresión sin evaluar."""
     texto = _sin_comillas(valor) if valor else ""
-    return int(texto) if texto.isdigit() else None
+    return int(texto) if texto.isdigit() else texto or None
 
 
 def _getnames(opciones: dict[str, str]) -> bool:
@@ -70,6 +71,8 @@ def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
         "dbms": _dbms(opciones),
         "delimiter": _sin_comillas(opciones["delimiter"]) if "delimiter" in opciones else None,
     }
+    if "sheet" in opciones:
+        params["sheet"] = _sin_comillas(opciones["sheet"])
     b.op("write_file", params, ev)
 
 

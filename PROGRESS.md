@@ -5106,3 +5106,27 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: se mantiene `main` sobre la punta recibida y se registra la reparación como un nuevo
   commit local del hito 119. No se hace `push`.
 - Bloqueos: ninguna verificación de Talend Studio forma parte de este hito.
+
+## Hito 120. Precisar el formato Excel y conservar opciones de PROC IMPORT/EXPORT
+
+- Fecha: 2026-11-06. Alcance: MG-P2-01.
+- Qué se hizo:
+  - El mapeo de lectores y escritores toma primero el `DBMS` declarado. Un nombre de archivo con
+    extensión contradictoria ya no cambia el componente, y un `DBMS` desconocido no se presenta
+    como delimitado.
+  - `PROC EXPORT DBMS=XLS/XLSX` propone `tFileOutputExcel` y conserva `SHEET` en la IR. Se añadió
+    un caso de regresión. La escritura sigue pendiente porque el repo no contiene una plantilla de
+    ese componente extraída de un Job real; no se inventaron parámetros ni se emitió CSV.
+  - La lectura Excel activa el indicador XLSX solo para `DBMS=XLSX`; `DBMS=XLS` usa formato anterior.
+  - `GUESSINGROWS` numérico, `MAX` y expresión sin evaluar se conservan. El emisor deja el pendiente
+    `P-GUESSINGROWS`, porque Talend requiere tipos explícitos y el SGM no debe adivinar su
+    equivalencia. `PROC EXPORT` solo agrega `SHEET` a la IR cuando el SAS la declara, evitando
+    invalidar firmas de programas que no usan esa opción.
+  - La política de reportes CSV marca explícitamente su formato para mantener su ruta de salida.
+- Pruebas: suite completa **2495 aprobadas, 26 omitidas y 144 `xfail`**; `uv run ruff check .`
+  limpio; **87 pruebas focalizadas** para los cambios del hito.
+- Decisiones: `INFILE/INPUT` sin `DBMS` conserva su candidato actual hasta MG-P2-02, que modelará
+  su formato. Los `PROC IMPORT/EXPORT` sin formato declarado no se asignan automáticamente a Excel
+  ni a delimitados. La asignación del usuario estima MG-P2 en 38 h y el plan maestro desglosa 50 h;
+  se conserva el desglose maestro sin alterar la estimación hasta conciliar ambas cifras.
+- Bloqueo: no hay plantilla real de `tFileOutputExcel`; su generación requiere extraerla de Studio.

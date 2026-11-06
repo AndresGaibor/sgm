@@ -103,6 +103,16 @@ def nodo_lectura(
     resultado = Resultado(columnas=columnas)
     archivo = ruta(params.get("datafile"))
     if dbms in EXCEL:
+        guessingrows = params.get("guessingrows")
+        if guessingrows is not None:
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-GUESSINGROWS",
+                    f"{archivo}: GUESSINGROWS={guessingrows} se limita a archivos delimitados "
+                    "según la referencia SAS; no se aplica a este Excel.",
+                    _linea(op),
+                )
+            )
         if params.get("sheet") is None:
             resultado.pendientes.append(
                 PendienteMigracion(
@@ -119,12 +129,27 @@ def nodo_lectura(
             unico,
             x,
             y,
-            {"FILENAME": archivo, "HEADER": _cabecera(params.get("getnames"))},
+            {
+                "FILENAME": archivo,
+                "VERSION_2007": "true" if dbms == "xlsx" else "false",
+                "HEADER": _cabecera(params.get("getnames")),
+            },
             {"SHEETLIST": celdas},
             columnas,
             ruta_java,
         )
         return resultado
+    guessingrows = params.get("guessingrows")
+    if guessingrows is not None:
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-GUESSINGROWS",
+                f"{archivo}: GUESSINGROWS={guessingrows} afecta la inferencia SAS de tipo y "
+                "longitud; "
+                "Talend requiere tipos explícitos, hay que validar el esquema emitido.",
+                _linea(op),
+            )
+        )
     if dbms not in DELIMITADOS:
         resultado.pendientes.append(
             PendienteMigracion(

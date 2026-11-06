@@ -507,10 +507,13 @@ a `L2` sin YAML; MG-P1-03, MG-P1-05 y MG-P1-06 son de los planes siguientes.
 | MG-P2-06 | `FILENAME` (archivo, pipe, FTP) y `PROC DOWNLOAD/UPLOAD/RSUBMIT` (cierra el hueco R7-12) | S | caso del corpus con `RSUBMIT` | 6 |
 | MG-P2-07 | Decisión MG-D03 aplicada: datasets permanentes a archivo de preparación con aviso | H | casos con `lib.tabla` generan lectura y escritura coherentes | 2 |
 
-**Estado (hito 104m, 5 de noviembre de 2026).** MG-P2-01 a medias: `PROC IMPORT` y `PROC EXPORT`
-de CSV y DLM generan `tFileInputDelimited` y `tFileOutputDelimited` con cabecera y delimitador, y los
-15 casos de `L0` se migran enteros —7 de ellos completos, sin un pendiente que no sea de tipo—. El
-`DBMS=XLSX` y `GUESSINGROWS` todavía no tienen emisor, y los tipos de columna esperan a MG-P1-02.
+**Estado (hito 120, 6 de noviembre de 2026).** MG-P2-01 sigue parcial: CSV/DLM conservan lectura,
+escritura, cabecera y delimitador; `DBMS=XLSX/XLS` se clasifica por el formato declarado y la lectura
+Excel ajusta el indicador del libro XLS/XLSX. `SHEET` de `PROC EXPORT` y `GUESSINGROWS` literal,
+`MAX` o dinámico se conservan en la IR; cuando se usa `GUESSINGROWS`, el emisor deja pendiente validar
+el esquema explícito. La exportación Excel se propone como `tFileOutputExcel`, pero no se genera
+mientras falte una plantilla extraída de un Job real de Studio. `EXCELCS` y formatos no declarados
+siguen pendientes. Los tipos todavía requieren esquema demostrado por catálogo o muestra.
 
 ### MG-P3. Expresiones y funciones (80 h)
 | Id | Tarea | Tipo | Aceptación | Horas |

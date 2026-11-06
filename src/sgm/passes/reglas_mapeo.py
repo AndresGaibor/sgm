@@ -83,8 +83,16 @@ def load_engines(path: Path = ENGINES_PATH) -> dict[str, dict[str, str]]:
 
 
 def _file_format(op: Operator) -> str:
-    datafile = str(op.params.get("datafile") or "").strip("\"' ").lower()
-    return "excel" if datafile.endswith((".xlsx", ".xls")) else "delimited"
+    dbms = str(op.params.get("dbms") or "").strip().lower()
+    if dbms in {"xlsx", "xls"}:
+        return "excel"
+    if dbms in {"csv", "dlm", "tab"}:
+        return "delimited"
+    if not dbms and op.kind == "read_file" and "datafile" not in op.params:
+        # Lecturas DATA step (INFILE/INPUT) todavía no llevan DBMS en la IR; MG-P2-02 modela
+        # sus formatos. PROC IMPORT sí incluye `datafile`, incluso si no declara DBMS.
+        return "delimited"
+    return "unsupported"
 
 
 def _matches(rule: Rule, op: Operator) -> bool:

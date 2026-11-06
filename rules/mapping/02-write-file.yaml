@@ -4,6 +4,7 @@ prioridad: 80
 description: "Escritura a archivo delimitado."
 cuando:
   kind: "write_file"
+  file_format: "delimited"
 produce:
   component: "tFileOutputDelimited"
 confidence: alta
