@@ -23,6 +23,11 @@ from dataclasses import dataclass, field, replace
 from sgm.ir.models import Column, Operator, Plan
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.conexiones import lookup
+from sgm.talend_item.desde_plan_contextos import (
+    contextos_de_plan,
+    reemplazar_rutas,
+    rutas_de_plan,
+)
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.modelo import Columna, Conexion, Job, Nodo
@@ -90,6 +95,7 @@ class _Job:
         self._salidas_map: dict[str, str] = {}  # id de operador -> nombre de su salida
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
         self._productor = self._productores()
+        self.rutas = rutas_de_plan(plan)
 
     # -- grafo -------------------------------------------------------------------------------
     def _productores(self) -> dict[str, str]:
@@ -276,7 +282,13 @@ class _Job:
                     )
                 )
         self._conectar()
-        return Job(job.name, nodos=self.nodos, conexiones=self.conexiones)
+        reemplazar_rutas(self.nodos, self.rutas)
+        return Job(
+            job.name,
+            nodos=self.nodos,
+            conexiones=self.conexiones,
+            contextos=contextos_de_plan(self.plan),
+        )
 
     def _traducir(self, op: Operator, x: int) -> None:
         if op.status == "hueco" or op.kind == "unsupported":
