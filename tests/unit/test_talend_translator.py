@@ -91,9 +91,12 @@ def test_recorte_de_texto():
     assert java("compress(x)") == (
         '(input_row.x == null ? null : StringHandling.CHANGE(input_row.x, " ", ""))'
     )
-    assert java("compress(x,'kd')") == (
-        '(input_row.x == null ? null : StringHandling.EREPLACE(input_row.x, "[kd]", ""))'
-    )
+    assert java("compress(x,'ABCD','k')").startswith("(input_row.x == null ? null : ")
+    assert "replaceAll" in java("compress(x,'ABCD','k')")
+    assert "\\Q" in java("compress(x,'ABCD','k')")
+    assert "[0-9]" in java("compress(x,'','d')")
+    assert "(?i:" in java("compress(x,'a','i')")
+    assert java("compress(x,'','k')") == '(input_row.x == null ? null : "")'
     assert (
         java("compbl(x)")
         == '(input_row.x == null ? null : StringHandling.EREPLACE(input_row.x, " +", " "))'
@@ -103,14 +106,20 @@ def test_recorte_de_texto():
     )
 
 
-def test_scan_advierte_los_delimitadores_consecutivos():
+def test_scan_usa_tokens_y_devuelve_blanco_si_no_hay_esa_palabra():
     result = translate_to_talend("scan(x,2)")
-    assert 'replaceAll("^[\\\\s,;]+", "")' in result.java
-    assert '.split("[\\\\s,;]+")' in result.java
-    assert result.java.endswith(
-        '.length >= 2 ? input_row.x.replaceAll("^[\\\\s,;]+", "").split("[\\\\s,;]+")[1] : null))'
-    )
+    assert 'replaceAll("^[\\\\s!$%&()*+,\\\\-./;\\\\x3c^]+", "")' in result.java
+    assert '.split("[\\\\s!$%&()*+,\\\\-./;\\\\x3c^]+")' in result.java
+    assert "java.util.Arrays.stream" in result.java
+    assert ".skip(1).findFirst().orElse(\"\")" in result.java
+    assert ".length >=" not in result.java
     assert any("delimitadores" in w for w in result.warnings)
+
+
+def test_scan_con_delimitador_literal_y_cero_devuelve_blanco():
+    assert ".split(" in java("scan(x,2,',')")
+    with pytest.raises(Unsupported, match="distinta de cero"):
+        java("scan(x,0,',')")
 
 
 def test_index_es_base_uno():
@@ -313,7 +322,9 @@ def test_solo_se_emiten_rutinas_de_sistema_de_studio():
     ]
     for sas in expressions:
         for owner, method in re.findall(r"\b([A-Z]\w+)\.(\w+)\(", java(sas)):
-            if owner in {"Math", "Double", "Long", "String", "StringBuilder", "Stream", "Objects"}:
+            if owner in {
+                "Math", "Double", "Long", "String", "StringBuilder", "Stream", "Arrays", "Objects"
+            }:
                 continue  # Java nativo, no requiere nada instalado
             assert f"{owner}.{method}" in TALEND_SIGNATURES, (
                 f"{sas} emite {owner}.{method}, que no esta en Studio 8.0"

@@ -157,8 +157,15 @@
       "evidence": [
         {
           "file": "p0_ejemplo_basico.sas",
-          "line_start": 4,
-          "line_end": 8,
+          "line_start": 6,
+          "line_end": 6,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 7,
+          "line_end": 7,
           "label": null,
           "call": null
         }
@@ -183,8 +190,15 @@
         "fuente": [
           {
             "file": "p0_ejemplo_basico.sas",
-            "line_start": 4,
-            "line_end": 8,
+            "line_start": 6,
+            "line_end": 6,
+            "label": null,
+            "call": null
+          },
+          {
+            "file": "p0_ejemplo_basico.sas",
+            "line_start": 7,
+            "line_end": 7,
             "label": null,
             "call": null
           }
@@ -278,8 +292,15 @@
       "evidence": [
         {
           "file": "p0_ejemplo_basico.sas",
-          "line_start": 4,
-          "line_end": 8,
+          "line_start": 6,
+          "line_end": 6,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 7,
+          "line_end": 7,
           "label": null,
           "call": null
         }
@@ -313,8 +334,15 @@
       "fuente": [
         {
           "file": "p0_ejemplo_basico.sas",
-          "line_start": 4,
-          "line_end": 8,
+          "line_start": 6,
+          "line_end": 6,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p0_ejemplo_basico.sas",
+          "line_start": 7,
+          "line_end": 7,
           "label": null,
           "call": null
         }

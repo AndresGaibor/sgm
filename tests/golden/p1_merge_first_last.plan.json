@@ -207,8 +207,8 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 13,
+          "line_end": 13,
           "label": null,
           "call": null
         }
@@ -234,8 +234,8 @@
         "fuente": [
           {
             "file": "p1_merge_first_last.sas",
-            "line_start": 9,
-            "line_end": 22,
+            "line_start": 13,
+            "line_end": 13,
             "label": null,
             "call": null
           }
@@ -261,8 +261,8 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 15,
+          "line_end": 15,
           "label": null,
           "call": null
         }
@@ -288,8 +288,8 @@
         "fuente": [
           {
             "file": "p1_merge_first_last.sas",
-            "line_start": 9,
-            "line_end": 22,
+            "line_start": 15,
+            "line_end": 15,
             "label": null,
             "call": null
           }
@@ -315,8 +315,8 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 21,
+          "line_end": 21,
           "label": null,
           "call": null
         }
@@ -341,8 +341,8 @@
         "fuente": [
           {
             "file": "p1_merge_first_last.sas",
-            "line_start": 9,
-            "line_end": 22,
+            "line_start": 21,
+            "line_end": 21,
             "label": null,
             "call": null
           }
@@ -390,6 +390,13 @@
           "line_end": 22,
           "label": null,
           "call": null
+        },
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 12,
+          "line_end": 12,
+          "label": null,
+          "call": null
         }
       ],
       "notes": [
@@ -420,6 +427,13 @@
             "file": "p1_merge_first_last.sas",
             "line_start": 9,
             "line_end": 22,
+            "label": null,
+            "call": null
+          },
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 12,
+            "line_end": 12,
             "label": null,
             "call": null
           }
@@ -484,8 +498,15 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 18,
+          "line_end": 18,
           "label": null,
           "call": null
         }
@@ -513,8 +534,15 @@
         "fuente": [
           {
             "file": "p1_merge_first_last.sas",
-            "line_start": 9,
-            "line_end": 22,
+            "line_start": 17,
+            "line_end": 17,
+            "label": null,
+            "call": null
+          },
+          {
+            "file": "p1_merge_first_last.sas",
+            "line_start": 18,
+            "line_end": 18,
             "label": null,
             "call": null
           }
@@ -536,8 +564,8 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 21,
+          "line_end": 21,
           "label": null,
           "call": null
         }
@@ -755,8 +783,15 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 18,
+          "line_end": 18,
           "label": null,
           "call": null
         }
@@ -768,8 +803,15 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 18,
+          "line_end": 18,
           "label": null,
           "call": null
         }
@@ -827,8 +869,15 @@
       "fuente": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 18,
+          "line_end": 18,
           "label": null,
           "call": null
         }
@@ -846,8 +895,15 @@
       "fuente": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 9,
-          "line_end": 22,
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 18,
+          "line_end": 18,
           "label": null,
           "call": null
         }

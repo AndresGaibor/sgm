@@ -593,8 +593,22 @@
       "evidence": [
         {
           "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
+          "line_start": 15,
+          "line_end": 15,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 23,
+          "line_end": 23,
           "label": null,
           "call": null
         }
@@ -622,8 +636,22 @@
         "fuente": [
           {
             "file": "generalization/etl_archivos_simple.sas",
-            "line_start": 13,
-            "line_end": 24,
+            "line_start": 15,
+            "line_end": 15,
+            "label": null,
+            "call": null
+          },
+          {
+            "file": "generalization/etl_archivos_simple.sas",
+            "line_start": 17,
+            "line_end": 17,
+            "label": null,
+            "call": null
+          },
+          {
+            "file": "generalization/etl_archivos_simple.sas",
+            "line_start": 23,
+            "line_end": 23,
             "label": null,
             "call": null
           }
@@ -677,6 +705,13 @@
           "line_end": 49,
           "label": null,
           "call": null
+        },
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 48,
+          "line_end": 48,
+          "label": null,
+          "call": null
         }
       ],
       "notes": [
@@ -707,6 +742,13 @@
             "file": "generalization/etl_archivos_simple.sas",
             "line_start": 45,
             "line_end": 49,
+            "label": null,
+            "call": null
+          },
+          {
+            "file": "generalization/etl_archivos_simple.sas",
+            "line_start": 48,
+            "line_end": 48,
             "label": null,
             "call": null
           }
@@ -917,8 +959,22 @@
       "evidence": [
         {
           "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
+          "line_start": 15,
+          "line_end": 15,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 23,
+          "line_end": 23,
           "label": null,
           "call": null
         }
@@ -998,8 +1054,22 @@
       "fuente": [
         {
           "file": "generalization/etl_archivos_simple.sas",
-          "line_start": 13,
-          "line_end": 24,
+          "line_start": 15,
+          "line_end": 15,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 17,
+          "line_end": 17,
+          "label": null,
+          "call": null
+        },
+        {
+          "file": "generalization/etl_archivos_simple.sas",
+          "line_start": 23,
+          "line_end": 23,
           "label": null,
           "call": null
         }

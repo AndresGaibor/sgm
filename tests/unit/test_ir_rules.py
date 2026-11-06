@@ -59,6 +59,15 @@ def test_output_condicionado_es_split():
     splits = _by_kind(ops, "split")
     assert [o.params["target"] for o in splits] == ["a", "b"]
     assert splits[0].params["condition"] == "x = 1"
+    assert splits[1].params["branch"] == "else"
+
+
+def test_output_explicito_sin_condicion_no_se_descarta():
+    ops = _ops("data a; set src; output a; run;")
+    (split,) = _by_kind(ops, "split")
+    assert split.params["target"] == "a"
+    assert split.params["condition"] == ""
+    assert split.params["outputs"] == ["WORK.a"]
 
 
 def test_retain_lag_y_first_last_son_estado_por_fila():

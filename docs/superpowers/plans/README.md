@@ -9,7 +9,7 @@ termina, con las firmas reales que dejó el anterior.
 |---|---|---|---|
 | `2026-11-05-mg-01-fundacion-rapida.md` | Backend de Talend (archivos y CLI de `talend-mcp`), salud de Studio, compilación en lote, ciclo rápido | nada | hecho (compilación real pendiente de repetición según `PROGRESS.md`) |
 | `2026-11-05-mg-02-rebanada-vertical.md` | `sgm migrar` sin YAML para `PROC IMPORT`, `PROC SQL` simple y `PROC EXPORT`; contextos; validador; intérprete; corpus `L0` a `L2`; robustez sobre 190 programas | MG-01 (solo la Task 10) | hecho según la validación en Studio reportada en esta sesión; revisar `PROGRESS.md` |
-| `2026-11-06-mg-03-expresiones-datastep.md` | Expresiones y funciones SAS→Java con semántica de faltantes; `DATA step` básico | MG-02 | hecho con alcance explícito; lote C compiló y dos casos se ejecutaron contra esperados (hito 106m). Véase `PROGRESS.md` para pendientes fuera del alcance |
+| `2026-11-06-mg-03-expresiones-datastep.md` | Expresiones y funciones SAS→Java con semántica de faltantes; `DATA step` básico | MG-02 | hecho con alcance explícito; 24 Jobs compilaron en el lote C y dos casos L4 se ejecutaron contra esperados (hito 107). Véase `PROGRESS.md` para pendientes explícitos |
 | MG-04 (por escribir) | Agregados, subconsultas, conjuntos y procedimientos (`SORT`, `FREQ`, `MEANS`) (MG-P5-03 a 08, MG-P6) | MG-03 | pendiente |
 | MG-05 (por escribir) | `MERGE`, `RETAIN`, `FIRST.`/`LAST.`, arrays, `UPDATE` (MG-P4-03 a 07) | MG-03 | pendiente |
 | MG-06 (por escribir) | Macros: expansión estática completa y huecos del analizador (MG-P7) | MG-02 | pendiente |

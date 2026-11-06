@@ -4725,3 +4725,30 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
   vectores, ni los bloques MG-P3-04/06/07/08/09 y MG-P4-02 a 09. Cada sentencia sin representación
   completa permanece pendiente; no se declara soporte de `MERGE`, estado por fila ni macros. El
   estado de MG-03 se limita a las capacidades descritas arriba, no a cerrar MG-P3 o MG-P4 globales.
+
+## Hito 107. MG-03: modificadores de COMPRESS, delimitadores de SCAN y OUTPUT explícito
+
+- Fecha: 2026-11-06.
+- Qué se hizo:
+  - `COMPRESS` traduce los modificadores `K`, `D` e `I` usados por L4; listas literales se tratan
+    como caracteres y los modificadores no implementados dejan la expresión pendiente.
+  - `SCAN` usa el juego de delimitadores ASCII documentado para SAS, devuelve cadena vacía cuando
+    falta la palabra solicitada y rechaza la cuenta cero, que la guía define como inválida. Fuente:
+    `lefunctionsref.pdf`, CALL SCAN p. 442 y SCAN p. 1505.
+  - Cada operación derivada de sentencia DATA step conserva evidencia de la línea concreta.
+    `OUTPUT` explícito conserva destino y rama en la IR; sin emisor de salidas múltiples queda
+    pendiente, no se pierde ni se inventa una traducción.
+  - Se actualizaron los golden afectados por el cambio intencional de evidencia y nodos `OUTPUT`;
+    las pruebas de igualdad y de compatibilidad de goldens pasan sin relajar su contrato.
+- Pruebas: suite completa **2358 passed, 27 skipped, 149 xfailed**; `uv run ruff check .` limpio.
+  Anillo A L4: 20 pasaron. Anillo B focalizado: 142 pasaron, 1 se saltó y 20 `xfail`.
+- Anillo C: una compilación conjunta pasó para 24 Jobs (17 completos L0–L2 y siete L4 de
+  `COMPRESS`/`SCAN`). `l4_06_compress_modificador_k` y `l4_14_scan_palabra` se ejecutaron en Studio
+  con el JDK de Studio y coincidieron con sus CSV esperados.
+- Bloqueos/hallazgos: un lote exploratorio de todos los casos L4 falló en cinco Jobs por
+  incompatibilidades Java: dos casos `INPUT`, `ROUND`, comparación de tipo y `PUT` de fechas. Se
+  excluyeron del lote C enfocado y quedan sin validación de Studio; no se declaran resueltos.
+- Decisiones: se limita la aceptación C a los casos de las funciones implementadas en este cierre;
+  la compilación amplia no se usa para atribuir soporte a los casos con incompatibilidades. MG-04
+  no se inicia en este hito. El alcance aún pendiente está detallado en
+  `docs/plan-reescritura/plan-migrador-general.md` y al final del plan ejecutable de MG-03.

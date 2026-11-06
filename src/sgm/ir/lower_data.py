@@ -129,6 +129,7 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         if index in omit:
             continue
         kind = s.kind
+        statement_ev = Evidence(ev.file, s.line, s.line, ev.label, ev.call)
         before, prev = prev, s
         if kind in _HEAD_KINDS:
             continue
@@ -136,7 +137,9 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         if conditional is not None:
             assignment, siguiente = conditional
             if pending_derive is None:
-                pending_derive = b.op("derive", {"assignments": [], "modo": "agrega"}, ev)
+                pending_derive = b.op(
+                    "derive", {"assignments": [], "modo": "agrega"}, statement_ev
+                )
                 if current is not None:
                     b.link(current, pending_derive)
                 current = pending_derive
@@ -151,7 +154,9 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
                 # `modo`: una asignación de DATA step conserva las columnas que ya venían; el
                 # `derive` de un `SELECT` las reemplaza. Sin la marca, el emisor escribiría un
                 # `tMap` con una sola columna y el Job perdería el resto de la fila.
-                pending_derive = b.op("derive", {"assignments": [], "modo": "agrega"}, ev)
+                pending_derive = b.op(
+                    "derive", {"assignments": [], "modo": "agrega"}, statement_ev
+                )
                 if current is not None:
                     b.link(current, pending_derive)
                 current = pending_derive
@@ -165,9 +170,7 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         if kind in ("array", "do", "end"):
             _note(current, f"{kind} no traducido: revisar el bucle o el arreglo", status="parcial")
             continue
-        if kind == "output" and (before is None or before.kind != "if"):
-            continue  # `output` sin condición: es la salida por defecto del paso
-        new = _statement_op(s, kind, before, ev, b)
+        new = _statement_op(s, kind, before, statement_ev, b)
         if new is None:
             _note(current, f"sentencia sin traducción: {s.text}", status="parcial")
             if current is not None:
@@ -277,8 +280,19 @@ def _statement_op(
     if kind == "rename":
         return b.op("rename", {"pairs": [[a.lower(), c.lower()] for a, c in s.fields["pairs"]]}, ev)
     if kind == "output":
-        condition = before.text if before is not None else ""
-        return b.op("split", {"target": s.fields.get("target"), "condition": condition}, ev)
+        condition = before.text if before is not None and before.kind == "if" else ""
+        target = s.fields.get("target")
+        return b.op(
+            "split",
+            {"target": target, "condition": condition},
+            ev,
+            status="soportado" if target else "parcial",
+            notes=(
+                []
+                if target
+                else ["OUTPUT sin destino explícito requiere semántica de salida por defecto"]
+            ),
+        )
     if kind in ("retain", "lag", "call_symput"):
         notes = ["estado entre filas: en Talend requiere tJavaRow o tMap con variables"]
         return b.op(
@@ -297,7 +311,12 @@ def _conditional_output(s: DsStatement) -> dict | None:
     m = _OUTPUT_IN_IF.match(s.text.strip())
     if not m:
         return None
-    return {"target": m.group("target"), "condition": (m.group("cond") or "no ").strip()}
+    cond = m.group("cond")
+    return {
+        "target": m.group("target"),
+        "condition": cond.strip() if cond else None,
+        "branch": "then" if cond else "else",
+    }
 
 
 def _note(op: Operator | None, text: str, status: str | None = None) -> None:

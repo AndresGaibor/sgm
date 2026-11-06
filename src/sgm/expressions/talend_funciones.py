@@ -83,30 +83,51 @@ def _scan(p: _P, args: list[E]) -> E:
     _need(args, 2, 3, "scan")
     if args[1].kind != "num" or (len(args) == 3 and args[2].kind != "str"):
         raise Unsupported("scan con posición o delimitadores que no son literales")
-    delims = re.escape(args[2].java[1:-1]) if len(args) == 3 else r"\\s,;"
+    delims = re.escape(args[2].java[1:-1]) if len(args) == 3 else r"\\s!$%&()*+,\\-./;\\x3c^"
     n = int(float(args[1].java))
+    if n < 0:
+        raise Unsupported("scan con cuenta negativa")
+    if n == 0:
+        raise Unsupported("scan requiere una cuenta distinta de cero")
     p.warnings.add("scan: los delimitadores consecutivos cuentan como uno, como en SAS")
     tokens = f'{args[0].java}.replaceAll("^[{delims}]+", "").split("[{delims}]+")'
-    return E(_guard([args[0]], f"({tokens}.length >= {n} ? {tokens}[{n - 1}] : null)"), "str")
+    body = f"java.util.Arrays.stream({tokens}).skip({n - 1}).findFirst().orElse(\"\")"
+    return E(_guard([args[0]], body), "str")
 
 
 def _compress(p: _P, args: list[E]) -> E:
-    _need(args, 1, 2, "compress")
-    chars = args[1].java[1:-1] if len(args) == 2 and args[1].kind == "str" else " "
-    if len(args) == 2 and args[1].kind != "str":
-        raise Unsupported("compress con caracteres que no son literales")
-    if len(chars) == 1:
+    _need(args, 1, 3, "compress")
+    if len(args) == 1:
         return E(
             _guard(
                 [args[0]],
-                f'StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + chars + chr(39))}, "")',
+                f'StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + " " + chr(39))}, "")',
             ),
             "str",
         )
-    return E(
-        _guard([args[0]], f'StringHandling.EREPLACE({args[0].java}, "[{re.escape(chars)}]", "")'),
-        "str",
-    )
+    chars = args[1].java[1:-1] if len(args) >= 2 and args[1].kind == "str" else " "
+    modifiers = args[2].java[1:-1].lower() if len(args) == 3 and args[2].kind == "str" else ""
+    if (len(args) >= 2 and args[1].kind != "str") or (len(args) == 3 and args[2].kind != "str"):
+        raise Unsupported("compress con caracteres o modificadores no literales")
+    desconocidos = set(modifiers) - {"d", "i", "k"}
+    if desconocidos:
+        raise Unsupported(
+            "compress con modificadores no cubiertos: " + "".join(sorted(desconocidos))
+        )
+
+    alternativas = [r"\Q" + caracter.replace(r"\E", r"\E\\E\Q") + r"\E" for caracter in chars]
+    if "d" in modifiers:
+        alternativas.append("[0-9]")
+    if not alternativas:
+        kept = '""' if "k" in modifiers else args[0].java
+        return E(_guard([args[0]], kept), "str")
+    patron = "(?:" + "|".join(alternativas) + ")"
+    if "i" in modifiers:
+        patron = "(?i:" + patron + ")"
+    if "k" in modifiers:
+        patron = f"(?!(?:{patron}))[\\s\\S]"
+    java = f"{args[0].java}.replaceAll({_jstr(chr(34) + patron + chr(34))}, \"\")"
+    return E(_guard([args[0]], java), "str")
 
 
 def _round(_p: _P, args: list[E]) -> E:

@@ -236,6 +236,21 @@ def test_data_step_else_if_encadenado_emite_ternarios_en_orden():
     assert all(f"&quot;{valor}&quot;" in datos for valor in ("ALTO", "MEDIO", "BAJO"))
 
 
+def test_output_explicito_sin_emisor_de_ramas_queda_pendiente_con_evidencia():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA salida;\nSET entrada;\nOUTPUT salida;\nRUN;"
+    )
+    esquema = {"work.entrada": [Column("id", "String")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    pendiente = next(p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE")
+    assert pendiente.linea == 6
+    assert "split" in pendiente.mensaje
+
+
 def test_asignacion_condicional_numerica_derivada_queda_pendiente_por_faltante_sas():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.productos DBMS=CSV REPLACE;\n"

@@ -89,10 +89,22 @@
 2. Preparar en una sola tanda los Jobs nuevos del plan y compilarlos con `tests/studio/`/backend de lote. Si la comprobación de salud falla, conservar el resultado como bloqueado; no marcar C como pasado ni cambiar la prueba para ocultarlo.
 3. Si Studio está disponible, ejecutar con datos los casos representativos que cubran cálculo y filtro, capturar la salida literal y compararla con el esperado independiente.
 4. Anexar un hito nuevo a `PROGRESS.md`: alcance, cifras B/C, pruebas, páginas SAS consultadas, decisiones y bloqueos. Actualizar el estado de MG-P3-01, MG-P3-02/03/05 y MG-P4-01/02/08 en el plan maestro. El README de planes solo se marca hecho cuando se cumpla la aceptación realmente comprobada.
-5. Commit de cierre: `hito 106m: MG-03 <resumen>` (usar el siguiente número libre si ya existe un hito posterior al iniciar la ejecución).
+5. Commit de cierre: `hito 107: MG-03 <resumen>`.
 
 ## Revisión de consistencia
 
 - Este plan no crea un IR paralelo, un traductor adicional desconectado del emisor, ni un oráculo derivado del Java.
 - Los `DATA step` con estado o cardinalidad especial (`MERGE`, `RETAIN`, `LAG`, `ARRAY`, bucles) no se declaran soportados por accidente.
 - Lote C solo se afirma cuando la salud y la corrida real lo permiten; el anillo A/B se informa por separado.
+
+## Resultado de ejecución (hito 107)
+
+- Anillo A: 20 casos L4 sin pendiente de asignación/filtro para las funciones cubiertas.
+- Anillo B: 42 casos pasan y 20 conservan `xfail` por motivos previos y explícitos.
+- Anillo C: compilación combinada de 17 Jobs completos L0–L2 y siete casos L4 focalizados en
+  `COMPRESS`/`SCAN`; `l4_06` y `l4_14` coinciden con sus CSV esperados al ejecutarlos en Studio.
+- Límites: `OUTPUT` conserva destino/evidencia, pero no se traduce a ramas mientras el emisor no las
+  soporte. La ampliación de Studio a todos los L4 encontró incompatibilidades Java en cinco casos
+  (`INPUT`, `ROUND`, comparación y fecha); no se contabilizan como compilados. El catálogo completo
+  de funciones/vectores y MG-P3-04/06–09 y MG-P4-02–09 quedan fuera de este plan ejecutable.
+- Verificación final: suite completa y Ruff registradas en `PROGRESS.md`.

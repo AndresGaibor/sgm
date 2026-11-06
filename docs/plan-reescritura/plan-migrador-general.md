@@ -519,14 +519,19 @@ de CSV y DLM generan `tFileInputDelimited` y `tFileOutputDelimited` con cabecera
 | MG-P3-08 | Generador automático de la tabla de funciones soportadas y de `docs/funciones.md` | H | documento generado, sin edición manual | 4 |
 | MG-P3-09 | Cierre de brechas del oráculo (`LENGTH`, `COMPBL`, `CONTAINS`, `IS MISSING` sobre expresión) | H | los 19 resultados sin verificar de `L8/validaciones` pasan a verificados | 6 |
 
-**Estado (hito 106m, 6 de noviembre de 2026).** MG-P3-01 sigue parcial: el intérprete de referencia
-ejecuta el subconjunto de expresiones ejercido por los vectores y casos L0/L4, y los 42 casos
-seleccionados del anillo B pasan; quedan 20 `xfail` con motivo. No se ejecutaron todos los vectores
-de `semantica/vectores.yaml` ni el lote C. MG-P3-02, 03 y 05 avanzan solo en funciones concretas
-respaldadas por esos vectores (`INPUT`, `LEFT`, `SUBSTR`/`SUBSTRN`, `COALESCEC`, `COMPRESS`,
-`SCAN`, `ROUND`, y las funciones ya cubiertas); no se declaran cerradas como catálogos completos.
-MG-P3-04 y 06 a 09 siguen pendientes. Studio está bloqueado por el diálogo `Confirm` detectado por
-`studio_salud.py`.
+**Estado (hito 107, 6 de noviembre de 2026).** MG-P3-01 sigue parcial: el intérprete ejecuta el
+subconjunto de expresiones ejercido por los vectores y casos L0/L4; quedan 20 `xfail` con motivo y no
+se ejecutaron todos los vectores de `semantica/vectores.yaml`. MG-P3-02, 03 y 05 avanzan solo en
+funciones concretas respaldadas por evidencia (`INPUT`, `LEFT`, `SUBSTR`/`SUBSTRN`, `COALESCEC`,
+`COMPRESS`, `SCAN`, `ROUND` y funciones ya cubiertas), no como catálogos completos. `COMPRESS` cubre
+los modificadores `K`, `D` e `I` usados en L4; `SCAN` usa los delimitadores ASCII documentados para
+la plataforma SAS del corpus (CALL SCAN, `lefunctionsref`, p. 442) y devuelve blanco si no existe la
+palabra solicitada (SCAN, p. 1505). Los 20 casos L4 pasan el anillo A; el anillo B conserva sus
+resultados previos. En Studio compilaron juntos 17 Jobs completos L0–L2 y siete casos L4 de
+`COMPRESS`/`SCAN`; `l4_06` y `l4_14` se ejecutaron y coincidieron con sus CSV esperados. Un intento
+de ampliar el lote a los 20 casos L4 encontró cinco incompatibilidades Java en `INPUT`, `ROUND`,
+comparaciones y `PUT` de fechas; se mantienen fuera del lote validado, no se cuentan como soporte.
+MG-P3-04 y 06 a 09 siguen pendientes.
 
 ### MG-P4. DATA step (90 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -541,17 +546,20 @@ MG-P3-04 y 06 a 09 siguen pendientes. Studio está bloqueado por el diálogo `Co
 | MG-P4-08 | `_N_`, `_ERROR_`, `CALL SYMPUT` | H | `L5` | 6 |
 | MG-P4-09 | Hash objects: soporte mínimo o pendiente con motivo | S | decisión documentada | 6 |
 
-**Estado (hito 106m, 6 de noviembre de 2026).** MG-P4-01 parcial: el frontend y lowering conservan
+**Estado (hito 107, 6 de noviembre de 2026).** MG-P4-01 parcial: el frontend y lowering conservan
 `WHERE=` en fuente `SET`, y el plan/emisor representan `WHERE`, subsetting `IF`, asignaciones,
 `KEEP`, `DROP`, `RENAME` y asignaciones `IF/THEN/ELSE`, incluso cadenas `ELSE IF` con destino común.
+Cada sentencia transformada lleva evidencia de su propia línea. `OUTPUT` explícito conserva el
+destino en el plan; como el emisor aún no implementa ramas múltiples, queda como pendiente y no se
+simula una salida parcial.
 El intérprete evalúa las asignaciones del DATA step en orden, por lo que una asignación posterior
 puede usar una columna calculada antes; el emisor sustituye esa referencia por la expresión previa
 en el mismo `tMap`. `l0_07` y `l0_12` coinciden en B; `l0_07` sigue
 pendiente en A porque `sgm migrar` no dispone de un esquema de entrada demostrable para resolver
 `saldo`, no por el ELSE. `SELECT/WHEN` y `DELETE` no se declaran cubiertos. MG-P4-02 a 09 siguen
 pendientes; en particular no se extiende la semántica de `MERGE`, estado por fila ni macros. En
-Studio compilaron en lote 17 Jobs completos de L0–L2; con esquemas basados en cabeceras de muestra,
-`l0_06_asignacion` y `l0_02_where_opcion` se ejecutaron y coincidieron con sus CSV esperados. La
+Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocados; `l4_06` y `l4_14`,
+con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
 ### MG-P5. `PROC SQL` (80 h)
