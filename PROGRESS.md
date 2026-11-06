@@ -4597,3 +4597,58 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
 - Bloqueo: **no se pudo compilar en lote contra Studio**. Hay dos modales abiertos y la salud lo
   detecta; `corpus_studio.py lote` llega a la comprobación y sale con 1 sin copiar Jobs. Falta
   medir el lote real (MG-P0-03 y MG-P0-09) cuando se cierren.
+
+## Hito 104m. Primera rebanada vertical del migrador general: `sgm migrar` sin ningún YAML
+
+- Fecha: 2026-11-05. Ejecución de las tareas 1 a 9 del plan
+  `docs/superpowers/plans/2026-11-05-mg-02-rebanada-vertical.md`. La tarea 10 (lote en Studio) queda
+  pendiente de que Studio esté libre.
+- Qué se hizo: `sgm migrar <programa.sas> --out <carpeta>` toma un programa SAS y deja una carpeta
+  que se abre en Studio y se lee sin abrir nada más: `process/` con el `.item` y el `.properties`,
+  `contextos/<grupo>.yaml` con las rutas fuera del Job, `pendientes.md` con el código, el motivo y la
+  línea del SAS de cada cosa que no se tradujo, `configuracion-pendiente.md` con lo que hay que
+  llenar en cada entorno, `decisiones-tomadas.md` con lo que el migrador eligió y cómo cambiarlo, y
+  `trace.json` más `migracion.log` con la traza a las líneas del SAS y la causa técnica de cada fallo.
+  Sale con código 0 siempre; el 2 queda para el uso incorrecto de la línea de comandos.
+- **Lo que el corpus dice, anillo por anillo** (43 casos de `L0` a `L2` en estado `traducible` o
+  `revisado`, sobre 45 programas):
+  - **Anillo A, el Job**: **15 de 45** casos se traducen completos, sin un solo pendiente que no sea
+    de tipo — 7 de `L0`, 3 de `L1` y 5 de `L2`. Los otros 30 están en la lista viva
+    `tests/corpus/migrar_pendientes.yaml` con su primer motivo, y esa lista es una prueba: un caso de
+    fuera que tenga pendientes la rompe, y un caso de dentro que ya no tenga ninguno también.
+  - **Anillo B, el intérprete del plan**: **14 de 43** casos dan las filas esperadas — 3 de `L0`, 3 de
+    `L1` y 8 de `L2`. Los 29 restantes son `xfail(strict=True)` con el motivo escrito: 27 por pasos
+    que el intérprete todavía no ejecuta (`sort`, `dedup`, `select`, `rename`, `aggregate`,
+    subconsultas) y 2 por huecos del plan que no son suyos (abajo).
+  - **Anillo C, Studio**: pendiente de la tarea 10.
+- **Robustez** (la instrucción de no fallar nunca, medida): los **190** programas de
+  `tests/fixtures/sas` se migran en **25 s en total**, sin una excepción, y los 190 dejan su
+  `pendientes.md`. Un `PROC REG`, un archivo vacío, uno con bytes aleatorios, uno truncado a mitad de
+  sentencia y un `%macro` sin `%mend` salen con código 0 y su explicación en el informe. Los 45 Jobs
+  de `L0` a `L2` dan `validar_job(job) == []`.
+- **Dos huecos del plan que no son del migrador**, anotados para los planes siguientes:
+  1. `l0_02`: el `WHERE=` de un `SET` no llega al plan; el analizador lo descarta, así que el
+     migrador no puede ni avisar. El caso sale con `P-ESQUEMA-VACIO` porque no queda ninguna columna
+     demostrada.
+  2. `l2_12`: el alias de la auto-unión se pierde y las dos referencias quedan
+     `id_cliente < id_cliente`.
+- **Dos defectos que la ejecución encontró**:
+  1. Un operador del plan que no quedó en ningún `subjob` no se recorría nunca: el `PROC REG` existía,
+     tenía su línea, y se perdía en silencio. Ahora los operadores que nadie reclamó se recorren al
+     final, y `ResultadoMigracion.visitados` deja la invariante comprobable.
+  2. Los `.properties` llevaban la fecha del reloj, así que dos corridas del mismo programa no eran
+     comparables. El backend acepta una fecha y `sgm migrar` le pasa la de modificación del programa:
+     dos corridas dan los mismos bytes y la prueba lo compara archivo por archivo.
+- Decisiones:
+  - **La lista de pendientes vivos no cuenta los `P-TIPO-DESCONOCIDO`.** Sin catálogo del entorno no
+    hay tipo que demostrar y el Job se ejecuta igual con `String`; contarlos dejaría los 45 casos en
+    la lista para siempre y la lista no diría nada. Lo que cuenta es lo que no se tradujo.
+  - `migrar()` es la función pura y no lanza; `migrar_command()` es el envoltorio de `typer` y solo
+    añade las dos validaciones de ruta.
+  - `--backend talend` toma la carpeta de `talend-mcp` y el proyecto de `SGM_TALEND_DIR` y
+    `SGM_TALEND_PROJECT`; sin ellas es uso incorrecto de la línea de comandos y sale con 2.
+- Pruebas nuevas: `test_migrar_esquemas.py` (9), `test_desde_plan.py` (11),
+  `test_desde_plan_contextos.py` (5), `test_validador_job.py` (8), `test_migrar_interprete.py` (5),
+  `test_migrar_corpus_anillo_b.py` (43, 29 de ellos `xfail`), `test_cli_migrar.py` (10),
+  `test_migrar_corpus_aceptacion.py` (49). Suite completa: **2273 pruebas, 0 fallos, 27 omitidas,
+  158 xfailed** en 133 s.

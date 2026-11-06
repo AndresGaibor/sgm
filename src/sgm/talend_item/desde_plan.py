@@ -45,6 +45,13 @@ class ResultadoMigracion:
     jobs: list[Job] = field(default_factory=list)
     pendientes: list[PendienteMigracion] = field(default_factory=list)
     traza: dict[str, list[int]] = field(default_factory=dict)
+    # Ids de los operadores del plan que se recorrieron. Todos tienen que estar: uno que no se
+    # visitó no dejó nodo ni pendiente, y se perdió sin que nadie lo diga.
+    visitados: set[str] = field(default_factory=set)
+    # Ids de los `read`/`write` que solo nombran un flujo ya producido y se plegaron sobre él. No
+    # son pasos y no tienen línea propia en la traza: su flujo lo representa el operador que los
+    # produjo, y eso es lo que la aceptación del corpus comprueba.
+    plegados: set[str] = field(default_factory=set)
 
 
 def _linea(op: Operator) -> int | None:
@@ -97,6 +104,8 @@ class _Job:
         self.conexiones: list[Conexion] = []
         self.pendientes: list[PendienteMigracion] = []
         self.traza: dict[str, list[int]] = {}
+        self.visitados: set[str] = set()
+        self.plegados: set[str] = set()
         self._usados: dict[str, int] = {}
         self._nodo: dict[str, Nodo] = {}  # id de operador -> nodo del Job
         self._instancias: dict[tuple[str, str | None], Nodo] = {}  # (operador, consumidor) -> nodo
@@ -136,13 +145,20 @@ class _Job:
             productor = self._productor.get(str(op.params.get("dataset", "")).lower())
             if productor and productor != op_id:
                 self._alias[op_id] = productor
-                return self._resolver(productor, visto)
+                return self._plegar(op_id, productor, visto)
         elif op.kind == "write":
             previos = self.plan.graph.predecessors(op_id)
             if previos:
                 self._alias[op_id] = previos[0]
-                return self._resolver(previos[0], visto)
+                return self._plegar(op_id, previos[0], visto)
         return None
+
+    def _plegar(self, op_id: str, representante: str, visto: set[str]) -> str | None:
+        """Resuelve el plegado y lo anota solo si llegó a un operador que tiene nodo."""
+        resuelto = self._resolver(representante, visto)
+        if resuelto is not None:
+            self.plegados.add(op_id)
+        return resuelto
 
     def _unico(self, componente: str) -> str:
         """UNIQUE_NAME con el ordinal del componente en el Job, como los escribe Studio."""
@@ -349,6 +365,7 @@ class _Job:
                         _linea(op),
                     )
                 )
+            self.visitados.add(op_id)
         self._conectar()
         reemplazar_rutas(self.nodos, self.rutas)
         return Job(
@@ -401,6 +418,8 @@ def plan_a_jobs(
         resultado.jobs.append(armado.armar(job))
         resultado.pendientes += armado.pendientes
         resultado.traza.update(armado.traza)
+        resultado.visitados |= armado.visitados
+        resultado.plegados |= armado.plegados
     return resultado
 
 

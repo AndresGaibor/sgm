@@ -66,6 +66,10 @@ class ResultadoMigrar:
     pendientes: list[PendienteMigracion] = field(default_factory=list)
     notas: list[str] = field(default_factory=list)
     traza: dict[str, list[int]] = field(default_factory=dict)
+    # Operadores del plan que se recorrieron: uno que falte no dejó nodo ni pendiente.
+    visitados: set[str] = field(default_factory=set)
+    # `read`/`write` que solo nombran un flujo ya producido: no son pasos, se pliegan.
+    plegados: set[str] = field(default_factory=set)
     escritos: list[Path] = field(default_factory=list)
 
 
@@ -254,6 +258,8 @@ def migrar(
         resultado.jobs = migracion.jobs
         resultado.pendientes += migracion.pendientes
         resultado.traza = migracion.traza
+        resultado.visitados = migracion.visitados
+        resultado.plegados = migracion.plegados
         _validar(resultado)
     _escribir(resultado, contextos, backend, source)
     return resultado

@@ -1,0 +1,42 @@
+# Casos de `L0` a `L2` que `sgm migrar` todavía no traduce por completo.
+#
+# Una entrada es un caso con al menos un pendiente de traducción, y el motivo es el primero que sale
+# en `pendientes.md` —el de la línea más temprana del SAS—. La lista es viva en los dos sentidos:
+# `test_solo_los_casos_listados_tienen_pendientes` exige que ningún caso de fuera tenga pendientes, y
+# `test_la_lista_no_tiene_casos_resueltos` falla cuando un caso de aquí ya no tiene ninguno, para
+# obligar a quitar su entrada.
+#
+# Los pendientes de tipo (`P-TIPO-DESCONOCIDO`) **no cuentan**: sin catálogo del entorno no hay tipo
+# que demostrar, el Job se ejecuta igual con `String`, y una lista que los incluyera tendría los 45
+# casos para siempre y no diría nada. Lo que cuenta es lo que no se tradujo.
+
+l0_02_where_opcion: P-ESQUEMA-VACIO
+l0_03_keep: P-OPERADOR-SIN-SOPORTE
+l0_04_drop: P-OPERADOR-SIN-SOPORTE
+l0_05_rename: P-ESQUEMA-VACIO
+l0_07_if_then_else: P-FILTRO-SIN-TRADUCIR
+l0_09_set_dos_tablas: P-ESQUEMA-VACIO
+l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
+l0_13_do_end: P-FILTRO-SIN-TRADUCIR
+l1_03_orden_con_faltantes: P-OPERADOR-SIN-SOPORTE
+l1_04_distinct_orden: P-OPERADOR-SIN-SOPORTE
+l1_05_aritmetica_faltantes: P-OPERADOR-SIN-SOPORTE
+l1_06_like_con_tildes: P-OPERADOR-SIN-SOPORTE
+l1_07_like_guion_bajo: P-OPERADOR-SIN-SOPORTE
+l1_08_in_lista: P-OPERADOR-SIN-SOPORTE
+l1_09_between_fechas: P-FILTRO-SIN-TRADUCIR
+l1_10_dos_etapas_faltantes: P-ASIGNACION-SIN-TRADUCIR
+l1_11_orden_posicional: P-OPERADOR-SIN-SOPORTE
+l1_12_filtro_tildes: P-OPERADOR-SIN-SOPORTE
+l1_14_expresion_compuesta: P-FILTRO-SIN-TRADUCIR
+l1_15_distinct_tildes: P-OPERADOR-SIN-SOPORTE
+l2_04_validacion_tipo_doc: P-FILTRO-SIN-TRADUCIR
+l2_06_in_subconsulta: P-ESQUEMA-VACIO
+l2_07_not_in_subconsulta: P-ESQUEMA-VACIO
+l2_08_case_when_tras_left_join: P-ASIGNACION-SIN-TRADUCIR
+l2_10_is_missing_numerico_y_texto: P-ESQUEMA-VACIO
+l2_11_join_tres_tablas: P-ASIGNACION-SIN-TRADUCIR
+l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
+l2_13_anti_join_sin_ventas: P-FILTRO-SIN-TRADUCIR
+l2_14_inner_join_where_orden: P-FILTRO-SIN-TRADUCIR
+l2_15_validacion_en_cascada: P-ASIGNACION-SIN-TRADUCIR
