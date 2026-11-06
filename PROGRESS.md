@@ -5082,3 +5082,27 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   lista viva, que se regeneró en este mismo hito), `ruff` limpio.
 - Aviso para quien edite con scripts: `\b` dentro de un texto normal de Python es el carácter de
   retroceso, no el límite de palabra; las expresiones regulares van en cadenas crudas.
+
+## Hito 119. Sincronizar `main` y cerrar regresiones del traductor
+
+- Fecha: 2026-11-06.
+- Integración solicitada: `main` estaba limpia y tenía tres commits locales frente a `origin/main`.
+  Se actualizó el remoto y se fijó la rama en `c6d2c27` (`hito 116m`), conservando el cambio de
+  nombres y orden de entradas de `tMap`. Los commits locales `6f5054d`, `f956c5f` y `178c6f8`
+  dejaron de estar en la punta de `main`, tal como se pidió sobrescribir.
+- Verificación inicial: la punta recibida tenía **55 fallos** en pruebas ya presentes para `INPUT`
+  con informat dinámico, `COMPRESS`, `LIKE`, `SCAN`, literales y diagnósticos de expresiones. La
+  causa fue que esa punta no contenía las correcciones del traductor que esas pruebas esperaban.
+- Correcciones: se conservan como pendientes los informats dinámicos/no literales; se validan y
+  escapan formatos y expresiones de forma conservadora; `SCAN` admite posiciones negativas seguras,
+  `COMPRESS` limita sus equivalencias demostradas y `LIKE` escapa literales. Los diagnósticos ya no
+  reproducen texto de entrada potencialmente sensible. Se ajustaron los golden y la salida de CSV
+  esperados para finales de línea estables en Windows.
+- Estructura: las funciones de texto se separaron en `talend_funciones_texto.py`; la validación
+  compartida de aridad quedó en `talend_base.py`. Los dos módulos de funciones tienen 173 y 136
+  líneas, respectivamente. No se cambió el contrato importado por la tabla de funciones activa.
+- Pruebas: suite completa **2483 aprobadas, 26 omitidas y 144 `xfail`**; `uv run ruff check .`
+  limpio. Regresiones focalizadas: **110 aprobadas**.
+- Decisión: se mantiene `main` sobre la punta recibida y se registra la reparación como un nuevo
+  commit local del hito 119. No se hace `push`.
+- Bloqueos: ninguna verificación de Talend Studio forma parte de este hito.

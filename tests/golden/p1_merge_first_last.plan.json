@@ -803,15 +803,8 @@
       "evidence": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 17,
-          "line_end": 17,
-          "label": null,
-          "call": null
-        },
-        {
-          "file": "p1_merge_first_last.sas",
-          "line_start": 18,
-          "line_end": 18,
+          "line_start": 20,
+          "line_end": 20,
           "label": null,
           "call": null
         }
@@ -895,15 +888,8 @@
       "fuente": [
         {
           "file": "p1_merge_first_last.sas",
-          "line_start": 17,
-          "line_end": 17,
-          "label": null,
-          "call": null
-        },
-        {
-          "file": "p1_merge_first_last.sas",
-          "line_start": 18,
-          "line_end": 18,
+          "line_start": 20,
+          "line_end": 20,
           "label": null,
           "call": null
         }

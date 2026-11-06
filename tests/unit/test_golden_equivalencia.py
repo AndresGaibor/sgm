@@ -35,6 +35,24 @@ CAMPOS_ADITIVOS = {
     "modo": "`agrega` en el derive de un DATA step (hito 104m, DATA step vs SELECT)",
 }
 
+# Cambios intencionales de valor: se documentan por referencia y ruta para que el permiso no cubra
+# otras diferencias. Las referencias exactas también se comprueban en `test_golden.py`.
+CAMBIOS_DOCUMENTADOS = {
+    "p1_merge_first_last.plan.json": {
+        "gaps[2].evidence[0].line_start": "hito 110: conservar solo el origen de la expresión fusionada",
+        "gaps[2].evidence[0].line_end": "hito 110: conservar solo el origen de la expresión fusionada",
+        "gaps[2].evidence[1]": "hito 110: quitar evidencia ajena a la expresión fusionada",
+        "pendientes[2].fuente[0].line_start": "hito 110: conservar solo el origen de la expresión fusionada",
+        "pendientes[2].fuente[0].line_end": "hito 110: conservar solo el origen de la expresión fusionada",
+        "pendientes[2].fuente[1]": "hito 110: quitar evidencia ajena a la expresión fusionada",
+    },
+    "client__client_poc.plan.json": {
+        "operators[74].params.talend_expression_candidates[0].java": (
+            "hito 110: emitir COMPRESS del espacio literal con la rutina Talend de reemplazo"
+        ),
+    },
+}
+
 CASES = [
     ("p0_ejemplo_basico.sas", "p0_ejemplo_basico.plan.json"),
     ("p1_merge_first_last.sas", "p1_merge_first_last.plan.json"),
@@ -109,7 +127,12 @@ def test_plan_solo_cambia_por_campos_aditivos_documentados(rel, golden):
 
     cambios = diferencias(esperado, actual)
 
-    quitados_o_cambiados = [(ruta, tipo) for ruta, tipo in cambios if tipo != "agregado"]
+    permitidos = CAMBIOS_DOCUMENTADOS.get(golden, {})
+    quitados_o_cambiados = [
+        (ruta, tipo)
+        for ruta, tipo in cambios
+        if tipo != "agregado" and ruta not in permitidos
+    ]
     assert quitados_o_cambiados == []
     no_documentados = [ruta for ruta, tipo in cambios if not _es_aditivo(ruta)]
     assert no_documentados == []

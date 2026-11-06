@@ -11,9 +11,7 @@ from sgm.expressions.talend_base import (
     Unsupported,
     _tokens,
 )
-from sgm.expressions.talend_funciones import (
-    _clean,
-)
+from sgm.expressions.talend_lexer import _clean
 from sgm.expressions.talend_parser import (
     _P,
 )

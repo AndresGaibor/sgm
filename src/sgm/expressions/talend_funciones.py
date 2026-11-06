@@ -16,15 +16,15 @@ from sgm.expressions.talend_base import (
     _date_pattern,
     _guard,
     _jstr,
+    _need,
     _num,
-    _str,
     _truth,
 )
-
-
-def _need(args: list[E], low: int, high: int | None = None, name: str = "") -> None:
-    if not low <= len(args) <= (high if high is not None else low):
-        raise Unsupported(f"{name}: número de argumentos no soportado ({len(args)})")
+from sgm.expressions.talend_funciones_texto import _cat as _cat
+from sgm.expressions.talend_funciones_texto import _compress as _compress
+from sgm.expressions.talend_funciones_texto import _scan as _scan
+from sgm.expressions.talend_funciones_texto import _strfn as _strfn
+from sgm.expressions.talend_funciones_texto import _substr as _substr
 
 
 def _routine(routine: str, method: str, arity: int | None = None):
@@ -33,101 +33,6 @@ def _routine(routine: str, method: str, arity: int | None = None):
         return E(f"{routine}.{method}({', '.join(a.java for a in args)})")
 
     return build
-
-
-def _strfn(template: str, arity: int = 1):
-    """Función de texto que, ante un perdido (null), devuelve null."""
-
-    def build(_p: _P, args: list[E]) -> E:
-        _need(args, arity, arity, template)
-        out = template.format(*[a.java for a in args])
-        return E(_guard(args[:1], out) if args[0].kind != "str" else out, "str")
-
-    return build
-
-
-def _cat(trim: bool, sep: bool = False):
-    def build(_p: _P, args: list[E]) -> E:
-        if sep:
-            if len(args) < 2:
-                raise Unsupported("catx necesita separador y valores")
-            glue, items = args[0], args[1:]
-        else:
-            glue, items = E('""', "str"), args
-        parts = [f"StringHandling.TRIM({_str(i)})" if trim else _str(i) for i in items]
-        if sep:  # catx omite los vacíos
-            return E(
-                "String.join("
-                + glue.java
-                + ", java.util.stream.Stream.of("
-                + ", ".join(parts)
-                + ").filter(s -> !s.isEmpty()).toArray(String[]::new))",
-                "str",
-            )
-        return E("(" + " + ".join(parts) + ")", "str")
-
-    return build
-
-
-def _substr(_p: _P, args: list[E]) -> E:
-    _need(args, 2, 3, "substr")
-    s, start = args[0], args[1]
-    end = f", {_num(start)} - 1 + {_num(args[2])}" if len(args) == 3 else ""
-    body = (
-        f"{s.java}.substring((int) {_num(start)} - 1{(', (int) (' + end[2:] + ')') if end else ''})"
-    )
-    return E(_guard([s], body), "str")
-
-
-def _scan(p: _P, args: list[E]) -> E:
-    _need(args, 2, 3, "scan")
-    if args[1].kind != "num" or (len(args) == 3 and args[2].kind != "str"):
-        raise Unsupported("scan con posición o delimitadores que no son literales")
-    delims = re.escape(args[2].java[1:-1]) if len(args) == 3 else r"\\s!$%&()*+,\\-./;\\x3c^"
-    n = int(float(args[1].java))
-    if n < 0:
-        raise Unsupported("scan con cuenta negativa")
-    if n == 0:
-        raise Unsupported("scan requiere una cuenta distinta de cero")
-    p.warnings.add("scan: los delimitadores consecutivos cuentan como uno, como en SAS")
-    tokens = f'{args[0].java}.replaceAll("^[{delims}]+", "").split("[{delims}]+")'
-    body = f"java.util.Arrays.stream({tokens}).skip({n - 1}).findFirst().orElse(\"\")"
-    return E(_guard([args[0]], body), "str")
-
-
-def _compress(p: _P, args: list[E]) -> E:
-    _need(args, 1, 3, "compress")
-    if len(args) == 1:
-        return E(
-            _guard(
-                [args[0]],
-                f'StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + " " + chr(39))}, "")',
-            ),
-            "str",
-        )
-    chars = args[1].java[1:-1] if len(args) >= 2 and args[1].kind == "str" else " "
-    modifiers = args[2].java[1:-1].lower() if len(args) == 3 and args[2].kind == "str" else ""
-    if (len(args) >= 2 and args[1].kind != "str") or (len(args) == 3 and args[2].kind != "str"):
-        raise Unsupported("compress con caracteres o modificadores no literales")
-    desconocidos = set(modifiers) - {"d", "i", "k"}
-    if desconocidos:
-        raise Unsupported(
-            "compress con modificadores no cubiertos: " + "".join(sorted(desconocidos))
-        )
-
-    alternativas = [r"\Q" + caracter.replace(r"\E", r"\E\\E\Q") + r"\E" for caracter in chars]
-    if "d" in modifiers:
-        alternativas.append("[0-9]")
-    if not alternativas:
-        kept = '""' if "k" in modifiers else args[0].java
-        return E(_guard([args[0]], kept), "str")
-    patron = "(?:" + "|".join(alternativas) + ")"
-    if "i" in modifiers:
-        patron = "(?i:" + patron + ")"
-    if "k" in modifiers:
-        patron = f"(?!(?:{patron}))[\\s\\S]"
-    java = f"{args[0].java}.replaceAll({_jstr(chr(34) + patron + chr(34))}, \"\")"
-    return E(_guard([args[0]], java), "str")
 
 
 def _round(_p: _P, args: list[E]) -> E:
@@ -201,7 +106,9 @@ def _aggregate(kind: str):
 
 def _input(p: _P, args: list[E]) -> E:
     _need(args, 2, 2, "input")
-    fmt = args[1].java.strip("\"'").lower().rstrip(".")
+    if args[1].literal is None:
+        raise Unsupported("informat dinámico o no literal; queda pendiente de resolución")
+    fmt = args[1].literal.lower().rstrip(".")
     pattern = _date_pattern(fmt)
     if pattern:
         return E(
@@ -228,7 +135,9 @@ def _input(p: _P, args: list[E]) -> E:
 
 def _put(p: _P, args: list[E]) -> E:
     _need(args, 2, 2, "put")
-    fmt = args[1].java.strip("\"'").lower().rstrip(".")
+    if args[1].literal is None:
+        raise Unsupported("formato dinámico o no literal; queda pendiente de resolución")
+    fmt = args[1].literal.lower().rstrip(".")
     pattern = _date_pattern(fmt)
     if pattern:
         return E(
@@ -298,17 +207,3 @@ def _datepart(_p: _P, args: list[E]) -> E:
         ),
         "date",
     )
-
-
-
-
-def _clean(text: str) -> str:
-    """Quita lo que acompaña a una expresión de PROC SQL y no es parte de ella."""
-    text = re.sub(r"\s+", " ", text).strip()
-    text = re.sub(r"(?i)^(on|where|having)\s+", "", text)
-    text = re.sub(r"(?i)^distinct\s+", "", text)
-    text = re.sub(
-        r"(?i)\s+(label|format|informat|length)\s*=\s*(\"[^\"]*\"|'[^']*'|\S+)\s*$", "", text
-    )
-    text = re.sub(r"(?i)\s+as\s+\w+\s*$", "", text)
-    return text.strip()

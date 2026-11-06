@@ -16,6 +16,7 @@ from sgm.expressions.expressions_parser import (
     _Parser,
     _tokens,
 )
+from sgm.expressions.talend_lexer import _collapse_whitespace_outside_strings
 from sgm.expressions.talend_translator import (
     Unsupported,
     translate_to_talend,
@@ -75,7 +76,7 @@ def _talend_kind(sas: str) -> str:
 
 def _translate_inline(sas: str) -> Translation:
     t = Translation(sas=sas)
-    s = re.sub(r"\s+", " ", sas).strip()
+    s = _collapse_whitespace_outside_strings(sas)
     if re.search(r"\bis\s+(not\s+)?missing\b|\bcalculated\b", s, re.IGNORECASE):
         t.warnings.append("Construcción SAS sin traducción automática")
         return t
@@ -84,8 +85,10 @@ def _translate_inline(sas: str) -> Translation:
         java = p.expr()
         if p.i != len(p.t):
             raise _Unsupported("texto sobrante")
-    except _Unsupported as e:
-        t.warnings.append(f"Sin traducción automática: {e}")
+    except _Unsupported:
+        t.warnings.append(
+            "Sin traducción automática: expresión no admitida; queda pendiente de revisión"
+        )
         return t
     t.talend = None if p.unsafe_comparison else java
     t.columns = sorted(set(p.cols))

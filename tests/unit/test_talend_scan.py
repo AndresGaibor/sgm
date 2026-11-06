@@ -10,8 +10,8 @@ def test_scan_escapa_el_delimitador_de_punto_para_java():
 
     assert result.java == (
         r'(input_row.filename == null ? null : '
-        r'(input_row.filename.replaceAll("^[\\.]+", "").split("[\\.]+").length >= 2 ? '
-        r'input_row.filename.replaceAll("^[\\.]+", "").split("[\\.]+")[1] : null))'
+        r'java.util.Arrays.stream(input_row.filename.replaceAll("^[\\.]+", "").split("[\\.]+"))'
+        r'.skip(1).findFirst().orElse(""))'
     )
 
 
@@ -33,9 +33,10 @@ def test_scan_escapa_delimitadores_especiales_en_regex_y_java(delimiter, java_de
 def test_scan_con_posicion_negativa_cuenta_desde_el_final():
     result = translate_to_talend("scan(name,-1,' ')")
 
-    assert ".length >= 1 ?" in result.java
-    assert "+ -1]" in result.java
-    assert "[-2]" not in result.java
+    assert "java.util.Arrays.stream(" in result.java
+    assert ".skip(Math.abs(" in result.java
+    assert ".findFirst().orElse(\"\")" in result.java
+    assert ">=" not in result.java
 
 
 @pytest.mark.parametrize("position", ["0", "1.5", "-1.5", "2147483648"])

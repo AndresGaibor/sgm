@@ -30,7 +30,7 @@ _TOKEN = re.compile(
     (?P<datelit>'[0-9]{1,2}[A-Za-z]{3}[0-9]{2,4}'[dD])
     |(?P<name>(?:[A-Za-z_]\w*\.)?'[^']+'[nN])
     |(?P<str>'(?:[^']|'')*'|"(?:[^"]|"")*")
-    |(?P<fmt>(?:\$?[A-Za-z_]+\d*\.\d*|\$\d+\.\d*)(?![\w]))
+    |(?P<fmt>(?:\$?[A-Za-z_][A-Za-z_0-9]*\.\d*|\$\d+\.\d*)(?![\w]))
     |(?P<num>\d+\.?\d*(?:[eE][+-]?\d+)?|\.\d+)
     |(?P<mvar>&+[A-Za-z_]\w*\.?)
     |(?P<op>\*\*|\^=|~=|¬=|<>|>=|<=|\|\||!!|=|>|<|\+|-|\*|/|\(|\)|,|&|\||\^|~|¬|\.)
@@ -50,6 +50,7 @@ class E:
 
     java: str
     kind: str = "any"
+    literal: str | None = None
 
 
 class Result:
@@ -73,7 +74,7 @@ def _tokens(text: str) -> list[tuple[str, str]]:
     while pos < len(text):
         m = _TOKEN.match(text, pos)
         if not m or m.end() == pos:
-            raise Unsupported(f"token no soportado: {text[pos : pos + 12]!r}")
+            raise Unsupported("token no soportado en la expresión; queda pendiente de revisión")
         out.append((m.lastgroup or "", m.group(m.lastgroup or "")))
         pos = m.end()
     return out
@@ -153,3 +154,8 @@ def _compare(op: str, a: E, b: E) -> E:
 
 def _date_pattern(fmt: str) -> str | None:
     return DATE_FORMATS.get(fmt.lower().strip(".$'\"").rstrip("."))
+
+
+def _need(args: list[E], low: int, high: int | None = None, name: str = "") -> None:
+    if not low <= len(args) <= (high if high is not None else low):
+        raise Unsupported(f"{name}: número de argumentos no soportado ({len(args)})")

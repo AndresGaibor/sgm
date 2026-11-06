@@ -1,0 +1,5 @@
+tests/corpus/L8/validaciones/**/esperado/archivos/*.csv text eol=lf
+tests/corpus/L8/totales/**/*.csv text eol=lf
+tests/corpus/L8/totales/**/*.sql text eol=lf
+tests/corpus/L8/totales/**/caso.yaml text eol=lf
+tests/corpus/L5/**/programa_expandido.sas text eol=lf
