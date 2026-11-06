@@ -32,6 +32,7 @@ from sgm.talend_item.desde_plan_contextos import (
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
+from sgm.talend_item.desde_plan_union import nodo_union
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
@@ -69,7 +70,7 @@ def _tabla(dataset: str) -> str:
 
 def _produce(op: Operator) -> list[str]:
     producen = ("read_file", "map", "filter", "derive", "select", "rename", "join")
-    if op.kind in (*producen, "sort", "dedup", "aggregate"):
+    if op.kind in (*producen, "sort", "dedup", "aggregate", "union"):
         return [str(d).lower() for d in op.params.get("outputs", [])]
     return []
 
@@ -119,6 +120,7 @@ class _Job:
         self._tabla_de: dict[str, str] = {}  # UNIQUE_NAME del nodo -> tabla que entrega
         self._salidas_map: dict[str, str] = {}  # id de operador -> nombre de su salida
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
+        self._uniones: dict[str, list[str]] = {}  # `union` -> sus entradas, en orden
         self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
         self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
         self._productor = self._productores()
@@ -340,6 +342,22 @@ class _Job:
         self._registrar(op, resultado.nodo, resultado.columnas, tabla)
         self._pasos.add(op.id)
 
+    def _union(self, op: Operator, x: int) -> None:
+        """`union` a `tUnite`: apila entradas con las mismas columnas."""
+        fuentes = self._fuentes(op)
+        unico = self._unico("tUnite")
+        resultado = nodo_union(
+            op, [f.columnas for f in fuentes], unico, x, _linea(op), self.ruta_java
+        )
+        self.pendientes += resultado.pendientes
+        self._salida[op.id] = []
+        if resultado.nodo is None:
+            return
+        tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
+        self._registrar(op, resultado.nodo, fuentes[0].columnas, tabla)
+        self._pasos.add(op.id)
+        self._uniones[op.id] = [f.origen for f in fuentes]
+
     def _registrar(
         self,
         op: Operator,
@@ -390,6 +408,9 @@ class _Job:
         hay a qué fila del mapa corresponde, y una conexión con el nombre equivocado es peor que no
         tenerla.
         """
+        if hasta in self._uniones:
+            # `tUnite` recibe varias filas a la vez: cada entrada con su nombre.
+            return f"{self._nodo[hasta].unico}_in{self._uniones[hasta].index(desde) + 1}"
         if hasta in self._pasos:
             # El nombre de una conexión es único en el Job, y `row1` ya es el de la fila principal
             # del `tMap` que viene detrás: la entrada de un orden o de un DISTINCT lleva el suyo.
@@ -457,6 +478,8 @@ class _Job:
             self._orden(op, x)
         elif op.kind == "aggregate":
             self._agregado(op, x)
+        elif op.kind == "union":
+            self._union(op, x)
         elif op.kind in CON_NODO:
             # Las transformaciones sueltas son un `tMap` de una sola entrada.
             self._mapa(op, x)

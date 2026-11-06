@@ -56,6 +56,16 @@ class Item:
 
 
 @dataclass
+class SemiSpec:
+    """`col [NOT] IN (SELECT k FROM t [WHERE ...])`: un cruce de existencia, no una condición."""
+
+    column: str  # la columna de la consulta, quizá con su alias de tabla
+    negate: bool
+    sub: SelectSpec
+    key: str  # la columna que la subconsulta devuelve
+
+
+@dataclass
 class SelectSpec:
     base: Source | None = None
     joins: list[JoinSpec] = field(default_factory=list)
@@ -65,7 +75,8 @@ class SelectSpec:
     group_by: list[str] = field(default_factory=list)
     having: str | None = None
     order_by: list[tuple[str, bool]] = field(default_factory=list)  # (expresión, descendente)
-    subqueries: bool = False  # hay subconsultas: no se traducen todavía
+    subqueries: bool = False  # hay subconsultas sin traducir
+    semis: list[SemiSpec] = field(default_factory=list)  # IN / NOT IN con subconsulta simple
     windows: bool = False  # hay funciones de ventana: no se traducen todavía
 
 
@@ -160,6 +171,33 @@ def _item(node: exp.Expression) -> Item:
     return Item(node.sql(), column=column)
 
 
+def _semi(conjunto: exp.Expression) -> SemiSpec | None:
+    """`col IN (SELECT k FROM t WHERE ...)` o su negación, si la subconsulta es simple.
+
+    Simple es: una tabla, sin cruces ni agrupación, una sola columna y una columna a la izquierda.
+    Cualquier otra forma se deja donde está y queda como pendiente.
+    """
+    negado = isinstance(conjunto, exp.Not)
+    en = _unwrap(conjunto.this) if negado else conjunto
+    if not isinstance(en, exp.In) or not isinstance(en.this, exp.Column):
+        return None
+    consulta = en.args.get("query")
+    consulta = consulta.this if isinstance(consulta, exp.Subquery) else consulta
+    if not isinstance(consulta, exp.Select) or en.args.get("expressions"):
+        return None
+    try:
+        sub = _select(consulta)
+    except SqlNotSelect:
+        return None
+    simple = (
+        sub.base is not None and not sub.joins and not sub.group_by and not sub.subqueries
+        and not sub.distinct and len(sub.items) == 1 and sub.items[0].column
+    )
+    if not simple:
+        return None
+    return SemiSpec(_reference(en.this), negado, sub, sub.items[0].expression)
+
+
 def _select(node: exp.Select) -> SelectSpec:
     spec = SelectSpec()
     from_ = node.args.get("from_")
@@ -169,8 +207,22 @@ def _select(node: exp.Select) -> SelectSpec:
     spec.items = [_item(e) for e in node.expressions]
     spec.distinct = node.args.get("distinct") is not None
     where = node.args.get("where")
+    sin_extraer = 0
     if where is not None:
-        spec.where = where.this.sql()
+        plano = _unwrap(where.this)
+        partes = plano.flatten() if isinstance(plano, exp.And) else [plano]
+        restantes: list[exp.Expression] = []
+        for parte in partes:
+            semi = _semi(_unwrap(parte))
+            if semi is None:
+                restantes.append(parte)
+            else:
+                spec.semis.append(semi)
+                sin_extraer += sum(1 for _ in parte.find_all(exp.Subquery))
+        if not spec.semis:
+            spec.where = where.this.sql()  # nada que extraer: el texto original, sin tocar
+        else:
+            spec.where = " AND ".join(p.sql() for p in restantes) if restantes else None
     group = node.args.get("group")
     if group is not None:
         spec.group_by = [g.sql() for g in group.expressions]
@@ -180,7 +232,7 @@ def _select(node: exp.Select) -> SelectSpec:
     order = node.args.get("order")
     if order is not None:
         spec.order_by = [(o.this.sql(), bool(o.args.get("desc"))) for o in order.expressions]
-    spec.subqueries = any(True for _ in node.find_all(exp.Subquery))
+    spec.subqueries = sum(1 for _ in node.find_all(exp.Subquery)) > sin_extraer
     spec.windows = any(True for _ in node.find_all(exp.Window))
     return spec
 

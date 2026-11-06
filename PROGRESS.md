@@ -5129,3 +5129,30 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `ORDER BY saldo` sobre ella ordena como texto (`"100" < "50"`). La muestra podría demostrar el tipo
   por su contenido, como hace `PROC IMPORT`; cambiaría los tipos de lectura de todos los Jobs y hay
   que verificarlo en Studio antes. No se tocó.
+
+## Hito 118m. `UNION`/`SET` a `tUnite` y `IN`/`NOT IN` con subconsulta como cruce de existencia
+
+- Fecha: 2026-11-06. MG-P5-04 (parte, subconsultas), MG-P4 (parte, `SET` de varias tablas).
+- Qué se hizo:
+  - `talend_item/desde_plan_union.py`: `union` a `tUnite`, con una conexión de entrada por tabla
+    (`<nodo>_in1`, `_in2`...). Queda pendiente si las entradas no traen las mismas columnas en el
+    mismo orden (`P-UNION-ESQUEMAS-DISTINTOS`: SAS junta por nombre, `tUnite` no) o si es `UNION` sin
+    `ALL` (`P-UNION-SIN-ALL`: pide un `tUniqRow` detrás). El intérprete apila por nombre y rellena
+    con faltante.
+  - `ir/sql_tree.py`: `col [NOT] IN (SELECT k FROM t [WHERE ...])` con subconsulta simple (una tabla,
+    sin cruces ni agrupación, una columna) sale del `WHERE` como `SemiSpec`. Otras formas se quedan
+    como estaban y siguen pendientes.
+  - `ir/lower_sql_flow.py`: cada `SemiSpec` baja a una cadena aparte (lectura, filtro, llave,
+    `dedup`) que termina en una tabla temporal `WORK.__in_l<línea>_<n>`, y a un cruce con ella:
+    interno para `IN`, izquierdo más `missing(llave)` para `NOT IN`. La subconsulta se reduce a
+    llaves únicas para no repetir filas. En SAS el faltante es un valor más.
+  - `t.*` del `SELECT` se califica con la tabla y el emisor lo expande con las columnas de esa
+    entrada (antes: `la tabla 't' no es una entrada del mapa`, que arrastraba `l2_15` y `l3_09`).
+- Lista viva: de 10 a 6 casos (`l0_12`, `l0_13`, `l2_11`, `l2_12`, `l3_01`, `l3_09`). **51 de 57
+  casos migran sin pendientes de traducción** (89 %). Anillo B: 68 pasan y 6 `xfail`.
+- Pruebas: 2461 pasan, 55 fallan (los de Byron), `ruff` limpio. Nuevas: `test_emisor_union.py` (4) y
+  `test_in_subconsulta.py` (5).
+- No verificado en Studio: el orden de entrada de `tUnite` (hoy el de las conexiones en el `.item`) y
+  el resto de nodos del hito 117m.
+- Limitación conocida: el intérprete no expande `t.*` tras un `JOIN` (no sabe qué columnas son de
+  `t`), y por eso `l2_15` sigue como `xfail` del anillo B aunque el emisor ya lo traduce.

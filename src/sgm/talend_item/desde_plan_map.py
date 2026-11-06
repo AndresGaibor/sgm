@@ -375,6 +375,26 @@ def _tipo_de_salida(meseta: _Meseta, java: str, asignacion: dict) -> str:
     return "id_String"
 
 
+def _expandir_estrellas(meseta: _Meseta, asignaciones: list[dict]) -> list[dict]:
+    """`t.*` del SELECT como una asignación por cada columna de la entrada `t`.
+
+    Si `t` no es una entrada del mapa la asignación se deja tal cual y falla con su motivo.
+    """
+    expandidas: list[dict] = []
+    for asignacion in asignaciones:
+        expresion = str(asignacion.get("expression", "")).strip()
+        tabla = expresion[:-2].lower().split(".")[-1] if expresion.endswith(".*") else None
+        fuente = next((f for f in meseta.fuentes if tabla and f.tabla == tabla), None)
+        if fuente is None:
+            expandidas.append(asignacion)
+            continue
+        expandidas += [
+            {"target": c.nombre, "expression": f"{tabla}.{c.nombre}", "origin": "columna"}
+            for c in fuente.columnas
+        ]
+    return expandidas
+
+
 def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
     """Salidas del `tMap`: las asignaciones del `SELECT` y, si hay, el `WHERE` como filtro.
 
@@ -386,6 +406,7 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
     derivaciones = _pasos(op, "derive")
     selecciones = _pasos(op, "select")
     asignaciones = derivaciones[-1].get("assignments", []) if derivaciones else []
+    asignaciones = _expandir_estrellas(meseta, asignaciones)
     agrega = bool(derivaciones) and derivaciones[-1].get("modo") == "agrega"
     columnas: list[Columna] = []
     expresiones: dict[str, str] = {}

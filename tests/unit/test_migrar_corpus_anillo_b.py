@@ -47,9 +47,7 @@ CONOCIDOS: dict[str, str] = {
         "tres SELECT con WHERE sobre la misma tabla se funden en un map con ramas sin salidas"
     ),
     "l3_09_conciliacion_diferencia_plantada": "subconsulta escalar dentro del SELECT",
-    "l2_06_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
-    "l2_07_not_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
-    "l2_15_validacion_en_cascada": "el intérprete no ejecuta un IN con subconsulta",
+    "l2_15_validacion_en_cascada": "el intérprete no expande `t.*` tras un JOIN: no sabe qué columnas son de t",
     "l0_13_do_end": "el ELSE del IF/THEN queda como filtro y no es una expresión evaluable",
 }
 

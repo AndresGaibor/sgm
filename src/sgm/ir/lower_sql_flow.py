@@ -19,7 +19,7 @@ from sgm.frontend.sql_normalize import NormalizedSql
 from sgm.ir import sql_semantics
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence, Operator
-from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
+from sgm.ir.sql_tree import SelectSpec, SemiSpec, Source, SqlTree
 
 _AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
 _DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
@@ -79,6 +79,10 @@ def _calificar(text: str, tablas: dict[str, str]) -> str:
 def _asignacion(item, tablas: dict[str, str], normalized: NormalizedSql) -> dict:
     """Una columna del SELECT como asignación del `derive`: destino, expresión y origen."""
     expresion = _calificar(_restore(item.expression, normalized), tablas)
+    estrella = re.fullmatch(r"(\w+)\.\*", expresion)
+    if estrella and estrella.group(1).lower() in tablas:
+        # `t.*`: todas las columnas de `t`; el emisor las expande con el esquema de esa entrada.
+        expresion = f"{tablas[estrella.group(1).lower()]}.*"
     return {
         "target": item.alias or item.column or _target_name(expresion),
         "expression": expresion,
@@ -140,7 +144,7 @@ def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
         # El agregado ya entrega solo su llave y sus agregados: proyectar detrás no recorta nada,
         # tenga o no uniones delante.
         return False
-    if spec.joins:
+    if spec.joins or spec.semis:
         return True
     return bool(assignments)
 
@@ -174,6 +178,53 @@ def _columnas_del_agregado(
     return list(columnas.values())
 
 
+def _cruce_de_existencia(
+    semi: SemiSpec,
+    numero: int,
+    current: Operator,
+    chain: _Chain,
+    tablas: dict[str, str],
+    normalized: NormalizedSql,
+) -> Operator:
+    """`col IN (SELECT k ...)` como un cruce: la subconsulta se reduce a sus llaves sin repetir.
+
+    * `IN`: cruce interno contra las llaves únicas; ninguna fila se repite.
+    * `NOT IN`: cruce izquierdo y se quedan las filas sin pareja. En SAS el faltante es un valor
+      más, así que `NOT IN` con faltantes en la lista se comporta como una comparación de valores.
+    La subconsulta se arma como una cadena aparte que termina en una tabla temporal del programa.
+    """
+    sub = semi.sub
+    linea = chain.ev.line_start
+    tabla = f"WORK.__in_l{linea}_{numero}"
+    clave = f"clave_in{numero}"
+    alias_sub = {sub.base.alias.lower()} if sub.base and sub.base.alias else set()
+    tablas_sub = _tablas(sub)
+    actual = chain.read(sub.base)
+    if sub.where:
+        filtro = _restore(_column(sub.where, alias_sub), normalized)
+        actual = chain.step("filter", {"expression": filtro}, actual)
+    leida = _calificar(_restore(semi.key, normalized), tablas_sub)
+    proyeccion = [{"target": clave, "expression": leida, "origin": "columna"}]
+    actual = chain.step("derive", {"assignments": proyeccion}, actual)
+    actual = chain.step("dedup", {"by": [clave], "keep": "first", "outputs": [tabla]}, actual)
+    derecha = chain.read(Source(tabla))
+    chain.b.link(actual, derecha)
+    izquierda = _calificar(_restore(semi.column, normalized), tablas)
+    params = {
+        "by": [izquierda.split(".")[-1]],
+        "keys": [[izquierda, f"{tabla.split('.')[-1].lower()}.{clave}"]],
+        "join_type": "left" if semi.negate else "inner",
+        "sources": [],
+        "condition": None,
+    }
+    cruce = chain.b.op("join", params, chain.ev)
+    chain.b.link(current, cruce)
+    chain.b.link(derecha, cruce)
+    if not semi.negate:
+        return cruce
+    return chain.step("filter", {"expression": f"missing({clave})"}, cruce)
+
+
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
     """Operadores de una rama de SELECT, en el orden lógico de SQL. Devuelve el último."""
     aliases = {s.alias.lower() for s in [spec.base] if s and s.alias}
@@ -201,6 +252,8 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
         chain.b.link(current, op)
         chain.b.link(right, op)
         current = op
+    for numero, semi in enumerate(spec.semis, start=1):
+        current = _cruce_de_existencia(semi, numero, current, chain, tablas, normalized)
     if spec.where:
         current = chain.step(
             "filter",

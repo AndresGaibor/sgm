@@ -593,6 +593,34 @@ def _agregar(filas: list[dict], params: dict) -> list[dict]:
     return resultado
 
 
+def _apilar(op: Operator, plan: Plan, tablas: dict, por_operador: dict) -> list[dict]:
+    """`SET a b` o `UNION ALL`: las filas de cada entrada una tras otra, juntas por nombre.
+
+    Una columna que una entrada no tiene queda faltante en sus filas, como en SAS. Sin `ALL`
+    (`UNION` de PROC SQL) se quitan además las filas repetidas.
+    """
+    fuentes = [_tabla(nombre) for nombre in op.params.get("sources") or []]
+    if fuentes:
+        entradas = [tablas.get(nombre, []) for nombre in fuentes]
+    else:
+        entradas = [por_operador.get(previo, []) for previo in plan.graph.predecessors(op.id)]
+    columnas: list[str] = []
+    for filas in entradas:
+        for fila in filas:
+            columnas += [c for c in fila if c not in columnas]
+    apiladas = [{c: fila.get(c) for c in columnas} for filas in entradas for fila in filas]
+    if op.params.get("all", True):
+        return apiladas
+    vistas: set[tuple] = set()
+    unicas = []
+    for fila in apiladas:
+        clave = tuple(_clave(valor) for valor in fila.values())
+        if clave not in vistas:
+            vistas.add(clave)
+            unicas.append(fila)
+    return unicas
+
+
 def _entradas(plan: Plan, op: Operator, por_operador: dict) -> dict[str, list[dict]]:
     """Filas de cada predecesor, por la tabla que entrega."""
     por_tabla: dict[str, list[dict]] = {}
@@ -656,7 +684,7 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
 
 def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
-    clases = (*_PASOS_SUELTOS, "read_file", "map", "join")
+    clases = (*_PASOS_SUELTOS, "read_file", "map", "join", "union")
     if op.kind in clases:
         return [_tabla(nombre) for nombre in op.params.get("outputs") or []]
     if op.kind == "write_file":
@@ -702,6 +730,9 @@ def _ejecutar(
             raise NoSoportadoEnInterprete(op.kind, "sin operador de origen")
         filas = por_operador.get(previos[0], [])
         return filas, {nombre: tablas.get(nombre, filas) for nombre in _nombres(op)}
+    if op.kind == "union":
+        filas = _apilar(op, plan, tablas, por_operador)
+        return filas, {nombre: filas for nombre in _nombres(op)}
     if op.kind in ("map", "join", *_PASOS_SUELTOS):
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches") and not op.params.get("steps"):
