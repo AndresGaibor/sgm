@@ -180,6 +180,15 @@ class Graph:
         for op_id in op_ids:
             self._g.remove_node(op_id)
 
+    def expand(self, iterate_id: str, operators: list[Operator], edges: list[Edge]) -> None:
+        """Deshace `replace`: quita el `iterate` y repone los operadores y aristas originales."""
+        self._g.remove_node(iterate_id)
+        for op in operators:
+            self.add_operator(op)
+        for edge in edges:
+            if edge.src in self._g and edge.dst in self._g:
+                self._add_once(edge)
+
     def topological(self) -> list[str]:
         """Ids en orden topológico (productores antes que consumidores)."""
         return list(nx.topological_sort(self._g))
@@ -283,3 +292,6 @@ class Plan:
     joblets: list[dict[str, Any]] = field(default_factory=list)  # fase 3.7: bloques repetidos
     residuos_bloques: list[dict[str, Any]] = field(default_factory=list)  # fase 3.6
     fronteras: list[str] = field(default_factory=list)  # fase 3.5: conjuntos que otro programa lee
+    # `iterate` -> lo que sustituyó (operadores y aristas originales). No se serializa: es lo que
+    # permite desplegar la plantilla de nuevo cuando el emisor escribe cada instancia en línea.
+    iteraciones: dict[str, dict[str, Any]] = field(default_factory=dict)

@@ -5210,3 +5210,24 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   segundo con rechazo de unión), `tUnite` y `tSortRow`, y la tabla que se usa dos veces pide
   `tReplicate`; (b) `RETAIN`/`FIRST.`/`LAST.` a `tJavaRow` con estado y entrada ordenada; (c)
   `iterate`/`tRunJob` (padre e hijos, fase 8). Ninguno se puede verificar sin Studio.
+
+## Hito 121m. Las plantillas (`iterate`) se despliegan en línea: una macro llamada N veces se migra
+
+- Fecha: 2026-11-06. MG-P8 (parte): decisión de arquitectura provisional; MG-P9-03 sigue abierto.
+- Problema: la pasada 7 sustituía los bloques repetidos (una macro llamada con otros argumentos) por un
+  `iterate` y dejaba del Job hijo solo las firmas del cuerpo. El emisor no tenía qué escribir:
+  `P-OPERADOR-SIN-SOPORTE ... tRunJob` y el trabajo de esas llamadas **se perdía** (`l5_03`, `l5_12`).
+- Decisión (provisional, hasta que haya Jobs hijos con datos entre Jobs verificados en Studio): **cada
+  instancia se escribe en línea**, que es lo que el SAS hacía. La pasada 7 guarda en
+  `Plan.iteraciones` los operadores y aristas que sustituyó (campo que no se serializa: los golden no
+  cambian) y `ir/desplegar.plan_desplegado` los devuelve a un plan nuevo. `migrar`, `plan_a_jobs` y el
+  intérprete lo usan; el `iterate` cuenta como visitado. El `tRunJob` real queda para MG-P9-03.
+- Otros arreglos del hito:
+  - Una cuenta de literales (`ID <= 1 * 3`, lo que deja `%eval` al expandir) cuenta como literal numérico
+    para deducir el tipo y para el faltante.
+  - El intérprete ignora `%LET`/`OPTIONS` ya sustituidos (`unsupported` con razón `CONFIGURACION`).
+- Resultado: anillo A 80 de 101 sin pendientes de traducción (79 %); el anillo B ahora cubre L0 a L6
+  (82 pasan, 10 `xfail` con su motivo; `l5_03`, `l5_12` y `l6_12` pasan).
+- Pruebas: 2538 pasan, 55 fallan (los de Byron), `ruff` limpio. Nueva: `test_desplegar_plantillas.py` (4).
+- Lo que falta de L5: `l5_06` (`%sysfunc` dentro de `%let`: macros), `l5_09` (`SELECT INTO`: pide
+  `tSetGlobalVar` y un disparador `OnSubjobOk` entre dos subjobs, más que `&ANIO` llegue a la expresión).

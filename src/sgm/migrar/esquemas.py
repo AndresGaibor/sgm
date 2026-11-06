@@ -161,9 +161,11 @@ def _columnas_aritmeticas(texto: str) -> set[str]:
 _NUMERO = r"-?\d+(?:\.\d+)?"
 _NOMBRE = r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?"
 # `cantidad >= 2`, `2 < cantidad`, `cantidad BETWEEN 2 AND 5`: un orden contra un número literal.
+# Una cuenta de números (`1 * 3`) es un literal: es lo que deja una macro expandida.
+_CUENTA = rf"{_NUMERO}(?:\s*[*/+-]\s*\d+(?:\.\d+)?)*"
 _ORDEN_NUMERICO = re.compile(
-    rf"\b({_NOMBRE})\s*(?:<=|>=|<|>)\s*{_NUMERO}\b"
-    rf"|(?<![\w.]){_NUMERO}\s*(?:<=|>=|<|>)\s*({_NOMBRE})\b"
+    rf"\b({_NOMBRE})\s*(?:<=|>=|<|>)\s*{_CUENTA}\b"
+    rf"|(?<![\w.]){_CUENTA}\s*(?:<=|>=|<|>)\s*({_NOMBRE})\b"
     rf"|\b({_NOMBRE})\s+BETWEEN\s+{_NUMERO}\s+AND\s+{_NUMERO}\b",
     re.IGNORECASE,
 )

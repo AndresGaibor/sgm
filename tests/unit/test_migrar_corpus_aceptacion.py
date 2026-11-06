@@ -24,6 +24,7 @@ import yaml
 from sgm.cli_migrar import ResultadoMigrar, migrar
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
+from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Plan
 from sgm.migrar.esquemas import esquemas_de_entrada
 from sgm.talend_item.desde_plan import plan_a_jobs
@@ -157,6 +158,7 @@ def test_todos_los_jobs_son_validos(planes):
     invalidos = {}
     for caso in CASOS:
         plan = planes(caso)
+        plan, _ = plan_desplegado(plan)
         tablas, _ = esquemas_de_entrada(plan, {}, caso / "entradas")
         for job in plan_a_jobs(plan, tablas).jobs:
             defectos = validar_job(job)

@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 
+from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Operator, Plan
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.conexiones import lookup
@@ -519,6 +520,9 @@ def plan_a_jobs(
 ) -> ResultadoMigracion:
     """Un Job de Talend por cada Job del plan, con sus nodos, conexiones y pendientes."""
     resultado = ResultadoMigracion()
+    # Cada instancia de una plantilla se escribe en línea hasta que haya Jobs hijos (`tRunJob`).
+    plan, desplegados = plan_desplegado(plan)
+    resultado.visitados |= desplegados
     for job in plan.jobs:
         armado = _Job(plan, esquemas, ruta_java)
         resultado.jobs.append(armado.armar(job))

@@ -13,6 +13,7 @@ instancias.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import re
@@ -200,6 +201,7 @@ def _acyclic_after(graph: Graph, members: list[str]) -> bool:
 
 
 def _replace_with_iterate(
+    plan,
     graph: Graph,
     builder: Builder,
     log: PassLog,
@@ -226,6 +228,11 @@ def _replace_with_iterate(
         notes=[f"{len(contexts)} instancias de la plantilla {template} (etiqueta: {label})"],
     )
     members = [op.id for op in ops]
+    group = set(members)
+    plan.iteraciones[iterate.id] = {
+        "operadores": [copy.deepcopy(op) for op in ops],
+        "aristas": [e for e in graph.edges() if e.src in group or e.dst in group],
+    }
     graph.replace(members, iterate)
     log.created.append(iterate.id)
     log.merged += members
@@ -285,11 +292,13 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
         every = [op for ordered, _ in instances for op in ordered]
         if _acyclic_after(graph, [op.id for op in every]):
             # Una llamada en bucle (tFlowToIterate) con la lista de contextos de las instancias.
-            _replace_with_iterate(graph, builder, log, template, label, every, contexts)
+            _replace_with_iterate(ctx.plan, graph, builder, log, template, label, every, contexts)
         else:
             # Colapsar rompería el orden (una instancia depende de otra): una llamada por instancia.
             for (ordered, _), context in zip(instances, contexts, strict=True):
-                _replace_with_iterate(graph, builder, log, template, label, ordered, [context])
+                _replace_with_iterate(
+                    ctx.plan, graph, builder, log, template, label, ordered, [context]
+                )
         if len(instances) >= JOBLET_MIN_OCCURRENCES and len(body) >= JOBLET_MIN_OPERATIONS:
             _register_joblet(ctx.plan, template, label, body, instances, varying, contexts)
         log.notes.append(

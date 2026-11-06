@@ -18,10 +18,8 @@ l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
 l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
 l3_01_count_star_vs_count_col: P-AGREGADO-SIN-TRADUCIR
 l3_09_conciliacion_diferencia_plantada: P-AGREGADO-SIN-TRADUCIR
-l5_03_dos_productos_misma_macro: P-OPERADOR-SIN-SOPORTE
 l5_06_sysfunc_upcase: P-OPERADOR-SIN-SOPORTE
 l5_09_into_primer_fila: P-OPERADOR-SIN-SOPORTE
-l5_12_do_iterativo: P-OPERADOR-SIN-SOPORTE
 l6_01_merge_by_uno_a_uno: P-UNION-TIPO-SIN-SOPORTE
 l6_02_merge_muchos_a_muchos: P-UNION-TIPO-SIN-SOPORTE
 l6_03_merge_in_flags: P-UNION-TIPO-SIN-SOPORTE
@@ -31,4 +29,4 @@ l6_06_first_reinicia_acumulado: P-OPERADOR-SIN-SOPORTE
 l6_07_retain_contador: P-OPERADOR-SIN-SOPORTE
 l6_10_ultimo_por_llave: P-OPERADOR-SIN-SOPORTE
 l6_11_merge_mas_acumulado: P-UNION-TIPO-SIN-SOPORTE
-l6_12_ordenar_antes_de_merge: P-OPERADOR-SIN-SOPORTE
+l6_12_ordenar_antes_de_merge: P-UNION-TIPO-SIN-SOPORTE

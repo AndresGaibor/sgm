@@ -31,8 +31,10 @@ _OPERADOR_ORDEN = re.compile(r"<=|>=|<|>")
 # Las comparaciones que el traductor ya escribe con su guarda de faltante (`x != null && ...` para
 # `>` y `>=`, `x == null || ...` para `<` y `<=`): no hay que envolverlas, solo comprobar que el
 # tipo de la columna sea el que la forma supone.
+# El literal puede ser una cuenta de literales (`(1 * 3)`), que es lo que deja una macro expandida.
 _NUMERO_GUARDADO = re.compile(
-    r"\(\(Number\)\s*([A-Za-z_][\w.]*)\)\.doubleValue\(\)\s*(?:<=|>=|<|>)\s*-?\d+(?:\.\d+)?"
+    r"\(\(Number\)\s*([A-Za-z_][\w.]*)\)\.doubleValue\(\)\s*(?:<=|>=|<|>)\s*"
+    r"(?:-?\d+(?:\.\d+)?|\([\d.\s*/+-]+\))"
 )
 _TEXTO_GUARDADO = re.compile(
     r"\(\(Comparable\)\s*([A-Za-z_][\w.]*)\)\.compareTo\(\"[^\"]*\"\)\s*(?:<=|>=|<|>)\s*0"

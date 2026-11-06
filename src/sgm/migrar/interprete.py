@@ -26,6 +26,7 @@ import sqlglot
 from sqlglot import exp
 from sqlglot.errors import ParseError
 
+from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Operator, Plan
 from sgm.migrar import semantica
 
@@ -782,6 +783,8 @@ def _ejecutar(
     tiene tabla propia: sus filas solo se pueden encontrar por su id, y el `map` de detrás las pide
     así.
     """
+    if op.kind == "unsupported" and op.params.get("reason") == "CONFIGURACION":
+        return [], {}  # `%LET`, `OPTIONS`: ya sustituidos en el programa, no producen filas
     if op.kind in ("read", "read_file"):
         nombre = (
             _tabla(op.params.get("dataset", ""))
@@ -822,6 +825,7 @@ def ejecutar_plan(
     clave (`WORK.clientes`, `clientes` o `CLIENTES` dan igual). Las columnas de cada fila se buscan
     sin distinguir mayúsculas.
     """
+    plan, _ = plan_desplegado(plan)  # una plantilla se ejecuta instancia por instancia
     tablas: dict[str, list[dict]] = {
         _tabla(nombre): [{str(c).lower(): v for c, v in fila.items()} for fila in filas]
         for nombre, filas in entradas.items()

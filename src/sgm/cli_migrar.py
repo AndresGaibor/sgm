@@ -34,6 +34,7 @@ from sgm.backend_talend import ArchivosBackend, BackendTalend, TalendCliBackend
 from sgm.catalog.schemas import load_schemas
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
+from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Plan
 from sgm.migrar import informes
 from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
@@ -248,6 +249,9 @@ def migrar(
     plan = _plan(texto, resultado.carpeta.name, resultado) if texto is not None else None
     contextos: dict[str, list[ParametroContexto]] = {}
     if plan is not None:
+        # Las plantillas se escriben en línea: los esquemas y las rutas salen del plan desplegado.
+        original = {op.id for op in plan.graph.operators()}
+        plan, desplegados = plan_desplegado(plan)
         contextos = contextos_de_plan(plan)
         if not len(plan.graph):
             resultado.pendientes.append(
@@ -265,7 +269,8 @@ def migrar(
         resultado.jobs = migracion.jobs
         resultado.pendientes += migracion.pendientes
         resultado.traza = migracion.traza
-        resultado.visitados = migracion.visitados
+        # Se informa por los operadores del plan original: el `iterate` cuenta como visitado.
+        resultado.visitados = (migracion.visitados & original) | desplegados
         resultado.plegados = migracion.plegados
         _validar(resultado)
     _escribir(resultado, contextos, backend, source)
