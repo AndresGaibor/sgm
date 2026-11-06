@@ -5257,3 +5257,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Jobs en ese proyecto y la acción fue bloqueada por permisos: nadie ha autorizado todavía usarlo. Los
   nodos de los hitos 115m a 121m siguen sin compilar. Se extendió `tests/studio/test_migrar_lote.py`
   a L0–L6 para correrlo en cuanto se autorice.
+
+## Hito 123m. Expresión sobre agregados (`COUNT(*) - COUNT(x)`): agregar cada llamada y calcular detrás
+
+- Fecha: 2026-11-06. MG-P5-03 (parte).
+- Qué se hizo (`ir/lower_sql_flow.py`): una expresión del `SELECT` que combina agregados (`COUNT(*) -
+  COUNT(saldo)`, `SUM(a) / COUNT(*)`, `ROUND(AVG(x), 2)`) ya no es un agregado imposible. Cada
+  llamada se agrega por su cuenta con un nombre oculto (`agg_1`, `agg_2`) y un `derive` detrás arma las
+  columnas del `SELECT` en su orden, con la expresión sobre esos nombres (un `tMap` en el Job). Una
+  subconsulta escalar, o un agregado sin alias, sigue pendiente. Con un `JOIN` delante, el cruce
+  entrega también las columnas que leen las llamadas ocultas.
+- Anillo B: `l3_01` pasa (era `xfail`). Anillo A: **84 de 101** sin pendientes de traducción (83 %).
+  Lista viva: 17 casos (`l0_12`, `l2_12`, `l3_09`, `l5_06`, `l5_09`, `l6_01` a `l6_07`, `l6_10`,
+  `l6_11`, `l6_12`).
+- Pruebas: suite 2544 pasan, 55 fallan (los de Byron), `ruff` limpio. El test del emisor que daba
+  `l3_01` por pendiente ahora comprueba el `tAggregateRow` con `agg_1`/`agg_2` y el `tMap`; la
+  subconsulta escalar tiene el suyo.

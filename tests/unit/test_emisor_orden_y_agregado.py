@@ -121,8 +121,22 @@ def test_un_agregado_sin_group_by_no_tiene_tabla_de_grupos(tmp_path):
     assert _tabla(agregado, "OPERATIONS")[1] == ("FUNCTION", "max")
 
 
-def test_una_expresion_sobre_agregados_queda_pendiente_y_no_se_inventa(tmp_path):
+def test_una_expresion_sobre_agregados_agrega_cada_llamada_y_calcula_detras(tmp_path):
     resultado = _migrar(tmp_path, "SELECT COUNT(*) - COUNT(saldo) AS sin_saldo FROM WORK.clientes")
+
+    agregado = _nodo(resultado, "tAggregateRow")
+    llamadas = [v for c, v in _tabla(agregado, "OPERATIONS") if c == "OUTPUT_COLUMN"]
+
+    assert _reales(resultado) == []
+    assert llamadas == ["agg_1", "agg_2"]  # cada llamada se agrega por su cuenta
+    assert any(n.componente == "tMap" for job in resultado.jobs for n in job.nodos)  # la resta
+    _validos(resultado)
+
+
+def test_una_subconsulta_escalar_como_agregado_queda_pendiente(tmp_path):
+    resultado = _migrar(
+        tmp_path, "SELECT (SELECT COUNT(*) FROM WORK.clientes) AS n FROM WORK.clientes"
+    )
 
     assert [n for job in resultado.jobs for n in job.nodos if n.componente == "tAggregateRow"] == []
     assert "P-AGREGADO-SIN-TRADUCIR" in {p.codigo for p in resultado.pendientes}

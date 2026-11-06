@@ -19,7 +19,7 @@ from sgm.frontend.sql_normalize import NormalizedSql
 from sgm.ir import sql_semantics
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence, Operator
-from sgm.ir.sql_tree import SelectSpec, SemiSpec, Source, SqlTree
+from sgm.ir.sql_tree import Item, SelectSpec, SemiSpec, Source, SqlTree
 
 _AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
 _DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
@@ -178,6 +178,34 @@ def _columnas_del_agregado(
     return list(columnas.values())
 
 
+_LLAMADA_AGREGADO = re.compile(
+    r"(?i)\b(?:count|sum|avg|mean|min|max)\s*\(\s*(?:distinct\s+)?"
+    r"(?:\*|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\s*\)"
+)
+
+
+def _descomponer(expresion: str, ocultas: dict[str, str]) -> str | None:
+    """Una expresión sobre agregados (`COUNT(*) - COUNT(x)`) con cada llamada por un nombre.
+
+    Devuelve el texto con los nombres (`agg_1 - agg_2`) y deja en `ocultas` llamada -> nombre.
+    `None` si no es de esa clase: ya es una llamada sola, lleva una subconsulta o trae un agregado
+    que no es `FUNCION(columna)`.
+    """
+    if re.search(r"(?i)\bselect\b", expresion) or _LLAMADA_AGREGADO.fullmatch(expresion.strip()):
+        return None
+
+    locales = dict(ocultas)
+
+    def cambiar(m: re.Match) -> str:
+        return locales.setdefault(m.group(0), f"agg_{len(locales) + 1}")
+
+    reemplazada = _LLAMADA_AGREGADO.sub(cambiar, expresion)
+    if reemplazada == expresion or _AGGREGATE.search(reemplazada):
+        return None
+    ocultas.update(locales)
+    return reemplazada
+
+
 def _cruce_de_existencia(
     semi: SemiSpec,
     numero: int,
@@ -262,8 +290,21 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
             status="parcial" if spec.subqueries else "soportado",
         )
     aggregates = [it for it in spec.items if not it.star and _AGGREGATE.search(it.expression)]
+    # Una expresión sobre agregados (`COUNT(*) - COUNT(x)`): cada llamada se agrega por su cuenta
+    # (`agg_1`, `agg_2`) y un `derive` detrás calcula la expresión con esos nombres.
+    ocultas: dict[str, str] = {}
+    compuestos: dict[int, str] = {}
+    for it in aggregates:
+        reemplazada = _descomponer(it.expression, ocultas)
+        if reemplazada is not None:
+            compuestos[id(it)] = reemplazada
+    if any(not it.alias for it in aggregates):
+        ocultas, compuestos = {}, {}  # sin alias no hay nombre con el que volver a leerlos
+    simples = [it for it in aggregates if id(it) not in compuestos]
     if spec.joins and (spec.group_by or aggregates):
-        leidas = _columnas_del_agregado(spec, aggregates, tablas, normalized)
+        leidas = _columnas_del_agregado(
+            spec, [*simples, *(Item(llamada) for llamada in ocultas)], tablas, normalized
+        )
         if leidas:
             current = chain.step("derive", {"assignments": leidas}, current)
     if spec.group_by or aggregates:
@@ -274,7 +315,11 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                     "expression": _restore(_column(it.expression, aliases), normalized),
                     "alias": it.alias or it.column or it.expression,
                 }
-                for it in aggregates
+                for it in simples
+            ]
+            + [
+                {"expression": _restore(_column(llamada, aliases), normalized), "alias": nombre}
+                for llamada, nombre in ocultas.items()
             ],
         }
         plain = _plain_items(spec) if not spec.group_by else []
@@ -296,6 +341,26 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 {"expression": _restore(_null_tests(having), normalized)},
                 current,
             )
+    if compuestos:
+        # La salida del agregado ya trae grupos, agregados simples y ocultos: el `derive` arma las
+        # columnas del SELECT en su orden, con las expresiones sobre los nombres `agg_k`.
+        salida = []
+        for it in spec.items:
+            if it.star:
+                continue
+            nombre = it.alias or it.column or _target_name(it.expression)
+            if id(it) in compuestos:
+                texto = compuestos[id(it)]
+                salida.append(
+                    {
+                        "target": nombre,
+                        "expression": _restore(texto, normalized),
+                        "origin": "expresion",
+                    }
+                )
+            else:
+                salida.append({"target": nombre, "expression": nombre, "origin": "columna"})
+        current = chain.step("derive", {"assignments": salida}, current)
     assignments = [
         _asignacion(it, tablas, normalized)
         for it in spec.items

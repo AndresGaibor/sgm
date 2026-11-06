@@ -16,7 +16,6 @@
 
 l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
 l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
-l3_01_count_star_vs_count_col: P-AGREGADO-SIN-TRADUCIR
 l3_09_conciliacion_diferencia_plantada: P-AGREGADO-SIN-TRADUCIR
 l5_06_sysfunc_upcase: P-OPERADOR-SIN-SOPORTE
 l5_09_into_primer_fila: P-OPERADOR-SIN-SOPORTE

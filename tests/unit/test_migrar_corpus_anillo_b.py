@@ -40,9 +40,6 @@ CONOCIDOS: dict[str, str] = {
         "el plan pierde el alias del auto-unión: las dos referencias quedan 'id_cliente < id_cliente'"
     ),
     # Pasos que el intérprete todavía no ejecuta.
-    "l3_01_count_star_vs_count_col": (
-        "una expresión sobre agregados (COUNT(*) - COUNT(saldo)) no es FUNCION(columna)"
-    ),
     "l3_07_total_origen_y_salida": (
         "tres SELECT con WHERE sobre la misma tabla se funden en un map con ramas sin salidas"
     ),

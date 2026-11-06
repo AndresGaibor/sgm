@@ -35,12 +35,12 @@ RUN;
 """
 
 
-# Un agregado que es una expresión sobre otros agregados: no es FUNCION(columna).
+# Una subconsulta escalar como agregado: no es FUNCION(columna) y el intérprete no la adivina.
 AGREGADO_COMPUESTO = (
     "PROC IMPORT DATAFILE='.../clientes.csv' OUT=WORK.CLIENTES DBMS=CSV REPLACE;"
     " GETNAMES=YES; RUN;"
     " PROC SQL; CREATE TABLE WORK.r AS"
-    " SELECT COUNT(*) - COUNT(saldo) AS sin_saldo FROM WORK.clientes; QUIT;"
+    " SELECT (SELECT COUNT(*) FROM WORK.clientes) AS n FROM WORK.clientes; QUIT;"
 )
 
 
