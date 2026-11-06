@@ -5015,3 +5015,38 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - **114m, MG-P14-01.** Versión única (`importlib.metadata`), `sgm --version`, `CHANGELOG.md` y
   `uv build --wheel` correcto (`sgm-0.2.0`). Se corrigió una frase obsoleta del changelog.
 - Decisión: las pruebas en `xfail` estricto cuentan 0 para el crédito del avance (sección 11b).
+
+## Hito 115m. `ORDER BY` y `DISTINCT` se emiten (tSortRow, tUniqRow) y el `SELECT` por fin proyecta
+
+- Fecha: 2026-11-06. MG-P5-01 y MG-P5-02 (parte), MG-P1-02 (parte) y MG-P10-01 (parte).
+- Qué se hizo:
+  - `talend_item/desde_plan_orden.py`: `sort` a `tSortRow` y `dedup` a `tUniqRow`. El criterio lleva
+    `COLNAME`/`SORT`/`ORDER` con la forma de un Job real guardado por Studio (num para numéricos,
+    date para fechas, alpha para el resto). `ORDER BY 2` se resuelve por posición. La llave del
+    DISTINCT es el `SELECT` entero y distingue mayúsculas. Si una columna no existe, todo el nodo
+    queda pendiente (`P-ORDEN-COLUMNA-DESCONOCIDA`): un orden a medias da otro resultado sin avisar.
+    Las conexiones de estos nodos llevan nombre propio (`<nodo>_in`, `<nodo>_out`) porque `row1` ya es
+    la fila principal del `tMap` de detrás; la salida del `tUniqRow` usa el conector `UNIQUE`.
+  - `migrar/interprete.py` (zona de Byron, excepción anotada: verifica mi emisor): ejecuta `sort`
+    (faltante primero en ascendente, estable, `ORDER BY 2`) y `dedup`.
+  - **Defecto encontrado y corregido:** `select a, b from t where ...` no generaba proyección en el
+    plan ("la lectura ya trae `a`"), así que con la CSV completa saldrían las 5 columnas de entrada y
+    no las 3 pedidas. El anillo B lo dejaba pasar porque solo compara las columnas del esperado.
+    `lower_sql_flow._necesita_proyeccion` ahora proyecta siempre que hay lista de columnas, salvo con
+    agregados (que ya entregan solo las suyas). Efecto: el filtro viaja como paso de un `map` y el
+    golden de `client_poc` se regeneró (los `external_load` absorben más pasos).
+  - `migrar/esquemas.py` cuenta las llaves de `ORDER BY`/`DISTINCT` como columnas usadas.
+  - Pruebas ajustadas por la nueva forma (sin quitar aserciones): `test_sql_flujo`, `test_sql_with`
+    miran el filtro como paso de un `map`; `test_migrar_interprete` usa `aggregate` como ejemplo de paso
+    no soportado, porque `sort` ya se ejecuta. Se quitaron del `CONOCIDOS` del anillo B los 14 casos
+    de `sort`/`dedup` (eran `xfail` estricto). La lista viva `migrar_pendientes.yaml` baja de 27 a 17.
+- Pruebas: suite completa **2420 pasan, 55 fallan** (los 55 de Byron, sin cambios), `ruff` limpio.
+  Anillo B: 56 pasan y 6 `xfail` (antes 42 y 20). Anillo A: 28 de 45 casos de L0 a L2 migran sin
+  pendientes de traducción (antes 18).
+- **No verificado en Studio:** ni `tSortRow` ni `tUniqRow` emitidos por `sgm migrar` se compilaron ni
+  se ejecutaron. Queda por ver cómo ordena `tSortRow` los nulos frente al faltante de SAS (primero en
+  ascendente); el intérprete lo asume por la documentación (`sqlproc`), no por Studio.
+- Hallazgo para Byron (P10-01): el comparador del anillo B ignora columnas de más en la salida. Hay
+  que hacerlo estricto, o esta clase de defecto pasa sin que nadie lo vea.
+- Pendiente sin tocar en este hito: `P-FILTRO-SIN-TRADUCIR` (8 casos), `P-ESQUEMA-VACIO` (6),
+  `P-ASIGNACION-SIN-TRADUCIR` (3) y `P-OPERADOR-SIN-SOPORTE` (1).

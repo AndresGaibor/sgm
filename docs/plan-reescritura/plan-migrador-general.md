@@ -807,8 +807,8 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 (359,0 h y 360,25 h).
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
-anillo B, 42 de 62 casos elegibles pasan (68 %); anillo A, 17 Jobs completos de `L0` a `L2` sobre 45
-casos (38 %); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
+anillo B, 56 de 62 casos elegibles pasan (90 %; hito 115m); anillo A, 28 de los 45 casos de `L0` a
+`L2` migran sin pendientes de traducción (62 %; hito 115m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
 (representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
 
 **Qué mueve más el número.** La ruta crítica pide P4, P5 y P6 antes que P8 y P9; ahí hoy hay 9,8 %

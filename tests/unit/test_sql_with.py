@@ -136,4 +136,9 @@ def test_proc_sql_encadenado_se_fusiona_en_base_con_with():
 def test_filtro_con_funcion_sas_no_entra_a_la_base():
     plan = _plan(PROGRAMA_CATS)
     assert _sql_de_base(plan) == []
-    assert any(op.kind == "filter" for op in plan.graph.operators())
+    # El filtro puede ir suelto o como paso de un `map`, que también proyecta las columnas del SELECT.
+    assert any(
+        op.kind == "filter"
+        or any(paso.get("kind") == "filter" for paso in op.params.get("steps") or [])
+        for op in plan.graph.operators()
+    )

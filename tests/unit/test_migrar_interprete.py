@@ -232,11 +232,11 @@ def test_subsetting_if_conserva_no_cero_y_descarta_cero_o_faltante():
 
 
 def test_un_operador_no_soportado_no_se_salta():
-    """Un `sort` sin implementar detiene la ejecución con su nombre, no devuelve filas sin ordenar."""
-    plan = _caso("l2_14_inner_join_where_orden")
+    """Un paso sin implementar detiene la ejecución con su nombre, no devuelve filas sin calcular."""
+    plan = _caso("l2_08_case_when_tras_left_join")
 
     with pytest.raises(NoSoportadoEnInterprete) as error:
         ejecutar_plan(plan, {"clientes": [], "ventas": []})
 
-    assert error.value.kind == "sort"
-    assert str(error.value).startswith("sort")
+    assert error.value.kind == "aggregate"
+    assert str(error.value).startswith("aggregate")

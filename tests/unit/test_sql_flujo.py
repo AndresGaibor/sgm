@@ -24,13 +24,27 @@ def _kinds(program: str) -> list[str]:
     return [kind for kind, _ in _components(program)]
 
 
+def _filtros(plan) -> list[dict]:
+    """Parámetros de cada filtro del plan, suelto o como paso dentro de un `map`.
+
+    Un `SELECT a ... WHERE` recorta columnas además de filtrar, así que el filtro y la proyección
+    viajan juntos en un `map`; la propiedad que importa es que el filtro esté, no dónde.
+    """
+    filtros = [op.params for op in plan.graph.operators() if op.kind == "filter"]
+    for op in plan.graph.operators():
+        for paso in op.params.get("steps") or []:
+            if paso.get("kind") == "filter":
+                filtros.append(paso.get("params") or {})
+    return filtros
+
+
 def _sql(body: str) -> str:
     return f"proc sql;\n{body}\nquit;\n"
 
 
 def test_where_se_convierte_en_filtro():
-    kinds = _kinds(_sql("create table t as select a from s where a > 1;"))
-    assert "filter" in kinds
+    compiled, _ = compile_project({"p.sas": _sql("create table t as select a from s where a > 1;")})
+    assert _filtros(compiled["p.sas"].plan)
 
 
 def _join_dentro_de_map(compiled) -> bool:
@@ -130,8 +144,8 @@ def test_is_missing_se_convierte_en_comprobacion_de_nulo():
     compiled, _ = compile_project(
         {"p.sas": _sql("create table t as select a from s where a is missing;")}
     )
-    filters = [op for op in compiled["p.sas"].plan.graph.operators() if op.kind == "filter"]
-    assert filters and "missing(a)" in filters[0].params["expression"]
+    filters = _filtros(compiled["p.sas"].plan)
+    assert filters and "missing(a)" in filters[0]["expression"]
 
 
 def test_into_con_separador_guarda_la_variable_y_el_separador():
@@ -153,7 +167,11 @@ def test_opcion_de_dataset_se_quita_con_nota():
 
 def test_funcion_sin_equivalente_queda_pendiente_sin_cambiar_el_componente():
     components = _components(_sql("create table t as select a from s where mifuncion(a) > 1;"))
-    assert ("filter", "tFilterRow") in components or ("filter", "tMap") in components
+    assert (
+        ("filter", "tFilterRow") in components
+        or ("filter", "tMap") in components
+        or ("map", "tMap") in components
+    )
     assert not any(name == "tJava" for _, name in components)
 
 

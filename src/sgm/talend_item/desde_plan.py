@@ -30,6 +30,7 @@ from sgm.talend_item.desde_plan_contextos import (
 )
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
+from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
@@ -116,6 +117,8 @@ class _Job:
         self._tabla_de: dict[str, str] = {}  # UNIQUE_NAME del nodo -> tabla que entrega
         self._salidas_map: dict[str, str] = {}  # id de operador -> nombre de su salida
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
+        self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
+        self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
         self._productor = self._productores()
         self.rutas = rutas_de_plan(plan)
 
@@ -287,6 +290,35 @@ class _Job:
             armado.nodo.metadatas[0].nombre if armado.nodo.metadatas else "out1"
         )
 
+    def _orden(self, op: Operator, x: int) -> None:
+        """`sort` a `tSortRow` y `dedup` a `tUniqRow`: pasan el esquema de su entrada tal cual."""
+        fuentes = self._fuentes(op)
+        if len(fuentes) != 1:
+            motivo = f"el operador '{op.kind}' espera una sola entrada y tiene {len(fuentes)}"
+            self.pendientes.append(PendienteMigracion(SIN_SOPORTE, motivo, _linea(op)))
+            return
+        fuente = fuentes[0]
+        if op.kind == "sort":
+            unico = self._unico("tSortRow")
+            resultado = nodo_orden(
+                op, fuente.columnas, unico, x, _linea(op), self.ruta_java
+            )
+        else:
+            unico = self._unico("tUniqRow")
+            resultado = nodo_unicos(
+                op, fuente.columnas, unico, fuente.origen, x, _linea(op), self.ruta_java
+            )
+        self.pendientes += resultado.pendientes
+        # Aunque el nodo falle, la salida conserva el esquema de la entrada, como con el `tMap`.
+        self._salida[op.id] = list(fuente.columnas)
+        if resultado.nodo is None:
+            return
+        tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
+        self._registrar(op, resultado.nodo, fuente.columnas, tabla)
+        self._pasos.add(op.id)
+        if op.kind == "dedup":
+            self._conector_de[resultado.nodo.unico] = "UNIQUE"
+
     def _registrar(
         self,
         op: Operator,
@@ -327,7 +359,8 @@ class _Job:
                 # Las entradas de búsqueda de un tMap van por LOOKUP (`lineStyle` 8), no por FLOW.
                 self.conexiones.append(lookup(origen, destino, nombre))
             else:
-                self.conexiones.append(Conexion(origen, destino, nombre))
+                conector = self._conector_de.get(origen, "FLOW")
+                self.conexiones.append(Conexion(origen, destino, nombre, conector=conector))
 
     def _nombre(self, desde: str, hasta: str) -> str | None:
         """Nombre de la conexión: la entrada que el `tMap` espera, o la salida que produce.
@@ -336,8 +369,14 @@ class _Job:
         hay a qué fila del mapa corresponde, y una conexión con el nombre equivocado es peor que no
         tenerla.
         """
+        if hasta in self._pasos:
+            # El nombre de una conexión es único en el Job, y `row1` ya es el de la fila principal
+            # del `tMap` que viene detrás: la entrada de un orden o de un DISTINCT lleva el suyo.
+            return f"{self._nodo[hasta].unico}_in"
         if hasta in self._entradas_map:
             return self._entradas_map[hasta].get(desde)
+        if desde in self._pasos:
+            return f"{self._nodo[desde].unico}_out"
         if desde in self._salidas_map:
             return self._salidas_map[desde]
         return "row1"
@@ -393,6 +432,8 @@ class _Job:
             self._escritura(op, x)
         elif op.kind == "map":
             self._mapa(op, x)
+        elif op.kind in ("sort", "dedup"):
+            self._orden(op, x)
         elif op.kind in CON_NODO:
             # Las transformaciones sueltas son un `tMap` de una sola entrada.
             self._mapa(op, x)

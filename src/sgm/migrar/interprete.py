@@ -481,6 +481,48 @@ def _derecha(params: dict) -> str | None:
     return None
 
 
+def _nombre_de_columna(filas: list[dict], nombre: object) -> str:
+    """Columna que nombra un `ORDER BY` o `DISTINCT`: por nombre o por posición (`ORDER BY 2`)."""
+    texto = str(nombre).strip()
+    if texto.isdigit() and filas:
+        columnas = list(filas[0])
+        posicion = int(texto)
+        if 1 <= posicion <= len(columnas):
+            return columnas[posicion - 1]
+    return texto
+
+
+def _ordenar(filas: list[dict], params: dict) -> list[dict]:
+    """`ORDER BY` de PROC SQL: el faltante va primero en ascendente (`sqlproc`); orden estable.
+
+    Se ordena de la última llave a la primera, cada una con su sentido; como el orden de Python es
+    estable, las filas que empatan en todas las llaves conservan el orden en que llegaron.
+    """
+    llaves = [_nombre_de_columna(filas, nombre) for nombre in params.get("by") or []]
+    sentidos = list(params.get("descending") or [])
+    resultado = list(filas)
+    for posicion in range(len(llaves) - 1, -1, -1):
+        descendente = posicion < len(sentidos) and bool(sentidos[posicion])
+        llave = llaves[posicion]
+        resultado.sort(
+            key=lambda fila, llave=llave: _clave(_columna(fila, llave)), reverse=descendente
+        )
+    return resultado
+
+
+def _unicos(filas: list[dict], params: dict) -> list[dict]:
+    """`SELECT DISTINCT`: la primera fila de cada combinación de llaves; faltante = faltante."""
+    llaves = [_nombre_de_columna(filas, nombre) for nombre in params.get("by") or []]
+    vistas: set[tuple] = set()
+    resultado: list[dict] = []
+    for fila in filas:
+        clave = tuple(_clave(_columna(fila, llave)) for llave in llaves)
+        if clave not in vistas:
+            vistas.add(clave)
+            resultado.append(fila)
+    return resultado
+
+
 def _entradas(plan: Plan, op: Operator, por_operador: dict) -> dict[str, list[dict]]:
     """Filas de cada predecesor, por la tabla que entrega."""
     por_tabla: dict[str, list[dict]] = {}
@@ -531,6 +573,10 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
             actual = _seleccionar(actual, params)
         elif clase == "rename":
             actual = _renombrar(actual, params)
+        elif clase == "sort":
+            actual = _ordenar(actual, params)
+        elif clase == "dedup":
+            actual = _unicos(actual, params)
         else:
             raise NoSoportadoEnInterprete(clase or "paso", "el intérprete no lo ejecuta")
     return actual
@@ -538,7 +584,8 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
 
 def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
-    if op.kind in ("read_file", "map", "filter", "derive", "select", "rename", "join"):
+    clases = ("read_file", "map", "filter", "derive", "select", "rename", "join", "sort", "dedup")
+    if op.kind in clases:
         return [_tabla(nombre) for nombre in op.params.get("outputs") or []]
     if op.kind == "write_file":
         return [_tabla(nombre) for nombre in op.params.get("inputs") or []]
@@ -583,7 +630,7 @@ def _ejecutar(
             raise NoSoportadoEnInterprete(op.kind, "sin operador de origen")
         filas = por_operador.get(previos[0], [])
         return filas, {nombre: tablas.get(nombre, filas) for nombre in _nombres(op)}
-    if op.kind in ("map", "join", "filter", "derive", "select", "rename"):
+    if op.kind in ("map", "join", "filter", "derive", "select", "rename", "sort", "dedup"):
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches") and not op.params.get("steps"):
             primera = por_operador.get(previos[0], []) if previos else []

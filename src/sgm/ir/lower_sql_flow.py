@@ -127,17 +127,21 @@ def _plain_items(spec: SelectSpec) -> list[str]:
 
 
 def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
-    """Si el SELECT cambia algo: una unión deja columnas de más; un alias o una expresión, también.
+    """Si el SELECT cambia algo: una lista de columnas deja solo esas, y un alias o una expresión
+    cambian lo que hay.
 
-    `select a from s` no necesita proyección: la lectura ya trae `a`. Evitarla deja el `filter`
-    suelto en vez de fundirlo en un `tMap` que no aporta nada.
+    `select a, b from s` **sí** necesita proyección: la lectura trae todas las columnas de `s` y el
+    resultado de SAS trae solo `a` y `b`. Sin ella, la tabla de salida arrastra columnas de más y el
+    Job escribe un archivo que no es el del SAS. Solo `select *` la evita, porque no recorta nada.
     """
     if spec.joins:
         return True
-    return any(
-        item["origin"] == "expresion" or item["target"] != item["expression"].split(".")[-1]
-        for item in assignments
-    )
+    if spec.group_by or any(
+        not it.star and _AGGREGATE.search(it.expression) for it in spec.items
+    ):
+        # El agregado ya entrega solo su llave y sus agregados: proyectar detrás no recorta nada.
+        return False
+    return bool(assignments)
 
 
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:

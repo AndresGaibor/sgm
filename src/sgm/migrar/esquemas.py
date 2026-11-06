@@ -257,6 +257,9 @@ def _sueltos(op: Operator) -> list[str]:
     grupos = [op.params, *(paso.get("params") or {} for paso in op.params.get("steps") or [])]
     for grupo in grupos:
         nombres.extend(str(nombre) for nombre in grupo.get("names") or [])
+        # Las llaves de un ORDER BY o de un DISTINCT son columnas de la entrada; una posición
+        # (`ORDER BY 2`) no nombra ninguna.
+        nombres.extend(str(n) for n in grupo.get("by") or [] if not str(n).strip().isdigit())
         for asignacion in grupo.get("assignments") or []:
             expresion = str(asignacion.get("expression") or "")
             if asignacion.get("origin") == "columna":
