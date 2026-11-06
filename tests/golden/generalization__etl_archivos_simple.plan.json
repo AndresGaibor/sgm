@@ -512,7 +512,7 @@
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
-      "signature": "45516914568370ab",
+      "signature": "52e583d16e78c7d8",
       "params": {
         "steps": [
           {
@@ -535,6 +535,7 @@
                   "expression": "round(cantidad * precio, 0.01)"
                 }
               ],
+              "modo": "agrega",
               "declared": {
                 "prefijo": [
                   "String",
@@ -542,7 +543,7 @@
                 ]
               }
             },
-            "signature": "de00e643c88f00da"
+            "signature": "216261ba7e2e261a"
           },
           {
             "kind": "derive",
@@ -586,6 +587,7 @@
                   "expression": "importe * (1 - descuento)"
                 }
               ],
+              "modo": "agrega",
               "declared": {
                 "prefijo": [
                   "String",
@@ -593,7 +595,7 @@
                 ]
               }
             },
-            "signature": "592544f90d6906a6"
+            "signature": "2837ee4a031fdb9f"
           },
           {
             "kind": "rename",
@@ -942,7 +944,7 @@
   ],
   "gaps": [
     {
-      "signature": "45516914568370ab",
+      "signature": "52e583d16e78c7d8",
       "reason": "TIPO_DESCONOCIDO",
       "evidence": [
         {
@@ -994,7 +996,7 @@
       ]
     },
     {
-      "signature": "45516914568370ab/else descuento = 0",
+      "signature": "52e583d16e78c7d8/else descuento = 0",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -1037,7 +1039,7 @@
         "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
         "nota": ""
       },
-      "signature": "45516914568370ab",
+      "signature": "52e583d16e78c7d8",
       "fuente": [
         {
           "file": "generalization/etl_archivos_simple.sas",
@@ -1113,7 +1115,7 @@
         "se_cierra_con": "rules/sas/functions/",
         "nota": "else descuento = 0"
       },
-      "signature": "45516914568370ab/else descuento = 0",
+      "signature": "52e583d16e78c7d8/else descuento = 0",
       "fuente": [
         {
           "file": "generalization/etl_archivos_simple.sas",

@@ -123,7 +123,7 @@
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
-      "signature": "e4c42f799de61346",
+      "signature": "2bab36eed34ff89e",
       "params": {
         "steps": [
           {
@@ -142,11 +142,12 @@
                   "expression": "height * 2.54"
                 }
               ],
+              "modo": "agrega",
               "outputs": [
                 "WORK.personas_filtradas"
               ]
             },
-            "signature": "8e928bb9919db388"
+            "signature": "875e9c2d528725f1"
           }
         ],
         "outputs": [
@@ -272,7 +273,7 @@
   ],
   "gaps": [
     {
-      "signature": "e4c42f799de61346",
+      "signature": "2bab36eed34ff89e",
       "reason": "TIPO_DESCONOCIDO",
       "evidence": [
         {
@@ -308,7 +309,7 @@
         "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
         "nota": ""
       },
-      "signature": "e4c42f799de61346",
+      "signature": "2bab36eed34ff89e",
       "fuente": [
         {
           "file": "p0_ejemplo_basico.sas",

@@ -234,11 +234,17 @@ def _fila_de_columna(meseta: _Meseta, valor: str) -> tuple[str | None, str]:
 
 
 def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
-    """Salidas del `tMap`: las asignaciones del `SELECT` y, si hay, el `WHERE` como filtro."""
+    """Salidas del `tMap`: las asignaciones del `SELECT` y, si hay, el `WHERE` como filtro.
+
+    Un `derive` con `modo: agrega` viene de un DATA step: la fila conserva sus columnas y las
+    asignaciones se suman o se reemplazan por nombre. Uno sin la marca viene de un `SELECT` y su
+    lista de asignaciones es toda la salida.
+    """
     filtro = _filtro(meseta, op, armado)
     derivaciones = _pasos(op, "derive")
     asignaciones = derivaciones[-1].get("assignments", []) if derivaciones else []
-    if not asignaciones:
+    agrega = bool(derivaciones) and derivaciones[-1].get("modo") == "agrega"
+    if not asignaciones and not agrega:
         principal = meseta.fuentes[0]
         return [
             SalidaMap(
@@ -250,6 +256,10 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
         ]
     columnas: list[Columna] = []
     expresiones: dict[str, str] = {}
+    if agrega:
+        principal = meseta.fuentes[0]
+        columnas = list(principal.columnas)
+        expresiones = {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas}
     for asignacion in asignaciones:
         destino = str(asignacion.get("target", "")).strip()
         if not destino or not str(asignacion.get("expression", "")).strip():
@@ -259,7 +269,10 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
             continue
         fila, _, nombre = java.partition(".")
         tipo = meseta.tipo_de(fila, nombre) if fila.startswith("row") else "id_String"
-        columnas.append(Columna(destino, tipo))
+        if destino in expresiones:
+            columnas = [Columna(destino, tipo) if c.nombre == destino else c for c in columnas]
+        else:
+            columnas.append(Columna(destino, tipo))
         expresiones[destino] = java
     if not columnas:
         return []

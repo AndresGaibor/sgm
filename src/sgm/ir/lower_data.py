@@ -120,7 +120,10 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         if kind == "assign":
             assignment = {"target": s.fields["target"], "expression": s.fields["expression"]}
             if pending_derive is None:
-                pending_derive = b.op("derive", {"assignments": []}, ev)
+                # `modo`: una asignación de DATA step conserva las columnas que ya venían; el
+                # `derive` de un `SELECT` las reemplaza. Sin la marca, el emisor escribiría un
+                # `tMap` con una sola columna y el Job perdería el resto de la fila.
+                pending_derive = b.op("derive", {"assignments": [], "modo": "agrega"}, ev)
                 if current is not None:
                     b.link(current, pending_derive)
                 current = pending_derive

@@ -30,6 +30,9 @@ CAMPOS_ADITIVOS = {
     "getnames": "cabecera de la primera fila; `YES` por omisión (hito 104m, p. 1387)",
     "sheet": "hoja del libro de Excel (hito 104m)",
     "guessingrows": "filas que el SAS escanea para tipar (hito 104m, p. 1388)",
+    # Hito 104m: el `derive` de un DATA step conserva la fila y le agrega columnas; el de un
+    # `SELECT` la reemplaza. La firma cambia con la marca, y por eso la referencia se regeneró.
+    "modo": "`agrega` en el derive de un DATA step (hito 104m, DATA step vs SELECT)",
 }
 
 CASES = [

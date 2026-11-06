@@ -434,7 +434,7 @@
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
-      "signature": "0b37fa9f15058e01",
+      "signature": "4839172da4ba3576",
       "params": {
         "steps": [
           {
@@ -460,9 +460,10 @@
                   "target": "tramo",
                   "expression": "put(edad, tramo.)"
                 }
-              ]
+              ],
+              "modo": "agrega"
             },
-            "signature": "f98f4f5afddc47d1"
+            "signature": "0e5ffd525644c340"
           }
         ],
         "talend_expression_candidates": [
@@ -749,7 +750,7 @@
       ]
     },
     {
-      "signature": "0b37fa9f15058e01",
+      "signature": "4839172da4ba3576",
       "reason": "TIPO_DESCONOCIDO",
       "evidence": [
         {
@@ -762,7 +763,7 @@
       ]
     },
     {
-      "signature": "0b37fa9f15058e01/put",
+      "signature": "4839172da4ba3576/put",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -822,7 +823,7 @@
         "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
         "nota": ""
       },
-      "signature": "0b37fa9f15058e01",
+      "signature": "4839172da4ba3576",
       "fuente": [
         {
           "file": "p1_merge_first_last.sas",
@@ -841,7 +842,7 @@
         "se_cierra_con": "rules/sas/functions/",
         "nota": "put(edad, tramo.)"
       },
-      "signature": "0b37fa9f15058e01/put",
+      "signature": "4839172da4ba3576/put",
       "fuente": [
         {
           "file": "p1_merge_first_last.sas",
