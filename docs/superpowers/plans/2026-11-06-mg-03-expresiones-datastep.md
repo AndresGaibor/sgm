@@ -108,3 +108,21 @@
   (`INPUT`, `ROUND`, comparación y fecha); no se contabilizan como compilados. El catálogo completo
   de funciones/vectores y MG-P3-04/06–09 y MG-P4-02–09 quedan fuera de este plan ejecutable.
 - Verificación final: suite completa y Ruff registradas en `PROGRESS.md`.
+
+## Continuación A/B (hito 109n)
+
+- `INPUT w.d` emite `BigDecimal`: aplica `d` cuando el texto no contiene punto decimal y devuelve
+  missing ante texto no numérico. `ROUND` conserva `Double` y redondea los empates alejándose de
+  cero. Las expresiones predicado se emiten como `Long` 1/0, como requiere una columna numérica SAS.
+- El anillo A incluye solo casos L4 `traducible` o `revisado`; `l4_20_put_fechas_pendiente` permanece
+  fuera por falta de equivalencia y vector independiente. El anillo B focalizado pasó (161 passed,
+  1 skipped, 20 xfailed); la suite completa pasó (2361 passed, 27 skipped, 149 xfailed) y Ruff quedó
+  limpio.
+- Anillo C bloqueado: en el intento combinado el bridge local no respondió (`ECONNREFUSED` en
+  `127.0.0.1:3930`), por lo que no hubo compilación. No se cuenta como éxito ni como fallo de Java.
+  Reintentar una vez Studio y su bridge estén disponibles; ejecutar y comparar `l4_02`, `l4_03`,
+  `l4_18` y `l4_19` contra sus esperados.
+- `OUTPUT` explícito sigue conservando destino y línea en el plan, pero queda pendiente porque el
+  emisor no modela aún múltiples ramas/destinos de salida; no se introduce una emisión parcial.
+- Este seguimiento no cierra MG-03 global: catálogo integral de funciones/vectores y las restantes
+  tareas MG-P3/MG-P4 siguen en el plan maestro.

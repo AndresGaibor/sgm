@@ -59,6 +59,11 @@ def test_funciones_de_caracter_y_numericas_fijan_el_tipo():
     assert expression_type("round(y, 0.01)") == CodeType("Double")
 
 
+def test_predicados_y_missing_demuestran_booleano():
+    assert expression_type("SALDO < 500") == CodeType("Boolean")
+    assert expression_type("missing(SALDO)") == CodeType("Boolean")
+
+
 def test_declaraciones_length_format_e_informat():
     found = declared_types(
         [

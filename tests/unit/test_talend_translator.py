@@ -9,10 +9,8 @@ import re
 
 import pytest
 
-from sgm.expressions.talend_translator import (
-    Unsupported,
-    translate_to_talend,
-)
+from sgm.expressions.expressions import translate
+from sgm.expressions.talend_translator import Unsupported, translate_to_talend
 
 #: Firmas de las rutinas de sistema de Studio 8.0 que usa el traductor, leídas de la instalación.
 TALEND_SIGNATURES = {
@@ -155,10 +153,29 @@ def test_aritmetica_propaga_el_perdido():
 
 def test_redondeo_de_sas_va_fuera_del_cero():
     assert java("round(a)") == (
-        "(input_row.a == null ? null : Double.valueOf(((Number) input_row.a).doubleValue() < 0 "
-        "? -Math.round(-((Number) input_row.a).doubleValue()) "
-        ": Math.round(((Number) input_row.a).doubleValue())))"
+        "(input_row.a == null ? null : Double.valueOf(Math.copySign(Math.floor(Math.abs("
+        "((Number) input_row.a).doubleValue()) + 0.5), ((Number) input_row.a).doubleValue())))"
     )
+
+
+def test_fachada_emite_round_con_tipo_double_y_empate_alejado_de_cero():
+    result = translate("round(MONTO,1)")
+
+    assert result.kind == "num"
+    assert result.talend == (
+        "(input_row.MONTO == null ? null : Double.valueOf((double) "
+        "Math.copySign(Math.floor(Math.abs(input_row.MONTO) + 0.5), input_row.MONTO)))"
+    )
+
+
+def test_fachada_input_w_d_conserva_bigdecimal_y_rechaza_texto_invalido():
+    result = translate("input(IMPORTE,8.2)")
+
+    assert result.kind == "num"
+    assert "new java.math.BigDecimal" in result.talend
+    assert ".movePointLeft(" in result.talend
+    assert '.contains(".") ? 0 : 2' in result.talend
+    assert "matches(\"[+-]?" in result.talend
 
 
 def test_matematicas_usan_la_rutina_matematica():

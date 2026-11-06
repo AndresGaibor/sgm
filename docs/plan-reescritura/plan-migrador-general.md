@@ -539,6 +539,13 @@ de ampliar el lote a los 20 casos L4 encontró cinco incompatibilidades Java en 
 comparaciones y `PUT` de fechas; se mantienen fuera del lote validado, no se cuentan como soporte.
 MG-P3-04 y 06 a 09 siguen pendientes.
 
+**Actualización (hito 109n, 6 de noviembre de 2026).** Se corrigió la emisión de `INPUT w.d` a
+`BigDecimal` (con decimales implícitos solo si el texto no contiene punto), `ROUND` como `Double` con
+empates alejándose de cero, y predicados DATA step como `Long` 1/0. A/B queda verde para el conjunto
+L4 revisado (suite completa: 2361 passed, 27 skipped, 149 xfailed; Ruff limpio). La compilación C
+ampliada no se ejecutó: el bridge de Studio no estaba disponible (`ECONNREFUSED` en
+`127.0.0.1:3930`). No se declara C validado para estos cambios; queda por reintentar con Studio abierto.
+
 ### MG-P4. DATA step (90 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -567,6 +574,12 @@ pendientes; en particular no se extiende la semántica de `MERGE`, estado por fi
 Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocados; `l4_06` y `l4_14`,
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
+
+**Actualización (hito 109n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
+step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`
+condicional/múltiple sigue pendiente: el modelo/emisor no representa todavía todas las ramas y
+destinos, por lo que no se emite parcialmente. La compilación Studio de esta ampliación está bloqueada
+por bridge no disponible; no se contabiliza como pasada.
 
 ### MG-P5. `PROC SQL` (80 h)
 | Id | Tarea | Tipo | Aceptación | Horas |

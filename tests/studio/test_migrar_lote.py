@@ -1,8 +1,8 @@
-"""Anillo C del migrador: L0–L2 completos y los casos L4 enfocados compilan en un lote.
+"""Anillo C del migrador: L0–L2 completos y L4 revisados compilan en un lote.
 
 Es la prueba que cierra la rebanada vertical: los anillos A (el Job) y B (el intérprete) no dicen si
 Studio acepta el `.item`. Aquí se migran los casos L0–L2 que la lista viva da por completos y los
-casos L4 de `COMPRESS`/`SCAN` incluidos en este alcance,
+casos L4 con estado traducible/revisado,
 se compilan todos en **una** llamada —`compilar_en_lote` copia con un sufijo nuevo y limpia
 `process/` pase lo que pase— y se exige que no quede ninguno fuera.
 
@@ -34,22 +34,13 @@ from sgm.cli_migrar import migrar  # noqa: E402
 CORPUS = REPO / "tests" / "corpus"
 LISTA = CORPUS / "migrar_pendientes.yaml"
 NIVELES = ("L0", "L1", "L2", "L4")
-L4_VALIDAR_EN_STUDIO = {
-    "l4_04_compress_blancos",
-    "l4_05_compress_lista_caracteres",
-    "l4_06_compress_modificador_k",
-    "l4_07_compress_clase_digitos",
-    "l4_08_compress_ignora_mayusculas",
-    "l4_14_scan_palabra",
-    "l4_15_scan_delimitador_fuera_de_rango",
-}
 
 
 def _casos_completos() -> list[Path]:
-    """Casos completos de L0–L2 y L4 seleccionados, con muestras para demostrar cabeceras.
+    """Casos completos de L0–L2 y casos L4 revisados, con muestras para demostrar cabeceras.
 
-    Para L0–L2 se respeta la lista viva de pendientes; L4 cubre las funciones de texto de MG-03 y
-    usa la cabecera de muestra para completar nombres que el SAS no enumera.
+    Para L0–L2 se respeta la lista viva de pendientes; L4 incluye solo casos traducibles/revisados,
+    no casos declarados pendientes o sin oráculo.
     """
     pendientes = yaml.safe_load(LISTA.read_text(encoding="utf-8")) or {}
     return [
@@ -58,7 +49,11 @@ def _casos_completos() -> list[Path]:
         for caso in sorted((CORPUS / nivel).iterdir())
         if (caso / "programa.sas").is_file()
         and caso.name not in pendientes
-        and (nivel != "L4" or caso.name in L4_VALIDAR_EN_STUDIO)
+        and (
+            nivel != "L4"
+            or yaml.safe_load((caso / "caso.yaml").read_text(encoding="utf-8")).get("estado")
+            in {"traducible", "revisado"}
+        )
     ]
 
 
@@ -73,7 +68,7 @@ def _backend() -> TalendCliBackend:
 
 
 @pytest.mark.studio
-def test_los_jobs_completos_y_l4_en_alcance_compilan_en_lote(tmp_path):
+def test_los_jobs_completos_y_l4_revisados_compilan_en_lote(tmp_path):
     backend = _backend()
     salud = comprobar_salud(backend)
     if not salud.ok:

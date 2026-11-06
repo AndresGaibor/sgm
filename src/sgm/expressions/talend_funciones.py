@@ -131,19 +131,16 @@ def _compress(p: _P, args: list[E]) -> E:
 
 
 def _round(_p: _P, args: list[E]) -> E:
-    """ROUND de SAS redondea el 0,5 hacia fuera del cero (`Math.round` lo lleva hacia arriba: -2,5 -> -2)."""
+    """ROUND conserva el tipo numérico y redondea los empates alejándose de cero."""
     _need(args, 1, 2, "round")
     x = args[0]
-    if len(args) == 1:
-        v = _num(x)
-        return E(
-            _guard([x], f"Double.valueOf({v} < 0 ? -Math.round(-{v}) : Math.round({v}))"), "num"
-        )
-    unit = args[1]
+    unit = args[1] if len(args) == 2 else E("1", "num")
     v, u = _num(x), _num(unit)
-    q = f"({v} / {u})"
+    q = v if len(args) == 1 else f"({v} / {u})"
+    rounded = f"Math.copySign(Math.floor(Math.abs({q}) + 0.5), {q})"
+    result = rounded if len(args) == 1 else f"({rounded} * {u})"
     return E(
-        _guard([x, unit], f"Double.valueOf(({q} < 0 ? -Math.round(-{q}) : Math.round({q})) * {u})"),
+        _guard([x, *([unit] if len(args) == 2 else [])], f"Double.valueOf({result})"),
         "num",
     )
 
@@ -212,6 +209,17 @@ def _input(p: _P, args: list[E]) -> E:
         )
     if fmt.startswith(("$", "char")):
         return E(args[0].java, "str")
+    width_decimal = re.fullmatch(r"\d+\.(\d+)", fmt)
+    if width_decimal:
+        decimals = int(width_decimal.group(1))
+        source = f"StringHandling.TRIM({args[0].java})"
+        pattern = r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)"
+        valid = f"{source}.matches({_jstr(chr(34) + pattern + chr(34))})"
+        value = (
+            f"new java.math.BigDecimal({source}).movePointLeft("
+            f"{source}.contains({_jstr(chr(34) + chr(46) + chr(34))}) ? 0 : {decimals})"
+        )
+        return E(_guard([args[0]], f"({valid} ? {value} : null)"), "num")
     p.warnings.add(
         "input numérico: el valor se convierte con Mathematical.REAL; comprobar el informato"
     )

@@ -25,9 +25,11 @@ def _f_round(args: list[str]) -> str:
         raise _Unsupported("round() con más de dos argumentos")
     value = args[0]
     unit = args[1] if len(args) == 2 else "1"
-    if unit == "1":
-        return _guard(value, f"Math.round({value})")
-    return _guard(value, f"(Math.round({value} / {unit}) * {unit})")
+    rounded = value if unit == "1" else f"({value} / {unit})"
+    rounded = f"Math.copySign(Math.floor(Math.abs({rounded}) + 0.5), {rounded})"
+    if unit != "1":
+        rounded = f"({rounded} * {unit})"
+    return _guard(value, f"Double.valueOf((double) {rounded})")
 
 
 def _f_length(args: list[str]) -> str:

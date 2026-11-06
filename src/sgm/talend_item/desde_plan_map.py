@@ -355,6 +355,9 @@ def _tipo_de_salida(meseta: _Meseta, java: str, asignacion: dict) -> str:
     """
     demostrado = tipo_de_expresion(str(asignacion.get("expression") or ""))
     if demostrado is not None:
+        if demostrado == "Boolean":
+            # Las comparaciones del DATA step devuelven 1/0 en SAS, no un booleano de Java.
+            return "id_Long"
         return TIPOS.get(demostrado, "id_String")
     fila, _, nombre = java.partition(".")
     if fila.startswith("row"):
@@ -396,6 +399,9 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
         java, _ = _valor(meseta, asignacion, armado, op, previas)
         if java is None:
             continue
+        demostrado = tipo_de_expresion(str(asignacion.get("expression") or ""))
+        if demostrado == "Boolean":
+            java = f"Long.valueOf(({java}) ? 1L : 0L)"
         tipo = _tipo_de_salida(meseta, java, asignacion)
         tipos_previos[destino] = tipo
         if destino in expresiones:

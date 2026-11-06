@@ -46,6 +46,10 @@ _ARITHMETIC = re.compile(r"^[\d\s.+\-*/()]+$")
 _NUMERIC_LITERAL = re.compile(r"^[+-]?\d+$")
 _DECIMAL_LITERAL = re.compile(r"^[+-]?\d*\.\d+$")
 _TEXT_LITERAL = re.compile(r"^(['\"]).*\1$", re.S)
+_BOOLEAN_OPERATOR = re.compile(
+    r"(?i)\b(?:and|or|not|in|between)\b|<=|>=|<>|~=|¬=|(?<![<>=])=(?!=)|(?<![<>=])[<>](?![=>])"
+)
+_QUOTED_VALUE = re.compile(r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"", re.S)
 _LENGTH_ITEM = re.compile(r"(\w+)\s+(\$?)\s*(\d+)")
 _FORMAT_ITEM = re.compile(r"(\w+)\s+(\$?[a-zA-Z]*\d*\.\d*)")
 _CAST_TYPES = {
@@ -124,8 +128,11 @@ def informat_type(spec: str) -> CodeType | None:
 
 
 def expression_type(expression: str) -> CodeType | None:
-    """Tipo de una expresión que el código fija: input, put, cast, literal o aritmética."""
+    """Tipo de expresiones fijado por código: entrada, literal, aritmética o predicado."""
     text = expression.strip()
+    sin_literales = _QUOTED_VALUE.sub("''", text)
+    if _BOOLEAN_OPERATOR.search(sin_literales) or _single_call(sin_literales) == "missing":
+        return CodeType("Boolean")
     if _TEXT_LITERAL.match(text):
         return CodeType("String")
     if _NUMERIC_LITERAL.match(text):
