@@ -113,6 +113,8 @@ MUESTRAS_DATA_STEP = {
     "END": "end;",
     "INFILE": "infile 'a';",
     "INPUT": "input x;",
+    "FILE": "file 'salida.txt';",
+    "PUT": "put x;",
 }
 
 

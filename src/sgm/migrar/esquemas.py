@@ -23,13 +23,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from sgm.ir.models import Column, Operator, Plan
-from sgm.ir.types_code import expression_type
+from sgm.migrar.esquemas_tipos import (
+    TIPO_NUMERICO,
+    TIPO_POR_OMISION,
+    _columnas_numericas,
+    _columnas_ordenadas,  # noqa: F401  (reexportación histórica)
+    _textos,
+    tipo_de_expresion,
+)
 
-# El tipo que se escribe cuando no hay ninguno demostrado; va siempre con su pendiente.
-TIPO_POR_OMISION = "String"
-# El tipo que el propio programa demuestra cuando opera con una columna: SAS guarda todo número como
-# un doble, así que el tipo fiel es `Double`.
-TIPO_NUMERICO = "Double"
 _TIPO_DESCONOCIDO = "P-TIPO-DESCONOCIDO"
 _REFERENCIA = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b")
 # Identificador suelto que no es llamada a función: `select a, b from t` no califica las columnas.
@@ -44,31 +46,6 @@ _PALABRAS = frozenset(
         "desc", "asc", "work",
     }
 )
-
-
-# Operando de una expresión: una cadena, un nombre quizá calificado con su tabla, un número o un
-# operador. Se recorre así y no con una expresión regular por caso porque `a*b` y `sum(a, 1)` tienen
-# la misma forma por dentro y distinto significado.
-_TOKEN = re.compile(
-    r"'[^']*'|\"[^\"]*\""
-    r"|(?P<ident>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)"
-    r"|(?P<numero>\d+(?:\.\d+)?)"
-    r"|(?P<operador>[+\-*/])"
-    r"|(?P<otro>\S)"
-)
-_LLAMADA = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
-# Una expresión que es solo un nombre de columna, quizá con su tabla: el tipo lo da el esquema.
-_SOLO_NOMBRE = re.compile(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?")
-# Funciones que solo aceptan números: cualquiera de sus argumentos con nombre es numérico.
-_FUNCIONES_NUMERICAS = frozenset(
-    {
-        "sum", "mean", "avg", "round", "abs", "int", "floor", "ceil", "sqrt", "exp", "log",
-        "nmiss", "n", "min", "max",
-    }
-)
-# Funciones que conservan el tipo de sus argumentos: junto a un número, el nombre es numérico.
-# `coalescec` e `ifc` quedan fuera a propósito: son las de texto.
-_FUNCIONES_MIXTAS = frozenset({"coalesce", "ifn"})
 
 
 @dataclass(frozen=True)
@@ -87,172 +64,6 @@ def _linea(op: Operator) -> int | None:
 def _nombre_base(tabla: str) -> str:
     """`work.clientes` -> `clientes`: como lo nombran las expresiones del SQL."""
     return tabla.split(".")[-1].lower()
-
-
-def _de_asignacion(asignacion: dict) -> list[str]:
-    """Textos de una asignación: su expresión y, si es condicional, cada condición y rama."""
-    textos = [str(asignacion.get("expression") or "")]
-    condicional = asignacion.get("conditional")
-    if isinstance(condicional, dict):
-        textos.append(str(condicional.get("condition") or ""))
-        textos.append(str(condicional.get("otherwise") or ""))
-        for rama in condicional.get("branches") or []:
-            textos.append(str(rama.get("condition") or ""))
-            textos.append(str(rama.get("expression") or ""))
-    return textos
-
-
-def _textos(plan: Plan) -> list[str]:
-    """Expresiones que pueden nombrar columnas: asignaciones, llaves, filtros y condiciones."""
-    encontrados: list[str] = []
-    for op in plan.graph.operators():
-        params = op.params
-        if op.kind == "filter":
-            encontrados.append(str(params.get("expression") or ""))
-        for asignacion in params.get("assignments") or []:
-            encontrados.extend(_de_asignacion(asignacion))
-        for llave in params.get("keys") or []:
-            encontrados.extend(str(parte) for parte in llave)
-        if params.get("condition"):
-            encontrados.append(str(params["condition"]))
-        for paso in params.get("steps") or []:
-            propios = paso.get("params") or {}
-            if paso.get("kind") == "filter":
-                encontrados.append(str(propios.get("expression") or ""))
-            for asignacion in propios.get("assignments") or []:
-                encontrados.extend(_de_asignacion(asignacion))
-            for llave in propios.get("keys") or []:
-                encontrados.extend(str(parte) for parte in llave)
-            if propios.get("condition"):
-                encontrados.append(str(propios["condition"]))
-    return [texto for texto in encontrados if texto]
-
-
-def _sin_tabla(nombre: str) -> str:
-    """`ventas.precio` -> `precio`, en minúsculas: como se compara con el esquema."""
-    return nombre.split(".")[-1].lower()
-
-
-def _columnas_aritmeticas(texto: str) -> set[str]:
-    """Nombres que aparecen como operando de `*`, `/`, `+` o `-`.
-
-    `*` y `/` solo unen números en SAS, así que un nombre a cualquiera de sus lados es numérico.
-    `+` y `-` pueden ser un signo (`-x`), así que solo cuentan con algo a los dos lados.
-    """
-    piezas = [(m.lastgroup, m.group(0)) for m in _TOKEN.finditer(texto)]
-    nombres: set[str] = set()
-    for indice, (tipo, valor) in enumerate(piezas):
-        if tipo != "operador":
-            continue
-        izquierda = piezas[indice - 1] if indice else (None, "")
-        derecha = piezas[indice + 1] if indice + 1 < len(piezas) else (None, "")
-        if valor in "*/":
-            lados = (izquierda, derecha)
-        elif izquierda[0] in ("ident", "numero") and derecha[0] in ("ident", "numero"):
-            lados = (izquierda, derecha)
-        else:
-            continue
-        nombres |= {_sin_tabla(lado) for tipo_lado, lado in lados if tipo_lado == "ident"}
-    return {nombre for nombre in nombres if nombre not in _PALABRAS}
-
-
-_NUMERO = r"-?\d+(?:\.\d+)?"
-_NOMBRE = r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?"
-# `cantidad >= 2`, `2 < cantidad`, `cantidad BETWEEN 2 AND 5`: un orden contra un número literal.
-_ORDEN_NUMERICO = re.compile(
-    rf"\b({_NOMBRE})\s*(?:<=|>=|<|>)\s*{_NUMERO}\b"
-    rf"|(?<![\w.]){_NUMERO}\s*(?:<=|>=|<|>)\s*({_NOMBRE})\b"
-    rf"|\b({_NOMBRE})\s+BETWEEN\s+{_NUMERO}\s+AND\s+{_NUMERO}\b",
-    re.IGNORECASE,
-)
-
-
-def _columnas_ordenadas(texto: str) -> set[str]:
-    """Nombres comparados por orden con un número literal: SAS no ordena texto contra un número."""
-    sin_cadenas = _CADENA.sub(" ", texto)
-    nombres = {
-        _sin_tabla(nombre)
-        for encontrada in _ORDEN_NUMERICO.finditer(sin_cadenas)
-        for nombre in encontrada.groups()
-        if nombre
-    }
-    return {nombre for nombre in nombres if nombre not in _PALABRAS}
-
-
-def _llamadas(texto: str) -> list[tuple[str, str]]:
-    """Cada llamada de la expresión como `(nombre, argumentos)`, con los paréntesis balanceados."""
-    encontradas: list[tuple[str, str]] = []
-    for coincidencia in _LLAMADA.finditer(texto):
-        nivel = 0
-        for posicion in range(coincidencia.end() - 1, len(texto)):
-            if texto[posicion] == "(":
-                nivel += 1
-            elif texto[posicion] == ")":
-                nivel -= 1
-                if nivel == 0:
-                    argumentos = texto[coincidencia.end() : posicion]
-                    encontradas.append((coincidencia.group(1).lower(), argumentos))
-                    break
-    return encontradas
-
-
-def _nombres(texto: str) -> set[str]:
-    """Nombres de columna del texto: sin cadenas, sin llamadas y sin palabras del SQL."""
-    limpio = _CADENA.sub(" ", texto)
-    return {
-        _sin_tabla(nombre)
-        for nombre in re.findall(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?(?!\s*\()", limpio)
-        if _sin_tabla(nombre) not in _PALABRAS
-    }
-
-
-def _es_numerica(texto: str) -> bool:
-    """La expresión opera con números: `a * b`, `a / 2`, `sum(a, b)`, `coalesce(a, 0)`."""
-    piezas = [(m.lastgroup, m.group(0)) for m in _TOKEN.finditer(texto)]
-    for indice, (tipo, valor) in enumerate(piezas):
-        if tipo != "operador":
-            continue
-        izquierda = piezas[indice - 1] if indice else (None, "")
-        derecha = piezas[indice + 1] if indice + 1 < len(piezas) else (None, "")
-        if valor in "*/":
-            return True
-        if izquierda[0] in ("ident", "numero") and derecha[0] in ("ident", "numero"):
-            return True
-    for funcion, argumentos in _llamadas(texto):
-        if funcion in _FUNCIONES_NUMERICAS:
-            return True
-        if funcion in _FUNCIONES_MIXTAS and re.search(r"\d", _CADENA.sub(" ", argumentos)):
-            return True
-    return False
-
-
-def tipo_de_expresion(texto: str) -> str | None:
-    """Tipo que la propia expresión demuestra, sin mirar el esquema de las columnas.
-
-    `Double` si opera con números o pasa por una función numérica; `String` si es texto o una
-    concatenación; y `None` cuando es una columna suelta, porque ahí el tipo lo dice el esquema.
-    """
-    limpio = texto.strip()
-    if not limpio or _SOLO_NOMBRE.fullmatch(limpio):
-        return None
-    demostrado = expression_type(limpio)
-    if demostrado is not None:
-        return demostrado.type
-    return TIPO_NUMERICO if _es_numerica(limpio) else TIPO_POR_OMISION
-
-
-def _columnas_numericas(plan: Plan) -> set[str]:
-    """Columnas cuyo tipo numérico demuestra el propio programa, sin catálogo ni muestra."""
-    numericas: set[str] = set()
-    for texto in _textos(plan):
-        numericas |= _columnas_aritmeticas(texto)
-        numericas |= _columnas_ordenadas(texto)
-        for funcion, argumentos in _llamadas(texto):
-            if funcion in _FUNCIONES_NUMERICAS:
-                numericas |= _nombres(argumentos)
-            elif funcion in _FUNCIONES_MIXTAS and re.search(r"\d", _CADENA.sub(" ", argumentos)):
-                numericas |= _nombres(argumentos)
-    return numericas
 
 
 def _columnas_usadas(plan: Plan, tabla: str) -> list[str]:
@@ -378,7 +189,10 @@ def esquemas_de_entrada(
             continue
         ruta = _ruta_de_muestra(muestra, op.params.get("datafile"))
         cabecera = _cabecera(ruta, op.params.get("delimiter")) if ruta else []
-        if cabecera:
+        if op.params.get("input_names"):
+            origen = "sas_input"
+            nombres = [str(nombre) for nombre in op.params["input_names"]]
+        elif cabecera:
             origen = "file_header"
             nombres = cabecera
         else:
@@ -407,4 +221,4 @@ def esquemas_de_entrada(
     return esquemas, pendientes
 
 
-__all__ = ["PendienteMigracion", "esquemas_de_entrada"]
+__all__ = ["PendienteMigracion", "esquemas_de_entrada", "tipo_de_expresion"]

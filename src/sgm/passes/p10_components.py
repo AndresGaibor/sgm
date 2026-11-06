@@ -133,7 +133,22 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
     rules = load_rules()
     engines = load_engines()
     rung_counts: dict[int, int] = {}
+    file_put_gaps: list[Gap] = []
     for op in graph.operators():
+        statements = [
+            note.split(": ", 1)[1]
+            for note in op.notes
+            if note.startswith("FILE_PUT_SIN_PLANTILLA: ")
+        ]
+        if statements:
+            file_put_gaps.append(
+                Gap(
+                    signature=f"{op.signature}/FILE_PUT",
+                    reason="SENTENCIA_NO_SOPORTADA",
+                    evidence=list(op.evidence),
+                    text=" | ".join(statements)[:120],
+                )
+            )
         if op.status in ("hueco", "reemplazado") or op.kind == "unsupported":
             continue
         found, conflicto = resolve(op, rules, engines)
@@ -204,6 +219,7 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
                 )
             )
         rung_counts[rule.rung] = rung_counts.get(rule.rung, 0) + 1
+    ctx.plan.gaps.extend(file_put_gaps)
     log.metrics["por_peldano"] = dict(sorted(rung_counts.items()))
     log.metrics["componentes"] = sum(rung_counts.values())
     return log

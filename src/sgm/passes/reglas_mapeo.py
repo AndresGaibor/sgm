@@ -83,6 +83,9 @@ def load_engines(path: Path = ENGINES_PATH) -> dict[str, dict[str, str]]:
 
 
 def _file_format(op: Operator) -> str:
+    declarado = str(op.params.get("file_format") or "").strip().lower()
+    if declarado:
+        return declarado
     dbms = str(op.params.get("dbms") or "").strip().lower()
     if dbms in {"xlsx", "xls"}:
         return "excel"

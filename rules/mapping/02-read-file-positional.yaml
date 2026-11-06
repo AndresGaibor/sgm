@@ -1,0 +1,13 @@
+id: 02-read-file-positional
+version: 1
+prioridad: 80
+description: "Lectura con posiciones, pendiente de plantilla real de Studio."
+cuando:
+  kind: "read_file"
+  file_format: "positional"
+produce:
+  component: "tFileInputPositional"
+confidence: media
+alternatives: []
+casos:
+  - tests/cases/02-read-file-positional

@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+from sgm.frontend.datastep_io import infile_fields, input_fields
+
 _DATA_HEADER = re.compile(r"(?is)^data\s+(.*)$")
 _OUTPUT_NAME = re.compile(r"([A-Za-z_&][\w.&]*)\s*(\([^)]*\))?")
 _SOURCE = re.compile(r"([A-Za-z_&][\w.&]*)\s*(\(([^)]*)\))?")
@@ -103,7 +105,7 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
     word = re.match(r"[a-z_]+", low)
     head = word.group(0) if word else ""
     if body == "<datalines>":
-        return DsStatement("datalines", body, line, {"rows": len(rows)})
+        return DsStatement("datalines", body, line, {"rows": len(rows), "data": list(rows)})
     if head == "set":
         return DsStatement("set", body, line, {"sources": _dataset_refs(body[3:])})
     if head == "merge":
@@ -133,9 +135,11 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
     if head == "end":
         return DsStatement("end", body, line, {})
     if head == "infile":
-        return DsStatement("infile", body, line, {})
+        return DsStatement("infile", body, line, infile_fields(body))
     if head == "input":
-        return DsStatement("input", body, line, {})
+        return DsStatement("input", body, line, input_fields(body))
+    if head in ("file", "put"):
+        return DsStatement(head, body, line, {"raw": body})
     if head == "if" or head == "else":
         flags = [f"{kind}.{name}" for kind, name in _FIRST_LAST.findall(body)]
         return DsStatement("if", body, line, {"first_last": flags})

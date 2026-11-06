@@ -33,6 +33,19 @@ CAMPOS_ADITIVOS = {
     # Hito 104m: el `derive` de un DATA step conserva la fila y le agrega columnas; el de un
     # `SELECT` la reemplaza. La firma cambia con la marca, y por eso la referencia se regeneró.
     "modo": "`agrega` en el derive de un DATA step (hito 104m, DATA step vs SELECT)",
+    # Hito 121: `INFILE/INPUT` conservan opciones, campos, fuente y formato inferidos por sintaxis.
+    "datafile": "ruta literal de INFILE (hito 121)",
+    "file_format": "forma de lectura demostrada por INFILE/INPUT (hito 121)",
+    "firstobs": "primera fila de INFILE (hito 121)",
+    "infile_line": "línea de INFILE para pendientes de migración (hito 121)",
+    "infile_options": "opciones declaradas en INFILE (hito 121)",
+    "infile_statement": "sintaxis original de INFILE (hito 121)",
+    "input_line": "línea de INPUT para pendientes de migración (hito 121)",
+    "input_mode": "modalidad demostrada por INPUT (hito 121)",
+    "input_names": "nombres declarados por INPUT, sin inferir tipos (hito 121)",
+    "input_statement": "sintaxis original de INPUT (hito 121)",
+    "statement": "sentencias originales de lectura (hito 121)",
+    "unsupported_options": "opciones INFILE sin equivalencia identificada (hito 121)",
 }
 
 # Cambios intencionales de valor: se documentan por referencia y ruta para que el permiso no cubra
@@ -50,6 +63,11 @@ CAMBIOS_DOCUMENTADOS = {
         "operators[74].params.talend_expression_candidates[0].java": (
             "hito 110: emitir COMPRESS del espacio literal con la rutina Talend de reemplazo"
         ),
+    },
+    "generalization__etl_archivos_simple.plan.json": {
+        "operators[2].signature": "hito 121: INFILE/INPUT pasa a formar parte de la firma",
+        "pendientes[5].signature": "hito 121: la firma del hueco de lectura se precisa",
+        "pending[1].signature": "hito 121: la decisión del lector usa la firma de INFILE/INPUT",
     },
 }
 

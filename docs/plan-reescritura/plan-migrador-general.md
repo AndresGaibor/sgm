@@ -507,13 +507,16 @@ a `L2` sin YAML; MG-P1-03, MG-P1-05 y MG-P1-06 son de los planes siguientes.
 | MG-P2-06 | `FILENAME` (archivo, pipe, FTP) y `PROC DOWNLOAD/UPLOAD/RSUBMIT` (cierra el hueco R7-12) | S | caso del corpus con `RSUBMIT` | 6 |
 | MG-P2-07 | Decisión MG-D03 aplicada: datasets permanentes a archivo de preparación con aviso | H | casos con `lib.tabla` generan lectura y escritura coherentes | 2 |
 
-**Estado (hito 120, 6 de noviembre de 2026).** MG-P2-01 sigue parcial: CSV/DLM conservan lectura,
+**Estado (hito 121, 6 de noviembre de 2026).** MG-P2-01 sigue parcial: CSV/DLM conservan lectura,
 escritura, cabecera y delimitador; `DBMS=XLSX/XLS` se clasifica por el formato declarado y la lectura
 Excel ajusta el indicador del libro XLS/XLSX. `SHEET` de `PROC EXPORT` y `GUESSINGROWS` literal,
 `MAX` o dinámico se conservan en la IR; cuando se usa `GUESSINGROWS`, el emisor deja pendiente validar
 el esquema explícito. La exportación Excel se propone como `tFileOutputExcel`, pero no se genera
 mientras falte una plantilla extraída de un Job real de Studio. `EXCELCS` y formatos no declarados
-siguen pendientes. Los tipos todavía requieren esquema demostrado por catálogo o muestra.
+siguen pendientes. MG-P2-02 tiene avance parcial: se modelan `INFILE/INPUT`, se enruta la lista con
+`DLM` literal de un carácter y `FIRSTOBS`, y se preservan `FILE/PUT` y `DATALINES` como pendientes.
+No se emite lectura posicional, `DSD`, `MISSOVER` ni `TRUNCOVER`; faltan plantilla real y verificación
+de semántica en Studio. Los tipos todavía requieren evidencia de catálogo, muestra o informat.
 
 ### MG-P3. Expresiones y funciones (80 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -791,7 +794,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 |---|---|---|---|---|
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
 | MG-P1 Modelo y plan lógico | 70 | 40,5 | 58 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; esquemas sin tipos |
-| MG-P2 Entrada y salida | 50 | 12,0 | 24 % | CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT` |
+| MG-P2 Entrada y salida | 50 | 15,0 | 30 % | CSV/DLM y Excel parcial; `INFILE/INPUT` modelado, sin lector posicional verificado, bases, `FILENAME` ni `RSUBMIT` |
 | MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
 | MG-P4 DATA step | 90 | 7,0 | 8 % | `WHERE`, `IF/ELSE IF`, `KEEP/DROP/RENAME`; sin `MERGE`, `RETAIN`, `OUTPUT` múltiple |
 | MG-P5 `PROC SQL` | 80 | 12,0 | 15 % | `filter`, `derive`, `join`; L1 completos 3 de 15, L2 5 de 15 |

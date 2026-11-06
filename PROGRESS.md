@@ -5130,3 +5130,29 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   ni a delimitados. La asignación del usuario estima MG-P2 en 38 h y el plan maestro desglosa 50 h;
   se conserva el desglose maestro sin alterar la estimación hasta conciliar ambas cifras.
 - Bloqueo: no hay plantilla real de `tFileOutputExcel`; su generación requiere extraerla de Studio.
+
+## Hito 121. Modelar `INFILE/INPUT` y conservar pendientes de `FILE/PUT`
+
+- Fecha: 2026-11-06. Alcance: MG-P2-02, parcial.
+- Qué se hizo:
+  - El parser conserva la fuente, opciones de `INFILE`, disposición de `INPUT`, nombres de campos
+    y sintaxis original. Una referencia SAS sin resolver no se convierte en una ruta física.
+  - La IR enruta entradas por lista a `tFileInputDelimited` solo si hay un `DLM` literal de un
+    carácter y `FIRSTOBS` positivo. La cabecera de Talend recibe `FIRSTOBS - 1`.
+  - `DSD`, `LRECL`, `MISSOVER`, `TRUNCOVER`, opciones desconocidas, formatos posicionales y rutas
+    sin resolver quedan como pendientes específicos; no se generan nodos con separadores o
+    semánticas adivinadas. El formato posicional tiene una regla candidata, pero no un nodo `.item`.
+  - Los nombres que declara `INPUT` forman el esquema si no existe catálogo; no se deduce su tipo.
+    Las filas de `DATALINES` se conservan en la IR y se marcan como hueco, evitando una lectura de
+    archivo vacía. `FILE/PUT` conserva cada sentencia y agrega un hueco sin crear nodos ficticios.
+  - Se actualizaron las pruebas de equivalencia para documentar los campos de IR nuevos y la firma
+    más precisa del caso `etl_archivos_simple`. Se dividieron módulos que superaban 300 líneas.
+- Pruebas: `uv run pytest -q`: **2512 aprobadas, 26 omitidas, 144 xfailed**; `uv run ruff check .`
+  limpio; `git -c core.whitespace=cr-at-eol diff --check` limpio.
+- Decisiones: `INPUT` formateado y posicional no emite componente hasta completar MG-P2-03 y obtener
+  una plantilla real de `tFileInputPositional`. Las opciones de registro y `DSD` permanecen como
+  pendientes hasta demostrar equivalencia en Talend. El tipo sin evidencia sigue como `String` con
+  `P-TIPO-DESCONOCIDO`.
+- Bloqueos: no hay plantilla de `tFileInputPositional` ni una corrida de SAS/Talend que permita
+  aceptar el lector. MG-P2-02 no cumple todavía toda su aceptación; crédito provisional del plan:
+  3,0 h de 12 h.
