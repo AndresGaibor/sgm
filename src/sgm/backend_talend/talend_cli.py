@@ -98,11 +98,13 @@ class TalendCliBackend(ArchivosBackend):
         proyecto: Path,
         ejecutor: Ejecutor | None = None,
         tiempo_max: float = 120.0,
+        fecha: str | None = None,
     ) -> None:
         self.talend_dir = Path(talend_dir)
         self.proyecto = Path(proyecto)
         self.tiempo_max = tiempo_max
         self.ejecutor = ejecutor or ejecutor_subprocess(self.talend_dir)
+        self.fecha = fecha
 
     def _comando(self, tool: str, entrada: dict) -> list[str]:
         return [

@@ -329,7 +329,14 @@ class _Job:
         orden = [
             op_id for subjob in job.subjobs for op_id in subjob
         ] or self.plan.graph.topological()
+        # Un operador del plan que no quedó en ningún subjob —un `PROC REG`, una salida que el
+        # análisis no agrupó— no se recorrería nunca y se perdería sin dejar rastro. Se añade al
+        # final para que quede en `pendientes` con su línea: es la mitad de "nada se pierde".
+        vistos = set(orden)
+        orden += [op_id for op_id in self.plan.graph.topological() if op_id not in vistos]
         for posicion, op_id in enumerate(orden):
+            if op_id in self._nodo:
+                continue
             op = self.plan.graph.operator(op_id)
             x = PASO * posicion
             try:

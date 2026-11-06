@@ -19,10 +19,18 @@ _SIN_STUDIO = "el backend de archivos no compila ni ejecuta"
 class ArchivosBackend:
     """Cumple `BackendTalend` escribiendo con `talend_item.escritura.escribir_job`."""
 
+    # Fecha que se escribe en los `.properties`. `None` es el reloj; `sgm migrar` pasa la fecha de
+    # modificación del programa para que dos corridas den los mismos bytes. Es atributo de clase y
+    # no solo de instancia porque `TalendCliBackend` no llama a este `__init__`.
+    fecha: str | None = None
+
+    def __init__(self, fecha: str | None = None) -> None:
+        self.fecha = fecha
+
     def escribir(self, jobs: list[Job], carpeta: Path) -> list[Path]:
         rutas: list[Path] = []
         for job in jobs:
-            rutas.extend(escribir_job(job, carpeta))
+            rutas.extend(escribir_job(job, carpeta, fecha=self.fecha))
         return rutas
 
     def compilar_lote(self, nombres: list[str]) -> ResultadoLote:
