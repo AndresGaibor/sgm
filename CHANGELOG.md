@@ -11,7 +11,7 @@ del código la lee de ahí.
 ## [0.2.0]
 
 Primera versión etiquetada del compilador. Lo que hay en esta versión sale de `PROGRESS.md` y del
-historial local de commits (`hito 0` a `hito 110m`). No se hizo `push` a ningún remoto.
+historial de commits (`hito 0` a `hito 110m`).
 
 ### Añadido
 
