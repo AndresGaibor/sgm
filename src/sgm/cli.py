@@ -19,6 +19,7 @@ from sgm import rules_validate as rules_validate_mod
 from sgm.batch import compile_batch
 from sgm.catalog import describe as describe_mod
 from sgm.cli_util import _collect, _env
+from sgm.cli_version import VersionOpcion
 from sgm.emit.guide_md import render_guide
 from sgm.emit.plan_json import metadatos_de_salida, plan_to_dict
 from sgm.facts.cli import facts_command, mapa_command
@@ -59,7 +60,7 @@ app.command("secretos")(secretos_command)
 
 
 @app.callback()
-def main() -> None:
+def main(version: VersionOpcion = False) -> None:
     """Punto de entrada: cada subcomando es una operación de sgm."""
 
 
