@@ -47,8 +47,7 @@ CONOCIDOS: dict[str, str] = {
         "tres SELECT con WHERE sobre la misma tabla se funden en un map con ramas sin salidas"
     ),
     "l3_09_conciliacion_diferencia_plantada": "subconsulta escalar dentro del SELECT",
-    "l6_05_last_una_fila_por_grupo": _NO_LO_EJECUTA.format(paso="stateful_row"),
-    "l6_10_ultimo_por_llave": _NO_LO_EJECUTA.format(paso="stateful_row"),
+
     "l5_06_sysfunc_upcase": "%let con %sysfunc: la macro dinámica queda como unsupported (macros)",
     "l5_08_str_filtro_completo": "la macro variable &FILTRO llega a la expresión sin resolver",
     "l5_09_into_primer_fila": "SELECT INTO deja la macro variable &ANIO sin resolver en la consulta",

@@ -5231,3 +5231,29 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: 2538 pasan, 55 fallan (los de Byron), `ruff` limpio. Nueva: `test_desplegar_plantillas.py` (4).
 - Lo que falta de L5: `l5_06` (`%sysfunc` dentro de `%let`: macros), `l5_09` (`SELECT INTO`: pide
   `tSetGlobalVar` y un disparador `OnSubjobOk` entre dos subjobs, más que `&ANIO` llegue a la expresión).
+
+## Hito 122m. `BY` con `FIRST.`, `LAST.`, `RETAIN` y suma: modelo en el plan e intérprete
+
+- Fecha: 2026-11-06. MG-P4 (parte: estado entre filas). **El emisor a Talend no está hecho.**
+- Qué se hizo:
+  - `ir/lower_data_grupos.py`: un DATA step con `BY` y `RETAIN`, `FIRST.`/`LAST.` o la sentencia de suma
+    (`acum + x`) se baja a **un** `stateful_row` con `reason: by_group` y un programa por fila
+    (`retain`, `asigna`, `si`, `suma`, `filtra`). Antes eran sentencias sueltas que el plan dejaba como
+    texto sin traducir. Un paso con otra cosa (`ELSE`, `DO`, `OUTPUT`, `KEEP`...) sigue el camino de
+    siempre.
+  - Intérprete (zona de Byron, excepción anotada): ejecuta ese programa con la semántica del SAS:
+    `FIRST.v`/`LAST.v` por grupo (con varias llaves, `first` de la segunda vale 1 si cambió la
+    primera), variables retenidas que pasan de una fila a la siguiente, suma que empieza en 0 e
+    ignora el faltante, y `IF cond;` que descarta la fila pero deja su efecto en lo retenido.
+  - Resultado en el anillo B: `l6_05` y `l6_10` pasan; `l6_06`, `l6_07` y `l6_11` (estado
+    `pendiente_revision`, fuera del anillo) coinciden con su esperado cuando se comparan a mano.
+- Lo que falta, y por qué no se hizo: **escribirlo en Talend**. `LAST.` pide mirar la fila siguiente,
+  que `tJavaRow` no tiene; las salidas posibles (conteo por grupo unido de vuelta con `tMap`, o
+  `tJavaFlex` con una fila de retraso y una fila centinela) tienen detalles de Studio que no se deben
+  escribir a ciegas. Sigue como `P-OPERADOR-SIN-SOPORTE` (`stateful_row`).
+- Pruebas: 2543 pasan más las nuevas, 55 fallan (los de Byron), `ruff` limpio. Nueva:
+  `test_data_por_grupo.py` (4).
+- **Studio:** disponible (talend-mcp responde, proyecto `PRJ_BANCOLOMBIA`), pero el lote C escribe
+  Jobs en ese proyecto y la acción fue bloqueada por permisos: nadie ha autorizado todavía usarlo. Los
+  nodos de los hitos 115m a 121m siguen sin compilar. Se extendió `tests/studio/test_migrar_lote.py`
+  a L0–L6 para correrlo en cuanto se autorice.

@@ -33,7 +33,7 @@ from sgm.cli_migrar import migrar  # noqa: E402
 
 CORPUS = REPO / "tests" / "corpus"
 LISTA = CORPUS / "migrar_pendientes.yaml"
-NIVELES = ("L0", "L1", "L2", "L4")
+NIVELES = ("L0", "L1", "L2", "L3", "L4", "L5", "L6")
 
 
 def _casos_completos() -> list[Path]:

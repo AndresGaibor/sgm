@@ -8,6 +8,7 @@ from dataclasses import replace
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_bloques import bloque_condicional
+from sgm.ir.lower_data_grupos import programa_por_grupo
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.types_code import declared_types
 
@@ -133,6 +134,14 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     loose: list[str] = []
     prev: DsStatement | None = None
     omit: set[int] = set()
+    grupo = programa_por_grupo(stmts)
+    if grupo is not None:
+        # BY con FIRST./LAST./RETAIN/suma: un programa por fila con estado, no sentencias sueltas.
+        estado = b.op("stateful_row", grupo, ev)
+        if current is not None:
+            b.link(current, estado)
+        current = estado
+        omit = set(range(len(stmts)))
     for index, s in enumerate(stmts):
         if index in omit:
             continue
