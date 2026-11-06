@@ -7,6 +7,7 @@ from dataclasses import replace
 
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
+from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.types_code import declared_types
 
@@ -142,7 +143,11 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             continue
         conditional = _conditional_assignment(stmts, index)
         if conditional is not None:
-            assignment, siguiente = conditional
+            conditional = ([conditional[0]], conditional[1])
+        else:
+            conditional = bloque_condicional(stmts, index)
+        if conditional is not None:
+            asignaciones, siguiente = conditional
             if pending_derive is None:
                 pending_derive = b.op(
                     "derive", {"assignments": [], "modo": "agrega"}, statement_ev
@@ -150,7 +155,7 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
                 if current is not None:
                     b.link(current, pending_derive)
                 current = pending_derive
-            pending_derive.params["assignments"].append(assignment)
+            pending_derive.params["assignments"].extend(asignaciones)
             b.refresh(pending_derive)
             omit.update(range(index + 1, siguiente))
             prev = stmts[siguiente - 1]

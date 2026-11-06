@@ -5156,3 +5156,26 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   el resto de nodos del hito 117m.
 - Limitación conocida: el intérprete no expande `t.*` tras un `JOIN` (no sabe qué columnas son de
   `t`), y por eso `l2_15` sigue como `xfail` del anillo B aunque el emisor ya lo traduce.
+
+## Hito 119m. Cruces encadenados (`a JOIN b JOIN c`) y `IF ... THEN DO; ... END; ELSE ...`
+
+- Fecha: 2026-11-06. MG-P5-02 (parte, cruces), MG-P4-03 (parte, bloques `DO`).
+- Qué se hizo:
+  - **Cruce de tres tablas** (`desde_plan.py`, `desde_plan_map.py`): el `tMap` del segundo cruce recibe
+    el resultado del primero como entrada principal (`Fuente.compuesta`), y ya no cuenta como lookup
+    sin llave la tabla que el primer cruce consumió (la arista directa del plan es redundante). Las
+    columnas `tabla.col` de una tabla ya cruzada se resuelven en esa entrada. Un `SELECT *` sobre un
+    cruce trae ahora las columnas de todas las tablas (antes solo las de la principal).
+  - **`lower_data_bloques.py`**: una cadena `IF / ELSE IF / ELSE` con bloques `DO; ... END;` baja a una
+    asignación condicional por columna (el `conditional` que ya existía). Se deja sin traducir, con su
+    nota, lo que cambiaría el resultado: una columna asignada dos veces en la misma rama, una expresión
+    que lee otra columna de la cadena, dos columnas asignadas que las condiciones también leen, y
+    sentencias que no son asignaciones. La columna que las condiciones leen se asigna la última, porque
+    SAS evalúa la condición una vez, antes de asignar nada.
+- Lista viva: de 6 a 4 casos (`l0_12`, `l2_12`, `l3_01`, `l3_09`). **53 de 57 casos migran sin
+  pendientes de traducción** (93 %). Anillo B: 69 pasan y 5 `xfail`.
+- Pruebas: 2471 pasan, 55 fallan (los de Byron), `ruff` limpio. Nueva: `test_data_bloques_do.py` (4).
+- Lo que queda de L0 a L3: `l0_12` (decisión vieja sobre columna derivada numérica en una condición),
+  `l2_12` (auto-`JOIN`: el plan pierde los alias y la misma tabla tendría que entrar dos veces al
+  `tMap`), `l3_01` y `l3_09` (expresión sobre agregados y subconsulta escalar: piden un `tMap` detrás
+  del `tAggregateRow`).

@@ -39,6 +39,9 @@ class Fuente:
     origen: str  # UNIQUE_NAME del nodo que la alimenta
     tabla: str  # nombre sin librería, en minúsculas: `ventas`, `clientes`
     columnas: list[Columna] = field(default_factory=list)
+    # Resultado de un cruce anterior (`a JOIN b JOIN c`): ya trae las columnas de las dos tablas y
+    # es el lado izquierdo del cruce siguiente.
+    compuesta: bool = False
 
 
 @dataclass
@@ -119,6 +122,9 @@ def _principal(fuentes: list[Fuente], join: dict | None) -> int:
     hay paso de unión, la principal es la primera entrada, que es el orden en que llegaron las
     aristas.
     """
+    for indice, fuente in enumerate(fuentes):
+        if fuente.compuesta:
+            return indice
     if join:
         declaradas = [str(s).lower().split(".")[-1] for s in join.get("sources", [])]
         for indice, fuente in enumerate(fuentes):
@@ -341,6 +347,12 @@ def _fila_de_columna(meseta: _Meseta, valor: str) -> tuple[str | None, str]:
         for indice, fuente in enumerate(meseta.fuentes):
             if fuente.tabla == tabla:
                 return f"{meseta.fila(indice)}.{meseta.nombre_real(indice, columna)}", ""
+        # Una tabla ya cruzada no es una entrada propia: su columna viene en el resultado del cruce.
+        for indice, fuente in enumerate(meseta.fuentes):
+            if fuente.compuesta and any(
+                propia.nombre.lower() == columna.lower() for propia in fuente.columnas
+            ):
+                return f"{meseta.fila(indice)}.{meseta.nombre_real(indice, columna)}", ""
         return None, f"la tabla '{tabla}' no es una entrada del mapa"
     candidatas = [
         indice
@@ -418,6 +430,14 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
         principal = meseta.fuentes[0]
         columnas = list(principal.columnas)
         expresiones = {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas}
+        if _pasos(op, "join"):
+            # `SELECT *` sobre un cruce trae las columnas de todas las tablas; si un nombre se
+            # repite, queda el de la primera.
+            for indice, fuente in enumerate(meseta.fuentes[1:], start=1):
+                for columna in fuente.columnas:
+                    if columna.nombre.lower() not in {c.nombre.lower() for c in columnas}:
+                        columnas.append(columna)
+                        expresiones[columna.nombre] = f"{meseta.fila(indice)}.{columna.nombre}"
     tipos_previos = {c.nombre: c.tipo for c in columnas}
     for asignacion in asignaciones:
         destino = str(asignacion.get("target", "")).strip()

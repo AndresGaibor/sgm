@@ -262,7 +262,14 @@ class _Job:
     def _fuentes(self, op: Operator) -> list[Fuente]:
         fuentes: list[Fuente] = []
         vistos: set[str] = set()
-        for previo in self.plan.graph.predecessors(op.id):
+        previos = self.plan.graph.predecessors(op.id)
+        # Un cruce intermedio ya consume sus tablas: la arista directa de una de ellas a este
+        # operador es redundante y la haría pasar por un lookup sin llave.
+        cruces = [p for p in previos if self.plan.graph.operator(p).kind == "join"]
+        redundantes = {p for c in cruces for p in self.plan.graph.predecessors(c)}
+        for previo in previos:
+            if previo in redundantes:
+                continue
             representante = self._resolver(previo)
             if representante is None or representante in vistos:
                 continue
@@ -273,6 +280,7 @@ class _Job:
                     representante,
                     self._tabla_de.get(nodo.unico, "") if nodo else "",
                     self._salida[representante],
+                    compuesta=previo in cruces,
                 )
             )
         return fuentes

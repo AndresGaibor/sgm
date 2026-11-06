@@ -48,7 +48,6 @@ CONOCIDOS: dict[str, str] = {
     ),
     "l3_09_conciliacion_diferencia_plantada": "subconsulta escalar dentro del SELECT",
     "l2_15_validacion_en_cascada": "el intérprete no expande `t.*` tras un JOIN: no sabe qué columnas son de t",
-    "l0_13_do_end": "el ELSE del IF/THEN queda como filtro y no es una expresión evaluable",
 }
 
 
