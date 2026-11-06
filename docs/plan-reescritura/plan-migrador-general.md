@@ -4,9 +4,11 @@ Fecha: 5 de noviembre de 2026. Alcance decidido por el usuario (DC-01): **un mig
 cualquier programa SAS y devuelve uno o varios Jobs de Talend bien hechos, con contextos, joblets, Job padre
 e hijos, manejo de errores y registro. `client_large.sas` pasa a ser un caso de prueba más.
 
-Este documento está escrito para que **otro agente lo ejecute sin preguntar**. Complementa a
-`ruta-a-produccion.md` (que sigue siendo válido para las tareas de operación, F9) y reemplaza a su Fase 7.
-El corpus y el plan de equivalencia están en `plan-corpus-y-equivalencia.md`.
+**Este es el plan maestro del repositorio (6 de noviembre de 2026).** Está escrito para que **otro agente
+lo ejecute sin preguntar**. `ruta-a-produccion.md` queda subordinado: es el detalle de la pista del
+programa grande y de la operación (F9), y su Fase 7 la reemplaza este documento. El corpus y el plan de
+equivalencia están en `plan-corpus-y-equivalencia.md`. **Avance global: ver la sección 11b** (cerca de 20 %
+de las horas de agente, con el método ahí).
 
 ## 0. Cómo usar este documento
 
@@ -110,6 +112,10 @@ estadísticos, código generado en tiempo de ejecución). Lo que sí se puede ex
 **Definición de "listo para producción":** C1 a C6 cumplidos por la máquina y C7 firmado por personas.
 
 ## 2. Estado actual medido (5 de noviembre de 2026)
+
+> Foto de partida, antes de `sgm migrar`. Varias filas (`sgm talend` sobre otro programa, joblets,
+> «0 traducidas por un traductor automático») están superadas por los hitos 103m a 107; el estado de
+> hoy es el de las secciones «Estado» de cada fase y el de la sección 11b.
 
 | Área | Estado | Evidencia |
 |---|---|---|
@@ -752,6 +758,49 @@ Carriles en paralelo (con la restricción de que Studio es un solo recurso compa
 Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el calendario realista es de 8 a 10
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
+
+## 11b. Avance medido (6 de noviembre de 2026, hito 107)
+
+**Avance global: 19,6 % de las 895 horas de agente (175,75 h), es decir, cerca de 20 %.** C7 (producción
+con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía.
+
+**Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
+1 = hecha y su aceptación comprobada; 0,5 = parcial con evidencia de ejecución (corpus pasa en A o B, o
+Studio); 0,25 = solo casos o funciones puntuales, sin el alcance de la aceptación; 0 = sin empezar o sin
+evidencia. Los créditos salen de las secciones «Estado» de cada fase y de `PROGRESS.md`. Lo heredado de
+la pista del programa grande que nadie midió contra el corpus (por ejemplo, el expansor de macros de
+`MG-P7`) cuenta 0 hasta que un caso lo demuestre. **Al cerrar un hito, recalcula la fila de su fase.**
+
+| Fase | Horas | Crédito | % de la fase | Qué sostiene la cifra |
+|---|---|---|---|---|
+| MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
+| MG-P1 Modelo y plan lógico | 70 | 40,5 | 58 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; esquemas sin tipos |
+| MG-P2 Entrada y salida | 50 | 12,0 | 24 % | CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT` |
+| MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
+| MG-P4 DATA step | 90 | 7,0 | 8 % | `WHERE`, `IF/ELSE IF`, `KEEP/DROP/RENAME`; sin `MERGE`, `RETAIN`, `OUTPUT` múltiple |
+| MG-P5 `PROC SQL` | 80 | 12,0 | 15 % | `filter`, `derive`, `join`; L1 completos 3 de 15, L2 5 de 15 |
+| MG-P6 Procedimientos | 50 | 2,5 | 5 % | `NODUPKEY` probado en la pista del programa grande |
+| MG-P7 Macros | 60 | 0,0 | 0 % | Sin medir contra `L5` |
+| MG-P8 Planificador | 70 | 13,0 | 19 % | Contextos DEV/QA/PROD; `trace.json` parcial; sin segmentación ni límite de tamaño |
+| MG-P9 Emisor | 108 | 26,5 | 25 % | 25 de 40 plantillas, contextos y conexiones básicas; joblets sin validar |
+| MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 42 de 62 pasan, 20 `xfail` |
+| MG-P11 Experiencia de uso | 30 | 4,0 | 13 % | `sgm migrar` de un programa sin YAML; falta carpeta y `cobertura.md` |
+| MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
+| MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
+| MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
+| **Total** | **895** | **175,75** | **19,6 %** | |
+
+**Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
+(359,0 h y 360,25 h).
+
+**Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
+anillo B, 42 de 62 casos elegibles pasan (68 %); anillo A, 17 Jobs completos de `L0` a `L2` sobre 45
+casos (38 %); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
+(representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
+
+**Qué mueve más el número.** La ruta crítica pide P4, P5 y P6 antes que P8 y P9; ahí hoy hay 9,8 %
+de crédito (21,5 de 220 horas). Lo que más sube el porcentaje por hora es `MG-P5-02` a `P5-04`,
+`MG-P4-03` a `P4-05` y `MG-P9-03` (joblets, el mayor riesgo técnico, sin validar en Studio).
 
 ## 12. Riesgos y mitigaciones
 

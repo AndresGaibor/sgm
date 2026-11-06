@@ -52,20 +52,29 @@ documentación de SAS. Está en `docs/referencia/`; el estado y la deuda de cada
 
 ## Planes y orden de lectura
 
-Hay tres documentos de plan y **no dicen lo mismo**: leerlos en mal orden hace que un agente trabaje
+Hay varios documentos de plan y **no dicen lo mismo**: leerlos en mal orden hace que un agente trabaje
 sobre una secuencia de fases ya superada.
 
-- **`docs/plan-reescritura/ruta-a-produccion.md` es el plan maestro.** Tareas `R<fase>-<n>` con dueño,
-  dependencias, entrega y criterio de terminado, y los tres niveles de la meta: N1 paridad con el
-  diseño manual, N2 equivalencia verificada, N3 producción. Reemplaza el orden de trabajo de
-  `tareas-agente.md` y de `plan-corpus-y-equivalencia.md`, que quedan como detalle.
+- **`docs/plan-reescritura/plan-migrador-general.md` es el plan maestro** (decisión DC-01 del usuario,
+  5 de noviembre de 2026: el producto es un migrador general, cualquier SAS entra y salen Jobs de
+  Talend). Define el «100 %» medible, las fases `MG-P0` a `MG-P14` con tareas `MG-Pn-mm`, y trae en su
+  sección 11b el **porcentaje de avance** con su método. Todo trabajo nuevo se elige de ahí y se
+  mide contra el corpus, no contra un programa. `client_large.sas` es un caso de prueba más.
+  El reparto entre Andres y Byron (carriles, dueños de cada zona de código y letra de serie en los
+  hitos) está en `docs/plan-reescritura/reparto-andres-byron.md`.
+- **`docs/plan-reescritura/ruta-a-produccion.md` queda subordinado.** Es el detalle de la pista del
+  programa grande (tareas `R<fase>-<n>`, niveles N1 a N3) y de la operación (F9). Se toma de ahí solo
+  lo que el plan maestro absorbe o lo que él remite. Sus tareas `R7-xx` (traductor general) las
+  reemplaza `plan-migrador-general.md`. Reemplaza el orden de trabajo de `tareas-agente.md` y de
+  `plan-corpus-y-equivalencia.md`, que quedan como detalle.
 - **`docs/plan-reescritura/plan.md`** trae la arquitectura (frontend → grafo de linaje → modelo de
   proceso → emisores) y la tabla «Estado por fase», que es la foto más reciente del avance.
 - **`docs/plan-sgm-v2/`** sigue vigente para reparto (`01`), contratos (`05`), ciclo de huecos (`03`),
   puntos de extensión (`04`) y calidad (`06`). **Su secuencia de fases (`02-fases.md`) no:** quedó
   superada por `plan.md`, y su propio README lo advierte en la primera línea.
-- Antes de tomar una tarea: `ruta-a-produccion.md` entero (§0 explica cómo leerlo) y luego
-  `PROGRESS.md`, que registra lo que pasó de verdad. El plan es la intención; `PROGRESS.md`, el hecho.
+- Antes de tomar una tarea: `plan-migrador-general.md` (§0 y la fase de la tarea; consulta
+  `ruta-a-produccion.md` solo si la tarea lo remite) y luego `PROGRESS.md`, que registra lo que pasó
+  de verdad. El plan es la intención; `PROGRESS.md`, el hecho.
   Si el plan contradice el código, se corrige el plan o el código en el mismo cambio, nunca se deja la
   contradicción.
 - Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca a `src/` ni a

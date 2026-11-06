@@ -4752,3 +4752,28 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
   la compilación amplia no se usa para atribuir soporte a los casos con incompatibilidades. MG-04
   no se inicia en este hito. El alcance aún pendiente está detallado en
   `docs/plan-reescritura/plan-migrador-general.md` y al final del plan ejecutable de MG-03.
+
+## Hito 108m. El plan maestro pasa a ser el del migrador general, con su porcentaje de avance
+
+- Fecha: 2026-11-06.
+- Qué se hizo:
+  - `AGENTS.md` declara `docs/plan-reescritura/plan-migrador-general.md` como plan maestro y deja
+    `ruta-a-produccion.md` como detalle subordinado (pista del programa grande y operación). El orden de
+    lectura antes de tomar una tarea parte del plan del migrador general.
+  - `ruta-a-produccion.md` y `plan.md` llevan un aviso al principio que remite al plan maestro.
+    `plan-migrador-general.md` marca su sección 2 como foto de partida superada.
+  - Nueva sección 11b de `plan-migrador-general.md`: avance medido con método reproducible (crédito
+    por tarea multiplicado por sus horas). Resultado: **175,75 de 895 h, 19,6 %**; por fase, P0 68 %, P1 58 %,
+    P2 24 %, P3 18 %, P4 8 %, P5 15 %, P6 5 %, P7 0 %, P8 19 %, P9 25 %, P10 23 %, P11 13 %, P12 0 %,
+    P13 4 %, P14 0 %.
+  - `tests/unit/test_agents_md.py` exige también que `AGENTS.md` nombre `plan-migrador-general.md`.
+- Decisiones: el crédito de cada tarea es un juicio mío a partir de las secciones «Estado» y de
+  `PROGRESS.md`; las tareas heredadas que nadie midió contra el corpus (macros) cuentan 0. Los
+  termómetros del corpus (anillo B 42 de 62, anillo A 17 de 45 en L0 a L2) acompañan la cifra de horas.
+- No se commitea: los cambios de código sin commitear de antes de este hito no son de este trabajo.
+- Reparto (misma fecha): `docs/plan-reescritura/reparto-andres-byron.md` divide las 719,25 h que
+  faltan en 359,0 h (Andres: P1, P4, P5, P8, P9, P14) y 360,25 h (Byron: P0 resto, P2, P3, P6, P7, P10 a
+  P13), con dueños por directorio, letras de serie (`m` Andres, `n` Byron) y puntos de encuentro.
+- Hallazgo: `origin/main` tiene 14 commits de Byron (`hito 20` a `33`, 3 de noviembre) sobre el hito
+  19; el `main` local los supera por 144 y hay solapamiento en `expressions/` y en la numeración. No se
+  subió nada: la integración es la tarea 0 del reparto.

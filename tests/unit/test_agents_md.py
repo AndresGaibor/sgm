@@ -43,6 +43,7 @@ def test_agents_md_nombra_cada_guia_sas():
 def test_agents_md_dice_cual_es_el_plan_maestro():
     # Los tres planes no dicen lo mismo; el orden de lectura es parte de la instrucción.
     for ruta in (
+        "docs/plan-reescritura/plan-migrador-general.md",
         "docs/plan-reescritura/ruta-a-produccion.md",
         "docs/plan-reescritura/plan.md",
         "docs/plan-sgm-v2/",

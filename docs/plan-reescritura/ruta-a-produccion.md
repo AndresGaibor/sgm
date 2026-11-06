@@ -1,10 +1,15 @@
 # Ruta a la meta y a producción: plan completo en tareas
 
-Escrito el 4 de noviembre de 2026, con el repositorio en el commit `a2832f4` (hito 79). Es el plan
-maestro que reemplaza el orden de trabajo de `tareas-agente.md` (que queda como detalle de las tareas T)
+Escrito el 4 de noviembre de 2026, con el repositorio en el commit `a2832f4` (hito 79).
+
+> **Desde el 6 de noviembre de 2026 este documento ya no es el plan maestro: lo es
+> `plan-migrador-general.md`.** Esta ruta queda como detalle de la pista del programa grande (N1) y de
+> la operación (F9). Para elegir trabajo nuevo, parte de `plan-migrador-general.md` y su sección 11b
+> (avance); vuelve aquí solo si una tarea `MG-` te remite a una `R`.
+
+Reemplaza el orden de trabajo de `tareas-agente.md` (que queda como detalle de las tareas T)
 y de `plan-corpus-y-equivalencia.md` (que queda como detalle del corpus). Cada tarea tiene un
 identificador `R<fase>-<n>`, quién la hace, de qué depende, qué entrega y cómo se sabe que terminó.
-Léelo completo antes de tomar una tarea.
 
 **Actualización del 5 de noviembre de 2026 (DC-01 decidida):** el producto es un **migrador general**. La Fase 7 de
 este documento queda reemplazada por `plan-migrador-general.md`, que define el 100 % medible, la arquitectura, el catálogo

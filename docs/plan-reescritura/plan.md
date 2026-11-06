@@ -24,6 +24,11 @@ decidir cuáles tablas son persistencia y cuáles solo aristas, 400 tablas WORK 
 
 Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca a `src/` ni `rules/`.
 
+> **Desde el 6 de noviembre de 2026 el plan maestro es `plan-migrador-general.md`** (migrador general,
+> DC-01). La tabla de abajo es la foto de la pista del programa grande, que ya es un caso de prueba y no
+> el objetivo. Las fases 4 y 6 de esta tabla se hicieron o se rehacen allí (joblets: MG-P9-03; segundo y
+> tercer programa: MG-P10-09). Avance global del migrador general: sección 11b de ese documento.
+
 ## Estado por fase
 
 | Fase | Qué es | Estado | Dónde |
