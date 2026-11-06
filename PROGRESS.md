@@ -4969,3 +4969,24 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Estado: subido por petición del usuario sin correr la suite completa; estos cambios venían sin commitear
   de antes de la sesión y no se verificaron aquí. Se subió tras `git pull --rebase` sobre la integración de
   Byron (hito 109m); las pruebas de expresiones de Byron siguen siendo la tarea 0.
+
+## Hito 111n. MG-03: validar Java de INPUT, ROUND y predicados
+
+- Fecha: 2026-11-06.
+- Qué se hizo:
+  - `INPUT w.d` emite `BigDecimal`, aplica la escala implícita solo cuando el texto no contiene punto
+    decimal y devuelve missing ante texto no numérico. La referencia `INPUT Function`
+    (`lefunctionsref.pdf`, p. 1080) define la conversión por informat; el tipo sigue el catálogo local.
+  - `ROUND` conserva `Double` y redondea los empates alejándose de cero (`lefunctionsref.pdf`, p. 1486).
+  - Los predicados demostrables se tipan como booleanos internamente y se serializan como `Long` 1/0
+    en columnas DATA step. Se añadieron regresiones de comparación y `MISSING`.
+  - El lote C incorpora casos L4 `traducible`/`revisado` y deja fuera `l4_20_put_fechas_pendiente`, sin
+    vector independiente ni equivalencia sustentada. `OUTPUT` mantiene pendiente explícito porque el
+    emisor aún no modela todas las ramas y destinos.
+- Pruebas: suite completa **2361 passed, 27 skipped, 149 xfailed**; `uv run ruff check .` limpio.
+  A/B focalizado: **161 passed, 1 skipped, 20 xfailed**.
+- Anillo C: bloqueado, no fallido. El bridge de Studio no respondió (`ECONNREFUSED` en
+  `127.0.0.1:3930`); no comenzó la compilación. Reintentar el lote conjunto y ejecutar/comparar
+  `l4_02`, `l4_03`, `l4_18` y `l4_19` cuando Studio y el bridge estén disponibles.
+- Decisiones: no se declara C pasado ni se marca MG-03 global completo. `OUTPUT` parcial no se emite;
+  MG-04 no se inicia.

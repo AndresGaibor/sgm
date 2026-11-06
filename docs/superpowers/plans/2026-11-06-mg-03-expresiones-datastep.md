@@ -109,7 +109,7 @@
   de funciones/vectores y MG-P3-04/06–09 y MG-P4-02–09 quedan fuera de este plan ejecutable.
 - Verificación final: suite completa y Ruff registradas en `PROGRESS.md`.
 
-## Continuación A/B (hito 109n)
+## Continuación A/B (hito 111n)
 
 - `INPUT w.d` emite `BigDecimal`: aplica `d` cuando el texto no contiene punto decimal y devuelve
   missing ante texto no numérico. `ROUND` conserva `Double` y redondea los empates alejándose de
