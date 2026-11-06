@@ -8,7 +8,7 @@ conexión que los tienen.
 Solo se mira el modelo: no se leen archivos ni se consulta a Studio. Eso lo hace útil en la suite
 rápida y en el comando `sgm migrar`, que corre en cualquier máquina.
 
-Las reglas son las seis que Studio exige para abrir un Job:
+Las reglas son las que Studio exige para abrir un Job, más una de presentación:
 
 1. Los `UNIQUE_NAME` no se repiten.
 2. Cada conexión sale y llega a un nodo que existe.
@@ -16,6 +16,8 @@ Las reglas son las seis que Studio exige para abrir un Job:
 4. Por una conexión de fila viajan las mismas columnas, en el mismo orden, que el destino espera.
 5. Un componente que lee un flujo tiene al menos una conexión entrante.
 6. Los cuatro grupos de contexto existen y llevan las mismas claves.
+7. Dos nodos no comparten (x, y): si lo hacen, Studio los dibuja encimados. Un Job sin disponer
+   (todos en 0, 0) lo incumple; `disposicion.disponer` lo resuelve.
 
 La regla 4 no se aplica al destino `tMap`: sus entradas viven en el `<nodeData>` del mapeo, no en
 los bloques `<metadata>`, que son las salidas. Compararlas ahí sería comparar dos cosas distintas.
@@ -150,6 +152,26 @@ def _contextos(job: Job) -> list[str]:
     return problemas
 
 
+def _superposicion(job: Job) -> list[str]:
+    """Nodos que comparten (x, y): Studio los dibuja encimados y el lienzo no se puede leer."""
+    por_posicion: dict[tuple[int, int], list[str]] = {}
+    for nodo in job.nodos:
+        por_posicion.setdefault((nodo.x, nodo.y), []).append(nodo.unico)
+    problemas = []
+    for (x, y), unicos in por_posicion.items():
+        if len(unicos) < 2:
+            continue
+        problemas.append(f"los nodos {_enumerar(unicos)} están en la misma posición (x={x}, y={y})")
+    return problemas
+
+
+def _enumerar(nombres: list[str]) -> str:
+    """Une nombres en castellano: «A y B», «A, B y C»."""
+    if len(nombres) == 1:
+        return nombres[0]
+    return f"{', '.join(nombres[:-1])} y {nombres[-1]}"
+
+
 def validar_job(job: Job) -> list[str]:
     """Lista de defectos estructurales del Job; vacía si Studio lo va a abrir sin quejarse."""
     return [
@@ -158,6 +180,7 @@ def validar_job(job: Job) -> list[str]:
         *_flujos(job),
         *_huerfanos(job),
         *_contextos(job),
+        *_superposicion(job),
     ]
 
 
