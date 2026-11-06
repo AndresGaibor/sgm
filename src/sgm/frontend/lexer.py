@@ -78,6 +78,7 @@ class Stmt:
     line: int
     end_line: int
     rows: tuple[str, ...] = ()  # filas de un bloque `datalines`/`cards`, tal cual venían
+    file: str | None = None
 
 
 def _skip_string(src: str, i: int) -> int:
@@ -102,11 +103,11 @@ def _call_end(src: str, i: int) -> int:
     return i
 
 
-def split_statements(src: str) -> list[Stmt]:
+def split_statements(src: str, *, file: str | None = None, line_start: int = 1) -> list[Stmt]:
     out: list[Stmt] = []
     buf: list[str] = []
     start = 0
-    line = 1
+    line = line_start
     i, n = 0, len(src)
     qdepth = 0  # dentro de %str(...)
 
@@ -114,7 +115,7 @@ def split_statements(src: str) -> list[Stmt]:
         nonlocal buf, start
         text = "".join(buf).strip()
         if text:
-            out.append(Stmt(text, start, end_line))
+            out.append(Stmt(text, start, end_line, file=file))
         buf, start = [], 0
 
     def add(chunk: str) -> None:
@@ -196,7 +197,7 @@ def split_statements(src: str) -> list[Stmt]:
                     if row == term or (not m.group(2) and row.startswith(";")):
                         break
                     rows.append(row)
-                out.append(Stmt("<datalines>", first, line, tuple(rows)))
+                out.append(Stmt("<datalines>", first, line, tuple(rows), file))
             continue
         add(c)
         i += 1

@@ -13,23 +13,28 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath
 
 _VAR = re.compile(r"&([A-Za-z_]\w*)\.?")
+# Un delimitador duplicado pertenece a la misma cadena SAS.
+_QUOTED_PART = re.compile(r'''('(?:''|[^'])*(?:'|$)|"(?:""|[^"])*(?:"|$))''')
 _QUOTED = re.compile(r"""^\s*(['"])(.*?)\1""", re.DOTALL)
 
 
 def substitute(text: str, variables: dict[str, str]) -> tuple[str, bool]:
     """Sustituye `&var`/`&var.` conocidas. Devuelve (texto, completo)."""
-    complete = "&&" not in text
+    if "&" not in text:
+        return text, True
+    complete = True
 
-    def rep(m: re.Match) -> str:
-        nonlocal complete
-        v = variables.get(m.group(1).lower())
-        if v is None:
+    def replace_var(match: re.Match) -> str:
+        return variables.get(match.group(1).lower(), match.group(0))
+
+    parts = _QUOTED_PART.split(text)
+    for i, part in enumerate(parts):
+        if part.startswith("'"):
+            continue
+        parts[i] = _VAR.sub(replace_var, part)
+        if "&" in parts[i] or "&&" in part:
             complete = False
-            return m.group(0)
-        return v
-
-    res = _VAR.sub(rep, text)
-    return res, complete and "&" not in res
+    return "".join(parts), complete
 
 
 def first_quoted(s: str) -> str | None:

@@ -4777,3 +4777,184 @@ renombró a `final` para pasar la regla de nombres (`test_no_script_specific_nam
 - Hallazgo: `origin/main` tiene 14 commits de Byron (`hito 20` a `33`, 3 de noviembre) sobre el hito
   19; el `main` local los supera por 144 y hay solapamiento en `expressions/` y en la numeración. No se
   subió nada: la integración es la tarea 0 del reparto.
+
+<!-- Hitos 20n a 33n: serie de Byron integrada desde origin/main el 2026-11-06 (6 de noviembre); sus números
+originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescritura/reparto-andres-byron.md. -->
+
+
+## Hito 20n. Dejar INPUT con informat dinámico pendiente
+
+- Fecha: 2026-11-03
+- Qué se hizo: se dividió el traductor en núcleo, lexer, parser, familias de funciones y registro. La fachada conserva `translate_to_talend`, `Unsupported`, `Result` y `E`; `ExpressionParser` recibe el registro por argumento. Los ocho módulos tienen menos de 300 líneas.
+- Comportamiento: el parser valida la procedencia antes de serializar el informat. Acepta un único token `fmt`, `str` o `num` con punto que cumpla `\d+\.\d*`; macros sin resolver, columnas y expresiones compuestas quedan pendientes con una explicación en español que no reproduce valores. Los mapeos de literales no cambian.
+- Pruebas: se observó RED para las macros, columnas y expresiones compuestas antes del cambio. Las pruebas sintéticas verifican el hueco `FUNCION_NO_MAPEADA` sin candidata, literales numéricos/de texto/fecha, macro constante expandida, aritmética numérica y mensajes sin valores de origen. La macro constante mantiene su traducción inline existente, sin duplicarla como candidata.
+- Métricas: el segundo adjunto se recompiló solo en memoria mediante `compile_batch`, antes y después. Conserva 21 candidatas y 21 huecos; sus cuatro llamadas INPUT candidatas tienen un único informat numérico literal. No demuestra informats dinámicos. En el caso sintético de macro sin resolver, una candidata pasa a cero y aparece un hueco de función no mapeada. No se modificó `metrics/baseline.json`.
+- Decisiones: mantener informats dinámicos pendientes hasta contar con un valor literal demostrado; conservar el token numérico con punto evita alterar la tokenización de las expresiones numéricas generales. No se agregaron dependencias ni datos de los adjuntos.
+- Verificación: `uv run pytest -q`: 392 pasan, 1 se salta; focalizadas: 44 pasan; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas). `git diff --check`: limpio. El control de tiempo se repitió sin pytest concurrente después de dos mediciones afectadas por contención; no se cambió la línea base.
+- Bloqueos: ninguno. Continúa pendiente validar las candidatas literales en Talend Studio.
+
+
+## Hito 21n. Corregir bordes de INPUT
+
+- Fecha: 2026-11-03
+- Qué se hizo: se rechazan informats con macrovariable sin resolver dentro de comillas dobles en INPUT/INPUTN; se conservan cadenas simples y macros ya expandidas. El lexer reconoce formatos con dígitos intercalados y mantiene exactamente el Java de e8601da./e8601dt. en INPUT y PUT, sin aceptar columnas calificadas ni expresiones compuestas.
+- Evidencia: cada asignación DATA conserva archivo, línea inicial y final en metadatos internos del operador. Se propagan al fusionar o reemplazar operadores, y p10 usa ese origen para el hueco. Las firmas, parámetros y el JSON de operadores no cambian. Dos referencias golden actualizan solo la evidencia de seis huecos de asignación.
+- Diagnósticos: ambos lexers de expresiones emiten un motivo estático, sin fragmentos del origen; se cubren la excepción directa y las advertencias del wrapper translate.
+- Pruebas: RED observado para macros entre comillas dobles, cuatro combinaciones ISO, evidencia DATA multilínea (derive agrupado y map fusionado) y fuga léxica directa y del wrapper. Las regresiones conservan literales simples, macros expandidas y rechazo de columnas/expresiones.
+- Decisiones: guardar la evidencia por texto de expresión fuera de los parámetros evita alterar firmas, deduplicación y contratos JSON; se conserva y une en Graph.merge/replace. El error léxico mantiene el motivo útil sin reproducir valores. El lexer inline existente recibe solo este saneamiento puntual; no se amplía el alcance a su modularización.
+- Bloqueos: ninguno.
+- Verificación: focales de expresiones, evidencia IR y golden: 86 pasan; `uv run pytest -q`: 409 pasan, 1 se salta (86,85 s); `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora en 189 programas, sin modificar baseline. La primera suite señaló únicamente dos golden con evidencia antigua; se actualizaron solo esas ubicaciones y se repitió completa. El diff respeta los finales de línea históricos y pasa el control de espacios con CRLF permitido.
+
+
+## Hito 22n. Preservar origen de filtros repetidos
+
+- Fecha: 2026-11-03
+- Qué se hizo: la evidencia interna usa la ruta estructural de cada ocurrencia en los parámetros (asignación, paso o rama), en lugar del texto de la expresión. DATA registra el origen preciso de filtros y asignaciones; p06 rebasa las rutas al formar pasos y ramas; p10 consulta la ocurrencia correspondiente. Se elimina el transporte plano al reemplazar operadores y se mantiene la unión por ruta al fusionar operadores equivalentes.
+- Pruebas: RED observado para filtro/asignación con texto idéntico en líneas 3 y 4, dos asignaciones repetidas y dos filtros repetidos. Las regresiones verifican archivo y rango de cada hueco por separado; también se cubren ramas fusionadas con expresiones iguales.
+- Compatibilidad: no cambia la traducción, parámetros, firmas ni JSON del operador. Se revisaron todos los consumidores del metadato. La fusión SQL produce exec_sql, sin consumidores de expresión en p10; la fusión de flujo conserva rutas por paso/rama. Una referencia golden actualiza únicamente la evidencia de un hueco de filtro al rango preciso.
+- Decisiones: usar rutas de ocurrencia evita que expresiones iguales de constructos o posiciones distintas compartan origen. La evidencia permanece fuera de los parámetros y las firmas. Sin dependencias nuevas.
+- Plan: se marcaron completos los ocho pasos tras verificar evidencia, implementación, regresiones, actualización de PROGRESS y commits de los hitos 20–22.
+- Bloqueos: ninguno; la re-revisión acotada de la ronda 2/5 quedó aprobada sin nuevas regresiones.
+- Verificación: 99 focales pasan; `uv run pytest -q`: 413 pasan, 1 se salta (100,69 s); `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora en 189 programas, baseline sin cambios. La ejecución focal inicial señaló la referencia golden del filtro con rango antiguo; se actualizó exclusivamente esa evidencia y se repitieron focales y suite completa. Autor revisión: consumidores y fusiones revisados, diff limpio permitiendo CRLF histórico; módulos afectados menores de 300 líneas.
+
+## Hito 23n. Corregir macros y evidencia de origen
+
+- Fecha: 2026-11-03.
+- Qué se hizo: una llamada de macro sin expandir dentro de un informat entre comillas dobles queda como `FUNCION_NO_MAPEADA`, sin candidata. La expansión conserva los literales entre comillas simples y sustituye las macrovariables conocidas en comillas dobles.
+- Evidencia: los filtros y asignaciones DATA usan el archivo y el rango inclusivo de la sentencia que produjo el lexer, también cuando la sentencia llegó por inclusión o desde una macro de otro archivo. El plan sigue perteneciendo al programa que la compiló.
+- Pruebas: antes del arreglo, seis casos sintéticos fallaron por los cuatro hallazgos y dos controles pasaron. Después pasaron 119 focales con cobertura de macros, rangos, fusión, ocurrencias repetidas y golden. Suite final: 421 pasan y una se salta (102,38 s). Ruff limpio y reglas válidas.
+- Métricas: el trinquete final pasa con 13,5 s para 189 programas, 8532 pasos SAS, 629 nodos y 1328 componentes. Dos mediciones anteriores excedieron solo el tiempo (21,3 y 21,6 s frente a 15,9 s + 20 %). El hito 22, cargado en memoria bajo las mismas condiciones, registró 21,4 s. La sustitución y el etiquetado DATA sumaron 0,021 s en el perfil. Se conservó la línea base.
+- Decisiones: conservar las dos clases de comillas de SAS antes de traducir el informat, sin añadir equivalencias. Guardar el origen en cada sentencia conserva las rutas por ocurrencia del hito 22 incluso si un mismo DATA combina archivos distintos.
+- Bloqueos: ninguno. Las candidatas históricas siguen pendientes de validación en Talend Studio.
+
+
+## Hito 24n. Preservar espacios en literales SAS de expresiones
+
+- Fecha: 2026-11-03
+- Qué se hizo: la limpieza previa al parseo ahora colapsa espacios solo fuera de literales; conserva intactos los espacios en cadenas con comillas simples o dobles y las comillas duplicadas de SAS.
+- Hallazgo: `_clean` aplicaba una expresión regular sobre todo el texto. Cuatro regresiones RED demostraron que `'a   b'`, `"a   b"`, cadenas con comillas SAS duplicadas y concatenaciones cambiaban el contenido antes de traducirse a Java.
+- Pruebas: las cuatro regresiones pasan tras el cambio; no cambia la normalización de espacios alrededor de expresiones.
+- Verificación: `uv run pytest -q`: 425 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: los espacios dentro de un literal son datos y no se normalizan. No se agregaron dependencias ni se modificó la línea base.
+- Bloqueos: ninguno.
+
+
+## Hito 25n. Evitar índices inválidos al traducir SCAN
+
+- Fecha: 2026-11-03
+- Qué se hizo: las posiciones enteras negativas de `SCAN` cuentan desde el final y usan un índice dinámico protegido por la longitud del arreglo. Cero, decimales y valores mayores al rango de índice de Java quedan pendientes; ya no se truncan ni producen índices negativos o literales Java inválidos.
+- Evidencia: `tests/fixtures/sas/real/learning-sas-by-example/Example_code/Programs_Used_in_the_Second_Edition.sas` contiene `scan(Name,-1,' ')` en las líneas 1595 y 2112 para obtener el último nombre.
+- Pruebas: RED observado para el índice negativo, cero y posiciones fraccionarias; una regresión adicional confirma que una posición fuera del rango de Java queda pendiente. Focales: 6 pasan. Suite final: `uv run pytest -q`: 430 pasan y 1 se salta; Ruff limpio; reglas válidas; `git diff --check` limpio.
+- Métricas: `sgm metrics tests/fixtures/sas --check` alternó entre una corrida válida de 19,16 s y mediciones de 20,3–23,2 s, frente al límite 19,08 s. Comparación aislada: Hito 24 23,1 s y Hito 25 23,0 s; ambas exceden el umbral, por lo que no se atribuye el tiempo al cambio de SCAN. El perfil midió la normalización nueva en 0,033 s para 877 expresiones y SCAN en 6 llamadas con tiempo redondeado a 0. No se modificó la línea base.
+- Decisión: solo se traduce la posición negativa cuando es un entero dentro del rango de índices Java; las demás quedan pendientes hasta probar su equivalencia.
+- Bloqueo: el trinquete de tiempo sigue excediendo el límite de forma variable también en la revisión Hito 24. Mantenerlo visible y no relajar la línea base.
+
+
+## Hito 26n. Traducir COMPRESS con modificador de dígitos demostrado
+
+- Fecha: 2026-11-03
+- Qué se hizo: el parser admite el segundo argumento omitido únicamente en llamadas a `COMPRESS` y lo distingue del literal SAS `.`. El traductor cubre el patrón `compress(origen,,'kd')` con `StringHandling.EREPLACE` y la clase explícita `[0-9]`; otras combinaciones de modificadores o una lista de caracteres quedan pendientes.
+- Evidencia: `tests/fixtures/sas/real/learning-sas-by-example/Example_code/Programs_Used_in_the_Second_Edition.sas` usa esta forma para limpiar números en las líneas 1228, 1520, 1527, 1529 y 3892; el comentario junto al caso telefónico indica que conserva los dígitos.
+- Pruebas: la traducción directa verifica Java y guarda de nulo. Seis combinaciones no demostradas verifican que no se generaliza el mapeo. RED observado para el argumento vacío y para el literal `.` confundido con una omisión; 7 focales pasan.
+- Verificación: `uv run pytest -q`: 437 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: soportar solo la combinación literal `kd` con lista de caracteres omitida, porque es la forma probada; no inferir combinaciones equivalentes por orden o variantes de modificadores.
+- Bloqueo: la expresión Java candidata aún requiere validación en Talend Studio; permanece sujeta a revisión.
+
+
+## Hito 27n. Preservar punto decimal en COMPRESS con KD
+
+- Fecha: 2026-11-03
+- Qué se hizo: se amplió la combinación demostrada de `COMPRESS` para aceptar una lista de caracteres igual al literal `'.'` con el modificador exacto `'kd'`. La expresión conserva dígitos y punto decimal con el patrón `[^0-9.]`; otras listas explícitas siguen pendientes.
+- Evidencia: `tests/fixtures/sas/real/ci360-download-client/macros/dsc_create_attrib.sas`, línea 97, reemplaza la coma decimal por punto y luego usa `compress(...,'.','kd')` para extraer la precisión numérica de tipos como `decimal(13,6)`.
+- Pruebas: una regresión verifica el Java exacto y dos variantes de lista de caracteres sin evidencia quedan como `Unsupported`. RED observado antes del cambio. 10 focales pasan.
+- Verificación: `uv run pytest -q`: 440 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: aceptar solo el punto literal con `kd`, que es la combinación probada; no generalizar la construcción de clases regex para otras listas.
+- Bloqueo: la rutina candidata aún requiere validación en Talend Studio.
+
+
+## Hito 28n. Escapar listas literales de COMPRESS en Java
+
+- Fecha: 2026-11-03
+- Qué se hizo: los patrones de caracteres múltiples para `COMPRESS` ahora pasan por el escapado regex y luego por el serializador de literales Java. La llamada de referencia con espacio, paréntesis, guion y punto deja de emitir escapes inválidos en la cadena Java. Las listas que contienen barras invertidas o caracteres de control quedan pendientes porque el parser todavía no conserva el literal original separado de su representación Java.
+- Evidencia: `tests/fixtures/sas/real/learning-sas-by-example/Example_code/Programs_Used_in_the_Second_Edition.sas`, línea 1513, usa `compress(Phone,' ()-.')`.
+- Pruebas: una regresión comprueba la cadena Java escapada; casos con barra invertida y salto de línea verifican que no se emite una candidata dudosa. RED observado antes del cambio; 13 focales pasan.
+- Verificación: `uv run pytest -q`: 443 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `uv run sgm metrics tests/fixtures/sas --check`: ninguna métrica empeora (189 programas, 8532 pasos SAS, 629 nodos, 1328 componentes); `git diff --check`: limpio.
+- Decisión: no reconstruir caracteres que ya llegan escapados en Java ni literales con controles; se dejan pendientes hasta que el lexer conserve el valor SAS original.
+- Bloqueo: la rutina candidata requiere validación en Talend Studio.
+
+
+## Hito 29n. Conservar el valor de literales SAS en expresiones
+
+- Fecha: 2026-11-03
+- Qué se hizo: los nodos de cadena ahora conservan, además del Java serializado, el valor literal SAS ya decodificado. `COMPRESS` usa ese valor para sus caracteres y modificadores; ya no intenta reconstruirlo desde escapes Java. Las listas con barra invertida se traducen correctamente y las cadenas con caracteres de control quedan pendientes.
+- Hallazgo: la serialización Java duplicaba las barras invertidas, por lo que el hito 28 no podía distinguir una barra del escape generado por Java. También se detectó que una lista vacía producía una regex no demostrada; ahora queda pendiente.
+- Pruebas: RED observado para una lista con barra invertida y para `compress(value,'')`; ambas regresiones pasan tras el cambio. Se mantiene la prueba de salto de línea pendiente. 14 focales pasan.
+- Verificación: `uv run pytest -q`: 444 pasan y 1 se salta; `uv run ruff check .`: limpio; `uv run sgm rules validate`: válido; `git diff --check`: limpio.
+- Métricas: `sgm metrics tests/fixtures/sas --check` marca solo `tiempo_compilacion_s`: 22,4 s en esta rama frente a 23,2 s en el commit Hito 28; ambos exceden el límite 19,08 s. No se modificó la línea base.
+- Decisión: conservar el valor SAS decodificado en `E.literal`; no serializar caracteres de control como literales Java hasta tener un escapado completo.
+- Bloqueo: el umbral temporal también falla en el commit de control; queda pendiente una corrida dentro del límite, sin atribuirlo a este cambio.
+
+## Hito 30n. Escapar los delimitadores de SCAN en Java
+
+- Fecha: 2026-11-03
+- Qué se hizo: SCAN construye sus patrones desde el valor SAS decodificado y serializa cada regex como literal Java. Los delimitadores punto, ampersand y barra invertida quedan escapados en ambas capas. Los delimitadores personalizados vacíos, no literales o con caracteres de control quedan pendientes.
+- Evidencia: tests/fixtures/sas/real/ts-sas-legacy-analytics/Macro/RunAll.sas, líneas 131–132, separa el nombre y la extensión con scan(basename,1,".") y scan(basename,2,".").
+- Pruebas: se observó RED para punto, ampersand y delimitador vacío. Las nueve pruebas focales de SCAN pasan, incluidas las regresiones de punto, ampersand, barra invertida y delimitador vacío.
+- Verificación: uv run pytest -q: 448 pasan y 1 se salta (100,14 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 24,1 s frente al límite 19,08 s. En el commit de control Hito 29, medido por separado, registró 23,6 s y excedió el mismo límite. No se modificó la línea base.
+- Decisión: conservar el valor literal SAS para separar el escape regex del escape Java; no inferir comportamiento para delimitadores vacíos ni controles. Sin dependencias nuevas.
+- Bloqueos: el tiempo del corpus continúa sobre el umbral también en el control; las expresiones candidatas requieren validación en Talend Studio.
+
+## Hito 31n. Escapar los literales de patrones LIKE
+
+- Fecha: 2026-11-03
+- Qué se hizo: LIKE ahora toma el patrón SAS decodificado, escapa los caracteres que pertenecen al texto y serializa el resultado como literal Java. Solo los comodines % y _ se convierten en .* y ., respectivamente. Los patrones calculados y los que contienen caracteres de control quedan pendientes.
+- Hallazgo: el parser reconstruía el patrón desde Java ya serializado y dejaba metacaracteres como punto o asterisco activos en el regex. También intentaba tratar una expresión de texto calculada como literal.
+- Evidencia de wildcard: tests/fixtures/sas/real/ci360-download-client/macros/dsc_appendtocustomerdb.sas, línea 41, usa LIKE con un comodín % al final del patrón.
+- Pruebas: RED observado para los metacaracteres punto y asterisco, patrones calculados y caracteres de control. Las cinco pruebas focales pasan; la barra invertida conserva su traducción esperada.
+- Verificación: uv run pytest -q: 453 pasan y 1 se salta (97,50 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 22,8 s frente al límite 19,08 s. El control Hito 30 registró 24,1 s; no se modificó la línea base.
+- Decisión: usar E.literal como fuente y mantener calculados o controles pendientes en vez de inferir escapes de LIKE que el patrón no demuestra. Sin dependencias nuevas.
+- Bloqueos: el tiempo del corpus sigue sobre el umbral, aunque queda por debajo del control Hito 30; las expresiones candidatas requieren validación en Talend Studio.
+
+## Hito 32n. Evitar el doble escape de ampersand en COMPRESS
+
+- Fecha: 2026-11-03
+- Qué se hizo: se eliminó el escape manual adicional de ampersand después de re.escape. La regex queda escapada una vez como patrón y luego _jstr la serializa para Java, evitando añadir la barra invertida a la lista de caracteres eliminados.
+- Hallazgo: re.escape ya escapa ampersand en la versión de Python del proyecto. El reemplazo posterior lo escapaba otra vez y producía cuatro barras en el fuente Java en lugar de dos.
+- Evidencia: la regresión sintética compress(value,'a&b') mostró la diferencia exacta. No se encontró una lista literal con ampersand en los programas SAS del corpus revisado.
+- Pruebas: RED observado para la salida Java con ampersand; 15 pruebas focales de COMPRESS pasan tras el arreglo.
+- Verificación: uv run pytest -q: 454 pasan y 1 se salta (103,39 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 27,8 s frente al límite 19,08 s. El control Hito 31, medido por separado, registró 43,7 s; la corrida previa de Hito 31 registró 22,8 s. La variación impide atribuir el tiempo a este cambio. No se modificó la línea base.
+- Decisión: conservar re.escape como única codificación regex y mantener _jstr para el nivel Java. Sin dependencias nuevas.
+- Bloqueos: el tiempo del corpus continúa variable y sobre el umbral; las expresiones candidatas requieren validación en Talend Studio.
+
+## Hito 33n. Alinear el COMPRESS predeterminado del flujo integrado
+
+- Fecha: 2026-11-03
+- Qué se hizo: el traductor inline de un argumento ahora elimina el espacio literal, igual que la rutina Talend ya existente, en vez de eliminar cualquier whitespace con la regex \\s.
+- Hallazgo: el flujo público translate() toma primero la ruta inline y evitaba el mapeo nuevo. Así COMPRESS(value) borraba tabulaciones y otros blancos que no estaban en su lista predeterminada.
+- Evidencia: _f_compress documenta que sin lista se quitan blancos; el constructor Talend usa StringHandling.CHANGE con un espacio literal. La regresión llama al flujo integrado translate("compress(value)").
+- Pruebas: RED observado en el flujo integrado; las 16 pruebas focales de COMPRESS pasan tras el cambio.
+- Verificación: uv run pytest -q: 455 pasan y 1 se salta (117,90 s); uv run ruff check .: limpio; uv run sgm rules validate: válido; git diff --check: limpio.
+- Métricas: uv run sgm metrics tests/fixtures/sas --check excede únicamente tiempo_compilacion_s: 25,8 s frente al límite 19,08 s. La corrida previa Hito 32 dio 27,8 s y un control Hito 31 dio 43,7 s. No se cambió la línea base.
+- Decisión: alinear el atajo inline con el constructor Talend vigente, sin ampliar la lista de caracteres que se eliminan. Sin dependencias nuevas.
+- Bloqueos: el trinquete de tiempo sigue variable y sobre el umbral; las expresiones candidatas requieren validación en Talend Studio.
+
+## Hito 109m. Integración de la rama de Byron (origin/main, hitos 20n a 33n) en main
+
+- Fecha: 2026-11-06.
+- Qué se hizo: `merge` de `origin/main` (14 commits de Byron) en el `main` local. Sus entradas de
+  `PROGRESS.md` se conservan como `20n` a `33n`. En los archivos con conflicto (`expressions/expressions.py`,
+  `talend_parser.py`, `talend_translator.py`, `passes/p10_components.py` y los tres golden de plan) **se
+  conservó la versión local**; el resto de sus cambios (`frontend/`, `ir/models.py`, `lower_data.py`,
+  `p06_flow_fusion.py`, pruebas nuevas, `talend_functions*.py` y `talend_lexer.py`) entró tal cual.
+- **Pendiente, no resuelto:** las pruebas de Byron `tests/unit/test_input_informat.py`,
+  `test_talend_compress.py`, `test_talend_like.py` y `test_talend_scan.py` **fallan** contra la
+  estructura local de expresiones (esperan `Unsupported` para informats dinámicos, el escape de
+  delimitadores de `SCAN`, los patrones `LIKE` y los casos no demostrados de `COMPRESS`). No se
+  relajaron ni se borraron. Los archivos `talend_functions*.py` y `talend_lexer.py` de Byron quedan sin
+  uso hasta decidir qué estructura sobrevive. Esta es la tarea 0 de `reparto-andres-byron.md`: portar su
+  comportamiento a la estructura local (o al revés) hasta que sus pruebas pasen.
+- Pruebas: la suite completa **no está en verde** por lo anterior. No se miró el resto de la lista de
+  fallos más allá de esos cuatro archivos; se subió por decisión del usuario sin más corridas.

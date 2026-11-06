@@ -113,6 +113,8 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
             signature=signature("map", params),
             notes=[f"{len(chain)} operadores de flujo unidos en un tMap (pasada 6)"],
         )
+        for index, op in enumerate(chain):
+            merged.inherit_expression_evidence(op, ("steps", index, "params"))
         graph.replace([op.id for op in chain], merged)
         log.created.append(merged.id)
         log.merged += [op.id for op in chain]
@@ -165,6 +167,9 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
             signature=signature("map", params),
             notes=[f"{len(group)} ramas filtradas de un mismo dataset en un tMap (pasada 6)"],
         )
+        for index, (_, _, filt) in enumerate(group):
+            origins = filt.expression_evidence.get(("expression",), filt.evidence)
+            merged.expression_evidence[("branches", index, "expression")] = list(origins)
         graph.replace([op.id for op in ops], merged)
         log.created.append(merged.id)
         log.merged += [op.id for op in ops]

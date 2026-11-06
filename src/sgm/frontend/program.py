@@ -115,7 +115,7 @@ def analyze_program(
     file_stmts: dict[str, list[Stmt]] = {}
     for path in sorted(everything):
         text = everything[path].replace(ZERO_WIDTH, "")
-        file_stmts[path] = split_statements(text)
+        file_stmts[path] = split_statements(text, file=path)
         if path in files:
             result.nodes[path] = split_nodes(text)
     for path in sorted(everything):

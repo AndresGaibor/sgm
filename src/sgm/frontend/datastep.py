@@ -27,6 +27,8 @@ class DsStatement:
     text: str
     line: int
     fields: dict = field(default_factory=dict)
+    file: str | None = None
+    end_line: int | None = None
 
 
 @dataclass

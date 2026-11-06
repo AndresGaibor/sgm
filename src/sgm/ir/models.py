@@ -77,6 +77,16 @@ class Operator:
     notes: list[str] = field(default_factory=list)
     component: dict[str, Any] | None = None  # componente Talend candidato (pasada 10)
     origin: str | None = None  # constructo SAS de origen (diagnóstico; no entra en la firma)
+    # Evidencia interna por expresión: no altera parámetros, firmas ni el JSON del operador.
+    expression_evidence: dict[tuple[str | int, ...], list[Evidence]] = field(default_factory=dict)
+
+    def inherit_expression_evidence(
+        self, other: Operator, prefix: tuple[str | int, ...] = ()
+    ) -> None:
+        """Conserva los orígenes precisos al fusionar o reemplazar operadores."""
+        for path, origins in other.expression_evidence.items():
+            target = self.expression_evidence.setdefault(prefix + path, [])
+            target.extend(ev for ev in origins if ev not in target)
 
 
 @dataclass(frozen=True)
@@ -201,6 +211,7 @@ class Graph:
     def merge(self, keep: str, drop: str) -> None:
         """Fusiona `drop` en `keep`: une la evidencia y redirige sus aristas."""
         kept, dropped = self.operator(keep), self.operator(drop)
+        kept.inherit_expression_evidence(dropped)
         for ev in dropped.evidence:
             if ev not in kept.evidence:
                 kept.evidence.append(ev)

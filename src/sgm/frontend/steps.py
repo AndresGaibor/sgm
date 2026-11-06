@@ -40,10 +40,7 @@ def _lower(stmt: Stmt) -> str:
 
 def _is_boundary(stmt: Stmt) -> bool:
     low = _lower(stmt)
-    return low.startswith(("data ", "data;", "proc ", "%macro ", "%mend")) or low in (
-        "data",
-        "proc",
-    )
+    return low.startswith(("data ", "data;", "proc ", "%macro ", "%mend")) or low in ("data", "proc")
 
 
 def _parse_data(stmts: list[Stmt], i: int) -> tuple[object, int]:
@@ -64,7 +61,8 @@ def _parse_data(stmts: list[Stmt], i: int) -> tuple[object, int]:
         if _lower(s) in _DATALINES_HEAD:
             j += 1
             continue
-        body.append(classify_statement(s.text, s.line, s.rows))
+        stmt = classify_statement(s.text, s.line, s.rows)
+        body.append(replace(stmt, file=s.file, end_line=s.end_line))
         j += 1
     if outputs is None:
         return Unparsed(head.text, "DATA sin salidas", head.line, last.end_line), j
@@ -205,12 +203,8 @@ def parse_steps(
     return steps, j
 
 
-def _shift(stmt: Stmt, offset: int) -> Stmt:
-    return replace(stmt, line=stmt.line + offset, end_line=stmt.end_line + offset)
-
-
 def parse_node(node: Node) -> ParsedNode:
     """Pasos de un nodo. Las líneas quedan en numeración del archivo original."""
-    stmts = [_shift(s, node.line_start - 1) for s in split_statements(node.text)]
+    stmts = split_statements(node.text, line_start=node.line_start)
     steps, _ = parse_steps(stmts)
     return ParsedNode(node.label, node.line_start, node.line_end, steps)
