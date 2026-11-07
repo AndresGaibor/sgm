@@ -772,10 +772,13 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (6 de noviembre de 2026, hito 107)
+## 11b. Avance medido (6 de noviembre de 2026, hito 123m)
 
-**Avance global: 19,6 % de las 895 horas de agente (175,75 h), es decir, cerca de 20 %.** C7 (producción
-con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía.
+**Avance global: 27,1 % de las 895 horas de agente (242,75 h), es decir, cerca de 27 %** (era 19,6 % en el
+hito 107). C7 (producción con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía. Ojo:
+el salto de los hitos 108m a 123m se apoya en los anillos A y B; **nada de lo nuevo se ha compilado en
+Studio**, y por eso el crédito de P9 y P5 se cuenta con 0,25 y no con 0,5 en lo que solo tiene Job
+escrito y validado por `validar_job`.
 
 **Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
 1 = hecha y su aceptación comprobada; 0,5 = parcial con evidencia de ejecución (corpus pasa en A o B, o
@@ -787,28 +790,28 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | Fase | Horas | Crédito | % de la fase | Qué sostiene la cifra |
 |---|---|---|---|---|
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
-| MG-P1 Modelo y plan lógico | 70 | 40,5 | 58 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; esquemas sin tipos |
+| MG-P1 Modelo y plan lógico | 70 | 43,0 | 61 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; tipos deducidos de comparaciones y agregados; sin tipos desde la muestra |
 | MG-P2 Entrada y salida | 50 | 12,0 | 24 % | CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT` |
 | MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
-| MG-P4 DATA step | 90 | 7,0 | 8 % | `WHERE`, `IF/ELSE IF`, `KEEP/DROP/RENAME`; sin `MERGE`, `RETAIN`, `OUTPUT` múltiple |
-| MG-P5 `PROC SQL` | 80 | 12,0 | 15 % | `filter`, `derive`, `join`; L1 completos 3 de 15, L2 5 de 15 |
-| MG-P6 Procedimientos | 50 | 2,5 | 5 % | `NODUPKEY` probado en la pista del programa grande |
-| MG-P7 Macros | 60 | 0,0 | 0 % | Sin medir contra `L5` |
-| MG-P8 Planificador | 70 | 13,0 | 19 % | Contextos DEV/QA/PROD; `trace.json` parcial; sin segmentación ni límite de tamaño |
-| MG-P9 Emisor | 108 | 26,5 | 25 % | 25 de 40 plantillas, contextos y conexiones básicas; joblets sin validar |
-| MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 42 de 62 pasan, 20 `xfail` |
+| MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
+| MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos), `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
+| MG-P6 Procedimientos | 50 | 4,0 | 8 % | `PROC SORT` con `NODUP`/`NODUPKEY` y `BY _ALL_`; sin `FREQ`, `MEANS`, `TRANSPOSE` |
+| MG-P7 Macros | 60 | 8,0 | 13 % | `L5`: 8 de 12 casos pasan en el anillo B (`%let`, macro con parámetros, `%eval`); sin `%sysfunc` ni `SELECT INTO` |
+| MG-P8 Planificador | 70 | 15,0 | 21 % | Contextos DEV/QA/PROD; `trace.json` parcial; plantillas repetidas desplegadas en línea (provisional); sin segmentación ni límite de tamaño |
+| MG-P9 Emisor | 108 | 34,5 | 32 % | 29 de 40 plantillas con nodo emitido (`tSortRow`, `tUniqRow`, `tAggregateRow`, `tUnite` nuevos, sin Studio), contextos y conexiones; joblets sin validar |
+| MG-P10 Verificación | 80 | 24,0 | 30 % | Validador del `.item` hecho; intérprete B: 86 de 93 casos elegibles pasan (L0 a L6), 7 `xfail`; el comparador sigue sin ser estricto con columnas de más |
 | MG-P11 Experiencia de uso | 30 | 4,0 | 13 % | `sgm migrar` de un programa sin YAML; falta carpeta y `cobertura.md` |
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
-| **Total** | **895** | **175,75** | **19,6 %** | |
+| **Total** | **895** | **242,75** | **27,1 %** | |
 
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
 (359,0 h y 360,25 h).
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
-anillo B, 56 de 62 casos elegibles pasan (90 %; hito 115m); anillo A, 28 de los 45 casos de `L0` a
-`L2` migran sin pendientes de traducción (62 %; hito 115m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
+anillo B, 86 de 93 casos elegibles pasan (92 %; hito 123m); anillo A, 84 de los 101 casos de `L0` a
+`L6` migran sin pendientes de traducción (83 %; hito 123m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
 (representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
 
 **Qué mueve más el número.** La ruta crítica pide P4, P5 y P6 antes que P8 y P9; ahí hoy hay 9,8 %

@@ -5273,3 +5273,12 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: suite 2544 pasan, 55 fallan (los de Byron), `ruff` limpio. El test del emisor que daba
   `l3_01` por pendiente ahora comprueba el `tAggregateRow` con `agg_1`/`agg_2` y el `tMap`; la
   subconsulta escalar tiene el suyo.
+
+## Hito 124m. Avance recalculado: 27,1 %
+
+- Fecha: 2026-11-06. Sin cambios de código.
+- Se recalculó la sección 11b de `plan-migrador-general.md` con los hitos 108m a 123m: **de 19,6 % a
+  27,1 %** (242,75 h de 895). Suben P1 (+2,5), P4 (+14), P5 (+25), P6 (+1,5), P7 (+8), P8 (+2),
+  P9 (+8) y P10 (+6). Los créditos son un juicio; lo que está escrito pero sin Studio cuenta 0,25.
+- Termómetros: anillo A 84 de 101 casos de L0 a L6 sin pendientes de traducción (83 %); anillo B 86
+  de 93 elegibles pasan (92 %).
