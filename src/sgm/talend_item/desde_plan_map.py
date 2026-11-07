@@ -402,6 +402,53 @@ def _fila_de_columna(meseta: _Meseta, valor: str) -> tuple[str | None, str]:
     return None, f"la columna '{columna}' está en varias entradas y el SAS no dice de cuál"
 
 
+_ENTEROS = frozenset({"id_Integer", "id_Long", "id_Short", "id_Byte"})
+_NUMERICOS = _ENTEROS | {"id_Double", "id_Float", "id_BigDecimal"}
+
+
+def _solo_enteros(meseta: _Meseta, java: str) -> bool:
+    """La expresión usa columnas, todas enteras, y no divide ni lleva decimales."""
+    columnas = re.findall(r"\b(row\d+)\.(\w+)", java)
+    if not columnas or "/" in java or re.search(r"\d\.\d", java):
+        return False
+    return all(meseta.tipo_de(fila, nombre) in _ENTEROS for fila, nombre in columnas)
+
+
+def _tipo_de_texto(meseta: _Meseta, texto: str) -> str | None:
+    """Tipo de una rama de un condicional: el de su columna o el que su literal demuestra."""
+    limpio = texto.strip()
+    if re.fullmatch(r"-?\d+", limpio):
+        return "id_Long"
+    if re.fullmatch(r"-?\d+\.\d+", limpio):
+        return "id_Double"
+    if re.fullmatch(r"\w+", limpio):
+        for indice in range(len(meseta.fuentes)):
+            tipo = meseta.tipo_de(meseta.fila(indice), meseta.nombre_real(indice, limpio))
+            if any(c.nombre.lower() == limpio.lower() for c in meseta.fuentes[indice].columnas):
+                return tipo
+    return None
+
+
+def _tipo_condicional(meseta: _Meseta, asignacion: dict) -> str | None:
+    """Tipo de un `IF ... THEN a ELSE b`: si las ramas son todas números, el más ancho.
+
+    `IF saldo < 0 THEN saldo = 0` mezcla un literal entero con una columna `Double`; el `?:` de
+    Java da `double` y la columna de salida tiene que ser `Double`, no `Long`.
+    """
+    condicional = asignacion.get("conditional")
+    if not isinstance(condicional, dict):
+        return None
+    textos = [str(asignacion.get("expression") or ""), str(condicional.get("otherwise") or "")]
+    textos += [str(r.get("expression") or "") for r in condicional.get("branches") or []]
+    tipos = [_tipo_de_texto(meseta, t) for t in textos if t.strip()]
+    if not tipos or any(t not in _NUMERICOS for t in tipos):
+        return None
+    for ancho in ("id_BigDecimal", "id_Double", "id_Float"):
+        if ancho in tipos:
+            return ancho
+    return "id_Long"
+
+
 def _tipo_de_salida(meseta: _Meseta, java: str, asignacion: dict) -> str:
     """Tipo de la columna que produce una asignación.
 
@@ -410,10 +457,16 @@ def _tipo_de_salida(meseta: _Meseta, java: str, asignacion: dict) -> str:
     Sin esto la salida quedaba `id_String` y Studio no compilaba: `double cannot be converted to
     String`.
     """
+    condicional = _tipo_condicional(meseta, asignacion)
+    if condicional is not None:
+        return condicional
     demostrado = tipo_de_expresion(str(asignacion.get("expression") or ""))
     if demostrado is not None:
         if demostrado == "Boolean":
             # Las comparaciones del DATA step devuelven 1/0 en SAS, no un booleano de Java.
+            return "id_Long"
+        if demostrado == "Double" and _solo_enteros(meseta, java):
+            # `agg_1 - agg_2` entre dos `Long` da `long`: guardarlo en un `Double` no compila.
             return "id_Long"
         return TIPOS.get(demostrado, "id_String")
     fila, _, nombre = java.partition(".")

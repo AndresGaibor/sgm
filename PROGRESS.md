@@ -5282,3 +5282,37 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   P9 (+8) y P10 (+6). Los créditos son un juicio; lo que está escrito pero sin Studio cuenta 0,25.
 - Termómetros: anillo A 84 de 101 casos de L0 a L6 sin pendientes de traducción (83 %); anillo B 86
   de 93 elegibles pasan (92 %).
+
+## Hito 125m. Primera compilación en Studio de los nodos nuevos: 85 de 85 compilan tras tres arreglos
+
+- Fecha: 2026-11-07. Studio 8.0.1, proyecto `PRJ_BANCOLOMBIA` (de pruebas, autorizado por el usuario).
+- Hallazgo de entorno: el Studio abierto trabaja en `C:/Talend/8.0.1/studio/workspace3/...`, no en
+  `workspace/`. En la ruta equivocada todo da «El job no existe en el repositorio». Se pregunta con
+  `talend_bridge_workspace_state`. Además el puente corta cada llamada a los 25 s: un lote de 85 Jobs
+  lo deja compilando minutos sin contestar. Lotes de 3 a 4, y esperar `comprobar_salud` entre uno y
+  otro. `docs/guia-validacion-studio.md` corregida.
+- Primera pasada (85 Jobs, los casos de L0 a L6 sin pendientes de traducción): **67 compilan, 13
+  fallan, 5 sin respuesta del puente**. Los errores, literales de `javac` y del generador:
+  * `tSortRow` terminal (9 casos): `error: cannot find symbol  defaultRow` — sin conexión de salida
+    el generador no declara la fila. Una tabla final de `PROC SQL` que no se exporta no tiene
+    consumidor.
+  * `tUnite` (`l0_09`): `Cannot invoke IMetadataTable.getListColumns() because "preMetadata" is
+    null`. La plantilla JET de `tUnite` solo mira conexiones `FLOW_MERGE` (`EConnectionType`, id 10);
+    se habían escrito como FLOW.
+  * `l0_13`: `incompatible types: double cannot be converted to Long` en
+    `(row1.saldo == null || row1.saldo < 0) ? 0 : row1.saldo`: la columna de salida salía `Long` por
+    el literal `0` y la rama `ELSE` es `Double`.
+  * `l3_01`: `long cannot be converted to Double` en `(row1.agg_1 - row1.agg_2)`: dos `Long` restados
+    dan `long`, y la columna se había declarado `Double`.
+- Arreglos (`desde_plan.py`, `desde_plan_map.py`): las entradas de un `tUnite` salen como conexión
+  `MERGE` con `lineStyle` 10; un `tSortRow`/`tUniqRow`/`tAggregateRow`/`tUnite` sin consumidor recibe
+  un `tLogRow` (debajo de la fila de nodos, para no pisar a otro); el tipo de una columna condicional
+  es el más ancho de sus ramas, y el de una expresión entre columnas enteras sin división es `Long`.
+- Segunda pasada completa con los arreglos: **64 compilan, 0 fallan, 21 sin respuesta del puente**; los
+  21 reintentados de uno en uno: 20 compilan y el último (`l2_13`) compila solo. **Total: 85 de 85.**
+  Ningún Job de prueba quedó en `process/` (0 archivos con el sufijo de la corrida).
+- **Lo que esto prueba y lo que no.** Compilar solo dice que el `.item` abre y que el Java generado
+  compila. **No se ejecutó ningún Job ni se comparó ninguna salida con el esperado.** Siguen sin
+  verificar: el valor `distinct` del `FUNCTION` de `COUNT(DISTINCT)`, el resultado de `sum` con un
+  grupo de nulos, el orden de entrada de `tUnite`, y que `tSortRow` ordene los nulos como SAS.
+- Pruebas: suite 2546 pasan, 55 fallan (los de Byron), `ruff` limpio. El anillo A sigue en 84 de 101.

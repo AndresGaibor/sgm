@@ -23,6 +23,7 @@ from dataclasses import dataclass, field, replace
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Operator, Plan
 from sgm.migrar.esquemas import PendienteMigracion
+from sgm.talend_item.componentes import log_row
 from sgm.talend_item.conexiones import lookup
 from sgm.talend_item.desde_plan_agregado import nodo_agregado
 from sgm.talend_item.desde_plan_contextos import (
@@ -415,9 +416,36 @@ class _Job:
             if hasta in self._entradas_map and nombre != "row1":
                 # Las entradas de búsqueda de un tMap van por LOOKUP (`lineStyle` 8), no por FLOW.
                 self.conexiones.append(lookup(origen, destino, nombre))
+            elif hasta in self._uniones:
+                # Las entradas de un `tUnite` son conexiones MERGE (`lineStyle` 10, el id de
+                # FLOW_MERGE en `EConnectionType`); con FLOW, Studio no genera la unión.
+                self.conexiones.append(Conexion(origen, destino, nombre, "MERGE", 10))
             else:
                 conector = self._conector_de.get(origen, "FLOW")
                 self.conexiones.append(Conexion(origen, destino, nombre, conector=conector))
+
+    def _cierres(self) -> None:
+        """Un orden, un `DISTINCT`, un agregado o una unión sin nadie detrás no compila en Studio.
+
+        `tSortRow` y los demás generan su código contra la conexión de salida: sin ella aparece
+        `defaultRow` sin declarar. Es la tabla final de un `PROC SQL` que no se exporta; se le pone
+        un `tLogRow`, que además deja ver las filas al ejecutar.
+        """
+        con_salida = {c.origen for c in self.conexiones}
+        for op_id in sorted(self._pasos):
+            nodo = self._nodo[op_id]
+            if nodo.unico in con_salida or not self._salida.get(op_id):
+                continue
+            columnas = self._salida[op_id]
+            unico = self._unico("tLogRow")
+            # Debajo de la fila de nodos, para no pisar a ninguno.
+            y = 96 * (2 + sum(1 for n in self.nodos if n.componente == "tLogRow"))
+            cierre = log_row(unico, columnas, nodo.x, y, self.ruta_java or "")
+            self.nodos.append(cierre)
+            conector = self._conector_de.get(nodo.unico, "FLOW")
+            self.conexiones.append(
+                Conexion(nodo.unico, cierre.unico, f"{nodo.unico}_out", conector=conector)
+            )
 
     def _nombre(self, desde: str, hasta: str) -> str | None:
         """Nombre de la conexión: la entrada que el `tMap` espera, o la salida que produce.
@@ -468,6 +496,7 @@ class _Job:
                 )
             self.visitados.add(op_id)
         self._conectar()
+        self._cierres()
         reemplazar_rutas(self.nodos, self.rutas)
         return Job(
             job.name,

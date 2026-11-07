@@ -12,7 +12,7 @@ pagó con un fallo real.
 
 | Pieza | Valor de referencia | Nota |
 |---|---|---|
-| Studio | Talend 8.0.1 con el proyecto `PRJ_BANCOLOMBIA` | Ruta típica `C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA` |
+| Studio | Talend 8.0.1 con el proyecto `PRJ_BANCOLOMBIA` | Ruta típica `C:/Talend/8.0.1/studio/workspace3/talendbancolombia-963626413/PRJ_BANCOLOMBIA`. **La ruta la decide el Studio abierto, no la carpeta `workspace/`:** pregúntala con `talend_bridge_workspace_state` (campo `location`). En `workspace/` Studio no ve nada y todo da «El job no existe en el repositorio» |
 | JDK de Studio | `C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin` | El lanzador exportado lo necesita en el `PATH` |
 | `talend-mcp` | repositorio aparte, puerto 3927 | Se arranca con `TALEND_MCP_ALLOW_WRITE=1 TALEND_MCP_ALLOW_EXECUTE=1 bun run start:server` |
 | Caché de Maven | `C:/Talend/8.0.1/studio/configuration/.m2/repository` | Los poms que falten se descargan solos |
@@ -62,6 +62,10 @@ Detalle del arnés y del formato de `mapa.yaml`: `tools/corpus_lib/STUDIO.md`.
    uno distinto cada vez.
 2. **Copiar** los `.item` y `.properties` a `<proyecto>/process/`.
 3. **Refrescar** el workspace (`talend_bridge_refresh_workspace`).
+0. **Lotes pequeños.** El puente corta cada llamada a los 25 s: un lote de 85 Jobs lo deja a Studio compilando
+   minutos después de que el cliente se rinda, y hasta que termine no contesta ni el refresco. Usa
+   lotes de 4 a 8 Jobs, espera a que `comprobar_salud` dé `ok` entre uno y otro, y no borres los
+   Jobs mientras Studio sigue compilando.
 4. **Compilar los hijos primero** y el padre en una llamada aparte: en paralelo el padre puede
    fallar porque los hijos aún no están compilados. Hay que leer `jobs[...].ok` y el error de javac,
    no solo el código de salida.
