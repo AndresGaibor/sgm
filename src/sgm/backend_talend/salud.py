@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from sgm.backend_talend.base import BackendNoDisponible
+from sgm.backend_talend.comun import detalle
 
 
 class Llamable(Protocol):
@@ -56,7 +57,8 @@ def _titulos(dialogos: dict) -> str:
 def comprobar_salud(backend: Llamable, tiempo_max: float = 10.0) -> Salud:
     """`Salud(True, "")` si Studio responde, escribe y no tiene diálogos; si no, el motivo."""
     try:
-        ping = backend.llamar(_TOOL_PING, {}, tiempo_max)
+        # La CLI entrega `data` plano; el MCP lo envuelve en su sobre `{ok, data}`.
+        ping = detalle(backend.llamar(_TOOL_PING, {}, tiempo_max), ("mode", "readWrite", "error"))
     except BackendNoDisponible as error:
         return Salud(False, f"Studio no respondió: {error}. {_DIALOGO}")
     if ping.get("error"):
@@ -68,7 +70,9 @@ def comprobar_salud(backend: Llamable, tiempo_max: float = 10.0) -> Salud:
             f"{_DIALOGO}",
         )
     try:
-        dialogos = backend.llamar(_TOOL_DIALOGOS, {}, tiempo_max)
+        dialogos = detalle(
+            backend.llamar(_TOOL_DIALOGOS, {}, tiempo_max), ("blocked", "dialogs", "blocking")
+        )
     except BackendNoDisponible as error:
         return Salud(False, f"no se pudo comprobar si hay diálogos abiertos: {error}. {_DIALOGO}")
     if dialogos.get("blocked"):

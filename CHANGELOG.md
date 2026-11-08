@@ -22,6 +22,8 @@ del código la lee de ahí.
 
 - El mapeo de `talend_job_build_batch` y `talend_job_verify` reconoce el detalle anidado en
   `data.result.jobs` y en `data`, no solo la forma plana de la CLI.
+- El backend MCP se probó contra el servidor real: la salud lee el sobre `data`, y un corte de
+  conexión (`IncompleteRead`) se informa como `BackendNoDisponible` en vez de una traza.
 - `tools/mcp_cliente.py` ya no duplica el protocolo MCP: usa el backend del producto y conserva
   `ErrorValidacion` para los validadores.
 - Expresiones: se portaron a la estructura local los arreglos de COMPRESS, SCAN, LIKE e INPUT.

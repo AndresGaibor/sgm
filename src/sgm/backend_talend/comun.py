@@ -32,11 +32,12 @@ def sin_secretos(contexto: dict[str, str]) -> None:
         raise ValueError(f"el contexto lleva secretos y no se pueden pasar: {culpables}")
 
 
-def _buscar(datos: Any, claves: tuple[str, ...]) -> dict:
+def detalle(datos: Any, claves: tuple[str, ...]) -> dict:
     """Primer diccionario que trae alguna de `claves`, bajando por `result` y `data`.
 
-    El puente anida el detalle en `data.result`; la CLI a veces lo entrega plano. Se recorren las
-    dos ramas con una cola y se corta en el primer nivel que tenga la clave buscada.
+    El puente anida el detalle en `data.result`; la CLI a veces lo entrega plano y el MCP lo
+    envuelve en `data`. Se recorren las dos ramas con una cola y se corta en el primer nivel que
+    tenga la clave buscada.
     """
     cola = [datos]
     vistos: set[int] = set()
@@ -92,7 +93,7 @@ def resultado_lote(datos: Any, nombres: list[str]) -> ResultadoLote:
     Acepta el mapa por nombre (la forma real), la lista de estados y la forma resumida
     `compilan`/`noCompilan`. Los Jobs que compilan conservan el orden pedido.
     """
-    contenedor = _buscar(datos, ("jobs", "compilan", "noCompilan"))
+    contenedor = detalle(datos, ("jobs", "compilan", "noCompilan"))
     por_job = contenedor.get("jobs")
     estados: dict[str, Any] = {}
     if isinstance(por_job, dict):
@@ -124,7 +125,7 @@ def resultado_lote(datos: Any, nombres: list[str]) -> ResultadoLote:
 
 def veredicto(datos: Any) -> Veredicto:
     """Traduce la respuesta de `talend_job_verify` a `Veredicto`."""
-    contenedor = _buscar(datos, ("verdict", "nivel", "findings"))
+    contenedor = detalle(datos, ("verdict", "nivel", "findings"))
     nivel = str(contenedor.get("verdict") or contenedor.get("nivel") or "error")
     return Veredicto(nivel, _hallazgos(contenedor.get("findings")))
 
@@ -135,6 +136,7 @@ __all__ = [
     "TOOL_PING",
     "TOOL_REFRESCO",
     "TOOL_VERIFICAR",
+    "detalle",
     "resultado_lote",
     "sin_secretos",
     "veredicto",

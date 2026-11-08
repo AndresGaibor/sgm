@@ -168,6 +168,22 @@ def test_transporte_http_decodifica_json():
     assert _json_o_sse(json.dumps(evento), "application/json") == evento
 
 
+def test_transporte_http_envuelve_una_respuesta_incompleta(monkeypatch):
+    """Un servidor que corta el stream no debe dejar salir un `IncompleteRead` crudo."""
+    import http.client
+    import urllib.request
+
+    from sgm.backend_talend.mcp import TransporteHttp
+
+    def falla(*args, **kwargs):
+        raise http.client.IncompleteRead(b"")
+
+    monkeypatch.setattr(urllib.request, "urlopen", falla)
+
+    with pytest.raises(BackendNoDisponible, match="respuesta incompleta"):
+        TransporteHttp("http://127.0.0.1:1/mcp")({"jsonrpc": "2.0"}, 1.0)
+
+
 def test_tiempo_maximo_se_propaga():
     transporte = TransporteFalso(_resultado({"ok": True}))
 

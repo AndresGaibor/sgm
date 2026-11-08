@@ -10,6 +10,7 @@ lo pedido está prohibido (un secreto en el contexto).
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import threading
@@ -114,6 +115,10 @@ class TransporteHttp:
             ):
                 raise SesionRequerida(mensaje) from error
             raise BackendNoDisponible(mensaje) from error
+        except http.client.HTTPException as error:
+            raise BackendNoDisponible(
+                f"respuesta incompleta del MCP en {self.url}: {error}"
+            ) from error
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             raise BackendNoDisponible(
                 f"no se pudo contactar al MCP en {self.url}: {error}"

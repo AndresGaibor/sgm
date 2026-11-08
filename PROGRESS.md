@@ -5384,3 +5384,33 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites: no se ejecutó contra Studio real ni contra el servidor MCP en este hito (el puerto 3927
   no estaba escuchando); las pruebas usan un transporte falso con las formas de respuesta medidas
   antes. La compuerta de liberación sigue sin lanzar el lote de Studio.
+
+## Hito 128m. Backend MCP probado contra el servidor real y tope de respuesta corregido
+
+- Fecha: 2026-11-08.
+- Qué se hizo:
+  - Se levantó `talend-mcp` (`bun run start:server`, 258 herramientas) y se probó el backend contra
+    el servidor real, no con transporte falso.
+  - `comun.detalle` desenvuelve el sobre `{ok, data}` del MCP y sigue leyendo la respuesta plana de
+    la CLI; `salud.py` lo usa para `mode` y `blocked`. Prueba nueva:
+    `test_salud_lee_el_sobre_data_del_mcp`.
+  - `TransporteHttp` envuelve `http.client.HTTPException` (`IncompleteRead`) en
+    `BackendNoDisponible`; antes una conexión cortada salía como traza. Prueba nueva:
+    `test_transporte_http_envuelve_una_respuesta_incompleta`.
+  - En `talend-mcp` se corrigió un error de unidades: todas las respuestas `tools/call` se cortaban
+    a los 100 ms con `res.destroy()`. Ahora usan `TALEND_MCP_TOOL_TIMEOUT_MS` (600 000 ms por
+    omisión). `bun run verify` en ese repositorio: 862 pasan, 182 escenarios válidos.
+- Evidencia real:
+  - `uv run python tools/studio_salud.py --mcp` imprime «Studio responde y deja escribir» y sale 0.
+  - `compilar_lote(["POC_Azure_Job"])` devuelve `no_compilan` con «No se encuentra la carpeta
+    generada del job POC_Azure_Job»: es la respuesta negativa del puente, no un fallo de transporte.
+  - `verificar("JbCTM", {})` devuelve `ok` con 0 hallazgos en 14,7 s.
+- Pruebas: suite completa **2613 pasan, 27 se saltan, 145 xfail**; `ruff` limpio. Focalizado de
+  backend MCP y salud: 18 pasan.
+- Decisiones: no se cambió el contrato de `llamar` (el MCP entrega el sobre y la CLI entrega `data`)
+  porque los validadores leen el sobre para distinguir servidor y puente; la salud usa `detalle`.
+  El tope de bytes sigue siendo `maxResponseBytes`/`TALEND_MCP_MAX_RESPONSE_BYTES`; el plazo de la
+  tool no es un tope de tamaño.
+- Límites: el lote real devuelve «carpeta generada» para los Jobs probados del workspace; el puente
+  no las regenera, aunque `verificar` sí compila. No se ejecutó un Job ni se comparó contra SAS, y
+  la compuerta de liberación sigue sin lanzar el lote de Studio.

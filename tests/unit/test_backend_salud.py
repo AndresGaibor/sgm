@@ -116,6 +116,26 @@ def test_salud_sin_permiso_de_escritura():
     assert "escritura" in salud.motivo
 
 
+class BackendSobreMCP:
+    """Devuelve el sobre `{ok, data}` que entrega `McpBackend`."""
+
+    def llamar(self, tool: str, entrada: dict, tiempo_max: float | None = None) -> dict:
+        datos = (
+            {"mode": "readWrite"}
+            if tool == "talend_bridge_ping"
+            else {"blocked": False, "dialogs": [], "blocking": []}
+        )
+        return {"ok": True, "source": "studio-bridge", "data": datos}
+
+
+def test_salud_lee_el_sobre_data_del_mcp():
+    """El MCP anida `mode` y `blocked` en `data`; la CLI los entrega planos."""
+    salud = comprobar_salud(BackendSobreMCP())
+
+    assert salud.ok is True
+    assert salud.motivo == ""
+
+
 def test_la_respuesta_guardada_es_la_del_puente():
     """El fixture no es inventado: trae los campos que el mapeo lee."""
     datos = json.loads(_respuesta("ping.json"))["data"]
