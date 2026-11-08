@@ -11,53 +11,24 @@ Un fallo de la CLI nunca sale como traza: o es `BackendNoDisponible` con el moti
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
 from sgm.backend_talend.archivos import ArchivosBackend
 from sgm.backend_talend.base import BackendNoDisponible, ResultadoLote, Veredicto
+from sgm.backend_talend.comun import (
+    PARALELISMO,
+    TOOL_LOTE,
+    TOOL_REFRESCO,
+    TOOL_VERIFICAR,
+    resultado_lote,
+    sin_secretos,
+    veredicto,
+)
 
 # Argumentos, tiempo máximo; devuelve (código de salida, salida estándar).
 Ejecutor = Callable[[list[str], float], tuple[int, str]]
-
-_TOOL_LOTE = "talend_job_build_batch"
-_TOOL_VERIFICAR = "talend_job_verify"
-_TOOL_REFRESCO = "talend_bridge_refresh_workspace"
-_PARALELISMO = 4
-# Un nombre de variable de contexto que huela a credencial no se manda: la CLI no debe verla.
-_SECRETO = re.compile(r"(pass|pwd|secret|token|clave)", re.IGNORECASE)
-
-
-def _sin_secretos(contexto: dict[str, str]) -> None:
-    """Rechaza un contexto con credenciales antes de armar la línea de comandos."""
-    culpables = sorted(nombre for nombre in contexto if _SECRETO.search(nombre))
-    if culpables:
-        raise ValueError(f"el contexto lleva secretos y no se pueden pasar por la CLI: {culpables}")
-
-
-def _compilo(estado: object) -> bool:
-    """Si un Job del lote compiló, según el mapa `result.jobs` del puente."""
-    return bool(estado.get("ok")) if isinstance(estado, dict) else False
-
-
-def _motivo(estado: object) -> str:
-    """Motivo por el que un Job del lote no compiló."""
-    if isinstance(estado, dict):
-        return str(estado.get("error") or estado.get("motivo") or "sin motivo")
-    return str(estado or "sin motivo")
-
-
-def _hallazgos(bruto: object) -> tuple[str, ...]:
-    """Hallazgos del veredicto como líneas: `findings` es un mapa de errores y avisos."""
-    if isinstance(bruto, dict):
-        errores = [f"[ERROR] {texto}" for texto in bruto.get("errors") or []]
-        avisos = [f"[WARN] {texto}" for texto in bruto.get("warnings") or []]
-        return tuple(errores + avisos)
-    if isinstance(bruto, list):
-        return tuple(str(item) for item in bruto)
-    return ()
 
 
 def ejecutor_subprocess(talend_dir: Path) -> Ejecutor:
@@ -152,34 +123,12 @@ class TalendCliBackend(ArchivosBackend):
 
     def refrescar(self) -> None:
         """Pide a Studio que relea el workspace: sin eso, un `.item` copiado a mano no existe."""
-        self.llamar(_TOOL_REFRESCO, {})
+        self.llamar(TOOL_REFRESCO, {})
 
     def compilar_lote(self, nombres: list[str]) -> ResultadoLote:
         """Compila los Jobs en una llamada; la respuesta real trae un mapa `result.jobs`."""
-        datos = self.llamar(_TOOL_LOTE, {"jobs": list(nombres), "parallelism": _PARALELISMO})
-        resultado = datos.get("result") if isinstance(datos.get("result"), dict) else datos
-        por_job = resultado.get("jobs")
-        if isinstance(por_job, dict):
-            orden = {nombre: i for i, nombre in enumerate(nombres)}
-            compilan = sorted(
-                (nombre for nombre, estado in por_job.items() if _compilo(estado)),
-                key=lambda nombre: orden.get(nombre, len(orden)),
-            )
-            fallos = {
-                nombre: _motivo(estado)
-                for nombre, estado in por_job.items()
-                if not _compilo(estado)
-            }
-            return ResultadoLote(compilan=tuple(compilan), no_compilan=fallos)
-        # Forma resumida (`compilan` y `noCompilan`): la deja un puente que no devuelve el detalle.
-        fallos = {
-            str(item.get("job")): str(item.get("error") or "sin motivo")
-            for item in resultado.get("noCompilan") or []
-        }
-        return ResultadoLote(
-            compilan=tuple(str(nombre) for nombre in resultado.get("compilan") or []),
-            no_compilan=fallos,
-        )
+        datos = self.llamar(TOOL_LOTE, {"jobs": list(nombres), "parallelism": PARALELISMO})
+        return resultado_lote(datos, list(nombres))
 
     def verificar(self, nombre: str, contexto: dict[str, str]) -> Veredicto:
         """Compila el Job y devuelve su veredicto, sin ejecutarlo.
@@ -187,10 +136,9 @@ class TalendCliBackend(ArchivosBackend):
         `talend_job_verify` no acepta contexto: el de esta llamada se valida (para que ningún
         secreto llegue a la CLI) y se guarda para cuando el Job se ejecute con `run: true`.
         """
-        _sin_secretos(contexto)
-        datos = self.llamar(_TOOL_VERIFICAR, {"job": nombre, "run": False})
-        nivel = str(datos.get("verdict") or datos.get("nivel") or "error")
-        return Veredicto(nivel, _hallazgos(datos.get("findings")))
+        sin_secretos(contexto)
+        datos = self.llamar(TOOL_VERIFICAR, {"job": nombre, "run": False})
+        return veredicto(datos)
 
 
 __all__ = ["Ejecutor", "TalendCliBackend", "ejecutor_subprocess"]

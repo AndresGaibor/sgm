@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "sgm"
-PROHIBIDO = ("talend-mcp", "mcp_cliente", '"bun"')
+PROHIBIDO = ("talend-mcp", "mcp_cliente", "TALEND_MCP_URL", '"bun"')
 EXENTO = SRC / "backend_talend"
 
 

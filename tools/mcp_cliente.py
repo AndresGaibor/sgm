@@ -1,65 +1,40 @@
-"""Cliente JSON-RPC del MCP de `talend-mcp` para los validadores de `tools/`.
+"""Cliente MCP para los validadores de `tools/`.
 
-Sin dependencias: usa `urllib` contra `http://127.0.0.1:3927/mcp`. Incluye la descarga de los
-poms públicos de Maven que la exportación de un Job pide cuando la caché de Studio está incompleta.
+El protocolo vive en `sgm.backend_talend.mcp`: aquí solo se adapta el error a `ErrorValidacion`
+(lo que esperan los validadores) y se conserva la descarga de los poms públicos que la exportación
+de un Job pide cuando la caché de Studio está incompleta.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import urllib.error
 import urllib.request
 from pathlib import Path
 
+from sgm.backend_talend.base import BackendNoDisponible
+from sgm.backend_talend.mcp import URL_POR_OMISION, McpBackend
+
 CENTRAL = "https://repo1.maven.org/maven2"
-URL_MCP = os.environ.get("TALEND_MCP_URL", "http://127.0.0.1:3927/mcp")
+URL_MCP = os.environ.get("TALEND_MCP_URL", URL_POR_OMISION)
 
 
 class ErrorValidacion(RuntimeError):
     """Fallo explícito del protocolo, con el paso que lo produjo."""
 
 
-class MCP:
-    """Cliente JSON-RPC mínimo del servidor talend-mcp."""
+class MCP(McpBackend):
+    """Backend MCP con los tiempos largos y el error que esperan los validadores."""
 
     def __init__(self, url: str = URL_MCP, timeout: int = 900) -> None:
-        self.url = url
-        self.timeout = timeout
+        super().__init__(url=url, tiempo_max=float(timeout))
 
-    def llamar(self, tool: str, argumentos: dict | None = None):
-        payload = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "tools/call",
-            "params": {"name": tool, "arguments": argumentos or {}},
-        }
-        peticion = urllib.request.Request(
-            self.url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json", "Accept": "application/json"},
-        )
+    def llamar(self, tool: str, argumentos: dict | None = None, tiempo_max: float | None = None):
         try:
-            with urllib.request.urlopen(peticion, timeout=self.timeout) as respuesta:
-                cuerpo = json.loads(respuesta.read().decode("utf-8"))
-        except urllib.error.URLError as error:
-            raise ErrorValidacion(
-                f"{tool}: no se pudo contactar al MCP en {self.url}: {error}"
-            ) from error
-        if "error" in cuerpo:
-            raise ErrorValidacion(f"{tool}: {cuerpo['error']}")
-        resultado = cuerpo.get("result", {})
-        datos = resultado.get("structuredContent")
-        if datos is None:
-            texto = " ".join(c.get("text", "") for c in resultado.get("content", []))
-            try:
-                datos = json.loads(texto)
-            except json.JSONDecodeError:
-                datos = {"text": texto}
-        if resultado.get("isError"):
-            raise ErrorValidacion(f"{tool}: {json.dumps(datos, ensure_ascii=False)[:800]}")
-        return datos
+            return super().llamar(tool, argumentos or {}, tiempo_max)
+        except BackendNoDisponible as error:
+            raise ErrorValidacion(str(error)) from error
 
 
 def descargar_poms(mensaje: str, m2: Path | None) -> list[str]:

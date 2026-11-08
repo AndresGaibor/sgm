@@ -112,4 +112,6 @@ y las condiciones humanas están en `docs/produccion.md`.
 ## Límites
 
 - La equivalencia de datos con SAS no se demuestra aquí; se verifica con datos reales.
-- No hay conexión a bases ni a Talend Studio: el resultado se revisa a mano en Studio.
+- La conexión con Talend Studio es opcional y vive en `src/sgm/backend_talend/`: `--backend mcp`
+  usa el servidor de `talend-mcp` y `--backend talend` su CLI; sin ninguno, el resultado se revisa a
+  mano en Studio.

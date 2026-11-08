@@ -5355,3 +5355,32 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   lote de Studio (`talend_job_build_batch`), así que MG-P14-02 sigue parcial y no se reclama crédito
   de la fase: el avance global sigue en 27,1 % (242,75 h). El resto de P14 y las tareas de personas
   siguen en 0.
+
+## Hito 127m. Backend MCP del producto y un solo cliente para las herramientas
+
+- Fecha: 2026-11-08.
+- Qué se hizo:
+  - `src/sgm/backend_talend/mcp.py`: `McpBackend` habla con `talend-mcp` por HTTP JSON-RPC, con
+    transporte inyectable, `initialize` solo cuando el servidor lo pide, lectura de JSON o SSE, tope
+    de tiempo y errores como `BackendNoDisponible`.
+  - `src/sgm/backend_talend/comun.py`: un solo mapeo de respuestas para CLI y MCP. Reconoce
+    `data.result.jobs` (la forma real del puente), la lista de estados y la forma resumida; el
+    veredicto se busca también en `data`.
+  - El backend MCP se usa desde la librería y las herramientas (`studio_salud.py --mcp`,
+    `corpus_studio.py lote --backend mcp`); `sgm migrar` sigue escribiendo archivos, porque compilar
+    exige copiar los Jobs al proyecto y no se hace por sorpresa.
+  - `tools/mcp_cliente.py` deja de duplicar el protocolo: `MCP` es el backend del producto con
+    `ErrorValidacion`; `tools/studio_salud.py` y `corpus_studio.py lote` aceptan MCP.
+  - Pruebas: `tests/unit/test_backend_mcp.py` (11 casos). `test_backend_aislado.py` vigila que
+    `TALEND_MCP_URL` no salga de `backend_talend/`.
+  - Documentación corregida donde todavía decía que el MCP estaba prohibido: guía de Studio, fase 5,
+    plan maestro (sección 4.1 y MG-P0-08), `02-fases.md` y el plan de producción.
+- Pruebas: suite completa **2611 pasan, 27 se saltan, 145 xfail**; `ruff` limpio. Focalizado de
+  backends, salud, CLI y validador: 67 pasan.
+- Decisiones: el handshake es opcional porque el servidor actual es stateless; se intenta
+  `tools/call` directo y, si el servidor pide sesión, se negocia y se reintenta una vez. Un `isError`
+  con `data` es un veredicto negativo, no un fallo de transporte. El cliente MCP de `tools/` ya no
+  tiene protocolo propio.
+- Límites: no se ejecutó contra Studio real ni contra el servidor MCP en este hito (el puerto 3927
+  no estaba escuchando); las pruebas usan un transporte falso con las formas de respuesta medidas
+  antes. La compuerta de liberación sigue sin lanzar el lote de Studio.

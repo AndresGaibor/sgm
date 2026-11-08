@@ -9,9 +9,15 @@ minutos a que falle.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Protocol
 
 from sgm.backend_talend.base import BackendNoDisponible
-from sgm.backend_talend.talend_cli import TalendCliBackend
+
+
+class Llamable(Protocol):
+    """Backend que puede llamar a una herramienta con un tiempo máximo."""
+
+    def llamar(self, tool: str, entrada: dict, tiempo_max: float | None = None) -> dict: ...
 
 _TOOL_PING = "talend_bridge_ping"
 _TOOL_DIALOGOS = "talend_studio_ui_dialogs"
@@ -47,7 +53,7 @@ def _titulos(dialogos: dict) -> str:
     return ", ".join(titulos) if titulos else "sin título"
 
 
-def comprobar_salud(backend: TalendCliBackend, tiempo_max: float = 10.0) -> Salud:
+def comprobar_salud(backend: Llamable, tiempo_max: float = 10.0) -> Salud:
     """`Salud(True, "")` si Studio responde, escribe y no tiene diálogos; si no, el motivo."""
     try:
         ping = backend.llamar(_TOOL_PING, {}, tiempo_max)
@@ -70,4 +76,4 @@ def comprobar_salud(backend: TalendCliBackend, tiempo_max: float = 10.0) -> Salu
     return Salud(True, "")
 
 
-__all__ = ["Salud", "comprobar_salud"]
+__all__ = ["Llamable", "Salud", "comprobar_salud"]

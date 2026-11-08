@@ -24,8 +24,15 @@ curl -s http://127.0.0.1:3927/healthz
 test -f "<proyecto>/talend.project" && echo "proyecto OK"
 ```
 
-`talend-mcp` es un validador externo: vive fuera de `src/` y no se usa desde `sgm` (regla 7 de
-`AGENTS.md`).
+`talend-mcp` se usa desde `sgm` solo a través de `src/sgm/backend_talend/`: el backend `mcp` habla con
+el servidor ya arrancado y el backend `talend` con su CLI. El núcleo no depende de él:
+`ArchivosBackend` escribe los Jobs sin Studio.
+
+La librería expone el mismo servidor como backend (`sgm.backend_talend.McpBackend`) y las
+herramientas lo usan sin pasar por estas dos: `tools/studio_salud.py --mcp` comprueba la salud y
+`tools/corpus_studio.py lote ... --backend mcp` compila en lote. La URL sale de `TALEND_MCP_URL` (por
+omisión `http://127.0.0.1:3927/mcp`). `sgm migrar` sigue escribiendo los archivos; compilar es un
+paso aparte.
 
 ## 2. Dos comandos, según lo que se valide
 

@@ -11,7 +11,7 @@ Revisado el 4 de noviembre de 2026 en esta máquina (solo lectura).
 | Características | familia `org.talend.lite.*` 8.0.3 (jobs estándar, joblets, big data); sin complementos de Job Script ni de línea de comandos (ningún plugin con `jobscript` o `commandline` entre los 1.382 de `plugins/`) |
 | Proyecto de trabajo | `workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA` (almacenamiento Git, `productVersion` igual al producto) |
 | Jobs existentes | decenas de `.item` guardados por Studio en `process/` (orquestadores con `tRunJob`, `tFileInput/OutputDelimited`, `tMap`, `tFixedFlowInput`, `tLogRow`, `tHashInput/Output`, `tDie`, `tJava`, conexiones Impala/HDFS/FTP) |
-| Otros | una característica propia (`com.andres.talend.bridge.feature`) que no se usa: `AGENTS.md` prohíbe MCP |
+| Otros | una característica propia (`com.andres.talend.bridge.feature`) que no se usa; MCP está permitido como backend opcional desde el hito 127m |
 
 ## Decisión
 
@@ -36,8 +36,8 @@ parámetros base coinciden en campo y orden.
 ## Validación en Studio real
 
 Procedimiento para repetir la validación con el Studio instalado (hito 60). Se usa el proyecto
-`talend-mcp` solo como validador externo desde la línea de comandos, con permiso del usuario. `AGENTS.md`
-prohíbe MCP dentro de `sgm`, y el producto no depende de él.
+`talend-mcp` como validador externo y como backend opcional del producto. `AGENTS.md` permite usarlo
+desde `src/sgm/backend_talend/` (decisión del 5 de noviembre de 2026) y `sgm` sigue funcionando sin él.
 
 1. Arrancar el servidor de talend-mcp con el proyecto de Studio:
    `TALEND_PROJECT=C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA bun run start:server`.

@@ -50,7 +50,7 @@ Verificado el 3 de noviembre de 2026 sobre `sgm-v2`:
 | R3 | `decisions.py` y `plan_json.py` emiten `default` como si fuera la opción aplicada | El default es una sugerencia; no se escribe como elegido | **Cambiar**: el campo pasa a `sugerido` y el JSON marca `aplicado: false` hasta que una persona decida |
 | R4 | Formato de regla `id / rung / match / emit / confidence / alternatives / tests` | Formato `cuando / produce / prioridad / casos`, con condiciones sobre hechos | **Cambiar** el formato y el esquema en `schemas/rules/`. Migrar las 24 reglas con sus casos |
 | R5 | Pendientes como `Pending(options, default)` y `Gap(reason, ...)`: dos modelos distintos | Un solo modelo de pendiente: `motivo`, `dueno`, `se_cierra_con`, `nota`; valor `null` | **Cambiar**: unificar en un modelo. Los motivos se unifican con `routing.yaml` |
-| R6 | Plan docs (`docs/plan-sgm-v2/`): fase 5 reactiva **MCP y web**; el prompt de fase 1 los menciona | `AGENTS.md` del proyecto prohíbe MCP, API y web. La propuesta no los usa | **Quitar** la fase 5 de MCP y web del plan. Ver `docs/plan-sgm-v2/05-contratos.md` y `02-fases.md` |
+| R6 | Plan docs (`docs/plan-sgm-v2/`): fase 5 reactiva **MCP y web**; el prompt de fase 1 los menciona | La API y la web siguen fuera; el MCP se admite como backend opcional desde el 5 de noviembre de 2026 | **Superado:** fase 5 retirada como producto; el MCP vive en `src/sgm/backend_talend/` (hito 127m). Ver `docs/plan-sgm-v2/05-contratos.md` y `02-fases.md` |
 | R7 | Carpeta `docs/plan/` citada en `00-README.md` no coincide con la real `docs/plan-sgm-v2/` | Un solo lugar para el plan | **Cambiar** la referencia o la carpeta, en un commit aparte |
 | R8 | `README.md` vacío (0 bytes) | Producción necesita documentación de uso | **Cambiar**: escribir README con instalación, comandos y flujo |
 | R9 | Archivos de `src/` por encima de 300 líneas (`AGENTS.md`): `talend_translator.py` 736, `expressions.py` 700, `macros.py` 478, `cli.py` 387, `steps.py` 305 | `AGENTS.md`: si un archivo pasa de 300 líneas, se divide | **Cambiar**: dividir los cinco archivos sin cambiar la salida (golden sin cambios) |
@@ -82,7 +82,7 @@ Cada tarea tiene dueño por área (núcleo, lectura SAS, Talend y entorno), crit
 | 0.1 | Decidir qué hacer con los cambios sin confirmar (baseline, `sql_normalize`, `lower_sql`, su prueba, `diseno-talend-exogena-depositos.md`) | Confirmados en commit propio o descartados por decisión explícita. **Decide el usuario** |
 | 0.2 | Confirmar la versión objetivo de Talend Studio y el perfil de licencia | Una sola versión en toda la documentación. Hoy hay dos referencias: 8.0 R2026-09 (documentación del migrador) y 8.0.1 (buenas prácticas de sgm). **Decide el usuario** |
 | 0.3 | Acuerdo de contratos para los cambios de `05-contratos.md`: campos por valor, hechos, joblets en el plan, modelo de pendiente, motivos | Acta corta firmada por las tres áreas |
-| 0.4 | Quitar MCP y web de la hoja de ruta (R6) | El plan no menciona MCP, API ni web como trabajo |
+| 0.4 | Quitar API y web de la hoja de ruta (R6); el MCP queda como backend opcional fuera del núcleo | El plan no menciona API ni web como trabajo; el MCP no es una fase de producto |
 | 0.5 | Aceptar la regla: `default` es sugerencia, no decisión (R3) | Acta corta |
 
 **Salida:** ningún cambio de código depende de una decisión abierta.
@@ -266,7 +266,7 @@ Cada investigación deja una nota en `docs/automatizacion/investigacion/` con fu
 
 - No promete equivalencia semántica; eso lo prueba la validación 5.8 con datos.
 - No toma decisiones de negocio.
-- No usa MCP, API ni web, por la regla del proyecto.
+- No usa API ni web. El MCP es opcional y vive en `src/sgm/backend_talend/`, no en el núcleo.
 - No genera Jobs dentro de Studio; genera la guía que una persona usa para construirlos.
 
 ## Estado (actualizado el 3 de noviembre de 2026)

@@ -113,4 +113,4 @@ Requiere acceso a un ambiente con SAS y Talend, y datos de prueba.
 
 ## Fase 5. Studio y portal
 
-**Retirada.** `AGENTS.md` prohíbe MCP, API y web en esta tarea. Según `docs/automatizacion/03-plan-produccion.md` (R6), esta fase sale del plan. La validación extremo a extremo que la fase pedía pasa a la tarea 5.8 de ese plan y depende de un ambiente externo.
+**Retirada como fase de producto.** La API y la web siguen fuera. El MCP dejó de estar prohibido: desde el 5 de noviembre de 2026 se admite como backend opcional dentro de `src/sgm/backend_talend/` (hito 127m). La validación extremo a extremo sigue dependiendo de un ambiente externo.

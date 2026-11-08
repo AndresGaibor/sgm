@@ -242,9 +242,10 @@ resuelve (por ejemplo `tMap` con metadatos) y para ejecutar una muestra. Esto ha
 pidió el usuario: un lote de 100 Jobs compila en segundos o pocos minutos, no en horas.
 
 Contrato de la interfaz: un único módulo `src/sgm/backend_talend/` con una interfaz (`escribir`, `compilar_lote`,
-`verificar`, `construir`, `ejecutar`) y dos implementaciones: `archivos` (por omisión, sin dependencias) y
-`talend_cli` (llama a la CLI con `--json` y con tiempo máximo). Si Studio no está disponible, `talend_cli` falla con
-un mensaje claro y `sgm migrar` sigue produciendo los archivos.
+`refrescar`, `verificar`) y tres implementaciones: `archivos` (por omisión, sin dependencias), `talend_cli` (llama a
+la CLI con `--json` y con tiempo máximo) y `mcp` (habla con el servidor ya arrancado por HTTP JSON-RPC). Si Studio
+no está disponible, los backends que lo necesitan fallan con un mensaje claro y `sgm migrar` sigue produciendo los
+archivos.
 
 ## 5. Catálogo de traducciones SAS a Talend
 
@@ -453,7 +454,7 @@ hito, `PROGRESS.md` y commit.
 | MG-P0-05 | Tablero único: cobertura del corpus, traducidos, verificados, regresiones | H | `uv run python tools/tablero.py` incluye las cifras de la sección 1 | 3 |
 | MG-P0-06 | Dejar escrito en `docs/arquitectura/ir-logica.md` cómo se **reutiliza** el IR que ya existe (`ir/models.py`: `Operator`, `Graph`, `Plan`; candidatos de componente por `rules/mapping/*.yaml`) y qué parámetros hay que enriquecer; no se crea un IR paralelo | S | Documento revisado con ejemplos de cada operador | 5 |
 | MG-P0-07 | Regla 1 de `AGENTS.md` actualizada (hecho el 5 de noviembre de 2026); queda por añadir una prueba que impida que `src/sgm/` fuera de `backend_talend/` importe o llame al MCP | H | prueba en `tests/unit/` | 1 |
-| MG-P0-08 | `src/sgm/backend_talend/`: interfaz y las dos implementaciones (`archivos` y `talend_cli`), con pruebas con un doble de la CLI; tiempo máximo y salida `--json`; sin secretos en la línea de comandos ni en el registro | S | `sgm migrar --backend talend_cli` compila un lote con `talend_job_build_batch`; sin Studio el error es claro y la salida de archivos se conserva | 8 |
+| MG-P0-08 | `src/sgm/backend_talend/`: interfaz y las implementaciones (`archivos`, `talend_cli` y `mcp`), con pruebas con un doble de la CLI y del transporte MCP; tiempo máximo y salida `--json`; sin secretos en la línea de comandos ni en el registro | S | `corpus_studio.py lote` compila un lote con `talend_job_build_batch` por CLI o MCP; sin Studio el error es claro y `sgm migrar` conserva la salida de archivos | 8 |
 | MG-P0-09 | Aprovechar el modo offline de talend-mcp en el anillo C: `corpus_studio.py lote` usa `talend_job_build_batch` (unos 0,2 s por Job) y `talend_job_verify` solo para la muestra; medir y documentar el tiempo | H | 50 Jobs compilados en menos de 2 min | 4 |
 
 **Estado (hito 103m, 5 de noviembre de 2026).** Hechos MG-P0-02, MG-P0-03, MG-P0-04, MG-P0-07,
@@ -461,6 +462,10 @@ MG-P0-08 y MG-P0-09: `src/sgm/backend_talend/` (interfaz, archivos, CLI, salud),
 `tools/studio_salud.py`, `tools/corpus_lib/studio_lote.py`, `corpus_studio.py lote`,
 `tools/ciclo_rapido.py` y `tests/unit/test_backend_aislado.py`. MG-P0-01, MG-P0-05 y MG-P0-06 pasan
 al plan MG-02, que es quien los usa.
+
+**Ampliación (hito 127m, 8 de noviembre de 2026).** MG-P0-08 y MG-D11 quedan completos con el
+backend `mcp`: `McpBackend` usa el mismo contrato que la CLI, lee JSON o SSE, negocia sesión solo si
+el servidor la pide y comparte con la CLI el mapeo de respuestas de `comun.py`.
 
 Dos criterios de aceptación **no se pudieron comprobar** porque Talend Studio tenía dos modales
 abiertos («Network Issue Occured» y «Talend Cloud Data Fabric»): la compilación en lote real

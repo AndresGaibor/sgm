@@ -12,10 +12,18 @@ del código la lee de ahí.
 
 - Compuerta de liberación `tools/liberacion.py` (MG-P14-02): `ruff`, suite, oráculo del corpus,
   determinismo byte a byte, secretos sobre la salida y coherencia de versión.
+- Backend MCP del producto (`src/sgm/backend_talend/mcp.py`): habla con `talend-mcp` por HTTP
+  JSON-RPC, acepta JSON o SSE, negocia sesión cuando el servidor la pide y comparte el mapeo de
+  respuestas con la CLI (`comun.py`). Lo usan la librería y las herramientas de validación
+  (`studio_salud.py --mcp`, `corpus_studio.py lote --backend mcp`).
 - `docs/produccion.md`: qué falta para producir, con la compuerta, el avance y los bloqueos.
 
 ### Corregido
 
+- El mapeo de `talend_job_build_batch` y `talend_job_verify` reconoce el detalle anidado en
+  `data.result.jobs` y en `data`, no solo la forma plana de la CLI.
+- `tools/mcp_cliente.py` ya no duplica el protocolo MCP: usa el backend del producto y conserva
+  `ErrorValidacion` para los validadores.
 - Expresiones: se portaron a la estructura local los arreglos de COMPRESS, SCAN, LIKE e INPUT.
   Un informat dinámico queda pendiente y el mensaje ya no repite el texto del programa.
 - Los huecos de expresiones citan el archivo y las líneas de la ocurrencia concreta, no los del paso

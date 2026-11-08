@@ -31,7 +31,7 @@ from corpus_lib.studio_mapa import leer_mapa
 from corpus_lib.studio_validar import sufijo_nuevo, validar_en_studio
 from mcp_cliente import ErrorValidacion
 
-from sgm.backend_talend import TalendCliBackend
+from sgm.backend_talend import McpBackend, TalendCliBackend
 from sgm.backend_talend.salud import comprobar_salud
 
 REPO = Path(__file__).resolve().parents[1]
@@ -106,7 +106,10 @@ def _lote(args: argparse.Namespace) -> int:
     for caso in args.casos:
         propia = args.jobs / caso
         carpetas.append(propia if propia.is_dir() else args.jobs)
-    backend = TalendCliBackend(args.talend_dir, args.proyecto, tiempo_max=args.tiempo_max)
+    if args.backend == "mcp":
+        backend = McpBackend(url=args.url, tiempo_max=args.tiempo_max)
+    else:
+        backend = TalendCliBackend(args.talend_dir, args.proyecto, tiempo_max=args.tiempo_max)
     salud = comprobar_salud(backend)
     if not salud.ok:
         print(f"Studio no está disponible: {salud.motivo}")
@@ -176,7 +179,12 @@ def _crear_parser() -> argparse.ArgumentParser:
         help="carpeta del proyecto Talend (con talend.project); por defecto TALEND_PROJECT",
     )
     lote.add_argument(
-        "--backend", choices=["talend_cli"], default="talend_cli", help="backend de Talend"
+        "--backend", choices=["talend_cli", "mcp"], default="talend_cli", help="backend de Talend"
+    )
+    lote.add_argument(
+        "--url",
+        default=None,
+        help="URL del MCP; por defecto TALEND_MCP_URL o http://127.0.0.1:3927/mcp",
     )
     lote.add_argument(
         "--talend-dir",
