@@ -2552,7 +2552,7 @@
         "talend_expression_candidates": [
           {
             "source": "compress(v, ' ')",
-            "java": "(input_row.v == null ? null : input_row.v.replaceAll(\"(?:\\\\Q \\\\E)\", \"\"))",
+            "java": "(input_row.v == null ? null : StringHandling.CHANGE(input_row.v, \" \", \"\"))",
             "columns": [
               "v"
             ],

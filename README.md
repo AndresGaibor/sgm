@@ -51,6 +51,7 @@ la suite completa para actualizar y comprobar la selección incremental.
 | `uv run python -m sgm.cli rules validate` | Valida las reglas y sus casos |
 | `uv run python -m sgm.cli metrics <ruta> --check` | Falla si una métrica empeora |
 | `uv run python tools/ci.py` | Cierra un hito: `ruff`, suite, cruces, oráculo y tablero |
+| `uv run python tools/liberacion.py` | Compuerta de liberación: suite, oráculo, determinismo, secretos y versión |
 | `uv run python tools/tablero.py` | La fotografía del plan: componentes, conformidad y corpus |
 
 ## Cerrar un hito
@@ -67,6 +68,22 @@ Corre `ruff check .`, la suite completa con `pytest -q`, los cruces del corpus
 paso obligatorio falla, imprime la cola de la salida del que falló y deja una tabla con el tiempo
 de cada paso. `--sin-suite` sirve para iterar y `--sin-tablero` cuando no hace falta la
 fotografía. El tablero solo informa: nunca hace fallar el cierre.
+
+## Compuerta de liberación
+
+Antes de publicar una versión, un solo comando decide si el código se puede liberar:
+
+```powershell
+uv run python tools/liberacion.py
+```
+
+Corre `ruff`, la suite completa con cuatro workers, el oráculo del corpus, dos migraciones del mismo
+caso para comprobar que dan los mismos bytes, el escáner de secretos sobre esa salida y la
+coincidencia de versión entre `pyproject.toml`, el paquete y `CHANGELOG.md`. Sale con código distinto
+de 0 si algo falla y deja la tabla de cada paso. `--sin-suite` sirve para iterar.
+
+La compuerta en verde no significa que el migrador esté listo para producir: el avance, los bloqueos
+y las condiciones humanas están en `docs/produccion.md`.
 
 ## Qué produce
 
@@ -89,6 +106,7 @@ fotografía. El tablero solo informa: nunca hace fallar el cierre.
 - `docs/automatizacion/02-mapa-de-flujo.md`: qué muestra el mapa de flujo.
 - `docs/automatizacion/03-plan-produccion.md`: plan por fases y su estado.
 - `docs/automatizacion/04-runbook.md`: cómo incorporar un archivo nuevo.
+- `docs/produccion.md`: qué falta para producción, con la compuerta y los bloqueos.
 - `PROGRESS.md`: bitácora de hitos, con pruebas y decisiones.
 
 ## Límites

@@ -104,9 +104,16 @@ class _P:
         if k == "id" and low == "like":
             self.take()
             pattern = self.add()
-            if pattern.kind != "str":
+            if pattern.kind != "str" or pattern.literal is None:
                 raise Unsupported("LIKE con un patrón que no es literal")
-            regex = _jstr("'" + re.sub(r"%", ".*", re.sub(r"_", ".", pattern.java[1:-1])) + "'")
+            if any(not char.isprintable() for char in pattern.literal):
+                raise Unsupported("LIKE con caracteres de control: queda pendiente de revisión")
+            # El patrón es texto SAS, no una regex: `%` y `_` son comodines y el resto va escapado.
+            regex = "".join(
+                ".*" if char == "%" else "." if char == "_" else re.escape(char)
+                for char in pattern.literal
+            )
+            regex = _jstr(chr(39) + regex + chr(39))
             core = f"({left.java} != null && {left.java}.matches({regex}))"
             return E(f"(!{core})" if negate else core, "bool")
         op = _CMP.get(low) if k in ("op", "id") else None
@@ -176,13 +183,14 @@ class _P:
     def atom(self) -> E:
         k, v = self.take()
         if k == "str":
-            return E(_jstr(v), "str")
+            quote = v[0]
+            return E(_jstr(v), "str", v[1:-1].replace(quote * 2, quote))
         if k == "datelit":
             return E(f'TalendDate.parseDateLocale("ddMMMyyyy", "{v[1:-2]}", "en")', "date")
         if k == "num":
-            return E(v if re.search(r"[.eE]", v) else v + ".0" if False else v, "num")
+            return E(v, "num", v)
         if k == "fmt":
-            return E(_jstr(f"'{v}'"), "str")
+            return E(_jstr(f"'{v}'"), "str", v)
         if k == "mvar":
             name = v.lstrip("&").rstrip(".")
             self.warnings.add(
@@ -242,9 +250,15 @@ class _P:
         args: list[E] = []
         if self.peek()[1] != ")":
             while True:
-                args.append(
-                    self.raw_format() if name in _FORMAT_ARGS and len(args) == 1 else self.expr()
-                )
+                if self.peek()[1] == ",":
+                    # Argumento omitido: `compress(x,,'kd')` significa la lista vacía.
+                    args.append(E("", "omitted"))
+                else:
+                    args.append(
+                        self.raw_format("informat" if name.startswith("input") else "formato")
+                        if name in _FORMAT_ARGS and len(args) == 1
+                        else self.expr()
+                    )
                 if self.peek()[1] != ",":
                     break
                 self.take()
@@ -255,15 +269,32 @@ class _P:
         self.functions.add(name)
         return builder(self, args)
 
-    def raw_format(self) -> E:
-        """El formato de `input`/`put` (`date9.`, `$10.`, `8.`) es un nombre, no una expresión."""
-        parts, depth = [], 0
+    def raw_format(self, nombre: str) -> E:
+        """El formato de `input`/`put` (`date9.`, `$10.`, `8.`) es un nombre, no una expresión.
+
+        Solo se acepta un literal único. Un informat que viene de una macrovariable, de una columna,
+        de una concatenación o de una función no se puede demostrar: queda pendiente con un mensaje
+        que nombra la categoría y no repite el texto del programa.
+        """
+        parts: list[tuple[str, str]] = []
+        depth = 0
         while self.i < len(self.t):
-            _kind, v = self.peek()
+            kind, v = self.peek()
             if depth == 0 and v in (",", ")"):
                 break
             depth += v == "("
             depth -= v == ")"
-            parts.append(v.strip("'\""))
+            parts.append((kind, v))
             self.i += 1
-        return E(_jstr("'" + "".join(parts) + "'"), "str")
+        if len(parts) != 1 or parts[0][0] not in ("str", "fmt", "num"):
+            raise Unsupported(f"{nombre} dinámico o calculado: queda pendiente de revisión")
+        kind, v = parts[0]
+        if kind == "str":
+            quote = v[0]
+            # En SAS solo la comilla doble expande macros; la simple es texto y se conserva literal.
+            if quote == '"' and ("&" in v or "%" in v):
+                raise Unsupported(f"{nombre} dinámico: queda pendiente de revisión")
+            literal = v[1:-1].replace(quote * 2, quote)
+        else:
+            literal = v
+        return E(_jstr(chr(39) + literal + chr(39)), "str", literal)

@@ -42,28 +42,46 @@ CANDIDATE = "candidato"
 
 NAME = "p10_components"
 _FUNCTION = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
-def _expressions(op: Operator) -> list[str]:
-    texts: list[str] = []
+def _expressions(op: Operator) -> list[tuple[str, tuple[str | int, ...]]]:
+    """Expresiones del operador con la ruta de su parámetro.
+
+    La ruta es la llave de `expression_evidence`: un hueco por ocurrencia solo puede citar
+    las líneas de esa expresión, no las de la sentencia que la contiene.
+    """
+    found: list[tuple[str, tuple[str | int, ...]]] = []
     if op.kind == "filter":
-        texts.append(str(op.params.get("expression", "")))
+        found.append((str(op.params.get("expression", "")), ("expression",)))
     if op.kind == "derive":
-        texts += [str(a.get("expression", "")) for a in op.params.get("assignments", [])]
+        for index, assignment in enumerate(op.params.get("assignments", [])):
+            found.append(
+                (str(assignment.get("expression", "")), ("assignments", index, "expression"))
+            )
     if op.kind == "map":
-        for step in op.params.get("steps", []):
+        for index, step in enumerate(op.params.get("steps", [])):
             params = step.get("params", {})
             if step.get("kind") == "filter":
-                texts.append(str(params.get("expression", "")))
+                found.append(
+                    (str(params.get("expression", "")), ("steps", index, "params", "expression"))
+                )
             if step.get("kind") == "derive":
-                texts += [str(a.get("expression", "")) for a in params.get("assignments", [])]
-        for branch in op.params.get("branches", []):
-            texts.append(str(branch.get("expression", "")))
-    return [t for t in texts if t.strip()]
+                for sub, assignment in enumerate(params.get("assignments", [])):
+                    found.append(
+                        (
+                            str(assignment.get("expression", "")),
+                            ("steps", index, "params", "assignments", sub, "expression"),
+                        )
+                    )
+        for index, branch in enumerate(op.params.get("branches", [])):
+            found.append(
+                (str(branch.get("expression", "")), ("branches", index, "expression"))
+            )
+    return [(text, path) for text, path in found if text.strip()]
 
 
 def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
     """Registra huecos y advertencias de expresiones. True si algo requiere revisión."""
     found = False
-    for text in _expressions(op):
+    for text, path in _expressions(op):
         result = translate(text)
         if result.talend is not None:
             for warning in result.warnings:
@@ -95,7 +113,7 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
             Gap(
                 signature=f"{op.signature}/{name}",
                 reason="FUNCION_NO_MAPEADA",
-                evidence=list(op.evidence),
+                evidence=list(op.expression_evidence.get(path) or op.evidence),
                 text=" ".join(text.split())[:120],
             )
         )

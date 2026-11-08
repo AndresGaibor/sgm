@@ -8,6 +8,21 @@ del código la lee de ahí.
 
 ## [Sin publicar]
 
+### Añadido
+
+- Compuerta de liberación `tools/liberacion.py` (MG-P14-02): `ruff`, suite, oráculo del corpus,
+  determinismo byte a byte, secretos sobre la salida y coherencia de versión.
+- `docs/produccion.md`: qué falta para producir, con la compuerta, el avance y los bloqueos.
+
+### Corregido
+
+- Expresiones: se portaron a la estructura local los arreglos de COMPRESS, SCAN, LIKE e INPUT.
+  Un informat dinámico queda pendiente y el mensaje ya no repite el texto del programa.
+- Los huecos de expresiones citan el archivo y las líneas de la ocurrencia concreta, no los del paso
+  completo.
+- La comparación de la longitud de un arreglo con un literal no se confunde con una comparación de
+  orden de SAS.
+
 ## [0.2.0]
 
 Primera versión etiquetada del compilador. Lo que hay en esta versión sale de `PROGRESS.md` y del

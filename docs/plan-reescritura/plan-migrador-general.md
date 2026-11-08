@@ -772,13 +772,13 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (6 de noviembre de 2026, hito 123m)
+## 11b. Avance medido (7 de noviembre de 2026, hito 126m)
 
 **Avance global: 27,1 % de las 895 horas de agente (242,75 h), es decir, cerca de 27 %** (era 19,6 % en el
 hito 107). C7 (producción con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía. Ojo:
-el salto de los hitos 108m a 123m se apoya en los anillos A y B; **nada de lo nuevo se ha compilado en
-Studio**, y por eso el crédito de P9 y P5 se cuenta con 0,25 y no con 0,5 en lo que solo tiene Job
-escrito y validado por `validar_job`.
+los hitos 108m a 126m se apoyan en los anillos A y B; **el hito 125m compiló 85 de 85 Jobs de L0 a L6
+en Studio, pero ninguno se ejecutó**, y por eso el crédito de P9 y P5 se cuenta con 0,25 y no con 0,5 en
+lo que solo tiene Job escrito y validado por `validar_job`.
 
 **Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
 1 = hecha y su aceptación comprobada; 0,5 = parcial con evidencia de ejecución (corpus pasa en A o B, o
@@ -803,16 +803,13 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P11 Experiencia de uso | 30 | 4,0 | 13 % | `sgm migrar` de un programa sin YAML; falta carpeta y `cobertura.md` |
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
-| MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
+| MG-P14 Producción | 40 | 0,0 | 0 % | La compuerta de liberación quedó verde en el hito 126m, pero no se acredita: su aceptación incluye el lote de Studio sobre toda la salida y eso sigue pendiente; la parte de personas tampoco cuenta aquí |
 | **Total** | **895** | **242,75** | **27,1 %** | |
 
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
 (359,0 h y 360,25 h).
 
-**Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
-anillo B, 86 de 93 casos elegibles pasan (92 %; hito 123m); anillo A, 84 de los 101 casos de `L0` a
-`L6` migran sin pendientes de traducción (83 %; hito 123m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
-(representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
+**Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):anillo B, 86 de 93 casos elegibles pasan (92 %; hito 123m); anillo A, 84 de los 101 casos de `L0` a `L6` migran sin pendientes de traducción (83 %; hito 123m); Studio, 85 de 85 Jobs de `L0` a `L6` compilan tras los arreglos del hito 125m y **ninguno se ejecutó** ni se comparó con su esperado.
 
 **Qué mueve más el número.** La ruta crítica pide P4, P5 y P6 antes que P8 y P9; ahí hoy hay 9,8 %
 de crédito (21,5 de 220 horas). Lo que más sube el porcentaje por hora es `MG-P5-02` a `P5-04`,

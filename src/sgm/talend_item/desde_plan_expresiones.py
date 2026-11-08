@@ -42,6 +42,8 @@ _TEXTO_GUARDADO = re.compile(
 _ORDEN_COMPARABLE = re.compile(
     r"\(\(Comparable\)\s*([A-Za-z_][\w.]*)\)\.compareTo\(([A-Za-z_][\w.]*)\)\s*(<=|>=|<|>)\s*0"
 )
+# Comparar la longitud de un arreglo con un literal no depende de una columna ni del faltante.
+_LONGITUD_COMPARADA = re.compile(r"\.(?:length|size\(\))\s*(?:<=|>=|<|>)\s*\d+")
 
 
 def resolver_filas(java: str, filas: dict[str, set[str]]) -> tuple[str | None, str | None]:
@@ -133,6 +135,7 @@ def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str |
         resto = patron.sub(" ", resto)
     for comparacion in comparaciones_seguras:
         resto = resto.replace(comparacion, " ")
+    resto = _LONGITUD_COMPARADA.sub(" ", resto)
     sobrante = _OPERADOR_ORDEN.search(resto)
     if sobrante is not None:
         inicio = max(0, sobrante.start() - 40)

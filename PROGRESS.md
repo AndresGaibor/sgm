@@ -5316,3 +5316,42 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   verificar: el valor `distinct` del `FUNCTION` de `COUNT(DISTINCT)`, el resultado de `sum` con un
   grupo de nulos, el orden de entrada de `tUnite`, y que `tSortRow` ordene los nulos como SAS.
 - Pruebas: suite 2546 pasan, 55 fallan (los de Byron), `ruff` limpio. El anillo A sigue en 84 de 101.
+
+## Hito 126m. Suite en verde: expresiones de Byron portadas y compuerta de liberación
+
+- Fecha: 2026-11-07. Tarea 0 de `reparto-andres-byron.md` (parte) y MG-P14-02.
+- Qué se hizo (`expressions/`):
+  * `talend_base.E` guarda el literal SAS (`literal`) y el tokenizador acepta informats con letras y
+    dígitos (`e8601da.`); el mensaje de un token no soportado ya no repite el texto del programa.
+  * `INPUT`/`INPUTN`: un informat dinámico (macrovariable, columna, concatenación o función) queda
+    `Unsupported`; un entero sin punto decimal también; `10.` conserva la advertencia y `8.2` sigue
+    emitiendo `BigDecimal`. El argumento omitido de COMPRESS (`compress(x,,'kd')`) se lee como lista
+    vacía.
+  * `COMPRESS`: `kd` emite `StringHandling.EREPLACE` con `[^0-9]` o `[^0-9.]`; una lista literal usa
+    `EREPLACE` con los caracteres escapados; un solo carácter usa `CHANGE`; lo no demostrado queda
+    pendiente.
+  * `SCAN`: delimitador literal escapado para Java y regex, cuenta negativa desde el final y rechazo
+    de posición cero, fraccionaria o fuera de rango; sin delimitador se conserva la forma anterior.
+  * `LIKE`: el patrón se escapa (los metacaracteres son texto) y los caracteres de control quedan
+    pendientes.
+  * `_clean` ya no colapsa los espacios ni los saltos de línea dentro de un literal.
+  * `p10_components`: el hueco de una expresión cita `expression_evidence` de esa ocurrencia (archivo
+    y líneas exactos), no la evidencia del paso entero.
+- Ajuste de emisión (`talend_item/desde_plan_expresiones.py`): comparar la longitud de un arreglo con
+  un literal (`.length >= 2`) no es una comparación de orden de SAS y no bloquea la asignación. Lo
+  destapó `l4_15` al cambiar SCAN.
+- Golden: se regeneraron `p1_merge_first_last.plan.json` (el hueco pasa de dos evidencias de la
+  sentencia a la línea 20 de la expresión) y `client__client_poc.plan.json` (`compress(v,' ')` emite
+  `CHANGE` de un carácter en vez de `replaceAll`). Son los dos cambios buscados; no se relajó ninguna
+  prueba.
+- Compuerta de liberación (MG-P14-02): `tools/liberacion.py` corre `ruff`, la suite con cuatro
+  workers, el oráculo, dos migraciones byte a byte, `sgm secretos` sobre esa salida y la coherencia de
+  versión. `docs/produccion.md` deja el estado, la lista de verificación y los bloqueos; `README.md`
+  documenta el comando.
+- Pruebas: `tools/liberacion.py` en verde: **2 601 pasan, 27 se saltan, 145 xfail**; oráculo 117
+  casos con 0 fallas; determinismo, 11 archivos idénticos; 0 hallazgos de secretos; versión 0.2.0
+  coherente entre `pyproject.toml`, el paquete y el changelog. `ruff` limpio.
+- Lo que no prueba: ningún Job se ejecutó ni se comparó con su esperado. La compuerta no lanza el
+  lote de Studio (`talend_job_build_batch`), así que MG-P14-02 sigue parcial y no se reclama crédito
+  de la fase: el avance global sigue en 27,1 % (242,75 h). El resto de P14 y las tareas de personas
+  siguen en 0.

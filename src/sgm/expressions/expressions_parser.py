@@ -30,7 +30,8 @@ def _tokens(s: str) -> list[tuple[str, str]]:
     while pos < len(s):
         m = _TOKEN.match(s, pos)
         if not m or m.end() == pos:
-            raise _Unsupported(f"token no soportado: {s[pos : pos + 12]!r}")
+            # Sin el fragmento en el mensaje: la expresión puede traer un secreto o un nombre de cliente.
+            raise _Unsupported("token no soportado en la expresión; queda pendiente de revisión")
         kind = m.lastgroup or ""
         out.append((kind, m.group(kind)))
         pos = m.end()

@@ -20,6 +20,7 @@ from sgm.expressions.talend_base import (
     _str,
     _truth,
 )
+from sgm.expressions.talend_lexer import _collapse_whitespace_outside_strings
 
 
 def _need(args: list[E], low: int, high: int | None = None, name: str = "") -> None:
@@ -81,17 +82,37 @@ def _substr(_p: _P, args: list[E]) -> E:
 
 def _scan(p: _P, args: list[E]) -> E:
     _need(args, 2, 3, "scan")
-    if args[1].kind != "num" or (len(args) == 3 and args[2].kind != "str"):
-        raise Unsupported("scan con posición o delimitadores que no son literales")
-    delims = re.escape(args[2].java[1:-1]) if len(args) == 3 else r"\\s!$%&()*+,\\-./;\\x3c^"
-    n = int(float(args[1].java))
-    if n < 0:
-        raise Unsupported("scan con cuenta negativa")
-    if n == 0:
-        raise Unsupported("scan requiere una cuenta distinta de cero")
+    if args[1].kind != "num" or not re.fullmatch(r"-?\d+", args[1].java):
+        raise Unsupported("scan con una posición que no es entera")
+    n = int(args[1].java)
+    if n == 0 or abs(n) > 2_147_483_647:
+        raise Unsupported(
+            "scan con una posición no válida: debe ser distinta de cero y estar en el rango seguro"
+        )
+    explicito = len(args) == 3
+    if explicito:
+        if args[2].kind != "str" or not args[2].literal:
+            raise Unsupported("scan con delimitadores vacíos o que no son literales")
+        if any(not char.isprintable() for char in args[2].literal):
+            raise Unsupported("scan con delimitadores de control: queda pendiente de revisión")
+        delims = re.escape(args[2].literal)
+        prefijo = _jstr(chr(39) + f"^[{delims}]+" + chr(39))
+        separador = _jstr(chr(39) + f"[{delims}]+" + chr(39))
+    else:
+        # Ya viene escrito para Java: se incrusta tal cual, sin volver a escapar la barra.
+        delims = r"\\s!$%&()*+,\\-./;\\x3c^"
+        prefijo = f'"^[{delims}]+"'
+        separador = f'"[{delims}]+"'
     p.warnings.add("scan: los delimitadores consecutivos cuentan como uno, como en SAS")
-    tokens = f'{args[0].java}.replaceAll("^[{delims}]+", "").split("[{delims}]+")'
-    body = f"java.util.Arrays.stream({tokens}).skip({n - 1}).findFirst().orElse(\"\")"
+    tokens = f'{args[0].java}.replaceAll({prefijo}, "").split({separador})'
+    # Con delimitadores declarados o cuenta negativa se indexa el arreglo; el `skip` no sabe contar
+    # desde el final, y sin delimitadores el flujo perezoso es el que ya se emitía.
+    if explicito or n < 0:
+        index = str(n - 1) if n > 0 else f"{tokens}.length + {n}"
+        return E(
+            _guard([args[0]], f"({tokens}.length >= {abs(n)} ? {tokens}[{index}] : null)"), "str"
+        )
+    body = f'java.util.Arrays.stream({tokens}).skip({n - 1}).findFirst().orElse("")'
     return E(_guard([args[0]], body), "str")
 
 
@@ -105,10 +126,55 @@ def _compress(p: _P, args: list[E]) -> E:
             ),
             "str",
         )
-    chars = args[1].java[1:-1] if len(args) >= 2 and args[1].kind == "str" else " "
-    modifiers = args[2].java[1:-1].lower() if len(args) == 3 and args[2].kind == "str" else ""
-    if (len(args) >= 2 and args[1].kind != "str") or (len(args) == 3 and args[2].kind != "str"):
+    if args[1].kind == "omitted":
+        # Solo `kd` está demostrado con la lista omitida (quitar todo lo que no sea dígito).
+        if len(args) == 3 and (args[2].kind != "str" or args[2].literal.lower() != "kd"):
+            raise Unsupported("compress con la lista omitida y modificadores no demostrados")
+        chars = ""
+    elif args[1].kind != "str" or args[1].literal is None:
         raise Unsupported("compress con caracteres o modificadores no literales")
+    else:
+        chars = args[1].literal
+    if not chars and len(args) == 2:
+        raise Unsupported("compress con una lista de caracteres vacía")
+    if any(not char.isprintable() for char in chars):
+        raise Unsupported("compress con caracteres de control: queda pendiente de revisión")
+    modifiers = ""
+    if len(args) == 3:
+        if args[2].kind != "str" or args[2].literal is None:
+            raise Unsupported("compress con caracteres o modificadores no literales")
+        modifiers = args[2].literal.lower()
+    # `kd` solo está demostrado para quitar todo lo que no sea dígito, con o sin punto decimal.
+    if modifiers == "kd":
+        if chars == "":
+            patron = "[^0-9]"
+        elif chars == ".":
+            patron = "[^0-9.]"
+        else:
+            raise Unsupported("compress con 'kd' y una lista de caracteres no demostrada")
+        return E(
+            _guard(
+                [args[0]],
+                f'StringHandling.EREPLACE({args[0].java}, {_jstr(chr(34) + patron + chr(34))}, "")',
+            ),
+            "str",
+        )
+    if len(args) == 2:
+        if len(chars) == 1:
+            return E(
+                _guard(
+                    [args[0]],
+                    f'StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + chars + chr(39))}, "")',
+                ),
+                "str",
+            )
+        return E(
+            _guard(
+                [args[0]],
+                f'StringHandling.EREPLACE({args[0].java}, {_jstr(chr(34) + "[" + re.escape(chars) + "]" + chr(34))}, "")',
+            ),
+            "str",
+        )
     desconocidos = set(modifiers) - {"d", "i", "k"}
     if desconocidos:
         raise Unsupported(
@@ -201,14 +267,19 @@ def _aggregate(kind: str):
 
 def _input(p: _P, args: list[E]) -> E:
     _need(args, 2, 2, "input")
-    fmt = args[1].java.strip("\"'").lower().rstrip(".")
+    if args[1].literal is None:
+        raise Unsupported("input con un informat que no es literal")
+    literal = args[1].literal.strip().strip("'\"")
+    fmt = literal.lower()
     pattern = _date_pattern(fmt)
     if pattern:
         return E(
             f"TalendDate.parseDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "date"
         )
-    if fmt.startswith(("$", "char")):
+    if fmt.rstrip(".").startswith(("$", "char")):
         return E(args[0].java, "str")
+    if re.fullmatch(r"\d+", fmt):
+        raise Unsupported("input con un informat entero sin punto decimal: queda pendiente")
     width_decimal = re.fullmatch(r"\d+\.(\d+)", fmt)
     if width_decimal:
         decimals = int(width_decimal.group(1))
@@ -228,18 +299,19 @@ def _input(p: _P, args: list[E]) -> E:
 
 def _put(p: _P, args: list[E]) -> E:
     _need(args, 2, 2, "put")
-    fmt = args[1].java.strip("\"'").lower().rstrip(".")
+    literal = args[1].literal if args[1].literal is not None else args[1].java.strip("\"'")
+    fmt = literal.lower()
     pattern = _date_pattern(fmt)
     if pattern:
         return E(
             f"TalendDate.formatDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "str"
         )
-    zero = re.fullmatch(r"z(\d+)", fmt)
+    zero = re.fullmatch(r"z(\d+)\.?", fmt)
     if zero:
         return E(
             f'StringHandling.LPAD(String.valueOf({args[0].java}), {zero.group(1)}, "0")', "str"
         )
-    if re.fullmatch(r"\$?\d*", fmt) or fmt.startswith("$"):
+    if re.fullmatch(r"\$?\d*\.?", fmt) or fmt.startswith("$"):
         return E(f"String.valueOf({args[0].java})", "str")
     raise Unsupported(f"put con el formato {fmt}.")
 
@@ -303,8 +375,11 @@ def _datepart(_p: _P, args: list[E]) -> E:
 
 
 def _clean(text: str) -> str:
-    """Quita lo que acompaña a una expresión de PROC SQL y no es parte de ella."""
-    text = re.sub(r"\s+", " ", text).strip()
+    """Quita lo que acompaña a una expresión de PROC SQL y no es parte de ella.
+
+    Los espacios y los saltos de línea dentro de un literal son parte del valor SAS: no se colapsan.
+    """
+    text = _collapse_whitespace_outside_strings(text)
     text = re.sub(r"(?i)^(on|where|having)\s+", "", text)
     text = re.sub(r"(?i)^distinct\s+", "", text)
     text = re.sub(
