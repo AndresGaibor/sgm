@@ -50,6 +50,7 @@ la suite completa para actualizar y comprobar la selección incremental.
 | `uv run python -m sgm.cli gaps list --top 20` | Huecos por firma, con dueño y arreglo |
 | `uv run python -m sgm.cli rules validate` | Valida las reglas y sus casos |
 | `uv run python -m sgm.cli metrics <ruta> --check` | Falla si una métrica empeora |
+| `uv run sgm studio salud` | Studio por MCP o CLI: salud, lote y veredicto (`compilar`, `verificar`) |
 | `uv run python tools/ci.py` | Cierra un hito: `ruff`, suite, cruces, oráculo y tablero |
 | `uv run python tools/liberacion.py` | Compuerta de liberación: suite, oráculo, determinismo, secretos y versión |
 | `uv run python tools/tablero.py` | La fotografía del plan: componentes, conformidad y corpus |
@@ -112,6 +113,6 @@ y las condiciones humanas están en `docs/produccion.md`.
 ## Límites
 
 - La equivalencia de datos con SAS no se demuestra aquí; se verifica con datos reales.
-- La conexión con Talend Studio es opcional y vive en `src/sgm/backend_talend/`: `--backend mcp`
-  usa el servidor de `talend-mcp` y `--backend talend` su CLI; sin ninguno, el resultado se revisa a
-  mano en Studio.
+- La conexión con Talend Studio es opcional y vive en `src/sgm/backend_talend/`: `sgm studio` y
+  `--backend mcp` usan el servidor de `talend-mcp`, y `--backend talend` su CLI; sin ninguno, el
+  resultado se revisa a mano en Studio.

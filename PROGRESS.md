@@ -5414,3 +5414,33 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites: el lote real devuelve «carpeta generada» para los Jobs probados del workspace; el puente
   no las regenera, aunque `verificar` sí compila. No se ejecutó un Job ni se comparó contra SAS, y
   la compuerta de liberación sigue sin lanzar el lote de Studio.
+
+## Hito 129m. `sgm studio`: el backend MCP entra en la CLI del producto
+
+- Fecha: 2026-11-08.
+- Qué se hizo:
+  - Nuevo grupo `sgm studio` (`src/sgm/cli_studio.py`) con `salud`, `compilar` y `verificar`.
+    `--backend mcp` es la opción por omisión y habla con el servidor ya arrancado;
+    `--backend talend` usa la CLI y exige `--talend-dir` y `--proyecto`, igual que `sgm migrar` con
+    `--backend talend`.
+  - `compilar` acepta `--refrescar` y varios Jobs; imprime `OK`/`FALLA` por Job y sale 1 si alguno
+    no compila. `verificar` acepta `--contexto CLAVE=VALOR` repetido, imprime el veredicto y sus
+    hallazgos, y sale 1 solo con `error`; los avisos no ocultan el resultado.
+  - El grupo se registra en `src/sgm/cli.py`; no se añadió ninguna dependencia ni se movió el
+    protocolo fuera de `backend_talend/`.
+  - `tests/unit/test_cli_studio.py` (12 casos) usa un backend falso: salud, lote mixto, refresco,
+    contexto, backend caído y uso incorrecto. `test_backend_aislado.py` obligó a que la ayuda del
+    comando no nombre la dependencia ni su variable de entorno.
+- Evidencia real:
+  - `uv run sgm studio salud` → «Studio responde y deja escribir», salida 0.
+  - `uv run sgm studio compilar POC_Azure_Job` → `FALLA POC_Azure_Job: No se encuentra la carpeta
+    generada del job POC_Azure_Job`, salida 1 (respuesta del puente, no del transporte).
+  - `uv run sgm studio verificar JbCTM` → `Veredicto: ok`, salida 0.
+- Pruebas: suite completa **2625 pasan, 27 se saltan, 145 xfail**; `ruff` limpio.
+- Decisiones: los nombres `mcp` y `talend` siguen el `--backend talend` que ya existía; el backend talend toma las rutas de las opciones o de
+  `SGM_TALEND_DIR` y `SGM_TALEND_PROJECT`; el tiempo
+  por omisión es 10 s para salud, 120 s para el lote y 600 s para verificar. `compilar` no copia
+  Jobs ni regenera código: solo compila los que ya están en el proyecto.
+- Límites: el lote sigue devolviendo «carpeta generada» para los Jobs del workspace que se probaron;
+  no se ejecutó ningún Job ni se comparó contra SAS. La compuerta de liberación no lanza el lote de
+  Studio.

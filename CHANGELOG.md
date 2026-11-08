@@ -17,6 +17,8 @@ del código la lee de ahí.
   respuestas con la CLI (`comun.py`). Lo usan la librería y las herramientas de validación
   (`studio_salud.py --mcp`, `corpus_studio.py lote --backend mcp`).
 - `docs/produccion.md`: qué falta para producir, con la compuerta, el avance y los bloqueos.
+- `sgm studio salud|compilar|verificar`: la CLI del producto usa el backend MCP o la CLI de
+  `talend-mcp` para comprobar Studio, compilar un lote y leer un veredicto, sin pasar por `tools/`.
 
 ### Corregido
 

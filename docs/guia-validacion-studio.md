@@ -34,6 +34,20 @@ herramientas lo usan sin pasar por estas dos: `tools/studio_salud.py --mcp` comp
 omisión `http://127.0.0.1:3927/mcp`). `sgm migrar` sigue escribiendo los archivos; compilar es un
 paso aparte.
 
+La CLI del producto da las mismas tres operaciones sin escribir Python:
+
+```bash
+uv run sgm studio salud
+uv run sgm studio compilar JOB [JOB ...] [--refrescar]
+uv run sgm studio verificar JOB [--contexto CLAVE=VALOR ...]
+```
+
+`--backend mcp` (por omisión) usa el servidor ya arrancado; `--backend talend --talend-dir <carpeta>
+--proyecto <proyecto>` usa la CLI, y si faltan las rutas toma `SGM_TALEND_DIR` y
+`SGM_TALEND_PROJECT`. `salud` sale 0 solo si Studio responde, deja escribir y no tiene
+diálogos; `compilar` imprime `OK`/`FALLA` por Job y sale 1 si alguno no compila; `verificar` imprime
+el veredicto y sus hallazgos, y sale 1 solo con `error`.
+
 ## 2. Dos comandos, según lo que se valide
 
 Los dos hablan con el servidor por HTTP y borran los Jobs de prueba aunque fallen.
