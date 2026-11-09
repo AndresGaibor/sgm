@@ -48,8 +48,8 @@ CAMPOS_ADITIVOS = {
     "unsupported_options": "opciones INFILE sin equivalencia identificada (hito 121)",
 }
 
-# Cambios intencionales de valor: se documentan por referencia y ruta para que el permiso no cubra
-# otras diferencias. Las referencias exactas también se comprueban en `test_golden.py`.
+# Cambios intencionales de valor o diagnóstico: se documentan por referencia y ruta para que el
+# permiso no cubra otras diferencias. Las referencias exactas también se comprueban en `test_golden.py`.
 CAMBIOS_DOCUMENTADOS = {
     "p1_merge_first_last.plan.json": {
         "gaps[2].evidence[0].line_start": "hito 110: conservar solo el origen de la expresión fusionada",
@@ -68,6 +68,12 @@ CAMBIOS_DOCUMENTADOS = {
         "operators[2].signature": "hito 121: INFILE/INPUT pasa a formar parte de la firma",
         "pendientes[5].signature": "hito 121: la firma del hueco de lectura se precisa",
         "pending[1].signature": "hito 121: la decisión del lector usa la firma de INFILE/INPUT",
+        "operators[5].status": (
+            "hito 124: NODUPKEY queda parcial hasta validar empates estables en tSortRow"
+        ),
+        "operators[5].notes[0]": (
+            "hito 124: explicar por qué la fila conservada no se considera idéntica"
+        ),
     },
 }
 
@@ -152,7 +158,9 @@ def test_plan_solo_cambia_por_campos_aditivos_documentados(rel, golden):
         if tipo != "agregado" and ruta not in permitidos
     ]
     assert quitados_o_cambiados == []
-    no_documentados = [ruta for ruta, tipo in cambios if not _es_aditivo(ruta)]
+    no_documentados = [
+        ruta for ruta, _tipo in cambios if not _es_aditivo(ruta) and ruta not in permitidos
+    ]
     assert no_documentados == []
 
 

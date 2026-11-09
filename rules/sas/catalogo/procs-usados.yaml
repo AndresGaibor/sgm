@@ -16,9 +16,9 @@ entries:
   nota: '216 usos; borra datasets de WORK antes de recrearlos. Es limpieza, no transformación'
 - id: sort
   nombre: PROC SORT
-  fuente: proc.pdf, p. 2449
-  estado: no_verificada
-  nota: '31 usos; en el corpus siempre ordena para un MERGE o un BY posterior'
+  fuente: proc.pdf, p. 2460
+  estado: reconocida
+  nota: "31 usos; BY, NODUPKEY, DUPOUT= y NOEQUALS; DESCENDING (proc.pdf, p. 2479). NODUPREC solo se traduce con BY _ALL_ por adyacencia (lrcon.pdf, p. 714). NODUPKEY queda parcial hasta validar la estabilidad de tSortRow; las demás opciones no declaradas siguen pendientes"
 - id: contents
   nombre: PROC CONTENTS
   fuente: proc.pdf, p. 541

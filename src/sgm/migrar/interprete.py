@@ -4,8 +4,8 @@ Es el anillo B de la verificación: prueba que el plan —y por lo tanto el Job 
 lo que el SAS dice, sin abrir Talend Studio. Sirve para dos cosas que ninguna otra pieza cubre: los
 casos donde Studio no está disponible, y el contraste con `esperado/` de todo el corpus.
 
-Soporta lo que la primera rebanada vertical traduce: `read_file`, `write_file`, `map` con pasos
-`join` (inner y left), `filter` y `derive`, más los `read` y `write` que solo nombran un
+Soporta `PROC SORT` y sus deduplicaciones acotadas, además de `read_file`, `write_file`, `map` con
+pasos `join` (inner y left), `filter` y `derive`, y los `read` y `write` que solo nombran un
 conjunto. Lo demás **no se ignora**: lanza `NoSoportadoEnInterprete` con el operador o el paso
 que no entiende. Un intérprete que se salta un `sort` en silencio daría filas correctas en el
 conjunto y falsas en el orden, y la prueba pasaría sin probar nada.
@@ -31,7 +31,18 @@ from sgm.migrar import semantica
 
 # Operadores que el intérprete sabe ejecutar; el resto detiene la ejecución con su nombre.
 SOPORTADOS = frozenset(
-    {"read", "read_file", "write", "write_file", "map", "join", "filter", "derive"}
+    {
+        "read",
+        "read_file",
+        "write",
+        "write_file",
+        "map",
+        "join",
+        "filter",
+        "derive",
+        "sort",
+        "dedup",
+    }
 )
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
 _FUNCIONES_SAS = re.compile(r"(?i)\b(input|left|substrn|substr|coalescec|compress|scan)\s*(?=\()")
@@ -49,7 +60,7 @@ class NoSoportadoEnInterprete(RuntimeError):
 # -- valores ------------------------------------------------------------------------------------
 def _tabla(nombre: object) -> str:
     """`WORK.ventas` a `ventas`: el intérprete no distingue bibliotecas."""
-    return str(nombre or "").strip().lower().split(".")[-1]
+    return str(nombre or "").strip().lower().split(".")[-1].split("@v", 1)[0]
 
 
 def _primero(params: dict, clave: str) -> str:
@@ -498,7 +509,10 @@ def _ordenar(filas: list[dict], params: dict) -> list[dict]:
     Se ordena de la última llave a la primera, cada una con su sentido; como el orden de Python es
     estable, las filas que empatan en todas las llaves conservan el orden en que llegaron.
     """
-    llaves = [_nombre_de_columna(filas, nombre) for nombre in params.get("by") or []]
+    nombres = list(params.get("by") or [])
+    if nombres == ["_all_"]:
+        nombres = list(filas[0]) if filas else []
+    llaves = [_nombre_de_columna(filas, nombre) for nombre in nombres]
     sentidos = list(params.get("descending") or [])
     resultado = list(filas)
     for posicion in range(len(llaves) - 1, -1, -1):
@@ -512,47 +526,77 @@ def _ordenar(filas: list[dict], params: dict) -> list[dict]:
 
 def _unicos(filas: list[dict], params: dict) -> list[dict]:
     """`SELECT DISTINCT`: la primera fila de cada combinación de llaves; faltante = faltante."""
-    llaves = [_nombre_de_columna(filas, nombre) for nombre in params.get("by") or []]
+    return _unicos_y_duplicados(filas, params)[0]
+
+
+def _unicos_y_duplicados(filas: list[dict], params: dict) -> tuple[list[dict], list[dict]]:
+    """Conserva la primera fila de cada llave y separa las observaciones descartadas."""
+    nombres = list(params.get("by") or [])
+    if nombres == ["_all_"]:
+        nombres = list(filas[0]) if filas else []
+    llaves = [_nombre_de_columna(filas, nombre) for nombre in nombres]
     vistas: set[tuple] = set()
-    resultado: list[dict] = []
+    unicos: list[dict] = []
+    duplicados: list[dict] = []
     for fila in filas:
         clave = tuple(_clave(_columna(fila, llave)) for llave in llaves)
         if clave not in vistas:
             vistas.add(clave)
-            resultado.append(fila)
-    return resultado
+            unicos.append(fila)
+        else:
+            duplicados.append(fila)
+    return unicos, duplicados
 
 
-def _entradas(plan: Plan, op: Operator, por_operador: dict) -> dict[str, list[dict]]:
+def _entradas(plan: Plan, op: Operator, por_operador: dict, tablas: dict) -> dict[str, list[dict]]:
     """Filas de cada predecesor, por la tabla que entrega."""
     por_tabla: dict[str, list[dict]] = {}
-    for previo in plan.graph.predecessors(op.id):
+    for arista in plan.graph.edges():
+        if arista.dst != op.id:
+            continue
+        previo = arista.src
+        nombre_arista = _tabla(arista.dataset)
+        filas_arista = tablas.get(nombre_arista, por_operador.get(previo, []))
+        if nombre_arista != "(interno)":
+            por_tabla.setdefault(nombre_arista, filas_arista)
         for nombre in _nombres(plan.graph.operator(previo)):
-            por_tabla.setdefault(nombre, por_operador.get(previo, []))
+            por_tabla.setdefault(nombre, tablas.get(nombre, por_operador.get(previo, [])))
     return por_tabla
 
 
-def _base(plan: Plan, op: Operator, derechos: set[str], por_operador: dict) -> list[dict]:
+def _base(
+    plan: Plan, op: Operator, derechos: set[str], por_operador: dict, tablas: dict
+) -> list[dict]:
     """La entrada que se acumula: el primer predecesor que no es el lado derecho de una unión."""
+    if op.kind in {"sort", "dedup"}:
+        for nombre in op.params.get("inputs") or []:
+            dataset = _tabla(nombre)
+            if dataset in tablas:
+                return tablas[dataset]
     previos = plan.graph.predecessors(op.id)
     for previo in previos:
         nombres = _nombres(plan.graph.operator(previo))
         if not nombres or not set(nombres) <= derechos:
+            for arista in plan.graph.edges():
+                if arista.src == previo and arista.dst == op.id:
+                    dataset = _tabla(arista.dataset)
+                    if dataset in tablas:
+                        return tablas[dataset]
             return por_operador.get(previo, [])
     return por_operador.get(previos[0], []) if previos else []
 
 
-def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
+def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict) -> list[dict]:
     """Los pasos de un `map` —o el operador suelto— sobre las entradas, en el orden del plan."""
     pasos = op.params.get("steps")
     if not pasos and op.kind != "map":
         pasos = [{"kind": op.kind, "params": op.params}]
     pasos = pasos or []
-    por_tabla = _entradas(plan, op, por_operador)
+    por_tabla = _entradas(plan, op, por_operador, tablas)
     derechos = {
         _derecha(paso.get("params") or {}) for paso in pasos if paso.get("kind") == "join"
     }
-    actual = _base(plan, op, {d for d in derechos if d}, por_operador)
+    actual = _base(plan, op, {d for d in derechos if d}, por_operador, tablas)
     for paso in pasos:
         clase = str(paso.get("kind") or "")
         params = paso.get("params") or {}
@@ -586,7 +630,10 @@ def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
     clases = ("read_file", "map", "filter", "derive", "select", "rename", "join", "sort", "dedup")
     if op.kind in clases:
-        return [_tabla(nombre) for nombre in op.params.get("outputs") or []]
+        nombres = [_tabla(nombre) for nombre in op.params.get("outputs") or []]
+        if op.kind == "dedup":
+            nombres.extend(_tabla(nombre) for nombre in op.params.get("duplicate_outputs") or [])
+        return nombres
     if op.kind == "write_file":
         return [_tabla(nombre) for nombre in op.params.get("inputs") or []]
     if op.kind in ("read", "write"):
@@ -636,7 +683,15 @@ def _ejecutar(
             primera = por_operador.get(previos[0], []) if previos else []
             ramas = _ramas(op, primera)
             return primera, ramas
-        filas = _pasos(op, plan, por_operador)
+        if op.kind == "dedup":
+            entrada = _base(plan, op, set(), por_operador, tablas)
+            filas, duplicados = _unicos_y_duplicados(entrada, op.params)
+            propias = {_tabla(nombre): filas for nombre in op.params.get("outputs") or []}
+            propias.update(
+                {_tabla(nombre): duplicados for nombre in op.params.get("duplicate_outputs") or []}
+            )
+            return filas, propias
+        filas = _pasos(op, plan, por_operador, tablas)
         return filas, {nombre: filas for nombre in _nombres(op)}
     raise NoSoportadoEnInterprete(op.kind, "el intérprete no lo ejecuta")
 

@@ -98,7 +98,12 @@ class FactBook:
         defs = {("m", m.lower()) for pattern in _MACRO_DEFS for m in pattern.findall(text)}
         for group in _GLOBAL.findall(text):
             defs |= {("m", name.lower()) for name in group.split()}
-        names = [str(n) for n in op.params.get("outputs", []) if isinstance(n, str)]
+        names = [
+            str(n)
+            for key in ("outputs", "duplicate_outputs")
+            for n in op.params.get(key, [])
+            if isinstance(n, str)
+        ]
         if op.kind in ("write", "write_file") and op.params.get("dataset"):
             names.append(str(op.params["dataset"]))
         names += _OUT_REF.findall(text)

@@ -4,10 +4,10 @@ Fecha: 5 de noviembre de 2026. Alcance decidido por el usuario (DC-01): **un mig
 cualquier programa SAS y devuelve uno o varios Jobs de Talend bien hechos, con contextos, joblets, Job padre
 e hijos, manejo de errores y registro. `client_large.sas` pasa a ser un caso de prueba más.
 
-**Este es el plan maestro del repositorio (6 de noviembre de 2026).** Está escrito para que **otro agente
+**Este es el plan maestro del repositorio (9 de noviembre de 2026).** Está escrito para que **otro agente
 lo ejecute sin preguntar**. `ruta-a-produccion.md` queda subordinado: es el detalle de la pista del
 programa grande y de la operación (F9), y su Fase 7 la reemplaza este documento. El corpus y el plan de
-equivalencia están en `plan-corpus-y-equivalencia.md`. **Avance global: ver la sección 11b** (cerca de 20 %
+equivalencia están en `plan-corpus-y-equivalencia.md`. **Avance global: ver la sección 11b** (cerca de 21 %
 de las horas de agente, con el método ahí).
 
 ## 0. Cómo usar este documento
@@ -639,6 +639,13 @@ MG-P5-03 en adelante, sin empezar.
 | MG-P6-06 | Lista de procedimientos fuera de alcance con motivo en `docs/cobertura.md` | H | generada | 2 |
 | MG-P6-07 | `PROC FORMAT` y `PROC SQL` avanzadas que falten | S | según corpus real | 10 |
 
+**Estado (hito 124, 9 de noviembre de 2026).** MG-P6-01 parcial: `DESCENDING` se conserva por
+variable; `NODUPKEY` usa `tUniqRow`, puede separar `DUPOUT=` por su salida `DUPLICATE` y deja
+`NOEQUALS` como parcial porque cambia la fila sobreviviente. `NODUPREC` solo se traduce cuando
+`BY _ALL_` demuestra adyacencia; sin esa garantía se conserva el orden y se deja parcial. Aún falta
+validar en Studio la estabilidad de `tSortRow` para cerrar la selección de fila de `NODUPKEY`.
+MG-P6-02 a MG-P6-07 siguen sin empezar.
+
 ### MG-P7. Macros (60 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -800,9 +807,9 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (6 de noviembre de 2026, hito 123)
+## 11b. Avance medido (9 de noviembre de 2026, hito 124)
 
-**Avance global: 20,5 % de las 895 horas de agente (183,75 h), es decir, cerca de 21 %.** C7 (producción
+**Avance global: 21,1 % de las 895 horas de agente (188,75 h), es decir, cerca de 21 %.** C7 (producción
 con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía.
 
 **Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
@@ -820,7 +827,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P3 Expresiones y funciones | 80 | 17,5 | 22 % | Funciones puntuales; candidatos parciales `INTNX`/`INTCK` de fecha sin validar en SAS/Talend; faltan `DATDIF`/`YRDIF`, PRX y `PROC FORMAT` |
 | MG-P4 DATA step | 90 | 7,0 | 8 % | `WHERE`, `IF/ELSE IF`, `KEEP/DROP/RENAME`; sin `MERGE`, `RETAIN`, `OUTPUT` múltiple |
 | MG-P5 `PROC SQL` | 80 | 12,0 | 15 % | `filter`, `derive`, `join`; L1 completos 3 de 15, L2 5 de 15 |
-| MG-P6 Procedimientos | 50 | 2,5 | 5 % | `NODUPKEY` probado en la pista del programa grande |
+| MG-P6 Procedimientos | 50 | 7,5 | 15 % | `PROC SORT` parcial: `NODUPREC BY _ALL_`, `DUPOUT=`, `DESCENDING`; estabilidad de `NODUPKEY` sin probar en Studio |
 | MG-P7 Macros | 60 | 0,0 | 0 % | Sin medir contra `L5` |
 | MG-P8 Planificador | 70 | 13,0 | 19 % | Contextos DEV/QA/PROD; `trace.json` parcial; sin segmentación ni límite de tamaño |
 | MG-P9 Emisor | 108 | 26,5 | 25 % | 25 de 40 plantillas, contextos y conexiones básicas; joblets sin validar |
@@ -829,10 +836,10 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
-| **Total** | **895** | **183,75** | **20,5 %** | Suma recalculada de los créditos visibles por fase |
+| **Total** | **895** | **188,75** | **21,1 %** | Suma recalculada de los créditos visibles por fase |
 
-**Saldo por créditos medidos: 711,25 h.** El reparto nominal entre Andres y Byron en
-`reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 8,0 h por
+**Saldo por créditos medidos: 706,25 h.** El reparto nominal entre Andres y Byron en
+`reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 13,0 h por
 conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):

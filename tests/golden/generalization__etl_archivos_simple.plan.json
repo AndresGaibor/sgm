@@ -210,7 +210,7 @@
     {
       "id": "op00009",
       "kind": "dedup",
-      "status": "soportado",
+      "status": "parcial",
       "placement": "flow",
       "signature": "253e97bb004bb320",
       "params": {
@@ -232,7 +232,9 @@
           "call": null
         }
       ],
-      "notes": [],
+      "notes": [
+        "EQUALS conserva empates en orden de entrada; la estabilidad de tSortRow no está verificada para identificar la misma fila"
+      ],
       "component": {
         "name": "tUniqRow",
         "rung": 2,

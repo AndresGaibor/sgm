@@ -5222,3 +5222,38 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Bloqueos: faltan vectores de salida SAS y compilación/ejecución en Talend Studio para fin de mes,
   bisiestos, incrementos inválidos y las funciones candidatas. `DATDIF`, `YRDIF`, intervalos no
   exactos y fechas/hora siguen fuera de aceptación completa.
+
+## Hito 124. Completar con límites explícitos `PROC SORT`
+
+- Fecha: 2026-11-09. Alcance: MG-P6-01, parcial.
+- Qué se hizo:
+  - El `BY` de `PROC SORT` conserva las variables y aplica `DESCENDING` solo a la variable que le
+    sigue. Se omiten en la firma las opciones por omisión; así los planes existentes no cambian si
+    el programa solo ordena ascendente con `EQUALS`.
+  - `NODUPKEY` genera sort y deduplicación con `tUniqRow`. El resultado es parcial mientras no se
+    compruebe que `tSortRow` conserva el orden de entrada para llaves empatadas, como exige el
+    `EQUALS` predeterminado de SAS. `NOEQUALS` también queda parcial porque permite otra fila
+    sobreviviente.
+  - `NODUPREC` y su alias `NODUP` se convierten solo con `BY _ALL_`: la referencia SAS describe la
+    detección de duplicados adyacentes y el orden por todas las columnas demuestra esa adyacencia.
+    Sin `BY _ALL_`, el plan ordena y conserva un pendiente parcial; no elimina filas no adyacentes.
+  - `DUPOUT=` se conserva como segunda salida del `dedup`; el grafo, el intérprete y el emisor
+    conectan esa tabla por la salida `DUPLICATE` de `tUniqRow`, incluso si otro `PROC SORT` la consume.
+    Se dejan como hueco `DUPOUT=` sin `NODUPKEY`, destinos que colisionan con `DATA=`/`OUT=`, y
+    opciones o sentencias que esta implementación no traduce.
+  - `BY _ALL_` se expande al esquema probado al emitir `tSortRow` y `tUniqRow`. El intérprete usa la
+    tabla concreta de cada arista, de modo que un consumidor de `DUPOUT=` no recibe por error la
+    salida de filas únicas.
+  - Se actualizó el golden de `etl_archivos_simple.sas` para registrar el estado y la nota de
+    estabilidad pendiente; la prueba de equivalencia solo permite esos dos cambios exactos.
+- Pruebas: `uv run python -m pytest -q`: **2585 aprobadas, 26 omitidas y 144 xfailed**; `uv run ruff
+  check .` limpio; las pruebas de integración de `PROC SORT`, plan golden y equivalencia pasan.
+- Métricas: MG-P6-01 crédito 0,5 (**5/10 h**); MG-P6 **7,5/50 h (15 %)**; total **188,75/895 h
+  (21,1 %)**; saldo medido **706,25 h**. El reparto nominal conserva una diferencia de 13 h.
+- Decisiones: no declarar estable la selección de fila de `NODUPKEY` hasta ejecutar un caso con
+  llaves repetidas en Talend Studio. `NODUPREC` se limita al patrón cuya adyacencia está demostrada
+  por `BY _ALL_` (SAS `proc.pdf`, p. 2502; `lrcon.pdf`, p. 714).
+- Bloqueos: falta compilar y ejecutar en Talend Studio un caso `NODUPKEY` con filas de igual llave y
+  valores distintos para validar el orden de `tSortRow`; hasta entonces esa traducción conserva
+  `status=parcial`. `NODUPREC` con `BY` parcial o distinto de `_ALL_` y el resto de opciones de sort
+  no cubiertas permanecen pendientes.

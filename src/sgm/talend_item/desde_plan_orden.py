@@ -84,6 +84,10 @@ def nodo_orden(
         return vacio
     nombres = list(op.params.get("by") or [])
     descendentes = list(op.params.get("descending") or [])
+    if nombres == ["_all_"]:
+        descendente = bool(descendentes and descendentes[0])
+        nombres = [columna.nombre for columna in columnas]
+        descendentes = [descendente] * len(nombres)
     celdas: list[tuple[str, str]] = []
     pendientes: list[PendienteMigracion] = []
     for posicion, nombre in enumerate(nombres):
@@ -128,18 +132,22 @@ def nodo_unicos(
         return vacio
     llaves: set[str] = set()
     pendientes: list[PendienteMigracion] = []
-    for nombre in op.params.get("by") or []:
+    nombres = list(op.params.get("by") or [])
+    if nombres == ["_all_"]:
+        llaves = {columna.nombre.lower() for columna in columnas}
+        nombres = []
+    for nombre in nombres:
         columna = _resolver(nombre, columnas)
         if columna is None:
             motivo = f"DISTINCT {nombre}: la entrada no tiene esa columna"
             pendientes.append(PendienteMigracion(ORDEN_SIN_COLUMNA, motivo, linea))
         else:
-            llaves.add(columna.nombre)
+            llaves.add(columna.nombre.lower())
     if pendientes or not llaves:
         return ResultadoOrden(pendientes=pendientes)
     celdas: list[tuple[str, str]] = []
     for columna in columnas:
-        es_llave = columna.nombre in llaves
+        es_llave = columna.nombre.lower() in llaves
         celdas += [
             ("SCHEMA_COLUMN", columna.nombre),
             ("KEY_ATTRIBUTE", "true" if es_llave else "false"),

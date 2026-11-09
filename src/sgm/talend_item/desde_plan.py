@@ -67,9 +67,22 @@ def _tabla(dataset: str) -> str:
 
 
 def _produce(op: Operator) -> list[str]:
-    if op.kind in ("read_file", "map", "filter", "derive", "select", "rename", "join"):
-        return [str(d).lower() for d in op.params.get("outputs", [])]
-    return []
+    if op.kind not in (
+        "read_file",
+        "map",
+        "filter",
+        "derive",
+        "select",
+        "rename",
+        "join",
+        "sort",
+        "dedup",
+    ):
+        return []
+    names = [str(d).lower() for d in op.params.get("outputs", [])]
+    if op.kind == "dedup":
+        names.extend(str(d).lower() for d in op.params.get("duplicate_outputs", []))
+    return names
 
 
 def _como_paso(op: Operator) -> Operator:
@@ -118,7 +131,6 @@ class _Job:
         self._salidas_map: dict[str, str] = {}  # id de operador -> nombre de su salida
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
         self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
-        self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
         self._productor = self._productores()
         self.rutas = rutas_de_plan(plan)
 
@@ -316,8 +328,6 @@ class _Job:
         tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
         self._registrar(op, resultado.nodo, fuente.columnas, tabla)
         self._pasos.add(op.id)
-        if op.kind == "dedup":
-            self._conector_de[resultado.nodo.unico] = "UNIQUE"
 
     def _registrar(
         self,
@@ -343,7 +353,7 @@ class _Job:
             desde, hasta = self._resolver(arista.src), self._resolver(arista.dst)
             if desde is None or hasta is None or desde == hasta:
                 continue
-            nombre = self._nombre(desde, hasta)
+            nombre = self._nombre(desde, hasta, arista.dataset)
             if nombre is None:
                 continue
             nodo_origen = self._instancia(desde, hasta)
@@ -359,10 +369,19 @@ class _Job:
                 # Las entradas de búsqueda de un tMap van por LOOKUP (`lineStyle` 8), no por FLOW.
                 self.conexiones.append(lookup(origen, destino, nombre))
             else:
-                conector = self._conector_de.get(origen, "FLOW")
+                conector = self._conector_salida(desde, arista.dataset)
                 self.conexiones.append(Conexion(origen, destino, nombre, conector=conector))
 
-    def _nombre(self, desde: str, hasta: str) -> str | None:
+    def _conector_salida(self, op_id: str, dataset: str) -> str:
+        """El `tUniqRow` escoge UNIQUE o DUPLICATE según la tabla que consume la arista."""
+        op = self.plan.graph.operator(op_id)
+        if op.kind != "dedup":
+            return "FLOW"
+        version_base = dataset.split("@v", 1)[0].lower()
+        duplicados = {str(nombre).lower() for nombre in op.params.get("duplicate_outputs", [])}
+        return "DUPLICATE" if version_base in duplicados else "UNIQUE"
+
+    def _nombre(self, desde: str, hasta: str, dataset: str) -> str | None:
         """Nombre de la conexión: la entrada que el `tMap` espera, o la salida que produce.
 
         `None` cuando el `tMap` de destino no tiene esa entrada: la arista existe en el plan pero no
@@ -376,6 +395,9 @@ class _Job:
         if hasta in self._entradas_map:
             return self._entradas_map[hasta].get(desde)
         if desde in self._pasos:
+            op = self.plan.graph.operator(desde)
+            if op.kind == "dedup" and self._conector_salida(desde, dataset) == "DUPLICATE":
+                return f"{self._nodo[desde].unico}_duplicates"
             return f"{self._nodo[desde].unico}_out"
         if desde in self._salidas_map:
             return self._salidas_map[desde]
