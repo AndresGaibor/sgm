@@ -5293,3 +5293,31 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Bloqueos: no se ejecutó contra SAS ni se compiló/ejecutó un Job Talend; los valores de opciones
   de sesión configurados externamente no están disponibles, y faltan los vectores L5 restantes. No
   se afirma equivalencia ejecutada.
+
+## Hito 126. Detectar columnas extra o faltantes en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El comparador del anillo B ahora revisa las claves de cada fila producida contra el encabezado
+    del CSV de `esperado/`, sin distinguir mayúsculas. Reporta columnas extra y ausentes aunque el
+    valor esperado de la columna ausente sea vacío.
+  - Después de la comprobación estructural, se conserva la comparación previa de valores,
+    tolerancia y orden de filas. No se modificaron los esperados ni el comparador común del corpus.
+  - Se agregaron tres regresiones: columna adicional en una fila posterior con diferencias de
+    mayúsculas, columna esperada ausente cuyo valor es vacío y salida sin filas. Para una salida sin
+    filas no se infiere el esquema: el intérprete no conserva metadatos de columnas en ese resultado.
+  - Se actualizó el estado de MG-P10 y la medición de la sección 11b: el anillo B verifica 56/62
+    casos elegibles; MG-P10-01 y MG-P10 siguen parciales, así que sus créditos no cambian.
+- Pruebas: las dos regresiones estructurales fallaron primero por la razón esperada. Luego,
+  `uv run python -m pytest -n 0 tests/unit/test_migrar_corpus_anillo_b.py -q`: **59 pasaron y 6
+  quedaron xfail**. Suite completa `uv run python -m pytest -q`: **2604 pasaron, 26 omitidas y 144
+  xfailed**. `uv run ruff check .`: limpio.
+- Métricas: MG-P10 **18,0/80 h (23 %)**; avance global **192,75/895 h (21,5 %)**, sin aumento de
+  crédito porque aún quedan seis casos `xfail` y la aceptación de MG-P10-01 exige todos los casos
+  elegibles.
+- Decisiones: limitar la verificación al conjunto de nombres observable en cada fila del anillo B;
+  normalizar mayúsculas como ya hace el intérprete; no cambiar el comparador compartido ni deducir
+  metadatos para una salida sin filas.
+- Bloqueos: siguen pendientes seis casos del anillo B: alias de auto-unión, agregado, tres
+  subconsultas `IN` y `ELSE` del DATA step. El esquema de salidas vacías no puede comprobarse hasta
+  que la IR del intérprete conserve esa información. No se ejecutó SAS ni Talend Studio.

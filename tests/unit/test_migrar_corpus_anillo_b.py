@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -72,6 +73,25 @@ def _esperado(caso, tabla: str, filas: list[dict]) -> list[str]:
     if not ruta.exists():
         return [f"{tabla}: falta {ruta.name}"]
     columnas = ruta.read_text(encoding="utf-8").splitlines()[0].split(",")
+    columnas_esperadas = {columna.lower(): columna for columna in columnas}
+    diferencias_columnas: list[str] = []
+    for numero, fila in enumerate(filas, start=1):
+        columnas_obtenidas = {str(columna).lower(): str(columna) for columna in fila}
+        faltantes = sorted(
+            columnas_esperadas[nombre]
+            for nombre in columnas_esperadas.keys() - columnas_obtenidas.keys()
+        )
+        adicionales = sorted(
+            columnas_obtenidas[nombre]
+            for nombre in columnas_obtenidas.keys() - columnas_esperadas.keys()
+        )
+        detalle = []
+        if faltantes:
+            detalle.append(f"columnas faltantes: {', '.join(faltantes)}")
+        if adicionales:
+            detalle.append(f"columnas de más: {', '.join(adicionales)}")
+        if detalle:
+            diferencias_columnas.append(f"fila {numero}, {'; '.join(detalle)}")
     calculada = Tabla(
         columnas,
         [
@@ -82,7 +102,9 @@ def _esperado(caso, tabla: str, filas: list[dict]) -> list[str]:
             for fila in filas
         ],
     )
-    return comparar_con_guardado(ruta, calculada, caso.tolerancia, caso.orden_relevante)
+    return diferencias_columnas + comparar_con_guardado(
+        ruta, calculada, caso.tolerancia, caso.orden_relevante
+    )
 
 
 @pytest.mark.parametrize("caso", list(_casos()))
@@ -101,3 +123,32 @@ def test_el_interprete_da_lo_que_el_sas(caso):
         for problema in _esperado(caso, tabla, salidas.get(tabla.lower(), []))
     ]
     assert problemas == []
+
+
+def _caso_con_esperado(tmp_path: Path, contenido: str) -> SimpleNamespace:
+    (tmp_path / "salida.csv").write_text(contenido, encoding="utf-8")
+    return SimpleNamespace(esperado=tmp_path, tolerancia=0, orden_relevante=True)
+
+
+def test_anillo_b_detecta_columnas_extra_en_cualquier_fila(tmp_path: Path) -> None:
+    caso = _caso_con_esperado(tmp_path, "ID\n1\n2\n")
+
+    diferencias = _esperado(caso, "salida", [{"id": "1"}, {"ID": "2", "Extra": "x"}])
+
+    assert diferencias == ["fila 2, columnas de más: Extra"]
+
+
+def test_anillo_b_detecta_columna_esperada_ausente_con_valor_vacio(tmp_path: Path) -> None:
+    caso = _caso_con_esperado(tmp_path, "id,observacion\n1,\n")
+
+    diferencias = _esperado(caso, "salida", [{"id": "1"}])
+
+    assert diferencias == ["fila 1, columnas faltantes: observacion"]
+
+
+def test_anillo_b_no_infiere_esquema_de_salida_vacia(tmp_path: Path) -> None:
+    caso = _caso_con_esperado(tmp_path, "id\n")
+
+    diferencias = _esperado(caso, "salida", [])
+
+    assert diferencias == []
