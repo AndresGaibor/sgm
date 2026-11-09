@@ -5444,3 +5444,27 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites: el lote sigue devolviendo «carpeta generada» para los Jobs del workspace que se probaron;
   no se ejecutó ningún Job ni se comparó contra SAS. La compuerta de liberación no lanza el lote de
   Studio.
+
+## Hito 130m. Bloque `esquemas` en `caso.yaml` (MG-P1-02, piloto)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - `tools/corpus_lib/esquemas_caso.py`: valida el bloque `esquemas` de `caso.yaml`. Cada columna es
+    un tipo demostrado (`tipo`, `linea` del SAS, `longitud` opcional en String) o `pendiente` con
+    `motivo`. El tipo debe estar en `TIPOS` (los de `Column.type`).
+  - `tools/corpus_lib/caso.py`: acepta el campo `esquemas`, lo valida y lo deja en `Caso.extra`.
+  - Piloto con 2 casos: `L0/l0_07_if_then_else` (`nivel` String, longitud 5, línea 12, por `LENGTH`)
+    y `L1/l1_01_select_columnas` (columnas de `PROC IMPORT` CSV como `pendiente`).
+  - `tests/unit/test_corpus_esquemas.py` (13 casos): forma válida, entradas inválidas, nombres,
+    bloque vacío y carga de los dos casos piloto.
+- Pruebas: suite completa **2638 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+  La línea base previa era 2625 pasan.
+- Decisiones:
+  - Columnas de `PROC IMPORT` DBMS=CSV sin `LENGTH` ni `GUESSINGROWS` quedan `pendiente`. El tipo
+    lo fija el dato y el SAS no lo demuestra (AGENTS.md, regla 6). Aprobado por el usuario.
+  - `uv run pytest` lo bloquea Application Control de Windows (`pytest.exe`). Se usa
+    `uv run python -m pytest`.
+- Límites:
+  - Solo 2 de 117 casos llevan bloque `esquemas`. MG-P1-02 **no está cerrado**.
+  - Falta la inferencia que compare el tipo de `sgm migrar` con el declarado: hoy `esquemas.py` solo
+    demuestra `Double`, y la pasada 9 propaga `LENGTH` y `FORMAT` sin que `migrar` los lea.

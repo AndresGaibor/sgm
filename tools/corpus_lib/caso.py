@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 
-from . import invariantes, preparacion
+from . import esquemas_caso, invariantes, preparacion
 
 CAPAS = ("A", "B", "C")
 ESTADOS = (
@@ -30,7 +30,7 @@ CAMPOS = frozenset(
     {
         "nivel", "construcciones", "capa", "tolerancia", "orden_relevante", "estado", "motivo",
         "salidas", "razonamiento", "revisor", "observacion_revision", "preparacion",
-        "invariantes",
+        "invariantes", "esquemas",
     }
 ) | METADATOS
 _NIVEL = re.compile(r"L\d+$")
@@ -145,6 +145,15 @@ def cargar_caso(directorio: Path) -> Caso:
             prepara = preparacion.validar(datos["preparacion"])
         except ValueError as fallo:
             raise error(str(fallo)) from None
+    esquemas = None
+    if datos.get("esquemas") is not None:
+        try:
+            esquemas = esquemas_caso.validar(datos["esquemas"])
+        except ValueError as fallo:
+            raise error(str(fallo)) from None
+    extra = {clave: datos[clave] for clave in METADATOS if clave in datos}
+    if esquemas is not None:
+        extra["esquemas"] = esquemas
     return Caso(
         nombre=directorio.name,
         directorio=directorio,
@@ -159,7 +168,7 @@ def cargar_caso(directorio: Path) -> Caso:
         razonamiento=razonamiento,
         invariantes=tuple(lista_invariantes),
         preparacion=prepara,
-        extra={clave: datos[clave] for clave in METADATOS if clave in datos},
+        extra=extra,
     )
 
 

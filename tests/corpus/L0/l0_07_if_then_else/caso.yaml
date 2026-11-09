@@ -13,3 +13,6 @@ razonamiento: |
   101 1542 MEDIO.  102 356 BAJO.  103 2478 ALTO.  104 344 BAJO.  105 141 BAJO.
   106 1278 MEDIO.  107 1880 MEDIO (menor que 2000).  108 1374 MEDIO.  109 913 MEDIO.
 revisor: segundo_agente
+esquemas:
+  WORK.clientes_nivel:
+    nivel: {tipo: String, longitud: 5, linea: 12}
