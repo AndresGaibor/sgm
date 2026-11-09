@@ -90,6 +90,13 @@ sobre una secuencia de fases ya superada.
   `b` quedó para el resto de las series viejas. Las letras no se reutilizan ni se quitan.
 - El commit del hito lleva el mismo número que la entrada, con el mensaje `hito N: <resumen>`.
 
+## Studio y `talend-mcp`
+
+Si `sgm studio salud` no conecta, **no reinstales nada ni cambies `talend-mcp`**: casi siempre es que el
+servidor MCP (puerto 3927) está apagado mientras Studio sí corre. Pasos y errores conocidos en
+`docs/guia-validacion-studio.md`, sección 7. En este Windows, `uv run pytest` y `uv run sgm` pueden
+bloquearse por Control de aplicaciones: usar `uv run python -m pytest` y `uv run python -m sgm.cli`.
+
 ## Forma de trabajar
 
 - Lee antes de escribir. Los archivos grandes (`client_large.sas`, unos 800 KB) no se leen enteros: usa búsqueda y lecturas por rango de líneas.

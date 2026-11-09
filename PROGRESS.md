@@ -5688,3 +5688,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - `ruff format` se aplicó a `lower_sql_flow.py`; cambió también una condición ajena a estos pasos (un
     `if` que cabía en una línea).
   - Studio sigue sin responder: la verificación del `.item` con `LENGTH` sigue pendiente.
+
+## Hito 143m. Studio verificado de extremo a extremo para `l0_07`; recuperación documentada
+
+- Fecha: 2026-11-09.
+- Qué pasó: `sgm studio salud` no conectaba. Talend Studio estaba abierto (proceso
+  `Talend-Studio-win-x86_64`, bridge en el puerto 3930), pero el servidor MCP de `talend-mcp`
+  (puerto 3927) no estaba corriendo. No era un fallo de Studio ni hizo falta reinstalar nada.
+- Qué se hizo:
+  - Se arrancó `talend-mcp` tal como lo documenta `docs/guia-validacion-studio.md`, con
+    `TALEND_MCP_ALLOW_WRITE=1 TALEND_MCP_ALLOW_EXECUTE=1 bun run start:server` desde
+    `C:\Users\USUARIO_BISOLUTION1\code\talend-mcp`. No se modificó su código. `healthz` responde
+    `{"ok":true,"service":"talend-mcp","toolCount":258}`.
+  - `sgm studio salud` pasó a «Studio responde y deja escribir».
+  - Se emitió `l0_07_if_then_else` a una carpeta de trabajo y se ejecutó en Studio con
+    `tools/corpus_studio.py validar`. Primer intento: `--padre` mal (`job_programa_0`), y luego
+    «no se encuentra la ruta» porque faltaba el `mapa.yaml`. Con el mapa: **coincide, 0 diferencias**.
+- Documentado: `docs/guia-validacion-studio.md`, sección 7 (diagnóstico, arranque, y los dos errores
+  de `validar`). `AGENTS.md` tiene un apartado corto que apunta a esa sección.
+- Límites: `talend-mcp` se apaga con reinicios y al cerrar la terminal que lo lanzó. Solo se verificó
+  `l0_07`; los demás casos y el lote completo de Studio siguen sin correr.

@@ -156,3 +156,72 @@ código de salida 1 y ningún Job de prueba en `process/`.
   offline (`dbType` nulo).
 
 Estas faltas se anotan en `PROGRESS.md` como no verificadas; nunca como verdes.
+
+## 7. Recuperar Studio cuando no responde (Windows, hito 143m)
+
+Síntoma: `sgm studio salud` responde «no se pudo contactar al MCP en http://127.0.0.1:3927/mcp: ...
+conexión denegada» aunque Talend Studio esté abierto. Es el caso más frecuente: **Studio puede estar
+arriba y el servidor `talend-mcp` apagado.** Son dos procesos distintos.
+
+Diagnóstico en 30 segundos (PowerShell o Git Bash):
+
+```bash
+tasklist | grep -i talend                      # Studio: Talend-Studio-win-x86_64.exe
+netstat -ano | grep -E ":3927|:3930"           # 3930 = bridge de Studio; 3927 = talend-mcp
+curl -s -m 10 http://127.0.0.1:3927/healthz    # debe responder {"ok":true,"service":"talend-mcp",...}
+```
+
+- 3930 escuchando y 3927 sin escuchar: el MCP está apagado. Arrancarlo (abajo).
+- Ninguno escucha: abrir Talend Studio con el proyecto `PRJ_BANCOLOMBIA` y esperar a que cargue.
+
+Arrancar `talend-mcp` (repositorio aparte, en `C:\Users\USUARIO_BISOLUTION1\code\talend-mcp`). Con
+permiso de escritura y ejecución, como exige el protocolo:
+
+```bash
+cd /c/Users/USUARIO_BISOLUTION1/code/talend-mcp
+TALEND_MCP_ALLOW_WRITE=1 TALEND_MCP_ALLOW_EXECUTE=1 nohup bun run start:server > <log> 2>&1 &
+```
+
+Luego espera unos 15 s y comprueba `curl http://127.0.0.1:3927/healthz`. El log debe decir
+«Proyecto Talend detectado: C:/Talend/8.0.1/.../PRJ_BANCOLOMBIA». Si el log dice que no encuentra el
+proyecto, Studio no está abierto con ese workspace: ábrelo y repite.
+
+El proceso no sobrevive a reinicios ni a cerrar la terminal que lo lanzó. Tras un reinicio, repetir.
+No hace falta reinstalar nada: `talend-mcp` tiene sus dependencias en `node_modules` y `bun` está en
+`C:\Users\USUARIO_BISOLUTION1\.bun\bin\bun`.
+
+**En este entorno Windows, las órdenes de `uv` y de `sgm` pueden fallar** con «Una directiva de Control
+de aplicaciones bloqueó este archivo (os error 4551)». Usar el módulo de Python en su lugar:
+
+```bash
+uv run python -m pytest -q               # en lugar de: uv run pytest
+uv run python -m sgm.cli studio salud    # en lugar de: uv run sgm studio salud
+```
+
+**Validar un programa del corpus en Studio** (`tools/corpus_studio.py validar`), con los errores que ya
+costaron tiempo:
+
+1. `--padre` es el nombre del Job sin sufijo de versión: `job_programa`, no `job_programa_0`. El
+   archivo se llama `job_programa_0.1.item`, pero el nombre del Job es `job_programa`.
+2. Las rutas de contexto del `.item` son marcadores `.../entradas/x.csv`. Sin `--mapa`, el Job falla con
+   «java.io.IOException: El sistema no puede encontrar la ruta especificada» en el primer
+   `tFileInputDelimited`. Hay que pasar un `mapa.yaml` con cada variable de contexto:
+
+   ```yaml
+   ruta_clientes: entradas/clientes.csv
+   ruta_clientes_nivel: salida/clientes_nivel.csv
+   ```
+
+   El mapa va en un archivo fuera del repositorio (en el scratchpad) y sus rutas son relativas al caso.
+3. Rutas de los JDK y de `.m2` de Studio: `--java-bin "C:/Talend/8.0.1/zulu21.50.19-ca-jdk21.0.11-win_x64/bin"`
+   y `--m2 "C:/Talend/8.0.1/studio/configuration/.m2/repository"`.
+4. El comando exitoso de referencia (caso `l0_07_if_then_else`, hito 143m):
+
+   ```bash
+   uv run python tools/corpus_studio.py validar l0_07_if_then_else \
+       --jobs <carpeta>/process --padre job_programa \
+       --proyecto "C:/Talend/8.0.1/studio/workspace3/talendbancolombia-963626413/PRJ_BANCOLOMBIA" \
+       --mapa <mapa.yaml> --java-bin <jdk>/bin --m2 <.m2> --sufijo len2 --informe <informe.md>
+   ```
+
+   Resultado: `coincide`, 0 diferencias. Demuestra que `nivel` sale con largo 5 y el Job ejecuta.
