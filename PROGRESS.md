@@ -5488,3 +5488,26 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites:
   - MG-P1-02 **sigue abierto**. Falta la comparación con la inferencia de `sgm migrar`.
   - L3 a L8 no tienen bloque. L8 anida sus casos en grupos y tiene su propio formato de tablas.
+
+## Hito 132m. MERGE nunca sale como tMap (MG-P4-04, corrección)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - El emisor (`talend_item/desde_plan_map.py`, `_tipo_soportado`) deja como pendiente
+    `P-UNION-TIPO-SIN-SOPORTE` cualquier join que venga de un `MERGE`. Se reconoce por la forma de sus
+    parámetros: un `MERGE` tiene `by` y no `keys`; un JOIN de SQL tiene `keys`. No se añadió ningún
+    parámetro nuevo, así que la firma y los goldens no cambian.
+  - Motivo: el `tMap` cruza por llave y no hace el emparejamiento fila con fila de SAS cuando la llave
+    se repite. Con `IF` (inner o left) el emisor sí lo emitía como lookup, y eso daba resultados
+    distintos sin aviso. El intérprete (`migrar/interprete.py`, `_mezclar`) sí es correcto.
+  - Comentario de `lower_data._join_type`: decía «equivale a full outer», que contradice el plan. Ahora
+    dice que no es un JOIN de producto y remite al intérprete.
+  - `tests/unit/test_merge_y_all.py`: la prueba `test_el_merge_con_if_de_la_primera_sale_como_tmap_con_banderas`
+    afirmaba que el MERGE con `IF` sale como tMap. Era el comportamiento incorrecto; se cambió a
+    `test_el_merge_con_if_de_la_primera_queda_pendiente_y_no_sale_como_tmap`, que afirma el pendiente
+    y que no hay tMap. Se quitó un import sin uso.
+- Pruebas: suite completa **2640 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Límites:
+  - El emisor de MERGE sigue sin existir. Para emitir un MERGE fila con fila hace falta `tJavaRow` o una
+    secuencia por grupo (MG-P4-04); eso no está hecho.
+  - Ningún caso de Studio usaba MERGE, así que la compilación de 85 Jobs no cambia.

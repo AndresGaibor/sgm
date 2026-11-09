@@ -170,9 +170,22 @@ def _llaves(meseta: _Meseta, join: dict, armado: Armado, op: Operator) -> dict[i
 
 
 def _tipo_soportado(join: dict | None, armado: Armado, op: Operator) -> bool:
-    """El `tMap` hace cruces internos y externos por la izquierda; el resto no se supone."""
+    """El `tMap` hace cruces internos y externos por la izquierda; el resto no se supone.
+
+    Un `MERGE` nunca se emite como `tMap`: el `tMap` cruza por llave y no reproduce el
+    emparejamiento fila con fila de SAS cuando la llave se repite. Queda pendiente.
+    """
     if not join:
         return True
+    # Un MERGE tiene `by` y no `keys`; un JOIN de SQL, al revés.
+    if "keys" not in join and "by" in join:
+        armado.pendientes.append(PendienteMigracion(
+            "P-UNION-TIPO-SIN-SOPORTE",
+            "MERGE: el tMap cruza por llave y no reproduce el emparejamiento fila con fila "
+            "de SAS cuando la llave se repite; hace falta tJavaRow o una secuencia por grupo",
+            _linea(op),
+        ))
+        return False
     tipo = str(join.get("join_type") or "").strip().lower()
     if tipo in ("inner", "left", "left outer"):
         return True

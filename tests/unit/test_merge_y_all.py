@@ -8,7 +8,6 @@ from sgm.cli_migrar import migrar
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
 from sgm.migrar.interprete import ejecutar_plan
-from sgm.talend_item.validador import validar_job
 
 IMPORTAR = (
     "PROC IMPORT DATAFILE='.../{0}.csv' OUT=WORK.{0} DBMS=CSV REPLACE;\n  GETNAMES=YES;\nRUN;\n"
@@ -58,7 +57,7 @@ def test_merge_con_if_de_la_bandera_se_queda_con_las_filas_de_la_primera():
     ]
 
 
-def test_el_merge_con_if_de_la_primera_sale_como_tmap_con_banderas(tmp_path: Path):
+def test_el_merge_con_if_de_la_primera_queda_pendiente_y_no_sale_como_tmap(tmp_path: Path):
     muestra = tmp_path / "m"
     muestra.mkdir()
     (muestra / "a.csv").write_text("id,x\n1,a\n", encoding="utf-8")
@@ -74,11 +73,12 @@ def test_el_merge_con_if_de_la_primera_sale_como_tmap_con_banderas(tmp_path: Pat
 
     resultado = migrar(programa, tmp_path / "out", muestra=muestra)
 
-    codigos = {p.codigo for p in resultado.pendientes} - {"P-TIPO-DESCONOCIDO"}
-    assert codigos == set()
+    # Un MERGE no se emite como tMap: el tMap cruza por llave y no hace el emparejamiento fila con
+    # fila de SAS cuando la llave se repite. Queda como pendiente con motivo.
+    codigos = {p.codigo for p in resultado.pendientes}
+    assert "P-UNION-TIPO-SIN-SOPORTE" in codigos
     job = resultado.jobs[0]
-    assert any(n.componente == "tMap" for n in job.nodos)
-    assert validar_job(job) == []
+    assert not any(n.componente == "tMap" for n in job.nodos)
 
 
 def test_el_merge_completo_queda_pendiente_porque_un_tmap_no_hace_full_outer(tmp_path: Path):
