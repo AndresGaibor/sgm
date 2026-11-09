@@ -115,19 +115,35 @@ def renombrar(op_id: str, pairs: list[tuple[str, str]], evidence=None) -> Operat
     return _operador(op_id, "rename", {"pairs": normal}, evidence)
 
 
-def calcular(op_id: str, assignments: list[dict[str, str]], evidence=None) -> Operator:
-    """Calcular: asignaciones `target = expression` de columnas nuevas o modificadas."""
+def calcular(
+    op_id: str,
+    assignments: list[dict[str, Any]],
+    outputs: list[str] | None = None,
+    modo: str | None = None,
+    declared: dict[str, Any] | None = None,
+    evidence=None,
+) -> Operator:
+    """Calcular: asignaciones `target = expression` de columnas nuevas o modificadas.
+
+    Cada asignación conserva sus claves extra (por ejemplo `origin`), como el lowering. `outputs`,
+    `modo` (`agrega`) y `declared` (LENGTH, FORMAT) solo aparecen si se dan.
+    """
     if not assignments:
         raise ValueError("assignments necesita al menos una asignación")
-    normal = []
+    normal: list[dict[str, Any]] = []
     for asignacion in assignments:
-        normal.append(
-            {
-                "target": _texto(asignacion.get("target", ""), "target"),
-                "expression": _texto(asignacion.get("expression", ""), "expression"),
-            }
-        )
-    return _operador(op_id, "derive", {"assignments": normal}, evidence)
+        copia = dict(asignacion)
+        copia["target"] = _texto(asignacion.get("target", ""), "target")
+        copia["expression"] = _texto(asignacion.get("expression", ""), "expression")
+        normal.append(copia)
+    params: dict[str, Any] = {"assignments": normal}
+    if outputs is not None:
+        params["outputs"] = _lista(outputs, "outputs")
+    if modo is not None:
+        params["modo"] = _texto(modo, "modo")
+    if declared is not None:
+        params["declared"] = dict(declared)
+    return _operador(op_id, "derive", params, evidence)
 
 
 def unir(
@@ -187,9 +203,15 @@ def agregar(
     op_id: str,
     group_by: list[str],
     aggregations: list[dict[str, str]],
+    outputs: list[str] | None = None,
+    pendiente: list[str] | None = None,
+    status: str = "soportado",
     evidence=None,
 ) -> Operator:
-    """Agregar: GROUP BY con agregados (expression y alias por cada uno)."""
+    """Agregar: GROUP BY con agregados (expression y alias por cada uno).
+
+    `pendiente` lista las columnas sin agregar que SAS remezcla; si se da, el operador es `parcial`.
+    """
     if not aggregations:
         raise ValueError("aggregations necesita al menos un agregado")
     normal = [
@@ -199,11 +221,15 @@ def agregar(
         }
         for a in aggregations
     ]
-    params = {
+    params: dict[str, Any] = {
         "group_by": [g.lower() for g in _lista(group_by, "group_by", minimo=0)],
         "aggregations": normal,
     }
-    return _operador(op_id, "aggregate", params, evidence)
+    if outputs is not None:
+        params["outputs"] = _lista(outputs, "outputs")
+    if pendiente is not None:
+        params["pendiente"] = _lista(pendiente, "pendiente")
+    return _operador(op_id, "aggregate", params, evidence, status=status)
 
 
 def ordenar(

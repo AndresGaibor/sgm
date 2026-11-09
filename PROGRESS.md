@@ -5589,3 +5589,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
     tienen reconstrucción en la prueba todavía.
   - MG-P1-03 sigue abierto en el criterio «L1 a L3 construyen su plan»: los constructores ya
     reproducen la forma del lowering, pero ningún pase los usa.
+
+## Hito 137m. Constructores de `aggregate` y `derive` reproducen la firma del lowering (MG-P1-03)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - `ir/operadores.py`:
+    - `calcular` conserva las claves extra de cada asignación (por ejemplo `origin`) y acepta los
+      opcionales del lowering: `outputs`, `modo` (`agrega`) y `declared` (LENGTH, FORMAT).
+    - `agregar` acepta `outputs`, `pendiente` y `status`; con `pendiente` el operador es `parcial`.
+  - `tests/unit/test_ir_operadores_corpus.py` reconstruye también `aggregate` y `derive`. Los planes de
+    L1 a L3 reproducen la firma del lowering en todos sus operadores de esos kinds.
+  - `tests/unit/test_ir_operadores.py`: dos pruebas nuevas para los parámetros opcionales.
+- Pruebas: suite completa **2712 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Límites:
+  - La prueba aún no cubre `rename`, `read`, `read_file` ni `write`.
+  - MG-P1-03 sigue abierto en el criterio «L1 a L3 construyen su plan»: los constructores reproducen
+    la forma del lowering, pero ningún pase los usa.

@@ -97,3 +97,27 @@ def test_cross_no_necesita_llave():
 def test_combinar_no_tiene_keys_como_el_merge_del_lowering():
     operador = op.combinar("1", "inner", ["id"], ["WORK.a", "WORK.b"])
     assert set(operador.params) == {"by", "join_type", "sources"}
+
+
+def test_calcular_conserva_claves_extra_y_los_opcionales_del_lowering():
+    operador = op.calcular(
+        "1",
+        [{"target": "x", "expression": "y + 1", "origin": "columna"}],
+        outputs=["WORK.t"],
+        modo="agrega",
+        declared={"x": ["Double", None]},
+    )
+    assert operador.params["assignments"] == [
+        {"target": "x", "expression": "y + 1", "origin": "columna"}
+    ]
+    assert operador.params["modo"] == "agrega"
+    assert operador.params["declared"] == {"x": ["Double", None]}
+
+
+def test_agregar_con_columnas_pendientes_queda_parcial():
+    operador = op.agregar(
+        "1", ["ciudad"], [{"expression": "SUM(x)", "alias": "t"}],
+        pendiente=["nombre"], status="parcial",
+    )
+    assert operador.status == "parcial"
+    assert operador.params["pendiente"] == ["nombre"]

@@ -51,6 +51,23 @@ def _reconstruir(operador):
         return op.deduplicar(operador.id, p["by"], p.get("keep", "first"), p.get("outputs"))
     if operador.kind == "union":
         return op.concatenar(operador.id, p["sources"])
+    if operador.kind == "aggregate":
+        return op.agregar(
+            operador.id,
+            p["group_by"],
+            p["aggregations"],
+            p.get("outputs"),
+            p.get("pendiente"),
+            status=operador.status,
+        )
+    if operador.kind == "derive":
+        return op.calcular(
+            operador.id,
+            p["assignments"],
+            p.get("outputs"),
+            p.get("modo"),
+            p.get("declared"),
+        )
     return None
 
 
