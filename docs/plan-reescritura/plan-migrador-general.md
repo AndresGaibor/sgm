@@ -714,14 +714,18 @@ de cada nodo. MG-P8-01, MG-P8-02, MG-P8-03, MG-P8-05 y MG-P8-06 son de los plane
 | MG-P10-08 | Informe de cobertura `sgm cobertura` (C1) generado desde reglas y corpus | H | `docs/cobertura.md` y JSON | 6 |
 | MG-P10-09 | Segundo y tercer programa del cliente (los de `tests/fixtures/sas/real` y `synthetic`): medir cobertura y cerrar las brechas más frecuentes de forma iterativa | S | cobertura medida y creciente | 15 |
 
-**Estado (hito 126, 9 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis reglas
+**Estado (hito 127, 9 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis reglas
 de Studio sobre el modelo y los 45 Jobs de `L0` a `L2` salen limpios; encontró un defecto real del
 emisor —dos salidas `row1` del mismo nodo cuando la tabla se lee dos veces—. MG-P10-01 sigue parcial:
-el anillo B ejecuta 56 de 62 casos elegibles y conserva seis `xfail` estrictos con motivo: alias de
-auto-unión perdido, agregado no interpretado, tres subconsultas `IN` y `ELSE` de DATA step. El arnés
-ahora detecta columnas extra o faltantes en cada fila no vacía, además de comparar los valores; no
-puede comprobar el esquema de una salida vacía porque el intérprete no conserva sus metadatos de
-columnas. La semántica SAS implementada vive en `migrar/semantica.py` y sus vectores en
+el anillo B ejecuta 57 de 62 casos elegibles y conserva cinco `xfail` estrictos con motivo: alias de
+auto-unión perdido, agregado no interpretado y tres subconsultas `IN`. El intérprete ahora ejecuta el
+`IF/THEN DO/END/ELSE` de asignaciones simples; el grupo se rechaza conservadoramente si una variable
+de la condición se modifica antes de la última asignación. El emisor conserva el tipo de una columna
+cuando la rama alternativa mantiene su valor. La migración completa de ese caso aún informa
+`P-ESQUEMA-VACIO`: el corpus no demuestra el esquema de la tabla de entrada y no se inventan
+columnas. El arnés detecta columnas extra o faltantes en cada fila no vacía, además de comparar los
+valores; no puede comprobar el esquema de una salida vacía porque el intérprete no conserva sus
+metadatos de columnas. La semántica SAS implementada vive en `migrar/semantica.py` y sus vectores en
 `tests/corpus/semantica/vectores.yaml`.
 
 ### MG-P11. Experiencia de uso (30 h)
@@ -845,7 +849,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P7 Macros | 60 | 4,0 | 7 % | `MG-P7-01` parcial: `%SYSFUNC(UPCASE())` en el caso L5-06; faltan el resto de L5 y el anexo, y validar `TRANTAB`/`ENCODING`/`LOCALE` |
 | MG-P8 Planificador | 70 | 13,0 | 19 % | Contextos DEV/QA/PROD; `trace.json` parcial; sin segmentación ni límite de tamaño |
 | MG-P9 Emisor | 108 | 26,5 | 25 % | 25 de 40 plantillas, contextos y conexiones básicas; joblets sin validar |
-| MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 56 de 62 pasan, 6 `xfail`; compara columnas para filas no vacías |
+| MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 57 de 62 pasan, 5 `xfail`; compara columnas para filas no vacías |
 | MG-P11 Experiencia de uso | 30 | 4,0 | 13 % | `sgm migrar` de un programa sin YAML; falta carpeta y `cobertura.md` |
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
@@ -857,7 +861,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
-anillo B, 56 de 62 casos elegibles pasan (90 %; hito 126); anillo A, 28 de los 45 casos de `L0` a
+anillo B, 57 de 62 casos elegibles pasan (92 %; hito 127); anillo A, 28 de los 45 casos de `L0` a
 `L2` migran sin pendientes de traducción (62 %; hito 115m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
 (representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
 

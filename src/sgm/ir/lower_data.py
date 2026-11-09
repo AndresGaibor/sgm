@@ -9,6 +9,7 @@ from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_statements import (
     conditional_assignment,
+    conditional_do_assignments,
     record_file_put,
     statement_op,
 )
@@ -209,6 +210,21 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         statement_ev = Evidence(ev.file, s.line, s.line, ev.label, ev.call)
         before, prev = prev, s
         if kind in _HEAD_KINDS:
+            continue
+        conditional_do = conditional_do_assignments(stmts, index)
+        if conditional_do is not None:
+            assignments, siguiente = conditional_do
+            if pending_derive is None:
+                pending_derive = b.op(
+                    "derive", {"assignments": [], "modo": "agrega"}, statement_ev
+                )
+                if current is not None:
+                    b.link(current, pending_derive)
+                current = pending_derive
+            pending_derive.params["assignments"].extend(assignments)
+            b.refresh(pending_derive)
+            omit.update(range(index + 1, siguiente))
+            prev = stmts[siguiente - 1]
             continue
         conditional = conditional_assignment(stmts, index)
         if conditional is not None:

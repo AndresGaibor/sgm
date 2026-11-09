@@ -5321,3 +5321,37 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Bloqueos: siguen pendientes seis casos del anillo B: alias de auto-unión, agregado, tres
   subconsultas `IN` y `ELSE` del DATA step. El esquema de salidas vacías no puede comprobarse hasta
   que la IR del intérprete conserve esa información. No se ejecutó SAS ni Talend Studio.
+
+## Hito 127. Interpretar IF THEN DO ELSE en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El lowering reconoce el patrón acotado `IF condición THEN DO`, asignaciones simples con destinos
+    únicos, `END` y `ELSE` con una asignación simple. El parser conserva `THEN DO` dentro de la
+    sentencia `IF`; el grupo empieza en la sentencia siguiente.
+  - Cada destino se representa con una derivación condicional. Si una rama no asigna el destino, se
+    conserva su valor actual. Se rechaza el patrón si la condición depende de una variable que se
+    modifica antes de la última asignación del grupo; las formas rechazadas siguen por el camino
+    parcial existente.
+  - El intérprete ejecuta ambas ramas y preserva el saldo en la rama falsa; el caso real `l0_13_do_end`
+    coincide con sus filas esperadas y ya no está en `CONOCIDOS`.
+  - El emisor Talend genera las dos expresiones ternarias y conserva el tipo demostrado de una
+    columna de entrada cuando la alternativa mantiene el valor anterior, priorizando el tipo de la
+    fuente sobre tipos intermedios inferidos. La aceptación de migración mantiene `P-ESQUEMA-VACIO`
+    para el caso real: el repositorio no aporta esquema de entrada para demostrar sus columnas.
+  - Se añadieron pruebas de rechazo para `OUTPUT`, asignaciones duplicadas y condiciones que se
+    alterarían durante el grupo; la condición vacía también queda rechazada por el patrón estricto.
+    El esquema CSV esperado no se modificó.
+- Pruebas: `uv run python -m pytest -n 0 tests/unit/test_migrar_corpus_anillo_b.py -q`: **60
+  pasaron y 5 quedaron xfail**. Suite completa `uv run python -m pytest -q`: **2613 pasaron, 26
+  omitidas y 143 xfailed**. `uv run ruff check .`: limpio. `git -c core.whitespace=cr-at-eol diff
+  --check`: limpio.
+- Métricas: MG-P10 se mantiene en **18,0/80 h (23 %)**; el anillo B sube a **57/62 casos (92 %)** y
+  conserva cinco `xfail`. Sin crédito nuevo: MG-P10-01 requiere que todos los casos elegibles pasen.
+  El total sigue en **192,75/895 h (21,5 %)**; saldo medido **702,25 h**.
+- Decisiones: limitar la traducción a la forma demostrable; no aceptar una condición que los
+  consumidores actuales reevalúen con valores ya modificados. Sin catálogo de esquemas, se conserva
+  `P-ESQUEMA-VACIO`; no se deducen columnas. No se afirma compilación ni ejecución en Studio.
+- Bloqueos: quedan cinco casos del anillo B: alias de auto-unión, agregado y tres subconsultas `IN`.
+  El caso DATA step puede ejecutarse en el intérprete, pero la migración de corpus continúa pendiente
+  hasta disponer de un esquema que describa la tabla de entrada.

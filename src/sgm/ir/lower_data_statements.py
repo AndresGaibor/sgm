@@ -9,8 +9,10 @@ from sgm.ir.builder import Builder
 from sgm.ir.models import Evidence, Operator
 
 _IF_ASSIGN = re.compile(r"(?is)^if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
+_IF_DO = re.compile(r"(?is)^if\s+(.*?)\s+then\s+do\s*$")
 _ELSE_IF_ASSIGN = re.compile(r"(?is)^else\s+if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
 _ELSE_ASSIGN = re.compile(r"(?is)^else\s+([\w]+)\s*=\s*(.+)$")
+_SIMPLE_TARGET = re.compile(r"(?i)^[a-z_][\w]*$")
 _OUTPUT_IN_IF = re.compile(
     r"(?is)^(?:if\s+(?P<cond>.*?)\s+then\s+|else\s+)output\s+(?P<target>[\w.&]+)"
 )
@@ -56,6 +58,77 @@ def conditional_assignment(stmts: list[DsStatement], index: int) -> tuple[dict, 
         },
         cursor + 1,
     )
+
+
+def conditional_do_assignments(
+    stmts: list[DsStatement], index: int
+) -> tuple[list[dict], int] | None:
+    """Baja un IF/THEN DO de asignaciones simples con END y ELSE de asignación."""
+    if index >= len(stmts) or stmts[index].kind != "if":
+        return None
+    match = _IF_DO.fullmatch(stmts[index].text.strip())
+    if match is None:
+        return None
+
+    cursor = index + 1
+    body: list[tuple[str, str]] = []
+    targets: set[str] = set()
+    while cursor < len(stmts) and stmts[cursor].kind != "end":
+        statement = stmts[cursor]
+        if statement.kind != "assign":
+            return None
+        target = str(statement.fields.get("target") or "").strip()
+        expression = str(statement.fields.get("expression") or "").strip()
+        if not _SIMPLE_TARGET.fullmatch(target) or not expression:
+            return None
+        normalized_target = target.lower()
+        if normalized_target in targets:
+            return None
+        targets.add(normalized_target)
+        body.append((normalized_target, expression))
+        cursor += 1
+    if not body or cursor >= len(stmts):
+        return None
+
+    end_statement = stmts[cursor]
+    if not re.fullmatch(r"(?is)end\s*", end_statement.text.strip()):
+        return None
+    cursor += 1
+    if cursor >= len(stmts) or stmts[cursor].kind != "if":
+        return None
+    otherwise = _ELSE_ASSIGN.fullmatch(stmts[cursor].text.strip())
+    if otherwise is None:
+        return None
+    else_target = otherwise.group(1).lower()
+    else_expression = otherwise.group(2).strip()
+    if not _SIMPLE_TARGET.fullmatch(else_target) or not else_expression:
+        return None
+
+    condition = match.group(1).strip()
+    variables = {name.lower() for name in re.findall(r"\b[a-z_][\w]*\b", condition, re.I)}
+    positions = {target: position for position, (target, _) in enumerate(body)}
+    # El intérprete y el emisor evalúan las asignaciones en orden. Si una asignación
+    # temprana cambia una variable de la condición, las ramas dejarían de compartir
+    # el valor que SAS evalúa antes de entrar al grupo DO.
+    if any(positions.get(variable, len(body)) < len(body) - 1 for variable in variables):
+        return None
+
+    expressions = dict(body)
+    ordered_targets = [target for target, _ in body]
+    if else_target not in expressions:
+        ordered_targets.append(else_target)
+    assignments = [
+        {
+            "target": target,
+            "expression": expressions.get(target, target),
+            "conditional": {
+                "condition": condition,
+                "otherwise": else_expression if target == else_target else target,
+            },
+        }
+        for target in ordered_targets
+    ]
+    return assignments, cursor + 1
 
 
 def statement_op(

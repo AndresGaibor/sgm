@@ -45,7 +45,6 @@ CONOCIDOS: dict[str, str] = {
     "l2_06_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
     "l2_07_not_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
     "l2_15_validacion_en_cascada": "el intérprete no ejecuta un IN con subconsulta",
-    "l0_13_do_end": "el ELSE del IF/THEN queda como filtro y no es una expresión evaluable",
 }
 
 

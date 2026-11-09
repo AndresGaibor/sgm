@@ -240,3 +240,32 @@ def test_un_operador_no_soportado_no_se_salta():
 
     assert error.value.kind == "aggregate"
     assert str(error.value).startswith("aggregate")
+
+
+def test_data_step_if_then_do_else_aplica_ambas_ramas():
+    plan = _plan(
+        "DATA WORK.clientes_revisados;\n"
+        "  SET WORK.clientes;\n"
+        "  LENGTH revision $ 2;\n"
+        "  IF saldo < 0 THEN DO;\n"
+        "    revision = 'SI';\n"
+        "    saldo = 0;\n"
+        "  END;\n"
+        "  ELSE revision = 'NO';\n"
+        "RUN;"
+    )
+    entradas = {
+        "clientes": [
+            {"id": "1", "saldo": "-5"},
+            {"id": "2", "saldo": "7"},
+            {"id": "3", "saldo": ""},
+        ]
+    }
+
+    filas = ejecutar_plan(plan, entradas)["clientes_revisados"]
+
+    assert filas == [
+        {"id": "1", "saldo": "0", "revision": "SI"},
+        {"id": "2", "saldo": "7", "revision": "NO"},
+        {"id": "3", "saldo": "0", "revision": "SI"},
+    ]
