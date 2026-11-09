@@ -5552,3 +5552,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - MG-P1-03 **sigue abierto** en lo que pide el criterio: «L1 a L3 construyen su plan». Los
     constructores no los usa todavía ningún pase.
   - `pivotar` no tiene traducción de `PROC TRANSPOSE`; es un hueco explícito.
+
+## Hito 135m. Constructores con la forma que usa el lowering (MG-P1-03, ajuste)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - `unir` (`ir/operadores.py`) recibe `keys` como pares (izquierda, derecha) y produce la misma forma
+    que `lower_sql_flow.py`: `by`, `keys`, `join_type`, `sources`, `condition`. Acepta `cross` sin llave.
+    Antes usaba `by` y no coincidía con lo que el emisor de `tMap` lee.
+  - `combinar` (MERGE) mantiene la forma de `lower_data.py`: `by`, `join_type`, `sources` y sin `keys`.
+  - `tests/unit/test_ir_operadores.py`: 25 pruebas, incluida la forma de `unir`, `cross` y la forma de
+    `combinar`.
+- Pruebas: suite completa **2668 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Decisiones:
+  - Se adaptan los constructores al lowering existente. No se migra el lowering a los constructores: eso
+    cambiaría la forma de las uniones y del emisor, y queda como tarea aparte con revisión.
+- Límites:
+  - Ningún pase usa `unir` ni `combinar` todavía. MG-P1-03 sigue abierto en el criterio «L1 a L3
+    construyen su plan».

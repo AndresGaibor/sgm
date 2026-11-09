@@ -18,7 +18,7 @@ def test_cada_constructor_produce_un_kind_del_modelo_con_su_firma():
         (op.proyectar("5", "keep", ["Id", "Nombre"]), "select"),
         (op.renombrar("6", [("A", "B")]), "rename"),
         (op.calcular("7", [{"target": "x", "expression": "1"}]), "derive"),
-        (op.unir("8", "left", ["id"], ["WORK.a", "WORK.b"]), "join"),
+        (op.unir("8", "left", [("a.id", "b.id")], ["WORK.a", "WORK.b"]), "join"),
         (op.combinar("9", "inner", ["id"], ["WORK.a", "WORK.b"]), "join"),
         (op.agregar("10", ["ciudad"], [{"expression": "sum(x)", "alias": "t"}]), "aggregate"),
         (op.ordenar("11", ["id"]), "sort"),
@@ -62,9 +62,9 @@ def test_los_nombres_se_normalizan_a_minusculas():
         (lambda: op.renombrar("1", []), "al menos un par"),
         (lambda: op.renombrar("1", [("a",)]), "origen y destino"),
         (lambda: op.calcular("1", []), "asignación"),
-        (lambda: op.unir("1", "cross", ["id"], ["a", "b"]), "join_type"),
-        (lambda: op.unir("1", "inner", [], ["a", "b"]), "by"),
-        (lambda: op.unir("1", "inner", ["id"], ["a"]), "al menos 2"),
+        (lambda: op.unir("1", "outer", [("a.id", "b.id")], ["a", "b"]), "join_type"),
+        (lambda: op.unir("1", "inner", [], ["a", "b"]), "llave"),
+        (lambda: op.unir("1", "inner", [("a.id", "b.id")], ["a"]), "al menos 2"),
         (lambda: op.combinar("1", "outer", ["id"], ["a", "b"]), "join_type"),
         (lambda: op.agregar("1", ["g"], []), "agregado"),
         (lambda: op.ordenar("1", []), "by"),
@@ -77,3 +77,23 @@ def test_los_nombres_se_normalizan_a_minusculas():
 def test_parametros_invalidos_se_rechazan(construir, error):
     with pytest.raises(ValueError, match=error):
         construir()
+
+
+def test_unir_tiene_la_forma_del_lowering_de_sql():
+    operador = op.unir("1", "left", [("t.id", "h.cname")], ["WORK.t", "WORK.h"], "x > 0")
+    assert operador.params == {
+        "by": ["id"],
+        "keys": [["t.id", "h.cname"]],
+        "join_type": "left",
+        "sources": ["WORK.t", "WORK.h"],
+        "condition": "x > 0",
+    }
+
+
+def test_cross_no_necesita_llave():
+    assert op.unir("1", "cross", [], ["WORK.a", "WORK.b"]).params["join_type"] == "cross"
+
+
+def test_combinar_no_tiene_keys_como_el_merge_del_lowering():
+    operador = op.combinar("1", "inner", ["id"], ["WORK.a", "WORK.b"])
+    assert set(operador.params) == {"by", "join_type", "sources"}

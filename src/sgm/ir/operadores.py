@@ -125,17 +125,31 @@ def calcular(op_id: str, assignments: list[dict[str, str]], evidence=None) -> Op
 def unir(
     op_id: str,
     join_type: str,
-    by: list[str],
+    keys: list[tuple[str, str]],
     sources: list[str],
+    condition: str | None = None,
     evidence=None,
 ) -> Operator:
-    """Unir: JOIN de SQL con tipo explícito. Requiere dos fuentes y una llave."""
-    if join_type not in TIPOS_UNION:
-        raise ValueError(f"join_type debe ser {TIPOS_UNION}, no '{join_type}'")
+    """Unir: JOIN de SQL con tipo explícito. Misma forma que el lowering de `PROC SQL`.
+
+    `keys` son pares (columna izquierda, columna derecha); `by` se deduce de la izquierda. Requiere
+    al menos una llave, salvo `cross`, y dos fuentes.
+    """
+    if join_type not in TIPOS_UNION + ("cross",):
+        raise ValueError(f"join_type debe ser {TIPOS_UNION + ('cross',)}, no '{join_type}'")
+    pares = []
+    for par in keys:
+        if len(par) != 2:
+            raise ValueError(f"cada llave debe ser un par (izquierda, derecha): {par!r}")
+        pares.append([_texto(par[0], "llave izquierda"), _texto(par[1], "llave derecha")])
+    if not pares and join_type != "cross":
+        raise ValueError("una unión necesita al menos una llave, salvo cross")
     params = {
+        "by": [izquierda.split(".")[-1].lower() for izquierda, _ in pares],
+        "keys": pares,
         "join_type": join_type,
-        "by": [n.lower() for n in _lista(by, "by")],
         "sources": _lista(sources, "sources", minimo=2),
+        "condition": condition,
     }
     return _operador(op_id, "join", params, evidence)
 
@@ -147,11 +161,18 @@ def combinar(
     sources: list[str],
     evidence=None,
 ) -> Operator:
-    """Combinar (MERGE): emparejamiento por llave. Mismo tipo que `unir`, con `by` y sin `keys`.
+    """Combinar (MERGE): emparejamiento por llave con `by` y sin `keys`, como lower_data.
 
     La semántica fila con fila la aplica el intérprete; el emisor no lo traduce a tMap (hito 132m).
     """
-    return unir(op_id, join_type, by, sources, evidence)
+    if join_type not in TIPOS_UNION:
+        raise ValueError(f"join_type debe ser {TIPOS_UNION}, no '{join_type}'")
+    params = {
+        "by": [n.lower() for n in _lista(by, "by")],
+        "join_type": join_type,
+        "sources": [s for s in _lista(sources, "sources", minimo=2)],
+    }
+    return _operador(op_id, "join", params, evidence)
 
 
 def agregar(
