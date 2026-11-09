@@ -5637,3 +5637,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendientes que quedan abiertos: MG-P1-02 (comparación con `sgm migrar` para tipos de `PROC IMPORT`;
   bloques de L3 a L8), MG-P1-03 (migrar el lowering a los constructores, decisión de revisión), y la
   verificación en Studio del `.item` con `LENGTH`, bloqueada por el MCP.
+
+## Hito 140m. Créditos de MG-P1 con el método de la sección 11b (propuesta, sin cambiar la cifra)
+
+- Fecha: 2026-11-09.
+- Qué se hizo: se recalculó la fila de MG-P1 con el método de la sección 11b, tarea por tarea. No se
+  cambió la tabla del plan: la asignación de créditos es un juicio y el 43,0 de 70 del hito 126m no se
+  puede reconstruir desde el plan.
+- Propuesta por tarea (1 = hecha; 0,5 = parcial con ejecución; 0,25 = casos puntuales; 0 = sin evidencia):
+  - MG-P1-01 (8 h): 1. MG-P1-02 (12 h): 0,25. MG-P1-03 (14 h): 0,5. MG-P1-04 (12 h): 0,5.
+  - MG-P1-05 (12 h): 0,5. MG-P1-06 (6 h): 0,25. MG-P1-07 (3 h): 1. MG-P1-08 (3 h): 1.
+  - Total: **37,5 de 70 (53,6 %)**, frente a 43,0 (61 %) que dice la sección 11b.
+- Decisión pendiente: confirmar la asignación de créditos. Si se confirma, la sección 11b se corrige y
+  el avance global baja en la misma proporción; no se corrige hasta que el usuario lo decida.
+- Pruebas: sin cambios de código.
