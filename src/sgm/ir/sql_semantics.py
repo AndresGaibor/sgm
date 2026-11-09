@@ -68,5 +68,9 @@ def tratamiento(rid: str) -> str:
 
 
 def aggregate_pendiente(params: dict[str, Any]) -> bool:
-    """El agregado lleva columnas sin agrupar y la regla dice que queda pendiente."""
-    return bool(params.get("pendiente")) and tratamiento(AGREGADO) == "pendiente"
+    """No empujar al motor un agregado con remezcla SAS aún no implementada."""
+    if not params.get("pendiente"):
+        return False
+    if params.get("group_by"):
+        return True
+    return tratamiento(AGREGADO) == "pendiente"

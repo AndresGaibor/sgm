@@ -23,6 +23,7 @@ from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
 
 _AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
 _DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
+_SIMPLE_COLUMN = re.compile(r"(?i)^(?:[a-z_]\w*\.)*([a-z_]\w*)$")
 
 
 def _restore(text: str, normalized: NormalizedSql) -> str:
@@ -126,6 +127,57 @@ def _plain_items(spec: SelectSpec) -> list[str]:
     ]
 
 
+def _group_outputs(spec: SelectSpec, aliases: set[str]) -> tuple[list[dict], list[str]]:
+    """Columnas simples de GROUP BY seleccionadas y columnas que requieren remezcla."""
+    group_names = set()
+    for group in spec.group_by:
+        match = _SIMPLE_COLUMN.fullmatch(_column(group, aliases).strip())
+        if match:
+            group_names.add(match.group(1).lower())
+
+    outputs = []
+    pendientes = []
+    for item in spec.items:
+        if item.star:
+            pendientes.append("*")
+            continue
+        if _AGGREGATE.search(item.expression):
+            continue
+        expression = _column(item.expression, aliases).strip()
+        match = _SIMPLE_COLUMN.fullmatch(expression)
+        nombre = item.alias or item.column or (match.group(1) if match else item.expression)
+        if match is None or match.group(1).lower() not in group_names:
+            pendientes.append(nombre)
+        else:
+            outputs.append({"expression": expression, "alias": nombre})
+    return outputs, pendientes
+
+
+def _aggregate_order_by(
+    spec: SelectSpec, aliases: set[str]
+) -> tuple[list[tuple[str, bool]], list[str]]:
+    """Resuelve ORDER BY con salidas seleccionadas; las otras referencias remezclan SAS."""
+    selected = {}
+    for item in spec.items:
+        if item.star:
+            continue
+        target = item.alias or item.column or item.expression
+        expression = _column(item.expression, aliases).strip()
+        selected[expression.casefold()] = target
+        selected[target.casefold()] = target
+
+    outputs = []
+    pendientes = []
+    for expression, descending in spec.order_by:
+        nombre = _column(expression, aliases).strip()
+        destino = selected.get(nombre.casefold())
+        if destino is None:
+            pendientes.append(f"ORDER BY {nombre}")
+        else:
+            outputs.append((destino, descending))
+    return outputs, pendientes
+
+
 def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
     """Si el SELECT cambia algo: una lista de columnas deja solo esas, y un alias o una expresión
     cambian lo que hay.
@@ -134,13 +186,13 @@ def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
     resultado de SAS trae solo `a` y `b`. Sin ella, la tabla de salida arrastra columnas de más y el
     Job escribe un archivo que no es el del SAS. Solo `select *` la evita, porque no recorta nada.
     """
-    if spec.joins:
-        return True
     if spec.group_by or any(
         not it.star and _AGGREGATE.search(it.expression) for it in spec.items
     ):
-        # El agregado ya entrega solo su llave y sus agregados: proyectar detrás no recorta nada.
+        # El agregado recibe las llaves seleccionadas y sus agregados en `group_outputs`.
         return False
+    if spec.joins:
+        return True
     return bool(assignments)
 
 
@@ -180,8 +232,14 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
         )
     aggregates = [it for it in spec.items if not it.star and _AGGREGATE.search(it.expression)]
     if spec.group_by or aggregates:
+        aggregate_order, remezcla_order = _aggregate_order_by(spec, aliases)
         params = {
             "group_by": [_column(g, aliases) for g in spec.group_by],
+            "output_order": [
+                str(it.alias or it.column or it.expression).lower()
+                for it in spec.items
+                if not it.star
+            ],
             "aggregations": [
                 {
                     "expression": _restore(_column(it.expression, aliases), normalized),
@@ -190,16 +248,39 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 for it in aggregates
             ],
         }
-        plain = _plain_items(spec) if not spec.group_by else []
-        if plain and sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente":
-            # SAS remezcla las columnas sin agregar en cada fila: no hay SQL equivalente probado.
-            params["pendiente"] = plain
-            label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
-            note = f"{label}: columnas sin agregar {', '.join(plain)}; pendiente de decidir"
-            current = chain.step("aggregate", params, current, status="parcial")
-            current.notes.append(note)
+        if spec.group_by:
+            group_outputs, remezcla = _group_outputs(spec, aliases)
+            params["group_outputs"] = group_outputs
+            remezcla.extend(remezcla_order)
+            if remezcla:
+                params["pendiente"] = remezcla
+                note = (
+                    "REMEZCLA_GROUP_BY_PENDIENTE: referencias no seleccionadas o no agrupadas "
+                    f"{', '.join(remezcla)}; no se implementa la remezcla SAS"
+                )
+                current = chain.step("aggregate", params, current, status="parcial")
+                current.notes.append(note)
+            else:
+                current = chain.step("aggregate", params, current)
         else:
-            current = chain.step("aggregate", params, current)
+            plain = _plain_items(spec)
+            sin_agrupar = []
+            if sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente":
+                sin_agrupar.extend(plain)
+            if any(item.star for item in spec.items):
+                sin_agrupar.append("*")
+            sin_agrupar.extend(remezcla_order)
+            if sin_agrupar:
+                # Sin equivalencia para la remezcla, no producir filas resumen parciales.
+                params["pendiente"] = sin_agrupar
+                label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
+                note = (
+                    f"{label}: columnas sin agregar {', '.join(sin_agrupar)}; pendiente de decidir"
+                )
+                current = chain.step("aggregate", params, current, status="parcial")
+                current.notes.append(note)
+            else:
+                current = chain.step("aggregate", params, current)
         if spec.having:
             having = _column(spec.having, aliases)
             for it in aggregates:
@@ -228,7 +309,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     if spec.distinct:
         current = chain.step("dedup", {"by": _names(spec.items), "keep": "first"}, current)
     if spec.order_by:
-        by = [_column(expr, aliases) for expr, _ in spec.order_by]
+        if spec.group_by or aggregates:
+            by = [expression for expression, _ in aggregate_order]
+        else:
+            by = [_column(expr, aliases) for expr, _ in spec.order_by]
         desc = [desc for _, desc in spec.order_by]
         current = chain.step("sort", {"by": by, "descending": desc}, current)
     return current

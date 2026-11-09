@@ -304,6 +304,99 @@ def test_agregados_por_grupo_cuentan_omisiones_y_conservan_faltantes_sas():
     ]
 
 
+def test_group_by_solo_publica_las_columnas_que_solicita_el_select():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS n "
+        "FROM WORK.entrada GROUP BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {"entrada": [{"categoria": "A"}, {"categoria": "A"}, {"categoria": "B"}]},
+    )["resumen"]
+
+    assert filas == [{"n": "2"}, {"n": "1"}]
+
+
+def test_group_by_respeta_el_orden_de_columnas_del_select():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT COUNT(*) AS n, categoria AS cat FROM WORK.entrada "
+        "GROUP BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(plan, {"entrada": [{"categoria": "A"}]})["resumen"]
+
+    assert list(filas[0]) == ["n", "cat"]
+
+
+def test_group_by_rechaza_select_star_con_agregado():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT *, COUNT(*) AS n "
+        "FROM WORK.entrada GROUP BY categoria; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="aggregate.*columnas sin agregar"):
+        ejecutar_plan(plan, {"entrada": [{"categoria": "A", "detalle": "x"}]})
+
+
+def test_group_by_conserva_alias_de_columna_seleccionada_y_agregado_tras_join():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT a.categoria AS cat, COUNT(*) AS n "
+        "FROM WORK.entrada AS a INNER JOIN WORK.otra AS b "
+        "ON a.categoria = b.categoria GROUP BY a.categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "entrada": [{"categoria": "A"}, {"categoria": "A"}],
+            "otra": [{"categoria": "A"}],
+        },
+    )["resumen"]
+
+    assert filas == [{"cat": "A", "n": "2"}]
+
+
+def test_group_by_order_by_columna_agrupada_con_alias_usa_el_alias_de_salida():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT categoria AS cat, COUNT(*) AS n FROM WORK.entrada "
+        "GROUP BY categoria ORDER BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan, {"entrada": [{"categoria": "B"}, {"categoria": "A"}]}
+    )["resumen"]
+
+    assert filas == [{"cat": "A", "n": "1"}, {"cat": "B", "n": "1"}]
+
+
+def test_group_by_order_by_no_seleccionado_rechaza_remezcla_sas():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS n "
+        "FROM WORK.entrada GROUP BY categoria ORDER BY categoria; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="aggregate.*columnas sin agregar"):
+        ejecutar_plan(plan, {"entrada": [{"categoria": "A"}, {"categoria": "B"}]})
+
+
+def test_group_by_rechaza_columna_seleccionada_que_requiere_remezcla():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT categoria, detalle, COUNT(*) AS n FROM WORK.entrada "
+        "GROUP BY categoria; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="aggregate.*columnas sin agregar"):
+        ejecutar_plan(
+            plan,
+            {"entrada": [{"categoria": "A", "detalle": "x"}, {"categoria": "A", "detalle": "y"}]},
+        )
+
+
 def test_agregados_globales_sin_filas_devuelven_una_fila_resumen():
     plan = _plan(
         "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS filas "

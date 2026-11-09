@@ -5369,3 +5369,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Métricas: MG-P10 sigue en **18,0/80 h (23 %)** y el avance global en **192,75/895 h (21,5 %)**, sin crédito nuevo. El anillo B pasa **58/62 casos elegibles (94 %)** y conserva cuatro `xfail`: alias de auto-unión y tres subconsultas `IN`. El total medido sigue en **192,75/895 h**; saldo **702,25 h**.
 - Decisiones: la equivalencia se limita a funciones documentadas y expresiones que el evaluador ya interpreta; claves de grupo textuales con valor numérico quedan pendientes si el tipo SAS no está demostrado. La verificación del intérprete no se reporta como conversión del traductor. No se conectó a bases ni se ejecutó SAS o Talend Studio.
 - Bloqueos: para completar la migración L2 faltan el emisor Talend `aggregate` y el esquema demostrado de salida. MG-P10-01 sigue parcial por los cuatro casos `xfail`; no se aumentan sus horas hasta cumplir aceptación.
+
+## Hito 129. Corregir proyección y remezcla de agregados revisados
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial; corrección del Hito 128 tras revisión independiente.
+- Qué se hizo:
+  - El operador `aggregate` conserva `group_outputs` y `output_order`: agrupa por todas las llaves declaradas, publica solo las llaves seleccionadas, respeta alias y el orden del `SELECT`. El intérprete y la generación SQL de base usan esa proyección.
+  - La pasada SQL ya no añade un `derive` posterior que descarte los agregados después de una unión.
+  - Se detectan y dejan pendientes las columnas seleccionadas que no están en `GROUP BY`, `SELECT *` con agregados y las referencias `ORDER BY` no seleccionadas que requieren remezcla SAS. `sql_semantics.aggregate_pendiente` evita empujar estos casos a SQL de base, incluso si cambia la regla de agregados sin `GROUP BY`.
+  - Se regeneraron las referencias golden de `p0_ejemplo_basico` y `client_poc` por los campos de IR y cambios de firma. `test_golden_equivalencia.py` permite solo las rutas nuevas y firmas afectadas, documentadas por hito.
+  - Se actualizaron el diseño y el plan de implementación, además del estado maestro. No se cambiaron los esperados del corpus ni se debilitaron pruebas.
+- Pruebas: casos focalizados de intérprete, SQL y anillo B: **139 pasaron y 4 xfailed**; goldens y equivalencia: **11 pasaron**; suite completa `uv run python -m pytest -q`: **2634 pasaron, 26 omitidas y 142 xfailed**. `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido; `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 permanece en **18,0/80 h (23 %)** y el total en **192,75/895 h (21,5 %)**, sin nuevo crédito. El anillo B sigue en **58/62 elegibles (94 %)**, con cuatro `xfail`: alias de auto-unión y tres subconsultas `IN`.
+- Decisiones: los casos de remezcla que no se implementan se rechazan o quedan pendientes, no se sustituyen por resúmenes parciales. `MIN/MAX` sobre texto sigue fuera del alcance numérico de esta implementación. Los golden se regeneran porque los nuevos campos cambian la semántica y firma del plan.
+- Bloqueos: la migración completa L2 aún necesita el emisor Talend `aggregate` y un esquema demostrado para escritura; MG-P10-01 conserva los cuatro casos `xfail`. No se ejecutó SAS ni Talend Studio.

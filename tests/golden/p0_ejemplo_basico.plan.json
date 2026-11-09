@@ -61,10 +61,15 @@
       "kind": "aggregate",
       "status": "soportado",
       "placement": "flow",
-      "signature": "08499c40f4aeaff9",
+      "signature": "24392ecc583b56e2",
       "params": {
         "group_by": [
           "sex"
+        ],
+        "output_order": [
+          "sex",
+          "personas",
+          "promedio_estatura_cm"
         ],
         "aggregations": [
           {
@@ -74,6 +79,12 @@
           {
             "expression": "AVG(estatura_cm)",
             "alias": "promedio_estatura_cm"
+          }
+        ],
+        "group_outputs": [
+          {
+            "expression": "sex",
+            "alias": "sex"
           }
         ],
         "outputs": [
@@ -267,7 +278,7 @@
   "not_migrated": [],
   "pending": [
     {
-      "signature": "08499c40f4aeaff9",
+      "signature": "24392ecc583b56e2",
       "options": [
         {
           "opcion": "tAggregateRow",
@@ -356,7 +367,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tAggregateRow; no aplicado"
       },
-      "signature": "08499c40f4aeaff9",
+      "signature": "24392ecc583b56e2",
       "fuente": []
     }
   ],

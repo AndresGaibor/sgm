@@ -714,14 +714,18 @@ de cada nodo. MG-P8-01, MG-P8-02, MG-P8-03, MG-P8-05 y MG-P8-06 son de los plane
 | MG-P10-08 | Informe de cobertura `sgm cobertura` (C1) generado desde reglas y corpus | H | `docs/cobertura.md` y JSON | 6 |
 | MG-P10-09 | Segundo y tercer programa del cliente (los de `tests/fixtures/sas/real` y `synthetic`): medir cobertura y cerrar las brechas más frecuentes de forma iterativa | S | cobertura medida y creciente | 15 |
 
-**Estado (hito 128, 9 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis reglas
+**Estado (hito 129, 9 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis reglas
 de Studio sobre el modelo y los 45 Jobs de `L0` a `L2` salen limpios; encontró un defecto real del
 emisor —dos salidas `row1` del mismo nodo cuando la tabla se lee dos veces—. MG-P10-01 sigue parcial:
 el anillo B ejecuta 58 de 62 casos elegibles y conserva cuatro `xfail` estrictos: alias de auto-unión
 perdido y tres subconsultas `IN`. El intérprete ahora calcula `COUNT(*)`, `COUNT(expresión)`, `SUM`,
 `AVG`, `MIN` y `MAX` en agregados simples, con y sin grupos, faltantes y sin asumir tipos ambiguos.
-Esto hace pasar el caso L2 en el intérprete, pero la migración completa sigue pendiente: no existe
-emisor Talend para `aggregate` y el esquema de la entrada no demuestra las columnas de salida. El
+La salida conserva solo las llaves seleccionadas, sus alias y el orden del `SELECT`; la remezcla SAS
+de columnas no agrupadas o de `ORDER BY` no seleccionado se rechaza de forma explícita. Esto hace
+pasar el caso L2 en el intérprete, pero la migración completa sigue pendiente: no existe emisor Talend
+para `aggregate` y el esquema de la entrada no demuestra las columnas de salida. La revisión final
+también encontró que una proyección posterior a la unión podía descartar el agregado; ahora se evita
+esa proyección cuando el `aggregate` ya entrega la forma seleccionada. El
 intérprete también ejecuta el `IF/THEN DO/END/ELSE` de asignaciones simples; el grupo se rechaza
 conservadoramente si una variable de la condición se modifica antes de la última asignación. El
 emisor conserva el tipo de una columna cuando la rama alternativa mantiene su valor. La migración
@@ -864,7 +868,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
-anillo B, 58 de 62 casos elegibles pasan (94 %; hito 128); anillo A, 28 de los 45 casos de `L0` a
+anillo B, 58 de 62 casos elegibles pasan (94 %; hito 129); anillo A, 28 de los 45 casos de `L0` a
 `L2` migran sin pendientes de traducción (62 %; hito 115m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
 (representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
 

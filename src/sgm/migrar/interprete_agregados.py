@@ -44,8 +44,29 @@ def agregar(
             raise AgregadoNoSoportado(f"clave GROUP BY duplicada: {nombre}")
         columnas_grupo.append(nombre)
 
+    group_outputs = params.get("group_outputs")
+    if group_outputs is None:
+        group_outputs = [{"expression": nombre, "alias": nombre} for nombre in columnas_grupo]
+    salidas_grupo = []
+    nombres_salida = []
+    for group_output in group_outputs:
+        if not isinstance(group_output, dict):
+            raise AgregadoNoSoportado("proyección de GROUP BY no válida")
+        expresion = str(group_output.get("expression") or "").strip()
+        coincidencia = _COLUMNA_SIMPLE.fullmatch(expresion)
+        alias = str(group_output.get("alias") or "").strip()
+        if coincidencia is None or not _ALIAS_SIMPLE.fullmatch(alias):
+            raise AgregadoNoSoportado(f"columna de salida GROUP BY no soportada: {expresion}")
+        origen = coincidencia.group(1).lower()
+        if origen not in columnas_grupo:
+            raise AgregadoNoSoportado(f"la columna de salida '{origen}' no está en GROUP BY")
+        destino = alias.lower()
+        if destino in nombres_salida:
+            raise AgregadoNoSoportado(f"alias de salida repetido: {destino}")
+        nombres_salida.append(destino)
+        salidas_grupo.append((origen, destino))
+
     operaciones = []
-    nombres_salida = list(columnas_grupo)
     for agregacion in agregaciones:
         expresion = str(agregacion.get("expression") or "").strip()
         alias = str(agregacion.get("alias") or "").strip()
@@ -121,7 +142,7 @@ def agregar(
 
     resultado = []
     for valores_grupo, miembros in grupos.values():
-        salida = dict(valores_grupo)
+        salida = {alias: valores_grupo[nombre] for nombre, alias in salidas_grupo}
         for funcion, arbol, destino, expresion in operaciones:
             if arbol is None:
                 salida[destino] = str(len(miembros))
@@ -153,5 +174,11 @@ def agregar(
                 salida[destino] = texto_decimal(min(valores))
             elif funcion == "max":
                 salida[destino] = texto_decimal(max(valores))
+        output_order = params.get("output_order")
+        if output_order is not None:
+            nombres = [str(nombre).lower() for nombre in output_order]
+            if len(nombres) != len(set(nombres)) or set(nombres) != set(salida):
+                raise AgregadoNoSoportado("proyección de salida incompleta o duplicada")
+            salida = {nombre: salida[nombre] for nombre in nombres}
         resultado.append(salida)
     return resultado

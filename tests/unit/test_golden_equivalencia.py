@@ -46,6 +46,8 @@ CAMPOS_ADITIVOS = {
     "input_statement": "sintaxis original de INPUT (hito 121)",
     "statement": "sentencias originales de lectura (hito 121)",
     "unsupported_options": "opciones INFILE sin equivalencia identificada (hito 121)",
+    "group_outputs": "llaves GROUP BY seleccionadas como columnas de salida (hito 129)",
+    "output_order": "orden de las columnas del SELECT en la salida agregada (hito 129)",
 }
 
 # Cambios intencionales de valor o diagnóstico: se documentan por referencia y ruta para que el
@@ -63,6 +65,26 @@ CAMBIOS_DOCUMENTADOS = {
         "operators[74].params.talend_expression_candidates[0].java": (
             "hito 110: emitir COMPRESS del espacio literal con la rutina Talend de reemplazo"
         ),
+        "operators[19].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[24].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[26].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[29].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[31].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "pendientes[33].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[34].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[35].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[36].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[37].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pending[0].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[1].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[2].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[3].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[4].signature": "hito 129: la decisión de salida usa la firma del agregado",
+    },
+    "p0_ejemplo_basico.plan.json": {
+        "operators[2].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "pendientes[1].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pending[0].signature": "hito 129: la decisión de salida usa la firma del agregado",
     },
     "generalization__etl_archivos_simple.plan.json": {
         "operators[2].signature": "hito 121: INFILE/INPUT pasa a formar parte de la firma",

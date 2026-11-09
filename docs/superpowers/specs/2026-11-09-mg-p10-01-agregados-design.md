@@ -11,6 +11,9 @@ demostrar para que el resultado se pueda comparar con el SAS de referencia.
 - Admitir `COUNT(*)`, `COUNT(expresión)`, `SUM(expresión)`, `AVG(expresión)`, `MIN(expresión)` y
   `MAX(expresión)` en la operación `aggregate` de la IR.
 - Admitir agregados con `GROUP BY` de una o varias columnas simples y agregados globales sin `GROUP BY`.
+- La salida del agregado solo contiene las columnas simples seleccionadas del `GROUP BY`, respeta
+  sus alias y conserva el orden del `SELECT`; las llaves no seleccionadas siguen agrupando, pero no
+  aparecen en la salida.
 - Contar todas las filas con `COUNT(*)`, incluidas las que tengan otros campos faltantes; `COUNT(expr)`
   cuenta solo expresiones no faltantes.
 - Los agregados numéricos omiten valores faltantes y devuelven faltante cuando no tienen ningún valor
@@ -24,8 +27,9 @@ demostrar para que el resultado se pueda comparar con el SAS de referencia.
 ## Fuera de alcance
 
 - `DISTINCT`, `COUNT(DISTINCT ...)`, agregados distintos de los enumerados, expresiones con varios
-  argumentos, `GROUP BY` sin agregados, remezcla de columnas no agrupadas y tipos de clave no
-  demostrables.
+  argumentos, `GROUP BY` sin agregados, remezcla de columnas no agrupadas, `SELECT *` con agregados y
+  tipos de clave no demostrables. Las columnas no agrupadas o referencias `ORDER BY` no seleccionadas
+  que impliquen remezcla quedan pendientes y el intérprete las rechaza.
 - No se cambia el emisor Talend ni se conecta una base de datos. El trabajo es del intérprete de
   referencia y reutiliza las expresiones de la IR.
 
@@ -48,12 +52,15 @@ demostrar para que el resultado se pueda comparar con el SAS de referencia.
   (`sqlproc.pdf`, pp. 76 y 83). Las funciones numéricas devuelven faltante cuando todos sus argumentos
   están faltantes (`lefunctionsref.pdf`, pp. 1230, 1234, 1236 y 1580).
 - Un agregado sin `GROUP BY` produce una fila resumen (`sqlproc.pdf`, pp. 78-79).
+- SAS remezcla cuando el `SELECT` combina agregados con columnas no incluidas en `GROUP BY`, o cuando
+  `ORDER BY` usa una columna no seleccionada (`sqlproc.pdf`, p. 79). Como no se implementa esa
+  remezcla, esos patrones no se calculan parcialmente.
 
 ## Aceptación
 
 - El caso `l2_08_case_when_tras_left_join` calcula sus dos tablas esperadas sin `xfail`, sin modificar
   `esperado/`.
 - Pruebas del intérprete cubren cada función, filas faltantes, un grupo con todos sus valores
-  agregados faltantes, claves de grupo faltantes, agregación global y patrones que se mantienen
-  explícitamente no soportados.
+  agregados faltantes, claves de grupo faltantes, agregación global, proyección/alias/orden de salida
+  y patrones que se mantienen explícitamente no soportados.
 - La suite completa y Ruff pasan; `MG-P10-01` sigue parcial mientras haya más casos `xfail`.
