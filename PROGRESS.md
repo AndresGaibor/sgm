@@ -5755,3 +5755,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendiente: mirar el `tMap` de `l1_14` y `l1_15` en la ventana de Studio, y el log completo con
   `talend_bridge_log_tail` en el momento del fallo.
 - Pruebas: sin cambios de código en este hito.
+
+## Hito 147m. Aislamiento de la construcción que bloquea el puente en `l1_14` (variantes)
+
+- Fecha: 2026-11-09.
+- Método: variantes del programa de `l1_14`, emitidas y compiladas en Studio una por una. Las variantes
+  viven en el scratchpad, no en el corpus.
+- Resultados (compilación en Studio):
+  - Sin `ORDER BY neto DESC, id_venta`: **compila**.
+  - `BETWEEN` cambiado a `cantidad >= 2` (sin cota superior): **compila**.
+  - Sin `LIKE 'T%'`: **bloquea el puente** (`BRIDGE_UNAVAILABLE`). El `LIKE` no es la causa.
+  - Sin la expresión `(monto - 50) * cantidad`: no se pudo medir; Studio quedó ocupado tras la variante
+    anterior y no respondió al chequeo previo.
+- Estado: tras la última variante, `talend_bridge_log_tail` muestra «El hilo de la interfaz de Studio
+  está ocupado» en `/workspace/refresh`. Hace falta mirar la ventana de Studio y cerrar el diálogo.
+- Pendiente: compilar `soloOrdenMixto` (solo el `ORDER BY` con dos claves y sentidos distintos),
+  `soloOrdenNeto` (un solo sentido) y `soloBetween` (solo el `BETWEEN` original), una vez Studio responda.
+  Si `soloOrdenMixto` bloquea, la causa es el `tSortRow` con dos claves de sentido distinto.
+- Pruebas: sin cambios de código en este hito.
