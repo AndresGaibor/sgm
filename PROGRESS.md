@@ -5257,3 +5257,39 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   valores distintos para validar el orden de `tSortRow`; hasta entonces esa traducción conserva
   `status=parcial`. `NODUPREC` con `BY` parcial o distinto de `_ALL_` y el resto de opciones de sort
   no cubiertas permanecen pendientes.
+
+## Hito 125. Expandir `%SYSFUNC(UPCASE())` constante
+
+- Fecha: 2026-11-09. Alcance: MG-P7-01, parcial.
+- Qué se hizo:
+  - En `%LET`, el frontend sustituye primero las macrovariables conocidas y evalúa únicamente la
+    forma completa `%SYSFUNC(UPCASE(argumento))` si el argumento resultante es un identificador ASCII
+    simple (`[A-Za-z0-9_]+`). La regex fuerza `re.ASCII` para no aceptar cuatro letras Unicode que
+    Python iguala a rangos ASCII con `IGNORECASE`. No se usa `eval` ni se evalúan otras funciones.
+  - El caso L5-06 pasa por `analyze_program`: no deja `MacroDynamic` para la llamada constante y el
+    SQL contiene `WORK.RES_LEALTAD` y `WORK.DATOS_LEALTAD`.
+  - La regresión compara el SQL sin normalizar mayúsculas; se comprobó que falla al sustituir el
+    evaluador por uno que devuelve el argumento en minúsculas.
+  - Se agregaron diez límites negativos: referencia sin resolver, argumento no ASCII, cuatro letras
+    Unicode que `re.IGNORECASE` Unicode confunde con rangos ASCII, formato opcional, argumentos
+    múltiples, texto mal formado y función distinta. Todos continúan dinámicos.
+  - Si cualquier fuente declara `OPTIONS TRANTAB=`, `ENCODING=`, `LOCALE=` o una opción macro
+    dinámica, el `%SYSFUNC(UPCASE())` queda pendiente. `OPTIONS NODATE` no bloquea la expansión.
+  - El catálogo indica el subconjunto reconocido y la dependencia de `TRANTAB`, `ENCODING` y
+    `LOCALE`; no se deducen opciones externas de sesión.
+- Pruebas: `uv run python -m pytest -q`: **2601 aprobadas, 26 omitidas y 144 xfailed**; `uv run ruff
+  check .` limpio; `uv run python -m sgm.cli rules validate` válido; `uv run python -m pytest tests/unit/test_macros.py
+  tests/unit/test_corpus_l4l6.py -q`: **154 aprobadas, 25 omitidas**;
+  `git -c core.whitespace=cr-at-eol diff --check` limpio. En Windows, `uv run sgm rules validate`
+  está bloqueado por App Control (OS error 4551), por lo que se usó la invocación del mismo CLI vía
+  `python -m`; el `git diff --check` sin `cr-at-eol` interpreta el CR de los archivos CRLF como
+  espacio final.
+- Métricas: MG-P7-01 crédito 0,25 (**4/16 h**); MG-P7 **4/60 h (7 %)**; total **192,75/895 h
+  (21,5 %)**; saldo medido **702,25 h**. Falta conciliar 17 h con el reparto nominal.
+- Decisiones: limitar la forma aceptada al identificador ASCII simple, usar `re.ASCII` y preservar
+  `MacroDynamic` ante toda incertidumbre. Si el SAS declara `TRANTAB`/`ENCODING`/`LOCALE` (o una
+  opción macro dinámica), no se sustituye el valor. Se incorpora esa dependencia a MG-P7-07. El
+  avance se limita a 0,25 hasta cubrir el resto de L5 y el anexo.
+- Bloqueos: no se ejecutó contra SAS ni se compiló/ejecutó un Job Talend; los valores de opciones
+  de sesión configurados externamente no están disponibles, y faltan los vectores L5 restantes. No
+  se afirma equivalencia ejecutada.

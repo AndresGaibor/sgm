@@ -31,6 +31,15 @@ from sgm.frontend.selectors import Selector, SelectorUse, detect
 
 __all__ = ["Expanded", "Expander", "MacroDynamic", "MacroIndex", "index_file"]
 
+_SYSFUNC_UPCASE = re.compile(
+    r"^\s*%sysfunc\s*\(\s*upcase\s*\(\s*([A-Za-z0-9_]+)\s*\)\s*\)\s*$",
+    re.IGNORECASE | re.DOTALL | re.ASCII,
+)
+_OPTIONS_STATEMENT = re.compile(r"^\s*options\b", re.IGNORECASE | re.ASCII)
+_UPCASE_SYSTEM_OPTIONS = re.compile(
+    r"\b(?:trantab|encoding|locale)\b", re.IGNORECASE | re.ASCII
+)
+
 
 class Expander(ControlMixin, LlamadasMixin):
     """Expande un proyecto archivo por archivo. Guarda lo dinámico y lo que no se pudo resolver."""
@@ -50,6 +59,7 @@ class Expander(ControlMixin, LlamadasMixin):
         self.dynamics: list[MacroDynamic] = []
         self.trace: list[str] = []
         self.unresolved_includes: list[tuple[str, str, str]] = []
+        self._upcase_options = _upcase_option_overrides(files)
 
     def expand_file(self, file: str) -> list[object]:
         items, _ = self._block(self.files[file], 0, file, {}, 0, nested=False)
@@ -121,10 +131,20 @@ class Expander(ControlMixin, LlamadasMixin):
             return s
         name = m.group(1).lower()
         raw = m.group(2).strip()
-        if _DYNAMIC_FN.search(raw):
-            env[name] = None
-            return self._dynamic(s, f"%let con %sysfunc o similar: {name}")
         value = self._subst(raw, env)
+        if _DYNAMIC_FN.search(value):
+            resolved = _static_sysfunc(value)
+            if resolved is None:
+                env[name] = None
+                return self._dynamic(s, f"%let con %sysfunc o similar: {name}")
+            if self._upcase_options:
+                env[name] = None
+                option_names = ", ".join(sorted(self._upcase_options))
+                return self._dynamic(
+                    s,
+                    f"%sysfunc(upcase) depende de opciones SAS no evaluadas: {option_names}",
+                )
+            value = resolved
         if (ev := _eval_call(value)) is not None:
             value = str(ev)
         if "&" in value or "%" in value:
@@ -161,3 +181,24 @@ def _eval_call(text: str) -> int | None:
     if re.match(r"(?i)^%eval\s*\(", text.strip()):
         return _int(text)
     return None
+
+
+def _static_sysfunc(text: str) -> str | None:
+    """Evalúa solo `%SYSFUNC(UPCASE(...))` con un argumento ASCII simple y ya resuelto."""
+    match = _SYSFUNC_UPCASE.fullmatch(text)
+    if match is None:
+        return None
+    return match.group(1).upper()
+
+
+def _upcase_option_overrides(files: dict[str, list[Stmt]]) -> frozenset[str]:
+    """Find source OPTIONS that can change UPCASE or whose macro value is unknown."""
+    found: set[str] = set()
+    for statements in files.values():
+        for stmt in statements:
+            if not _OPTIONS_STATEMENT.match(stmt.text):
+                continue
+            found.update(name.lower() for name in _UPCASE_SYSTEM_OPTIONS.findall(stmt.text))
+            if "&" in stmt.text or "%" in stmt.text:
+                found.add("opciones dinámicas")
+    return frozenset(found)

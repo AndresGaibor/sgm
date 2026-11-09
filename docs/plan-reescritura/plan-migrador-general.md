@@ -655,7 +655,18 @@ MG-P6-02 a MG-P6-07 siguen sin empezar.
 | MG-P7-04 | Variables de macro de tiempo de ejecución (`CALL SYMPUT`, `SELECT INTO`) a contexto o variable global | S | casos nuevos | 8 |
 | MG-P7-05 | Huecos del analizador: `%IF` en macro con parámetro, `PROC DOWNLOAD` en `RSUBMIT`, WORK leída antes de crearse, `sql_tree` con subconsultas en `FROM` | S | los 3 programas del hueco ya analizan | 12 |
 | MG-P7-06 | `CALL EXECUTE` y código dinámico: pendiente con motivo y forma documentada (MG-D04) | H | pendientes con código estable | 4 |
-| MG-P7-07 | Opciones del sistema que cambian resultados (`MISSING=`, `YEARCUTOFF`, `VALIDVARNAME`, `MERGENOBY`): detección y aviso | H | `lesysoptsref` citada | 6 |
+| MG-P7-07 | Opciones del sistema que cambian resultados (`MISSING=`, `YEARCUTOFF`, `VALIDVARNAME`, `MERGENOBY`, `TRANTAB`, `ENCODING`, `LOCALE`): detección y aviso | H | `lesysoptsref` citada y dependencias NLS documentadas | 6 |
+
+**Estado (hito 125, 9 de noviembre de 2026).** MG-P7-01 avanza de forma parcial: el frontend expande
+el caso L5-06 cuando `%SYSFUNC(UPCASE(...))` recibe una macrovariable resuelta cuyo valor es un
+identificador ASCII simple (`[A-Za-z0-9_]+`). Las llamadas dinámicas, con formato, argumentos
+múltiples o funciones distintas quedan como `MacroDynamic`. Si alguna fuente declara `TRANTAB`,
+`ENCODING`, `LOCALE` o una opción dinámica, la llamada también se conserva como pendiente. SAS
+documenta que `UPCASE` depende de esas tres opciones (`lefunctionsref.pdf`, sección iniciada p. 1638,
+detalle p. 1639); la ausencia de una declaración en el SAS no demuestra los valores externos de la
+sesión, por lo que no se declara equivalencia general ni se completa MG-P7-01. Crédito medido: 0,25
+de 16 h (4 h). MG-P7-02 a MG-P7-07 siguen sin implementación; la detección de opciones es parcial y
+su cierre corresponde a MG-P7-07.
 
 ### MG-P8. Planificador de arquitectura (70 h)
 Convierte el plan lógico en la organización de Jobs. Es el paso que hoy no existe para un programa nuevo.
@@ -807,9 +818,9 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (9 de noviembre de 2026, hito 124)
+## 11b. Avance medido (9 de noviembre de 2026, hito 125)
 
-**Avance global: 21,1 % de las 895 horas de agente (188,75 h), es decir, cerca de 21 %.** C7 (producción
+**Avance global: 21,5 % de las 895 horas de agente (192,75 h).** C7 (producción
 con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía.
 
 **Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
@@ -828,7 +839,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P4 DATA step | 90 | 7,0 | 8 % | `WHERE`, `IF/ELSE IF`, `KEEP/DROP/RENAME`; sin `MERGE`, `RETAIN`, `OUTPUT` múltiple |
 | MG-P5 `PROC SQL` | 80 | 12,0 | 15 % | `filter`, `derive`, `join`; L1 completos 3 de 15, L2 5 de 15 |
 | MG-P6 Procedimientos | 50 | 7,5 | 15 % | `PROC SORT` parcial: `NODUPREC BY _ALL_`, `DUPOUT=`, `DESCENDING`; estabilidad de `NODUPKEY` sin probar en Studio |
-| MG-P7 Macros | 60 | 0,0 | 0 % | Sin medir contra `L5` |
+| MG-P7 Macros | 60 | 4,0 | 7 % | `MG-P7-01` parcial: `%SYSFUNC(UPCASE())` en el caso L5-06; faltan el resto de L5 y el anexo, y validar `TRANTAB`/`ENCODING`/`LOCALE` |
 | MG-P8 Planificador | 70 | 13,0 | 19 % | Contextos DEV/QA/PROD; `trace.json` parcial; sin segmentación ni límite de tamaño |
 | MG-P9 Emisor | 108 | 26,5 | 25 % | 25 de 40 plantillas, contextos y conexiones básicas; joblets sin validar |
 | MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 42 de 62 pasan, 20 `xfail` |
@@ -836,10 +847,10 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
-| **Total** | **895** | **188,75** | **21,1 %** | Suma recalculada de los créditos visibles por fase |
+| **Total** | **895** | **192,75** | **21,5 %** | Suma recalculada de los créditos visibles por fase |
 
-**Saldo por créditos medidos: 706,25 h.** El reparto nominal entre Andres y Byron en
-`reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 13,0 h por
+**Saldo por créditos medidos: 702,25 h.** El reparto nominal entre Andres y Byron en
+`reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 17,0 h por
 conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
