@@ -41,7 +41,6 @@ CONOCIDOS: dict[str, str] = {
         "el plan pierde el alias del auto-unión: las dos referencias quedan 'id_cliente < id_cliente'"
     ),
     # Pasos que el intérprete todavía no ejecuta.
-    "l2_08_case_when_tras_left_join": _NO_LO_EJECUTA.format(paso="aggregate"),
     "l2_06_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
     "l2_07_not_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
     "l2_15_validacion_en_cascada": "el intérprete no ejecuta un IN con subconsulta",

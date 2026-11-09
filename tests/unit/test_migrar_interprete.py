@@ -13,7 +13,7 @@ import pytest
 
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
-from sgm.ir.models import Plan
+from sgm.ir.models import Edge, Graph, Operator, Plan
 from sgm.migrar.interprete import NoSoportadoEnInterprete, ejecutar_plan
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L2"
@@ -233,13 +233,178 @@ def test_subsetting_if_conserva_no_cero_y_descarta_cero_o_faltante():
 
 def test_un_operador_no_soportado_no_se_salta():
     """Un paso sin implementar detiene la ejecución con su nombre, no devuelve filas sin calcular."""
-    plan = _caso("l2_08_case_when_tras_left_join")
+    plan = _plan(
+        "PROC SQL; CREATE TABLE resumen AS SELECT STD(valor) AS desviacion "
+        "FROM WORK.valores; QUIT;"
+    )
 
     with pytest.raises(NoSoportadoEnInterprete) as error:
-        ejecutar_plan(plan, {"clientes": [], "ventas": []})
+        ejecutar_plan(plan, {"valores": []})
 
     assert error.value.kind == "aggregate"
     assert str(error.value).startswith("aggregate")
+
+
+def test_agregados_por_grupo_cuentan_omisiones_y_conservan_faltantes_sas():
+    plan = _plan(
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.resumen AS\n"
+        "SELECT categoria, COUNT(*) AS filas, COUNT(valor) AS no_faltantes,\n"
+        "SUM(valor) AS suma, SUM(valor + 1) AS suma_mas_uno, AVG(valor) AS promedio,\n"
+        "MIN(valor) AS minimo, MAX(valor) AS maximo\n"
+        "FROM WORK.entrada\n"
+        "GROUP BY categoria;\n"
+        "QUIT;"
+    )
+    entradas = {
+        "entrada": [
+            {"categoria": "A", "valor": "1"},
+            {"categoria": "A", "valor": ""},
+            {"categoria": "A", "valor": "5"},
+            {"categoria": "B", "valor": ""},
+            {"categoria": "B", "valor": None},
+            {"categoria": "", "valor": "2"},
+            {"categoria": None, "valor": "4"},
+        ]
+    }
+
+    filas = ejecutar_plan(plan, entradas)["resumen"]
+
+    assert filas == [
+        {
+            "categoria": "A",
+            "filas": "3",
+            "no_faltantes": "2",
+            "suma": "6",
+            "suma_mas_uno": "8",
+            "promedio": "3",
+            "minimo": "1",
+            "maximo": "5",
+        },
+        {
+            "categoria": "B",
+            "filas": "2",
+            "no_faltantes": "0",
+            "suma": None,
+            "suma_mas_uno": None,
+            "promedio": None,
+            "minimo": None,
+            "maximo": None,
+        },
+        {
+            "categoria": "",
+            "filas": "2",
+            "no_faltantes": "2",
+            "suma": "6",
+            "suma_mas_uno": "8",
+            "promedio": "3",
+            "minimo": "2",
+            "maximo": "4",
+        },
+    ]
+
+
+def test_agregados_globales_sin_filas_devuelven_una_fila_resumen():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS filas "
+        "FROM WORK.entrada; QUIT;"
+    )
+
+    filas = ejecutar_plan(plan, {"entrada": []})["resumen"]
+
+    assert filas == [{"filas": "0"}]
+
+
+def test_agregado_como_paso_de_map_se_ejecuta_y_publica_su_salida():
+    grafo = Graph()
+    fuente = Operator("fuente", "read", {"dataset": "WORK.entrada"})
+    mapa = Operator(
+        "mapa",
+        "map",
+        {
+            "steps": [
+                {
+                    "kind": "aggregate",
+                    "params": {
+                        "group_by": ["categoria"],
+                        "aggregations": [{"expression": "COUNT(*)", "alias": "filas"}],
+                    },
+                }
+            ],
+            "outputs": ["WORK.resumen"],
+        },
+    )
+    destino = Operator("destino", "write", {"dataset": "WORK.resumen"})
+    for operador in (fuente, mapa, destino):
+        grafo.add_operator(operador)
+    grafo.add_edge(Edge("fuente", "mapa", "(interno)"))
+    grafo.add_edge(Edge("mapa", "destino", "WORK.resumen"))
+
+    filas = ejecutar_plan(
+        Plan("prueba", graph=grafo),
+        {"entrada": [{"categoria": "A"}, {"categoria": "A"}, {"categoria": "B"}]},
+    )["resumen"]
+
+    assert filas == [
+        {"categoria": "A", "filas": "2"},
+        {"categoria": "B", "filas": "1"},
+    ]
+
+
+def test_agregados_globales_suman_todas_las_filas_no_faltantes():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS filas, "
+        "SUM(valor) AS suma, AVG(valor) AS promedio, MIN(valor) AS minimo, "
+        "MAX(valor) AS maximo FROM WORK.entrada; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan, {"entrada": [{"valor": "2"}, {"valor": ""}, {"valor": "4"}]}
+    )["resumen"]
+
+    assert filas == [
+        {"filas": "3", "suma": "6", "promedio": "3", "minimo": "2", "maximo": "4"}
+    ]
+
+
+def test_group_by_sin_filas_no_produce_grupos():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT categoria, COUNT(*) AS filas "
+        "FROM WORK.entrada GROUP BY categoria; QUIT;"
+    )
+
+    assert ejecutar_plan(plan, {"entrada": []})["resumen"] == []
+
+
+def test_agregados_agrupan_por_varias_columnas():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT region, categoria, COUNT(*) AS filas "
+        "FROM WORK.entrada GROUP BY region, categoria; QUIT;"
+    )
+    entradas = {
+        "entrada": [
+            {"region": "Norte", "categoria": "A"},
+            {"region": "Norte", "categoria": "A"},
+            {"region": "Norte", "categoria": "B"},
+            {"region": "Sur", "categoria": "A"},
+        ]
+    }
+
+    assert ejecutar_plan(plan, entradas)["resumen"] == [
+        {"region": "Norte", "categoria": "A", "filas": "2"},
+        {"region": "Norte", "categoria": "B", "filas": "1"},
+        {"region": "Sur", "categoria": "A", "filas": "1"},
+    ]
+
+
+def test_agregado_no_adivina_tipo_de_clave_de_grupo_numerica_en_texto():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT codigo, COUNT(*) AS filas "
+        "FROM WORK.entrada GROUP BY codigo; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="tipo.*ambiguo"):
+        ejecutar_plan(plan, {"entrada": [{"codigo": "01"}, {"codigo": "1"}]})
 
 
 def test_data_step_if_then_do_else_aplica_ambas_ramas():

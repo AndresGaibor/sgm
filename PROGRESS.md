@@ -5355,3 +5355,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Bloqueos: quedan cinco casos del anillo B: alias de auto-unión, agregado y tres subconsultas `IN`.
   El caso DATA step puede ejecutarse en el intérprete, pero la migración de corpus continúa pendiente
   hasta disponer de un esquema que describa la tabla de entrada.
+
+## Hito 128. Evaluar agregados PROC SQL en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El intérprete ejecuta `COUNT(*)`, `COUNT(expresión)`, `SUM`, `AVG`, `MIN` y `MAX` sobre agregados simples. Acepta grupos de una o varias columnas, agregados globales, faltantes y entradas vacías; conserva el orden de primera aparición de los grupos.
+  - El motor quedó en `migrar/interprete_agregados.py`; recibe el parser, el evaluador y el acceso a columnas desde el intérprete, y convierte sus rechazos al error público `NoSoportadoEnInterprete`. Las funciones distintas, `DISTINCT`, alias inválidos, tipos ambiguos y columnas ausentes no se omiten silenciosamente.
+  - `l2_08_case_when_tras_left_join` coincide con las tablas esperadas en el anillo B y salió de la lista de `xfail`. Sigue en `tests/corpus/migrar_pendientes.yaml`: `sgm migrar` no dispone de emisor Talend para `aggregate` ni de un esquema demostrado para las columnas de escritura. No se modificaron los esperados.
+  - El catálogo mantiene `grouping-with-missing-values` en `no_verificada`: el intérprete de verificación trata esa semántica, pero no existe todavía conversión del traductor/emisor. Se documentó la diferencia para que el estado no atribuya soporte al componente incorrecto.
+  - Se documentó la semántica con las páginas de `sqlproc` y `lefunctionsref`, además de la decisión de no inferir tipos.
+- Pruebas: `uv run python -m pytest -n 0 tests/unit/test_migrar_interprete.py -q`: **21 pasaron**; anillo B: **61 pasaron y 4 xfailed**; aceptación del manifiesto: **2 pasaron**; `uv run python -m pytest -q`: **2621 pasaron, 26 omitidas y 142 xfailed**. `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido; `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 sigue en **18,0/80 h (23 %)** y el avance global en **192,75/895 h (21,5 %)**, sin crédito nuevo. El anillo B pasa **58/62 casos elegibles (94 %)** y conserva cuatro `xfail`: alias de auto-unión y tres subconsultas `IN`. El total medido sigue en **192,75/895 h**; saldo **702,25 h**.
+- Decisiones: la equivalencia se limita a funciones documentadas y expresiones que el evaluador ya interpreta; claves de grupo textuales con valor numérico quedan pendientes si el tipo SAS no está demostrado. La verificación del intérprete no se reporta como conversión del traductor. No se conectó a bases ni se ejecutó SAS o Talend Studio.
+- Bloqueos: para completar la migración L2 faltan el emisor Talend `aggregate` y el esquema demostrado de salida. MG-P10-01 sigue parcial por los cuatro casos `xfail`; no se aumentan sus horas hasta cumplir aceptación.

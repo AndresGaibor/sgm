@@ -4,11 +4,11 @@ Es el anillo B de la verificación: prueba que el plan —y por lo tanto el Job 
 lo que el SAS dice, sin abrir Talend Studio. Sirve para dos cosas que ninguna otra pieza cubre: los
 casos donde Studio no está disponible, y el contraste con `esperado/` de todo el corpus.
 
-Soporta `PROC SORT` y sus deduplicaciones acotadas, además de `read_file`, `write_file`, `map` con
-pasos `join` (inner y left), `filter` y `derive`, y los `read` y `write` que solo nombran un
-conjunto. Lo demás **no se ignora**: lanza `NoSoportadoEnInterprete` con el operador o el paso
-que no entiende. Un intérprete que se salta un `sort` en silencio daría filas correctas en el
-conjunto y falsas en el orden, y la prueba pasaría sin probar nada.
+Soporta agregados acotados de `PROC SQL`, `PROC SORT` y sus deduplicaciones, además de `read_file`,
+`write_file`, `map` con pasos `join` (inner y left), `filter` y `derive`, y los `read` y `write` que
+solo nombran un conjunto. Lo demás **no se ignora**: lanza `NoSoportadoEnInterprete` con el operador
+o el paso que no entiende. Un intérprete que se salta un `sort` en silencio daría filas correctas en
+el conjunto y falsas en el orden, y la prueba pasaría sin probar nada.
 
 Las expresiones se leen con `sqlglot`, que ya es dependencia del proyecto para el SQL, y se evalúan
 con la semántica de `sgm.migrar.semantica`. Las columnas se resuelven por nombre y sin distinguir
@@ -28,6 +28,7 @@ from sqlglot.errors import ParseError
 
 from sgm.ir.models import Operator, Plan
 from sgm.migrar import semantica
+from sgm.migrar.interprete_agregados import AgregadoNoSoportado, agregar
 
 # Operadores que el intérprete sabe ejecutar; el resto detiene la ejecución con su nombre.
 SOPORTADOS = frozenset(
@@ -42,6 +43,7 @@ SOPORTADOS = frozenset(
         "derive",
         "sort",
         "dedup",
+        "aggregate",
     }
 )
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
@@ -548,6 +550,14 @@ def _unicos_y_duplicados(filas: list[dict], params: dict) -> tuple[list[dict], l
     return unicos, duplicados
 
 
+def _agregar(filas: list[dict], params: dict) -> list[dict]:
+    """Adapta los agregados compatibles al error público del intérprete."""
+    try:
+        return agregar(filas, params, parsear=_arbol, evaluar=_valor, columna=_columna)
+    except AgregadoNoSoportado as error:
+        raise NoSoportadoEnInterprete("aggregate", str(error)) from error
+
+
 def _entradas(plan: Plan, op: Operator, por_operador: dict, tablas: dict) -> dict[str, list[dict]]:
     """Filas de cada predecesor, por la tabla que entrega."""
     por_tabla: dict[str, list[dict]] = {}
@@ -621,6 +631,8 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict) -> list[d
             actual = _ordenar(actual, params)
         elif clase == "dedup":
             actual = _unicos(actual, params)
+        elif clase == "aggregate":
+            actual = _agregar(actual, params)
         else:
             raise NoSoportadoEnInterprete(clase or "paso", "el intérprete no lo ejecuta")
     return actual
@@ -628,7 +640,18 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict) -> list[d
 
 def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
-    clases = ("read_file", "map", "filter", "derive", "select", "rename", "join", "sort", "dedup")
+    clases = (
+        "read_file",
+        "map",
+        "filter",
+        "derive",
+        "select",
+        "rename",
+        "join",
+        "sort",
+        "dedup",
+        "aggregate",
+    )
     if op.kind in clases:
         nombres = [_tabla(nombre) for nombre in op.params.get("outputs") or []]
         if op.kind == "dedup":
@@ -677,6 +700,11 @@ def _ejecutar(
             raise NoSoportadoEnInterprete(op.kind, "sin operador de origen")
         filas = por_operador.get(previos[0], [])
         return filas, {nombre: tablas.get(nombre, filas) for nombre in _nombres(op)}
+    if op.kind == "aggregate":
+        entrada = _base(plan, op, set(), por_operador, tablas)
+        filas = _agregar(entrada, op.params)
+        propias = {_tabla(nombre): filas for nombre in op.params.get("outputs") or []}
+        return filas, propias
     if op.kind in ("map", "join", "filter", "derive", "select", "rename", "sort", "dedup"):
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches") and not op.params.get("steps"):
