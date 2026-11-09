@@ -5671,3 +5671,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites:
   - MG-P1-03 sigue con el criterio «L1 a L3 construyen su plan» sin cumplirse del todo: las uniones ya
     pasan por el constructor, pero `filter`, `derive`, `aggregate`, `sort` y `dedup` no.
+
+## Hito 142m. Pasos de SQL construidos por el constructor (MG-P1-03)
+
+- Fecha: 2026-11-09.
+- Qué se hizo: en `ir/lower_sql_flow.py`, los pasos `filter`, `derive`, `dedup` y `sort` de `PROC SQL`
+  toman sus parámetros de `operadores.filtrar`, `calcular`, `deduplicar` y `ordenar` mediante el helper
+  `_paso`. Si el constructor rechaza el paso, se usa la forma anterior, como con las uniones (hito 141m).
+  Se añadió `_paso` al final de `lower_sql_flow.py`.
+- Pruebas: suite completa **2714 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio. Las pruebas de
+  golden y de equivalencia (`test_golden*.py`) pasan sin cambios, así que las firmas no cambian en el
+  corpus.
+- Límites:
+  - `aggregate` de SQL sigue construyéndose con `chain.step`, y `sort` y `dedup` de `PROC SORT`
+    (`ir/lower_procs.py`) tampoco pasan por el constructor.
+  - `ruff format` se aplicó a `lower_sql_flow.py`; cambió también una condición ajena a estos pasos (un
+    `if` que cabía en una línea).
+  - Studio sigue sin responder: la verificación del `.item` con `LENGTH` sigue pendiente.

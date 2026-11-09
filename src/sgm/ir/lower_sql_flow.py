@@ -138,9 +138,7 @@ def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
     resultado de SAS trae solo `a` y `b`. Sin ella, la tabla de salida arrastra columnas de más y el
     Job escribe un archivo que no es el del SAS. Solo `select *` la evita, porque no recorta nada.
     """
-    if spec.group_by or any(
-        not it.star and _AGGREGATE.search(it.expression) for it in spec.items
-    ):
+    if spec.group_by or any(not it.star and _AGGREGATE.search(it.expression) for it in spec.items):
         # El agregado ya entrega solo su llave y sus agregados: proyectar detrás no recorta nada,
         # tenga o no uniones delante.
         return False
@@ -230,11 +228,25 @@ def _cruce_de_existencia(
     actual = chain.read(sub.base)
     if sub.where:
         filtro = _restore(_column(sub.where, alias_sub), normalized)
-        actual = chain.step("filter", {"expression": filtro}, actual)
+        actual = _paso(
+            chain, "filter", {"expression": filtro}, lambda: operadores.filtrar("_", filtro), actual
+        )
     leida = _calificar(_restore(semi.key, normalized), tablas_sub)
     proyeccion = [{"target": clave, "expression": leida, "origin": "columna"}]
-    actual = chain.step("derive", {"assignments": proyeccion}, actual)
-    actual = chain.step("dedup", {"by": [clave], "keep": "first", "outputs": [tabla]}, actual)
+    actual = _paso(
+        chain,
+        "derive",
+        {"assignments": proyeccion},
+        lambda: operadores.calcular("_", proyeccion),
+        actual,
+    )
+    actual = _paso(
+        chain,
+        "dedup",
+        {"by": [clave], "keep": "first", "outputs": [tabla]},
+        lambda: operadores.deduplicar("_", [clave], "first", [tabla]),
+        actual,
+    )
     derecha = chain.read(Source(tabla))
     chain.b.link(actual, derecha)
     izquierda = _calificar(_restore(semi.column, normalized), tablas)
@@ -256,7 +268,13 @@ def _cruce_de_existencia(
     chain.b.link(derecha, cruce)
     if not semi.negate:
         return cruce
-    return chain.step("filter", {"expression": f"missing({clave})"}, cruce)
+    return _paso(
+        chain,
+        "filter",
+        {"expression": f"missing({clave})"},
+        lambda: operadores.filtrar("_", f"missing({clave})"),
+        cruce,
+    )
 
 
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
@@ -271,9 +289,7 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     for join in spec.joins:
         right = chain.read(join.source)
         pares = join.qualified or join.keys
-        keys = [
-            [_calificar(left, tablas), _calificar(derecha, tablas)] for left, derecha in pares
-        ]
+        keys = [[_calificar(left, tablas), _calificar(derecha, tablas)] for left, derecha in pares]
         params = _params_de_union(
             join.kind,
             keys,
@@ -318,7 +334,13 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
             spec, [*simples, *(Item(llamada) for llamada in ocultas)], tablas, normalized
         )
         if leidas:
-            current = chain.step("derive", {"assignments": leidas}, current)
+            current = _paso(
+                chain,
+                "derive",
+                {"assignments": leidas},
+                lambda: operadores.calcular("_", leidas),
+                current,
+            )
     if spec.group_by or aggregates:
         params = {
             "group_by": [_column(g, aliases) for g in spec.group_by],
@@ -372,7 +394,13 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 )
             else:
                 salida.append({"target": nombre, "expression": nombre, "origin": "columna"})
-        current = chain.step("derive", {"assignments": salida}, current)
+        current = _paso(
+            chain,
+            "derive",
+            {"assignments": salida},
+            lambda: operadores.calcular("_", salida),
+            current,
+        )
     assignments = [
         _asignacion(it, tablas, normalized)
         for it in spec.items
@@ -390,11 +418,23 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
             status="parcial" if spec.windows else "soportado",
         )
     if spec.distinct:
-        current = chain.step("dedup", {"by": _names(spec.items), "keep": "first"}, current)
+        current = _paso(
+            chain,
+            "dedup",
+            {"by": _names(spec.items), "keep": "first"},
+            lambda: operadores.deduplicar("_", _names(spec.items)),
+            current,
+        )
     if spec.order_by:
         by = [_column(expr, aliases) for expr, _ in spec.order_by]
         desc = [desc for _, desc in spec.order_by]
-        current = chain.step("sort", {"by": by, "descending": desc}, current)
+        current = _paso(
+            chain,
+            "sort",
+            {"by": by, "descending": desc},
+            lambda: operadores.ordenar("_", by, desc),
+            current,
+        )
     return current
 
 
@@ -472,3 +512,19 @@ def _params_de_union(
         return operadores.unir("_", join_type, pares, sources, condition).params
     except ValueError:
         return legado
+
+
+def _paso(
+    chain: "_Chain",
+    kind: str,
+    legado: dict,
+    construir,
+    previous: Operator,
+    status: str = "soportado",
+) -> Operator:
+    """Añade un paso con los parámetros del constructor; si lo rechaza, usa la forma `legado`."""
+    try:
+        params = construir().params
+    except ValueError:
+        params = legado
+    return chain.step(kind, params, previous, status=status)
