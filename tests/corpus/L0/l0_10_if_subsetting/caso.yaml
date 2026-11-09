@@ -13,3 +13,10 @@ razonamiento: |
   7: TELEFONO, 157 -> fuera.   8: TELEFONO, 62 -> fuera.
   Resultado: filas 1, 3 y 4.
 revisor: segundo_agente
+esquemas:
+  WORK.ventas:
+    canal: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    monto: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.ventas_web_o_grandes:
+    canal: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.ventas"}
+    monto: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.ventas"}

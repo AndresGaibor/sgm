@@ -5468,3 +5468,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - Solo 2 de 117 casos llevan bloque `esquemas`. MG-P1-02 **no está cerrado**.
   - Falta la inferencia que compare el tipo de `sgm migrar` con el declarado: hoy `esquemas.py` solo
     demuestra `Double`, y la pasada 9 propaga `LENGTH` y `FORMAT` sin que `migrar` los lea.
+
+## Hito 131m. Bloque `esquemas` en los 45 casos de L0 a L2 (MG-P1-02)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - Se añadió el bloque `esquemas` a 44 de los 45 casos de L0 a L2 (L0, L1 y L2, con el piloto del
+    hito 130m). Lo escribieron agentes `haiku` por nivel, y yo revisé la muestra y el cargador.
+  - `l0_09_set_dos_tablas` no lleva bloque: sus tablas no nombran columnas (`SET` sin `KEEP`), y el
+    cargador rechaza un mapa vacío. El motivo está en un comentario YAML del caso.
+  - Se completó el piloto: `l0_07` declara `WORK.clientes` y `l1_01` declara `WORK.basico`.
+  - `tests/unit/test_corpus_esquemas.py` recorre el corpus: cada tipo demostrado cita una línea del
+    SAS que contiene `LENGTH` o `FORMAT` con el nombre de la columna.
+- Resultado:
+  - 44 casos con bloque: 3 tipos demostrados (`LENGTH` en `l0_07`, `l0_08` y `l0_13`) y 273 columnas
+    pendientes.
+  - Ningún programa de L1 ni de L2 declara tipos (sin `LENGTH`, `FORMAT`, `INFORMAT` ni `CAST`).
+- Pruebas: suite completa **2640 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Límites:
+  - MG-P1-02 **sigue abierto**. Falta la comparación con la inferencia de `sgm migrar`.
+  - L3 a L8 no tienen bloque. L8 anida sus casos en grupos y tiene su propio formato de tablas.

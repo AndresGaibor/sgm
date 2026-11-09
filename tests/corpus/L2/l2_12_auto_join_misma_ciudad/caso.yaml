@@ -7,3 +7,15 @@ estado: traducible
 salidas: [pares_misma_ciudad, pares_ordenados]
 invariantes:
   - "filas(pares_ordenados) == filas(pares_misma_ciudad) + filas(pares_misma_ciudad)"
+esquemas:
+  WORK.CLIENTES:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    ciudad: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.pares_misma_ciudad:
+    id_a: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    id_b: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    ciudad: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+  WORK.pares_ordenados:
+    id_a: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    id_b: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    ciudad: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}

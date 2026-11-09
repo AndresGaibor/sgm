@@ -8,3 +8,19 @@ salidas: [ventas_vs_meta]
 invariantes:
   - "filas(ventas_vs_meta) <= filas(ventas)"
   - "suma(ventas_vs_meta.monto) <= suma(ventas.monto)"
+esquemas:
+  WORK.VENTAS:
+    id_venta: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    canal: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    monto: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.METAS:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    canal: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    meta: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.ventas_vs_meta:
+    id_venta: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}
+    id_cliente: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}
+    canal: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}
+    monto: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}
+    meta: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.METAS"}

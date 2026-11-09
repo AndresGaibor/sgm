@@ -13,3 +13,13 @@ razonamiento: |
   9 514 pasa, 50.
   Columnas: id_venta, fecha, monto, cantidad, recargo. Siete filas.
 observacion_revision: "El tipo que PROC IMPORT (DBMS=CSV) da a una fecha ISO yyyy-mm-dd no esta confirmado en la documentacion; el esperado la trata como texto. Si SAS la lee como fecha, PROC EXPORT puede escribirla con otro formato. Ver REVISION.md."
+esquemas:
+  WORK.ventas:
+    monto: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    canal: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    cantidad: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.ventas_grandes:
+    monto: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.ventas"}
+    cantidad: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.ventas"}
+    recargo: {tipo: pendiente, motivo: "asignacion en DATA step sin LENGTH ni tipo declarado en el programa"}

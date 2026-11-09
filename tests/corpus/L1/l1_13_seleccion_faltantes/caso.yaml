@@ -5,3 +5,13 @@ tolerancia: 0
 orden_relevante: false
 estado: traducible
 salidas: [no_inactivos]
+esquemas:
+  WORK.clientes:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    ciudad: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    saldo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    estado: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.no_inactivos:
+    id_cliente: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.clientes"}
+    ciudad: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.clientes"}
+    saldo: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.clientes"}

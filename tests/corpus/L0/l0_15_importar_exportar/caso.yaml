@@ -11,3 +11,11 @@ razonamiento: |
   PRD-001 14*50 = 700.     PRD-002 96*13 = 1248.    PRD-003 122*48 = 5856.
   PRD-004 179*60 = 10740.  PRD-005 124*36 = 4464.   PRD-006 214*29 = 6206.
 revisor: segundo_agente
+esquemas:
+  WORK.productos:
+    precio: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    stock: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    codigo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.valor_stock:
+    codigo: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos"}
+    valor_stock: {tipo: pendiente, motivo: "asignacion en DATA step sin LENGTH ni tipo declarado en el programa"}

@@ -11,3 +11,4 @@ razonamiento: |
   Ambas tablas tienen las mismas seis columnas, en el mismo orden. Total: 7 filas.
   La fecha se lee como texto ISO y se copia sin cambios.
 observacion_revision: "El tipo que PROC IMPORT (DBMS=CSV) da a una fecha ISO yyyy-mm-dd no esta confirmado en la documentacion; el esperado la trata como texto. Si SAS la lee como fecha, PROC EXPORT puede escribirla con otro formato. Ver REVISION.md."
+# WORK.ventas_enero, WORK.ventas_febrero y WORK.ventas_todas sin columnas nombradas: PROC IMPORT sin columnas en el programa y SET sin KEEP

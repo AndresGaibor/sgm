@@ -13,3 +13,9 @@ razonamiento: |
   104 1879 -> NO.                      105 -198 -> SI, saldo 0.   106 1593 -> NO.
   107 885 -> NO.
 revisor: segundo_agente
+esquemas:
+  WORK.clientes:
+    saldo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.clientes_revisados:
+    saldo: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes; se asigna 0 en el bloque DO"}
+    revision: {tipo: String, longitud: 2, linea: 12}

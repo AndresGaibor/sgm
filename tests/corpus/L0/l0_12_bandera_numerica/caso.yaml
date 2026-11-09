@@ -12,3 +12,12 @@ razonamiento: |
   PRD-004 17*15 = 255 -> 0.    PRD-005 100*28 = 2800 -> 1.  PRD-006 20*40 = 800 -> 0.
   Las columnas originales no cambian; valor y grande van al final, en ese orden.
 revisor: segundo_agente
+esquemas:
+  WORK.productos:
+    precio: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    stock: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.bandera:
+    precio: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos"}
+    stock: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos"}
+    valor: {tipo: pendiente, motivo: "asignacion en DATA step sin LENGTH ni tipo declarado en el programa"}
+    grande: {tipo: pendiente, motivo: "asignacion en DATA step sin LENGTH ni tipo declarado en el programa"}

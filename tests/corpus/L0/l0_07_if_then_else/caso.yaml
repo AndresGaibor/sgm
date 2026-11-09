@@ -14,5 +14,7 @@ razonamiento: |
   106 1278 MEDIO.  107 1880 MEDIO (menor que 2000).  108 1374 MEDIO.  109 913 MEDIO.
 revisor: segundo_agente
 esquemas:
+  WORK.clientes:
+    saldo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
   WORK.clientes_nivel:
     nivel: {tipo: String, longitud: 5, linea: 12}

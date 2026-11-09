@@ -11,3 +11,8 @@ razonamiento: |
   102 ACTIVO, 103 ACTIVO, 104 INACTIVO, 105 INACTIVO, 106 PENDIENTE, 107 ACTIVO.
   Pasan 101, 102, 103 y 107, en ese orden. Los INACTIVO y PENDIENTE no entran.
 revisor: segundo_agente
+esquemas:
+  WORK.clientes:
+    estado: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.activos:
+    estado: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes"}

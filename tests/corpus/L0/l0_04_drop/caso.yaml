@@ -10,3 +10,8 @@ razonamiento: |
   DROP stock categoria quita dos columnas de las cinco. Quedan codigo, descripcion y precio,
   en ese orden. Las seis filas se copian tal cual.
 revisor: segundo_agente
+# WORK.catalogo sin columnas nombradas: DROP solo quita stock y categoria; las que quedan vienen del CSV
+esquemas:
+  WORK.productos:
+    stock: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    categoria: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}

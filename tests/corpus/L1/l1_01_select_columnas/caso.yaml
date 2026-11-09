@@ -10,3 +10,7 @@ esquemas:
     id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
     nombre: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
     saldo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.basico:
+    id_cliente: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.clientes"}
+    nombre: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.clientes"}
+    saldo: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.clientes"}

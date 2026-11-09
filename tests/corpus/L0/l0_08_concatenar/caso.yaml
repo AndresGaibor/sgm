@@ -13,3 +13,11 @@ razonamiento: |
   104 "Irene Modelo (Lago Azul)"; 105 "Irene Modelo (Villa Norte)"; 106 "Carla Muestra (Monte Verde)".
   No hay comas en el texto, asi que el CSV no lleva comillas.
 revisor: segundo_agente
+esquemas:
+  WORK.clientes:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    nombre: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    ciudad: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.etiquetas:
+    id_cliente: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes"}
+    etiqueta: {tipo: String, longitud: 60, linea: 12}

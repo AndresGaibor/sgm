@@ -11,3 +11,12 @@ razonamiento: |
   precio_lista stock conserva esas tres columnas en su orden original: codigo, precio_lista, stock.
   Se quitan descripcion y categoria. Los valores de las cinco filas no cambian.
 revisor: segundo_agente
+esquemas:
+  WORK.productos:
+    codigo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    precio: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    stock: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.lista:
+    codigo: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos"}
+    precio_lista: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos (RENAME precio = precio_lista)"}
+    stock: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos"}

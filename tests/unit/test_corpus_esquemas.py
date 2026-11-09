@@ -65,3 +65,28 @@ def test_casos_piloto_cargan_su_bloque():
     }
     caso = cargar_caso(CORPUS / "L1" / "l1_01_select_columnas")
     assert caso.extra["esquemas"]["WORK.clientes"]["saldo"]["tipo"] == "pendiente"
+
+
+def _casos_con_esquemas():
+    for carpeta in sorted(CORPUS.glob("L*/**/caso.yaml")):
+        caso = cargar_caso(carpeta.parent)
+        if caso.extra.get("esquemas"):
+            yield caso
+
+
+def test_todo_tipo_demostrado_cita_una_linea_con_su_declaracion():
+    """Cada tipo demostrado apunta a una línea del SAS que declara esa columna (LENGTH/FORMAT)."""
+    for caso in _casos_con_esquemas():
+        lineas = caso.programa.read_text(encoding="utf-8").splitlines()
+        for tabla, columnas in caso.extra["esquemas"].items():
+            for columna, entrada in columnas.items():
+                if entrada["tipo"] == "pendiente":
+                    continue
+                linea = lineas[entrada["linea"] - 1]
+                assert columna.lower() in linea.lower(), (caso.nombre, tabla, columna, linea)
+                assert "LENGTH" in linea.upper() or "FORMAT" in linea.upper(), (caso.nombre, linea)
+
+
+def test_el_corpus_l0_a_l2_declara_esquemas():
+    nombres = {caso.nombre for caso in _casos_con_esquemas()}
+    assert len(nombres) >= 44

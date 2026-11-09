@@ -12,3 +12,8 @@ razonamiento: |
   104: 2000 >= 1000, dentro (el limite entra).   105: 1043 >= 1000, dentro.   106: 462, fuera.
   Resultado: filas 102, 104 y 105, sin cambiar ninguna columna.
 revisor: segundo_agente
+esquemas:
+  WORK.clientes:
+    saldo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.saldo_alto:
+    saldo: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes"}

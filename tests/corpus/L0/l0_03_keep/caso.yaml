@@ -10,3 +10,12 @@ razonamiento: |
   KEEP id_cliente nombre saldo quita ciudad y estado. Las columnas conservan el orden del
   archivo de entrada (id_cliente, nombre, saldo). Las 8 filas no cambian de orden ni de valor.
 revisor: segundo_agente
+esquemas:
+  WORK.clientes:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    nombre: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    saldo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.resumen_clientes:
+    id_cliente: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes"}
+    nombre: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes"}
+    saldo: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes"}

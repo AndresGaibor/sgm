@@ -9,3 +9,18 @@ invariantes:
   - "filas(operaciones_validas) + filas(operaciones_invalidas) == filas(operaciones)"
   - "suma(operaciones_validas.monto) + suma(operaciones_invalidas.monto) == suma(operaciones.monto)"
 razonamiento: "La homologación tiene CC, TI, CE y PA. NIT y PP son inválidos; un tipo vacío también."
+esquemas:
+  WORK.OPERACIONES:
+    id_operacion: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    tipo_doc: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    monto: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.HOMOLOGACION_TPO_DOC:
+    cname: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.operaciones_validas:
+    id_operacion: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}
+    tipo_doc: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}
+    monto: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}
+  WORK.operaciones_invalidas:
+    id_operacion: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}
+    tipo_doc: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}
+    monto: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}

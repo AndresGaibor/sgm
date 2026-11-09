@@ -8,3 +8,14 @@ salidas: [aceptadas, rechazadas]
 invariantes:
   - "filas(aceptadas) + filas(rechazadas) == filas(operaciones)"
 razonamiento: "Dos etapas de validación. Rechazadas se obtiene con NOT IN sobre la subconsulta de aceptadas."
+# WORK.paso_tipo_doc sin columnas nombradas: SELECT t.*
+# WORK.aceptadas sin columnas nombradas: SELECT p.*
+# WORK.rechazadas sin columnas nombradas: SELECT t.*
+esquemas:
+  WORK.OPERACIONES:
+    id_operacion: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    tipo_doc: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.HOMOLOGACION_TPO_DOC:
+    cname: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.CANALES_VALIDOS:
+    canal: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}

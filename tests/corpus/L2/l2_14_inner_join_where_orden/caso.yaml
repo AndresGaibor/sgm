@@ -7,3 +7,17 @@ estado: traducible
 salidas: [ventas_web_activas]
 invariantes:
   - "filas(ventas_web_activas) <= filas(ventas)"
+esquemas:
+  WORK.VENTAS:
+    id_venta: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    canal: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    monto: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.CLIENTES:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    nombre: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    estado: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.ventas_web_activas:
+    id_venta: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}
+    nombre: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    monto: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}

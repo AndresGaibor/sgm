@@ -8,3 +8,16 @@ salidas: [clientes_con_ventas]
 invariantes:
   - "filas(clientes_con_ventas) >= filas(clientes)"
   - "suma(clientes_con_ventas.monto) == suma(ventas.monto)"
+esquemas:
+  WORK.CLIENTES:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    nombre: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.VENTAS:
+    id_venta: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    monto: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.clientes_con_ventas:
+    id_cliente: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    nombre: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    id_venta: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}
+    monto: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}

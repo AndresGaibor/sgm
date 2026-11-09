@@ -9,3 +9,16 @@ invariantes:
   - "filas(operaciones_cruzadas) == filas(operaciones) + filas(operaciones_cc)"
   - "filas(operaciones_cc) >= 1"
 razonamiento: "CC aparece dos veces en la homologación: cada operación con CC se duplica en el cruce."
+esquemas:
+  WORK.OPERACIONES:
+    id_operacion: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    tipo_doc: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.HOMOLOGACION_TPO_DOC_DUP:
+    cname: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    descripcion: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.operaciones_cruzadas:
+    id_operacion: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}
+    tipo_doc: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}
+    descripcion: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.HOMOLOGACION_TPO_DOC_DUP"}
+  WORK.operaciones_cc:
+    id_operacion: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.OPERACIONES"}

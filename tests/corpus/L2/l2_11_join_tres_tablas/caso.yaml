@@ -7,3 +7,20 @@ estado: traducible
 salidas: [ventas_zona]
 invariantes:
   - "filas(ventas_zona) == filas(ventas)"
+esquemas:
+  WORK.VENTAS:
+    id_venta: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    monto: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.CLIENTES:
+    id_cliente: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    nombre: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    ciudad: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.ZONAS:
+    ciudad: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    zona: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.ventas_zona:
+    id_venta: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}
+    nombre: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.CLIENTES"}
+    zona: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.ZONAS"}
+    monto: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.VENTAS"}

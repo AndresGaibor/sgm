@@ -10,3 +10,10 @@ razonamiento: |
   RENAME ciudad = sede y saldo = saldo_actual cambia dos nombres y deja el orden de las columnas:
   id_cliente, nombre, sede, saldo_actual, estado. Los valores no cambian.
 revisor: segundo_agente
+esquemas:
+  WORK.clientes:
+    ciudad: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    saldo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.clientes_renombrados:
+    sede: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes (RENAME ciudad = sede)"}
+    saldo_actual: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.clientes (RENAME saldo = saldo_actual)"}

@@ -5,3 +5,16 @@ tolerancia: 0
 orden_relevante: true
 estado: traducible
 salidas: [resumen_disp]
+esquemas:
+  WORK.productos:
+    codigo: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    descripcion: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    stock: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    categoria: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.disponibles:
+    codigo: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.productos"}
+    descripcion: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.productos"}
+    stock: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.productos"}
+  WORK.resumen_disp:
+    codigo: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; hereda de WORK.disponibles"}
+    doble_stock: {tipo: pendiente, motivo: "salida de SELECT sin tipo declarado; expresión aritmética sobre WORK.disponibles"}

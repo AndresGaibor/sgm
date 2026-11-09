@@ -13,3 +13,11 @@ razonamiento: |
   PRD-007 18*65 = 1170.
   total_valor es la ultima columna; las demas no cambian.
 revisor: segundo_agente
+esquemas:
+  WORK.productos:
+    precio: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+    stock: {tipo: pendiente, motivo: "PROC IMPORT CSV con GETNAMES y sin LENGTH ni GUESSINGROWS; el tipo lo fija el dato"}
+  WORK.inventario:
+    precio: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos"}
+    stock: {tipo: pendiente, motivo: "salida de DATA step sin LENGTH; hereda de WORK.productos"}
+    total_valor: {tipo: pendiente, motivo: "asignacion en DATA step sin LENGTH ni tipo declarado en el programa"}
