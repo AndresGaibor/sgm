@@ -5529,3 +5529,26 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
     `PROC IMPORT` siguen siendo `String` por omisión con `P-TIPO-DESCONOCIDO`, como el criterio exige.
   - El cambio altera el `.item` de cualquier Job con `LENGTH`. No se volvió a compilar en Studio: el
     lote de Studio de esta sesión no se ejecutó.
+
+## Hito 134m. Constructores validados de los 14 operadores del plan lógico (MG-P1-03)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - `src/sgm/ir/operadores.py`: un constructor por operador de la sección 4 del plan (`leer`,
+    `leer_archivo`, `escribir`, `filtrar`, `proyectar`, `renombrar`, `calcular`, `unir`, `combinar`,
+    `agregar`, `ordenar`, `deduplicar`, `concatenar`, `pivotar`, `iterar`, `controlar`). Cada uno valida
+    sus parámetros, normaliza nombres a minúsculas y devuelve un `Operator` con su firma.
+  - `ir/models.py`: nuevo kind `pivot` (PROC TRANSPOSE). Se crea como `hueco`; no tiene lowering.
+  - Correspondencia: `combinar` (MERGE) usa el kind `join` con `by`, igual que el lowering de
+    `lower_data.py`. `controlar` produce `stateful_row`.
+  - `tests/unit/test_ir_operadores.py` (22 pruebas): cada constructor, firma, `Graph` que los acepta,
+    `pivotar` como hueco y los parámetros inválidos.
+- Pruebas: suite completa **2665 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Decisiones:
+  - Los constructores son la forma validada de crear operadores nuevos. El lowering existente
+    (`Builder.op`) no cambia, para no tocar firmas ni goldens.
+  - Identificadores en inglés; mensajes y docstrings en español (AGENTS.md).
+- Límites:
+  - MG-P1-03 **sigue abierto** en lo que pide el criterio: «L1 a L3 construyen su plan». Los
+    constructores no los usa todavía ningún pase.
+  - `pivotar` no tiene traducción de `PROC TRANSPOSE`; es un hueco explícito.

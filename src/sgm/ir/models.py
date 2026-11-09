@@ -40,6 +40,7 @@ OPERATOR_KINDS = frozenset(
         "set_variable",
         "report",
         "unsupported",
+        "pivot",
     }
 )
 STATUSES = frozenset({"soportado", "parcial", "reemplazado", "hueco"})
