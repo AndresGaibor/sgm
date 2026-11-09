@@ -5651,3 +5651,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión pendiente: confirmar la asignación de créditos. Si se confirma, la sección 11b se corrige y
   el avance global baja en la misma proporción; no se corrige hasta que el usuario lo decida.
 - Pruebas: sin cambios de código.
+
+## Hito 141m. Créditos de MG-P1 aplicados, uniones de SQL por el constructor `unir` y estado de Studio
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - **Plan (sección 11b):** MG-P1 pasa de 43,0 a 37,5 horas de crédito (54 %), con la asignación por tarea
+    del hito 140m. El total pasa de 242,75 a 237,25 h, y el avance global de 27,1 % a 26,5 %. Las demás
+    fases no cambian: no se reevaluaron en este hito.
+  - **Lowering de SQL (`ir/lower_sql_flow.py`):** las uniones (`JOIN` y semijoin de `IN`/`NOT IN`) construyen
+    sus parámetros con `operadores.unir`. Si el constructor rechaza la unión, se usa la forma anterior
+    (`legado`), así que ningún programa que migraba deja de hacerlo.
+  - Las demás operaciones (`filter`, `derive`, `aggregate`, `sort`, `dedup`) siguen construyéndose
+    directamente con `Builder.op`. Su equivalencia con los constructores la comprueba
+    `test_ir_operadores_corpus.py` en L1 a L3.
+- Pruebas: suite completa **2714 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Studio: `sgm studio salud` sigue sin conexión (MCP en 127.0.0.1:3927 rechazado). La verificación del
+  `.item` con `LENGTH` queda pendiente hasta que Studio esté abierto con su MCP.
+- Límites:
+  - MG-P1-03 sigue con el criterio «L1 a L3 construyen su plan» sin cumplirse del todo: las uniones ya
+    pasan por el constructor, pero `filter`, `derive`, `aggregate`, `sort` y `dedup` no.

@@ -781,7 +781,7 @@ un ciclo completo del negocio, estabilización), que depende de los ciclos del c
 
 ## 11b. Avance medido (7 de noviembre de 2026, hito 126m)
 
-**Avance global: 27,1 % de las 895 horas de agente (242,75 h), es decir, cerca de 27 %** (era 19,6 % en el
+**Avance global: 26,5 % de las 895 horas de agente (237,25 h), es decir, cerca de 26,5 %** (corregido en el hito 141m: MG-P1 pasa de 43,0 a 37,5 h; era 27,1 % en el hito 126m y 19,6 % en el
 hito 107). C7 (producción con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía. Ojo:
 los hitos 108m a 126m se apoyan en los anillos A y B; **el hito 125m compiló 85 de 85 Jobs de L0 a L6
 en Studio, pero ninguno se ejecutó**, y por eso el crédito de P9 y P5 se cuenta con 0,25 y no con 0,5 en
@@ -797,7 +797,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | Fase | Horas | Crédito | % de la fase | Qué sostiene la cifra |
 |---|---|---|---|---|
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
-| MG-P1 Modelo y plan lógico | 70 | 43,0 | 61 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; tipos deducidos de comparaciones y agregados; sin tipos desde la muestra |
+| MG-P1 Modelo y plan lógico | 70 | 37,5 | 54 % | Pendientes, propiedad y tabla de símbolos hechos; tipos de `LENGTH` demostrados en 3 casos (bloque `esquemas` en L0 a L2); 14 operadores con constructor validado y pruebas de forma en L1 a L3, sin que ningún pase los use; `PROC TRANSPOSE` como hueco |
 | MG-P2 Entrada y salida | 50 | 12,0 | 24 % | CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT` |
 | MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
 | MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
@@ -811,7 +811,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | La compuerta de liberación quedó verde en el hito 126m, pero no se acredita: su aceptación incluye el lote de Studio sobre toda la salida y eso sigue pendiente; la parte de personas tampoco cuenta aquí |
-| **Total** | **895** | **242,75** | **27,1 %** | |
+| **Total** | **895** | **237,25** | **26,5 %** | |
 
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
 (359,0 h y 360,25 h).

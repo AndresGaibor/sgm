@@ -16,7 +16,7 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.sql_normalize import NormalizedSql
-from sgm.ir import sql_semantics
+from sgm.ir import operadores, sql_semantics
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.sql_tree import Item, SelectSpec, SemiSpec, Source, SqlTree
@@ -238,13 +238,19 @@ def _cruce_de_existencia(
     derecha = chain.read(Source(tabla))
     chain.b.link(actual, derecha)
     izquierda = _calificar(_restore(semi.column, normalized), tablas)
-    params = {
-        "by": [izquierda.split(".")[-1]],
-        "keys": [[izquierda, f"{tabla.split('.')[-1].lower()}.{clave}"]],
-        "join_type": "left" if semi.negate else "inner",
-        "sources": [],
-        "condition": None,
-    }
+    params = _params_de_union(
+        "left" if semi.negate else "inner",
+        [[izquierda, f"{tabla.split('.')[-1].lower()}.{clave}"]],
+        [],
+        None,
+        legado={
+            "by": [izquierda.split(".")[-1]],
+            "keys": [[izquierda, f"{tabla.split('.')[-1].lower()}.{clave}"]],
+            "join_type": "left" if semi.negate else "inner",
+            "sources": [],
+            "condition": None,
+        },
+    )
     cruce = chain.b.op("join", params, chain.ev)
     chain.b.link(current, cruce)
     chain.b.link(derecha, cruce)
@@ -268,13 +274,19 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
         keys = [
             [_calificar(left, tablas), _calificar(derecha, tablas)] for left, derecha in pares
         ]
-        params = {
-            "by": [left for left, _ in join.keys],
-            "keys": keys,
-            "join_type": join.kind,
-            "sources": [qualify(_restore(spec.base.name, normalized))] if spec.base else [],
-            "condition": _restore(join.condition, normalized) if join.condition else None,
-        }
+        params = _params_de_union(
+            join.kind,
+            keys,
+            [qualify(_restore(spec.base.name, normalized))] if spec.base else [],
+            _restore(join.condition, normalized) if join.condition else None,
+            legado={
+                "by": [left for left, _ in join.keys],
+                "keys": keys,
+                "join_type": join.kind,
+                "sources": [qualify(_restore(spec.base.name, normalized))] if spec.base else [],
+                "condition": _restore(join.condition, normalized) if join.condition else None,
+            },
+        )
         status = "soportado" if join.keys or join.kind == "cross" else "parcial"
         op = chain.b.op("join", params, chain.ev, status=status)
         chain.b.link(current, op)
@@ -440,3 +452,23 @@ def _host_assignments(
                 f"{variable} sin demostrar (varias filas sin separador, elemento no nombrado "
                 "o regla pendiente)"
             )
+
+
+def _params_de_union(
+    join_type: str,
+    keys: list[list[str]],
+    sources: list[str],
+    condition: str | None,
+    *,
+    legado: dict,
+) -> dict:
+    """Parámetros de un JOIN de SQL, validados por el constructor `unir` (ir/operadores.py).
+
+    Si el constructor rechaza la unión (tipo desconocido, sin llaves), se devuelve la forma anterior
+    `legado`, para que el operador salga como antes y no se pierda el caso.
+    """
+    try:
+        pares = [(izquierda, derecha) for izquierda, derecha in keys]
+        return operadores.unir("_", join_type, pares, sources, condition).params
+    except ValueError:
+        return legado
