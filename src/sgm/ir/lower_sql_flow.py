@@ -23,6 +23,7 @@ from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
 
 _AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
 _DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
+_DOTTED_STAR = re.compile(r"\b([A-Za-z_]\w*)\.\*")
 _SIMPLE_COLUMN = re.compile(r"(?i)^(?:[a-z_]\w*\.)*([a-z_]\w*)$")
 
 
@@ -69,6 +70,10 @@ def _tablas(spec: SelectSpec) -> dict[str, str]:
 
 def _calificar(text: str, tablas: dict[str, str]) -> str:
     """`v.monto` -> `ventas.monto` cuando `v` es un alias de la consulta."""
+
+    text = _DOTTED_STAR.sub(
+        lambda m: f"{tablas.get(m.group(1).lower(), m.group(1))}.*", text
+    )
 
     def cambiar(m: re.Match) -> str:
         tabla = tablas.get(m.group(1).lower())
@@ -224,9 +229,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
         chain.b.link(right, op)
         current = op
     if spec.where:
+        expresion_where = spec.where if spec.subqueries else _column(spec.where, aliases)
         current = chain.step(
             "filter",
-            {"expression": _restore(_column(spec.where, aliases), normalized)},
+            {"expression": _restore(expresion_where, normalized)},
             current,
             status="parcial" if spec.subqueries else "soportado",
         )

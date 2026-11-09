@@ -5297,6 +5297,9 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 ## Hito 126. Detectar columnas extra o faltantes en el anillo B
 
 - Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Revisión independiente: se corrigió el orden de versiones de tablas con evidencia de línea y se
+  agregó un rechazo explícito para wildcard calificado cuando el lado vacío del LEFT JOIN no tiene
+  esquema verificable.
 - Qué se hizo:
   - El comparador del anillo B ahora revisa las claves de cada fila producida contra el encabezado
     del CSV de `esperado/`, sin distinguir mayúsculas. Reporta columnas extra y ausentes aunque el
@@ -5383,3 +5386,35 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Métricas: MG-P10 permanece en **18,0/80 h (23 %)** y el total en **192,75/895 h (21,5 %)**, sin nuevo crédito. El anillo B sigue en **58/62 elegibles (94 %)**, con cuatro `xfail`: alias de auto-unión y tres subconsultas `IN`.
 - Decisiones: los casos de remezcla que no se implementan se rechazan o quedan pendientes, no se sustituyen por resúmenes parciales. `MIN/MAX` sobre texto sigue fuera del alcance numérico de esta implementación. Los golden se regeneran porque los nuevos campos cambian la semántica y firma del plan.
 - Bloqueos: la migración completa L2 aún necesita el emisor Talend `aggregate` y un esquema demostrado para escritura; MG-P10-01 conserva los cuatro casos `xfail`. No se ejecutó SAS ni Talend Studio.
+
+## Hito 130. Interpretar `IN` con subconsulta independiente en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El intérprete evalúa `IN (SELECT ...)` y `NOT IN (SELECT ...)` cuando la subconsulta no es
+    correlacionada, lee una sola tabla disponible, proyecta una columna simple y usa solo un `WHERE`
+    que ya puede evaluar. Resuelve el filtro con el conjunto de valores, sin reescribir la IR ni
+    alterar el emisor Talend.
+  - Se validan expresamente consultas correlacionadas o anidadas, faltantes, tabla/columna sin
+    evidencia, varias columnas, agregaciones, varias fuentes y cláusulas no implementadas. No se
+    inventa equivalencia para esos casos.
+  - El orden de ejecución del intérprete respeta dependencias a tablas derivadas que las subconsultas
+    leen aunque la IR no tenga una arista persistida. El lowerer conserva calificadores dentro del
+    `WHERE` con subconsulta y `SELECT alias.*` proyecta el lado solicitado de la unión.
+  - L2-06, L2-07 y L2-15 pasan contra sus esperados sin editar los golden. Se mantiene el xfail del
+    alias de auto-unión y el manifiesto de migración sigue marcando `P-FILTRO-SIN-TRADUCIR` para
+    L2-15, su primer bloqueo real.
+- Pruebas focalizadas tras la revisión: `uv run pytest -q
+  tests/unit/test_migrar_corpus_anillo_b.py tests/unit/test_migrar_interprete.py`: **105 pasaron,
+  1 xfail**. Suite completa `uv run pytest -q`: **2650 pasaron, 26 omitidas y 139 xfailed**.
+  `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 permanece en **18,0/80 h (23 %)** y avance global en **192,75/895 h (21,5 %)**,
+  sin crédito nuevo. El anillo B pasa **61/62 casos elegibles (98 %)**; resta un xfail por el alias
+  de auto-unión.
+- Decisiones: la p. 394 define `IN` como pertenencia al conjunto; `IN` sobre un conjunto vacío es
+  falso y `NOT IN` verdadero por deducción de esa definición. Las pp. 123–124 describen subconsultas
+  independientes, `NOT IN` y el caso correlacionado aparte. Las pp. 39 y 99 respaldan la selección de
+  todas las columnas y los alias de tabla. No se infieren tipos ni columnas a partir de filas vacías.
+- Bloqueos: el traductor/emisor Talend sigue sin emitir `IN (SELECT ...)`, por lo que los tres casos
+  permanecen pendientes para `sgm migrar`; no se ejecutó SAS ni Talend Studio.

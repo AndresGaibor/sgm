@@ -44,6 +44,14 @@ def _caso(nombre: str) -> Plan:
     return _plan(texto)
 
 
+def _ejecutar_in(condicion: str, entradas: dict[str, list[dict]]) -> list[dict]:
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resultado AS SELECT c.id FROM WORK.clientes c "
+        f"WHERE {condicion}; QUIT;"
+    )
+    return ejecutar_plan(plan, entradas)["resultado"]
+
+
 def test_inner_join_descarta_sin_pareja():
     plan = _caso("l2_01_inner_join_clientes_ventas")
     entradas = {
@@ -498,6 +506,148 @@ def test_agregado_no_adivina_tipo_de_clave_de_grupo_numerica_en_texto():
 
     with pytest.raises(NoSoportadoEnInterprete, match="tipo.*ambiguo"):
         ejecutar_plan(plan, {"entrada": [{"codigo": "01"}, {"codigo": "1"}]})
+
+
+def test_in_subconsulta_sin_coincidencias_devuelve_cero_filas():
+    filas = _ejecutar_in(
+        "c.id IN (SELECT v.id FROM work.ventas v WHERE v.id > 99)",
+        {"clientes": [{"id": "1"}, {"id": "2"}], "ventas": [{"id": "3"}]},
+    )
+
+    assert filas == []
+
+
+def test_not_in_subconsulta_sin_coincidencias_conserva_las_filas():
+    filas = _ejecutar_in(
+        "c.id NOT IN (SELECT v.id FROM work.ventas v WHERE v.id > 99)",
+        {"clientes": [{"id": "1"}, {"id": "2"}], "ventas": [{"id": "3"}]},
+    )
+
+    assert filas == [{"id": "1"}, {"id": "2"}]
+
+
+def test_in_subconsulta_con_duplicados_no_duplica_filas():
+    filas = _ejecutar_in(
+        "c.id IN (SELECT v.id FROM work.ventas v)",
+        {"clientes": [{"id": "1"}, {"id": "2"}], "ventas": [{"id": "1"}, {"id": "1"}]},
+    )
+
+    assert filas == [{"id": "1"}]
+
+
+def test_in_subconsulta_correlacionada_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="correlacionada"):
+        _ejecutar_in(
+            "c.id IN (SELECT v.id FROM work.ventas v WHERE v.id = c.id)",
+            {"clientes": [{"id": "1"}], "ventas": [{"id": "1"}]},
+        )
+
+
+@pytest.mark.parametrize(
+    ("filas", "ventas"),
+    [
+        ([{"id": ""}], [{"id": "1"}]),
+        ([{"id": "1"}], [{"id": ""}]),
+    ],
+)
+def test_in_subconsulta_con_faltantes_se_rechaza(filas, ventas):
+    with pytest.raises(NoSoportadoEnInterprete, match="faltante"):
+        _ejecutar_in("c.id IN (SELECT v.id FROM work.ventas v)", {"clientes": filas, "ventas": ventas})
+
+
+def test_in_subconsulta_de_varias_columnas_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="una sola columna"):
+        _ejecutar_in(
+            "c.id IN (SELECT v.id, v.canal FROM work.ventas v)",
+            {"clientes": [{"id": "1"}], "ventas": [{"id": "1", "canal": "WEB"}]},
+        )
+
+
+def test_in_subconsulta_con_fuente_no_verificable_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="fuente.*disponible"):
+        _ejecutar_in("c.id IN (SELECT v.id FROM work.ventas v)", {"clientes": [{"id": "1"}]})
+
+
+def test_in_subconsulta_con_agregado_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="no soportada"):
+        _ejecutar_in(
+            "c.id IN (SELECT MAX(v.id) FROM work.ventas v)",
+            {"clientes": [{"id": "1"}], "ventas": [{"id": "1"}]},
+        )
+
+
+def test_in_subconsulta_con_varias_fuentes_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="una sola fuente"):
+        _ejecutar_in(
+            "c.id IN (SELECT v.id FROM work.ventas v, work.clientes x)",
+            {
+                "clientes": [{"id": "1"}],
+                "ventas": [{"id": "1"}],
+            },
+        )
+
+
+def test_select_alias_star_en_join_proyecta_solo_el_lado_seleccionado():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.homologados AS SELECT t.* "
+        "FROM WORK.operaciones t INNER JOIN WORK.homologacion h "
+        "ON t.tipo_doc = h.CNAME; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "operaciones": [
+                {"id": "1", "tipo_doc": "CC", "monto": "100"},
+                {"id": "2", "tipo_doc": "NIT", "monto": "200"},
+            ],
+            "homologacion": [
+                {"CNAME": "CC", "descripcion": "Cédula"},
+            ],
+        },
+    )["homologados"]
+
+    assert filas == [{"id": "1", "tipo_doc": "CC", "monto": "100"}]
+
+
+def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
+    plan = _plan(
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.lookup AS SELECT id FROM WORK.version_inicial;\n"
+        "QUIT;\n"
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.resultado AS SELECT c.id FROM WORK.clientes c "
+        "WHERE c.id IN (SELECT l.id FROM WORK.lookup l);\n"
+        "QUIT;\n"
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.lookup AS SELECT id FROM WORK.version_futura;\n"
+        "QUIT;\n"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "version_inicial": [{"id": "10"}],
+            "version_futura": [{"id": "20"}],
+            "clientes": [{"id": "10"}, {"id": "20"}],
+        },
+    )["resultado"]
+
+    assert filas == [{"id": "10"}]
+
+
+def test_select_alias_star_sin_esquema_en_lado_vacio_de_left_join_se_rechaza():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.homologados AS SELECT h.* "
+        "FROM WORK.operaciones o LEFT JOIN WORK.homologacion h "
+        "ON o.tipo_doc = h.tipo_doc; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="esquema.*verificable"):
+        ejecutar_plan(
+            plan,
+            {"operaciones": [{"tipo_doc": "CC"}], "homologacion": []},
+        )
 
 
 def test_data_step_if_then_do_else_aplica_ambas_ramas():

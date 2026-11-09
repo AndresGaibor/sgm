@@ -714,11 +714,19 @@ de cada nodo. MG-P8-01, MG-P8-02, MG-P8-03, MG-P8-05 y MG-P8-06 son de los plane
 | MG-P10-08 | Informe de cobertura `sgm cobertura` (C1) generado desde reglas y corpus | H | `docs/cobertura.md` y JSON | 6 |
 | MG-P10-09 | Segundo y tercer programa del cliente (los de `tests/fixtures/sas/real` y `synthetic`): medir cobertura y cerrar las brechas más frecuentes de forma iterativa | S | cobertura medida y creciente | 15 |
 
-**Estado (hito 129, 9 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis reglas
+**Estado (hito 130, 9 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis reglas
 de Studio sobre el modelo y los 45 Jobs de `L0` a `L2` salen limpios; encontró un defecto real del
 emisor —dos salidas `row1` del mismo nodo cuando la tabla se lee dos veces—. MG-P10-01 sigue parcial:
-el anillo B ejecuta 58 de 62 casos elegibles y conserva cuatro `xfail` estrictos: alias de auto-unión
-perdido y tres subconsultas `IN`. El intérprete ahora calcula `COUNT(*)`, `COUNT(expresión)`, `SUM`,
+el anillo B ejecuta 61 de 62 casos elegibles y conserva un `xfail` estricto: alias de auto-unión
+perdido. El intérprete evalúa tres subconsultas independientes `IN`/`NOT IN` de una fuente y una
+columna; rechaza correlación, faltantes, esquemas no verificables y formas fuera de ese contrato.
+El lowerer conserva los calificadores y `alias.*` proyecta las columnas del lado seleccionado; el
+intérprete añade el orden de ejecución necesario para leer tablas derivadas de la subconsulta sin
+alterar la IR persistida. La revisión independiente agregó regresiones para escrituras anteriores y
+posteriores al filtro y para el lado vacío sin esquema; se conserva la versión indicada por la
+evidencia y se rechaza la proyección sin columnas demostrables. Esto verifica el anillo B, no completa
+la traducción: el emisor Talend aún
+deja `IN (SELECT ...)` parcial. El intérprete también calcula `COUNT(*)`, `COUNT(expresión)`, `SUM`,
 `AVG`, `MIN` y `MAX` en agregados simples, con y sin grupos, faltantes y sin asumir tipos ambiguos.
 La salida conserva solo las llaves seleccionadas, sus alias y el orden del `SELECT`; la remezcla SAS
 de columnas no agrupadas o de `ORDER BY` no seleccionado se rechaza de forma explícita. Esto hace
@@ -856,7 +864,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P7 Macros | 60 | 4,0 | 7 % | `MG-P7-01` parcial: `%SYSFUNC(UPCASE())` en el caso L5-06; faltan el resto de L5 y el anexo, y validar `TRANTAB`/`ENCODING`/`LOCALE` |
 | MG-P8 Planificador | 70 | 13,0 | 19 % | Contextos DEV/QA/PROD; `trace.json` parcial; sin segmentación ni límite de tamaño |
 | MG-P9 Emisor | 108 | 26,5 | 25 % | 25 de 40 plantillas, contextos y conexiones básicas; joblets sin validar |
-| MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 58 de 62 pasan, 4 `xfail`; compara columnas para filas no vacías |
+| MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 61 de 62 pasan, 1 `xfail`; compara columnas para filas no vacías |
 | MG-P11 Experiencia de uso | 30 | 4,0 | 13 % | `sgm migrar` de un programa sin YAML; falta carpeta y `cobertura.md` |
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
@@ -868,7 +876,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
-anillo B, 58 de 62 casos elegibles pasan (94 %; hito 129); anillo A, 28 de los 45 casos de `L0` a
+anillo B, 61 de 62 casos elegibles pasan (98 %; hito 130); anillo A, 28 de los 45 casos de `L0` a
 `L2` migran sin pendientes de traducción (62 %; hito 115m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
 (representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
 

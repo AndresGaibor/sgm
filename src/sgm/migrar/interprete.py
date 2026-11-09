@@ -29,6 +29,11 @@ from sqlglot.errors import ParseError
 from sgm.ir.models import Operator, Plan
 from sgm.migrar import semantica
 from sgm.migrar.interprete_agregados import AgregadoNoSoportado, agregar
+from sgm.migrar.interprete_subconsultas import (
+    SubconsultaNoSoportada,
+    orden_de_ejecucion,
+    preparar,
+)
 
 # Operadores que el intérprete sabe ejecutar; el resto detiene la ejecución con su nombre.
 SOPORTADOS = frozenset(
@@ -48,6 +53,15 @@ SOPORTADOS = frozenset(
 )
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
 _FUNCIONES_SAS = re.compile(r"(?i)\b(input|left|substrn|substr|coalescec|compress|scan)\s*(?=\()")
+_WILDCARD = re.compile(r"(?i)^(?:([a-z_]\w*)\.)?\*$")
+
+
+class _FilaUnida(dict):
+    """Fila combinada que conserva internamente las filas originales de cada lado del join."""
+
+    def __init__(self, valores: dict, fuentes: dict[str, dict]) -> None:
+        super().__init__(valores)
+        self.fuentes = fuentes
 
 
 class NoSoportadoEnInterprete(RuntimeError):
@@ -353,8 +367,21 @@ def _clave(valor: object) -> tuple:
     return (2, 0.0, semantica.como_texto(valor))
 
 
-def _filtrar(filas: list[dict], expresion: str) -> list[dict]:
+def _filtrar(
+    filas: list[dict], expresion: str, tablas: dict[str, list[dict]] | None = None
+) -> list[dict]:
     arbol = _arbol(expresion)
+    try:
+        arbol = preparar(
+            arbol,
+            filas,
+            tablas,
+            filtrar=_filtrar,
+            evaluar=_valor,
+            columna=_columna,
+        )
+    except SubconsultaNoSoportada as error:
+        raise NoSoportadoEnInterprete("subconsulta", str(error)) from error
     return [fila for fila in filas if _verdad(_valor(arbol, fila))]
 
 
@@ -392,8 +419,14 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
     """
     if not asignaciones:
         return filas
-    pares = []
+    pasos = []
     for asignacion in asignaciones:
+        destino = str(asignacion.get("target") or "")
+        expresion = str(asignacion.get("expression") or "")
+        estrella = _WILDCARD.fullmatch(expresion.strip())
+        if estrella:
+            pasos.append(("wildcard", estrella.group(1).lower() if estrella.group(1) else None))
+            continue
         condicion = asignacion.get("conditional")
         condicional = None
         if isinstance(condicion, dict):
@@ -413,13 +446,44 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
                     _arbol(str(condicion.get("condition") or "")),
                     _arbol(str(condicion.get("otherwise") or "")),
                 )
-        pares.append(
-            (
-                str(asignacion.get("target") or ""),
-                _arbol(str(asignacion.get("expression") or "")),
-                condicional,
-            )
-        )
+        pasos.append(("valor", (destino, _arbol(expresion), condicional)))
+    if any(tipo == "wildcard" for tipo, _ in pasos):
+        if aditivo:
+            raise NoSoportadoEnInterprete("derive", "wildcard en asignación aditiva")
+        resultado = []
+        for fila in filas:
+            salida = {}
+            for tipo, paso in pasos:
+                if tipo == "wildcard":
+                    fuente = paso
+                    origen = (
+                        fila.fuentes.get(fuente)
+                        if fuente and isinstance(fila, _FilaUnida)
+                        else fila
+                    )
+                    if origen is None:
+                        raise NoSoportadoEnInterprete(
+                            "derive", f"el wildcard '{fuente}.*' no corresponde a un lado del join"
+                        )
+                    if not origen:
+                        raise NoSoportadoEnInterprete(
+                            "derive",
+                            f"el wildcard '{fuente}.*' no tiene un esquema de columnas verificable",
+                        )
+                    for nombre, valor in origen.items():
+                        if nombre in salida:
+                            raise NoSoportadoEnInterprete(
+                                "derive", f"columna duplicada en wildcard: '{nombre}'"
+                            )
+                        salida[nombre] = valor
+                else:
+                    asignado = _fila_de([paso], fila)
+                    if any(nombre in salida for nombre in asignado):
+                        raise NoSoportadoEnInterprete("derive", "alias duplicado con wildcard")
+                    salida.update(asignado)
+            resultado.append(salida)
+        return resultado
+    pares = [paso for _, paso in pasos]
     if aditivo:
         return [{**fila, **_fila_de(pares, fila, secuencial=True)} for fila in filas]
     return [_fila_de(pares, fila) for fila in filas]
@@ -462,7 +526,7 @@ def _unir(izquierda: list[dict], derecha: list[dict], params: dict) -> list[dict
     pares = [list(par) for par in params.get("keys") or [] if len(list(par)) == 2]
     if tipo == "cross" or not pares:
         if tipo == "cross":
-            return [{**fila, **otra} for fila in izquierda for otra in derecha]
+            return [_fila_unida(fila, otra, params) for fila in izquierda for otra in derecha]
         raise NoSoportadoEnInterprete("join", f"'{tipo}' sin llaves demostrables")
     arboles = [(_arbol(str(uno)), _arbol(str(otro))) for uno, otro in pares]
     indice: dict[tuple, list[dict]] = {}
@@ -475,10 +539,23 @@ def _unir(izquierda: list[dict], derecha: list[dict], params: dict) -> list[dict
         llave = tuple(_clave(_valor(arbol, fila)) for arbol, _ in arboles)
         parejas = indice.get(llave)
         if parejas:
-            resultado += [{**fila, **otra} for otra in parejas]
+            resultado += [_fila_unida(fila, otra, params) for otra in parejas]
         elif tipo in ("left", "left outer"):
-            resultado.append({**vacia, **fila})
+            resultado.append(_fila_unida(fila, vacia, params, valores={**vacia, **fila}))
     return resultado
+
+
+def _fila_unida(
+    izquierda: dict, derecha: dict, params: dict, *, valores: dict | None = None
+) -> _FilaUnida:
+    """Conserva cada lado por su nombre de tabla para proyecciones `alias.*` posteriores."""
+    fuentes = dict(getattr(izquierda, "fuentes", {}))
+    for nombre in params.get("sources") or []:
+        fuentes.setdefault(_tabla(nombre), izquierda)
+    derecha_nombre = _derecha(params)
+    if derecha_nombre:
+        fuentes[derecha_nombre] = derecha
+    return _FilaUnida(valores if valores is not None else {**izquierda, **derecha}, fuentes)
 
 
 def _derecha(params: dict) -> str | None:
@@ -618,7 +695,7 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict) -> list[d
                 )
             actual = _unir(actual, por_tabla[tabla], params)
         elif clase == "filter":
-            actual = _filtrar(actual, str(params.get("expression") or ""))
+            actual = _filtrar(actual, str(params.get("expression") or ""), tablas)
         elif clase == "derive":
             actual = _proyectar(
                 actual, params.get("assignments") or [], aditivo=params.get("modo") == "agrega"
@@ -664,11 +741,11 @@ def _nombres(op: Operator) -> list[str]:
     return []
 
 
-def _ramas(op: Operator, filas: list[dict]) -> dict[str, list[dict]]:
+def _ramas(op: Operator, filas: list[dict], tablas: dict) -> dict[str, list[dict]]:
     """Un `map` con ramas es un IF/THEN/ELSE que escribe en varias salidas: cada rama su filtro."""
     return {
         _tabla(rama.get("outputs", ["WORK.sin_nombre"])[0]): _filtrar(
-            filas, str(rama.get("expression") or "")
+            filas, str(rama.get("expression") or ""), tablas
         )
         for rama in op.params.get("branches") or []
     }
@@ -709,7 +786,7 @@ def _ejecutar(
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches") and not op.params.get("steps"):
             primera = por_operador.get(previos[0], []) if previos else []
-            ramas = _ramas(op, primera)
+            ramas = _ramas(op, primera, tablas)
             return primera, ramas
         if op.kind == "dedup":
             entrada = _base(plan, op, set(), por_operador, tablas)
@@ -738,7 +815,11 @@ def ejecutar_plan(
         for nombre, filas in entradas.items()
     }
     por_operador: dict[str, list[dict]] = {}
-    for op_id in plan.graph.topological():
+    try:
+        orden = orden_de_ejecucion(plan, nombres=_nombres, parsear=_arbol)
+    except SubconsultaNoSoportada as error:
+        raise NoSoportadoEnInterprete("subconsulta", str(error)) from error
+    for op_id in orden:
         op = plan.graph.operator(op_id)
         filas, propias = _ejecutar(op, plan, tablas, por_operador)
         por_operador[op.id] = filas

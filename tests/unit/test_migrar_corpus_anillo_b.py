@@ -40,10 +40,6 @@ CONOCIDOS: dict[str, str] = {
     "l2_12_auto_join_misma_ciudad": (
         "el plan pierde el alias del auto-unión: las dos referencias quedan 'id_cliente < id_cliente'"
     ),
-    # Pasos que el intérprete todavía no ejecuta.
-    "l2_06_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
-    "l2_07_not_in_subconsulta": "el intérprete no ejecuta un IN con subconsulta",
-    "l2_15_validacion_en_cascada": "el intérprete no ejecuta un IN con subconsulta",
 }
 
 
