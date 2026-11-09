@@ -127,9 +127,16 @@ def informat_type(spec: str) -> CodeType | None:
     return numeric_type(width, int(decimals_text or 0))
 
 
+_CONDICIONAL = re.compile(r"(?is)^\s*case")
+
+
 def expression_type(expression: str) -> CodeType | None:
     """Tipo de expresiones fijado por código: entrada, literal, aritmética o predicado."""
     text = expression.strip()
+    if _CONDICIONAL.match(text):
+        # Un CASE devuelve el valor de una rama, no un predicado: sus condiciones (IS MISSING, AND)
+        # no hacen booleana la expresión entera.
+        return None
     sin_literales = _QUOTED_VALUE.sub("''", text)
     if _BOOLEAN_OPERATOR.search(sin_literales) or _single_call(sin_literales) == "missing":
         return CodeType("Boolean")

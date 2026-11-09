@@ -5789,3 +5789,33 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Propuesta: subir el tiempo de espera de la interfaz en el plugin del puente (de 25 s a un valor mayor) o
   partir `l1_14` en dos Jobs. Lo primero es un cambio en código del puente, que es del usuario.
 - Pruebas: sin cambios de código en el repositorio en este hito.
+
+## Hito 150m. Conexiones de `tMap` que Studio no carga, validador que lo impide, y CASE de texto
+
+- Fecha: 2026-11-09.
+- Problema reportado por el usuario: al abrir un Job, Studio muestra «Error al cargar el trabajo» en la
+  conexión `tSortRow_1_in` y después en `row1`.
+- Causas encontradas y corregidas:
+  1. **Nombre de la conexión que sale de un `tMap`** (`talend_item/desde_plan.py`, `_nombre`). Studio exige
+     que coincida con la `outputTables` del `tMap`. El código le daba prioridad al destino (`_in`), y eso
+     no carga. Ahora, si el `tMap` tiene un único consumidor, la conexión lleva el nombre de la salida.
+     Una primera versión sobrescribió `_consumidores` y otra quitó el fallback `row1`; ambas se corrigieron.
+  2. **Validador (`talend_item/validador.py`, `_nombres_de_tmap`)**: una conexión que sale de un `tMap` tiene
+     que llamarse como una de sus salidas, y una que entra en un `tMap` como una de sus entradas. Si no,
+     el defecto queda como `P-JOB-INVALIDO`.
+  3. **El Job con defectos no se escribe** (`cli_migrar._validar`). Antes se escribía y Studio lo rechazaba.
+     Ahora queda solo el pendiente con su motivo. Afecta a `l1_10`, `l2_11`, `l2_15`, `l3_07`, `l5_11`, todos
+     en `tests/corpus/migrar_pendientes.yaml` como `P-JOB-INVALIDO`.
+  4. **`CASE` de texto tipado como predicado** (`ir/types_code.py`, `expression_type`). `IS MISSING` dentro
+     de un `CASE` hacía booleana la expresión entera, y el emisor la envolvía como `Long`. Causaba errores
+     de Java en `l2_08`.
+- Pruebas: suite completa **2717 pasan, 27 se saltan, 145 xfail**; `ruff` limpio. Nuevas pruebas en
+  `tests/unit/test_conexion_salida_tmap.py`.
+- Studio: tras corregir, el lote de L0 a L2 se reemitió (42 Jobs con `.item`), y la compilación se
+  interrumpió por «Network Issue Occured» en Studio: hay un diálogo abierto. Pendiente: cerrarlo y repetir.
+- Límites:
+  - `l3_07`: un `tMap` con dos consumidores sigue sin nombre de salida correcto; queda como pendiente.
+  - `l1_10`, `l2_11`, `l2_15`: un `tMap` que alimenta a otro `tMap`. No se emite; falta el diseño de esa
+    conexión (que la salida del primero tenga el nombre de la entrada del segundo).
+  - Lo que Studio abre sin error no se ha comprobado con la ventana de la GUI para los 42 Jobs; la
+    compilación por lote sí se comprueba, la carga en la GUI no.

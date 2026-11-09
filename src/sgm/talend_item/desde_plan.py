@@ -454,6 +454,15 @@ class _Job:
         hay a qué fila del mapa corresponde, y una conexión con el nombre equivocado es peor que no
         tenerla.
         """
+        if (
+            desde in self._salidas_map
+            and hasta not in self._entradas_map
+            and len(self.plan.graph.successors(desde)) == 1
+        ):
+            # Studio exige que la conexión que sale de un `tMap` lleve el nombre de su salida
+            # (`outputTables`); si no, el Job no carga («Error al cargar el trabajo»). Con un solo
+            # consumidor, la salida y la conexión coinciden. Con varios, sigue el nombre de abajo.
+            return self._salidas_map[desde]
         if hasta in self._uniones:
             # `tUnite` recibe varias filas a la vez: cada entrada con su nombre.
             return f"{self._nodo[hasta].unico}_in{self._uniones[hasta].index(desde) + 1}"
@@ -466,6 +475,7 @@ class _Job:
         if desde in self._pasos:
             return f"{self._nodo[desde].unico}_out"
         if desde in self._salidas_map:
+            # Salida de un `tMap` hacia un destino que no es paso ni entrada de otro `tMap`.
             return self._salidas_map[desde]
         return "row1"
 

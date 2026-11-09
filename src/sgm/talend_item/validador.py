@@ -25,6 +25,7 @@ los bloques `<metadata>`, que son las salidas. Compararlas ahí sería comparar 
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 
 from sgm.talend_item.desde_plan_contextos import GRUPOS
@@ -170,6 +171,41 @@ def _superposicion(job: Job) -> list[str]:
     return problemas
 
 
+def _nombres_tmap(nodo: Nodo, etiqueta: str) -> set[str]:
+    """Nombres de las `outputTables` o `inputTables` de un `tMap`: los que exige Studio."""
+    patron = rf'<{etiqueta}[^>]*\sname="([^"]+)"'
+    return set(re.findall(patron, nodo.datos or ""))
+
+
+def _nombres_de_tmap(job: Job) -> list[str]:
+    """Studio no carga un Job cuya conexión no lleva el nombre de la tabla del `tMap` que une.
+
+    Una conexión que sale de un `tMap` tiene que llamarse como una de sus `outputTables`; una que
+    entra en un `tMap`, como una de sus `inputTables`. Si no, Studio muestra «Error al cargar el
+    trabajo».
+    """
+    problemas: list[str] = []
+    por_unico = {nodo.unico: nodo for nodo in job.nodos}
+    for conexion in job.conexiones:
+        origen = por_unico.get(conexion.origen)
+        destino = por_unico.get(conexion.destino)
+        if origen is not None and origen.componente == "tMap":
+            salidas = _nombres_tmap(origen, "outputTables")
+            if conexion.nombre not in salidas:
+                problemas.append(
+                    f"la conexión '{conexion.nombre}' sale de el tMap '{origen.unico}', que tiene "
+                    f"las salidas {sorted(salidas) or '(ninguna)'}: Studio no la carga"
+                )
+        if destino is not None and destino.componente == "tMap":
+            entradas = _nombres_tmap(destino, "inputTables")
+            if conexion.nombre not in entradas:
+                problemas.append(
+                    f"la conexión '{conexion.nombre}' llega al tMap '{destino.unico}', que tiene "
+                    f"las entradas {sorted(entradas) or '(ninguna)'}: Studio no la carga"
+                )
+    return problemas
+
+
 def _enumerar(nombres: list[str]) -> str:
     """Une nombres en castellano: «A y B», «A, B y C»."""
     if len(nombres) == 1:
@@ -186,6 +222,7 @@ def validar_job(job: Job) -> list[str]:
         *_huerfanos(job),
         *_contextos(job),
         *_superposicion(job),
+        *_nombres_de_tmap(job),
     ]
 
 

@@ -144,13 +144,22 @@ def _plan(texto: str, nombre: str, resultado: ResultadoMigrar) -> Plan | None:
 
 
 def _validar(resultado: ResultadoMigrar) -> None:
-    """Convierte cada defecto estructural en un pendiente y en una nota del log."""
+    """Convierte cada defecto estructural en un pendiente y en una nota del log.
+
+    Un Job con defectos **no se escribe**: Studio lo abre con «Error al cargar el trabajo» y el
+    usuario ve el fallo en la ventana, no en el informe. Queda el pendiente con su motivo.
+    """
+    aceptados = []
     for job in resultado.jobs:
-        for defecto in validar_job(job):
+        defectos = validar_job(job)
+        for defecto in defectos:
             resultado.pendientes.append(
                 PendienteMigracion(JOB_INVALIDO, f"{job.nombre}: {defecto}", None)
             )
             resultado.notas.append(f"{JOB_INVALIDO} {job.nombre}: {defecto}")
+        if not defectos:
+            aceptados.append(job)
+    resultado.jobs = aceptados
 
 
 def _contexto_yaml(grupo: str, parametros: list[ParametroContexto]) -> str:

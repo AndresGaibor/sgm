@@ -29,3 +29,8 @@ l6_07_retain_contador: P-OPERADOR-SIN-SOPORTE
 l6_10_ultimo_por_llave: P-OPERADOR-SIN-SOPORTE
 l6_11_merge_mas_acumulado: P-OPERADOR-SIN-SOPORTE
 l6_12_ordenar_antes_de_merge: P-UNION-TIPO-SIN-SOPORTE
+l1_10_dos_etapas_faltantes: P-JOB-INVALIDO
+l2_11_join_tres_tablas: P-JOB-INVALIDO
+l2_15_validacion_en_cascada: P-JOB-INVALIDO
+l3_07_total_origen_y_salida: P-JOB-INVALIDO
+l5_11_macro_llama_macro: P-JOB-INVALIDO
