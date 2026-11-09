@@ -5735,3 +5735,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   qué diálogo aparece tras compilar `l1_06` o `l1_07`, antes de volver a probar.
 - Lección: el puente de Studio corta a los 25 s por llamada. Una tanda de 5 Jobs tarda entre 12 y 23 s:
   conviene tandas de 2 a 3 y `studio salud` antes de cada una.
+
+## Hito 146m. Compilación en Studio de L0 a L2, caso por caso: 43 de 45
+
+- Fecha: 2026-11-09.
+- Resultado en Studio real (`lote` con backend `mcp`, un caso por llamada para no pasar el límite del
+  puente):
+  - L0: 15 de 15 compilan. L1: 13 de 15 (`l1_01` a `l1_13`). L2: 15 de 15.
+  - **Fallan `l1_14_expresion_compuesta` y `l1_15_distinct_tildes`** con `BRIDGE_UNAVAILABLE`: el puente no
+    contesta en 25 s. Repetido en varios intentos, así que no es un fallo transitorio.
+  - Ningún caso dispara un error de compilación real: en ningún caso Studio devolvió «no compila».
+- Diagnóstico con el MCP (`talend_bridge_log_tail`): el log de Studio muestra «El hilo de la interfaz de
+  Studio está ocupado (se acabó el tiempo de espera)» en `/workbench/dialogs/list`, peticiones lentas de
+  `/workspace/refresh` de unos 10 s y «Conexión interrumpida atendiendo /automation/job/build-batch».
+  El hilo de la interfaz de Studio se queda ocupado y el puente no llega a responder.
+- Lo que no está resuelto: por qué esos dos Jobs bloquean el hilo. Hipótesis sin verificar: la expresión
+  del `tMap` (`BETWEEN` como `>=`/`<=`, `LIKE` como `matches`, o el `DISTINCT` de `l1_15`). Los demás
+  casos con `tMap` y con tildes compilan.
+- Pendiente: mirar el `tMap` de `l1_14` y `l1_15` en la ventana de Studio, y el log completo con
+  `talend_bridge_log_tail` en el momento del fallo.
+- Pruebas: sin cambios de código en este hito.
