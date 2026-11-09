@@ -225,3 +225,11 @@ costaron tiempo:
    ```
 
    Resultado: `coincide`, 0 diferencias. Demuestra que `nivel` sale con largo 5 y el Job ejecuta.
+
+**Otro síntoma: `healthz` responde pero las herramientas no.** `curl .../healthz` devuelve `ok:true`, y
+aun así `sgm studio salud` falla con «no se pudo comprobar si hay diálogos abiertos: ... timed out», o un
+lote falla con «El bridge de Talend Studio en http://127.0.0.1:3930 no contestó en 25000 ms». El servidor
+MCP está bien; el problema está dentro de Studio: un diálogo modal abierto (por ejemplo, un error de un
+Job anterior) o una compilación en curso. **Solución: mirar la ventana de Talend Studio, cerrar el diálogo
+o esperar a que termine la compilación, y reintentar.** No matar el proceso de Studio: se pierde el
+trabajo sin guardar. Reintentar con `sgm studio salud` antes de cada lote.

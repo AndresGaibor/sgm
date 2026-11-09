@@ -5708,3 +5708,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   de `validar`). `AGENTS.md` tiene un apartado corto que apunta a esa sección.
 - Límites: `talend-mcp` se apaga con reinicios y al cerrar la terminal que lo lanzó. Solo se verificó
   `l0_07`; los demás casos y el lote completo de Studio siguen sin correr.
+
+## Hito 144m. Intento de lote de L0 a L2 en Studio: bloqueado por Studio, no por el código
+
+- Fecha: 2026-11-09.
+- Qué se hizo: se emitieron los 45 casos de L0 a L2 (todos con código de salida 0) y se preparó una
+  carpeta por caso con sus `.item` y `.properties`. Se lanzó `tools/corpus_studio.py lote` con los 45 y
+  el backend `mcp`.
+- Resultado: el MCP respondió a `healthz`, pero el puente de Studio (3930) no contestó en 25 s
+  (`BRIDGE_UNAVAILABLE`). Después, `sgm studio salud` falla por el mismo motivo: las llamadas al MCP
+  agotan el tiempo. Diagnóstico: probablemente un diálogo modal abierto en Talend Studio o una
+  compilación en curso. No se pudo comprobar porque la ventana de Studio no es accesible desde aquí.
+- Pendiente: cerrar el diálogo o esperar en Studio y reintentar `lote` con los 45 casos. Ver la sección 7
+  de `docs/guia-validacion-studio.md`.
+- Pruebas: sin cambios de código en este hito.
