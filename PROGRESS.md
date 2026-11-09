@@ -5722,3 +5722,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendiente: cerrar el diálogo o esperar en Studio y reintentar `lote` con los 45 casos. Ver la sección 7
   de `docs/guia-validacion-studio.md`.
 - Pruebas: sin cambios de código en este hito.
+
+## Hito 145m. Lote de L0 a L2 en Studio por tandas; un bloqueo en L1 que pide revisión en la ventana
+
+- Fecha: 2026-11-09.
+- Validación sin Studio: los 45 Jobs emitidos de L0 a L2 pasan `validar_job` (sin defectos
+  estructurales). No hay herramienta de `talend-mcp` que compile sin el puente de Studio:
+  `talend_validation_validate_design` solo valida la especificación en memoria.
+- Compilación en Studio por tandas de 5: los 20 primeros Jobs (L0 completo hasta `l0_11`, y
+  `l1_01`) compilan. Al llegar a `l1_06`, la tanda no contestó en 25 s (`BRIDGE_UNAVAILABLE`), y
+  después Studio dejó de responder (`timed out` en el MCP). Pendiente: revisar en la ventana de Studio
+  qué diálogo aparece tras compilar `l1_06` o `l1_07`, antes de volver a probar.
+- Lección: el puente de Studio corta a los 25 s por llamada. Una tanda de 5 Jobs tarda entre 12 y 23 s:
+  conviene tandas de 2 a 3 y `studio salud` antes de cada una.
