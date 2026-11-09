@@ -121,3 +121,19 @@ def test_agregar_con_columnas_pendientes_queda_parcial():
     )
     assert operador.status == "parcial"
     assert operador.params["pendiente"] == ["nombre"]
+
+
+def test_leer_tiene_dos_formas_como_el_lowering():
+    assert op.leer("1", "WORK.a").params == {"dataset": "WORK.a"}
+    assert op.leer("1", "WORK.a", incluir_bandera=True).params == {"dataset": "WORK.a", "in": None}
+    assert op.leer("1", "WORK.a", "ea").params == {"dataset": "WORK.a", "in": "ea"}
+
+
+def test_escribir_archivo_y_leer_archivo_llevan_todas_sus_opciones():
+    lectura = op.leer_archivo("1", "x.csv", ["WORK.a"])
+    assert set(lectura.params) == {
+        "datafile", "outputs", "dbms", "delimiter", "getnames", "sheet", "guessingrows",
+    }
+    escritura = op.escribir_archivo("2", ["WORK.a"], "s.csv", dbms="csv")
+    assert escritura.kind == "write_file"
+    assert escritura.params["dbms"] == "csv"

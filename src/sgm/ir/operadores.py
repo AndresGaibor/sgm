@@ -60,21 +60,68 @@ def _operador(
     )
 
 
-def leer(op_id: str, dataset: str, in_flag: str | None = None, evidence=None) -> Operator:
-    """Leer: una tabla del programa, con su bandera `IN=` si la tiene."""
-    params = {"dataset": _texto(dataset, "dataset"), "in": in_flag or None}
+def leer(
+    op_id: str,
+    dataset: str,
+    in_flag: str | None = None,
+    incluir_bandera: bool = False,
+    evidence=None,
+) -> Operator:
+    """Leer: una tabla del programa.
+
+    El lowering tiene dos formas: la de DATA step lleva la clave `in` (aunque valga None) y la de
+    SQL no la lleva. `incluir_bandera=True` produce la de DATA step.
+    """
+    params: dict[str, Any] = {"dataset": _texto(dataset, "dataset")}
+    if incluir_bandera or in_flag:
+        params["in"] = in_flag or None
     return _operador(op_id, "read", params, evidence)
 
 
 def leer_archivo(
-    op_id: str, datafile: str, outputs: list[str], evidence=None
+    op_id: str,
+    datafile: str,
+    outputs: list[str],
+    dbms: str | None = None,
+    delimiter: str | None = None,
+    getnames: bool | None = None,
+    sheet: str | None = None,
+    guessingrows: str | None = None,
+    evidence=None,
 ) -> Operator:
-    """Leer archivo: una fuente externa (PROC IMPORT, INFILE) que llena una o más tablas."""
+    """Leer archivo: una fuente externa (PROC IMPORT, INFILE) que llena una o más tablas.
+
+    Las opciones del lowering (`dbms`, `delimiter`, `getnames`, `sheet`, `guessingrows`) siempre
+    aparecen en los parámetros, aunque valgan None, como en el lowering.
+    """
     params = {
         "datafile": _texto(datafile, "datafile"),
         "outputs": _lista(outputs, "outputs"),
+        "dbms": dbms,
+        "delimiter": delimiter,
+        "getnames": getnames,
+        "sheet": sheet,
+        "guessingrows": guessingrows,
     }
     return _operador(op_id, "read_file", params, evidence)
+
+
+def escribir_archivo(
+    op_id: str,
+    inputs: list[str],
+    outfile: str,
+    dbms: str | None = None,
+    delimiter: str | None = None,
+    evidence=None,
+) -> Operator:
+    """Escribir archivo: PROC EXPORT o salida de archivo de una o más tablas."""
+    params = {
+        "inputs": _lista(inputs, "inputs"),
+        "outfile": _texto(outfile, "outfile"),
+        "dbms": dbms,
+        "delimiter": delimiter,
+    }
+    return _operador(op_id, "write_file", params, evidence)
 
 
 def escribir(op_id: str, dataset: str, evidence=None) -> Operator:

@@ -51,6 +51,25 @@ def _reconstruir(operador):
         return op.deduplicar(operador.id, p["by"], p.get("keep", "first"), p.get("outputs"))
     if operador.kind == "union":
         return op.concatenar(operador.id, p["sources"])
+    if operador.kind == "read":
+        return op.leer(operador.id, p["dataset"], p.get("in"), "in" in p)
+    if operador.kind == "write":
+        return op.escribir(operador.id, p["dataset"])
+    if operador.kind == "read_file":
+        return op.leer_archivo(
+            operador.id,
+            p["datafile"],
+            p["outputs"],
+            p.get("dbms"),
+            p.get("delimiter"),
+            p.get("getnames"),
+            p.get("sheet"),
+            p.get("guessingrows"),
+        )
+    if operador.kind == "write_file":
+        return op.escribir_archivo(
+            operador.id, p["inputs"], p["outfile"], p.get("dbms"), p.get("delimiter")
+        )
     if operador.kind == "aggregate":
         return op.agregar(
             operador.id,

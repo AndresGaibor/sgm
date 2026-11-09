@@ -5606,3 +5606,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - La prueba aún no cubre `rename`, `read`, `read_file` ni `write`.
   - MG-P1-03 sigue abierto en el criterio «L1 a L3 construyen su plan»: los constructores reproducen
     la forma del lowering, pero ningún pase los usa.
+
+## Hito 138m. Constructores de lectura y escritura reproducen la firma del lowering (MG-P1-03)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - `ir/operadores.py`:
+    - `leer` tiene dos formas, igual que el lowering: la de SQL (solo `dataset`) y la de DATA step
+      (`dataset` e `in`, aunque valga None). Se elige con `incluir_bandera`.
+    - `leer_archivo` siempre incluye sus opciones (`dbms`, `delimiter`, `getnames`, `sheet`,
+      `guessingrows`), aunque valgan None.
+    - Nuevo `escribir_archivo` (kind `write_file`), con `inputs`, `outfile`, `dbms` y `delimiter`.
+  - `tests/unit/test_ir_operadores_corpus.py` reconstruye `read`, `write`, `read_file` y `write_file`.
+    Los planes de L1 a L3 reproducen la firma del lowering en todos los operadores con constructor.
+  - `tests/unit/test_ir_operadores.py`: pruebas de las dos formas de `leer` y de las opciones de los
+    archivos.
+- Pruebas: suite completa **2714 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Límites:
+  - `rename` no aparece en los planes de L1 a L3, así que la comprobación no lo cubre.
+  - MG-P1-03 sigue abierto en el criterio «L1 a L3 construyen su plan»: los constructores reproducen
+    la forma del lowering, pero ningún pase los usa.
