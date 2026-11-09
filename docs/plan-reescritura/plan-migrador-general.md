@@ -501,6 +501,8 @@ traza o en un pendiente. MG-P1-02 está a medias: `esquemas_de_entrada` deduce l
 no está en el catálogo sale `String` con su `P-TIPO-DESCONOCIDO`. MG-P1-01 y MG-P1-04 resuelven `L0`
 a `L2` sin YAML; MG-P1-03, MG-P1-05 y MG-P1-06 son de los planes siguientes.
 
+**Avance posterior (hitos 130m a 138m, 9 de noviembre de 2026).** MG-P1-02 a medias: bloque `esquemas` en los 45 casos de L0 a L2 (3 tipos demostrados por `LENGTH`, 273 columnas pendientes con motivo); el largo de `LENGTH` llega a la salida del `tMap`; `sgm migrar` todavía no infiere tipos de `PROC IMPORT`. MG-P1-03 a medias: los 14 operadores tienen constructor validado y prueba (`ir/operadores.py`, `pivotar` queda como hueco); los constructores reproducen la firma del lowering en L1 a L3 para todos los kinds que tienen constructor salvo `rename` (no aparece en esos planes). El criterio «L1 a L3 construyen su plan» no se cumple porque ningún pase usa los constructores: migrar el lowering es una tarea aparte que cambia la forma de las uniones del emisor. Verificación en Studio pendiente: el MCP en 127.0.0.1:3927 no responde.
+
 ### MG-P2. Entrada y salida (50 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|

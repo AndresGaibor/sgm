@@ -5626,3 +5626,14 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - `rename` no aparece en los planes de L1 a L3, así que la comprobación no lo cubre.
   - MG-P1-03 sigue abierto en el criterio «L1 a L3 construyen su plan»: los constructores reproducen
     la forma del lowering, pero ningún pase los usa.
+
+## Hito 139m. Estado de MG-P1 en el plan maestro (sin cambio de código)
+
+- Fecha: 2026-11-09.
+- Qué se hizo: se añadió a la sección MG-P1 de `plan-migrador-general.md` el avance de los hitos 130m a
+  138m, con lo que cumple y lo que no. No se recalculó la tabla de créditos de la sección 11b: el
+  método pide un juicio por tarea que todavía no está acordado.
+- Pruebas: sin cambios de código; la última suite completa es la del hito 138m (2714 pasan).
+- Pendientes que quedan abiertos: MG-P1-02 (comparación con `sgm migrar` para tipos de `PROC IMPORT`;
+  bloques de L3 a L8), MG-P1-03 (migrar el lowering a los constructores, decisión de revisión), y la
+  verificación en Studio del `.item` con `LENGTH`, bloqueada por el MCP.
