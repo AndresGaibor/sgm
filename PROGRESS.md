@@ -5570,3 +5570,22 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites:
   - Ningún pase usa `unir` ni `combinar` todavía. MG-P1-03 sigue abierto en el criterio «L1 a L3
     construyen su plan».
+
+## Hito 136m. Los constructores reproducen la firma del lowering en L1 a L3 (MG-P1-03)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - `tests/unit/test_ir_operadores_corpus.py`: para cada operador de los planes de L1, L2 y L3, se
+    reconstruye con su constructor a partir de sus parámetros y debe dar la misma firma que el
+    lowering. Cubre `join`, `filter`, `select`, `sort`, `dedup` y `union`.
+  - La prueba encontró desviaciones reales, que se corrigieron en `ir/operadores.py`:
+    - `ordenar`: `descending` es una lista por clave, como guarda el lowering, y acepta `outputs`.
+    - `deduplicar`, `filtrar`: aceptan `outputs` opcional, que solo aparece si se da.
+    - `unir`: `sources` es la tabla base del FROM y puede venir vacía; el resto va en `keys`.
+  - Se ajustó la prueba negativa de `unir` al contrato nuevo.
+- Pruebas: suite completa **2710 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Límites:
+  - La prueba cubre seis kinds. `aggregate`, `derive`, `rename`, `read`, `read_file` y `write` no
+    tienen reconstrucción en la prueba todavía.
+  - MG-P1-03 sigue abierto en el criterio «L1 a L3 construyen su plan»: los constructores ya
+    reproducen la forma del lowering, pero ningún pase los usa.

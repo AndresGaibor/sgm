@@ -64,7 +64,7 @@ def test_los_nombres_se_normalizan_a_minusculas():
         (lambda: op.calcular("1", []), "asignación"),
         (lambda: op.unir("1", "outer", [("a.id", "b.id")], ["a", "b"]), "join_type"),
         (lambda: op.unir("1", "inner", [], ["a", "b"]), "llave"),
-        (lambda: op.unir("1", "inner", [("a.id", "b.id")], ["a"]), "al menos 2"),
+        (lambda: op.unir("1", "inner", [("a.id", "b.id")], "a"), "debe ser una lista"),
         (lambda: op.combinar("1", "outer", ["id"], ["a", "b"]), "join_type"),
         (lambda: op.agregar("1", ["g"], []), "agregado"),
         (lambda: op.ordenar("1", []), "by"),

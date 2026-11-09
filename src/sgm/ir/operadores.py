@@ -82,9 +82,17 @@ def escribir(op_id: str, dataset: str, evidence=None) -> Operator:
     return _operador(op_id, "write", {"dataset": _texto(dataset, "dataset")}, evidence)
 
 
-def filtrar(op_id: str, expression: str, evidence=None) -> Operator:
-    """Filtrar: conserva las filas que cumplen la expresión (WHERE, subsetting IF)."""
-    return _operador(op_id, "filter", {"expression": _texto(expression, "expression")}, evidence)
+def filtrar(
+    op_id: str, expression: str, outputs: list[str] | None = None, evidence=None
+) -> Operator:
+    """Filtrar: conserva las filas que cumplen la expresión (WHERE, HAVING, subsetting IF).
+
+    `outputs` solo aparece en los parámetros si se da, como en el lowering.
+    """
+    params: dict[str, Any] = {"expression": _texto(expression, "expression")}
+    if outputs is not None:
+        params["outputs"] = _lista(outputs, "outputs")
+    return _operador(op_id, "filter", params, evidence)
 
 
 def proyectar(op_id: str, mode: str, names: list[str], evidence=None) -> Operator:
@@ -133,7 +141,7 @@ def unir(
     """Unir: JOIN de SQL con tipo explícito. Misma forma que el lowering de `PROC SQL`.
 
     `keys` son pares (columna izquierda, columna derecha); `by` se deduce de la izquierda. Requiere
-    al menos una llave, salvo `cross`, y dos fuentes.
+    al menos una llave, salvo `cross`. `sources` es la tabla base del FROM (puede venir vacía).
     """
     if join_type not in TIPOS_UNION + ("cross",):
         raise ValueError(f"join_type debe ser {TIPOS_UNION + ('cross',)}, no '{join_type}'")
@@ -148,7 +156,7 @@ def unir(
         "by": [izquierda.split(".")[-1].lower() for izquierda, _ in pares],
         "keys": pares,
         "join_type": join_type,
-        "sources": _lista(sources, "sources", minimo=2),
+        "sources": _lista(sources, "sources", minimo=0),
         "condition": condition,
     }
     return _operador(op_id, "join", params, evidence)
@@ -198,17 +206,42 @@ def agregar(
     return _operador(op_id, "aggregate", params, evidence)
 
 
-def ordenar(op_id: str, by: list[str], descending: bool = False, evidence=None) -> Operator:
-    """Ordenar: clave de orden (PROC SORT BY y ORDER BY)."""
-    params = {"by": [n.lower() for n in _lista(by, "by")], "descending": bool(descending)}
+def ordenar(
+    op_id: str,
+    by: list[str],
+    descending: bool | list[bool] = False,
+    outputs: list[str] | None = None,
+    evidence=None,
+) -> Operator:
+    """Ordenar: clave de orden (PROC SORT BY y ORDER BY).
+
+    `descending` es un booleano para todas las claves o una lista por clave (como el lowering).
+    """
+    claves = [n.lower() for n in _lista(by, "by")]
+    if isinstance(descending, bool):
+        indicadores = [descending] * len(claves)
+    else:
+        indicadores = [bool(d) for d in descending]
+        if len(indicadores) != len(claves):
+            raise ValueError("descending necesita un valor por cada clave de by")
+    params: dict[str, Any] = {"by": claves, "descending": indicadores}
+    if outputs is not None:
+        params["outputs"] = _lista(outputs, "outputs")
     return _operador(op_id, "sort", params, evidence)
 
 
-def deduplicar(op_id: str, by: list[str], keep: str = "first", evidence=None) -> Operator:
-    """Deduplicar: una fila por clave (NODUP, NODUPKEY, DISTINCT sobre una clave)."""
+def deduplicar(
+    op_id: str, by: list[str], keep: str = "first", outputs: list[str] | None = None, evidence=None
+) -> Operator:
+    """Deduplicar: una fila por clave (NODUP, NODUPKEY, DISTINCT sobre una clave).
+
+    `outputs` solo aparece en los parámetros si se da, como en el lowering de PROC SORT.
+    """
     if keep not in MODOS_DEDUP:
         raise ValueError(f"keep debe ser {MODOS_DEDUP}, no '{keep}'")
-    params = {"by": [n.lower() for n in _lista(by, "by")], "keep": keep}
+    params: dict[str, Any] = {"by": [n.lower() for n in _lista(by, "by")], "keep": keep}
+    if outputs is not None:
+        params["outputs"] = _lista(outputs, "outputs")
     return _operador(op_id, "dedup", params, evidence)
 
 
