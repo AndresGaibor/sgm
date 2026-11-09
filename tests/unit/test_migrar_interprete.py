@@ -468,6 +468,97 @@ def test_agregados_globales_suman_todas_las_filas_no_faltantes():
     ]
 
 
+def test_mean_de_un_argumento_es_agregado_de_promedio_por_grupo():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT categoria, MEAN(a) AS promedio FROM WORK.entrada "
+        "GROUP BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "entrada": [
+                {"categoria": "A", "a": "2"},
+                {"categoria": "A", "a": "4"},
+                {"categoria": "B", "a": ""},
+            ]
+        },
+    )["resumen"]
+
+    assert filas == [
+        {"categoria": "A", "promedio": "3"},
+        {"categoria": "B", "promedio": None},
+    ]
+
+
+def test_proc_sql_multiargumento_ejecuta_funciones_numericas_por_fila():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT SUM(a, MAX(b, c)) AS suma, MIN(a, b) AS minimo, MAX(a, b) AS maximo, "
+        "MEAN(a, b) AS promedio FROM WORK.entrada; QUIT;"
+    )
+    proyeccion = next(op for op in plan.graph.operators() if op.kind == "derive")
+    assert proyeccion.status == "parcial"
+    assert [item["expression"] for item in proyeccion.params["assignments"]] == [
+        "sum(a, max(b, c))",
+        "min(a, b)",
+        "max(a, b)",
+        "mean(a, b)",
+    ]
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "entrada": [
+                {"a": "2", "b": "6", "c": "3"},
+                {"a": "", "b": "5", "c": "7"},
+                {"a": "", "b": "", "c": ""},
+            ]
+        },
+    )["resumen"]
+
+    assert filas == [
+        {"suma": "8", "minimo": "2", "maximo": "6", "promedio": "4"},
+        {"suma": "7", "minimo": "5", "maximo": "5", "promedio": "5"},
+        {"suma": None, "minimo": None, "maximo": None, "promedio": None},
+    ]
+
+
+def test_proc_sql_avg_con_varios_argumentos_no_se_interpreta_como_agregado():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT AVG(a, b) AS promedio FROM WORK.entrada; QUIT;"
+    )
+
+    assert any(
+        operador.kind == "unsupported" and operador.params.get("reason") == "PARSE_ERROR"
+        for operador in plan.graph.operators()
+    )
+
+
+def test_proc_sql_sum_multiargumento_rechaza_valor_no_numerico():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT SUM(a, b) AS suma FROM WORK.entrada; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="SUM requiere argumentos numéricos"):
+        ejecutar_plan(plan, {"entrada": [{"a": "texto", "b": "2"}]})
+
+
+def test_proc_sql_no_reescribe_columna_con_nombre_interno_de_funcion():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.salida AS "
+        "SELECT sgm_sum AS valor FROM WORK.entrada; QUIT;"
+    )
+    proyeccion = next(op for op in plan.graph.operators() if op.kind == "derive")
+
+    assert proyeccion.params["assignments"] == [
+        {"target": "valor", "expression": "sgm_sum", "origin": "columna"}
+    ]
+
+
 def test_group_by_sin_filas_no_produce_grupos():
     plan = _plan(
         "PROC SQL; CREATE TABLE WORK.resumen AS SELECT categoria, COUNT(*) AS filas "

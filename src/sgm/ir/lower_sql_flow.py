@@ -31,6 +31,8 @@ def _restore(text: str, normalized: NormalizedSql) -> str:
     """Devuelve las macro variables a su forma SAS (`mv_x` -> `&x`) en un texto."""
     for placeholder, original in normalized.macros.items():
         text = re.sub(rf"\b{re.escape(placeholder)}\b", original, text)
+    for placeholder, original in normalized.row_functions.items():
+        text = re.sub(rf"(?i)\b{re.escape(placeholder)}\b", original, text)
     return text
 
 

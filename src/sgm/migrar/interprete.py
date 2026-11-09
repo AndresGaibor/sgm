@@ -52,7 +52,9 @@ SOPORTADOS = frozenset(
     }
 )
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
-_FUNCIONES_SAS = re.compile(r"(?i)\b(input|left|substrn|substr|coalescec|compress|scan)\s*(?=\()")
+_FUNCIONES_SAS = re.compile(
+    r"(?i)\b(input|left|substrn|substr|coalescec|compress|scan|sum|avg|mean|min|max)\s*(?=\()"
+)
 _WILDCARD = re.compile(r"(?i)^(?:([a-z_]\w*)\.)?\*$")
 
 
@@ -163,9 +165,24 @@ def _funcion(nombre: str, argumentos: list) -> object:
     if nombre == "abs":
         numero = _numero(argumentos[0] if argumentos else None)
         return None if numero is None else abs(numero)
-    if nombre == "sum":
-        valores = [_numero(valor) for valor in argumentos]
-        return sum(valor for valor in valores if valor is not None)
+    if nombre in ("sum", "mean", "min", "max"):
+        valores = []
+        for argumento in argumentos:
+            if semantica.es_faltante(argumento):
+                continue
+            convertido = _numero(argumento)
+            if convertido is None:
+                raise NoSoportadoEnInterprete(
+                    "funcion", f"{nombre.upper()} requiere argumentos numéricos"
+                )
+            valores.append(convertido)
+        if not valores:
+            return None
+        if nombre == "sum":
+            return sum(valores)
+        if nombre == "mean":
+            return sum(valores) / len(valores)
+        return min(valores) if nombre == "min" else max(valores)
     raise NoSoportadoEnInterprete("funcion", nombre)
 
 

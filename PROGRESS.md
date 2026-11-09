@@ -5418,3 +5418,38 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   todas las columnas y los alias de tabla. No se infieren tipos ni columnas a partir de filas vacías.
 - Bloqueos: el traductor/emisor Talend sigue sin emitir `IN (SELECT ...)`, por lo que los tres casos
   permanecen pendientes para `sgm migrar`; no se ejecutó SAS ni Talend Studio.
+
+## Hito 131. Distinguir agregados SQL de funciones numéricas por fila
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El normalizador protege llamadas multiargumento de `SUM`, `MIN`, `MAX` y `MEAN` para que
+    `sqlglot` no las lea como agregados SQL de una columna; conserva marcadores por consulta que no
+    colisionan con identificadores de entrada y restaura solo las llamadas protegidas. Las
+    expresiones quedan visibles en la IR como SAS.
+  - El intérprete evalúa esas cuatro funciones por fila, omite los faltantes `None`/vacíos/blancos y
+    devuelve faltante si todos los argumentos faltan. Mantiene los agregados de un argumento y
+    `MEAN(a)` se evalúa como el agregado de promedio equivalente a `AVG(a)`. Rechaza argumentos de
+    texto no numérico, y `AVG` multiargumento queda como `PARSE_ERROR`, según la documentación SAS.
+  - Las búsquedas de `contains`, operadores y funciones por fila respetan comentarios y literales,
+    incluso cuando hay un comentario entre el nombre de una función y su paréntesis. Esto corrige
+    casos donde un apóstrofe ocultaba construcciones posteriores y aridades que el parser no admite.
+    Una regresión integrada protege también nombres de columna que coinciden con un prefijo interno.
+  - Se ajustaron el diseño y el plan maestro. No se cambiaron los esperados del corpus, no se
+    modificó el emisor Talend y no se atribuye equivalencia Talend.
+- Pruebas focalizadas: normalizador, intérprete y anillo B: **136 pasaron y 1 xfailed**. Suite
+  completa `uv run pytest -q`: **2660 pasaron, 26 omitidas y 139 xfailed**.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido.
+- `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 permanece en **18,0/80 h (23 %)** y el total en **192,75/895 h (21,5 %)**,
+  sin nuevo crédito. El anillo B conserva **61/62 casos elegibles (98 %)** y un `xfail` estricto
+  por alias de auto-unión.
+- Decisiones: `sqlproc`, pp. 433 y 435–436, lista `AVG`/`MEAN` como nombres de la media, respalda la
+  diferencia entre un argumento agregado por columna y varios argumentos calculados por fila, además
+  del error de `AVG` multiargumento. `lefunctionsref`,
+  pp. 1230, 1233–1234, 1236 y 1580–1581, respalda argumentos numéricos y faltantes; `lrcon`, p. 124,
+  documenta `.A`–`.Z` y `._`. El intérprete solo considera faltantes los valores que ya representa
+  (`None` o vacío/blanco); no infiere que una cadena `.A` sea numérica sin esquema que lo demuestre.
+  Las horas no aumentan porque la aceptación MG-P10 requiere nuevos casos elegibles del corpus.
+- Bloqueos: MG-P10-01 sigue parcial y el emisor Talend de agregados no existe. No se ejecutó SAS ni
+  Talend Studio.

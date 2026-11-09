@@ -10,7 +10,7 @@ from sqlglot import exp
 
 from sgm.migrar import semantica
 
-_AGREGADO = re.compile(r"(?is)^\s*(count|sum|avg|min|max)\s*\((.*)\)\s*$")
+_AGREGADO = re.compile(r"(?is)^\s*(count|sum|avg|mean|min|max)\s*\((.*)\)\s*$")
 _COLUMNA_SIMPLE = re.compile(r"(?i)^(?:[a-z_]\w*\.)*([a-z_]\w*)$")
 _ALIAS_SIMPLE = re.compile(r"(?i)^[a-z_]\w*$")
 
@@ -168,7 +168,7 @@ def agregar(
                 salida[destino] = None
             elif funcion == "sum":
                 salida[destino] = texto_decimal(sum(valores, Decimal(0)))
-            elif funcion == "avg":
+            elif funcion in ("avg", "mean"):
                 salida[destino] = texto_decimal(sum(valores, Decimal(0)) / len(valores))
             elif funcion == "min":
                 salida[destino] = texto_decimal(min(valores))
