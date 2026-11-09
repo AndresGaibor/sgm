@@ -5773,3 +5773,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `soloOrdenNeto` (un solo sentido) y `soloBetween` (solo el `BETWEEN` original), una vez Studio responda.
   Si `soloOrdenMixto` bloquea, la causa es el `tSortRow` con dos claves de sentido distinto.
 - Pruebas: sin cambios de código en este hito.
+
+## Hito 148m. Causa probable del bloqueo de `l1_14` y `l1_15`: el límite de 25 s del puente
+
+- Fecha: 2026-11-09.
+- Resultados (Studio, una compilación por variante):
+  - `soloOrdenMixto` (solo el `ORDER BY` de dos claves), `soloOrdenNeto` y `soloBetween`: **compilan**.
+  - `l1_14` completo (`WHERE` con `LIKE` y `BETWEEN`, más `ORDER BY`) y `l1_15`: **bloquean el puente**.
+  - Quitar cualquiera de las piezas de `l1_14` lo hace compilar (hito 147m). Un Job simple tarda 11 s.
+- Diagnóstico: el log del puente dice que el hilo de la interfaz no contesta en 25 s. La constante de 25 s
+  está en el plugin del puente (`com.andres.talend.bridge`, en el propio Studio), no en `talend-mcp` ni en
+  `sgm`. Hipótesis: el Job completo tarda más de 25 s en generarse y compilarse; quitar una pieza lo acorta.
+  Sin confirmar: no se pudo medir el tiempo de `l1_14` completo porque el puente corta antes de responder.
+- Lo que no es: no es un error de compilación. Ningún caso devuelve «no compila»; el puente corta antes.
+- Propuesta: subir el tiempo de espera de la interfaz en el plugin del puente (de 25 s a un valor mayor) o
+  partir `l1_14` en dos Jobs. Lo primero es un cambio en código del puente, que es del usuario.
+- Pruebas: sin cambios de código en el repositorio en este hito.
