@@ -5511,3 +5511,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - El emisor de MERGE sigue sin existir. Para emitir un MERGE fila con fila hace falta `tJavaRow` o una
     secuencia por grupo (MG-P4-04); eso no está hecho.
   - Ningún caso de Studio usaba MERGE, así que la compilación de 85 Jobs no cambia.
+
+## Hito 133m. El largo de `LENGTH` llega al Job (MG-P1-02, comparación)
+
+- Fecha: 2026-11-09.
+- Qué se hizo:
+  - `talend_item/desde_plan_map.py`: las columnas de salida de un `tMap` toman el largo que el DATA step
+    fija con `LENGTH` (`_longitudes_declaradas`, lee el `declared` de los pasos `derive`). Antes salían
+    con `longitud=-1`. Se conserva el largo en el renombrado.
+  - `tests/unit/test_corpus_esquemas_migrar.py`: para cada tipo demostrado del bloque `esquemas` con
+    largo, `sgm migrar` debe emitir esa columna con ese largo. Cubre `nivel` (`l0_07`), `etiqueta`
+    (`l0_08`) y `revision` (`l0_13`).
+- Evidencia: en `l0_07`, `nivel` sale como `id_String` con longitud 5 en `tMap` y en la salida.
+- Pruebas: suite completa **2643 pasan, 27 se saltan, 145 xfail**; `ruff check .` limpio.
+- Límites:
+  - MG-P1-02 **sigue abierto**. La comparación cubre solo los tipos que el SAS demuestra; los tipos de
+    `PROC IMPORT` siguen siendo `String` por omisión con `P-TIPO-DESCONOCIDO`, como el criterio exige.
+  - El cambio altera el `.item` de cualquier Job con `LENGTH`. No se volvió a compilar en Studio: el
+    lote de Studio de esta sesión no se ejecutó.

@@ -117,6 +117,19 @@ def _pasos(op: Operator, tipo: str) -> list[dict]:
     ]
 
 
+def _longitudes_declaradas(op: Operator) -> dict[str, int]:
+    """Largo de las columnas String que el DATA step fija con `LENGTH` (pasada 9 y `declared`).
+
+    Solo cuenta el tipo String con largo; el resto de tipos no lleva `length` en Talend.
+    """
+    largos: dict[str, int] = {}
+    for paso in _pasos(op, "derive"):
+        for nombre, (tipo, longitud) in (paso.get("declared") or {}).items():
+            if tipo == "String" and longitud:
+                largos[str(nombre).lower()] = int(longitud)
+    return largos
+
+
 def _principal(fuentes: list[Fuente], join: dict | None) -> int:
     """Índice de la fuente principal: la que el paso `join` declara como origen del `FROM`.
 
@@ -541,6 +554,7 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
                         columnas.append(columna)
                         expresiones[columna.nombre] = f"{meseta.fila(indice)}.{columna.nombre}"
     tipos_previos = {c.nombre: c.tipo for c in columnas}
+    largos = _longitudes_declaradas(op)
     for asignacion in asignaciones:
         destino = str(asignacion.get("target", "")).strip()
         if not destino or not str(asignacion.get("expression", "")).strip():
@@ -557,10 +571,14 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
             java = f"Long.valueOf(({java}) ? 1L : 0L)"
         tipo = _tipo_de_salida(meseta, java, asignacion)
         tipos_previos[destino] = tipo
+        longitud = largos.get(destino.lower(), -1)
         if destino in expresiones:
-            columnas = [Columna(destino, tipo) if c.nombre == destino else c for c in columnas]
+            columnas = [
+                Columna(destino, tipo, longitud=longitud) if c.nombre == destino else c
+                for c in columnas
+            ]
         else:
-            columnas.append(Columna(destino, tipo))
+            columnas.append(Columna(destino, tipo, longitud=longitud))
         expresiones[destino] = java
     for seleccion in selecciones:
         nombres = {str(nombre).lower() for nombre in seleccion.get("names") or []}
@@ -584,7 +602,11 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
             for origen, destino in renombrados[-1].get("pairs") or []
         }
         columnas = [
-            Columna(cambios.get(columna.nombre.lower(), columna.nombre), columna.tipo)
+            Columna(
+                cambios.get(columna.nombre.lower(), columna.nombre),
+                columna.tipo,
+                longitud=columna.longitud,
+            )
             for columna in columnas
         ]
         expresiones = {
