@@ -9,6 +9,8 @@ from pathlib import Path
 
 from sgm.catalog.config import Engines, Env, Project
 from sgm.compile import compile_project
+from sgm.talend_item.desde_plan import plan_a_jobs
+from sgm.talend_item.escritura import escribir_job
 
 PROGRAMA = """
 proc import datafile="/data/clientes.csv" out=work.clientes dbms=csv replace;
@@ -106,3 +108,39 @@ def test_push_to_db_conserva_el_destino_calificado_en_la_misma_base():
     assert sql_ops[0].placement == "db:impala"
     assert sql_ops[0].params["sql"].startswith("CREATE TABLE LZ.salida AS")
     assert "FROM LZ.origen" in sql_ops[0].params["sql"]
+
+
+def test_exec_sql_de_impala_se_emite_en_un_timpalarow_sin_inventar_conexion(tmp_path):
+    ruta = (
+        Path(__file__).resolve().parents[1]
+        / "corpus"
+        / "L2"
+        / "l2_16_sql_en_misma_base"
+        / "programa.sas"
+    )
+    compiled, _ = compile_project(
+        {ruta.name: ruta.read_text(encoding="utf-8")},
+        env=_env("push_to_db"),
+        library_engines={"LZ": "impala"},
+    )
+    plan = compiled[ruta.name].plan
+
+    resultado = plan_a_jobs(plan, {})
+    job = resultado.jobs[0]
+    filas = [nodo for nodo in job.nodos if nodo.componente == "tImpalaRow"]
+    assert len(filas) == 1
+    parametros = {fila[1]: fila[2] for fila in filas[0].parametros if isinstance(fila, tuple)}
+    assert parametros["QUERY"] == '"' + next(
+        op.params["sql"] for op in plan.graph.operators() if op.kind == "exec_sql"
+    ) + '"'
+    assert parametros["USE_EXISTING_CONNECTION"] == "false"
+    assert any(
+        pendiente.codigo == "P-OPERADOR-SIN-SOPORTE"
+        and "configuración de sesión" in pendiente.mensaje
+        for pendiente in resultado.pendientes
+    )
+    assert any(pendiente.codigo == "P-CONEXION-BASE" for pendiente in resultado.pendientes)
+
+    item, _ = escribir_job(job, tmp_path)
+    texto = item.read_text(encoding="utf-8")
+    assert "CREATE TABLE LZ.salida AS" in texto

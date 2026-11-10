@@ -6055,3 +6055,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   2769 pruebas y `ruff` quedaron en verde en el hito 160m.
 - Decisión: el siguiente trabajo es completar la emisión de `exec_sql`/`tImpalaRow` para MG-P8b-08;
   entonces se podrá incluir `l2_16` en el lote sin conectar a Impala.
+
+## Hito 162m. Emitir `exec_sql` como `tImpalaRow`
+
+- Fecha: 2026-11-10.
+- Qué se hizo: el emisor de Jobs ahora traduce `exec_sql` asignado a `tImpalaRow` usando la plantilla
+  guardada desde Studio y coloca el SQL en `QUERY`. Desactiva el enlace de plantilla a una conexión
+  inexistente; no agrega servidor, credenciales ni parámetros supuestos. El Job conserva un pendiente
+  `P-CONEXION-BASE` para configurar host, puerto, base y autenticación, y el `LIBNAME` sigue señalado
+  como configuración de sesión pendiente.
+- Regresión: `test_push_db.py` genera `l2_16_sql_en_misma_base` por `plan_a_jobs`, verifica el
+  componente, el SQL, la falta de conexión inventada, los pendientes y el `.item` escrito.
+- Validación Studio: se generó un Job con `tImpalaRow`, pero no se pudo compilar. El MCP primero
+  respondió a salud; la llamada de compilación agotó 180 s esperando al bridge de Studio en el puerto
+  3930. Las comprobaciones posteriores informaron módulos de terceros requeridos. No se reinstaló ni
+  modificó el plugin, y no se conectó a Impala ni se ejecutó el SQL.
+- Pruebas: suite completa **2770 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
+- Límite: MG-P8b-08 sigue parcial: `read` de base y destino permanente `write` aún no tienen emisor,
+  y el Job no quedó validado en Studio. MG-P8b-09 se mantiene parcial hasta validar `l2_16` en Studio.
+- Decisión: dejar la configuración de conexión al usuario y posponer la compilación hasta que Studio
+  vuelva a exponer su bridge; no adivinar parámetros ni instalar componentes durante la incidencia.

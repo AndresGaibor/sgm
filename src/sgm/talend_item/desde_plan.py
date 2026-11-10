@@ -36,6 +36,7 @@ from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
 from sgm.talend_item.desde_plan_union import nodo_union
+from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 from sgm.talend_item.plantillas import nodo_desde_plantilla
 
@@ -440,6 +441,40 @@ class _Job:
         self._pasos.add(op.id)
         self._uniones[op.id] = [f.origen for f in fuentes]
 
+    def _sql_impala(self, op: Operator, x: int) -> None:
+        """`exec_sql` como `tImpalaRow`; la conexión queda pendiente, nunca se inventa."""
+        sql = str(op.params.get("sql") or "").strip()
+        if not sql:
+            self.pendientes.append(
+                PendienteMigracion(SIN_SOPORTE, "exec_sql sin SQL para tImpalaRow", _linea(op))
+            )
+            return
+        unico = self._unico("tImpalaRow")
+        nodo = nodo_desde_plantilla(
+            "tImpalaRow",
+            unico,
+            x,
+            0,
+            {
+                "QUERY": java(sql),
+                # La plantilla extraída refiere a una conexión inexistente en este Job. Desactivar
+                # esa referencia permite abrir/compilar el componente; los parámetros concretos
+                # del servidor siguen a cargo del usuario en Studio.
+                "USE_EXISTING_CONNECTION": "false",
+                "IMPALA_DRIVER": "IMPALA",
+            },
+            ruta_java=self.ruta_java,
+        )
+        self._registrar(op, nodo, [], "")
+        self.pendientes.append(
+            PendienteMigracion(
+                "P-CONEXION-BASE",
+                f"{unico}: configure en Studio el host, puerto, base y autenticación de Impala; "
+                "no se infieren del SAS",
+                _linea(op),
+            )
+        )
+
     def _registrar(
         self,
         op: Operator,
@@ -665,6 +700,8 @@ class _Job:
             self._agregado(op, x)
         elif op.kind == "union":
             self._union(op, x)
+        elif op.kind == "exec_sql" and componente == "tImpalaRow":
+            self._sql_impala(op, x)
         elif op.kind in CON_NODO:
             # Las transformaciones sueltas son un `tMap` de una sola entrada.
             self._mapa(op, x)
