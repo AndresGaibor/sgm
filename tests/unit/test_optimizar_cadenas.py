@@ -54,6 +54,25 @@ def test_el_plan_original_no_se_toca():
     assert len(optimizado.graph) < antes
 
 
+def test_reutilizar_nombre_de_work_no_confunde_las_versiones():
+    plan = _plan(
+        "CREATE TABLE WORK.temporal AS SELECT id, monto * 2 AS doble FROM WORK.ventas;\n"
+        "CREATE TABLE WORK.primera AS SELECT id, doble + 1 AS total FROM WORK.temporal;\n"
+        "CREATE TABLE WORK.temporal AS SELECT id FROM WORK.otra;\n"
+        "CREATE TABLE WORK.segunda AS SELECT id FROM WORK.temporal;"
+    )
+
+    optimizado, informe = optimizar(plan)
+
+    assert [decision.tabla for decision in informe.decisiones] == ["temporal", "temporal"]
+    assert ejecutar_plan(
+        optimizado, {"ventas": VENTAS, "otra": [{"id": "x"}]}
+    )["primera"] == [{"id": "1", "total": "21"}, {"id": "2", "total": "41"}, {"id": "3", "total": "61"}]
+    assert ejecutar_plan(
+        optimizado, {"ventas": VENTAS, "otra": [{"id": "x"}]}
+    )["segunda"] == [{"id": "x"}]
+
+
 def test_una_intermedia_que_leen_dos_pasos_no_se_funde():
     plan = _plan(
         "CREATE TABLE WORK.a AS SELECT id, monto FROM WORK.ventas WHERE zona = 'N';\n"

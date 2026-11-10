@@ -5915,3 +5915,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - Repartir con `tReplicate` y no con salidas duplicadas del `tMap`: sirve para cualquier
     componente y deja el `tMap` con una salida por significado.
   - Plan actualizado en el mismo cambio: fase `MG-P8b` en `plan-migrador-general.md`.
+
+## Hito 153m. Fusionar por versión cuando SAS reutiliza nombres de `WORK`
+
+- Fecha: 2026-11-10.
+- Qué se corrigió: el optimizador no trata como consumidor externo una lectura de `WORK.temporal`
+  que está conectada a otro productor y, por tanto, corresponde a otra versión de la tabla. El
+  emisor también resuelve un `read` por la arista de su productor; usa el nombre del conjunto solo
+  cuando no hay arista. Esto evita confundir productores distintos que reutilizan el mismo nombre.
+- Prueba de regresión: se reutiliza `WORK.temporal` dos veces y se comprueba que se funden las dos
+  cadenas válidas y que ambas salidas conservan sus filas y columnas.
+- Pruebas: `uv run python -m pytest -q`: **2751 pasan, 27 se saltan, 146 xfail**; `uv run ruff check .`:
+  limpio.
+- Sin verificar en Studio: el servidor MCP no estaba disponible en esta sesión. La prueba cubre el
+  plan y el intérprete, no la compilación del `.item` optimizado.
+- Decisión: cuando un operador `read` tiene aristas de entrada, estas son la fuente autoritativa de
+  su versión; el nombre SAS es solo fallback para una lectura sin productor explícito.

@@ -165,7 +165,14 @@ class _Job:
             return self._resolver(self._alias[op_id], visto)
         op = self.plan.graph.operator(op_id)
         if op.kind == "read":
-            productor = self._productor.get(str(op.params.get("dataset", "")).lower())
+            # La arista dice quién produjo lo que este `read` lee. El nombre solo sirve si no hay
+            # arista: un nombre reutilizado (`WORK.temporal`) tiene varios productores.
+            previos = self.plan.graph.predecessors(op_id)
+            productor = (
+                previos[0]
+                if previos
+                else self._productor.get(str(op.params.get("dataset", "")).lower())
+            )
             if productor and productor != op_id:
                 self._alias[op_id] = productor
                 return self._plegar(op_id, productor, visto)

@@ -95,7 +95,14 @@ def _consumo(
     if len(unicos) != 1 or len(lecturas) > 1:
         raise NoFusionable("la tabla intermedia la lee más de un paso, o ninguno")
     if tabla:
-        otras = lecturas_de.get(tabla, set()) - set(lecturas)
+        # El SAS reutiliza nombres (`WORK.temporal` se reescribe una y otra vez). Una lectura del
+        # mismo nombre que cuelga de otro productor lee otra versión y no cuenta; una que no
+        # cuelga de nadie podría estar leyendo esta, y entonces no se funde.
+        otras = {
+            lectura
+            for lectura in lecturas_de.get(tabla, set()) - set(lecturas)
+            if lectura in grafo and not grafo.predecessors(lectura)
+        }
         if otras or tabla in {nombre_tabla(f) for f in plan.fronteras}:
             raise NoFusionable("la tabla intermedia se usa fuera de este paso")
     return unicos[0], lecturas

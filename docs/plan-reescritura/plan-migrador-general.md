@@ -657,7 +657,7 @@ con el intérprete contra `esperado/` (`tests/unit/test_optimizar_corpus.py`), s
 
 | Id | Tarea | Tipo | Aceptación | Estado |
 |---|---|---|---|---|
-| MG-P8b-01 | Fundir dos pasos encadenados por una tabla de `WORK` que solo lee el siguiente: cruces como lookups de un `tMap`, filtros unidos, columnas con la expresión completa | S | `l1_10`, `l2_11`, `l2_15`, `l5_11` escriben Job | hecho (hito 151m) |
+| MG-P8b-01 | Fundir dos pasos encadenados por una tabla de `WORK` que solo lee el siguiente: cruces como lookups de un `tMap`, filtros unidos, columnas con la expresión completa | S | `l1_10`, `l2_11`, `l2_15`, `l5_11` escriben Job | hecho (hito 151m); reutilización de nombres de `WORK` por versión, hito 153m |
 | MG-P8b-02 | Un cálculo repetido con las mismas entradas se hace una vez (subconsultas y agrupaciones repetidas) | S | `l2_07` y `l3_05` leen y calculan una vez | hecho (hito 152m) |
 | MG-P8b-03 | Un flujo con varios consumidores se reparte con `tReplicate`; si las ramas se vuelven a juntar, una lectura por rama | S | ningún nodo con dos salidas del mismo nombre | hecho (hito 152m), falta compilar en Studio |
 | MG-P8b-04 | Un `map` con ramas es un `tMap` con una salida filtrada por rama | S | `l3_07` escribe Job | hecho (hito 152m) |
