@@ -5587,3 +5587,40 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Studio.
 - Bloqueos: MG-P13-02 requiere confirmación humana del `{SAS002}` y del adjunto con `pwencode`; no se
   inspeccionaron ni copiaron valores. MG-P13-03 (privacidad) y MG-P13-04 (SBOM) siguen pendientes.
+
+## Hito 136. Inventario de dependencias, licencias y SBOM
+
+- Fecha: 2026-11-10. Alcance: MG-P13-04, completo.
+- Qué se hizo:
+  - `tools/seguridad/generar_sbom.py` genera `docs/sbom.md`, `docs/sbom.spdx.json` SPDX 2.3 y
+    `docs/sbom.distribuciones.json` desde `pyproject.toml` y `uv.lock`, usando biblioteca estándar y
+    metadata instalada. Conserva cada variante de resolución, sus relaciones, el alcance
+    runtime/desarrollo y el checksum SPDX del archivo fuente representativo; el manifest relaciona
+    individualmente los 306 wheels/sdists con su nombre, URL y SHA-256. `--check` detecta snapshots
+    ausentes o desactualizados sin escribirlos.
+  - Se documentaron las licencias en identificadores SPDX y se verificaron en la fuente del
+    publicador las excepciones donde el campo de metadata no bastaba. No se infirieron licencias.
+    El propio paquete `sgm` queda como `NOASSERTION`: `pyproject.toml` no declara licencia y se
+    necesita una decisión legal antes de distribuirlo fuera de la organización.
+  - Se separó el modelo del SBOM, el grafo de dependencias y el renderizador para mantener los
+    módulos debajo de 300 líneas. Las aristas y alcances se resuelven por identidad de variante
+    (nombre, versión, origen y marcadores); las referencias ambiguas se rechazan. El informe muestra
+    estos marcadores, el punto de entrada funciona directamente y el namespace SPDX cambia con el
+    contenido canónico.
+- Pruebas focalizadas: 8 pasaron (`tests/unit/test_sbom.py`); `generar_sbom.py --check` confirmó los
+  tres snapshots; el SPDX pasó el esquema JSON oficial 2.3.1 y los 306 hashes quedaron asociados a
+  sus archivos y URLs.
+- Suite completa `uv run pytest -q`: 2720 pasaron, 26 omitidas y 138 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio; `generar_sbom.py --check` y la
+  validación con el esquema JSON oficial SPDX 2.3.1: válidos.
+- Métricas: MG-P13 queda en **15,75/20 h (79 %)**; avance global **219,75/895 h (24,6 %)**. Se
+  acredita MG-P13-04 además de P13-01 y P13-05; P13-02 sigue siendo revisión humana y P13-03 no se
+  acredita.
+- Decisiones: el SBOM incluye dependencias de desarrollo además de runtime, porque ambas forman
+  parte del entorno fijado por `uv.lock`. El generador no consulta red ni agrega dependencias; no
+  realiza un escaneo de vulnerabilidades. La falta de licencia del propio SGM se registra sin
+  escoger una licencia en nombre de la organización.
+- Bloqueos: falta la decisión legal de licencia para `sgm`; MG-P13-02 requiere confirmación humana
+  del `{SAS002}` y del adjunto con `pwencode`, que no se inspeccionaron ni copiaron; MG-P13-03 sigue
+  pendiente de cerrar su comportamiento de privacidad.

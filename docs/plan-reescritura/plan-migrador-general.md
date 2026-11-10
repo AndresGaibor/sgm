@@ -797,14 +797,16 @@ pendientes.
 | MG-P13-04 | Auditoría de dependencias y licencias; SBOM | H | `docs/sbom.md` | 3 |
 | MG-P13-05 | Revisión de seguridad de la generación (inyección en literales SQL y en expresiones Java generadas, escapes) | S | pruebas con entradas hostiles | 9 |
 
-**Estado:** MG-P13-01 completo (hito 134) y MG-P13-05 completo (hito 135). `sgm migrar` prepara el
+**Estado:** MG-P13-01 completo (hito 134), MG-P13-05 completo (hito 135) y MG-P13-04 completo
+(hito 136). `sgm migrar` prepara el
 paquete en staging y solo lo publica si el escaneo pasa; el workflow deja configurada la revisión
 nocturna de una migración controlada y `decisiones/`, que se activa al integrar el archivo en la
 rama predeterminada. La auditoría del emisor comprobó que el SQL se revalida después del render y
 que los identificadores SQL, las columnas tMap, los nombres de contexto y los name literals no
 portables quedan bloqueados antes de emitir; los literales Java y las rutas de archivo se escapan
-como cadenas seguras. MG-P13-02 requiere confirmación humana; MG-P13-03 y MG-P13-04 siguen
-pendientes.
+como cadenas seguras. El SBOM SPDX 2.3 enumera cada variante de `uv.lock`; el manifest de
+distribuciones conserva el mapeo individual de archivos, URLs y hashes. La licencia de `sgm` queda
+`NOASSERTION` para decisión legal. MG-P13-02 requiere confirmación humana y MG-P13-03 sigue pendiente.
 
 ### MG-P14. Producción (agente 40 h, personas unos 40 días)
 | Id | Tarea | Tipo | Aceptación |
@@ -897,11 +899,11 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 61 de 62 pasan, 1 `xfail`; aridad documentada en funciones numéricas; compara columnas para filas no vacías |
 | MG-P11 Experiencia de uso | 30 | 8,0 | 27 % | MG-P11-01 completo: archivo/carpeta, paquetes deterministas e informe `cobertura.md`; faltan MG-P11-02 a 06, incluido el orden por dependencias |
 | MG-P12 Rendimiento | 30 | 8,0 | 27 % | MG-P12-01 medido: programa grande y carpeta de 189 bajo límites; MG-P12-02 a 04 pendientes |
-| MG-P13 Seguridad | 20 | 12,75 | 64 % | MG-P13-01 y 05 completas; MG-P13-02 requiere confirmación humana; privacidad y SBOM pendientes |
+| MG-P13 Seguridad | 20 | 15,75 | 79 % | MG-P13-01, 04 y 05 completas; MG-P13-02 requiere confirmación humana; privacidad pendiente |
 | MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
-| **Total** | **895** | **216,75** | **24,2 %** | Suma recalculada de los créditos visibles por fase |
+| **Total** | **895** | **219,75** | **24,6 %** | Suma recalculada de los créditos visibles por fase |
 
-**Saldo por créditos medidos: 687,25 h.** El reparto nominal entre Andres y Byron en
+**Saldo por créditos medidos: 675,25 h.** El reparto nominal entre Andres y Byron en
 `reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 32,0 h por
 conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
