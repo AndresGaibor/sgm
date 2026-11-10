@@ -12,11 +12,9 @@ carpeta que se puede abrir en Studio y leer:
     <out>/<programa>/cobertura.md                  qué líneas tienen traza o pendientes
     <out>/<programa>/migracion.log                  la causa técnica de cada fallo interno
 
-La promesa del comando es **no fallar nunca**: un operador que no se sabe traducir queda en
-`pendientes.md`, un defecto estructural del Job se escribe igual con su `P-JOB-INVALIDO`, un
-backend que se rompe no se lleva los informes, y un archivo que no es SAS sale con código 0 y su
-explicación. El código de salida 2 queda para el uso incorrecto de la línea de comandos: una ruta
-que no existe o un `--backend` que no existe.
+Los problemas de traducción se escriben en `pendientes.md`; un archivo que no sea SAS conserva su
+explicación. Un hallazgo de secretos bloquea la publicación y sale con código 1. El código 2 queda
+para el uso incorrecto de la línea de comandos: una ruta que no existe o un `--backend` inválido.
 """
 
 from __future__ import annotations
@@ -37,6 +35,8 @@ from sgm.frontend.program import analyze_program
 from sgm.ir.models import Column, Plan
 from sgm.migrar import informes
 from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
+from sgm.seguridad.compuerta_migracion import publicar_con_revision
+from sgm.seguridad.escaner_secretos import Hallazgo
 from sgm.talend_item.desde_plan import plan_a_jobs
 from sgm.talend_item.desde_plan_contextos import GRUPOS, contextos_de_plan
 from sgm.talend_item.escritura import fecha_studio
@@ -74,6 +74,8 @@ class ResultadoMigrar:
     # `read`/`write` que solo nombran un flujo ya producido: no son pasos, se pliegan.
     plegados: set[str] = field(default_factory=set)
     escritos: list[Path] = field(default_factory=list)
+    hallazgos_seguridad: tuple[Hallazgo, ...] = ()
+    fallo_seguridad: str | None = None
 
 
 def _nombre(source: Path) -> str:
@@ -283,7 +285,25 @@ def migrar(
         resultado.visitados = migracion.visitados
         resultado.plegados = migracion.plegados
         _validar(resultado)
-    _escribir(resultado, contextos, backend, source)
+    carpeta_final = resultado.carpeta
+    carpeta_candidata: Path | None = None
+
+    def generar(carpeta: Path) -> None:
+        nonlocal carpeta_candidata
+        carpeta_candidata = carpeta
+        resultado.carpeta = carpeta
+        _escribir(resultado, contextos, backend, source)
+
+    compuerta = publicar_con_revision(carpeta_final, generar)
+    resultado.carpeta = carpeta_final
+    if compuerta.publicado and carpeta_candidata is not None:
+        resultado.escritos = [
+            carpeta_final / ruta.relative_to(carpeta_candidata) for ruta in resultado.escritos
+        ]
+    else:
+        resultado.escritos.clear()
+        resultado.hallazgos_seguridad = compuerta.hallazgos
+        resultado.fallo_seguridad = compuerta.motivo
     return resultado
 
 

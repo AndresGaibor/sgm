@@ -5514,3 +5514,36 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   ni dependencias nuevas.
 - Bloqueos: MG-P12-02 a 04 siguen pendientes; el rendimiento de Jobs con millones de filas, las
   plantillas JVM/Talend y la caché requieren tareas separadas.
+
+## Hito 134. Compuerta de secretos antes de publicar `sgm migrar`
+
+- Fecha: 2026-11-10. Alcance: MG-P13-01, completo.
+- Qué se hizo:
+  - `sgm migrar` genera cada paquete en staging junto al destino, escanea los archivos anteriores y
+    los nuevos, y solo publica después de una revisión limpia. Conserva los archivos manuales del
+    paquete; bloquea los hallazgos, enlaces simbólicos/junctions y errores del escáner sin mostrar el
+    texto sospechoso.
+  - La migración por carpeta sigue procesando programas limpios y devuelve código 1 si algún paquete
+    se bloquea. Una prueba inyecta un valor ficticio desde el escritor y comprueba que no aparece en
+    el destino ni en la salida del comando; otras cubren el paquete previo, el fallo cerrado, lotes y
+    ruta destino como junction de Windows.
+  - `.github/workflows/seguridad-nocturna.yml` queda configurado para correr diario o manual con
+    permisos de lectura; el cron se activa al integrar el archivo en la rama predeterminada. Usa
+    acciones fijadas a SHA y no requiere credenciales de CI. Migra un caso de corpus controlado y
+    escanea el paquete y `decisiones/`.
+  - Se actualizó `docs/secretos.md`, el plan maestro y el avance calculado. Se ejecutaron localmente
+    los comandos del workflow y el parser confirmó la sintaxis YAML.
+- Pruebas focalizadas: 98 pasaron (`test_cli_migrar.py` y pruebas del escáner).
+- Suite completa `uv run pytest -q`: 2678 pasaron, 26 omitidas y 139 xfailed.
+- `uv run ruff check .`: limpio después de ajustar el largo de una línea; `uv run python -m sgm.cli
+  rules validate`: válido; el workflow YAML y sus dos escaneos locales pasaron;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P13 queda en **3,75/20 h (19 %)**; avance global **207,75/895 h (23,2 %)**. El
+  crédito es únicamente por MG-P13-01; el resto de las tareas de seguridad no se acredita.
+- Decisiones: el paquete previo se copia al staging y se escanea junto con lo recién generado para
+  conservar archivos agregados por el usuario. Cualquier error de revisión bloquea sin propagar el
+  texto de excepción; los hallazgos solo informan ruta, línea y tipo. No se agregaron dependencias.
+- Bloqueos: MG-P13-02 requiere confirmación humana del `{SAS002}` y del adjunto con `pwencode`; no se
+  inspeccionaron ni copiaron valores. MG-P13-03 y 04 siguen pendientes. La revisión independiente
+  de MG-P13-05 encontró dos riesgos P1 (inyección SQL por identificador y Java en name literal) y
+  dos riesgos P2, que deben corregirse con pruebas antes de cerrar esa tarea.

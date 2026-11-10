@@ -10,6 +10,20 @@ import typer
 from sgm.cli_migrar import migrar, validate_backend
 
 
+def _seguridad_fallida(resultado) -> bool:
+    return bool(resultado.hallazgos_seguridad or resultado.fallo_seguridad)
+
+
+def _informar_seguridad(resultado) -> None:
+    for hallazgo in resultado.hallazgos_seguridad:
+        typer.echo(
+            f"  seguridad: {hallazgo.archivo}:{hallazgo.linea}: {hallazgo.tipo}; "
+            "valor oculto, paquete no publicado"
+        )
+    if resultado.fallo_seguridad:
+        typer.echo(f"  seguridad: {resultado.fallo_seguridad}; paquete no publicado")
+
+
 def _sas_programs(source_dir: Path, output_dir: Path) -> list[Path]:
     """Lista archivos SAS en orden estable, sin volver a leer una salida anidada."""
     source_root = source_dir.resolve()
@@ -62,11 +76,19 @@ def migrar_command(
 
     if source.is_file():
         resultado = migrar(source, out, esquemas=esquemas, muestra=muestra, backend=backend)
+        salida = (
+            "paquete no publicado por seguridad"
+            if _seguridad_fallida(resultado)
+            else f"salida en {resultado.carpeta}"
+        )
         typer.echo(
             f"{source.name}: {len(resultado.jobs)} Job(s), "
             f"{len(resultado.pendientes)} pendiente(s), "
-            f"salida en {resultado.carpeta}"
+            f"{salida}"
         )
+        if _seguridad_fallida(resultado):
+            _informar_seguridad(resultado)
+            raise typer.Exit(code=1)
         if resultado.pendientes:
             typer.echo(f"  ver {resultado.carpeta / 'pendientes.md'}")
         return
@@ -93,12 +115,19 @@ def migrar_command(
         f"{pending_count} pendiente(s). Informes por programa en {out}."
     )
     typer.echo("Recorrido por ruta relativa; el orden no representa dependencias de ejecución.")
+    bloqueados = [resultado for resultado in results if _seguridad_fallida(resultado)]
+    if bloqueados:
+        typer.echo(f"Compuerta de seguridad: {len(bloqueados)} paquete(s) no publicado(s).")
+        for resultado in bloqueados:
+            _informar_seguridad(resultado)
     programs_with_pending = sum(bool(result.pendientes) for result in results)
     if programs_with_pending:
         typer.echo(
             f"Revise pendientes.md y cobertura.md en las salidas de "
             f"{programs_with_pending} programa(s)."
         )
+    if bloqueados:
+        raise typer.Exit(code=1)
 
 
 __all__ = ["migrar_command"]

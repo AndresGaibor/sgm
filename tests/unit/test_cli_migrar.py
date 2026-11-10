@@ -246,3 +246,148 @@ def test_un_programa_que_no_se_puede_leer_no_lanza(tmp_path):
     assert resultado.carpeta.is_dir()
     assert {p.codigo for p in resultado.pendientes} == {"P-PROGRAMA-ILLEGIBLE"}
     assert (resultado.carpeta / "pendientes.md").is_file()
+
+
+SECRETO_PLANTADO = "Zx9-ficticio-123"
+
+
+def test_migrar_no_publica_paquete_con_secreto_y_no_lo_muestra(tmp_path, monkeypatch):
+    from sgm.backend_talend.archivos import escribir_job as escritura_original
+
+    def escribir_con_secreto(job, carpeta, fecha=None):
+        rutas = escritura_original(job, carpeta, fecha)
+        item = next(ruta for ruta in rutas if ruta.suffix == ".item")
+        item.write_text(
+            item.read_text(encoding="utf-8") + f"\n# password={SECRETO_PLANTADO}\n",
+            encoding="utf-8",
+        )
+        return rutas
+
+    monkeypatch.setattr("sgm.backend_talend.archivos.escribir_job", escribir_con_secreto)
+
+    resultado = _correr(tmp_path, L2_01)
+
+    assert resultado.exit_code == 1, resultado.output
+    assert SECRETO_PLANTADO not in resultado.output
+    assert "password_en_cadena" in resultado.output
+    assert "no publicado" in resultado.output
+    assert not (tmp_path / "salida" / "programa").exists()
+
+
+def test_migrar_no_modifica_paquete_existente_con_hallazgo(tmp_path):
+    destino = tmp_path / "salida" / "programa"
+    destino.mkdir(parents=True)
+    previo = destino / "manual.txt"
+    previo.write_text(f"password={SECRETO_PLANTADO}\n", encoding="utf-8")
+
+    resultado = _correr(tmp_path, L2_01)
+
+    assert resultado.exit_code == 1, resultado.output
+    assert SECRETO_PLANTADO not in resultado.output
+    assert previo.read_text(encoding="utf-8") == f"password={SECRETO_PLANTADO}\n"
+    assert not (destino / "process").exists()
+
+
+def test_migrar_falla_cerrado_si_no_puede_comprobar(tmp_path, monkeypatch):
+    from sgm.seguridad import escaner_secretos
+
+    def fallar(_ruta):
+        raise OSError(f"fallo de lectura que no debe exponerse {SECRETO_PLANTADO}")
+
+    monkeypatch.setattr(escaner_secretos, "escanear_ruta", fallar)
+
+    resultado = _correr(tmp_path, L2_01)
+
+    assert resultado.exit_code == 1, resultado.output
+    assert "no se pudo completar" in resultado.output
+    assert SECRETO_PLANTADO not in resultado.output
+    assert not (tmp_path / "salida" / "programa").exists()
+
+
+@pytest.mark.parametrize("metodo", ("is_symlink", "is_junction"))
+def test_compuerta_rechaza_la_ruta_destino_si_es_enlace(tmp_path, monkeypatch, metodo):
+    from pathlib import Path
+
+    from sgm.seguridad.compuerta_migracion import publicar_con_revision
+
+    destino = tmp_path / "programa"
+    metodo_original = getattr(Path, metodo)
+
+    def es_enlace(ruta):
+        return ruta == destino or metodo_original(ruta)
+
+    monkeypatch.setattr(Path, metodo, es_enlace)
+    llamada = False
+
+    def generar(_destino):
+        nonlocal llamada
+        llamada = True
+
+    resultado = publicar_con_revision(destino, generar)
+
+    assert not resultado.publicado
+    assert "enlace simbólico" in resultado.motivo
+    assert not llamada
+
+
+def test_compuerta_rechaza_enlace_dentro_del_paquete(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    from sgm.seguridad.compuerta_migracion import publicar_con_revision
+
+    destino = tmp_path / "programa"
+    destino.mkdir()
+    enlace = destino / "manual.txt"
+    enlace.write_text("archivo simulado como enlace", encoding="utf-8")
+    is_symlink_original = Path.is_symlink
+
+    def es_enlace(ruta):
+        return ruta == enlace or is_symlink_original(ruta)
+
+    monkeypatch.setattr(Path, "is_symlink", es_enlace)
+    resultado = publicar_con_revision(destino, lambda _carpeta: None)
+
+    assert not resultado.publicado
+    assert "enlace simbólico" in resultado.motivo
+
+
+def test_migrar_conserva_archivos_manuales_del_paquete(tmp_path):
+    destino = tmp_path / "salida" / "programa"
+    destino.mkdir(parents=True)
+    manual = destino / "nota-operativa.md"
+    manual.write_text("Revisar el contexto QA antes de ejecutar.\n", encoding="utf-8")
+
+    resultado = _correr(tmp_path, L2_01)
+
+    assert resultado.exit_code == 0, resultado.output
+    assert manual.read_text(encoding="utf-8") == "Revisar el contexto QA antes de ejecutar.\n"
+    assert any((destino / "process").glob("*.item"))
+
+
+def test_migrar_lote_publica_limpios_y_falla_si_uno_se_bloquea(tmp_path, monkeypatch):
+    from sgm.backend_talend.archivos import escribir_job as escritura_original
+
+    fuente = tmp_path / "programas"
+    fuente.mkdir()
+    texto = L2_01.read_text(encoding="utf-8")
+    (fuente / "limpio.sas").write_text(texto, encoding="utf-8")
+    (fuente / "filtrado.sas").write_text(texto, encoding="utf-8")
+
+    def escribir_uno_con_secreto(job, carpeta, fecha=None):
+        rutas = escritura_original(job, carpeta, fecha)
+        if carpeta.parent.name == "filtrado":
+            item = next(ruta for ruta in rutas if ruta.suffix == ".item")
+            item.write_text(
+                item.read_text(encoding="utf-8") + f"\n# password={SECRETO_PLANTADO}\n",
+                encoding="utf-8",
+            )
+        return rutas
+
+    monkeypatch.setattr("sgm.backend_talend.archivos.escribir_job", escribir_uno_con_secreto)
+
+    resultado = runner.invoke(app, ["migrar", str(fuente), "--out", str(tmp_path / "salida")])
+
+    assert resultado.exit_code == 1, resultado.output
+    assert SECRETO_PLANTADO not in resultado.output
+    assert (tmp_path / "salida" / "limpio" / "trace.json").is_file()
+    assert not (tmp_path / "salida" / "filtrado").exists()
