@@ -1,0 +1,8 @@
+nivel: L1
+construcciones: [DATA step, SET, asignación aditiva, KEEP, RENAME]
+capa: C
+tolerancia: 0
+orden_relevante: true
+estado: traducible
+salidas: [final]
+razonamiento: "Esperado manual: el oráculo SQL no ejecuta DATA step; las dos asignaciones son aritmética directa."

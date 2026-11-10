@@ -9,7 +9,7 @@ La fusión solo se hace cuando se puede demostrar que el resultado es el mismo. 
 devuelve el motivo y el plan queda como estaba:
 
 * los dos pasos tienen la forma cruces, filtros y asignaciones; las asignaciones `modo: agrega` se
-  combinan en orden. `KEEP`/`DROP`/`RENAME` solo se aceptan en el paso consumidor, para aplicarlos al
+  combinan en orden. `KEEP`/`DROP`/`RENAME` solo se aceptan en el consumidor, para aplicarlos al
   resultado final; los modificadores del productor cambian la interfaz de columnas y bloquean la
   fusión;
 * la tabla intermedia la lee un solo paso, una sola vez, y no es salida del programa;

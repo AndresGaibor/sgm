@@ -5947,3 +5947,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   la batería de equivalencia del corpus.
 - Decisión: no inferir alias ni columnas que sobreviven a un modificador del productor; mantener
   esos pasos separados hasta modelar explícitamente su interfaz y probarla.
+
+## Hito 155m. Caso de corpus para DATA step encadenados
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se agregó `l1_16_data_steps_encadenados` con entrada CSV, dos DATA step aditivos,
+  `KEEP`, `RENAME` y salida esperada. El anillo B compara el plan optimizado contra esa salida.
+- Oráculo: el verificador A solo ejecuta la salida de `CREATE TABLE`; este caso produce la salida con
+  DATA step, por lo que queda en capa C con esperado manual y se comprueba con el intérprete. No se
+  cambió ni se debilitó el oráculo.
+- Se ajustó el tablero del corpus a 118 casos (117 con esperado).
+- Límite de MG-P8b-05: los modificadores `KEEP`/`DROP`/`RENAME` en el productor siguen evitando la
+  fusión; hace falta modelar la interfaz de columnas para poder trasladarlos sin alterar referencias.
