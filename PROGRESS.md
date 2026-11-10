@@ -5976,3 +5976,14 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   siguen pendientes; tampoco se admiten proyecciones distintas por rama.
 - Pruebas: suite completa **2762 pasan, 27 se saltan, 146 xfail**; `ruff` limpio. La prueba nueva de
   forma para `l2_10` se añade en este hito y se vuelve a correr la suite completa antes del commit.
+
+## Hito 157m. Ramificar filtros de grupos después de un agregado
+
+- Fecha: 2026-11-10.
+- Qué se hizo: dos operadores `filter` hermanos que consumen el mismo agregado se convierten en un
+  `map` sin pasos compartidos y con una salida filtrada por rama. Así `l3_05_having_conteo` genera
+  ambos grupos desde un solo agregado, en vez de duplicar el `tAggregateRow` y repartirlo.
+- Verificación: el caso de corpus mantiene las salidas de `grupos_grandes` y `grupos_pequenos` contra
+  `esperado/`; la prueba estructural confirma el único mapa con ambas ramas.
+- Límites: `l2_07` sigue pendiente; combinar `IN` y `NOT IN` requiere un `tMap` con flujo de rechazo
+  del cruce, no solo filtros hermanos sobre un mismo flujo.

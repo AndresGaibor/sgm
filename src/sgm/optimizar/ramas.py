@@ -20,6 +20,9 @@ def _identidad_entrada(plan: Plan, arista: Edge) -> tuple[str, str]:
 
 def _forma_rama(op: Operator) -> tuple[str, list[dict], dict] | None:
     """Clave común, pasos que se comparten y filtro propio de una rama."""
+    if op.kind == "filter" and op.params.get("outputs"):
+        filtro = {"params": {"expression": op.params.get("expression", "")}}
+        return "[]", [], filtro
     if op.kind != "map" or op.params.get("branches") or op.status == "hueco":
         return None
     pasos = op.params.get("steps") or []
@@ -74,7 +77,7 @@ def unir_ramas_hermanas(plan: Plan) -> list[tuple[str, str, list[str]]]:
         if forma is None:
             continue
         clave, pasos, filtro = forma
-        if not _filtro_sobre_salida(filtro, pasos):
+        if pasos and not _filtro_sobre_salida(filtro, pasos):
             continue
         entradas = grafo.in_edges(op_id)
         if len(entradas) != 1:
@@ -90,7 +93,10 @@ def unir_ramas_hermanas(plan: Plan) -> list[tuple[str, str, list[str]]]:
             continue
         arista_entrada = miembros[0][1][0]
         productor = grafo.operator(arista_entrada.src)
-        tabla = str(productor.params.get("dataset") or arista_entrada.dataset)
+        tabla = str(
+            productor.params.get("dataset")
+            or next(iter(productor.params.get("outputs") or []), arista_entrada.dataset)
+        )
         # Todas las ramas tienen una salida distinta y llegan a la misma fuente.
         salidas = [str((op.params.get("outputs") or [""])[0]) for op, *_ in miembros]
         if any(

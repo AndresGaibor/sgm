@@ -88,3 +88,23 @@ def test_l2_10_comparte_la_fuente_en_un_mapa_con_dos_salidas():
         for decision in informe.decisiones
     )
 
+
+def test_l3_05_reparte_el_agregado_en_dos_salidas_filtradas():
+    caso = next(
+        caso
+        for caso in casos.casos_de_nivel(CORPUS, "L3")
+        if caso.nombre == "l3_05_having_conteo"
+    )
+    plan, informe = _optimizado(caso)
+
+    ramas = [op for op in plan.graph.operators() if op.kind == "map" and op.params.get("branches")]
+    assert len(ramas) == 1
+    assert {salida for rama in ramas[0].params["branches"] for salida in rama["outputs"]} == {
+        "WORK.grupos_grandes",
+        "WORK.grupos_pequenos",
+    }
+    assert any(
+        decision.regla == "ramificar-transformaciones-hermanas"
+        for decision in informe.decisiones
+    )
+
