@@ -19,6 +19,7 @@ import re
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Operator
+from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion, tipo_de_expresion
 from sgm.talend_item.desde_plan_expresiones import expresion
 from sgm.talend_item.desde_plan_nodos import TIPOS
@@ -747,6 +748,19 @@ def construir(
             )
         )
         return armado
+    if any(
+        not is_java_identifier(columna.nombre)
+        for fuente in fuentes
+        for columna in fuente.columnas
+    ):
+        armado.pendientes.append(
+            PendienteMigracion(
+                NO_SOPORTADO,
+                "el esquema de entrada tiene nombres de columna no portables para Java",
+                _linea(op),
+            )
+        )
+        return armado
     uniones = _pasos(op, "join")
     if not _tipos_soportados(uniones, armado, op):
         return armado
@@ -769,6 +783,19 @@ def construir(
         armado.pendientes.append(
             PendienteMigracion(
                 NO_SOPORTADO, "el mapa no produce ninguna columna demostrable", _linea(op)
+            )
+        )
+        return armado
+    if any(
+        not is_java_identifier(columna.nombre)
+        for salida in salidas
+        for columna in salida.columnas
+    ):
+        armado.pendientes.append(
+            PendienteMigracion(
+                NO_SOPORTADO,
+                "el mapa produce nombres de columna no portables para Java",
+                _linea(op),
             )
         )
         return armado

@@ -1,0 +1,47 @@
+{
+  "environment": {
+    "architecture": "AMD64",
+    "cpu_count": 16,
+    "os": "Windows",
+    "os_release": "11",
+    "python": "3.12.10"
+  },
+  "limits": {
+    "elapsed_seconds_strictly_less_than": 120.0,
+    "peak_memory_bytes_strictly_less_than": 1000000000,
+    "process_timeout_seconds": 600.0
+  },
+  "measured_at_utc": "2026-11-10T16:44:41+00:00",
+  "passed": true,
+  "scenarios": {
+    "folder_189": {
+      "actual_packages": 189,
+      "elapsed_seconds": 10.86,
+      "exit_code": 0,
+      "expected_packages": 189,
+      "memory_metric": "PeakProcessTreeWorkingSetSize",
+      "output_bytes": 3626562,
+      "passed": true,
+      "peak_memory_bytes": 81707008,
+      "source": "tests/fixtures/sas/ (client_large.sas excluido)",
+      "source_bytes": 637104,
+      "source_files": 189,
+      "timed_out": false
+    },
+    "large_program": {
+      "actual_packages": 1,
+      "elapsed_seconds": 6.848,
+      "exit_code": 0,
+      "expected_packages": 1,
+      "memory_metric": "PeakProcessTreeWorkingSetSize",
+      "output_bytes": 353865,
+      "passed": true,
+      "peak_memory_bytes": 93872128,
+      "source": "tests/fixtures/sas/client/client_large.sas",
+      "source_bytes": 835630,
+      "source_files": 1,
+      "timed_out": false
+    }
+  },
+  "task": "MG-P12-01"
+}

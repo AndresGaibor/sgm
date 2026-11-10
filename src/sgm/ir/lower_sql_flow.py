@@ -23,6 +23,7 @@ from sgm.ir.sql_tree import Item, SelectSpec, SemiSpec, Source, SqlTree
 
 _AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
 _DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
+_SIMPLE_COLUMN = re.compile(r"(?i)^(?:[a-z_]\w*\.)*([a-z_]\w*)$")
 
 
 def _restore(text: str, normalized: NormalizedSql) -> str:
@@ -130,6 +131,55 @@ def _plain_items(spec: SelectSpec) -> list[str]:
     ]
 
 
+def _group_outputs(spec: SelectSpec, aliases: set[str]) -> tuple[list[dict], list[str]]:
+    """Columnas simples de GROUP BY seleccionadas y columnas que requieren remezcla."""
+    group_names = {
+        match.group(1).lower()
+        for group in spec.group_by
+        if (match := _SIMPLE_COLUMN.fullmatch(_column(group, aliases).strip()))
+    }
+    outputs = []
+    pendientes = []
+    for item in spec.items:
+        if item.star:
+            pendientes.append("*")
+            continue
+        if _AGGREGATE.search(item.expression):
+            continue
+        expression = _column(item.expression, aliases).strip()
+        match = _SIMPLE_COLUMN.fullmatch(expression)
+        nombre = item.alias or item.column or (match.group(1) if match else item.expression)
+        if match is None or match.group(1).lower() not in group_names:
+            pendientes.append(nombre)
+        else:
+            outputs.append({"expression": expression, "alias": nombre})
+    return outputs, pendientes
+
+
+def _aggregate_order_by(
+    spec: SelectSpec, aliases: set[str]
+) -> tuple[list[tuple[str, bool]], list[str]]:
+    """Resuelve ORDER BY con salidas seleccionadas; las otras referencias remezclan SAS."""
+    selected = {}
+    for item in spec.items:
+        if item.star:
+            continue
+        target = item.alias or item.column or item.expression
+        expression = _column(item.expression, aliases).strip()
+        selected[expression.casefold()] = target
+        selected[target.casefold()] = target
+    outputs = []
+    pendientes = []
+    for expression, descending in spec.order_by:
+        nombre = _column(expression, aliases).strip()
+        destino = selected.get(nombre.casefold())
+        if destino is None:
+            pendientes.append(f"ORDER BY {nombre}")
+        else:
+            outputs.append((destino, descending))
+    return outputs, pendientes
+
+
 def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
     """Si el SELECT cambia algo: una lista de columnas deja solo esas, y un alias o una expresión
     cambian lo que hay.
@@ -225,7 +275,8 @@ def _cruce_de_existencia(
     clave = f"clave_in{numero}"
     alias_sub = {sub.base.alias.lower()} if sub.base and sub.base.alias else set()
     tablas_sub = _tablas(sub)
-    actual = chain.read(sub.base)
+    source_read = chain.read(sub.base)
+    actual = source_read
     if sub.where:
         filtro = _restore(_column(sub.where, alias_sub), normalized)
         actual = _paso(
@@ -263,6 +314,10 @@ def _cruce_de_existencia(
             "condition": None,
         },
     )
+    params["interpreter_subquery"] = {
+        "expression": _restore(semi.expression, normalized),
+        "source_read": source_read.id,
+    }
     cruce = chain.b.op("join", params, chain.ev)
     chain.b.link(current, cruce)
     chain.b.link(derecha, cruce)
@@ -342,6 +397,7 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 current,
             )
     if spec.group_by or aggregates:
+        aggregate_order, remezcla_order = _aggregate_order_by(spec, aliases)
         params = {
             "group_by": [_column(g, aliases) for g in spec.group_by],
             "aggregations": [
@@ -355,13 +411,32 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 {"expression": _restore(_column(llamada, aliases), normalized), "alias": nombre}
                 for llamada, nombre in ocultas.items()
             ],
+            "output_order": [
+                str(it.alias or it.column or it.expression).lower()
+                for it in spec.items
+                if not it.star
+            ],
         }
+        if spec.group_by:
+            group_outputs, remezcla = _group_outputs(spec, aliases)
+            params["group_outputs"] = group_outputs
+            remezcla.extend(remezcla_order)
+            if remezcla:
+                params["pendiente"] = remezcla
+        if compuestos:
+            params["output_order"] = [
+                *[str(item["alias"]).lower() for item in params.get("group_outputs", [])],
+                *[str(item["alias"]).lower() for item in params["aggregations"]],
+            ]
         plain = _plain_items(spec) if not spec.group_by else []
-        if plain and sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente":
+        if params.get("pendiente") or (
+            plain and sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente"
+        ):
             # SAS remezcla las columnas sin agregar en cada fila: no hay SQL equivalente probado.
-            params["pendiente"] = plain
+            params.setdefault("pendiente", plain)
             label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
-            note = f"{label}: columnas sin agregar {', '.join(plain)}; pendiente de decidir"
+            detalle = ", ".join(params["pendiente"])
+            note = f"{label}: columnas sin agregar {detalle}; pendiente de decidir"
             current = chain.step("aggregate", params, current, status="parcial")
             current.notes.append(note)
         else:
@@ -426,7 +501,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
             current,
         )
     if spec.order_by:
-        by = [_column(expr, aliases) for expr, _ in spec.order_by]
+        if spec.group_by or aggregates:
+            by = [expression for expression, _ in aggregate_order]
+        else:
+            by = [_column(expr, aliases) for expr, _ in spec.order_by]
         desc = [desc for _, desc in spec.order_by]
         current = _paso(
             chain,

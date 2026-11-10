@@ -30,6 +30,13 @@ from sqlglot.errors import ParseError
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Operator, Plan
 from sgm.migrar import semantica
+from sgm.migrar.interprete_agregados import AgregadoNoSoportado, agregar
+from sgm.migrar.interprete_subconsultas import (
+    SubconsultaNoSoportada,
+    _fuentes,
+    orden_de_ejecucion,
+    preparar,
+)
 
 # Operadores que el intérprete sabe ejecutar; el resto detiene la ejecución con su nombre.
 SOPORTADOS = frozenset(
@@ -101,6 +108,16 @@ def _patron(patron: str) -> re.Pattern[str]:
 def _funcion(nombre: str, argumentos: list) -> object:
     if nombre.startswith("sgm_"):
         nombre = nombre[4:]
+    if nombre.startswith("row_"):
+        nombre = nombre[4:]
+    if nombre == "mean":
+        valores = [_numero(valor) for valor in argumentos]
+        presentes = [valor for valor in valores if valor is not None]
+        return sum(presentes) / len(presentes) if presentes else None
+    if nombre in ("min", "max"):
+        valores = [_numero(valor) for valor in argumentos]
+        presentes = [valor for valor in valores if valor is not None]
+        return (min(presentes) if nombre == "min" else max(presentes)) if presentes else None
     if nombre == "missing":
         return semantica.es_faltante(argumentos[0] if argumentos else None)
     if nombre == "coalesce":
@@ -144,7 +161,11 @@ def _funcion(nombre: str, argumentos: list) -> object:
         return None if numero is None else abs(numero)
     if nombre == "sum":
         valores = [_numero(valor) for valor in argumentos]
-        return sum(valor for valor in valores if valor is not None)
+        if any(not semantica.es_faltante(valor) and convertido is None
+               for valor, convertido in zip(argumentos, valores, strict=True)):
+            raise NoSoportadoEnInterprete("funcion", "SUM requiere argumentos numéricos")
+        presentes = [valor for valor in valores if valor is not None]
+        return sum(presentes) if presentes else None
     raise NoSoportadoEnInterprete("funcion", nombre)
 
 
@@ -349,9 +370,54 @@ def _clave(valor: object) -> tuple:
     return (2, 0.0, semantica.como_texto(valor))
 
 
-def _filtrar(filas: list[dict], expresion: str) -> list[dict]:
+def _filtrar(
+    filas: list[dict], expresion: str, tablas: dict[str, list[dict]] | None = None
+) -> list[dict]:
     arbol = _arbol(expresion)
+    try:
+        arbol = preparar(
+            arbol,
+            filas,
+            tablas,
+            filtrar=_filtrar,
+            evaluar=_valor,
+            columna=_columna,
+        )
+    except SubconsultaNoSoportada as error:
+        raise NoSoportadoEnInterprete("subconsulta", str(error)) from error
     return [fila for fila in filas if _verdad(_valor(arbol, fila))]
+
+
+def _validar_subconsulta_de_union(
+    params: dict, actual: list[dict], plan: Plan, por_operador: dict, tablas: dict
+) -> None:
+    """Valida el IN original antes de ejecutar el cruce que lo representa en el plan."""
+    metadatos = params.get("interpreter_subquery")
+    if not isinstance(metadatos, dict):
+        return
+    lector = str(metadatos.get("source_read") or "")
+    contexto = dict(tablas)
+    if lector in por_operador:
+        fuente = plan.graph.operator(lector)
+        nombre = _tabla(fuente.params.get("dataset", ""))
+        if nombre:
+            contexto[nombre] = por_operador[lector]
+    fuentes = _fuentes(_arbol(str(metadatos.get("expression") or "")))
+    if any(nombre not in contexto for nombre in fuentes):
+        # El plan optimizado ya materializa las llaves del IN. No volver a evaluar la subconsulta
+        # si su fuente intermedia fue plegada; la validación estructural corresponde al lowering.
+        return
+    try:
+        preparar(
+            _arbol(str(metadatos.get("expression") or "")),
+            actual,
+            contexto,
+            filtrar=_filtrar,
+            evaluar=_valor,
+            columna=_columna,
+        )
+    except SubconsultaNoSoportada as error:
+        raise NoSoportadoEnInterprete("subconsulta", str(error)) from error
 
 
 def _fila_de(
@@ -693,39 +759,18 @@ def _por_grupo(filas: list[dict], params: dict) -> list[dict]:
 
 
 def _agregar(filas: list[dict], params: dict) -> list[dict]:
-    """`GROUP BY` de PROC SQL: una fila por grupo, en orden de llaves; el faltante es un grupo."""
-    if params.get("pendiente"):
-        raise NoSoportadoEnInterprete("aggregate", "columnas sin agregar junto a un agregado")
-    grupos = [str(g).split(".")[-1].lower() for g in params.get("group_by") or []]
-    llamadas = []
-    for agregado in params.get("aggregations") or []:
-        texto = str(agregado.get("expression") or "")
-        encontrada = _AGREGADO.match(texto)
-        if encontrada is None:
-            raise NoSoportadoEnInterprete("aggregate", f"'{texto}' no es FUNCION(columna)")
-        funcion = encontrada.group(1).lower()
-        llamadas.append(
-            (
-                str(agregado.get("alias") or texto).lower(),
-                "avg" if funcion == "mean" else funcion,
-                encontrada.group(2) is not None,
-                encontrada.group(3),
-            )
+    """Adapta los agregados compatibles al error público del intérprete."""
+    try:
+        return agregar(
+            filas,
+            params,
+            parsear=_arbol,
+            evaluar=_valor,
+            columna=_columna,
+            clave=_clave,
         )
-    por_grupo: dict[tuple, list[dict]] = {}
-    for fila in filas:
-        llave = tuple(_clave(_columna(fila, g)) for g in grupos)
-        por_grupo.setdefault(llave, []).append(fila)
-    if not grupos and not por_grupo:
-        por_grupo[()] = []  # sin filas, un agregado total sigue dando una fila: COUNT(*) es 0
-    resultado = []
-    for llave in sorted(por_grupo):
-        miembros = por_grupo[llave]
-        salida = {g: _columna(miembros[0], g) for g in grupos} if miembros else {}
-        for alias, funcion, distinto, nombre in llamadas:
-            salida[alias] = _calcular(funcion, distinto, nombre, miembros)
-        resultado.append(salida)
-    return resultado
+    except AgregadoNoSoportado as error:
+        raise NoSoportadoEnInterprete("aggregate", str(error)) from error
 
 
 def _apilar(op: Operator, plan: Plan, tablas: dict, por_operador: dict) -> list[dict]:
@@ -756,36 +801,50 @@ def _apilar(op: Operator, plan: Plan, tablas: dict, por_operador: dict) -> list[
     return unicas
 
 
-def _entradas(plan: Plan, op: Operator, por_operador: dict) -> dict[str, list[dict]]:
+def _entradas(
+    plan: Plan, op: Operator, por_operador: dict, tablas: dict | None = None
+) -> dict[str, list[dict]]:
     """Filas de cada predecesor, por la tabla que entrega."""
     por_tabla: dict[str, list[dict]] = {}
     for previo in plan.graph.predecessors(op.id):
         for nombre in _nombres(plan.graph.operator(previo)):
-            por_tabla.setdefault(nombre, por_operador.get(previo, []))
+            por_tabla.setdefault(
+                nombre, (tablas or {}).get(nombre, por_operador.get(previo, []))
+            )
     return por_tabla
 
 
-def _base(plan: Plan, op: Operator, derechos: set[str], por_operador: dict) -> list[dict]:
+def _base(
+    plan: Plan,
+    op: Operator,
+    derechos: set[str],
+    por_operador: dict,
+    tablas: dict | None = None,
+) -> list[dict]:
     """La entrada que se acumula: el primer predecesor que no es el lado derecho de una unión."""
     previos = plan.graph.predecessors(op.id)
     for previo in previos:
         nombres = _nombres(plan.graph.operator(previo))
         if not nombres or not set(nombres) <= derechos:
-            return por_operador.get(previo, [])
+            nombre = next((nombre for nombre in nombres if nombre in (tablas or {})), None)
+            return (tablas or {}).get(nombre, por_operador.get(previo, []))
     return por_operador.get(previos[0], []) if previos else []
 
 
-def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
+def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = None) -> list[dict]:
     """Los pasos de un `map` —o el operador suelto— sobre las entradas, en el orden del plan."""
     pasos = op.params.get("steps")
     if not pasos and op.kind != "map":
         pasos = [{"kind": op.kind, "params": op.params}]
     pasos = pasos or []
-    por_tabla = _entradas(plan, op, por_operador)
+    por_tabla = _entradas(plan, op, por_operador, tablas)
     derechos = {
         _derecha(paso.get("params") or {}) for paso in pasos if paso.get("kind") == "join"
     }
-    actual = _base(plan, op, {d for d in derechos if d}, por_operador)
+    actual = _base(plan, op, {d for d in derechos if d}, por_operador, tablas)
+    entrada_declarada = _primero(op.params, "inputs")
+    if entrada_declarada:
+        actual = por_tabla.get(_tabla(entrada_declarada), actual)
     for paso in pasos:
         clase = str(paso.get("kind") or "")
         params = paso.get("params") or {}
@@ -804,6 +863,7 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
                 [por_tabla[f] for f in fuentes], [banderas.get(f) for f in fuentes], params
             )
         elif clase == "join":
+            _validar_subconsulta_de_union(params, actual, plan, por_operador, por_tabla)
             tabla = _derecha(params)
             if tabla not in por_tabla:
                 raise NoSoportadoEnInterprete(
@@ -811,10 +871,11 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict) -> list[dict]:
                 )
             actual = _unir(actual, por_tabla[tabla], params)
         elif clase == "filter":
-            actual = _filtrar(actual, str(params.get("expression") or ""))
+            actual = _filtrar(actual, str(params.get("expression") or ""), por_tabla)
         elif clase == "derive":
+            asignaciones = _expandir_estrellas(params.get("assignments") or [], por_tabla)
             actual = _proyectar(
-                actual, params.get("assignments") or [], aditivo=params.get("modo") == "agrega"
+                actual, asignaciones, aditivo=params.get("modo") == "agrega"
             )
         elif clase == "select":
             actual = _seleccionar(actual, params)
@@ -837,7 +898,10 @@ def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
     clases = (*_PASOS_SUELTOS, "read_file", "map", "join", "union")
     if op.kind in clases:
-        return [_tabla(nombre) for nombre in op.params.get("outputs") or []]
+        outputs = op.params.get("outputs") or []
+        if op.kind == "dedup":
+            outputs = [*outputs, *(op.params.get("duplicate_outputs") or [])]
+        return [_tabla(nombre) for nombre in outputs]
     if op.kind == "write_file":
         return [_tabla(nombre) for nombre in op.params.get("inputs") or []]
     if op.kind in ("read", "write"):
@@ -845,7 +909,9 @@ def _nombres(op: Operator) -> list[str]:
     return []
 
 
-def _ramas(op: Operator, filas: list[dict]) -> dict[str, list[dict]]:
+def _ramas(
+    op: Operator, filas: list[dict], tablas: dict[str, list[dict]] | None = None
+) -> dict[str, list[dict]]:
     """Un `map` con ramas es un IF/THEN/ELSE que escribe en varias salidas: cada rama su filtro."""
     resultado = {}
     for rama in op.params.get("branches") or []:
@@ -857,8 +923,33 @@ def _ramas(op: Operator, filas: list[dict]) -> dict[str, list[dict]]:
             elif rama.get("matched"):
                 filas_rama = [fila for fila in filas if _columna(fila, str(join_key)) is not None]
         if rama.get("expression"):
-            filas_rama = _filtrar(filas_rama, str(rama["expression"]))
+            filas_rama = _filtrar(filas_rama, str(rama["expression"]), tablas)
         resultado[_tabla(rama.get("outputs", ["WORK.sin_nombre"])[0])] = filas_rama
+    return resultado
+
+
+def _expandir_estrellas(asignaciones: list[dict], por_tabla: dict[str, list[dict]]) -> list[dict]:
+    """Expande `alias.*` solo si las filas disponibles demuestran su esquema."""
+    resultado = []
+    for asignacion in asignaciones:
+        expresion = str(asignacion.get("expression") or "").strip()
+        if not re.fullmatch(r"[\w.]+\.\*", expresion):
+            resultado.append(asignacion)
+            continue
+        tabla = expresion[:-2].lower().split(".")[-1]
+        filas = por_tabla.get(tabla)
+        if not filas:
+            raise NoSoportadoEnInterprete(
+                "select", f"el esquema de la fuente '{tabla}' no está verificable"
+            )
+        for columna in filas[0]:
+            resultado.append(
+                {
+                    "target": columna,
+                    "expression": f"{tabla}.{columna}",
+                    "origin": "columna",
+                }
+            )
     return resultado
 
 
@@ -893,6 +984,24 @@ def _ejecutar(
     if op.kind == "union":
         filas = _apilar(op, plan, tablas, por_operador)
         return filas, {nombre: filas for nombre in _nombres(op)}
+    if op.kind == "dedup" and op.params.get("duplicate_outputs"):
+        previos = plan.graph.predecessors(op.id)
+        entrada = por_operador.get(previos[0], []) if previos else []
+        filas = _unicos(entrada, op.params)
+        llaves = _llaves(entrada, op.params)
+        vistas: set[tuple] = set()
+        duplicadas = []
+        for fila in entrada:
+            clave = tuple(_clave(_columna(fila, nombre)) for nombre in llaves)
+            if clave in vistas:
+                duplicadas.append(fila)
+            else:
+                vistas.add(clave)
+        propias = {_tabla(nombre): filas for nombre in op.params.get("outputs") or []}
+        propias.update(
+            {_tabla(nombre): duplicadas for nombre in op.params.get("duplicate_outputs") or []}
+        )
+        return filas, propias
     if op.kind in ("map", "join", *_PASOS_SUELTOS):
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches"):
@@ -916,10 +1025,10 @@ def _ejecutar(
                 for paso in ejecutable.params.get("steps") or []:
                     if paso.get("kind") == "join":
                         paso["params"]["join_type"] = "left"
-            filas = _pasos(ejecutable, plan, por_operador) if op.params.get("steps") else (
+            filas = _pasos(ejecutable, plan, por_operador, tablas) if op.params.get("steps") else (
                 por_operador.get(previos[0], []) if previos else []
             )
-            propias = _ramas(op, filas)
+            propias = _ramas(op, filas, tablas)
             if rechazo_inner and derivaciones:
                 asignaciones = derivaciones[-1].get("params", {}).get("assignments") or []
                 propias = {
@@ -927,7 +1036,7 @@ def _ejecutar(
                     for nombre, rama in propias.items()
                 }
             return filas, propias
-        filas = _pasos(op, plan, por_operador)
+        filas = _pasos(op, plan, por_operador, tablas)
         return filas, {nombre: filas for nombre in _nombres(op)}
     raise NoSoportadoEnInterprete(op.kind, "el intérprete no lo ejecuta")
 
@@ -947,7 +1056,11 @@ def ejecutar_plan(
         for nombre, filas in entradas.items()
     }
     por_operador: dict[str, list[dict]] = {}
-    for op_id in plan.graph.topological():
+    try:
+        orden = orden_de_ejecucion(plan, nombres=_nombres, parsear=_arbol)
+    except SubconsultaNoSoportada as error:
+        raise NoSoportadoEnInterprete("subconsulta", str(error)) from error
+    for op_id in orden:
         op = plan.graph.operator(op_id)
         filas, propias = _ejecutar(op, plan, tablas, por_operador)
         por_operador[op.id] = filas

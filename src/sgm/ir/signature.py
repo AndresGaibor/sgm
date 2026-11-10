@@ -119,6 +119,7 @@ def _normalize(value: Any) -> Any:
         return {
             str(k).lower(): _normalize(v)
             for k, v in sorted(value.items(), key=lambda kv: str(kv[0]))
+            if str(k).lower() != "interpreter_subquery"
         }
     if isinstance(value, (list, tuple)):
         return [_normalize(v) for v in value]

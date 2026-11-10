@@ -153,6 +153,22 @@ def test_coalesce_con_un_numero_demuestra_el_tipo():
     assert tipos["monto"] == "Double"
 
 
+def test_agregado_sql_demuestra_el_tipo_numerico_de_su_columna():
+    texto = (
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.clientes DBMS=CSV REPLACE; "
+        "GETNAMES=YES; RUN; "
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT SUM(saldo) AS total FROM WORK.clientes; QUIT;"
+    )
+    plan = compile_file(analyze_program({"p.sas": texto}), "p.sas", project_base()).plan
+
+    esquemas, pendientes = esquemas_de_entrada(plan, {}, muestra=None)
+
+    columnas = {columna.name: columna.type for columna in esquemas["work.clientes"]}
+    assert columnas["saldo"] == "Double"
+    assert not any("saldo" in pendiente.mensaje for pendiente in pendientes)
+
+
 def test_el_pendiente_cuenta_solo_las_columnas_sin_tipo():
     plan = _plan_de("L0", "l0_06_asignacion")
     _, pendientes = esquemas_de_entrada(plan, {}, muestra=None)

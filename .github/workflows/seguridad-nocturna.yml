@@ -1,0 +1,50 @@
+name: Seguridad nocturna
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seguridad-nocturna-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secretos:
+    name: Migración controlada y escaneo de secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: false
+
+      - name: Instalar dependencias bloqueadas
+        run: uv sync --locked --dev
+
+      - name: Probar la compuerta y el escáner
+        run: >-
+          uv run pytest -q
+          tests/unit/test_cli_migrar.py
+          tests/unit/test_secretos_cli.py
+          tests/unit/test_secretos_limpios.py
+          tests/unit/test_secretos_plantados.py
+
+      - name: Migrar un caso controlado
+        run: >-
+          uv run sgm migrar
+          tests/corpus/L2/l2_01_inner_join_clientes_ventas/programa.sas
+          --out "$RUNNER_TEMP/sgm-nightly-migration"
+
+      - name: Escanear el paquete publicado
+        run: uv run sgm secretos "$RUNNER_TEMP/sgm-nightly-migration"
+
+      - name: Escanear decisiones versionadas
+        run: uv run sgm secretos decisiones

@@ -103,13 +103,11 @@ class CodeType:
     length: int | None = None
 
 
-def numeric_type(width: int, decimals: int) -> CodeType:
-    """Tipo de un informat numérico de ancho `width` y `decimals` decimales."""
+def numeric_type(_width: int, decimals: int) -> CodeType:
+    """Tipo conservador: el ancho no prueba integralidad; `d` sí fija escala decimal."""
     if decimals > 0:
         return CodeType(_NUMERICO["decimals_type"])
-    if width <= _NUMERICO["long_max_width"]:
-        return CodeType(_NUMERICO["long_type"])
-    return CodeType(_NUMERICO["wide_type"])
+    return CodeType(_NUMERICO["no_decimals_type"])
 
 
 def informat_type(spec: str) -> CodeType | None:
@@ -124,6 +122,8 @@ def informat_type(spec: str) -> CodeType | None:
     width = int(width_text or 0)
     if dollar or name.startswith(_CARACTER["prefix"]):
         return CodeType(_CARACTER["type"], width or None)
+    if name and name not in _NUMERICO["names"]:
+        return None
     return numeric_type(width, int(decimals_text or 0))
 
 

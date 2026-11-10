@@ -113,7 +113,11 @@ def _como_asignaciones(ramas: list[Rama], siguiente: int) -> tuple[list[dict], i
     if len(leidos_en_condicion) > 1:
         return None
     for _, asignaciones in ramas:
-        for _, expresion in asignaciones:
+        for objetivo, expresion in asignaciones:
+            # Una autoasignación representa conservar el valor que ya tenga la columna (incluidas
+            # asignaciones anteriores del DATA step); no lee otra asignación de esta cadena.
+            if expresion.strip().lower() == objetivo:
+                continue
             if _palabras(expresion) & set(objetivos):
                 return None
     # La columna que las condiciones leen se asigna la última: hasta entonces conserva su valor.

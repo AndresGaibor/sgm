@@ -6113,3 +6113,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   en `P-CONEXION-BASE`; MG-P8b-08 sigue parcial hasta configurar y validar la ejecución.
 - Decisión: el hito acepta la compilación del Job, no su ejecución; la conexión no se configura con
   valores inventados y el SQL permanece sin ejecutarse.
+
+## Hito 165. Integrar `origin/main` y reconciliar la referencia del plan
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se integraron los 19 commits remotos con merge, conservando los cambios locales. Se
+  resolvieron las discrepancias del intérprete para agregados por fila, expansión de `alias.*`,
+  salidas `DUPOUT`, subconsultas versionadas y `NOT IN`; el metadato de subconsulta ya no altera la
+  firma del operador ni impide unir las ramas compatibles.
+- Se actualizó el golden de `client/client_poc.sas` tras revisar las incorporaciones de cargas
+  externas Impala y el orden de salida de agregados. La equivalencia estructural queda documentada
+  por hash canónico y la prueba de golden mantiene igualdad exacta. La aceptación del corpus contempla
+  que la compuerta de seguridad bloquee artefactos con hallazgos sin publicarlos.
+- Pruebas: `uv run python -m pytest -q`: **3008 pasan, 27 se saltan, 142 xfail**;
+  `uv run ruff check .` y `git diff --check`: limpios.
+- Decisión: las escrituras posteriores que reutilizan un nombre de tabla deben esperar al consumo
+  completo de la subconsulta; ordenar solo su lectura permitiría que la versión futura sustituyera la
+  anterior antes de ejecutar el cruce.

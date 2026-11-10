@@ -17,8 +17,8 @@
 l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
 l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
 l3_09_conciliacion_diferencia_plantada: P-AGREGADO-SIN-TRADUCIR
-l5_06_sysfunc_upcase: P-OPERADOR-SIN-SOPORTE
-l5_09_into_primer_fila: P-OPERADOR-SIN-SOPORTE
+l4_20_put_fechas_pendiente: P-ASIGNACION-SIN-TRADUCIR
+l5_09_into_primer_fila: P-ESQUEMA-NO-PORTABLE
 l6_01_merge_by_uno_a_uno: P-UNION-TIPO-SIN-SOPORTE
 l6_02_merge_muchos_a_muchos: P-UNION-TIPO-SIN-SOPORTE
 l6_03_merge_in_flags: P-UNION-TIPO-SIN-SOPORTE

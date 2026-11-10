@@ -26,11 +26,7 @@ from tests.unit.test_migrar_corpus_anillo_b import (
 )
 
 # Caso -> motivo por el que el intérprete no ejecuta su plan, optimizado o no.
-CONOCIDOS: dict[str, str] = {
-    "l2_15_validacion_en_cascada": (
-        "el intérprete no expande `t.*` tras un JOIN (el mismo hueco del anillo B sin optimizar)"
-    ),
-}
+CONOCIDOS: dict[str, str] = {}
 
 
 def _optimizado(caso):

@@ -482,6 +482,21 @@
         ],
         "talend_expression_candidates": [
           {
+            "source": "intck('day', fecha_pago, today())",
+            "java": "(input_row.fecha_pago == null || TalendDate.getCurrentDate() == null ? null : TalendDate.diffDate(TalendDate.getCurrentDate(), input_row.fecha_pago, \"dd\"))",
+            "columns": [
+              "fecha_pago"
+            ],
+            "functions": [
+              "intck",
+              "today"
+            ],
+            "warnings": [
+              "intck asume intervalos SAS Date discretos; validar época SAS (1960), tipos y semántica en Studio"
+            ],
+            "row_context": "input_row es marcador; reemplazar por el enlace real de fila en Talend."
+          },
+          {
             "source": "put(fecha_pago, yymmn6.)",
             "java": "TalendDate.formatDate(\"yyyyMM\", input_row.fecha_pago)",
             "columns": [
@@ -513,8 +528,7 @@
       ],
       "notes": [
         "2 operadores de flujo unidos en un tMap (pasada 6)",
-        "intck(): cuenta fronteras de unidad como SAS; diffDate devuelve la diferencia de la unidad, validar el signo",
-        "today(): en SAS es días desde 1960; en Talend es un Date: validar al comparar con fechas SAS",
+        "intck asume intervalos SAS Date discretos; validar época SAS (1960), tipos y semántica en Studio",
         "Traducción candidata con rutinas de Talend; falta validar en Studio 8.0.1.",
         "expresión sin equivalente Talend: put(edad, tramo.)"
       ],

@@ -73,7 +73,6 @@ def test_contextos_declarados() -> None:
     assert variables >= 3
 
 
-@pytest.mark.xfail(reason="brecha: el SQL no se empuja a la base en un solo tDBInput", strict=False)
 def test_sql_empujado_a_la_base() -> None:
     plan = _plan()
     en_base = Counter(

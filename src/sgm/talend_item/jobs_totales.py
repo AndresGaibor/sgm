@@ -14,6 +14,8 @@ las variables de contexto del periodo (`AÑO`, `MES`, `DIA` del Excel de la fech
 
 from __future__ import annotations
 
+from sgm.java_identificadores import require_context_identifier
+from sgm.java_literals import literal_nombre_archivo
 from sgm.talend_item.arquitectura import Arquitectura
 from sgm.talend_item.conexiones import al_terminar_subjob
 from sgm.talend_item.jobs_diseno import java
@@ -44,6 +46,7 @@ def variables_fecha(arq: Arquitectura) -> dict[str, str]:
         raise ValueError("job_totales necesita el periodo declarado (AÑO, MES, DIA)")
     variables: dict[str, str] = {}
     for columna, variable in arq.periodo.variables:
+        require_context_identifier(variable)
         clave = COLUMNAS_PERIODO.get(columna.strip().upper())
         if clave:
             variables[clave] = variable
@@ -105,7 +108,9 @@ def job_totales(
     variables = variables_fecha(arq)
     fecha = f"context.{variables['anio']} + context.{variables['mes']} + context.{variables['dia']}"
     destino = (
-        f'context.{RUTA_RESULTADOS} + "{arq.archivo_totales}_" + {fecha} + ".csv"'
+        f"context.{RUTA_RESULTADOS} + "
+        f"{literal_nombre_archivo(arq.archivo_totales + '_')} + {fecha} + "
+        f"{literal_nombre_archivo('.csv')}"
     )
     archivos = [(producto, tipo) for producto in productos for tipo in TIPOS]
     mensaje = f"job_totales: une {len(archivos)} archivos de totales"
@@ -122,7 +127,10 @@ def job_totales(
     conexiones: list[Conexion] = []
     anterior = "tJava_1"
     for indice, (producto, tipo) in enumerate(archivos, start=1):
-        archivo = f'context.{RUTA_RESULTADOS} + "totales_{tipo}_{producto}.csv"'
+        archivo = (
+            f"context.{RUTA_RESULTADOS} + "
+            f"{literal_nombre_archivo(f'totales_{tipo}_{producto}.csv')}"
+        )
         entrada = _entrada(f"tFileInputDelimited_{indice}", PASO_X * indice, 0, archivo)
         salida = _salida(
             f"tFileOutputDelimited_{indice}", PASO_X * indice, PASO_Y, destino,

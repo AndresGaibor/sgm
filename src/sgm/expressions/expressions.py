@@ -16,6 +16,7 @@ from sgm.expressions.expressions_parser import (
     _Parser,
     _tokens,
 )
+from sgm.expressions.talend_lexer import _collapse_whitespace_outside_strings
 from sgm.expressions.talend_translator import (
     Unsupported,
     translate_to_talend,
@@ -42,6 +43,24 @@ def translate(sas: str) -> Translation:
     Primero el traductor en línea (lo que ya traducía no cambia); si se rinde y `SGM_TALEND_EXPRESSIONS` está activo, el de rutinas de Talend, que cubre la
     gramática completa con `StringHandling`, `TalendDate`, `Mathematical` y Java nativo, y conserva la semántica del perdido.
     """
+    if re.match(r"(?is)^\s*(?:intnx|intck|input|inputn|inputc|put|putn|putc)\s*\(", sas) and talend_expressions_enabled():
+        try:
+            result = translate_to_talend(sas)
+        except Unsupported as error:
+            return Translation(
+                sas=sas,
+                talend=None,
+                warnings=[f"Sin traducción con rutinas de Talend: {error}"],
+            )
+        return Translation(
+            sas=sas,
+            talend=result.java,
+            columns=result.columns,
+            warnings=result.warnings,
+            functions=result.functions,
+            kind=result.kind,
+            engine="talend",
+        )
     t = _translate_inline(sas)
     if t.talend is not None:
         # El tipo del resultado no depende del motor que escribe el Java: el traductor completo lo sabe.
@@ -75,7 +94,7 @@ def _talend_kind(sas: str) -> str:
 
 def _translate_inline(sas: str) -> Translation:
     t = Translation(sas=sas)
-    s = re.sub(r"\s+", " ", sas).strip()
+    s = _collapse_whitespace_outside_strings(sas)
     if re.search(r"\bis\s+(not\s+)?missing\b|\bcalculated\b", s, re.IGNORECASE):
         t.warnings.append("Construcción SAS sin traducción automática")
         return t
@@ -84,8 +103,10 @@ def _translate_inline(sas: str) -> Translation:
         java = p.expr()
         if p.i != len(p.t):
             raise _Unsupported("texto sobrante")
-    except _Unsupported as e:
-        t.warnings.append(f"Sin traducción automática: {e}")
+    except _Unsupported:
+        t.warnings.append(
+            "Sin traducción automática: expresión no admitida; queda pendiente de revisión"
+        )
         return t
     t.talend = None if p.unsafe_comparison else java
     t.columns = sorted(set(p.cols))

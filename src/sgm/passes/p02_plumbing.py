@@ -100,7 +100,11 @@ def _report(op: Operator, ctx: PassContext) -> bool:
     else:
         op.kind = "write_file"
         op.status = "soportado"
-        op.params = {"inputs": inputs, "outfile": f"contexto.ruta_{procedure.lower()}"}
+        op.params = {
+            "inputs": inputs,
+            "outfile": f"contexto.ruta_{procedure.lower()}",
+            "dbms": "csv",
+        }
     op.signature = signature(op.kind, op.params)
     return True
 

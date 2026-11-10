@@ -21,6 +21,7 @@ from sgm.expressions.talend_base import (
     _truth,
 )
 from sgm.expressions.talend_lexer import _collapse_whitespace_outside_strings
+from sgm.ir.types_code import informat_type
 
 
 def _need(args: list[E], low: int, high: int | None = None, name: str = "") -> None:
@@ -96,21 +97,20 @@ def _scan(p: _P, args: list[E]) -> E:
         if any(not char.isprintable() for char in args[2].literal):
             raise Unsupported("scan con delimitadores de control: queda pendiente de revisión")
         delims = re.escape(args[2].literal)
-        prefijo = _jstr(chr(39) + f"^[{delims}]+" + chr(39))
-        separador = _jstr(chr(39) + f"[{delims}]+" + chr(39))
+        prefijo = _jstr(chr(34) + f"^[{delims}]+" + chr(34))
+        separador = _jstr(chr(34) + f"[{delims}]+" + chr(34))
     else:
-        # Ya viene escrito para Java: se incrusta tal cual, sin volver a escapar la barra.
-        delims = r"\\s!$%&()*+,\\-./;\\x3c^"
-        prefijo = f'"^[{delims}]+"'
-        separador = f'"[{delims}]+"'
+        delims = r"\s!$%&()*+,\-./;\x3c^"
+        prefijo = _jstr(chr(34) + f"^[{delims}]+" + chr(34))
+        separador = _jstr(chr(34) + f"[{delims}]+" + chr(34))
     p.warnings.add("scan: los delimitadores consecutivos cuentan como uno, como en SAS")
     tokens = f'{args[0].java}.replaceAll({prefijo}, "").split({separador})'
     # Con delimitadores declarados o cuenta negativa se indexa el arreglo; el `skip` no sabe contar
     # desde el final, y sin delimitadores el flujo perezoso es el que ya se emitía.
     if explicito or n < 0:
-        index = str(n - 1) if n > 0 else f"{tokens}.length + {n}"
+        index = str(n - 1) if n > 0 else f"Math.abs({tokens}.length - {abs(n)})"
         return E(
-            _guard([args[0]], f"({tokens}.length >= {abs(n)} ? {tokens}[{index}] : null)"), "str"
+            _guard([args[0]], f"java.util.Arrays.stream({tokens}).skip({index}).findFirst().orElse(\"\")"), "str"
         )
     body = f'java.util.Arrays.stream({tokens}).skip({n - 1}).findFirst().orElse("")'
     return E(_guard([args[0]], body), "str")
@@ -268,18 +268,44 @@ def _aggregate(kind: str):
 def _input(p: _P, args: list[E]) -> E:
     _need(args, 2, 2, "input")
     if args[1].literal is None:
-        raise Unsupported("input con un informat que no es literal")
-    literal = args[1].literal.strip().strip("'\"")
-    fmt = literal.lower()
-    pattern = _date_pattern(fmt)
-    if pattern:
+        raise Unsupported("informat dinámico o no literal; queda pendiente de resolución")
+    spec = args[1].literal.strip()
+    fmt = spec.lower().rstrip(".")
+    tipo = informat_type(spec)
+    if tipo is None:
+        raise Unsupported("informat no soportado; queda pendiente de revisión")
+    base = "e8601da" if fmt.startswith("e8601da") else re.match(r"^\$?([a-z]*)", fmt).group(1)
+    if tipo.type == "Date":
+        if base != "e8601da":
+            raise Unsupported(
+                "informat de fecha requiere opciones de fecha SAS y formato de entrada confirmado "
+                "(YEARCUTOFF, DATESTYLE o locale)"
+            )
+        pattern = _date_pattern(base)
         return E(
             f"TalendDate.parseDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "date"
         )
-    if fmt.rstrip(".").startswith(("$", "char")):
+    if tipo.type == "String":
         return E(args[0].java, "str")
-    if re.fullmatch(r"\d+", fmt):
-        raise Unsupported("input con un informat entero sin punto decimal: queda pendiente")
+    if base in ("comma", "dollar"):
+        decimals = int(re.search(r"\.(\d+)$", fmt).group(1) or 0) if "." in fmt else 0
+        source = f"StringHandling.TRIM({args[0].java})"
+        clean = source + (
+            '.replace(",", "").replace(" ", "").replace("$", "").replace("%", "")'
+            '.replace("-", "").replace("(", "").replace(")", "")'
+        )
+        signed = f'({source}.startsWith("(") ? "-" + {clean} : {clean})'
+        allowed_pattern = chr(34) + r"[0-9,$%() .-]+" + chr(34)
+        allowed = f"{source}.matches({_jstr(allowed_pattern)})"
+        balanced = f'({source}.startsWith("(") == {source}.endsWith(")"))'
+        numeric_pattern = chr(34) + r"(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)" + chr(34)
+        numeric = f"{clean}.matches({_jstr(numeric_pattern)})"
+        value = (
+            f"new java.math.BigDecimal({signed}).movePointLeft("
+            f'{clean}.contains({_jstr(chr(34) + "." + chr(34))}) ? 0 : {decimals})'
+        )
+        parsed = value if decimals else f"Double.valueOf(({value}).doubleValue())"
+        return E(_guard([args[0]], f"({allowed} && {balanced} && {numeric} ? {parsed} : null)"), "num")
     width_decimal = re.fullmatch(r"\d+\.(\d+)", fmt)
     if width_decimal:
         decimals = int(width_decimal.group(1))
@@ -299,21 +325,22 @@ def _input(p: _P, args: list[E]) -> E:
 
 def _put(p: _P, args: list[E]) -> E:
     _need(args, 2, 2, "put")
-    literal = args[1].literal if args[1].literal is not None else args[1].java.strip("\"'")
-    fmt = literal.lower()
+    if args[1].literal is None:
+        raise Unsupported("formato dinámico o no literal; queda pendiente de resolución")
+    fmt = args[1].literal.lower().rstrip(".")
     pattern = _date_pattern(fmt)
     if pattern:
         return E(
             f"TalendDate.formatDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "str"
         )
-    zero = re.fullmatch(r"z(\d+)\.?", fmt)
+    zero = re.fullmatch(r"z(\d+)", fmt)
     if zero:
         return E(
             f'StringHandling.LPAD(String.valueOf({args[0].java}), {zero.group(1)}, "0")', "str"
         )
-    if re.fullmatch(r"\$?\d*\.?", fmt) or fmt.startswith("$"):
+    if re.fullmatch(r"\$?\d*", fmt) or fmt.startswith("$"):
         return E(f"String.valueOf({args[0].java})", "str")
-    raise Unsupported(f"put con el formato {fmt}.")
+    raise Unsupported("put con formato no soportado; queda pendiente de revisión")
 
 
 def _intnx(_p: _P, args: list[E]) -> E:

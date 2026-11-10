@@ -609,7 +609,16 @@ class _Job:
                 # FLOW_MERGE en `EConnectionType`); con FLOW, Studio no genera la unión.
                 self.conexiones.append(Conexion(origen, destino, nombre, "MERGE", 10))
             else:
-                conector = self._conector_de.get(origen, "FLOW")
+                operador_origen = self.plan.graph.operator(desde)
+                salidas_duplicadas = {
+                    str(tabla).lower()
+                    for tabla in operador_origen.params.get("duplicate_outputs") or []
+                }
+                conector = (
+                    "DUPLICATE"
+                    if arista.dataset and arista.dataset.lower() in salidas_duplicadas
+                    else self._conector_de.get(origen, "FLOW")
+                )
                 self.conexiones.append(Conexion(origen, destino, nombre, conector=conector))
 
     def _cierres(self) -> None:

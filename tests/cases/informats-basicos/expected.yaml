@@ -1,5 +1,6 @@
-description: "Informats que fijan tipo y se traducen con rutinas Talend como candidatas sujetas a revisión en Studio."
+description: "Tipos de informats demostrados; la conversión de fechas queda pendiente de las opciones SAS del proyecto."
 input: input.sas
 env: default
 expect:
-  gaps: []
+  gaps:
+    - FUNCION_NO_MAPEADA

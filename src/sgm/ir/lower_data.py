@@ -96,10 +96,66 @@ def _lower_sources(
 def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator | None:
     if not any(s.kind in ("infile", "input", "datalines") for s in stmts):
         return None
-    rows = next((s.fields.get("rows") for s in stmts if s.kind == "datalines"), None)
-    params = {"datalines_rows": rows} if rows is not None else {}
+    infile = next((s for s in stmts if s.kind == "infile"), None)
+    input_stmt = next((s for s in stmts if s.kind == "input"), None)
+    datalines = next((s for s in stmts if s.kind == "datalines"), None)
+    params: dict = {}
+    if infile is not None:
+        source = str(infile.fields.get("source") or "")
+        if infile.fields.get("source_is_path"):
+            params["datafile"] = source
+        else:
+            params["fileref"] = source
+            if infile.fields.get("source_dynamic"):
+                params["source_dynamic"] = True
+        params["infile_line"] = infile.line
+        params["infile_options"] = dict(infile.fields.get("options") or {})
+        params["unsupported_options"] = list(infile.fields.get("unsupported_options") or [])
+        options = params["infile_options"]
+        if options.get("dlm") is not None:
+            params["delimiter"] = options["dlm"]
+        if isinstance(options.get("firstobs"), int):
+            params["firstobs"] = options["firstobs"]
+    if input_stmt is not None:
+        params["input_mode"] = input_stmt.fields["mode"]
+        params["input_names"] = list(input_stmt.fields["names"])
+        params["input_statement"] = input_stmt.fields["raw"]
+        params["input_line"] = input_stmt.line
+        if input_stmt.fields["mode"] != "list":
+            params["file_format"] = "positional"
+        elif infile is not None:
+            params["file_format"] = "delimited"
+    if datalines is not None:
+        params["datalines_rows"] = datalines.fields.get("rows")
+        params["datalines_data"] = list(datalines.fields.get("data") or [])
+        params["file_format"] = "datalines"
+    if infile is not None:
+        params["infile_statement"] = infile.text
+    raw_statements = [s.text for s in (infile, input_stmt, datalines) if s is not None]
+    if raw_statements:
+        params["statement"] = " | ".join(raw_statements)
+    status = "soportado"
+    if datalines is not None:
+        params["reason"] = "DATALINES_SIN_LECTOR"
+        status = "hueco"
+    elif infile is not None and input_stmt is None:
+        params["reason"] = "INFILE_SIN_INPUT"
+        status = "hueco"
+    elif input_stmt is not None and infile is None:
+        params["reason"] = "INPUT_SIN_INFILE"
+        status = "hueco"
+    if len([s for s in stmts if s.kind == "infile"]) > 1 or len(
+        [s for s in stmts if s.kind == "input"]
+    ) > 1:
+        params["multiple_io_statements"] = True
+        if status == "soportado":
+            status = "parcial"
     return b.op(
-        "read_file", params, ev, notes=["lectura de archivo o de datos en línea del DATA step"]
+        "read_file",
+        params,
+        ev,
+        status=status,
+        notes=["lectura de archivo o de datos en línea del DATA step"],
     )
 
 
@@ -130,8 +186,18 @@ def _statement_evidence(stmt: DsStatement, ev: Evidence) -> Evidence:
 def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     stmts = step.statements
     reads, current = _lower_sources(stmts, ev, b)
-    if current is None:
-        current = _read_file(stmts, ev, b) or (reads[0] if reads else None)
+    file_read = _read_file(stmts, ev, b)
+    if file_read is not None and (current is not None or reads):
+        file_read.params["reason"] = "LECTURAS_DATA_STEP_MIXTAS"
+        file_read.status = "hueco"
+        file_read.notes.append(
+            "SET/MERGE y INFILE/INPUT coexisten; revisar el orden de lectura SAS"
+        )
+        b.refresh(file_read)
+        b.link(current or reads[0], file_read)
+        current = file_read
+    elif current is None:
+        current = file_read or (reads[0] if reads else None)
     pending_derive: Operator | None = None
     loose: list[str] = []
     prev: DsStatement | None = None
@@ -195,6 +261,46 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             continue
         if kind in ("array", "do", "end"):
             _note(current, f"{kind} no traducido: revisar el bucle o el arreglo", status="parcial")
+            continue
+        if kind in ("file", "put"):
+            if current is not None and current.kind != "unsupported":
+                note = f"FILE_PUT_SIN_PLANTILLA: {s.text}"
+                if note not in current.notes:
+                    current.notes.append(note)
+                unsupported = b.op(
+                    "unsupported",
+                    {
+                        "reason": "SENTENCIA_NO_SOPORTADA",
+                        "reason_detail": "FILE_PUT_SIN_PLANTILLA",
+                        "unsupported_statements": [s.text],
+                        "statement": s.text,
+                    },
+                    statement_ev,
+                    status="hueco",
+                )
+                b.link(current, unsupported)
+                current = unsupported
+            elif current is None:
+                current = b.op(
+                    "unsupported",
+                    {
+                        "reason": "SENTENCIA_NO_SOPORTADA",
+                        "reason_detail": "FILE_PUT_SIN_PLANTILLA",
+                        "unsupported_statements": [s.text],
+                        "statement": s.text,
+                    },
+                    statement_ev,
+                    status="hueco",
+                )
+            else:
+                note = f"FILE_PUT_SIN_PLANTILLA: {s.text}"
+                if note not in current.notes:
+                    current.notes.append(note)
+                unsupported = current.params.setdefault("unsupported_statements", [])
+                if s.text not in unsupported:
+                    unsupported.append(s.text)
+                    current.params["statement"] = " | ".join(unsupported)
+                    b.refresh(current)
             continue
         new = _statement_op(s, kind, before, statement_ev, b)
         if new is None:

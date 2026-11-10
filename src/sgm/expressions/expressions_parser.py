@@ -15,6 +15,7 @@ from sgm.expressions.expressions_funciones import (
     _FUNCTIONS,
     TEXT_TYPE_WARNING,
 )
+from sgm.java_literals import literal_java
 
 
 def _text_is(column: str, literal: str) -> str:
@@ -205,8 +206,8 @@ class _Parser:
     def atom(self) -> str:
         k, v = self.take()
         if k == "str":
-            body = v[1:-1].replace(v[0] * 2, v[0]).replace("\\", "\\\\").replace('"', '\\"')
-            return f'"{body}"'
+            body = v[1:-1].replace(v[0] * 2, v[0])
+            return literal_java(body)
         if k == "num":
             return v
         if k == "fmt":

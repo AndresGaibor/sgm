@@ -254,6 +254,8 @@ def agregar(
     pendiente: list[str] | None = None,
     status: str = "soportado",
     evidence=None,
+    group_outputs: list[dict[str, str]] | None = None,
+    output_order: list[str] | None = None,
 ) -> Operator:
     """Agregar: GROUP BY con agregados (expression y alias por cada uno).
 
@@ -276,6 +278,16 @@ def agregar(
         params["outputs"] = _lista(outputs, "outputs")
     if pendiente is not None:
         params["pendiente"] = _lista(pendiente, "pendiente")
+    if group_outputs is not None:
+        params["group_outputs"] = [
+            {
+                "expression": _texto(item.get("expression", ""), "expression"),
+                "alias": _texto(item.get("alias", ""), "alias"),
+            }
+            for item in group_outputs
+        ]
+    if output_order is not None:
+        params["output_order"] = _lista(output_order, "output_order")
     return _operador(op_id, "aggregate", params, evidence, status=status)
 
 

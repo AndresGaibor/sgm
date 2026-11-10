@@ -113,6 +113,7 @@ def unir_rechazo_inner_hermano(plan: Plan) -> list[tuple[str, str, str, str]]:
         identidad_entradas = tuple(_identidad_entrada(plan, edge) for edge in entradas)
         comparables = copy.deepcopy(union["params"])
         comparables.pop("join_type")
+        comparables.pop("interpreter_subquery", None)
         identidad = (
             identidad_entradas,
             json.dumps(comparables, sort_keys=True, ensure_ascii=False, default=str),

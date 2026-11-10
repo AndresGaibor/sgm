@@ -12,6 +12,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
+from sgm.java_identificadores import require_column_identifier
 from sgm.talend_item.extraccion import COLUMNA_REF, UNICO
 from sgm.talend_item.modelo import Columna, Fila, Metadata, Nodo, Tabla
 
@@ -76,6 +77,8 @@ def nodo_desde_plantilla(
     """
     plantilla = cargar(componente)
     valores, tablas, columnas = dict(valores or {}), dict(tablas or {}), list(columnas or [])
+    for columna in columnas:
+        require_column_identifier(columna.nombre)
     parametros: list[Fila | Tabla] = []
     for fila in plantilla["parametros"]:
         if isinstance(fila, dict):

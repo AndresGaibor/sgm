@@ -14,6 +14,10 @@ from pathlib import Path
 
 import pytest
 
+from sgm.frontend.macros import MacroDynamic
+from sgm.frontend.program import analyze_program
+from sgm.frontend.steps_tipos import ProcSql
+
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools"))
 
@@ -111,6 +115,24 @@ def test_l5_programa_expandido_es_la_expansion_del_programa() -> None:
             columnas, filas = spec["entradas"][tabla]
             into[variable] = str(filas[0][columnas.index(columna)])
         assert expandir(fuente, into) == guardado, nombre
+
+
+def test_l5_06_sysfunc_upcase_expands_in_frontend() -> None:
+    """El frontend resuelve el UPCASE constante antes de analizar el SQL del caso L5-06."""
+    case_dir = CORPUS / "L5" / "l5_06_sysfunc_upcase"
+    source = (case_dir / "programa.sas").read_text(encoding="utf-8")
+    analysis = analyze_program({"l5_06.sas": source})
+
+    sql_text = "\n".join(
+        statement.text
+        for entry in analysis.items
+        if isinstance(entry.item, ProcSql)
+        for statement in entry.item.statements
+    )
+
+    assert not any(isinstance(entry.item, MacroDynamic) for entry in analysis.items)
+    assert "CREATE TABLE WORK.RES_LEALTAD AS" in sql_text
+    assert "FROM WORK.DATOS_LEALTAD" in sql_text
 
 
 # --- Expansor de macros --------------------------------------------------------------------

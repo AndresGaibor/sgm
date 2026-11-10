@@ -1,0 +1,13 @@
+id: 02-write-file-excel
+version: 1
+prioridad: 80
+description: "Escritura a archivo Excel; la emisión requiere plantilla de Studio."
+cuando:
+  kind: "write_file"
+  file_format: "excel"
+produce:
+  component: "tFileOutputExcel"
+confidence: media
+alternatives: []
+casos:
+  - tests/cases/02-write-file-excel

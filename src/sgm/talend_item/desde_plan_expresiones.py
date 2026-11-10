@@ -16,6 +16,8 @@ from __future__ import annotations
 import re
 
 from sgm.expressions.expressions import translate
+from sgm.java_expressions import is_safe_java_expression
+from sgm.java_identificadores import is_java_identifier
 from sgm.talend_item.filtros_cuenta import faltante
 
 # Columnas de Talend que son número: admiten comparación de orden directa.
@@ -23,7 +25,10 @@ NUMERICAS = frozenset(
     {"id_Integer", "id_Long", "id_Double", "id_Float", "id_BigDecimal", "id_Short", "id_Byte"}
 )
 
-_COLUMNA = re.compile(r"input_row\.(\w+)")
+_COLUMNA = re.compile(
+    r"input_row\.([A-Za-z_][A-Za-z0-9_]*)(?![A-Za-z0-9_$])", re.ASCII
+)
+_INPUT_ROW_PREFIX = re.compile(r"(?<![A-Za-z0-9_$])input_row\.", re.ASCII)
 # Comparación de orden entre una columna y un literal numérico, tal como la escribe el traductor:
 # `(row1.saldo < 500)`. Es la forma que se puede hacer segura sin adivinar nada.
 _ORDEN_LITERAL = re.compile(r"\(([A-Za-z_][\w.]*)\s*(<=|>=|<|>)\s*(-?\d+(?:\.\d+)?)\)")
@@ -52,9 +57,31 @@ def resolver_filas(java: str, filas: dict[str, set[str]]) -> tuple[str | None, s
     Devuelve `(expresión, None)` o `(None, motivo)`: una columna que no está en ninguna entrada, o
     que está en más de una, no se resuelve a ciegas.
     """
-    usadas = _COLUMNA.findall(java)
+    if not is_safe_java_expression(java):
+        return None, "expresión Java con sintaxis no permitida"
+    literales = _rangos_literales(java)
+    if literales is None:
+        return None, "expresión Java con literal de cadena no válido"
+    codigo = _codigo_sin_literales(java, literales)
+    if _tiene_separador(codigo):
+        return None, "expresión Java con separador de sentencias no permitido"
+    referencias = list(_COLUMNA.finditer(codigo))
+    invalidas = any(
+        (siguiente := codigo[referencia.end() : referencia.end() + 1])
+        and (siguiente.isalnum() or siguiente in "_$")
+        for referencia in referencias
+    )
+    if invalidas or len(referencias) != len(list(_INPUT_ROW_PREFIX.finditer(codigo))):
+        return None, "expresión Java con referencia de fila incompleta o no portable"
+    usadas = [match.group(1) for match in referencias]
     if not usadas:
         return java, None
+    if any(
+        not is_java_identifier(fila)
+        or any(not is_java_identifier(nombre) for nombre in nombres)
+        for fila, nombres in filas.items()
+    ):
+        return None, "esquema de entrada con identificadores Java no portables"
     destino: dict[str, tuple[str, str]] = {}
     for columna in dict.fromkeys(usadas):
         # SAS no distingue mayúsculas en los nombres de columna: `CNAME` y `cname` son la misma.
@@ -72,7 +99,66 @@ def resolver_filas(java: str, filas: dict[str, set[str]]) -> tuple[str | None, s
                 f"({', '.join(sorted(fila for fila, _ in candidatas))}); el SAS no dice de cuál"
             )
         destino[columna] = candidatas[0]
-    return _COLUMNA.sub(lambda m: ".".join(destino[m.group(1)]), java), None
+    return _reemplazar_columnas(java, literales, destino), None
+
+
+def _rangos_literales(java: str) -> list[tuple[int, int]] | None:
+    """Encuentra cadenas Java cerradas; devuelve None ante comillas o saltos sin cerrar."""
+    rangos: list[tuple[int, int]] = []
+    indice = 0
+    while indice < len(java):
+        if java[indice] != '"':
+            indice += 1
+            continue
+        inicio = indice
+        indice += 1
+        while indice < len(java):
+            if java[indice] in "\r\n":
+                return None
+            if java[indice] == "\\":
+                indice += 2
+                continue
+            if java[indice] == '"':
+                indice += 1
+                rangos.append((inicio, indice))
+                break
+            indice += 1
+        else:
+            return None
+    return rangos
+
+
+def _codigo_sin_literales(java: str, literales: list[tuple[int, int]]) -> str:
+    """Sustituye cadenas por espacios para revisar solo los tokens que son código."""
+    codigo = list(java)
+    for inicio, fin in literales:
+        codigo[inicio:fin] = " " * (fin - inicio)
+    return "".join(codigo)
+
+
+def _tiene_separador(codigo: str) -> bool:
+    return any(caracter in codigo for caracter in ";{}\r\n") or any(
+        marcador in codigo for marcador in ("//", "/*", "*/")
+    )
+
+
+def _reemplazar_columnas(
+    java: str,
+    literales: list[tuple[int, int]],
+    destino: dict[str, tuple[str, str]],
+) -> str:
+    partes: list[str] = []
+    inicio = 0
+
+    def reemplazo(match: re.Match[str]) -> str:
+        return ".".join(destino[match.group(1)])
+
+    for desde, hasta in literales:
+        partes.append(_COLUMNA.sub(reemplazo, java[inicio:desde]))
+        partes.append(java[desde:hasta])
+        inicio = hasta
+    partes.append(_COLUMNA.sub(reemplazo, java[inicio:]))
+    return "".join(partes)
 
 
 def _segura(columna: str, operador: str, literal: str, tipos: dict[str, str]) -> str:
@@ -150,6 +236,8 @@ def expresion(
     sas: str, filas: dict[str, set[str]], tipos: dict[str, str]
 ) -> tuple[str | None, str | None]:
     """Java de una expresión o condición del SAS, con la fila resuelta y el faltante cubierto."""
+    if re.search(r"(?:'[^']*'|\"[^\"]*\")\s*[nN]\b", sas):
+        return None, "name literal SAS sin traducción segura"
     traduccion = translate(sas)
     if traduccion.talend is None:
         motivo = "; ".join(traduccion.warnings) or "el traductor no la reconoce"

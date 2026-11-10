@@ -78,6 +78,8 @@ def _reconstruir(operador):
             p.get("outputs"),
             p.get("pendiente"),
             status=operador.status,
+            group_outputs=p.get("group_outputs"),
+            output_order=p.get("output_order"),
         )
     if operador.kind == "derive":
         return op.calcular(

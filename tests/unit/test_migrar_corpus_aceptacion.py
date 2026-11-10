@@ -111,7 +111,10 @@ def test_robustez_sobre_todo_el_repositorio(tmp_path):
         inicio = time.perf_counter()
         resultado = migrar(programa, tmp_path / str(posicion))
         assert time.perf_counter() - inicio < 60, f"{programa} tardó más de un minuto"
-        assert (resultado.carpeta / "pendientes.md").is_file(), programa
+        if resultado.fallo_seguridad is None and not resultado.hallazgos_seguridad:
+            assert (resultado.carpeta / "pendientes.md").is_file(), programa
+        else:
+            assert not resultado.escritos, programa
 
 
 @pytest.mark.parametrize("caso", CASOS, ids=[caso.name for caso in CASOS])

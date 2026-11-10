@@ -16,12 +16,12 @@ def _columns(compiled) -> dict[str, Column]:
     return found
 
 
-def test_informat_numerico_segun_ancho_y_decimales():
-    assert informat_type("8.") == CodeType("Long")
+def test_informat_numerico_no_infiere_integralidad_por_ancho():
+    assert informat_type("8.") == CodeType("Double")
     assert informat_type("30.2") == CodeType("BigDecimal")
     assert informat_type("20.") == CodeType("Double")  # ancho mayor que 18 sin decimales
     assert informat_type("dollar18.2") == CodeType("BigDecimal")
-    assert informat_type("comma12.") == CodeType("Long")
+    assert informat_type("comma12.") == CodeType("Double")
 
 
 def test_informat_de_texto_y_de_fecha():
@@ -32,7 +32,7 @@ def test_informat_de_texto_y_de_fecha():
 
 
 def test_input_y_put_de_la_expresion():
-    assert expression_type("input(x, 8.)") == CodeType("Long")
+    assert expression_type("input(x, 8.)") == CodeType("Double")
     assert expression_type("input(x, 8.2)") == CodeType("BigDecimal")
     assert expression_type("input(x, yymmdd8.)") == CodeType("Date")
     assert expression_type("put(x, 8.)") == CodeType("String", 8)
@@ -74,7 +74,7 @@ def test_declaraciones_length_format_e_informat():
         ]
     )
     assert found["nro"] == CodeType("String", 30)
-    assert found["n"] == CodeType("Long")
+    assert found["n"] == CodeType("Double")
     assert found["f"] == CodeType("BigDecimal")
     assert found["g"] == CodeType("Date")
 
@@ -104,7 +104,7 @@ def test_data_step_tipa_las_columnas_que_convierte():
     )
     compiled, _ = compile_project({"p.sas": program})
     columns = _columns(compiled["p.sas"])
-    assert columns["nro_n"].type == "Long" and columns["nro_n"].source == "code"
+    assert columns["nro_n"].type == "Double" and columns["nro_n"].source == "code"
     assert columns["cod"] == Column("cod", "String", 10, "code")
     assert columns["s"].type == "String"
     assert columns["x"].type == "Double"

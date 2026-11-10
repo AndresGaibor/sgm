@@ -12,6 +12,7 @@ Si `sqlglot` no puede parsear el texto, `build` lanza `SqlParseError` (la senten
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 
 import sqlglot
@@ -27,6 +28,13 @@ class SqlParseError(ValueError):
 
 class SqlNotSelect(ValueError):
     """Sentencia de otro tipo (insert, delete, drop...) que no es una consulta."""
+
+
+class SqlUnsafeIdentifier(ValueError):
+    """El AST contiene un identificador que no se puede emitir de forma portable."""
+
+
+_PORTABLE_IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 
 
 @dataclass(frozen=True)
@@ -63,6 +71,7 @@ class SemiSpec:
     negate: bool
     sub: SelectSpec
     key: str  # la columna que la subconsulta devuelve
+    expression: str  # expresión SAS/SQL original, para validar sus límites en el anillo B
 
 
 @dataclass
@@ -85,6 +94,43 @@ class SqlTree:
     target: str | None  # tabla que crea el CREATE TABLE AS, o None si es solo un SELECT
     selects: list[SelectSpec]  # una por rama de UNION; una sola si no hay unión
     union_all: bool = False  # las ramas se unen con UNION ALL (sin quitar duplicados)
+    identifiers_portable: bool = True
+
+
+def validate_portable_identifiers(tree: SqlTree) -> None:
+    """Falla si el AST actual contiene nombres fuera de la gramática portable."""
+    if not tree.identifiers_portable:
+        raise SqlUnsafeIdentifier("identificador SQL no representable para Talend")
+    nombres = [tree.target] if tree.target else []
+    for select in tree.selects:
+        fuentes = [select.base, *(join.source for join in select.joins)]
+        for source in fuentes:
+            if source is not None:
+                nombres.append(source.name)
+                nombres.append(source.alias)
+        for item in select.items:
+            nombres.extend((item.alias, None if item.star or item.column == "*" else item.column))
+        nombres.extend(
+            nombre for pareja in select.group_by for nombre in _nombres_calificados(pareja)
+        )
+        nombres.extend(
+            nombre for pareja in select.order_by for nombre in _nombres_calificados(pareja[0])
+        )
+        for join in select.joins:
+            nombres.extend(nombre for pair in join.keys for nombre in pair)
+            nombres.extend(nombre for pair in join.qualified for nombre in pair)
+    if any(nombre is not None and not _nombre_portable(nombre) for nombre in nombres):
+        raise SqlUnsafeIdentifier("identificador SQL no representable para Talend")
+
+
+def _nombre_portable(nombre: str) -> bool:
+    partes = nombre.split(".")
+    return bool(partes) and all(_PORTABLE_IDENTIFIER.fullmatch(parte) for parte in partes)
+
+
+def _nombres_calificados(expresion: str) -> list[str]:
+    """Extrae tokens de nombre separados por punto para las cláusulas estructuradas."""
+    return re.findall(r"[A-Za-z_][A-Za-z0-9_.]*", expresion, re.ASCII)
 
 
 def _name(table: exp.Table) -> str:
@@ -195,7 +241,9 @@ def _semi(conjunto: exp.Expression) -> SemiSpec | None:
     )
     if not simple:
         return None
-    return SemiSpec(_reference(en.this), negado, sub, sub.items[0].expression)
+    return SemiSpec(
+        _reference(en.this), negado, sub, sub.items[0].expression, conjunto.sql()
+    )
 
 
 def _select(node: exp.Select) -> SelectSpec:
@@ -254,6 +302,10 @@ def build(sql: str) -> SqlTree:
         tree = sqlglot.parse_one(sql)
     except sqlglot.errors.ParseError as error:
         raise SqlParseError(str(error)) from error
+    identifiers_portable = all(
+        _PORTABLE_IDENTIFIER.fullmatch(identifier.name)
+        for identifier in tree.find_all(exp.Identifier)
+    )
     target = None
     body = tree
     if isinstance(tree, exp.Create):
@@ -262,4 +314,9 @@ def build(sql: str) -> SqlTree:
         target = _name(tree.this) if isinstance(tree.this, exp.Table) else tree.this.sql()
         body = tree.expression
     branches, union_all = _branches(body)
-    return SqlTree(target, [_select(b) for b in branches], union_all=union_all)
+    return SqlTree(
+        target,
+        [_select(b) for b in branches],
+        union_all=union_all,
+        identifiers_portable=identifiers_portable,
+    )

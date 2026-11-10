@@ -1,6 +1,8 @@
 # Secretos en los artefactos de sgm
 
-Estado: propuesta. La decisión de entrega del secreto (DC-06 en `docs/plan-reescritura/ruta-a-produccion.md`, sección 3) sigue **abierta**. Este documento describe lo que ya está implementado (el escáner y la compuerta) y deja las opciones de entrega para que las decida el dueño del proyecto.
+Estado: el escáner y la compuerta de publicación están implementados. La decisión de entrega del
+secreto (DC-06 en `docs/plan-reescritura/ruta-a-produccion.md`, sección 3) sigue **abierta**.
+Las opciones de entrega quedan para que las decida el dueño del proyecto.
 
 ## 1. Qué no entra nunca al repositorio ni a los artefactos
 
@@ -34,7 +36,7 @@ La lista está en `src/sgm/seguridad/lista_blanca.py`, en la tupla `LISTA_BLANCA
 - `tests/unit/test_secretos_limpios.py` comprueba que el emisor sí la usa y que, sin ella, el escáner da hallazgos. Si alguien quita la entrada, esa prueba lo nota.
 - Añadir una entrada exige revisión de Seguridad, y debe quedar aquí con su motivo.
 
-## 5. La compuerta: `sgm secretos`
+## 5. La compuerta: `sgm secretos` y `sgm migrar`
 
 `sgm secretos <carpeta o archivo> [--formato texto|json]` revisa archivos de texto y sale así:
 
@@ -50,7 +52,20 @@ uv run sgm secretos <carpeta de artefactos>
 uv run sgm secretos decisiones
 ```
 
-Si cualquiera de los dos sale con 1, el despliegue se detiene y se corrige el origen del secreto. El escaneo no sustituye la revisión de Seguridad (R9-09).
+`sgm migrar` integra la revisión antes de publicar cada paquete. Primero genera en staging, incluye
+los archivos del paquete previo y luego escanea el conjunto. Si encuentra un secreto, no puede leer
+algún archivo o detecta enlaces simbólicos o junctions de Windows, descarta el staging y sale con
+código 1. No reemplaza ni
+borra el paquete previo. En una migración por carpeta, publica los paquetes limpios y termina con
+código 1 si alguno se bloqueó. El mensaje identifica archivo, línea y tipo, pero no muestra el valor.
+
+El workflow `.github/workflows/seguridad-nocturna.yml` queda configurado para correr a diario o
+manualmente. El cron se activa al integrar el workflow en la rama predeterminada. Migra un caso
+controlado a una carpeta temporal, vuelve a ejecutar `sgm secretos` sobre el paquete y escanea
+`decisiones/`. El workflow no usa secretos de CI, Studio ni una base de datos.
+
+Si cualquiera de los comandos de escaneo sale con 1, se detiene la entrega y se corrige el origen del
+secreto. El escaneo no sustituye la revisión de Seguridad (R9-09).
 
 Alcance: la compuerta está pensada para los artefactos y para `decisiones/`. Escanear todo el repositorio incluye manuales SAS copiados en `docs/referencia/` con ejemplos de `pass=` y `pwencode`; esos hallazgos no son secretos y no forman parte de la compuerta.
 
@@ -64,4 +79,6 @@ Alcance: la compuerta está pensada para los artefactos y para `decisiones/`. Es
 ## 7. Pendiente
 
 - DC-06: elegir el almacén de secretos y el mecanismo de carga por entorno. Abierta.
+- MG-P13-02: la revisión del `{SAS002}` en el fixture real y del adjunto con `pwencode` requiere que
+  una persona confirme que son públicos o que fueron rotados. El migrador no puede confirmar esto.
 - R9-09: revisión de Seguridad de estos artefactos y de los logs.

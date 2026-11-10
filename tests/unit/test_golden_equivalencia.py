@@ -6,6 +6,7 @@ quita o cuyo valor cambia rompe la equivalencia; un campo nuevo solo se acepta s
 `params`) no se confunde con una regresión de la migración.
 """
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -33,6 +34,78 @@ CAMPOS_ADITIVOS = {
     # Hito 104m: el `derive` de un DATA step conserva la fila y le agrega columnas; el de un
     # `SELECT` la reemplaza. La firma cambia con la marca, y por eso la referencia se regeneró.
     "modo": "`agrega` en el derive de un DATA step (hito 104m, DATA step vs SELECT)",
+    # Hito 121: `INFILE/INPUT` conservan opciones, campos, fuente y formato inferidos por sintaxis.
+    "datafile": "ruta literal de INFILE (hito 121)",
+    "file_format": "forma de lectura demostrada por INFILE/INPUT (hito 121)",
+    "firstobs": "primera fila de INFILE (hito 121)",
+    "infile_line": "línea de INFILE para pendientes de migración (hito 121)",
+    "infile_options": "opciones declaradas en INFILE (hito 121)",
+    "infile_statement": "sintaxis original de INFILE (hito 121)",
+    "input_line": "línea de INPUT para pendientes de migración (hito 121)",
+    "input_mode": "modalidad demostrada por INPUT (hito 121)",
+    "input_names": "nombres declarados por INPUT, sin inferir tipos (hito 121)",
+    "input_statement": "sintaxis original de INPUT (hito 121)",
+    "statement": "sentencias originales de lectura (hito 121)",
+    "unsupported_options": "opciones INFILE sin equivalencia identificada (hito 121)",
+    "group_outputs": "llaves GROUP BY seleccionadas como columnas de salida (hito 129)",
+    "output_order": "orden de las columnas del SELECT en la salida agregada (hito 129)",
+}
+
+# Cambios intencionales de valor o diagnóstico: se documentan por referencia y ruta para que el
+# permiso no cubra otras diferencias. Las referencias exactas también se comprueban en `test_golden.py`.
+CAMBIOS_DOCUMENTADOS = {
+    "p1_merge_first_last.plan.json": {
+        "gaps[2].evidence[0].line_start": "hito 110: conservar solo el origen de la expresión fusionada",
+        "gaps[2].evidence[0].line_end": "hito 110: conservar solo el origen de la expresión fusionada",
+        "gaps[2].evidence[1]": "hito 110: quitar evidencia ajena a la expresión fusionada",
+        "pendientes[2].fuente[0].line_start": "hito 110: conservar solo el origen de la expresión fusionada",
+        "pendientes[2].fuente[0].line_end": "hito 110: conservar solo el origen de la expresión fusionada",
+        "pendientes[2].fuente[1]": "hito 110: quitar evidencia ajena a la expresión fusionada",
+    },
+    "client__client_poc.plan.json": {
+        "operators[74].params.talend_expression_candidates[0].java": (
+            "hito 110: emitir COMPRESS del espacio literal con la rutina Talend de reemplazo"
+        ),
+        "operators[19].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[24].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[26].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[29].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "operators[31].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "pendientes[33].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[34].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[35].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[36].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pendientes[37].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pending[0].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[1].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[2].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[3].signature": "hito 129: la decisión de salida usa la firma del agregado",
+        "pending[4].signature": "hito 129: la decisión de salida usa la firma del agregado",
+    },
+    "p0_ejemplo_basico.plan.json": {
+        "operators[2].signature": "hito 129: la proyección del agregado forma parte de su firma",
+        "pendientes[1].signature": "hito 129: se precisa la firma dependiente del agregado",
+        "pending[0].signature": "hito 129: la decisión de salida usa la firma del agregado",
+    },
+    "generalization__etl_archivos_simple.plan.json": {
+        "operators[2].signature": "hito 121: INFILE/INPUT pasa a formar parte de la firma",
+        "pendientes[5].signature": "hito 121: la firma del hueco de lectura se precisa",
+        "pending[1].signature": "hito 121: la decisión del lector usa la firma de INFILE/INPUT",
+        "operators[5].status": (
+            "hito 124: NODUPKEY queda parcial hasta validar empates estables en tSortRow"
+        ),
+        "operators[5].notes[0]": (
+            "hito 124: explicar por qué la fila conservada no se considera idéntica"
+        ),
+    },
+}
+
+# El plan del cliente contiene un cambio de topología deliberado, no una ampliación de campos:
+# MG-P10 añade el orden de proyección de agregados y MG-P13 reconoce cargas Impala antes modeladas
+# como pendientes. El cambio desplaza IDs y aristas del grafo completo, por lo que se fija el plan
+# revisado por su hash canónico; `test_golden.py` conserva además la comparación exacta.
+CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
+    "client__client_poc.plan.json": "4d30d95add60ceb55efe98897f7cfca640c1731c6305b18a66a6688385c4e98e",
 }
 
 CASES = [
@@ -107,11 +180,27 @@ def test_plan_solo_cambia_por_campos_aditivos_documentados(rel, golden):
     actual = json.loads(json.dumps(plan_to_dict(compiled[rel].plan)))
     esperado = json.loads((GOLDEN / golden).read_text(encoding="utf-8"))
 
+    if golden in CAMBIOS_ESTRUCTURALES_DOCUMENTADOS:
+        huella = hashlib.sha256(
+            json.dumps(esperado, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            .encode("utf-8")
+        ).hexdigest()
+        assert huella == CAMBIOS_ESTRUCTURALES_DOCUMENTADOS[golden]
+        assert actual == esperado
+        return
+
     cambios = diferencias(esperado, actual)
 
-    quitados_o_cambiados = [(ruta, tipo) for ruta, tipo in cambios if tipo != "agregado"]
+    permitidos = CAMBIOS_DOCUMENTADOS.get(golden, {})
+    quitados_o_cambiados = [
+        (ruta, tipo)
+        for ruta, tipo in cambios
+        if tipo != "agregado" and ruta not in permitidos
+    ]
     assert quitados_o_cambiados == []
-    no_documentados = [ruta for ruta, tipo in cambios if not _es_aditivo(ruta)]
+    no_documentados = [
+        ruta for ruta, _tipo in cambios if not _es_aditivo(ruta) and ruta not in permitidos
+    ]
     assert no_documentados == []
 
 
