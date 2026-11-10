@@ -6148,3 +6148,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   como pendiente explícito; MG-P4-02 permanece parcial y no se avanza a MG-P4-03 todavía.
 - Decisión: la clasificación de destinos en `params.targets` solo se agrega para más de un destino;
   `params.target` mantiene compatibilidad con planes anteriores de un destino.
+
+## Hito 167. Emisión Talend de `OUTPUT` explícito no condicional (MG-P4-02 parcial)
+
+- Fecha: 2026-11-10.
+- Qué se hizo: un `OUTPUT` con uno o varios destinos explícitos y sin condición se emite como un
+  `tMap` con una salida por destino. Las salidas conservan el esquema de entrada; se verificó que
+  desaparece el pendiente genérico del operador `split` y que la plantilla contiene todos los
+  `outputTables` esperados.
+- Límites: no se emiten `OUTPUT` sin destino, las ramas `IF/ELSE` ni múltiples sentencias `OUTPUT`
+  encadenadas. Esas formas quedan pendientes, en vez de emitir un flujo parcial. No se validó este
+  `tMap` en Studio; la aceptación es de generación y pruebas unitarias.
+- Pruebas: suite completa **3013 pasan, 27 se saltan, 142 xfail**; Ruff y `git diff --check` limpios.
+- Decisión: se limita la emisión a un operador `split` incondicional con destinos demostrados. Las
+  ramas condicionales necesitan un único `tMap` que conserve todas las filas y aplique filtros
+  complementarios sin encadenar salidas ya filtradas.

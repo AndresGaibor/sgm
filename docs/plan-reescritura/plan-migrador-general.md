@@ -582,13 +582,13 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 166, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 167, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan todos los destinos de `OUTPUT a b;`; el grafo los registra como productores, y el intérprete
-reparte la observación a cada destino, respeta las condiciones `IF/ELSE` cubiertas y suprime la salida
-implícita cuando existe cualquier `OUTPUT` explícito. La equivalencia de emisión Talend aún no está
-implementada: `split` sigue como pendiente, por lo que MG-P4-02 no se marca como completada y no se
-simula un Job incompleto como si fuera válido. `OUTPUT` sin destinos no se declara cubierto: la
-referencia indica que usa los nombres del encabezado, pero ese comportamiento aún no está modelado.
+reparte la observación a cada destino, respeta la rama `ELSE` cubierta y suprime la salida implícita
+cuando existe cualquier `OUTPUT` explícito. El emisor genera un `tMap` con varias salidas para un
+`OUTPUT` con destinos y sin condición. `OUTPUT` sin destinos y el enrutamiento de sentencias
+condicionales o separadas siguen pendientes, así como su validación en Studio; MG-P4-02 no se marca
+como completada ni se presenta un Job incompleto como válido.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

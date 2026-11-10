@@ -237,7 +237,7 @@ def test_data_step_else_if_encadenado_emite_ternarios_en_orden():
     assert all(f"&quot;{valor}&quot;" in datos for valor in ("ALTO", "MEDIO", "BAJO"))
 
 
-def test_output_explicito_sin_emisor_de_ramas_queda_pendiente_con_evidencia():
+def test_output_explicito_sin_condicion_se_emite_como_una_salida_tmap():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
         "GETNAMES=YES;\nRUN;\n"
@@ -247,9 +247,8 @@ def test_output_explicito_sin_emisor_de_ramas_queda_pendiente_con_evidencia():
 
     resultado = plan_a_jobs(plan, esquema)
 
-    pendiente = next(p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE")
-    assert pendiente.linea == 6
-    assert "split" in pendiente.mensaje
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    assert 'name="out1"' in _tmap(resultado.jobs[0])
 
 
 def test_output_con_varios_destinos_conserva_todos_y_suprime_salida_implicita():
@@ -274,6 +273,51 @@ def test_output_con_varios_destinos_conserva_todos_y_suprime_salida_implicita():
         and operador.params.get("outputs") is not None
     ]
     assert all(not operador.params["outputs"] for operador in transformaciones)
+
+
+def test_output_con_varios_destinos_emite_un_tmap_con_todas_las_salidas():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.primera WORK.segunda;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT WORK.primera WORK.segunda;\n"
+        "RUN;\n"
+        "PROC EXPORT DATA=WORK.primera OUTFILE='primera.csv' DBMS=CSV REPLACE;\nRUN;\n"
+        "PROC EXPORT DATA=WORK.segunda OUTFILE='segunda.csv' DBMS=CSV REPLACE;\nRUN;"
+    )
+    esquema = {"work.entrada": [Column("id", "String")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    assert len(resultado.jobs) == 1
+    tmap = _tmap(resultado.jobs[0])
+    assert 'name="out1"' in tmap
+    assert 'name="out2"' in tmap
+    assert 'name="id" expression="row1.id"' in tmap
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in resultado.jobs[0].nodos) == 2
+    assert {conexion.nombre for conexion in resultado.jobs[0].conexiones} >= {"out1", "out2"}
+
+
+def test_varias_sentencias_output_encadenadas_se_mantienen_pendientes():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.primera WORK.segunda;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT WORK.primera;\n"
+        "OUTPUT WORK.segunda;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("id", "String")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert any(
+        pendiente.codigo == "P-OPERADOR-SIN-SOPORTE" and "split" in pendiente.mensaje
+        for pendiente in resultado.pendientes
+    )
 
 
 def test_asignacion_condicional_numerica_derivada_queda_pendiente_por_faltante_sas():

@@ -81,6 +81,9 @@ def _produce(op: Operator) -> list[str]:
     producen = ("read_file", "map", "filter", "derive", "select", "rename", "join")
     if op.kind in (*producen, "sort", "dedup", "aggregate", "union"):
         return [str(d).lower() for d in op.params.get("outputs", [])]
+    if op.kind == "split":
+        destinos = op.params.get("targets") or [op.params.get("target")]
+        return [str(destino).lower() for destino in destinos if destino]
     return []
 
 
@@ -330,8 +333,33 @@ class _Job:
     def _mapa(self, op: Operator, x: int) -> None:
         fuentes = self._fuentes(op)
         unico = self._unico("tMap")
+        para_armar = _como_paso(op)
+        if op.kind == "split":
+            destinos = op.params.get("targets") or [op.params.get("target")]
+            if not destinos or any(not destino for destino in destinos):
+                self._sin_soporte(op)
+                return
+            if any(
+                self.plan.graph.operator(previo).kind == "split"
+                for previo in self.plan.graph.predecessors(op.id)
+            ):
+                self._sin_soporte(op)
+                return
+            if op.params.get("condition") or op.params.get("branch"):
+                self._sin_soporte(op)
+                return
+            salidas = [str(destino) for destino in destinos]
+            para_armar = replace(
+                op,
+                kind="map",
+                params={
+                    "steps": [],
+                    "outputs": salidas,
+                    "branches": [{"outputs": [destino]} for destino in salidas],
+                },
+            )
         armado = construir(
-            _como_paso(op), fuentes, unico, x, 0, self.ruta_java, self._filas, self._salidas_n
+            para_armar, fuentes, unico, x, 0, self.ruta_java, self._filas, self._salidas_n
         )
         self._filas += len(fuentes)
         self._salidas_n += max(1, len(armado.salidas))
@@ -341,13 +369,13 @@ class _Job:
         self._salida[op.id] = list(armado.columnas)
         if armado.nodo is None:
             return
-        tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
+        tabla = _tabla(str((para_armar.params.get("outputs") or ["WORK.sin_nombre"])[0]))
         self._registrar(op, armado.nodo, armado.columnas, tabla)
         self._entradas_map[op.id] = armado.entradas
         self._salidas_map[op.id] = armado.salidas[0]
         self._principal_de[op.id] = next(iter(armado.entradas.values()))
         if len(armado.salidas) > 1:
-            self._ramas[op.id] = self._consumidor_de_rama(op, armado.salidas)
+            self._ramas[op.id] = self._consumidor_de_rama(para_armar, armado.salidas)
 
     def _consumidor_de_rama(self, op: Operator, salidas: list[str]) -> dict[str, str]:
         """Qué operador consume cada salida de un `map` con ramas.
@@ -733,6 +761,8 @@ class _Job:
         elif op.kind == "write_file":
             self._escritura(op, x)
         elif op.kind == "map":
+            self._mapa(op, x)
+        elif op.kind == "split":
             self._mapa(op, x)
         elif op.kind in ("sort", "dedup"):
             self._orden(op, x)
