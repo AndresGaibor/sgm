@@ -140,6 +140,11 @@ def test_exec_sql_de_impala_se_emite_en_un_timpalarow_sin_inventar_conexion(tmp_
         for pendiente in resultado.pendientes
     )
     assert any(pendiente.codigo == "P-CONEXION-BASE" for pendiente in resultado.pendientes)
+    assert not any(
+        "el operador 'read'" in pendiente.mensaje
+        or "salida final o de biblioteca permanente" in pendiente.mensaje
+        for pendiente in resultado.pendientes
+    )
 
     item, _ = escribir_job(job, tmp_path)
     texto = item.read_text(encoding="utf-8")

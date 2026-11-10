@@ -475,6 +475,26 @@ class _Job:
             )
         )
 
+    def _plegar_lectura_en_sql(self, op: Operator) -> bool:
+        """Una lectura de base ya está representada por el FROM del `exec_sql` siguiente."""
+        dataset = str(op.params.get("dataset") or "").casefold()
+        if not dataset or op.placement != "db:impala":
+            return False
+        for siguiente in self.plan.graph.successors(op.id):
+            consumidor = self.plan.graph.operator(siguiente)
+            sql = str(consumidor.params.get("sql") or "").casefold()
+            if (
+                consumidor.kind == "exec_sql"
+                and consumidor.placement == op.placement
+                and (consumidor.component or {}).get("name") == "tImpalaRow"
+                and dataset in sql
+            ):
+                # Alias, no conexión Talend: el SQL ejecuta la lectura directamente en Impala.
+                self._alias[op.id] = consumidor.id
+                self.plegados.add(op.id)
+                return True
+        return False
+
     def _registrar(
         self,
         op: Operator,
@@ -684,6 +704,8 @@ class _Job:
             return
         if op.kind in ("read", "write"):
             # Si se pliega sobre otro nodo, el conjunto ya está en el flujo y no hay nada que hacer.
+            if op.kind == "read" and self._plegar_lectura_en_sql(op):
+                return
             if self._resolver(op.id) is None:
                 self._sin_soporte(op)
             return

@@ -6075,3 +6075,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   y el Job no quedó validado en Studio. MG-P8b-09 se mantiene parcial hasta validar `l2_16` en Studio.
 - Decisión: dejar la configuración de conexión al usuario y posponer la compilación hasta que Studio
   vuelva a exponer su bridge; no adivinar parámetros ni instalar componentes durante la incidencia.
+
+## Hito 163m. Plegar fronteras de base dentro del SQL
+
+- Fecha: 2026-11-10.
+- Qué se hizo: cuando un `read` de Impala alimenta directamente un `exec_sql` del mismo motor y el
+  SQL contiene la tabla leída, el emisor pliega esa lectura en el SQL, que ya realiza el `FROM` en la
+  base. El `write` posterior se pliega sobre el `tImpalaRow` porque el `CREATE TABLE` materializa el
+  destino. `l2_16` deja de reportar operadores sin soporte para lectura/salida y genera solo el nodo
+  de SQL; la configuración de sesión y la conexión permanecen como pendientes explícitos.
+- Regresión: se amplió el seam de `plan_a_jobs`/`.item` para exigir que no queden pendientes de
+  lectura ni destino permanente al emitir el SQL de `l2_16`.
+- Pruebas: suite completa **2770 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
+- Validación Studio: sigue bloqueada por la incidencia de bridge descrita en el hito 162m. No se
+  ejecutó el Job ni se conectó a Impala.
+- Límite: MG-P8b-08 continúa parcial hasta configurar la conexión y compilar el Job en Studio.
+- Decisión: solo plegar la lectura cuando fuente y `exec_sql` comparten `db:impala`, hay arista
+  directa y el SQL contiene el dataset; otros casos conservan el pendiente en vez de inferir una
+  equivalencia.
