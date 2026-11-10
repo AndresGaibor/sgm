@@ -58,6 +58,7 @@ class Armado:
     nodo: Nodo | None = None
     entradas: dict[str, str] = field(default_factory=dict)  # origen -> row1, row2, ...
     columnas: list[Columna] = field(default_factory=list)
+    salidas: list[str] = field(default_factory=list)  # nombre de cada salida, en orden
     pendientes: list[PendienteMigracion] = field(default_factory=list)
 
 
@@ -66,9 +67,16 @@ class _Meseta:
     """Las fuentes ya ordenadas: la principal primero, con su nombre de fila y su tipo."""
 
     fuentes: list[Fuente]
+    # Filas que ya usan los `tMap` anteriores del Job: el nombre de una conexión es único en el
+    # Job (es el nombre de su clase en el Java generado), así que cada mapa numera desde ahí.
+    base: int = 0
 
     def fila(self, indice: int) -> str:
-        return PRINCIPAL if indice == 0 else f"row{indice + 1}"
+        return f"row{self.base + indice + 1}"
+
+    @property
+    def principal(self) -> str:
+        return self.fila(0)
 
     @property
     def filas(self) -> dict[str, set[str]]:
@@ -177,7 +185,8 @@ def _llaves(
                 internas[indice] = interna
                 for columna in join["by"]:
                     propia = meseta.nombre_real(indice, str(columna))
-                    union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, str(columna))}"
+                    ajena = meseta.nombre_real(0, str(columna))
+                    union[indice][propia] = f"{meseta.principal}.{ajena}"
             continue
         for par in join.get("keys") or []:
             if len(par) != 2:
@@ -256,7 +265,7 @@ def _entradas(
     entradas: list[EntradaMap] = []
     for indice, fuente in enumerate(meseta.fuentes):
         if indice == 0:
-            entradas.append(EntradaMap(PRINCIPAL, list(fuente.columnas)))
+            entradas.append(EntradaMap(meseta.principal, list(fuente.columnas)))
             continue
         propias = llaves.get(indice, {})
         if not propias:
@@ -291,7 +300,11 @@ def _filtro(meseta: _Meseta, op: Operator, armado: Armado) -> str:
     textos = [texto for texto in textos if texto]
     if not textos:
         return ""
-    texto = " AND ".join(f"({t})" for t in textos)
+    return _filtro_de(meseta, op, armado, " AND ".join(f"({t})" for t in textos))
+
+
+def _filtro_de(meseta: _Meseta, op: Operator, armado: Armado, texto: str) -> str:
+    """Una condición del SAS como `expressionFilter`, o vacío (con su pendiente) si no se pudo."""
     # Las banderas `IN=` de un MERGE no son columnas de ninguna entrada: se resuelven como la
     # pregunta «¿aportó esta tabla una fila?», que en Java es un booleano.
     booleanas = _banderas_booleanas(meseta, op)
@@ -327,16 +340,16 @@ def _valor(
         filas = {fila: set(columnas) for fila, columnas in meseta.filas.items()}
         tipos = dict(meseta.tipos)
         for nombre, (_, tipo) in (previas or {}).items():
-            filas[PRINCIPAL].add(nombre)
-            tipos[f"{PRINCIPAL}.{nombre}"] = tipo
+            filas[meseta.principal].add(nombre)
+            tipos[f"{meseta.principal}.{nombre}"] = tipo
         java, motivo = expresion(texto, filas, tipos)
         if java is None:
             return None, motivo
         for nombre, (java_previa, _) in (previas or {}).items():
-            if java_previa == f"{PRINCIPAL}.{nombre}":
+            if java_previa == f"{meseta.principal}.{nombre}":
                 continue
             java = re.sub(
-                rf"\b{re.escape(PRINCIPAL)}\.{re.escape(nombre)}\b",
+                rf"\b{re.escape(meseta.principal)}\.{re.escape(nombre)}\b",
                 f"({java_previa})",
                 java,
             )
@@ -351,7 +364,7 @@ def _valor(
         )
         for nombre, (java_previa, tipo_previo) in (previas or {}).items():
             if (
-                java_previa != f"{PRINCIPAL}.{nombre}"
+                java_previa != f"{meseta.principal}.{nombre}"
                 and tipo_previo in {"id_Double", "id_Float", "id_BigDecimal"}
                 and any(
                     re.search(rf"\b{re.escape(nombre)}\b", condicion)
@@ -556,7 +569,9 @@ def _expandir_estrellas(meseta: _Meseta, asignaciones: list[dict]) -> list[dict]
     return expandidas
 
 
-def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
+def _salidas(
+    meseta: _Meseta, op: Operator, armado: Armado, base: int = 0
+) -> list[SalidaMap]:
     """Salidas del `tMap`: las asignaciones del `SELECT` y, si hay, el `WHERE` como filtro.
 
     Un `derive` con `modo: agrega` viene de un DATA step: la fila conserva sus columnas y las
@@ -574,11 +589,11 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
     if agrega:
         principal = meseta.fuentes[0]
         columnas = list(principal.columnas)
-        expresiones = {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas}
+        expresiones = {c.nombre: f"{meseta.principal}.{c.nombre}" for c in principal.columnas}
     elif not asignaciones:
         principal = meseta.fuentes[0]
         columnas = list(principal.columnas)
-        expresiones = {c.nombre: f"{PRINCIPAL}.{c.nombre}" for c in principal.columnas}
+        expresiones = {c.nombre: f"{meseta.principal}.{c.nombre}" for c in principal.columnas}
         if _pasos(op, "join"):
             _banderas(meseta, op, columnas, expresiones)
             # `SELECT *` sobre un cruce trae las columnas de todas las tablas; si un nombre se
@@ -650,7 +665,20 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
         }
     if not columnas:
         return []
-    return [SalidaMap("out1", columnas, expresiones, filtro=filtro)]
+    ramas = op.params.get("branches") or []
+    if not ramas:
+        return [SalidaMap(f"out{base + 1}", columnas, expresiones, filtro=filtro)]
+    # `IF ... THEN OUTPUT a; ELSE OUTPUT b;`, o varios `WHERE` sobre la misma tabla: una salida del
+    # `tMap` por rama, cada una con su condición. Una rama sin condición traducida no se escribe.
+    salidas: list[SalidaMap] = []
+    for posicion, rama in enumerate(ramas, start=1):
+        condicion = str(rama.get("expression") or "").strip()
+        propio = _filtro_de(meseta, op, armado, condicion) if condicion else ""
+        if condicion and not propio:
+            return []
+        junto = f"({filtro}) && ({propio})" if filtro and propio else (filtro or propio)
+        salidas.append(SalidaMap(f"out{base + posicion}", columnas, expresiones, filtro=junto))
+    return salidas
 
 
 def _banderas_booleanas(meseta: _Meseta, op: Operator) -> dict[str, str]:
@@ -695,8 +723,14 @@ def construir(
     x: int,
     y: int,
     ruta_java: str | None = None,
+    base_filas: int = 0,
+    base_salidas: int = 0,
 ) -> Armado:
-    """`tMap` del operador `map` con sus entradas, llaves, expresiones y filtro."""
+    """`tMap` del operador `map` con sus entradas, llaves, expresiones y filtro.
+
+    `base_filas` y `base_salidas` son las filas y salidas que ya usan los `tMap` anteriores del
+    Job: los nombres siguen desde ahí para no repetirse.
+    """
     armado = Armado()
     if not fuentes:
         armado.pendientes.append(
@@ -712,7 +746,7 @@ def construir(
     con_origen = [u for u in uniones if u.get("sources")]
     principal = _principal(fuentes, (con_origen or uniones or [None])[0])
     ordenadas = [fuentes[principal], *(f for i, f in enumerate(fuentes) if i != principal)]
-    meseta = _Meseta(ordenadas)
+    meseta = _Meseta(ordenadas, base_filas)
     armado.entradas = {fuente.origen: meseta.fila(i) for i, fuente in enumerate(ordenadas)}
     for paso in ("aggregate",):
         if _pasos(op, paso):
@@ -722,7 +756,7 @@ def construir(
                 )
             )
     entradas = _entradas(meseta, uniones, armado, op)
-    salidas = _salidas(meseta, op, armado)
+    salidas = _salidas(meseta, op, armado, base_salidas)
     if not salidas:
         armado.pendientes.append(
             PendienteMigracion(
@@ -731,6 +765,7 @@ def construir(
         )
         return armado
     armado.columnas = list(salidas[0].columnas)
+    armado.salidas = [salida.nombre for salida in salidas]
     try:
         armado.nodo = tmap(unico, entradas, salidas, x, y, ruta_java)
     except Exception as error:  # noqa: BLE001 — un mapa roto no se lleva el resto del Job

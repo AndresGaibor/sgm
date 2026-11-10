@@ -68,7 +68,18 @@ def _pasos_fundidos(plan: Plan, a: Operator, b: Operator, tabla: str | None) -> 
     return [*uniones, *filtros] + ([ultima] if ultima else [])
 
 
-def _consumo(plan: Plan, a: Operator, tabla: str | None) -> tuple[str, list[str]]:
+def lecturas_por_tabla(plan: Plan) -> dict[str, set[str]]:
+    """Tabla -> ids de los `read` que la leen. Se calcula una vez por pasada, no por operador."""
+    indice: dict[str, set[str]] = {}
+    for op in plan.graph.operators():
+        if op.kind == "read":
+            indice.setdefault(nombre_tabla(op.params.get("dataset")), set()).add(op.id)
+    return indice
+
+
+def _consumo(
+    plan: Plan, a: Operator, tabla: str | None, lecturas_de: dict[str, set[str]]
+) -> tuple[str, list[str]]:
     """El único operador que consume al primero y los `read` de la intermedia que hay en medio."""
     grafo = plan.graph
     consumidores: list[str] = []
@@ -84,23 +95,19 @@ def _consumo(plan: Plan, a: Operator, tabla: str | None) -> tuple[str, list[str]
     if len(unicos) != 1 or len(lecturas) > 1:
         raise NoFusionable("la tabla intermedia la lee más de un paso, o ninguno")
     if tabla:
-        otras = [
-            op.id
-            for op in grafo.operators()
-            if op.kind == "read"
-            and nombre_tabla(op.params.get("dataset")) == tabla
-            and op.id not in lecturas
-        ]
+        otras = lecturas_de.get(tabla, set()) - set(lecturas)
         if otras or tabla in {nombre_tabla(f) for f in plan.fronteras}:
             raise NoFusionable("la tabla intermedia se usa fuera de este paso")
     return unicos[0], lecturas
 
 
 def _aristas(plan: Plan, origen: str, destino: str) -> list[Edge]:
-    return [e for e in plan.graph.edges() if e.src == origen and e.dst == destino]
+    return [e for e in plan.graph.in_edges(destino) if e.src == origen]
 
 
-def fundir(plan: Plan, a_id: str) -> tuple[str, list[str], str | None]:
+def fundir(
+    plan: Plan, a_id: str, lecturas_de: dict[str, set[str]]
+) -> tuple[str, list[str], str | None]:
     """Funde el operador `a_id` con su único consumidor, en el plan.
 
     Devuelve el id del operador que queda, los ids que absorbió y la tabla intermedia que ya no
@@ -114,7 +121,7 @@ def fundir(plan: Plan, a_id: str) -> tuple[str, list[str], str | None]:
     tabla = nombre_tabla(salidas[0]) if salidas else None
     if tabla is None and a.kind != "join":
         raise NoFusionable("el paso no nombra su salida")
-    b_id, lecturas = _consumo(plan, a, tabla)
+    b_id, lecturas = _consumo(plan, a, tabla, lecturas_de)
     b = grafo.operator(b_id)
     pasos = _pasos_fundidos(plan, a, b, tabla)
     # A partir de aquí no falla nada: se cambia el plan.
@@ -136,7 +143,9 @@ def fundir(plan: Plan, a_id: str) -> tuple[str, list[str], str | None]:
     grafo.rewire_inputs(b_id, [Edge(e.src, b_id, e.dataset, e.materialize) for e in nuevas])
     for op_id in quitados:
         grafo.remove_operator(op_id)
+    if tabla:
+        lecturas_de.get(tabla, set()).difference_update(lecturas)
     return b_id, sorted(quitados), tabla
 
 
-__all__ = ["FUSIONABLES", "NoFusionable", "fundir"]
+__all__ = ["FUSIONABLES", "NoFusionable", "fundir", "lecturas_por_tabla"]

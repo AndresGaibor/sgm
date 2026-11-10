@@ -37,10 +37,12 @@ from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
 from sgm.talend_item.desde_plan_union import nodo_union
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
+from sgm.talend_item.plantillas import nodo_desde_plantilla
 
 CONFIG_RESUELTA = "P-CONFIGURACION-RESUELTA"
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
 SIN_SOPORTE = "P-OPERADOR-SIN-SOPORTE"
+RECONVERGE = "P-REPARTO-RECONVERGE"
 # Operadores que el emisor sabe traducir a un componente del Job.
 CON_NODO = frozenset(
     {"read_file", "write_file", "map", "filter", "derive", "select", "rename", "join"}
@@ -129,6 +131,12 @@ class _Job:
         self._uniones: dict[str, list[str]] = {}  # `union` -> sus entradas, en orden
         self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
         self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
+        self._ramas: dict[str, dict[str, str]] = {}  # `map` con ramas -> consumidor -> salida
+        self._principal_de: dict[str, str] = {}  # `map` -> nombre de su fila principal
+        self._filas = 0  # filas de entrada que ya usan los `tMap` del Job
+        self._salidas_n = 0  # salidas que ya usan los `tMap` del Job
+        self._reparto: dict[str, Nodo] = {}  # id de operador -> `tReplicate` de su flujo
+        self._turnos: dict[str, list[str]] = {}  # id de operador -> consumidores, en orden
         self._productor = self._productores()
         self.rutas = rutas_de_plan(plan)
 
@@ -184,9 +192,10 @@ class _Job:
         """Operadores que consumen el flujo de este, atravesando los `read` que solo lo renombran.
 
         Una tabla que el SAS lee dos veces —dos `PROC SQL` sobre el mismo `WORK.x`— tiene un solo
-        `read_file` en el plan, pero en Talend no puede salir dos veces del mismo componente: cada
-        salida de un nodo tiene un nombre y un dueño. Se emite un nodo por consumidor, que es lo que
-        hace una persona al copiar el componente.
+        `read_file` en el plan. Si sus consumidores no se vuelven a juntar, se lee una vez y un
+        `tReplicate` reparte las filas (`_repartos`). Si se juntan más abajo —un cruce de la tabla
+        consigo misma—, Talend no admite que un flujo repartido vuelva al mismo componente: se
+        emite una lectura por consumidor, que es lo que hace una persona al copiar el componente.
         """
         destinos: list[str] = []
         por_ver = [op_id]
@@ -204,6 +213,15 @@ class _Job:
                 elif siguiente.kind != "read":
                     destinos.append(siguiente.id)
         return destinos
+
+    def _reconvergen(self, consumidores: list[str]) -> bool:
+        """Dos de los consumidores, o lo que sale de ellos, llegan a un mismo operador."""
+        alcances = [{c} | self.plan.graph.descendants(c) for c in consumidores]
+        return any(
+            alcances[i] & alcances[j]
+            for i in range(len(alcances))
+            for j in range(i + 1, len(alcances))
+        )
 
     def _instancia(self, op_id: str, consumidor: str | None) -> Nodo | None:
         """Nodo que representa al operador cuando lo consume `consumidor`."""
@@ -238,7 +256,9 @@ class _Job:
         self.pendientes += resultado.pendientes
         if resultado.nodo is None:
             return
-        for posicion, consumidor in enumerate(self._consumidores(op.id) or [None]):
+        consumidores = self._consumidores(op.id)
+        copias = consumidores if self._reconvergen(consumidores) else [None]
+        for posicion, consumidor in enumerate(copias or [None]):
             nodo = resultado.nodo
             if posicion:
                 otro = self._unico(nodo.componente)
@@ -302,7 +322,11 @@ class _Job:
     def _mapa(self, op: Operator, x: int) -> None:
         fuentes = self._fuentes(op)
         unico = self._unico("tMap")
-        armado = construir(_como_paso(op), fuentes, unico, x, 0, self.ruta_java)
+        armado = construir(
+            _como_paso(op), fuentes, unico, x, 0, self.ruta_java, self._filas, self._salidas_n
+        )
+        self._filas += len(fuentes)
+        self._salidas_n += max(1, len(armado.salidas))
         self.pendientes += armado.pendientes
         # El esquema de salida lo demuestra el SELECT, no el nodo: se guarda aunque el tMap falle,
         # para que la escritura de detrás sepa qué columnas tiene que escribir.
@@ -312,9 +336,38 @@ class _Job:
         tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
         self._registrar(op, armado.nodo, armado.columnas, tabla)
         self._entradas_map[op.id] = armado.entradas
-        self._salidas_map[op.id] = (
-            armado.nodo.metadatas[0].nombre if armado.nodo.metadatas else "out1"
-        )
+        self._salidas_map[op.id] = armado.salidas[0]
+        self._principal_de[op.id] = next(iter(armado.entradas.values()))
+        if len(armado.salidas) > 1:
+            self._ramas[op.id] = self._consumidor_de_rama(op, armado.salidas)
+
+    def _consumidor_de_rama(self, op: Operator, salidas: list[str]) -> dict[str, str]:
+        """Qué operador consume cada salida de un `map` con ramas.
+
+        Una rama que nombra su tabla la consume quien lee esa tabla; las que no la nombran van, en
+        orden, con los consumidores que quedan.
+        """
+        ramas = op.params.get("branches") or []
+        libres = [i for i, rama in enumerate(ramas) if not rama.get("outputs")]
+        reparto: dict[str, str] = {}
+        for siguiente in self.plan.graph.successors(op.id):
+            destino = self.plan.graph.operator(siguiente)
+            leido = _tabla(
+                str(destino.params.get("dataset") or (destino.params.get("inputs") or [""])[0])
+            )
+            indice = next(
+                (
+                    i
+                    for i, rama in enumerate(ramas)
+                    if leido and leido in {_tabla(str(o)) for o in rama.get("outputs") or []}
+                ),
+                None,
+            )
+            if indice is None and libres and destino.kind not in ("read", "write"):
+                indice = libres.pop(0)
+            if indice is not None and indice < len(salidas):
+                reparto[siguiente] = salidas[indice]
+        return reparto
 
     def _orden(self, op: Operator, x: int) -> None:
         """`sort` a `tSortRow` y `dedup` a `tUniqRow`: pasan el esquema de su entrada tal cual."""
@@ -399,16 +452,76 @@ class _Job:
             self.traza[nodo.unico] = sorted(lineas)
 
     # -- conexiones --------------------------------------------------------------------------
+    def _repartos(self) -> None:
+        """Un nodo con varios consumidores reparte su flujo con un `tReplicate`.
+
+        En Talend la salida de un componente tiene un solo destino. Leer o calcular una vez y
+        repartir es lo que evita repetir el trabajo por cada paso del SAS que usa el resultado.
+        """
+        destinos: dict[str, list[str]] = {}
+        for arista in self.plan.graph.edges():
+            desde, hasta = self._resolver(arista.src), self._resolver(arista.dst)
+            if desde is None or hasta is None or desde == hasta or hasta not in self._nodo:
+                continue
+            if hasta not in destinos.setdefault(desde, []):
+                destinos[desde].append(hasta)
+        for desde, consumidores in destinos.items():
+            if len(consumidores) < 2 or not self._salida.get(desde) or desde in self._ramas:
+                continue
+            if any((desde, consumidor) in self._instancias for consumidor in consumidores):
+                continue  # lectura con una copia por consumidor
+            nodo = self._nodo[desde]
+            if self._reconvergen(consumidores):
+                self.pendientes.append(
+                    PendienteMigracion(
+                        RECONVERGE,
+                        f"{nodo.unico}: su resultado lo usan dos ramas que se vuelven a juntar; "
+                        "Talend no admite repartirlo con tReplicate y hace falta guardarlo con "
+                        "tHashOutput y releerlo con tHashInput",
+                        _linea(self.plan.graph.operator(desde)),
+                    )
+                )
+                continue
+            unico = self._unico("tReplicate")
+            reparto = nodo_desde_plantilla(
+                "tReplicate",
+                unico,
+                nodo.x + PASO // 2,
+                nodo.y + 96,
+                columnas=list(self._salida[desde]),
+                ruta_java=self.ruta_java,
+            )
+            self.nodos.append(reparto)
+            self._reparto[desde] = reparto
+            self._turnos[desde] = consumidores
+            nombre = self._salidas_map.get(desde) or f"{nodo.unico}_out"
+            conector = self._conector_de.get(nodo.unico, "FLOW")
+            self.conexiones.append(Conexion(nodo.unico, unico, nombre, conector=conector))
+
+    def _nombre_repartido(self, desde: str, hasta: str) -> str | None:
+        """Nombre de la conexión que sale del `tReplicate` de `desde` hacia `hasta`."""
+        if hasta in self._uniones:
+            return f"{self._nodo[hasta].unico}_in{self._uniones[hasta].index(desde) + 1}"
+        if hasta in self._pasos:
+            return f"{self._nodo[hasta].unico}_in"
+        if hasta in self._entradas_map:
+            return self._entradas_map[hasta].get(desde)
+        turno = self._turnos[desde].index(hasta) + 1
+        return f"{self._reparto[desde].unico}_out{turno}"
+
     def _conectar(self) -> None:
         vistas: set[tuple[str, str, str]] = set()
         for arista in self.plan.graph.edges():
             desde, hasta = self._resolver(arista.src), self._resolver(arista.dst)
             if desde is None or hasta is None or desde == hasta:
                 continue
-            nombre = self._nombre(desde, hasta)
+            repartido = desde in self._reparto and hasta in self._turnos[desde]
+            nombre = (
+                self._nombre_repartido(desde, hasta) if repartido else self._nombre(desde, hasta)
+            )
             if nombre is None:
                 continue
-            nodo_origen = self._instancia(desde, hasta)
+            nodo_origen = self._reparto[desde] if repartido else self._instancia(desde, hasta)
             nodo_destino = self._nodo.get(hasta)
             if nodo_origen is None or nodo_destino is None:
                 continue
@@ -417,7 +530,7 @@ class _Job:
             if clave in vistas:
                 continue
             vistas.add(clave)
-            if hasta in self._entradas_map and nombre != "row1":
+            if hasta in self._entradas_map and nombre != self._principal_de.get(hasta):
                 # Las entradas de búsqueda de un tMap van por LOOKUP (`lineStyle` 8), no por FLOW.
                 self.conexiones.append(lookup(origen, destino, nombre))
             elif hasta in self._uniones:
@@ -458,6 +571,9 @@ class _Job:
         hay a qué fila del mapa corresponde, y una conexión con el nombre equivocado es peor que no
         tenerla.
         """
+        if desde in self._ramas:
+            # Cada rama del `tMap` es una salida con su condición, y la conexión lleva su nombre.
+            return self._ramas[desde].get(hasta)
         if (
             desde in self._salidas_map
             and hasta not in self._entradas_map
@@ -509,6 +625,7 @@ class _Job:
                     )
                 )
             self.visitados.add(op_id)
+        self._repartos()
         self._conectar()
         self._cierres()
         reemplazar_rutas(self.nodos, self.rutas)

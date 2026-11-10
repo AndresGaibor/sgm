@@ -15,7 +15,8 @@ import copy
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Plan
-from sgm.optimizar.cadenas import FUSIONABLES, NoFusionable, fundir
+from sgm.optimizar.cadenas import FUSIONABLES, NoFusionable, fundir, lecturas_por_tabla
+from sgm.optimizar.duplicados import unir_duplicados
 
 
 @dataclass(frozen=True)
@@ -39,33 +40,59 @@ def _lineas(plan: Plan, op_id: str) -> tuple[int, ...]:
     return tuple(sorted({ev.line_start for ev in plan.graph.operator(op_id).evidence}))
 
 
-def _fundir_cadenas(plan: Plan, informe: Informe) -> None:
-    cambio = True
-    while cambio:
-        cambio = False
-        for op_id in plan.graph.topological():
-            if plan.graph.operator(op_id).kind not in FUSIONABLES:
-                continue
-            try:
-                queda, quitados, tabla = fundir(plan, op_id)
-            except NoFusionable:
-                continue
-            for quitado in quitados:
-                informe.absorbidos[quitado] = queda
-            for job in _trabajos(plan):
-                job.subjobs = [[i for i in sub if i not in quitados] for sub in job.subjobs]
-            nombre = f"`WORK.{tabla}`" if tabla else "el cruce intermedio"
-            informe.decisiones.append(
-                Decision(
-                    "fundir-pasos-encadenados",
-                    f"{nombre} no se escribe: solo la lee el paso siguiente, y los dos se hacen "
-                    "en un mismo `tMap`",
-                    _lineas(plan, queda),
-                    tabla or "",
-                )
+def _quitar_de_trabajos(plan: Plan, quitados: set[str]) -> None:
+    for job in _trabajos(plan):
+        job.subjobs = [[i for i in sub if i not in quitados] for sub in job.subjobs]
+
+
+def _unir_duplicados(plan: Plan, informe: Informe) -> bool:
+    lineas = {op.id: _lineas(plan, op.id) for op in plan.graph.operators()}
+    clases = {op.id: op.kind for op in plan.graph.operators()}
+    unidos = unir_duplicados(plan)
+    for sobra, queda in unidos:
+        informe.absorbidos[sobra] = queda
+        if clases[sobra] == "read":
+            continue  # leer dos veces la misma tabla no es un paso: es el mismo flujo
+        donde = ", ".join(str(n) for n in lineas[sobra]) or "?"
+        informe.decisiones.append(
+            Decision(
+                "calcular-una-vez",
+                f"el paso de la línea {donde} repite un cálculo anterior con las mismas "
+                "entradas: se hace una sola vez y el resultado se reparte",
+                lineas[queda],
             )
-            cambio = True
-            break
+        )
+    _quitar_de_trabajos(plan, {sobra for sobra, _ in unidos})
+    return bool(unidos)
+
+
+def _fundir_cadenas(plan: Plan, informe: Informe) -> bool:
+    """Una pasada en orden de flujo: el operador que queda de una fusión se vuelve a intentar."""
+    lecturas_de = lecturas_por_tabla(plan)
+    todos: set[str] = set()
+    for op_id in plan.graph.topological():
+        if op_id not in plan.graph or plan.graph.operator(op_id).kind not in FUSIONABLES:
+            continue
+        try:
+            queda, quitados, tabla = fundir(plan, op_id, lecturas_de)
+        except NoFusionable:
+            continue
+        todos |= set(quitados)
+        for quitado in quitados:
+            informe.absorbidos[quitado] = queda
+        nombre = f"`WORK.{tabla}`" if tabla else "el cruce intermedio"
+        informe.decisiones.append(
+            Decision(
+                "fundir-pasos-encadenados",
+                f"{nombre} no se escribe: solo la lee el paso siguiente, y los dos se hacen "
+                "en un mismo `tMap`",
+                _lineas(plan, queda),
+                tabla or "",
+            )
+        )
+    if todos:
+        _quitar_de_trabajos(plan, todos)
+    return bool(todos)
 
 
 def _trabajos(plan: Plan):
@@ -80,8 +107,11 @@ def optimizar(plan: Plan) -> tuple[Plan, Informe]:
     """Copia del plan con el diseño optimizado y el informe de lo que cambió."""
     informe = Informe()
     copia = copy.deepcopy(plan)
-    _fundir_cadenas(copia, informe)
-    return (copia if informe.decisiones else plan), informe
+    # Unir duplicados deja pasos con la misma entrada, y fundir cadenas deja pasos iguales: se
+    # repite hasta que ninguna de las dos reglas cambia nada.
+    while _unir_duplicados(copia, informe) | _fundir_cadenas(copia, informe):
+        pass
+    return (copia if informe.absorbidos else plan), informe
 
 
 __all__ = ["Decision", "Informe", "optimizar"]

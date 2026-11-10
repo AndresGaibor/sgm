@@ -5864,3 +5864,54 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
     la escribe y `decisiones-tomadas.md` lo dice.
   - El optimizador trabaja sobre el plan, no sobre el Job: así el intérprete ejecuta el plan
     optimizado y la equivalencia se comprueba sin Studio.
+
+## Hito 152m. Leer y calcular una sola vez: duplicados unidos, `tReplicate` y `tMap` con ramas
+
+- Fecha: 2026-11-10.
+- Qué se hizo:
+  - `optimizar/duplicados.py`, regla `calcular-una-vez`: dos operadores con el mismo tipo, los mismos
+    parámetros (sin contar el nombre del resultado) y las mismas entradas se unen en uno. Va de arriba
+    abajo, así que al unir dos lecturas se pueden unir los pasos que las siguen. Las referencias al
+    nombre que desaparece (`__in_l26_1.clave_in1`) se cambian por el que queda. No se unen dos
+    operadores cuyos resultados se vuelven a juntar más abajo.
+  - `optimizar()` alterna las dos reglas hasta que ninguna cambia nada.
+  - Emisor (`talend_item/desde_plan.py`): un nodo con varios consumidores reparte su flujo con un
+    `tReplicate` (plantilla ya existente). Una lectura con varios consumidores ya no se copia, salvo
+    que sus ramas se vuelvan a juntar (un cruce de la tabla consigo misma, `l2_15`): ahí sigue una
+    lectura por rama. Si pasa lo mismo con un nodo que no es lectura queda `P-REPARTO-RECONVERGE`.
+  - Un `map` con ramas (`branches`) es un `tMap` con una salida por rama, cada una con su condición.
+    Antes las ramas se ignoraban.
+  - Los nombres de fila (`row1`) y de salida (`out1`) de los `tMap` ya no se repiten dentro de un Job:
+    cada `tMap` numera a partir de los que ya usó el anterior. Antes, dos `tMap` del mismo Job tenían
+    los dos `row1` y `out1`.
+  - `ir/models.py`: `Graph.in_edges`, `out_edges` y `descendants`.
+- Resultado en el corpus (101 casos de `L0` a `L6`, con `--muestra`):
+  - **Todos escriben Job.** Antes del hito 151m, cinco no lo escribían. `l3_07` sale de
+    `migrar_pendientes.yaml`, que ya no tiene ningún `P-JOB-INVALIDO`.
+  - `l2_07` (`IN` y `NOT IN` de la misma subconsulta): de 4 lecturas, 4 `tMap` y 2 `tUniqRow` a
+    2 lecturas, 3 `tMap` y 1 `tUniqRow`. `l3_05` (tres `GROUP BY` iguales): de 3 lecturas y
+    3 `tAggregateRow` a 1 y 1. `l2_04`: de 4 lecturas a 2.
+  - Total de lecturas: 140 en 96 Jobs antes; 131 en 101 Jobs ahora. `tReplicate`: 17.
+  - `client_large.sas`: 45 decisiones (30 fusiones, 15 cálculos repetidos), los defectos de Job bajan de
+    30 a 19 y los operadores sin soporte de 1669 a 1541. Sigue sin escribir Job. Tarda 8,0 s (6,7 s
+    antes).
+- Pruebas: suite completa **2750 pasan, 27 se saltan, 146 xfail**; `ruff` limpio. Cuatro pruebas nuevas
+  en `tests/unit/test_desde_plan.py` (reparto, ramas que se juntan, nombres únicos, `tMap` con ramas).
+  `test_la_misma_tabla_leida_dos_veces_da_un_nodo_por_consumidor` afirmaba el diseño viejo y se
+  reemplazó por `..._se_lee_una_vez_y_se_reparte`.
+- Sin verificar: **nada de esto se compiló en Studio** (MCP apagado). En particular no está comprobado
+  que Studio acepte dos `tMap` que comparten a la vez el `tReplicate` de su fila principal y el de su
+  lookup (`l2_07`), ni la forma exacta del `.item` de `tReplicate` más allá de su plantilla. Es la
+  tarea MG-P8b-09.
+- Problema encontrado y corregido: la primera versión reiniciaba el recorrido después de cada cambio
+  y `client_large.sas` pasó de 7 s a 191 s. Ahora cada regla hace una pasada en orden de flujo.
+- Límites:
+  - Una rama que nombra su tabla y la lee otro paso a través de un `read` todavía no se conecta.
+  - Dos `tMap` hermanos sobre la misma fuente quedan detrás de un `tReplicate`; una persona haría
+    un `tMap` con dos salidas (MG-P8b-06).
+  - Una tabla final de `WORK` que no se exporta y cuyo productor tiene otros consumidores ya no
+    recibe su `tLogRow`.
+- Decisiones:
+  - Repartir con `tReplicate` y no con salidas duplicadas del `tMap`: sirve para cualquier
+    componente y deja el `tMap` con una salida por significado.
+  - Plan actualizado en el mismo cambio: fase `MG-P8b` en `plan-migrador-general.md`.

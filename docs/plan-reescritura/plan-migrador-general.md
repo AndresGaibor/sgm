@@ -648,6 +648,25 @@ literal del SAS, el valor solo en `Default` y los demás vacíos, más un `conte
 grupo; ninguna ruta queda dentro del `.item`. MG-P8-07 a medias: `trace.json` da las líneas del SAS
 de cada nodo. MG-P8-01, MG-P8-02, MG-P8-03, MG-P8-05 y MG-P8-06 son de los planes siguientes.
 
+### MG-P8b. Optimizador del diseño (instrucción del usuario, 10 de noviembre de 2026)
+El Job no copia el SAS paso a paso: se diseña como lo haría un analista de Talend, a partir de las
+fuentes, los destinos y las transformaciones. El plan lógico se reescribe en `src/sgm/optimizar/`
+antes de emitir, y cada cambio queda en `decisiones-tomadas.md`. Una regla solo se aplica si el
+resultado se puede demostrar igual; si no, el plan queda como estaba. La equivalencia se comprueba
+con el intérprete contra `esperado/` (`tests/unit/test_optimizar_corpus.py`), sin Studio.
+
+| Id | Tarea | Tipo | Aceptación | Estado |
+|---|---|---|---|---|
+| MG-P8b-01 | Fundir dos pasos encadenados por una tabla de `WORK` que solo lee el siguiente: cruces como lookups de un `tMap`, filtros unidos, columnas con la expresión completa | S | `l1_10`, `l2_11`, `l2_15`, `l5_11` escriben Job | hecho (hito 151m) |
+| MG-P8b-02 | Un cálculo repetido con las mismas entradas se hace una vez (subconsultas y agrupaciones repetidas) | S | `l2_07` y `l3_05` leen y calculan una vez | hecho (hito 152m) |
+| MG-P8b-03 | Un flujo con varios consumidores se reparte con `tReplicate`; si las ramas se vuelven a juntar, una lectura por rama | S | ningún nodo con dos salidas del mismo nombre | hecho (hito 152m), falta compilar en Studio |
+| MG-P8b-04 | Un `map` con ramas es un `tMap` con una salida filtrada por rama | S | `l3_07` escribe Job | hecho (hito 152m) |
+| MG-P8b-05 | Fundir DATA step encadenados (`modo: agrega`, `KEEP`, `DROP`, `RENAME`) | S | caso nuevo en el corpus | pendiente |
+| MG-P8b-06 | Hermanos sobre la misma fuente en un `tMap` con varias salidas, cada una con su proyección (y `IN`/`NOT IN` de la misma subconsulta como salida y rechazo del cruce) | S | `l2_07`, `l2_10`, `l3_05` sin `tReplicate` | pendiente |
+| MG-P8b-07 | Resultado que usan dos ramas que se vuelven a juntar: `tHashOutput` y `tHashInput` en vez del pendiente `P-REPARTO-RECONVERGE` | S | 4 casos de `client_large.sas` | pendiente |
+| MG-P8b-08 | Llevar el cálculo a la base cuando fuente y destino son la misma (`tDBRow` o ELT), reutilizando `passes/db_push.py` | S | caso con `LIBNAME` de base en el corpus | pendiente |
+| MG-P8b-09 | Compilar en Studio el lote de `L0` a `L3` con el optimizador activo | P+S | mismos casos que compilaban en el hito 146m, más los cinco nuevos | pendiente (el MCP estaba apagado) |
+
 ### MG-P9. Emisor de Talend: plantillas, joblets, contextos, disposición (108 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|

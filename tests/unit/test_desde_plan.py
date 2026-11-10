@@ -22,6 +22,7 @@ from sgm.talend_item import desde_plan_map
 from sgm.talend_item.desde_plan import plan_a_jobs
 from sgm.talend_item.desde_plan_expresiones import expresion
 from sgm.talend_item.modelo import Job
+from sgm.talend_item.validador import validar_job
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L2"
 RAIZ = Path(__file__).resolve().parents[1] / "corpus"
@@ -461,20 +462,68 @@ def test_un_operador_que_falla_no_detiene_a_los_demas(monkeypatch):
     assert "mapper sin salida" in fallos[0].mensaje
 
 
-def test_la_misma_tabla_leida_dos_veces_da_un_nodo_por_consumidor():
-    """Dos `PROC SQL` sobre la misma tabla son dos lecturas, no una que sale dos veces.
+def test_la_misma_tabla_leida_dos_veces_se_lee_una_vez_y_se_reparte():
+    """Dos `PROC SQL` sobre la misma tabla son una lectura y un `tReplicate`, no dos lecturas.
 
-    En Talend cada salida de un nodo tiene nombre y dueño: dos conexiones `row1` desde el mismo
-    componente no existen. El SAS sí lee la tabla dos veces, así que el Job la lee dos veces.
+    En Talend cada salida de un nodo tiene nombre y dueño: dos conexiones desde el mismo componente
+    no existen. Antes el Job leía el archivo una vez por consumidor; ahora lo lee una vez y reparte
+    las filas, que es lo que hace una persona.
     """
     plan = _caso("l2_04_validacion_tipo_doc")
 
     job = _job(plan)
 
     lecturas = [nodo for nodo in job.nodos if nodo.componente == "tFileInputDelimited"]
-    assert len(lecturas) == 4  # dos tablas, dos consumidores cada una
-    assert len({nodo.unico for nodo in lecturas}) == 4
-    salidas = [(c.origen, c.nombre) for c in job.conexiones if c.conector == "FLOW"]
+    repartos = [nodo for nodo in job.nodos if nodo.componente == "tReplicate"]
+    assert len(lecturas) == 2  # dos tablas
+    assert len(repartos) == 2  # cada una con dos consumidores
+    salidas = [(c.origen, c.nombre) for c in job.conexiones]
     assert len(salidas) == len(set(salidas))
     for nodo in lecturas:
-        assert sum(1 for c in job.conexiones if c.origen == nodo.unico) == 1
+        destinos = [c.destino for c in job.conexiones if c.origen == nodo.unico]
+        assert len(destinos) == 1 and destinos[0].startswith("tReplicate")
+    for nodo in repartos:
+        assert sum(1 for c in job.conexiones if c.origen == nodo.unico) == 2
+    assert validar_job(job) == []
+
+
+def test_una_tabla_cuyas_ramas_se_vuelven_a_juntar_se_lee_una_vez_por_rama():
+    """`l2_15` usa `operaciones` como fila principal de dos mapas, y el resultado del primero entra
+    como consulta del segundo. Talend no admite que un flujo repartido vuelva al mismo componente:
+    ahí no hay `tReplicate` y la tabla se lee una vez por rama."""
+    job = _job(_caso("l2_15_validacion_en_cascada"))
+
+    lecturas = [nodo for nodo in job.nodos if nodo.componente == "tFileInputDelimited"]
+    assert len(lecturas) == 4  # tres tablas; `operaciones`, dos veces
+    assert not [nodo for nodo in job.nodos if nodo.componente == "tReplicate"]
+    assert validar_job(job) == []
+
+
+def test_los_nombres_de_fila_y_de_salida_no_se_repiten_entre_los_tmap_del_job():
+    """El nombre de una conexión es el de su clase en el Java generado: `row1` no puede estar en
+    dos `tMap` del mismo Job."""
+    job = _job(_caso("l2_07_not_in_subconsulta"))
+
+    nombres = [c.nombre for c in job.conexiones]
+    assert len(nombres) == len(set(nombres))
+    assert [n.componente for n in job.nodos].count("tFileInputDelimited") == 2
+    assert [n.componente for n in job.nodos].count("tUniqRow") == 1
+
+
+def test_un_mapa_con_ramas_es_un_tmap_con_una_salida_filtrada_por_rama(tmp_path):
+    """`l3_07`: dos `WHERE` distintos sobre la misma tabla. Un solo `tMap` con dos salidas, cada
+    una con su condición y su propio consumidor."""
+    from sgm.cli_migrar import migrar
+
+    caso = CORPUS.parent / "L3" / "l3_07_total_origen_y_salida"
+    resultado = migrar(caso / "programa.sas", tmp_path, muestra=caso / "entradas")
+    (job,) = resultado.jobs
+
+    (mapa,) = [nodo for nodo in job.nodos if nodo.componente == "tMap"]
+    salidas = [c for c in job.conexiones if c.origen == mapa.unico]
+    assert len(salidas) == 2
+    assert len({c.destino for c in salidas}) == 2
+    assert all(c.destino.startswith("tAggregateRow") for c in salidas)
+    texto = next(tmp_path.rglob("*.item")).read_text(encoding="utf-8")
+    assert texto.count("expressionFilter=") == 2
+    assert validar_job(job) == []

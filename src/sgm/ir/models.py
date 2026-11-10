@@ -222,6 +222,16 @@ class Graph:
     def ancestors(self, op_id: str) -> set[str]:
         return set(nx.ancestors(self._g, op_id))
 
+    def in_edges(self, op_id: str) -> list[Edge]:
+        """Aristas que entran al operador, en el orden de sus predecesores."""
+        return [data["edge"] for _, _, data in self._g.in_edges(op_id, data=True)]
+
+    def out_edges(self, op_id: str) -> list[Edge]:
+        return [data["edge"] for _, _, data in self._g.out_edges(op_id, data=True)]
+
+    def descendants(self, op_id: str) -> set[str]:
+        return set(nx.descendants(self._g, op_id))
+
     def reaches(self, src: str, dst: str) -> bool:
         return nx.has_path(self._g, src, dst)
 
