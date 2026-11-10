@@ -23,6 +23,7 @@ Los helpers de totales y de homologación viven en `totalizadores.py` para no pa
 
 from __future__ import annotations
 
+from sgm.java_identificadores import require_context_identifier
 from sgm.proceso.reglas_cuenta_real import ReglasCuentaReal
 from sgm.proceso.reglas_fila import ReglaFila
 from sgm.proceso.reglas_saldo import ReglaSaldo
@@ -74,6 +75,8 @@ def job_producto(
     pareja de reglas de R1-06 que `reglas_cuenta_real` leyó del programa real. Sin ellos el Job
     queda como en el hito 84.
     """
+    for variable in variables_periodo:
+        require_context_identifier(variable)
     cols = [Columna(c) for c in columnas]
     informats = dict(numericas or {})
     parametros = ["producto", "ruta_origen", "sufijo", *variables_periodo]

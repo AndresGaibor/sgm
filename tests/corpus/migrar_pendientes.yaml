@@ -23,4 +23,4 @@ l2_11_join_tres_tablas: P-ASIGNACION-SIN-TRADUCIR
 l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
 l2_13_anti_join_sin_ventas: P-FILTRO-SIN-TRADUCIR
 l2_14_inner_join_where_orden: P-FILTRO-SIN-TRADUCIR
-l2_15_validacion_en_cascada: P-FILTRO-SIN-TRADUCIR
+l2_15_validacion_en_cascada: P-ESQUEMA-NO-PORTABLE

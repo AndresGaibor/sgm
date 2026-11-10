@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from sgm.ir.models import Operator
+from sgm.java_identificadores import is_java_identifier
 from sgm.talend_item.modelo import Columna
 from sgm.talend_item.plantillas import disponibles, nodo_desde_plantilla
 
@@ -31,6 +32,15 @@ def nodo_escritura(
     dbms = (params.get("dbms") or "").lower()
     resultado = Resultado(columnas=list(columnas))
     archivo = ruta(params.get("outfile"))
+    if any(not is_java_identifier(columna.nombre) for columna in columnas):
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-ESQUEMA-NO-PORTABLE",
+                "la escritura tiene nombres de columna no portables para Java",
+                _linea(op),
+            )
+        )
+        return resultado
     if dbms in EXCEL:
         if "tFileOutputExcel" not in disponibles():
             resultado.pendientes.append(
@@ -46,7 +56,7 @@ def nodo_escritura(
             unico,
             x,
             y,
-            {"FILENAME": archivo},
+            {"FILENAME": java(archivo)},
             columnas=list(columnas),
             ruta_java=ruta_java,
         )
@@ -72,7 +82,7 @@ def nodo_escritura(
         x,
         y,
         {
-            "FILENAME": archivo,
+            "FILENAME": java(archivo),
             "FIELDSEPARATOR": java(separa),
             "INCLUDEHEADER": "true",
             "APPEND": "false",

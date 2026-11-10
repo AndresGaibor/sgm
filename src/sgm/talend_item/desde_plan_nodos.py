@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Column, Operator
+from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.desde_plan_nodos_escritura import nodo_escritura
 from sgm.talend_item.jobs_diseno import java
@@ -111,6 +112,15 @@ def nodo_lectura(
     columnas = columnas_talend(esquema)
     resultado = Resultado(columnas=columnas)
     archivo = ruta(params.get("datafile"))
+    if any(not is_java_identifier(columna.nombre) for columna in columnas):
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-ESQUEMA-NO-PORTABLE",
+                "la lectura tiene nombres de columna no portables para Java",
+                _linea(op),
+            )
+        )
+        return resultado
     if file_format == "positional":
         if params.get("input_mode") == "formatted":
             resultado.pendientes.append(
@@ -177,7 +187,7 @@ def nodo_lectura(
             x,
             y,
             {
-                "FILENAME": archivo,
+                "FILENAME": java(archivo),
                 "VERSION_2007": "true" if dbms == "xlsx" else "false",
                 "HEADER": _cabecera(params.get("getnames")),
             },
@@ -260,7 +270,7 @@ def nodo_lectura(
         x,
         y,
         {
-            "FILENAME": archivo,
+            "FILENAME": java(archivo),
             "FIELDSEPARATOR": java(separa),
             "HEADER": _cabecera(
                 max(0, params["firstobs"] - 1)

@@ -10,7 +10,13 @@ from sgm.frontend.steps import ProcSql
 from sgm.ir.builder import Builder
 from sgm.ir.lower_sql_flow import lower_query
 from sgm.ir.models import Evidence
-from sgm.ir.sql_tree import SqlNotSelect, SqlParseError, build
+from sgm.ir.sql_tree import (
+    SqlNotSelect,
+    SqlParseError,
+    SqlUnsafeIdentifier,
+    build,
+    validate_portable_identifiers,
+)
 
 _CREATE_TARGET = re.compile(r"(?is)^create\s+table\s+([\w.&]+)")
 _OUTER_UNION = re.compile(r"(?i)\bouter\s+union\b")
@@ -96,6 +102,16 @@ def _lower_query(st: SqlStatement, ev: Evidence, b: Builder) -> None:
     normalized = normalize(st.text)
     try:
         tree = build(normalized.text)
+        validate_portable_identifiers(tree)
+    except SqlUnsafeIdentifier:
+        b.op(
+            "unsupported",
+            {"statement": st.text, "reason": "SQL_NO_SOPORTADO"},
+            ev,
+            status="hueco",
+            notes=["identificador SQL fuera del formato portable para emitir en Talend"],
+        )
+        return
     except SqlParseError as error:
         b.op(
             "unsupported",

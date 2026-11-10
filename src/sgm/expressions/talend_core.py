@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from sgm.java_literals import literal_java
+
 
 class Unsupported(Exception):
     pass
@@ -32,8 +34,10 @@ class Result:
 
 
 def _jstr(raw: str) -> str:
-    body = raw[1:-1].replace(raw[0] * 2, raw[0]).replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{body}"'
+    if len(raw) < 2 or raw[-1] != raw[0]:
+        return literal_java(raw)
+    body = raw[1:-1].replace(raw[0] * 2, raw[0])
+    return literal_java(body)
 
 
 def _num(e: E) -> str:

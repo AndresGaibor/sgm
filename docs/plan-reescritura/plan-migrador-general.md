@@ -7,7 +7,7 @@ e hijos, manejo de errores y registro. `client_large.sas` pasa a ser un caso de 
 **Este es el plan maestro del repositorio (10 de noviembre de 2026).** Está escrito para que **otro agente
 lo ejecute sin preguntar**. `ruta-a-produccion.md` queda subordinado: es el detalle de la pista del
 programa grande y de la operación (F9), y su Fase 7 la reemplaza este documento. El corpus y el plan de
-equivalencia están en `plan-corpus-y-equivalencia.md`. **Avance global: ver la sección 11b** (23,2 %
+equivalencia están en `plan-corpus-y-equivalencia.md`. **Avance global: ver la sección 11b** (24,2 %
 de las horas de agente, con el método ahí).
 
 ## 0. Cómo usar este documento
@@ -797,12 +797,14 @@ pendientes.
 | MG-P13-04 | Auditoría de dependencias y licencias; SBOM | H | `docs/sbom.md` | 3 |
 | MG-P13-05 | Revisión de seguridad de la generación (inyección en literales SQL y en expresiones Java generadas, escapes) | S | pruebas con entradas hostiles | 9 |
 
-**Estado:** MG-P13-01 completo (hito 134). `sgm migrar` prepara el paquete en staging y solo lo
-publica si el escaneo pasa; el workflow deja configurada la revisión nocturna de una migración
-controlada y `decisiones/`, que se activa al integrar el archivo en la rama predeterminada.
-MG-P13-02 requiere confirmación humana; MG-P13-03 y 04 siguen pendientes. La auditoría independiente
-de MG-P13-05 encontró dos riesgos P1 reproducibles en identificadores SQL y expresiones Java; su
-corrección y las pruebas hostiles quedan pendientes antes de cerrar la tarea.
+**Estado:** MG-P13-01 completo (hito 134) y MG-P13-05 completo (hito 135). `sgm migrar` prepara el
+paquete en staging y solo lo publica si el escaneo pasa; el workflow deja configurada la revisión
+nocturna de una migración controlada y `decisiones/`, que se activa al integrar el archivo en la
+rama predeterminada. La auditoría del emisor comprobó que el SQL se revalida después del render y
+que los identificadores SQL, las columnas tMap, los nombres de contexto y los name literals no
+portables quedan bloqueados antes de emitir; los literales Java y las rutas de archivo se escapan
+como cadenas seguras. MG-P13-02 requiere confirmación humana; MG-P13-03 y MG-P13-04 siguen
+pendientes.
 
 ### MG-P14. Producción (agente 40 h, personas unos 40 días)
 | Id | Tarea | Tipo | Aceptación |
@@ -868,7 +870,7 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (10 de noviembre de 2026, hito 134)
+## 11b. Avance medido (10 de noviembre de 2026, hito 135)
 
 **Avance global: 23,2 % de las 895 horas de agente (207,75 h).** C7 (producción
 con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía.
@@ -895,9 +897,9 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P10 Verificación | 80 | 18,0 | 23 % | Validador del `.item` hecho; intérprete B: 61 de 62 pasan, 1 `xfail`; aridad documentada en funciones numéricas; compara columnas para filas no vacías |
 | MG-P11 Experiencia de uso | 30 | 8,0 | 27 % | MG-P11-01 completo: archivo/carpeta, paquetes deterministas e informe `cobertura.md`; faltan MG-P11-02 a 06, incluido el orden por dependencias |
 | MG-P12 Rendimiento | 30 | 8,0 | 27 % | MG-P12-01 medido: programa grande y carpeta de 189 bajo límites; MG-P12-02 a 04 pendientes |
-| MG-P13 Seguridad | 20 | 3,75 | 19 % | MG-P13-01 completa; revisión humana, privacidad, SBOM y correcciones del emisor pendientes |
+| MG-P13 Seguridad | 20 | 12,75 | 64 % | MG-P13-01 y 05 completas; MG-P13-02 requiere confirmación humana; privacidad y SBOM pendientes |
 | MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
-| **Total** | **895** | **207,75** | **23,2 %** | Suma recalculada de los créditos visibles por fase |
+| **Total** | **895** | **216,75** | **24,2 %** | Suma recalculada de los créditos visibles por fase |
 
 **Saldo por créditos medidos: 687,25 h.** El reparto nominal entre Andres y Byron en
 `reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 32,0 h por

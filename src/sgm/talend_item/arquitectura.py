@@ -11,6 +11,8 @@ from pathlib import Path
 
 import yaml
 
+from sgm.java_identificadores import require_context_identifier
+
 JOBS_REQUERIDOS = ("padre", "producto", "totales", "conciliacion")
 
 
@@ -94,6 +96,8 @@ def _periodo(path: Path, item: dict | None) -> PeriodoDecl | None:
     variables = tuple((str(c), str(v)) for c, v in (item.get("variables") or {}).items())
     if not fuente or not variables:
         raise ValueError(f"{path}: `periodo` necesita fuente y variables")
+    for _, variable in variables:
+        require_context_identifier(variable)
     return PeriodoDecl(fuente, variables)
 
 

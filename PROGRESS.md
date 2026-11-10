@@ -5547,3 +5547,43 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   inspeccionaron ni copiaron valores. MG-P13-03 y 04 siguen pendientes. La revisión independiente
   de MG-P13-05 encontró dos riesgos P1 (inyección SQL por identificador y Java en name literal) y
   dos riesgos P2, que deben corregirse con pruebas antes de cerrar esa tarea.
+
+## Hito 135. Bloquear identificadores hostiles en la emisión SQL y Java
+
+- Fecha: 2026-11-10. Alcance: MG-P13-05, completo.
+- Qué se hizo:
+  - El árbol SQL conserva identificadores para análisis; lowering y render vuelven a validar los
+    identificadores del árbol actual, y el SQL emitido se analiza otra vez antes de transpilarlo.
+    Los nombres de tabla, destino, alias y proyección no portables quedan como pendiente
+    `SQL_NO_SOPORTADO`, con nota segura y sin operador `exec_sql`, incluso si se muta el árbol tras
+    parsearlo.
+  - El traductor rechaza name literals que no son campos Java portables. El resolvedor no acepta
+    referencias parciales, esquemas con nombres de fila/campo no portables ni separadores de sentencia
+    fuera de una cadena Java; también bloquea escapes Unicode Java que el compilador procesaría antes
+    del parseo. Conserva métodos válidos como `.trim()` y el contenido de los literales.
+  - El límite público de `tMap` valida los esquemas y las expresiones Java aunque se invoque sin el
+    traductor; nombres de entrada/salida que no son portables quedan como pendiente seguro. Las
+    plantillas validan columnas y los constructores directos escapan rutas literales; los generadores
+    de totales y conciliación validan segmentos de nombre y los serializan como literales Java.
+  - La carga de arquitectura y los generadores públicos validan los nombres de contexto antes de
+    interpolarlos. Un helper común escapa literales en Jobs, el traductor inline y las rutas Talend,
+    incluidos controles, Unicode y caracteres suplementarios.
+  - El corpus identifica explícitamente como `P-ESQUEMA-NO-PORTABLE` un caso cuyo esquema inferido
+    contiene alias y comodín que no se pueden representar con seguridad; no se emite un esquema
+    Talend incorrecto.
+  - Se retiró la marca `xfail` obsoleta de `test_sql_empujado_a_la_base`; su aserción se mantuvo y ahora
+    es una prueba normal que pasa.
+- Pruebas focalizadas: 49 y 75 pasaron en los grupos SQL/emisor y corpus/diagnósticos; el caso de SQL
+  empujado a base pasó por separado.
+- Suite completa `uv run pytest -q`: 2712 pasaron, 26 omitidas y 138 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P13 queda en **12,75/20 h (64 %)**; avance global **216,75/895 h (24,2 %)**.
+  Se acreditan MG-P13-01 y MG-P13-05; no se acredita la revisión humana de P13-02.
+- Decisiones: se reutiliza el motivo contractual `SQL_NO_SOPORTADO` y se identifica el bloqueo exacto
+  en la nota, porque la lista de motivos está cerrada y ampliarla requiere acuerdo. La validación se
+  mantiene también en los límites públicos del emisor para que no dependa de que se invoque primero
+  la ruta de migración completa. No se añadieron dependencias ni se ejecutaron SQL, Java o Talend
+  Studio.
+- Bloqueos: MG-P13-02 requiere confirmación humana del `{SAS002}` y del adjunto con `pwencode`; no se
+  inspeccionaron ni copiaron valores. MG-P13-03 (privacidad) y MG-P13-04 (SBOM) siguen pendientes.

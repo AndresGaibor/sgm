@@ -15,6 +15,7 @@ from sgm.expressions.talend_base import (
     _truth,
 )
 from sgm.expressions.talend_tabla import _FUNCTIONS
+from sgm.java_identificadores import is_java_identifier
 
 _MACRO_TRIGGER = re.compile(r"&+[A-Za-z_]\w*|%[A-Za-z_]\w*\s*\(")
 
@@ -199,7 +200,10 @@ class _P:
             )
             return E(f"context.sas_param_{name}")
         if k == "name":
-            return self.column(re.search(r"'([^']+)'[nN]$", v).group(1))
+            literal = re.fullmatch(r"(?:[A-Za-z_]\w*\.)?'([^']+)'[nN]", v)
+            if literal is None or not is_java_identifier(literal.group(1)):
+                raise Unsupported("name literal no representable como campo Java portable")
+            return self.column(literal.group(1))
         if k == "op" and v == ".":
             return E("null", "null")
         if k == "op" and v == "(":

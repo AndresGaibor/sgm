@@ -18,6 +18,7 @@ La tolerancia de negocio vale 0 por omisión y queda pendiente de confirmar.
 
 from __future__ import annotations
 
+from sgm.java_literals import literal_nombre_archivo
 from sgm.talend_item.arquitectura import Arquitectura
 from sgm.talend_item.conexiones import al_terminar_subjob, lookup, si
 from sgm.talend_item.jobs_diseno import java
@@ -104,7 +105,11 @@ def job_conciliacion(
         raise ValueError("job_conciliacion necesita archivo_totales en la decisión del programa")
     variables = variables_fecha(arq)
     fecha = f"context.{variables['anio']} + context.{variables['mes']} + context.{variables['dia']}"
-    destino = f'context.ruta_resultados + "{ARCHIVO_CONCILIACION}_" + {fecha} + ".csv"'
+    destino = (
+        f"context.ruta_resultados + "
+        f"{literal_nombre_archivo(ARCHIVO_CONCILIACION + '_')} + {fecha} + "
+        f"{literal_nombre_archivo('.csv')}"
+    )
     salida_cols = list(COLUMNAS_CONCILIACION)
     nodos: list[Nodo] = [
         nodo_desde_plantilla(
@@ -124,13 +129,15 @@ def job_conciliacion(
             f"tFileInputDelimited_o{indice}",
             x,
             0,
-            f'context.ruta_resultados + "totales_origen_{producto}.csv"',
+            f"context.ruta_resultados + "
+            f"{literal_nombre_archivo(f'totales_origen_{producto}.csv')}",
         )
         salida = _lector(
             f"tFileInputDelimited_s{indice}",
             x,
             PASO_Y,
-            f'context.ruta_resultados + "totales_salida_{producto}.csv"',
+            f"context.ruta_resultados + "
+            f"{literal_nombre_archivo(f'totales_salida_{producto}.csv')}",
         )
         cruce = tmap(
             f"tMap_{indice}",

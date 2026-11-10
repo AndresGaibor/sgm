@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 import unicodedata
 
+from sgm.java_identificadores import require_context_identifier
 from sgm.proceso.insumos import InsumoResuelto, InsumosResueltos
 from sgm.talend_item.arquitectura import Arquitectura
 from sgm.talend_item.modelo import Columna, Conexion, Nodo, ParametroContexto
@@ -46,6 +47,7 @@ def contextos_de_periodo(
     if arq.periodo is None or arq.periodo.fuente not in resueltos.insumos:
         return []
     insumo = resueltos.insumos[arq.periodo.fuente]
+    _validar_contextos(arq, insumo)
     vacias = [ParametroContexto(v) for _, v in arq.periodo.variables]
     return [
         ParametroContexto(VARIABLE_HOJA, valor=HOJA_POR_DEFECTO),
@@ -62,6 +64,7 @@ def nodos_periodo(
     if arq.periodo is None or arq.periodo.fuente not in resueltos.insumos:
         return [], []
     insumo = resueltos.insumos[arq.periodo.fuente]
+    _validar_contextos(arq, insumo)
     pares = columnas_de(insumo)
     columnas = [c for _, c in pares]
     por_excel = {excel: c.nombre for excel, c in pares}
@@ -95,3 +98,14 @@ def nodos_periodo(
         ruta_java=ruta_java,
     )
     return [excel, fila], [Conexion(excel.unico, fila.unico, "row2")]
+
+
+def _validar_contextos(arq: Arquitectura, insumo: InsumoResuelto) -> None:
+    """Valida nombres que se interpolan como campos de `context` en los nodos del periodo."""
+    for nombre in (
+        VARIABLE_HOJA,
+        insumo.variable_ruta,
+        insumo.variable_archivo,
+        *(variable for _, variable in (arq.periodo.variables if arq.periodo else ())),
+    ):
+        require_context_identifier(nombre)

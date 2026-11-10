@@ -12,6 +12,8 @@ fuente de `tests/corpus/semantica/vectores.yaml` y contra el esperado construido
 
 from __future__ import annotations
 
+from sgm.java_literals import literal_java
+
 # Clases de caracteres de COMPRESS: las mismas que el oráculo de semántica. Están aquí porque el
 # traductor tiene que reproducir su conducta; las pruebas comparan contra el oráculo, no contra
 # esta tabla.
@@ -30,30 +32,6 @@ _CLASES = {
 _NUMERO_JAVA = '"[+-]?(\\\\d+\\\\.?\\\\d*|\\\\.\\\\d+)"'
 _STRIP_JAVA = '"^ +| +$"'
 _QUITAR_INICIO_JAVA = '"^ +"'
-
-
-def literal_java(texto: str) -> str:
-    """Literal de cadena de Java con los caracteres no ASCII como escapes Unicode."""
-    partes: list[str] = []
-    for caracter in texto:
-        codigo = ord(caracter)
-        if caracter == '"':
-            partes.append('\\"')
-        elif caracter == "\\":
-            partes.append("\\\\")
-        elif caracter == "\n":
-            partes.append("\\n")
-        elif caracter == "\r":
-            partes.append("\\r")
-        elif caracter == "\t":
-            partes.append("\\t")
-        elif 32 <= codigo < 127:
-            partes.append(caracter)
-        else:
-            # Escape Unicode de Java (una barra en el .java): el compilador lo convierte en el
-            # carácter. Así las Ñ e Í de v06 no dependen de la codificación del archivo generado.
-            partes.append(f"\\u{codigo:04x}")
-    return '"' + "".join(partes) + '"'
 
 
 def _nulo_seguro(expression: str, cuerpo: str) -> str:

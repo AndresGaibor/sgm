@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from sgm.java_identificadores import require_context_identifier
+from sgm.java_literals import literal_java
 from sgm.talend_item.arquitectura import Arquitectura
 from sgm.talend_item.componentes import fixed_flow_input, log_row
 from sgm.talend_item.conexiones import al_terminar_componente, al_terminar_subjob, iterar, si
@@ -34,7 +36,7 @@ class ProductoJob:
 
 def java(valor: str) -> str:
     """Literal de cadena de Java."""
-    return '"' + valor.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
+    return literal_java(valor)
 
 
 def run_job(
@@ -94,6 +96,10 @@ def job_padre(
     `periodo` son los nodos que leen la fecha del proceso al contexto (ver `periodo.py`); si vienen
     vacíos el padre arranca directamente en los productos.
     """
+    for parametro in contextos_periodo or ():
+        require_context_identifier(parametro.nombre)
+    for _, variable in (arq.periodo.variables if arq.periodo else ()):
+        require_context_identifier(variable)
     nodos_p, conexiones_p = periodo
     texto = [Columna("producto"), Columna("ruta_origen"), Columna("sufijo")]
     if any(p.arch_hom_tipo_doc for p in productos):
@@ -173,6 +179,8 @@ def job_pendiente(
     ruta_java: str | None = None,
 ) -> Job:
     """Job hijo todavía sin lógica: un `tJava` que informa el motivo y los parámetros heredados."""
+    for parametro in parametros:
+        require_context_identifier(parametro)
     lineas = [f"System.out.println({java(nombre + ': PENDIENTE, ' + motivo)});"]
     lineas += [f'System.out.println("  {p} = " + context.{p});' for p in parametros]
     nodo = nodo_desde_plantilla(

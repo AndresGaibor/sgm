@@ -3,6 +3,8 @@
 import re
 from dataclasses import dataclass
 
+from sgm.java_literals import literal_java
+
 #: Informatos y formatos de fecha de SAS → patrón de Java para `TalendDate`.
 DATE_FORMATS = {
     "yymmdd10": "yyyy-MM-dd", "yymmdd8": "yy-MM-dd", "yymmddn8": "yyyyMMdd", "ddmmyy10": "dd/MM/yyyy",
@@ -81,8 +83,10 @@ def _tokens(text: str) -> list[tuple[str, str]]:
 
 
 def _jstr(raw: str) -> str:
-    body = raw[1:-1].replace(raw[0] * 2, raw[0]).replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{body}"'
+    if len(raw) < 2 or raw[-1] != raw[0]:
+        return literal_java(raw)
+    body = raw[1:-1].replace(raw[0] * 2, raw[0])
+    return literal_java(body)
 
 
 def _num(e: E) -> str:

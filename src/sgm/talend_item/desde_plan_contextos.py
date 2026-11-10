@@ -16,6 +16,7 @@ de la tabla. Si algún día se añade una, `test_sin_secretos` la rechaza.
 from __future__ import annotations
 
 from sgm.ir.models import Plan
+from sgm.java_literals import literal_java
 from sgm.talend_item.desde_plan_nodos import ruta
 from sgm.talend_item.modelo import Nodo, ParametroContexto
 
@@ -88,6 +89,7 @@ def reemplazar_rutas(nodos: list[Nodo], rutas: dict[str, str]) -> None:
     Solo se tocan los parámetros cuyo valor es una ruta conocida: un `FILENAME` que ya venía como
     expresión de contexto se queda como está.
     """
+    rutas_codificadas = {literal_java(camino): nombre for camino, nombre in rutas.items()}
     for nodo in nodos:
         nuevos: list = []
         for parametro in nodo.parametros:
@@ -97,6 +99,8 @@ def reemplazar_rutas(nodos: list[Nodo], rutas: dict[str, str]) -> None:
             campo, nombre, valor, show = parametro
             if nombre == PARAMETRO and valor in rutas:
                 valor = f"context.{rutas[valor]}"
+            elif nombre == PARAMETRO and valor in rutas_codificadas:
+                valor = f"context.{rutas_codificadas[valor]}"
             nuevos.append((campo, nombre, valor, show))
         nodo.parametros = nuevos
 
