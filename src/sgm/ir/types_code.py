@@ -127,7 +127,7 @@ def informat_type(spec: str) -> CodeType | None:
     return numeric_type(width, int(decimals_text or 0))
 
 
-_CONDICIONAL = re.compile(r"(?is)^\s*case")
+_CONDICIONAL = re.compile(r"(?is)^\s*case\b")
 
 
 def expression_type(expression: str) -> CodeType | None:

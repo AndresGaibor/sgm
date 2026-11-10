@@ -46,4 +46,14 @@ def test_un_case_de_texto_no_se_tipa_como_predicado():
     from sgm.ir.types_code import expression_type
 
     assert expression_type("CASE WHEN v.id IS MISSING THEN 'SIN_VENTAS' ELSE 'CON' END") is None
+    assert expression_type("CASE WHEN v.monto >= 500 THEN 'ALTA' ELSE 'BAJA' END") is None
     assert expression_type("saldo > 0 AND activo = 1") is not None
+
+
+def test_case_when_con_comparacion_emite_categoria_como_texto(tmp_path: Path):
+    caso = Path("tests/corpus/L2/l2_08_case_when_tras_left_join")
+    resultado = migrar(caso / "programa.sas", tmp_path / "out", muestra=caso / "entradas")
+    texto = next(tmp_path.rglob("*.item")).read_text(encoding="utf-8")
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-JOB-INVALIDO"]
+    assert re.search(r'<mapperTableEntries name="categoria" expression="[^"]+" type="id_String"', texto)

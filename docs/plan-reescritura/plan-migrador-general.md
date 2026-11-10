@@ -665,7 +665,7 @@ con el intérprete contra `esperado/` (`tests/unit/test_optimizar_corpus.py`), s
 | MG-P8b-06 | Hermanos sobre la misma fuente en un `tMap` con varias salidas, cada una con su proyección (y `IN`/`NOT IN` de la misma subconsulta como salida y rechazo del cruce) | S | `l2_07`, `l2_10`, `l3_05` sin `tReplicate` | parcial (hito 158m: los tres casos se optimizan y generan; falta validar la ejecución en Studio) |
 | MG-P8b-07 | Resultado que usan dos ramas que se vuelven a juntar: `tHashOutput` y `tHashInput` en vez del pendiente `P-REPARTO-RECONVERGE` | S | todos los casos que actualmente emiten `P-REPARTO-RECONVERGE` en `client_large.sas` | bloqueado: `tHashInput` no entrega filas en la topología probada del MCP (INTERNALS 70); no se debe emitir como solución sin corregir y validar ese componente |
 | MG-P8b-08 | Llevar el cálculo a la base cuando fuente y destino son la misma (`tDBRow` o ELT), reutilizando `passes/db_push.py` | S | caso con `LIBNAME` de base en el corpus | parcial (hito 159m: `push_to_db` fusiona en SQL y conserva esquema.tabla; falta validar contra el motor) |
-| MG-P8b-09 | Compilar en Studio el lote de `L0` a `L3` con el optimizador activo | P+S | mismos casos que compilaban en el hito 146m, más los cinco nuevos | pendiente (el MCP estaba apagado) |
+| MG-P8b-09 | Compilar en Studio el lote de `L0` a `L3` con el optimizador activo | P+S | mismos casos que compilaban en el hito 146m, más los cinco nuevos | parcial (hito 160m: 56 Jobs de L0–L3 compilan; quedan fuera dos bloqueos de bridge conocidos y el caso que requiere configurar el motor de base) |
 
 ### MG-P9. Emisor de Talend: plantillas, joblets, contextos, disposición (108 h)
 | Id | Tarea | Tipo | Aceptación | Horas |

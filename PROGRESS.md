@@ -6020,3 +6020,22 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   **2768 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
 - Decisión: continuar con MG-P8b-08 al estar bloqueado P8b-07 por un componente dependiente; no
   conectar a ninguna base y limitar la prueba a la forma del SQL emitido.
+
+## Hito 160m. Compilación del optimizador en Studio y tipo de `CASE`
+
+- Fecha: 2026-11-10.
+- Qué se hizo: con Studio abierto y MCP respondiendo, se generaron y compilaron en lote 56 Jobs de
+  L0–L3. La primera compilación encontró un error real en `l2_08_case_when_tras_left_join`: una
+  condición comparativa dentro de un `CASE` clasificaba el valor de texto como Boolean y el emisor
+  lo envolvía en `Long.valueOf`.
+- Corrección: la expresión regular de detección de `CASE` contenía un carácter de control en vez de
+  `\b`. Corregida la frontera de palabra; se añadió regresión de tipo y del `.item` en
+  `test_conexion_salida_tmap.py`. `l2_08` compiló individualmente y luego el lote regenerado pasó:
+  **56 compilan, 0 fallan**. Studio quedó saludable y el arnés retiró sus Jobs temporales del proyecto.
+- Alcance: se excluyeron `l1_14_expresion_compuesta` y `l1_15_distinct_tildes`, que ya tenían bloqueo
+  de bridge documentado en hitos 146–148, y `l2_16_sql_en_misma_base`, que necesita asignar la
+  biblioteca al motor para generar su Job de base. No se ejecutaron Jobs ni se conectó a ninguna base.
+- Pruebas: suite completa **2769 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
+- Límite: MG-P8b-09 sigue parcial hasta compilar los dos casos con bloqueo previo y el Job de base
+  con su configuración estructural. MG-P8b-07 continúa bloqueado por la validación pendiente de
+  `tHashInput`.
