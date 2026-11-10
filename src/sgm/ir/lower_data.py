@@ -331,7 +331,13 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         b.refresh(current)
     if "_null_" in [o.lower() for o in outputs]:
         current.notes.append("salida _NULL_: no escribe dataset")
-    current.params["outputs"] = [qualify(o) for o in outputs if o.lower() != "_null_"]
+    # OUTPUT explícito suprime la escritura implícita al final de cada iteración SAS.
+    # Sus operadores split son los únicos productores de las tablas de salida.
+    current.params["outputs"] = (
+        []
+        if any(statement.kind == "output" for statement in step.statements)
+        else [qualify(o) for o in outputs if o.lower() != "_null_"]
+    )
     b.refresh(current)
 
 
@@ -416,10 +422,14 @@ def _statement_op(
         return b.op("rename", {"pairs": [[a.lower(), c.lower()] for a, c in s.fields["pairs"]]}, ev)
     if kind == "output":
         condition = before.text if before is not None and before.kind == "if" else ""
-        target = s.fields.get("target")
+        targets = s.fields.get("targets") or []
+        target = targets[0] if targets else None
+        params = {"target": target, "condition": condition}
+        if len(targets) > 1:
+            params["targets"] = targets
         return b.op(
             "split",
-            {"target": target, "condition": condition},
+            params,
             ev,
             status="soportado" if target else "parcial",
             notes=(
@@ -437,7 +447,7 @@ def _statement_op(
 
 
 _OUTPUT_IN_IF = re.compile(
-    r"(?is)^(?:if\s+(?P<cond>.*?)\s+then\s+|else\s+)output\s+(?P<target>[\w.&]+)"
+    r"(?is)^(?:if\s+(?P<cond>.*?)\s+then\s+|else\s+)output\s+(?P<targets>[\w.&]+(?:\s+[\w.&]+)*)"
 )
 
 
@@ -447,11 +457,15 @@ def _conditional_output(s: DsStatement) -> dict | None:
     if not m:
         return None
     cond = m.group("cond")
-    return {
-        "target": m.group("target"),
+    targets = re.findall(r"[\w.&]+", m.group("targets"))
+    result = {
+        "target": targets[0] if targets else None,
         "condition": cond.strip() if cond else None,
         "branch": "then" if cond else "else",
     }
+    if len(targets) > 1:
+        result["targets"] = targets
+    return result
 
 
 def _note(op: Operator | None, text: str, status: str | None = None) -> None:

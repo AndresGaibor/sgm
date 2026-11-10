@@ -32,8 +32,11 @@ def _produced(op: Operator) -> list[str]:
     names.extend(
         n for n in op.params.get("duplicate_outputs", []) if isinstance(n, str)
     )
-    if op.kind == "split" and op.params.get("target"):
-        names.append(qualify(op.params["target"]))
+    if op.kind == "split":
+        targets = op.params.get("targets") or (
+            [op.params["target"]] if op.params.get("target") else []
+        )
+        names.extend(qualify(target) for target in targets)
     return names
 
 

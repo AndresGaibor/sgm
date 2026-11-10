@@ -896,9 +896,13 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
 
 def _nombres(op: Operator) -> list[str]:
     """Conjuntos de `WORK` bajo los que queda el resultado del operador."""
-    clases = (*_PASOS_SUELTOS, "read_file", "map", "join", "union")
+    clases = (*_PASOS_SUELTOS, "read_file", "map", "join", "union", "split")
     if op.kind in clases:
         outputs = op.params.get("outputs") or []
+        if op.kind == "split":
+            outputs = op.params.get("targets") or (
+                [op.params["target"]] if op.params.get("target") else []
+            )
         if op.kind == "dedup":
             outputs = [*outputs, *(op.params.get("duplicate_outputs") or [])]
         return [_tabla(nombre) for nombre in outputs]
@@ -1038,6 +1042,27 @@ def _ejecutar(
             return filas, propias
         filas = _pasos(op, plan, por_operador, tablas)
         return filas, {nombre: filas for nombre in _nombres(op)}
+    if op.kind == "split":
+        previos = plan.graph.predecessors(op.id)
+        filas_entrada = por_operador.get(previos[0], []) if previos else []
+        condicion = str(op.params.get("condition") or "").strip()
+        if condicion:
+            salida = _filtrar(filas_entrada, condicion, tablas)
+        elif op.params.get("branch") == "else" and previos:
+            anterior = plan.graph.operator(previos[0])
+            condicion_anterior = str(anterior.params.get("condition") or "").strip()
+            salida = (
+                [
+                    fila
+                    for fila in filas_entrada
+                    if not _filtrar([fila], condicion_anterior, tablas)
+                ]
+                if anterior.kind == "split" and condicion_anterior
+                else filas_entrada
+            )
+        else:
+            salida = filas_entrada
+        return filas_entrada, {nombre: salida for nombre in _nombres(op)}
     raise NoSoportadoEnInterprete(op.kind, "el intérprete no lo ejecuta")
 
 

@@ -123,8 +123,9 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
     if head == "where":
         return DsStatement("where", body, line, {"expression": body[5:].strip()})
     if head == "output":
+        targets = _names(body[6:])
         return DsStatement(
-            "output", body, line, {"target": _names(body[6:])[0] if _names(body[6:]) else None}
+            "output", body, line, {"target": targets[0] if targets else None, "targets": targets}
         )
     if head in ("keep", "drop"):
         return DsStatement(head, body, line, {"names": _names(body[len(head) :])})

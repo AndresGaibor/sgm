@@ -67,7 +67,7 @@ def test_output_explicito_sin_condicion_no_se_descarta():
     (split,) = _by_kind(ops, "split")
     assert split.params["target"] == "a"
     assert split.params["condition"] == ""
-    assert split.params["outputs"] == ["WORK.a"]
+    assert split.params.get("outputs", []) == []
 
 
 def test_retain_lag_y_first_last_son_estado_por_fila():

@@ -14,7 +14,7 @@ _ELSE_IF_ASSIGN = re.compile(r"(?is)^else\s+if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.
 _ELSE_ASSIGN = re.compile(r"(?is)^else\s+([\w]+)\s*=\s*(.+)$")
 _SIMPLE_TARGET = re.compile(r"(?i)^[a-z_][\w]*$")
 _OUTPUT_IN_IF = re.compile(
-    r"(?is)^(?:if\s+(?P<cond>.*?)\s+then\s+|else\s+)output\s+(?P<target>[\w.&]+)"
+    r"(?is)^(?:if\s+(?P<cond>.*?)\s+then\s+|else\s+)output\s+(?P<targets>[\w.&]+(?:\s+[\w.&]+)*)"
 )
 
 
@@ -241,8 +241,12 @@ def conditional_output(statement: DsStatement) -> dict | None:
     if not match:
         return None
     condition = match.group("cond")
-    return {
-        "target": match.group("target"),
+    targets = match.group("targets").split()
+    result = {
+        "target": targets[0],
         "condition": condition.strip() if condition else None,
         "branch": "then" if condition else "else",
     }
+    if len(targets) > 1:
+        result["targets"] = targets
+    return result

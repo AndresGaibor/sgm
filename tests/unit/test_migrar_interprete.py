@@ -740,6 +740,41 @@ def test_select_alias_star_en_join_proyecta_solo_el_lado_seleccionado():
     assert filas == [{"id": "1", "tipo_doc": "CC", "monto": "100"}]
 
 
+def test_output_data_step_distribuye_filas_a_todos_los_destinos_explicitos():
+    plan = _plan(
+        "DATA WORK.primera WORK.segunda WORK.no_implicita;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT WORK.primera WORK.segunda;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(plan, {"entrada": [{"id": "1"}, {"id": "2"}]})
+
+    esperadas = [{"id": "1"}, {"id": "2"}]
+    assert tablas["primera"] == esperadas
+    assert tablas["segunda"] == esperadas
+    assert "no_implicita" not in tablas
+
+
+def test_output_condicional_multiple_respeta_rama_else():
+    plan = _plan(
+        "DATA WORK.uno WORK.dos WORK.otros;\n"
+        "SET WORK.entrada;\n"
+        "IF valor = 1 THEN OUTPUT WORK.uno WORK.dos;\n"
+        "ELSE OUTPUT WORK.otros;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(
+        plan,
+        {"entrada": [{"valor": "1"}, {"valor": "2"}, {"valor": "1"}]},
+    )
+
+    assert tablas["uno"] == [{"valor": "1"}, {"valor": "1"}]
+    assert tablas["dos"] == [{"valor": "1"}, {"valor": "1"}]
+    assert tablas["otros"] == [{"valor": "2"}]
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"

@@ -252,6 +252,30 @@ def test_output_explicito_sin_emisor_de_ramas_queda_pendiente_con_evidencia():
     assert "split" in pendiente.mensaje
 
 
+def test_output_con_varios_destinos_conserva_todos_y_suprime_salida_implicita():
+    plan = _plan(
+        "DATA primera segunda tercera;\n"
+        "SET entrada;\n"
+        "OUTPUT primera segunda;\n"
+        "OUTPUT segunda tercera;\n"
+        "RUN;"
+    )
+
+    operadores = list(plan.graph.operators())
+    splits = [operador for operador in operadores if operador.kind == "split"]
+    assert [operador.params["targets"] for operador in splits] == [
+        ["primera", "segunda"],
+        ["segunda", "tercera"],
+    ]
+    transformaciones = [
+        operador
+        for operador in operadores
+        if operador.kind in ("derive", "filter", "select", "rename", "join")
+        and operador.params.get("outputs") is not None
+    ]
+    assert all(not operador.params["outputs"] for operador in transformaciones)
+
+
 def test_asignacion_condicional_numerica_derivada_queda_pendiente_por_faltante_sas():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.productos DBMS=CSV REPLACE;\n"

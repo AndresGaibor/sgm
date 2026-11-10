@@ -6130,3 +6130,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: las escrituras posteriores que reutilizan un nombre de tabla deben esperar al consumo
   completo de la subconsulta; ordenar solo su lectura permitiría que la versión futura sustituyera la
   anterior antes de ejecutar el cruce.
+
+## Hito 166. `OUTPUT` con varios destinos en parser, IR e intérprete (MG-P4-02 parcial)
+
+- Fecha: 2026-11-10.
+- Qué se hizo: el parser recoge todos los nombres de `OUTPUT`; la IR registra el destino múltiple y
+  cada sentencia como productor de sus datasets. Si el DATA step contiene al menos un `OUTPUT`
+  explícito, no se añade la salida implícita del encabezado. El intérprete distribuye cada observación
+  a todos los destinos nombrados y aplica la rama `ELSE` como complemento de la condición previa,
+  cuando es demostrable.
+- Referencia: `lestmtsref`, pp. 273–274: `OUTPUT` puede nombrar varios datasets y su uso explícito
+  suprime la salida automática al final de la iteración. La forma sin destinos usa las salidas del
+  encabezado en SAS, pero se deja pendiente en esta implementación.
+- Pruebas: suite completa **3011 pasan, 27 se saltan, 142 xfail**; `uv run ruff check .` y
+  `git diff --check` limpios.
+- Alcance pendiente: Talend aún no emite el enrutamiento de `split` a múltiples salidas. Se conserva
+  como pendiente explícito; MG-P4-02 permanece parcial y no se avanza a MG-P4-03 todavía.
+- Decisión: la clasificación de destinos en `params.targets` solo se agrega para más de un destino;
+  `params.target` mantiene compatibilidad con planes anteriores de un destino.

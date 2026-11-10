@@ -577,10 +577,18 @@ puede usar una columna calculada antes; el emisor sustituye esa referencia por l
 en el mismo `tMap`. `l0_07` y `l0_12` coinciden en B; `l0_07` sigue
 pendiente en A porque `sgm migrar` no dispone de un esquema de entrada demostrable para resolver
 `saldo`, no por el ELSE. `SELECT/WHEN` y `DELETE` no se declaran cubiertos. MG-P4-02 a 09 siguen
-pendientes; en particular no se extiende la semántica de `MERGE`, estado por fila ni macros. En
+pendientes en esta foto histórica; en particular no se extiende la semántica de `MERGE`, estado por fila ni macros. En
 Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocados; `l4_06` y `l4_14`,
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
+
+**Actualización (hito 166, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+conservan todos los destinos de `OUTPUT a b;`; el grafo los registra como productores, y el intérprete
+reparte la observación a cada destino, respeta las condiciones `IF/ELSE` cubiertas y suprime la salida
+implícita cuando existe cualquier `OUTPUT` explícito. La equivalencia de emisión Talend aún no está
+implementada: `split` sigue como pendiente, por lo que MG-P4-02 no se marca como completada y no se
+simula un Job incompleto como si fuera válido. `OUTPUT` sin destinos no se declara cubierto: la
+referencia indica que usa los nombres del encabezado, pero ese comportamiento aún no está modelado.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`
