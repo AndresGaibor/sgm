@@ -6093,3 +6093,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: solo plegar la lectura cuando fuente y `exec_sql` comparten `db:impala`, hay arista
   directa y el SQL contiene el dataset; otros casos conservan el pendiente en vez de inferir una
   equivalencia.
+
+## Hito 164m. Compilar `l2_16` con `tImpalaRow` en Studio
+
+- Fecha: 2026-11-10.
+- Qué se hizo: el primer build reveló dos detalles de generación Java del componente Impala: campos
+  vacíos de host/puerto/base se insertan como expresiones sin literal, y el campo PASSWORD vacío se
+  inserta en un `if` como código Java vacío. Se escriben las tres cadenas vacías con comillas y se
+  usa el literal tipado `((String)null)` para PASS, sin guardar credenciales. Se mantiene `HIVE2`, el
+  driver predeterminado de la plantilla de Studio; no se fuerza el driver Impala que no compila con
+  la biblioteca disponible.
+- Studio presentó el diálogo oficial de 11 módulos externos; el usuario aceptó las licencias y la
+  instalación terminó. No se reinstaló ni actualizó el plugin MCP. Después, `l2_16` compiló:
+  **1 de 1 Jobs**. Sumado a los 58 Jobs de los hitos 160m–161m, MG-P8b-09 queda en **59 compilados**.
+- El test de regresión verifica el `tImpalaRow`, el SQL, los literales de conexión vacíos, la ausencia
+  de credenciales, los pendientes explícitos y el `.item` escrito.
+- Pruebas: suite completa **2770 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
+- Límite: no se ejecutó el Job ni se conectó a Impala. Host, puerto, base y autenticación continúan
+  en `P-CONEXION-BASE`; MG-P8b-08 sigue parcial hasta configurar y validar la ejecución.
+- Decisión: el hito acepta la compilación del Job, no su ejecución; la conexión no se configura con
+  valores inventados y el SQL permanece sin ejecutarse.

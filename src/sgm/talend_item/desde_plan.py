@@ -461,7 +461,16 @@ class _Job:
                 # esa referencia permite abrir/compilar el componente; los parámetros concretos
                 # del servidor siguen a cargo del usuario en Studio.
                 "USE_EXISTING_CONNECTION": "false",
-                "IMPALA_DRIVER": "IMPALA",
+                # La plantilla guardó estos campos vacíos; Talend los inserta en expresiones Java,
+                # donde vacío sin comillas deja el Job sin compilar. Las cadenas vacías son valores
+                # sintácticamente válidos, pero no configuran una conexión ejecutable.
+                "HOST": java(""),
+                "PORT": java(""),
+                "DBNAME": java(""),
+                # PASS vacío hace que el Javajet genere una condición inválida.
+                # Null tipado mantiene Java válido sin guardar credenciales.
+                # Se conserva HIVE2, el driver predeterminado de la plantilla extraída de Studio.
+                "PASS": "((String)null)",
             },
             ruta_java=self.ruta_java,
         )

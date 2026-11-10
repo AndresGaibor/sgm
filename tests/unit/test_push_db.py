@@ -134,6 +134,9 @@ def test_exec_sql_de_impala_se_emite_en_un_timpalarow_sin_inventar_conexion(tmp_
         op.params["sql"] for op in plan.graph.operators() if op.kind == "exec_sql"
     ) + '"'
     assert parametros["USE_EXISTING_CONNECTION"] == "false"
+    assert parametros["HOST"] == parametros["PORT"] == parametros["DBNAME"] == '""'
+    assert parametros["IMPALA_DRIVER"] == "HIVE2"
+    assert parametros["PASS"] == "((String)null)"
     assert any(
         pendiente.codigo == "P-OPERADOR-SIN-SOPORTE"
         and "configuración de sesión" in pendiente.mensaje
@@ -149,3 +152,4 @@ def test_exec_sql_de_impala_se_emite_en_un_timpalarow_sin_inventar_conexion(tmp_
     item, _ = escribir_job(job, tmp_path)
     texto = item.read_text(encoding="utf-8")
     assert "CREATE TABLE LZ.salida AS" in texto
+    assert 'name="PASS" value="((String)null)"' in texto
