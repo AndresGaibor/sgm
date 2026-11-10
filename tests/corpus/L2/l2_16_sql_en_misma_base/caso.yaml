@@ -1,0 +1,7 @@
+nivel: L2
+construcciones:
+  - LIBNAME
+  - PROC SQL sobre una biblioteca asignada al mismo motor de destino
+capa: B
+estado: sin_esperado
+motivo: La equivalencia de ejecución requiere una base; el caso solo verifica ubicación y SQL emitido.

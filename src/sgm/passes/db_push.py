@@ -159,8 +159,10 @@ def _is_candidate_step(op: Operator, target: str) -> bool:
 
 
 def _output_name(graph: Graph, op: Operator) -> str:
-    """Tabla que crea la cadena: el dataset que consume el flujo después, o la tabla de trabajo."""
+    """Tabla de destino: quita WORK, pero conserva la biblioteca de un destino permanente."""
     for edge in graph.edges():
         if edge.src == op.id and not edge.dataset.startswith("("):
-            return edge.dataset.split("@")[0].replace("WORK.", "").replace(".", "_")
+            dataset = edge.dataset.split("@")[0]
+            biblioteca, separador, tabla = dataset.partition(".")
+            return tabla if separador and biblioteca.upper() == "WORK" else dataset
     return f"{TABLE_PREFIX}{op.signature[:8]}_out"

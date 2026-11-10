@@ -6002,3 +6002,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites: solo se aplica al patrón con una llave demostrable, `missing` de la columna del lookup y
   una única derivación común. La ejecución real en Talend Studio queda pendiente.
 - Pruebas: suite completa **2765 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
+
+## Hito 159m. Conservar destino calificado al empujar SQL a la misma base
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se añadió `l2_16_sql_en_misma_base`, con una fuente y un destino `LIBNAME` asignados
+  a Impala. El caso es estructural y queda `sin_esperado`: no se conecta a una base. Su prueba confirma
+  que `push_to_db` emite un único `exec_sql` con `CREATE TABLE LZ.salida ... FROM LZ.origen`.
+- Corrección: `_output_name` antes convertía cualquier punto en guion bajo y alteraba destinos
+  permanentes (`LZ.salida` → `LZ_salida`). Ahora solo retira el prefijo `WORK.`; las tablas de
+  biblioteca conservan su calificación.
+- Pendiente previo revisado: `client_large.sas` emite actualmente dos, no cuatro, casos de
+  `P-REPARTO-RECONVERGE` (líneas 1384 y 1554). MG-P8b-07 queda bloqueado: la documentación de
+  `talend-mcp` registra que `tHashInput` compila pero no recibe filas en la topología probada
+  (INTERNALS 70). No se emitirá como solución hasta validar un transporte que funcione.
+- Pruebas: `tests/unit/test_push_db.py` (6 pruebas) y la validación del corpus pasan. Suite completa:
+  **2768 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
+- Decisión: continuar con MG-P8b-08 al estar bloqueado P8b-07 por un componente dependiente; no
+  conectar a ninguna base y limitar la prueba a la forma del SQL emitido.

@@ -5,6 +5,8 @@ exportación a CSV. Con `push_to_db` sale una carga única, un `exec_sql` fusion
 `write_file` en el flujo. Con `flow`, el equivalente en componentes de flujo.
 """
 
+from pathlib import Path
+
 from sgm.catalog.config import Engines, Env, Project
 from sgm.compile import compile_project
 
@@ -81,3 +83,26 @@ def test_flow_mantiene_los_componentes_de_flujo():
     names = {name for _, _, name in components}
     assert "tFileInputDelimited" in names and "tFileOutputDelimited" in names
     assert not any(name in ("tImpalaRow", "tImpalaOutput") for _, _, name in components)
+
+
+def test_push_to_db_conserva_el_destino_calificado_en_la_misma_base():
+    ruta = (
+        Path(__file__).resolve().parents[1]
+        / "corpus"
+        / "L2"
+        / "l2_16_sql_en_misma_base"
+        / "programa.sas"
+    )
+    env = _env("push_to_db")
+    compiled, _ = compile_project(
+        {ruta.name: ruta.read_text(encoding="utf-8")},
+        env=env,
+        library_engines={"LZ": "impala"},
+    )
+
+    sql_ops = [op for op in compiled[ruta.name].plan.graph.operators() if op.kind == "exec_sql"]
+
+    assert len(sql_ops) == 1
+    assert sql_ops[0].placement == "db:impala"
+    assert sql_ops[0].params["sql"].startswith("CREATE TABLE LZ.salida AS")
+    assert "FROM LZ.origen" in sql_ops[0].params["sql"]
