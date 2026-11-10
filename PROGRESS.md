@@ -5482,3 +5482,35 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   global y `sgm cobertura` siguen en MG-P10-08.
 - Bloqueos: MG-P11-02 a 06 siguen pendientes; MG-P11-03 debe definir orden por dependencias y proyecto
   coherente. No se ejecutaron SAS ni Talend Studio.
+
+## Hito 133. Línea base de rendimiento de `sgm migrar`
+
+- Fecha: 2026-11-10. Alcance: MG-P12-01, completo.
+- Qué se hizo:
+  - Se agregó `tools/performance/migrar.py`, un benchmark reproducible que prepara temporalmente el
+    caso grande y la carpeta con los otros 189 SAS, mide el tiempo del comando y comprueba la
+    cantidad de paquetes sin conservar las salidas.
+  - La prueba de 32 MB detectó que Windows estaba midiendo solo el proceso lanzador. Se corrigió la
+    captura para recorrer los descendientes y conservar el mayor uso residente agregado observado;
+    Linux usa el mismo criterio sobre `VmRSS` de `/proc`. Si vence el timeout, el arnés termina todo
+    el árbol de procesos; una prueba comprueba que un hijo no sobreviva. El selector de fuentes ahora
+    desempata rutas que solo difieren por mayúsculas para mantener el orden en Linux.
+  - Se guarda la línea base de esta máquina en `metrics/performance/mg-p12-01.json`; se documentaron
+    límites, campos y el coste del muestreo en `metrics/performance/README.md`. No se alteró
+    `metrics/baseline.json`.
+- Medición en Windows 11, Python 3.12.10:
+  - `client_large.sas`: 835 630 bytes; 6,848 s; pico de árbol 93 872 128 bytes; 1/1 paquetes.
+  - Carpeta: 189 fuentes, 637 104 bytes; 10,860 s; pico de árbol 81 707 008 bytes; 189/189 paquetes.
+  - Ambos escenarios cumplieron `<120 s` y `<1 000 000 000 bytes`.
+- Pruebas focalizadas: `tests/unit/test_performance_benchmark.py`, 5 pasaron. Suite completa
+  `uv run pytest -q`: 2670 pasaron, 26 omitidas y 139 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P12 queda en **8,0/30 h (27 %)**; avance global **204,75/895 h (22,9 %)**. El crédito
+  es únicamente por MG-P12-01, cuya aceptación se midió en ambos escenarios.
+- Decisiones: el pico es el máximo agregado residente observado del árbol, no la suma de máximos
+  independientes por proceso. El cronómetro incluye arranque y muestreo; excluye preparación de
+  fuentes y escritura del reporte. Los valores dependen de la máquina. No se usan Studio, SAS, bases
+  ni dependencias nuevas.
+- Bloqueos: MG-P12-02 a 04 siguen pendientes; el rendimiento de Jobs con millones de filas, las
+  plantillas JVM/Talend y la caché requieren tareas separadas.
