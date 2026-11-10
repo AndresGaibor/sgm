@@ -42,28 +42,52 @@ CANDIDATE = "candidato"
 
 NAME = "p10_components"
 _FUNCTION = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
-def _expressions(op: Operator) -> list[str]:
-    texts: list[str] = []
+def _expressions(op: Operator) -> list[tuple[str, tuple[str | int, ...]]]:
+    expressions: list[tuple[str, tuple[str | int, ...]]] = []
     if op.kind == "filter":
-        texts.append(str(op.params.get("expression", "")))
+        expressions.append((str(op.params.get("expression", "")), ("expression",)))
     if op.kind == "derive":
-        texts += [str(a.get("expression", "")) for a in op.params.get("assignments", [])]
+        expressions.extend(
+            (str(assignment.get("expression", "")), ("assignments", index, "expression"))
+            for index, assignment in enumerate(op.params.get("assignments", []))
+        )
     if op.kind == "map":
-        for step in op.params.get("steps", []):
+        for step_index, step in enumerate(op.params.get("steps", [])):
             params = step.get("params", {})
             if step.get("kind") == "filter":
-                texts.append(str(params.get("expression", "")))
+                expressions.append(
+                    (
+                        str(params.get("expression", "")),
+                        ("steps", step_index, "params", "expression"),
+                    )
+                )
             if step.get("kind") == "derive":
-                texts += [str(a.get("expression", "")) for a in params.get("assignments", [])]
-        for branch in op.params.get("branches", []):
-            texts.append(str(branch.get("expression", "")))
-    return [t for t in texts if t.strip()]
+                expressions.extend(
+                    (
+                        str(assignment.get("expression", "")),
+                        (
+                            "steps",
+                            step_index,
+                            "params",
+                            "assignments",
+                            assignment_index,
+                            "expression",
+                        ),
+                    )
+                    for assignment_index, assignment in enumerate(params.get("assignments", []))
+                )
+        expressions.extend(
+            (str(branch.get("expression", "")), ("branches", index, "expression"))
+            for index, branch in enumerate(op.params.get("branches", []))
+        )
+    return [(text, path) for text, path in expressions if text.strip()]
 
 
 def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
     """Registra huecos y advertencias de expresiones. True si algo requiere revisión."""
     found = False
-    for text in _expressions(op):
+    for text, path in _expressions(op):
+        evidence = op.expression_evidence.get(path) or op.evidence
         result = translate(text)
         if result.talend is not None:
             for warning in result.warnings:
@@ -95,7 +119,7 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
             Gap(
                 signature=f"{op.signature}/{name}",
                 reason="FUNCION_NO_MAPEADA",
-                evidence=list(op.evidence),
+                evidence=list(evidence),
                 text=" ".join(text.split())[:120],
             )
         )
@@ -109,7 +133,22 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
     rules = load_rules()
     engines = load_engines()
     rung_counts: dict[int, int] = {}
+    file_put_gaps: list[Gap] = []
     for op in graph.operators():
+        statements = [
+            note.split(": ", 1)[1]
+            for note in op.notes
+            if note.startswith("FILE_PUT_SIN_PLANTILLA: ")
+        ]
+        if statements:
+            file_put_gaps.append(
+                Gap(
+                    signature=f"{op.signature}/FILE_PUT",
+                    reason="SENTENCIA_NO_SOPORTADA",
+                    evidence=list(op.evidence),
+                    text=" | ".join(statements)[:120],
+                )
+            )
         if op.status in ("hueco", "reemplazado") or op.kind == "unsupported":
             continue
         found, conflicto = resolve(op, rules, engines)
@@ -180,6 +219,7 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
                 )
             )
         rung_counts[rule.rung] = rung_counts.get(rule.rung, 0) + 1
+    ctx.plan.gaps.extend(file_put_gaps)
     log.metrics["por_peldano"] = dict(sorted(rung_counts.items()))
     log.metrics["componentes"] = sum(rung_counts.values())
     return log

@@ -39,6 +39,7 @@ _NOT_EQ = re.compile(r"(?i)\bnot\s*=")
 _CONTAINS_WORD = re.compile(r"(?i)\bcontains\b")
 _OPTION = re.compile(r"(?i)\b(where|keep|drop|obs|firstobs|rename)\s*=")
 _FORMAT_ARG = re.compile(r"(,\s*)(\d+\.\d*)(\s*\))")
+_MULTIARG_ROW_FUNCTION = re.compile(r"(?i)\b(sum|min|max|mean)\b")
 _COMPARATORS = {"eq": "=", "ne": "<>", "gt": ">", "lt": "<", "ge": ">=", "le": "<="}
 
 
@@ -48,6 +49,7 @@ class NormalizedSql:
     into_vars: list[tuple[str, str | None]] = field(default_factory=list)  # (variable, separador)
     macros: dict[str, str] = field(default_factory=dict)  # mv_x -> &x
     notes: list[str] = field(default_factory=list)
+    row_functions: dict[str, str] = field(default_factory=dict)  # marcador interno -> nombre SAS
 
     def restore(self, name: str) -> str:
         """Nombre SAS original (`lib.&x`) de un nombre con identificadores `mv_` sustituidos."""
@@ -55,9 +57,15 @@ class NormalizedSql:
 
 
 def _outside_quotes(text: str, fn) -> str:
-    """Aplica `fn` solo a los trozos de `text` que no están dentro de comillas."""
-    parts = re.split(rf"({_QUOTED})", text)
-    return "".join(part if i % 2 else fn(part) for i, part in enumerate(parts))
+    """Aplica `fn` al código SQL y conserva literalmente cadenas y comentarios."""
+    output: list[str] = []
+    last = 0
+    for start, end in _protected_ranges(text):
+        output.append(fn(text[last:start]))
+        output.append(text[start:end])
+        last = end
+    output.append(fn(text[last:]))
+    return "".join(output)
 
 
 def _strip_options(text: str, notes: list[str]) -> str:
@@ -84,23 +92,36 @@ def _strip_options(text: str, notes: list[str]) -> str:
     return out
 
 
-def _quote_ranges(text: str) -> list[tuple[int, int]]:
-    """Rangos `(inicio, fin)` de los literales entre comillas, respetando `''` escapada de SAS."""
+def _protected_ranges(text: str) -> list[tuple[int, int]]:
+    """Rangos de literales y comentarios; primero reconoce comentario, luego sus comillas."""
     ranges: list[tuple[int, int]] = []
-    i, cur = 0, None
+    i = 0
     while i < len(text):
-        if cur is None:
-            if text[i] in "'\"":
-                cur = (text[i], i)
-            i += 1
+        if text.startswith("/*", i):
+            end = text.find("*/", i + 2)
+            end = len(text) if end < 0 else end + 2
+            ranges.append((i, end))
+            i = end
             continue
-        quote, start = cur
-        if text[i] == quote:
-            if text[i + 1 : i + 2] == quote:  # comilla duplicada: escape de SAS
-                i += 2
-                continue
-            ranges.append((start, i + 1))
-            cur = None
+        if text.startswith("--", i):
+            end = re.search(r"\r?\n", text[i + 2 :])
+            end = len(text) if end is None else i + 2 + end.start()
+            ranges.append((i, end))
+            i = end
+            continue
+        if text[i] in "'\"":
+            quote, start = text[i], i
+            i += 1
+            while i < len(text):
+                if text[i] == quote:
+                    if text[i + 1 : i + 2] == quote:
+                        i += 2
+                        continue
+                    i += 1
+                    break
+                i += 1
+            ranges.append((start, i))
+            continue
         i += 1
     return ranges
 
@@ -192,7 +213,7 @@ def _operand_forward(text: str, i: int) -> tuple[int, int] | None:
 
 def _rewrite_contains(text: str, notes: list[str]) -> str:
     """`A [NOT] contains B` → `A [NOT] LIKE CONCAT('%', B, '%')`, con operandos de expresión completa."""
-    ranges = _quote_ranges(text)
+    ranges = _protected_ranges(text)
     edits: list[tuple[int, int, str]] = []
     for match in _CONTAINS_WORD.finditer(text):
         if _inside(match.start(), ranges):
@@ -219,6 +240,62 @@ def _rewrite_contains(text: str, notes: list[str]) -> str:
     out.append(text[last:])
     notes.append("contains reescrito a LIKE CONCAT(...)")
     return "".join(out)
+
+
+def _proteger_funciones_por_fila(text: str, marcadores: dict[str, str]) -> str:
+    """Evita que sqlglot lea las funciones SAS multiargumento como agregados de un argumento."""
+    protegidos = _protected_ranges(text)
+    ediciones = []
+    for match in _MULTIARG_ROW_FUNCTION.finditer(text):
+        if _inside(match.start(), protegidos):
+            continue
+        apertura = match.end()
+        while True:
+            while apertura < len(text) and text[apertura].isspace():
+                apertura += 1
+            comentario = next(
+                (
+                    fin
+                    for inicio, fin in protegidos
+                    if inicio == apertura and text.startswith(("/*", "--"), apertura)
+                ),
+                None,
+            )
+            if comentario is None:
+                break
+            apertura = comentario
+        if apertura >= len(text) or text[apertura] != "(":
+            continue
+
+        profundidad = 0
+        comas = 0
+        cierre = None
+        for posicion in range(apertura, len(text)):
+            if _inside(posicion, protegidos):
+                continue
+            caracter = text[posicion]
+            if caracter == "(":
+                profundidad += 1
+            elif caracter == ")":
+                profundidad -= 1
+                if profundidad == 0:
+                    cierre = posicion
+                    break
+            elif caracter == "," and profundidad == 1:
+                comas += 1
+        if cierre is not None and comas:
+            nombre = match.group(1).lower()
+            marcador = f"sgm_row_{nombre}"
+            sufijo = 1
+            while re.search(rf"(?i)\b{re.escape(marcador)}\b", text):
+                marcador = f"sgm_row_{nombre}_{sufijo}"
+                sufijo += 1
+            marcadores[marcador] = nombre
+            ediciones.append((match.start(1), match.end(1), marcador))
+
+    for inicio, fin, sustituto in reversed(ediciones):
+        text = text[:inicio] + sustituto + text[fin:]
+    return text
 
 
 def normalize(sql: str) -> NormalizedSql:
@@ -287,6 +364,7 @@ def normalize(sql: str) -> NormalizedSql:
     if informat_seen:
         result.notes.append("informatos de SAS pasados a texto (no se traducen)")
     text = _FORMAT_ARG.sub(lambda m: f"{m.group(1)}'{m.group(2)}'{m.group(3)}", text)
+    text = _proteger_funciones_por_fila(text, result.row_functions)
     if result.macros:
         result.notes.append("referencias de macro sustituidas por identificadores")
     result.text = text.strip()

@@ -13,7 +13,7 @@ import pytest
 
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
-from sgm.ir.models import Plan
+from sgm.ir.models import Edge, Graph, Operator, Plan
 from sgm.migrar.interprete import NoSoportadoEnInterprete, ejecutar_plan
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L2"
@@ -51,6 +51,14 @@ def _plan(texto: str) -> Plan:
 def _caso(nombre: str) -> Plan:
     texto = (CORPUS / nombre / "programa.sas").read_text(encoding="utf-8")
     return _plan(texto)
+
+
+def _ejecutar_in(condicion: str, entradas: dict[str, list[dict]]) -> list[dict]:
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resultado AS SELECT c.id FROM WORK.clientes c "
+        f"WHERE {condicion}; QUIT;"
+    )
+    return ejecutar_plan(plan, entradas)["resultado"]
 
 
 def test_inner_join_descarta_sin_pareja():
@@ -240,13 +248,562 @@ def test_subsetting_if_conserva_no_cero_y_descarta_cero_o_faltante():
     assert [fila["id"] for fila in filas] == ["1", "4"]
 
 
-def test_un_operador_no_soportado_no_se_salta():
+@pytest.mark.parametrize(
+    ("programa", "entradas"),
+    [
+        # Una expresión sobre agregados no es FUNCION(columna): el intérprete no la adivina.
+        (AGREGADO_COMPUESTO, {"clientes": []}),
+        (
+            "PROC SQL; CREATE TABLE resumen AS SELECT STD(valor) AS desviacion "
+            "FROM WORK.valores; QUIT;",
+            {"valores": []},
+        ),
+    ],
+)
+def test_un_operador_no_soportado_no_se_salta(programa, entradas):
     """Un paso sin implementar detiene la ejecución con su nombre, no devuelve filas sin calcular."""
-    # Una expresión sobre agregados no es FUNCION(columna): el intérprete no la adivina.
-    plan = _plan(AGREGADO_COMPUESTO)
-
+    plan = _plan(programa)
     with pytest.raises(NoSoportadoEnInterprete) as error:
-        ejecutar_plan(plan, {"clientes": []})
+        ejecutar_plan(plan, entradas)
 
     assert error.value.kind == "aggregate"
     assert str(error.value).startswith("aggregate")
+
+
+def test_agregados_por_grupo_cuentan_omisiones_y_conservan_faltantes_sas():
+    plan = _plan(
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.resumen AS\n"
+        "SELECT categoria, COUNT(*) AS filas, COUNT(valor) AS no_faltantes,\n"
+        "SUM(valor) AS suma, SUM(valor + 1) AS suma_mas_uno, AVG(valor) AS promedio,\n"
+        "MIN(valor) AS minimo, MAX(valor) AS maximo\n"
+        "FROM WORK.entrada\n"
+        "GROUP BY categoria;\n"
+        "QUIT;"
+    )
+    entradas = {
+        "entrada": [
+            {"categoria": "A", "valor": "1"},
+            {"categoria": "A", "valor": ""},
+            {"categoria": "A", "valor": "5"},
+            {"categoria": "B", "valor": ""},
+            {"categoria": "B", "valor": None},
+            {"categoria": "", "valor": "2"},
+            {"categoria": None, "valor": "4"},
+        ]
+    }
+
+    filas = ejecutar_plan(plan, entradas)["resumen"]
+
+    assert filas == [
+        {
+            "categoria": "A",
+            "filas": "3",
+            "no_faltantes": "2",
+            "suma": "6",
+            "suma_mas_uno": "8",
+            "promedio": "3",
+            "minimo": "1",
+            "maximo": "5",
+        },
+        {
+            "categoria": "B",
+            "filas": "2",
+            "no_faltantes": "0",
+            "suma": None,
+            "suma_mas_uno": None,
+            "promedio": None,
+            "minimo": None,
+            "maximo": None,
+        },
+        {
+            "categoria": "",
+            "filas": "2",
+            "no_faltantes": "2",
+            "suma": "6",
+            "suma_mas_uno": "8",
+            "promedio": "3",
+            "minimo": "2",
+            "maximo": "4",
+        },
+    ]
+
+
+def test_group_by_solo_publica_las_columnas_que_solicita_el_select():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS n "
+        "FROM WORK.entrada GROUP BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {"entrada": [{"categoria": "A"}, {"categoria": "A"}, {"categoria": "B"}]},
+    )["resumen"]
+
+    assert filas == [{"n": "2"}, {"n": "1"}]
+
+
+def test_group_by_respeta_el_orden_de_columnas_del_select():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT COUNT(*) AS n, categoria AS cat FROM WORK.entrada "
+        "GROUP BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(plan, {"entrada": [{"categoria": "A"}]})["resumen"]
+
+    assert list(filas[0]) == ["n", "cat"]
+
+
+def test_group_by_rechaza_select_star_con_agregado():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT *, COUNT(*) AS n "
+        "FROM WORK.entrada GROUP BY categoria; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="aggregate.*columnas sin agregar"):
+        ejecutar_plan(plan, {"entrada": [{"categoria": "A", "detalle": "x"}]})
+
+
+def test_group_by_conserva_alias_de_columna_seleccionada_y_agregado_tras_join():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT a.categoria AS cat, COUNT(*) AS n "
+        "FROM WORK.entrada AS a INNER JOIN WORK.otra AS b "
+        "ON a.categoria = b.categoria GROUP BY a.categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "entrada": [{"categoria": "A"}, {"categoria": "A"}],
+            "otra": [{"categoria": "A"}],
+        },
+    )["resumen"]
+
+    assert filas == [{"cat": "A", "n": "2"}]
+
+
+def test_group_by_order_by_columna_agrupada_con_alias_usa_el_alias_de_salida():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT categoria AS cat, COUNT(*) AS n FROM WORK.entrada "
+        "GROUP BY categoria ORDER BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan, {"entrada": [{"categoria": "B"}, {"categoria": "A"}]}
+    )["resumen"]
+
+    assert filas == [{"cat": "A", "n": "1"}, {"cat": "B", "n": "1"}]
+
+
+def test_group_by_order_by_no_seleccionado_rechaza_remezcla_sas():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS n "
+        "FROM WORK.entrada GROUP BY categoria ORDER BY categoria; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="aggregate.*columnas sin agregar"):
+        ejecutar_plan(plan, {"entrada": [{"categoria": "A"}, {"categoria": "B"}]})
+
+
+def test_group_by_rechaza_columna_seleccionada_que_requiere_remezcla():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT categoria, detalle, COUNT(*) AS n FROM WORK.entrada "
+        "GROUP BY categoria; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="aggregate.*columnas sin agregar"):
+        ejecutar_plan(
+            plan,
+            {"entrada": [{"categoria": "A", "detalle": "x"}, {"categoria": "A", "detalle": "y"}]},
+        )
+
+
+def test_agregados_globales_sin_filas_devuelven_una_fila_resumen():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS filas "
+        "FROM WORK.entrada; QUIT;"
+    )
+
+    filas = ejecutar_plan(plan, {"entrada": []})["resumen"]
+
+    assert filas == [{"filas": "0"}]
+
+
+def test_agregado_como_paso_de_map_se_ejecuta_y_publica_su_salida():
+    grafo = Graph()
+    fuente = Operator("fuente", "read", {"dataset": "WORK.entrada"})
+    mapa = Operator(
+        "mapa",
+        "map",
+        {
+            "steps": [
+                {
+                    "kind": "aggregate",
+                    "params": {
+                        "group_by": ["categoria"],
+                        "aggregations": [{"expression": "COUNT(*)", "alias": "filas"}],
+                    },
+                }
+            ],
+            "outputs": ["WORK.resumen"],
+        },
+    )
+    destino = Operator("destino", "write", {"dataset": "WORK.resumen"})
+    for operador in (fuente, mapa, destino):
+        grafo.add_operator(operador)
+    grafo.add_edge(Edge("fuente", "mapa", "(interno)"))
+    grafo.add_edge(Edge("mapa", "destino", "WORK.resumen"))
+
+    filas = ejecutar_plan(
+        Plan("prueba", graph=grafo),
+        {"entrada": [{"categoria": "A"}, {"categoria": "A"}, {"categoria": "B"}]},
+    )["resumen"]
+
+    assert filas == [
+        {"categoria": "A", "filas": "2"},
+        {"categoria": "B", "filas": "1"},
+    ]
+
+
+def test_agregados_globales_suman_todas_las_filas_no_faltantes():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT COUNT(*) AS filas, "
+        "SUM(valor) AS suma, AVG(valor) AS promedio, MIN(valor) AS minimo, "
+        "MAX(valor) AS maximo FROM WORK.entrada; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan, {"entrada": [{"valor": "2"}, {"valor": ""}, {"valor": "4"}]}
+    )["resumen"]
+
+    assert filas == [
+        {"filas": "3", "suma": "6", "promedio": "3", "minimo": "2", "maximo": "4"}
+    ]
+
+
+def test_count_distinct_ignora_faltantes_y_cuenta_un_valor_una_vez():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT COUNT(DISTINCT canal) AS canales FROM WORK.entrada; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "entrada": [
+                {"canal": "web"},
+                {"canal": "web"},
+                {"canal": ""},
+                {"canal": None},
+                {"canal": "sucursal"},
+            ]
+        },
+    )["resumen"]
+
+    assert filas == [{"canales": "2"}]
+
+
+def test_mean_de_un_argumento_es_agregado_de_promedio_por_grupo():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT categoria, MEAN(a) AS promedio FROM WORK.entrada "
+        "GROUP BY categoria; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "entrada": [
+                {"categoria": "A", "a": "2"},
+                {"categoria": "A", "a": "4"},
+                {"categoria": "B", "a": ""},
+            ]
+        },
+    )["resumen"]
+
+    assert filas == [
+        {"categoria": "A", "promedio": "3"},
+        {"categoria": "B", "promedio": None},
+    ]
+
+
+def test_proc_sql_multiargumento_ejecuta_funciones_numericas_por_fila():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT SUM(a, MAX(b, c)) AS suma, MIN(a, b) AS minimo, MAX(a, b) AS maximo, "
+        "MEAN(a, b) AS promedio FROM WORK.entrada; QUIT;"
+    )
+    proyeccion = next(op for op in plan.graph.operators() if op.kind == "derive")
+    assert proyeccion.status == "parcial"
+    assert [item["expression"] for item in proyeccion.params["assignments"]] == [
+        "sum(a, max(b, c))",
+        "min(a, b)",
+        "max(a, b)",
+        "mean(a, b)",
+    ]
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "entrada": [
+                {"a": "2", "b": "6", "c": "3"},
+                {"a": "", "b": "5", "c": "7"},
+                {"a": "", "b": "", "c": ""},
+            ]
+        },
+    )["resumen"]
+
+    assert filas == [
+        {"suma": "8", "minimo": "2", "maximo": "6", "promedio": "4"},
+        {"suma": "7", "minimo": "5", "maximo": "5", "promedio": "5"},
+        {"suma": None, "minimo": None, "maximo": None, "promedio": None},
+    ]
+
+
+def test_proc_sql_avg_con_varios_argumentos_no_se_interpreta_como_agregado():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT AVG(a, b) AS promedio FROM WORK.entrada; QUIT;"
+    )
+
+    assert any(
+        operador.kind == "unsupported" and operador.params.get("reason") == "PARSE_ERROR"
+        for operador in plan.graph.operators()
+    )
+
+
+def test_proc_sql_sum_multiargumento_rechaza_valor_no_numerico():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS "
+        "SELECT SUM(a, b) AS suma FROM WORK.entrada; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="SUM requiere argumentos numéricos"):
+        ejecutar_plan(plan, {"entrada": [{"a": "texto", "b": "2"}]})
+
+
+def test_proc_sql_no_reescribe_columna_con_nombre_interno_de_funcion():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.salida AS "
+        "SELECT sgm_sum AS valor FROM WORK.entrada; QUIT;"
+    )
+    proyeccion = next(op for op in plan.graph.operators() if op.kind == "derive")
+
+    assert proyeccion.params["assignments"] == [
+        {"target": "valor", "expression": "sgm_sum", "origin": "columna"}
+    ]
+
+
+def test_group_by_sin_filas_no_produce_grupos():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT categoria, COUNT(*) AS filas "
+        "FROM WORK.entrada GROUP BY categoria; QUIT;"
+    )
+
+    assert ejecutar_plan(plan, {"entrada": []})["resumen"] == []
+
+
+def test_agregados_agrupan_por_varias_columnas():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT region, categoria, COUNT(*) AS filas "
+        "FROM WORK.entrada GROUP BY region, categoria; QUIT;"
+    )
+    entradas = {
+        "entrada": [
+            {"region": "Norte", "categoria": "A"},
+            {"region": "Norte", "categoria": "A"},
+            {"region": "Norte", "categoria": "B"},
+            {"region": "Sur", "categoria": "A"},
+        ]
+    }
+
+    assert ejecutar_plan(plan, entradas)["resumen"] == [
+        {"region": "Norte", "categoria": "A", "filas": "2"},
+        {"region": "Norte", "categoria": "B", "filas": "1"},
+        {"region": "Sur", "categoria": "A", "filas": "1"},
+    ]
+
+
+def test_agregado_no_adivina_tipo_de_clave_de_grupo_numerica_en_texto():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.resumen AS SELECT codigo, COUNT(*) AS filas "
+        "FROM WORK.entrada GROUP BY codigo; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="tipo.*ambiguo"):
+        ejecutar_plan(plan, {"entrada": [{"codigo": "01"}, {"codigo": "1"}]})
+
+
+def test_in_subconsulta_sin_coincidencias_devuelve_cero_filas():
+    filas = _ejecutar_in(
+        "c.id IN (SELECT v.id FROM work.ventas v WHERE v.id > 99)",
+        {"clientes": [{"id": "1"}, {"id": "2"}], "ventas": [{"id": "3"}]},
+    )
+
+    assert filas == []
+
+
+def test_not_in_subconsulta_sin_coincidencias_conserva_las_filas():
+    filas = _ejecutar_in(
+        "c.id NOT IN (SELECT v.id FROM work.ventas v WHERE v.id > 99)",
+        {"clientes": [{"id": "1"}, {"id": "2"}], "ventas": [{"id": "3"}]},
+    )
+
+    assert filas == [{"id": "1"}, {"id": "2"}]
+
+
+def test_in_subconsulta_con_duplicados_no_duplica_filas():
+    filas = _ejecutar_in(
+        "c.id IN (SELECT v.id FROM work.ventas v)",
+        {"clientes": [{"id": "1"}, {"id": "2"}], "ventas": [{"id": "1"}, {"id": "1"}]},
+    )
+
+    assert filas == [{"id": "1"}]
+
+
+def test_in_subconsulta_correlacionada_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="correlacionada"):
+        _ejecutar_in(
+            "c.id IN (SELECT v.id FROM work.ventas v WHERE v.id = c.id)",
+            {"clientes": [{"id": "1"}], "ventas": [{"id": "1"}]},
+        )
+
+
+@pytest.mark.parametrize(
+    ("filas", "ventas"),
+    [
+        ([{"id": ""}], [{"id": "1"}]),
+        ([{"id": "1"}], [{"id": ""}]),
+    ],
+)
+def test_in_subconsulta_con_faltantes_se_rechaza(filas, ventas):
+    with pytest.raises(NoSoportadoEnInterprete, match="faltante"):
+        _ejecutar_in("c.id IN (SELECT v.id FROM work.ventas v)", {"clientes": filas, "ventas": ventas})
+
+
+def test_in_subconsulta_de_varias_columnas_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="una sola columna"):
+        _ejecutar_in(
+            "c.id IN (SELECT v.id, v.canal FROM work.ventas v)",
+            {"clientes": [{"id": "1"}], "ventas": [{"id": "1", "canal": "WEB"}]},
+        )
+
+
+def test_in_subconsulta_con_fuente_no_verificable_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="fuente.*disponible"):
+        _ejecutar_in("c.id IN (SELECT v.id FROM work.ventas v)", {"clientes": [{"id": "1"}]})
+
+
+def test_in_subconsulta_con_agregado_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="no soportada"):
+        _ejecutar_in(
+            "c.id IN (SELECT MAX(v.id) FROM work.ventas v)",
+            {"clientes": [{"id": "1"}], "ventas": [{"id": "1"}]},
+        )
+
+
+def test_in_subconsulta_con_varias_fuentes_se_rechaza():
+    with pytest.raises(NoSoportadoEnInterprete, match="una sola fuente"):
+        _ejecutar_in(
+            "c.id IN (SELECT v.id FROM work.ventas v, work.clientes x)",
+            {
+                "clientes": [{"id": "1"}],
+                "ventas": [{"id": "1"}],
+            },
+        )
+
+
+def test_select_alias_star_en_join_proyecta_solo_el_lado_seleccionado():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.homologados AS SELECT t.* "
+        "FROM WORK.operaciones t INNER JOIN WORK.homologacion h "
+        "ON t.tipo_doc = h.CNAME; QUIT;"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "operaciones": [
+                {"id": "1", "tipo_doc": "CC", "monto": "100"},
+                {"id": "2", "tipo_doc": "NIT", "monto": "200"},
+            ],
+            "homologacion": [
+                {"CNAME": "CC", "descripcion": "Cédula"},
+            ],
+        },
+    )["homologados"]
+
+    assert filas == [{"id": "1", "tipo_doc": "CC", "monto": "100"}]
+
+
+def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
+    plan = _plan(
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.lookup AS SELECT id FROM WORK.version_inicial;\n"
+        "QUIT;\n"
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.resultado AS SELECT c.id FROM WORK.clientes c "
+        "WHERE c.id IN (SELECT l.id FROM WORK.lookup l);\n"
+        "QUIT;\n"
+        "PROC SQL;\n"
+        "CREATE TABLE WORK.lookup AS SELECT id FROM WORK.version_futura;\n"
+        "QUIT;\n"
+    )
+
+    filas = ejecutar_plan(
+        plan,
+        {
+            "version_inicial": [{"id": "10"}],
+            "version_futura": [{"id": "20"}],
+            "clientes": [{"id": "10"}, {"id": "20"}],
+        },
+    )["resultado"]
+
+    assert filas == [{"id": "10"}]
+
+
+def test_select_alias_star_sin_esquema_en_lado_vacio_de_left_join_se_rechaza():
+    plan = _plan(
+        "PROC SQL; CREATE TABLE WORK.homologados AS SELECT h.* "
+        "FROM WORK.operaciones o LEFT JOIN WORK.homologacion h "
+        "ON o.tipo_doc = h.tipo_doc; QUIT;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="esquema.*verificable"):
+        ejecutar_plan(
+            plan,
+            {"operaciones": [{"tipo_doc": "CC"}], "homologacion": []},
+        )
+
+
+def test_data_step_if_then_do_else_aplica_ambas_ramas():
+    plan = _plan(
+        "DATA WORK.clientes_revisados;\n"
+        "  SET WORK.clientes;\n"
+        "  LENGTH revision $ 2;\n"
+        "  IF saldo < 0 THEN DO;\n"
+        "    revision = 'SI';\n"
+        "    saldo = 0;\n"
+        "  END;\n"
+        "  ELSE revision = 'NO';\n"
+        "RUN;"
+    )
+    entradas = {
+        "clientes": [
+            {"id": "1", "saldo": "-5"},
+            {"id": "2", "saldo": "7"},
+            {"id": "3", "saldo": ""},
+        ]
+    }
+
+    filas = ejecutar_plan(plan, entradas)["clientes_revisados"]
+
+    assert filas == [
+        {"id": "1", "saldo": "0", "revision": "SI"},
+        {"id": "2", "saldo": "7", "revision": "NO"},
+        {"id": "3", "saldo": "0", "revision": "SI"},
+    ]

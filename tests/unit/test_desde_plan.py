@@ -216,6 +216,59 @@ def test_data_step_if_then_else_emite_ternario_en_tmap():
     assert ' ? &quot;positivo&quot; : &quot;negativo&quot;' in datos
 
 
+def test_data_step_if_then_do_else_emite_asignaciones_y_conserva_columna():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.saldos DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA clasificados;\nSET saldos;\n"
+        "IF saldo < 0 THEN DO;\n"
+        "revision = 'SI';\nsaldo = 0;\nEND;\n"
+        "ELSE revision = 'NO';\nRUN;"
+    )
+    esquema = {"work.saldos": [Column("id", "String"), Column("saldo", "Double")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not resultado.pendientes, resultado.pendientes
+    datos = _tmap(resultado.jobs[0])
+    assert 'name="saldo"' in datos and 'name="revision"' in datos
+    assert (
+        '<mapperTableEntries name="saldo" '
+        'expression="((row1.saldo == null || row1.saldo &lt; 0) ? 0 : row1.saldo)" '
+        'type="id_Double" nullable="true"/>' in datos
+    )
+    assert '&quot;SI&quot;' in datos and '&quot;NO&quot;' in datos
+
+
+def test_data_step_condicional_conserva_tipo_fuente_tras_asignacion_previa():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.saldos DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA clasificados;\nSET saldos;\n"
+        "saldo = 0;\n"
+        "IF bandera > 0 THEN DO;\nsaldo = 1;\nEND;\n"
+        "ELSE saldo = saldo;\nRUN;"
+    )
+    esquema = {
+        "work.saldos": [
+            Column("id", "String"),
+            Column("saldo", "Double"),
+            Column("bandera", "Integer"),
+        ]
+    }
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not resultado.pendientes, resultado.pendientes
+    datos = _tmap(resultado.jobs[0])
+    salida_saldo = next(
+        linea
+        for linea in datos.splitlines()
+        if '<mapperTableEntries name="saldo" expression=' in linea
+    )
+    assert 'type="id_Double"' in salida_saldo
+
+
 def test_data_step_else_if_encadenado_emite_ternarios_en_orden():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.saldos DBMS=CSV REPLACE;\n"

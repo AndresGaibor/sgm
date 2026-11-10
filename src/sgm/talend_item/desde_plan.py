@@ -72,10 +72,16 @@ def _tabla(dataset: str) -> str:
 
 
 def _produce(op: Operator) -> list[str]:
-    producen = ("read_file", "map", "filter", "derive", "select", "rename", "join")
-    if op.kind in (*producen, "sort", "dedup", "aggregate", "union"):
-        return [str(d).lower() for d in op.params.get("outputs", [])]
-    return []
+    producen = (
+        "read_file", "map", "filter", "derive", "select", "rename", "join",
+        "sort", "dedup", "aggregate", "union",
+    )
+    if op.kind not in producen:
+        return []
+    names = [str(d).lower() for d in op.params.get("outputs", [])]
+    if op.kind == "dedup":
+        names.extend(str(d).lower() for d in op.params.get("duplicate_outputs", []))
+    return names
 
 
 def _como_paso(op: Operator) -> Operator:
@@ -125,7 +131,6 @@ class _Job:
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
         self._uniones: dict[str, list[str]] = {}  # `union` -> sus entradas, en orden
         self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
-        self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
         self._productor = self._productores()
         self.rutas = rutas_de_plan(plan)
 
@@ -339,8 +344,6 @@ class _Job:
         tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
         self._registrar(op, resultado.nodo, fuente.columnas, tabla)
         self._pasos.add(op.id)
-        if op.kind == "dedup":
-            self._conector_de[resultado.nodo.unico] = "UNIQUE"
 
     def _agregado(self, op: Operator, x: int) -> None:
         """`aggregate` a `tAggregateRow`: sale con las columnas de grupo y los agregados."""
@@ -401,7 +404,7 @@ class _Job:
             desde, hasta = self._resolver(arista.src), self._resolver(arista.dst)
             if desde is None or hasta is None or desde == hasta:
                 continue
-            nombre = self._nombre(desde, hasta)
+            nombre = self._nombre(desde, hasta, arista.dataset)
             if nombre is None:
                 continue
             nodo_origen = self._instancia(desde, hasta)
@@ -421,7 +424,7 @@ class _Job:
                 # FLOW_MERGE en `EConnectionType`); con FLOW, Studio no genera la unión.
                 self.conexiones.append(Conexion(origen, destino, nombre, "MERGE", 10))
             else:
-                conector = self._conector_de.get(origen, "FLOW")
+                conector = self._conector_salida(desde, arista.dataset)
                 self.conexiones.append(Conexion(origen, destino, nombre, conector=conector))
 
     def _cierres(self) -> None:
@@ -431,23 +434,49 @@ class _Job:
         `defaultRow` sin declarar. Es la tabla final de un `PROC SQL` que no se exporta; se le pone
         un `tLogRow`, que además deja ver las filas al ejecutar.
         """
-        con_salida = {c.origen for c in self.conexiones}
         for op_id in sorted(self._pasos):
             nodo = self._nodo[op_id]
-            if nodo.unico in con_salida or not self._salida.get(op_id):
+            if not self._salida.get(op_id):
                 continue
             columnas = self._salida[op_id]
-            unico = self._unico("tLogRow")
-            # Debajo de la fila de nodos, para no pisar a ninguno.
-            y = 96 * (2 + sum(1 for n in self.nodos if n.componente == "tLogRow"))
-            cierre = log_row(unico, columnas, nodo.x, y, self.ruta_java or "")
-            self.nodos.append(cierre)
-            conector = self._conector_de.get(nodo.unico, "FLOW")
-            self.conexiones.append(
-                Conexion(nodo.unico, cierre.unico, f"{nodo.unico}_out", conector=conector)
-            )
+            op = self.plan.graph.operator(op_id)
+            outputs = [str(value) for value in op.params.get("outputs", [])]
+            if op.kind == "dedup":
+                outputs.extend(str(value) for value in op.params.get("duplicate_outputs", []))
+            if not outputs:
+                outputs = [""]
+            conectores_existentes = {
+                conexion.conector for conexion in self.conexiones if conexion.origen == nodo.unico
+            }
+            for dataset in outputs:
+                conector = self._conector_salida(op_id, dataset)
+                if conector in conectores_existentes:
+                    continue
+                unico = self._unico("tLogRow")
+                # Debajo de la fila de nodos, para no pisar a ninguno.
+                y = 96 * (2 + sum(1 for n in self.nodos if n.componente == "tLogRow"))
+                cierre = log_row(unico, columnas, nodo.x, y, self.ruta_java or "")
+                self.nodos.append(cierre)
+                nombre = (
+                    f"{nodo.unico}_duplicates"
+                    if conector == "DUPLICATE"
+                    else f"{nodo.unico}_out"
+                )
+                self.conexiones.append(
+                    Conexion(nodo.unico, cierre.unico, nombre, conector=conector)
+                )
+                conectores_existentes.add(conector)
 
-    def _nombre(self, desde: str, hasta: str) -> str | None:
+    def _conector_salida(self, op_id: str, dataset: str) -> str:
+        """El `tUniqRow` escoge UNIQUE o DUPLICATE según la tabla que consume la arista."""
+        op = self.plan.graph.operator(op_id)
+        if op.kind != "dedup":
+            return "FLOW"
+        version_base = dataset.split("@v", 1)[0].lower()
+        duplicados = {str(nombre).lower() for nombre in op.params.get("duplicate_outputs", [])}
+        return "DUPLICATE" if version_base in duplicados else "UNIQUE"
+
+    def _nombre(self, desde: str, hasta: str, dataset: str) -> str | None:
         """Nombre de la conexión: la entrada que el `tMap` espera, o la salida que produce.
 
         `None` cuando el `tMap` de destino no tiene esa entrada: la arista existe en el plan pero no
@@ -464,6 +493,9 @@ class _Job:
         if hasta in self._entradas_map:
             return self._entradas_map[hasta].get(desde)
         if desde in self._pasos:
+            op = self.plan.graph.operator(desde)
+            if op.kind == "dedup" and self._conector_salida(desde, dataset) == "DUPLICATE":
+                return f"{self._nodo[desde].unico}_duplicates"
             return f"{self._nodo[desde].unico}_out"
         if desde in self._salidas_map:
             return self._salidas_map[desde]

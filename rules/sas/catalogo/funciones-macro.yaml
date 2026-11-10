@@ -108,7 +108,7 @@ entries:
   nombre: '%SYSFUNC'
   fuente: mcrolref.pdf, p. 372
   estado: reconocida
-  nota: el código del repo la reconoce (lexer, macros)
+  nota: 'En %LET solo evalúa estáticamente %SYSFUNC(UPCASE(argumento)) si el argumento está resuelto, es un identificador ASCII simple y el programa no declara TRANTAB, ENCODING o LOCALE; las demás formas y las opciones explícitas o dinámicas conservan MacroDynamic. UPCASE depende de esas tres opciones (lefunctionsref.pdf, sección iniciada p. 1638, detalle p. 1639); los valores de sesión externos aún no se conocen, así que la cobertura es parcial.'
 - id: sysget
   nombre: '%SYSGET'
   fuente: mcrolref.pdf, p. 379

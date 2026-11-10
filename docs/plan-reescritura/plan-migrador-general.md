@@ -4,11 +4,11 @@ Fecha: 5 de noviembre de 2026. Alcance decidido por el usuario (DC-01): **un mig
 cualquier programa SAS y devuelve uno o varios Jobs de Talend bien hechos, con contextos, joblets, Job padre
 e hijos, manejo de errores y registro. `client_large.sas` pasa a ser un caso de prueba más.
 
-**Este es el plan maestro del repositorio (6 de noviembre de 2026).** Está escrito para que **otro agente
+**Este es el plan maestro del repositorio (10 de noviembre de 2026).** Está escrito para que **otro agente
 lo ejecute sin preguntar**. `ruta-a-produccion.md` queda subordinado: es el detalle de la pista del
 programa grande y de la operación (F9), y su Fase 7 la reemplaza este documento. El corpus y el plan de
-equivalencia están en `plan-corpus-y-equivalencia.md`. **Avance global: ver la sección 11b** (cerca de 20 %
-de las horas de agente, con el método ahí).
+equivalencia están en `plan-corpus-y-equivalencia.md`. **Avance global: ver la sección 11b** (31,4 %
+de las horas de agente, actualizado en el hito 137).
 
 ## 0. Cómo usar este documento
 
@@ -507,10 +507,22 @@ a `L2` sin YAML; MG-P1-03, MG-P1-05 y MG-P1-06 son de los planes siguientes.
 | MG-P2-06 | `FILENAME` (archivo, pipe, FTP) y `PROC DOWNLOAD/UPLOAD/RSUBMIT` (cierra el hueco R7-12) | S | caso del corpus con `RSUBMIT` | 6 |
 | MG-P2-07 | Decisión MG-D03 aplicada: datasets permanentes a archivo de preparación con aviso | H | casos con `lib.tabla` generan lectura y escritura coherentes | 2 |
 
-**Estado (hito 104m, 5 de noviembre de 2026).** MG-P2-01 a medias: `PROC IMPORT` y `PROC EXPORT`
-de CSV y DLM generan `tFileInputDelimited` y `tFileOutputDelimited` con cabecera y delimitador, y los
-15 casos de `L0` se migran enteros —7 de ellos completos, sin un pendiente que no sea de tipo—. El
-`DBMS=XLSX` y `GUESSINGROWS` todavía no tienen emisor, y los tipos de columna esperan a MG-P1-02.
+**Estado (hito 122, 6 de noviembre de 2026).** MG-P2-01 sigue parcial: CSV/DLM conservan lectura,
+escritura, cabecera y delimitador; `DBMS=XLSX/XLS` se clasifica por el formato declarado y la lectura
+Excel ajusta el indicador del libro XLS/XLSX. `SHEET` de `PROC EXPORT` y `GUESSINGROWS` literal,
+`MAX` o dinámico se conservan en la IR; cuando se usa `GUESSINGROWS`, el emisor deja pendiente validar
+el esquema explícito. La exportación Excel se propone como `tFileOutputExcel`, pero no se genera
+mientras falte una plantilla extraída de un Job real de Studio. `EXCELCS` y formatos no declarados
+siguen pendientes. MG-P2-02 tiene avance parcial: se modelan `INFILE/INPUT`, se enruta la lista con
+`DLM` literal de un carácter y `FIRSTOBS`, y se preservan `FILE/PUT` y `DATALINES` como pendientes.
+No se emite lectura posicional, `DSD`, `MISSOVER` ni `TRUNCOVER`; faltan plantilla real y verificación
+de semántica en Studio. MG-P2-03 avanza parcialmente: `w.` se tipa como `Double`; `COMMAw.d` y
+`DOLLARw.d` producen candidatos `INPUT` con guardas y escala decimal; informats dinámicos,
+desconocidos y fechas dependientes de opciones SAS quedan pendientes, salvo la fecha ISO determinista
+`E8601DA`. No se inventa un `YEARCUTOFF`: la referencia documenta 1940 como predeterminado y el
+corpus local configura 1910 y 1920. `PUT` numérico con `COMMA` sigue pendiente por anchura,
+redondeo y separadores. Ninguna equivalencia queda validada en Studio; hacen falta vectores de
+ejecución SAS/Talend y completar la cobertura de formatos del corpus.
 
 ### MG-P3. Expresiones y funciones (80 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -545,6 +557,22 @@ empates alejándose de cero, y predicados DATA step como `Long` 1/0. A/B queda v
 L4 revisado (suite completa: 2361 passed, 27 skipped, 149 xfailed; Ruff limpio). La compilación C
 ampliada no se ejecutó: el bridge de Studio no estaba disponible (`ECONNREFUSED` en
 `127.0.0.1:3930`). No se declara C validado para estos cambios; queda por reintentar con Studio abierto.
+
+**Actualización (hito 123, 6 de noviembre de 2026).** MG-P3-04 avanza parcialmente con candidatos
+para `INTNX` de fecha en `MONTH`, `YEAR`, `DAY` y `WEEK/SAME`, y `INTCK` discreto en `MONTH`, `YEAR`
+y `DAY`. `INTNX` conserva los límites de año y las alineaciones de mes soportadas, comprueba que el
+incremento literal sea entero y agrega una guarda para incrementos de columna; aún exige validar
+época SAS (1960), tipos y resultados en Studio. `INTCK` acepta `DISCRETE`, `D` y `DISC` explícitos, además del método
+predeterminado. No se inventa `WEEKSTART`: `INTNX WEEK` con alineación de límites, `MIDDLE`, los
+intervalos de hora/minuto/segundo, `INTCK WEEK` y los métodos `CONTINUOUS` quedan pendientes.
+La fachada pública `translate()` delega `INTNX` e `INTCK` a estos mismos constructores y ya no conserva
+un emisor inline de fechas con semántica distinta.
+Los intervalos compuestos o desplazados (`YEAR2`, `YEAR.3`), personalizados, dinámicos y los que
+no sean unidades exactas del subconjunto soportado también quedan pendientes.
+`DATDIF`/`YRDIF` siguen pendientes hasta modelar y probar cada base (`30/360`, `ACT/ACT`, `ACT/360`,
+`ACT/365`, `AGE`). La suite verifica el Java candidato y sus guardas, pero no sustituye vectores de
+ejecución SAS/Talend; el criterio de aceptación de MG-P3-04 sigue abierto. Referencia: `lefunctionsref`,
+INTCK pp. 1072–1074 e INTNX pp. 1111–1115.
 
 ### MG-P4. DATA step (90 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -611,6 +639,13 @@ MG-P5-03 en adelante, sin empezar.
 | MG-P6-06 | Lista de procedimientos fuera de alcance con motivo en `docs/cobertura.md` | H | generada | 2 |
 | MG-P6-07 | `PROC FORMAT` y `PROC SQL` avanzadas que falten | S | según corpus real | 10 |
 
+**Estado (hito 124, 9 de noviembre de 2026).** MG-P6-01 parcial: `DESCENDING` se conserva por
+variable; `NODUPKEY` usa `tUniqRow`, puede separar `DUPOUT=` por su salida `DUPLICATE` y deja
+`NOEQUALS` como parcial porque cambia la fila sobreviviente. `NODUPREC` solo se traduce cuando
+`BY _ALL_` demuestra adyacencia; sin esa garantía se conserva el orden y se deja parcial. Aún falta
+validar en Studio la estabilidad de `tSortRow` para cerrar la selección de fila de `NODUPKEY`.
+MG-P6-02 a MG-P6-07 siguen sin empezar.
+
 ### MG-P7. Macros (60 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -620,7 +655,18 @@ MG-P5-03 en adelante, sin empezar.
 | MG-P7-04 | Variables de macro de tiempo de ejecución (`CALL SYMPUT`, `SELECT INTO`) a contexto o variable global | S | casos nuevos | 8 |
 | MG-P7-05 | Huecos del analizador: `%IF` en macro con parámetro, `PROC DOWNLOAD` en `RSUBMIT`, WORK leída antes de crearse, `sql_tree` con subconsultas en `FROM` | S | los 3 programas del hueco ya analizan | 12 |
 | MG-P7-06 | `CALL EXECUTE` y código dinámico: pendiente con motivo y forma documentada (MG-D04) | H | pendientes con código estable | 4 |
-| MG-P7-07 | Opciones del sistema que cambian resultados (`MISSING=`, `YEARCUTOFF`, `VALIDVARNAME`, `MERGENOBY`): detección y aviso | H | `lesysoptsref` citada | 6 |
+| MG-P7-07 | Opciones del sistema que cambian resultados (`MISSING=`, `YEARCUTOFF`, `VALIDVARNAME`, `MERGENOBY`, `TRANTAB`, `ENCODING`, `LOCALE`): detección y aviso | H | `lesysoptsref` citada y dependencias NLS documentadas | 6 |
+
+**Estado (hito 125, 9 de noviembre de 2026).** MG-P7-01 avanza de forma parcial: el frontend expande
+el caso L5-06 cuando `%SYSFUNC(UPCASE(...))` recibe una macrovariable resuelta cuyo valor es un
+identificador ASCII simple (`[A-Za-z0-9_]+`). Las llamadas dinámicas, con formato, argumentos
+múltiples o funciones distintas quedan como `MacroDynamic`. Si alguna fuente declara `TRANTAB`,
+`ENCODING`, `LOCALE` o una opción dinámica, la llamada también se conserva como pendiente. SAS
+documenta que `UPCASE` depende de esas tres opciones (`lefunctionsref.pdf`, sección iniciada p. 1638,
+detalle p. 1639); la ausencia de una declaración en el SAS no demuestra los valores externos de la
+sesión, por lo que no se declara equivalencia general ni se completa MG-P7-01. Crédito medido: 0,25
+de 16 h (4 h). MG-P7-02 a MG-P7-07 siguen sin implementación; la detección de opciones es parcial y
+su cierre corresponde a MG-P7-07.
 
 ### MG-P8. Planificador de arquitectura (70 h)
 Convierte el plan lógico en la organización de Jobs. Es el paso que hoy no existe para un programa nuevo.
@@ -668,12 +714,44 @@ de cada nodo. MG-P8-01, MG-P8-02, MG-P8-03, MG-P8-05 y MG-P8-06 son de los plane
 | MG-P10-08 | Informe de cobertura `sgm cobertura` (C1) generado desde reglas y corpus | H | `docs/cobertura.md` y JSON | 6 |
 | MG-P10-09 | Segundo y tercer programa del cliente (los de `tests/fixtures/sas/real` y `synthetic`): medir cobertura y cerrar las brechas más frecuentes de forma iterativa | S | cobertura medida y creciente | 15 |
 
-**Estado (hito 104m, 5 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis
-reglas de Studio sobre el modelo y los 45 Jobs de `L0` a `L2` salen limpios; encontró un defecto real
-del emisor —dos salidas `row1` del mismo nodo cuando la tabla se lee dos veces—. MG-P10-01 a medias: el
-intérprete ejecuta `read_file`, `write_file` y `map` con `join`, `filter` y `derive`, y 14 de los 43
-casos `traducible` o `revisado` dan su `esperado/`; los otros 29 son `xfail(strict=True)` con el
-motivo escrito. La semántica vive en `migrar/semantica.py` y sale de `semantica/vectores.yaml`.
+**Estado (hito 131, 9 de noviembre de 2026).** MG-P10-02 hecho: `validar_job` aplica las seis reglas
+de Studio sobre el modelo y los 45 Jobs de `L0` a `L2` salen limpios; encontró un defecto real del
+emisor —dos salidas `row1` del mismo nodo cuando la tabla se lee dos veces—. MG-P10-01 sigue parcial:
+el anillo B ejecuta 61 de 62 casos elegibles y conserva un `xfail` estricto: alias de auto-unión
+perdido. El intérprete evalúa tres subconsultas independientes `IN`/`NOT IN` de una fuente y una
+columna; rechaza correlación, faltantes, esquemas no verificables y formas fuera de ese contrato.
+El lowerer conserva los calificadores y `alias.*` proyecta las columnas del lado seleccionado; el
+intérprete añade el orden de ejecución necesario para leer tablas derivadas de la subconsulta sin
+alterar la IR persistida. La revisión independiente agregó regresiones para escrituras anteriores y
+posteriores al filtro y para el lado vacío sin esquema; se conserva la versión indicada por la
+evidencia y se rechaza la proyección sin columnas demostrables. Esto verifica el anillo B, no completa
+la traducción: el emisor Talend aún
+deja `IN (SELECT ...)` parcial. El intérprete también calcula `COUNT(*)`, `COUNT(expresión)`, `SUM`,
+`AVG`, `MIN` y `MAX` en agregados simples, con y sin grupos, faltantes y sin asumir tipos ambiguos.
+`MEAN` de un argumento también se interpreta como el promedio agregado equivalente a `AVG`.
+En el hito 131 separa los agregados SQL de un argumento de las funciones por fila `SUM`, `MIN`,
+`MAX` y `MEAN` con varios argumentos; los marcadores de parseo no colisionan con identificadores de
+entrada y se restauran solo donde se generaron. El intérprete ignora faltantes representados como
+`None` o texto vacío/blanco, rechaza argumentos no numéricos y no interpreta `AVG` multiargumento
+como agregado: SAS documenta esa forma como error. Los faltantes numéricos especiales quedan
+pendientes si el esquema no demuestra que el valor de texto representa uno. La búsqueda de
+`contains`, operadores y funciones por fila mantiene comentarios y literales intactos, incluso si el
+comentario contiene un apóstrofe. Esto verifica semántica en el intérprete; no añade una equivalencia
+ni componente Talend.
+La salida conserva solo las llaves seleccionadas, sus alias y el orden del `SELECT`; la remezcla SAS
+de columnas no agrupadas o de `ORDER BY` no seleccionado se rechaza de forma explícita. Esto hace
+pasar el caso L2 en el intérprete, pero la migración completa sigue pendiente: no existe emisor Talend
+para `aggregate` y el esquema de la entrada no demuestra las columnas de salida. La revisión final
+también encontró que una proyección posterior a la unión podía descartar el agregado; ahora se evita
+esa proyección cuando el `aggregate` ya entrega la forma seleccionada. El
+intérprete también ejecuta el `IF/THEN DO/END/ELSE` de asignaciones simples; el grupo se rechaza
+conservadoramente si una variable de la condición se modifica antes de la última asignación. El
+emisor conserva el tipo de una columna cuando la rama alternativa mantiene su valor. La migración
+completa de ese caso aún informa `P-ESQUEMA-VACIO`: el corpus no demuestra el esquema de la tabla de
+entrada y no se inventan columnas. El arnés detecta columnas extra o faltantes en cada fila no vacía,
+además de comparar los valores; no puede comprobar el esquema de una salida vacía porque el intérprete
+no conserva sus metadatos de columnas. La semántica SAS implementada vive en `migrar/semantica.py` y
+sus vectores en `tests/corpus/semantica/vectores.yaml`.
 
 ### MG-P11. Experiencia de uso (30 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -685,11 +763,15 @@ motivo escrito. La semántica vive en `migrar/semantica.py` y sale de `semantica
 | MG-P11-05 | Mensajes de error y de pendiente claros, en español, con código estable y sugerencia | H | todos los códigos tienen texto | 4 |
 | MG-P11-06 | Documentación: guía de usuario, guía de operación, catálogo de construcciones soportadas | H | generada y revisada | 2 |
 
-**Estado (hito 104m, 5 de noviembre de 2026).** MG-P11-01 a medias: `sgm migrar <programa.sas>
---out <carpeta>` corre todas las capas sin ningún YAML y escribe `process/`, `contextos/`,
-`pendientes.md`, `configuracion-pendiente.md`, `decisiones-tomadas.md`, `trace.json` y
-`migracion.log`, con salida determinista y código 0 siempre. Falta la carpeta completa (MG-P11-03),
-`cobertura.md` y las sobreescrituras por YAML (MG-P11-02).
+**Estado (hito 132, 10 de noviembre de 2026).** MG-P11-01 completo: `sgm migrar` acepta un archivo
+o carpeta, recorre los `.sas` por ruta relativa determinista, conserva cada paquete bajo su ruta y
+escribe `process/`, `contextos/`, `pendientes.md`, `configuracion-pendiente.md`,
+`decisiones-tomadas.md`, `trace.json`, `cobertura.md` y `migracion.log` sin YAML. La cobertura solo
+lista líneas demostradas por la traza o por pendientes; no inventa un porcentaje. Ignora archivos
+que no sean SAS, trata carpetas sin programas como una entrada vacía y valida el backend antes de
+crear salidas. El recorrido no ordena dependencias: MG-P11-03 aún debe formar el proyecto de varios
+programas. También faltan las sobreescrituras YAML (MG-P11-02), la integración de explicar/comparar
+(MG-P11-04), el catálogo completo de mensajes (MG-P11-05) y las guías de usuario (MG-P11-06).
 
 ### MG-P12. Rendimiento y escala (30 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
@@ -699,6 +781,13 @@ motivo escrito. La semántica vive en `migrar/semantica.py` y sale de `semantica
 | MG-P12-03 | Plantillas de configuración de la JVM y de Talend para volumen (`-Xmx`, paginación) | H | documento y pruebas | 4 |
 | MG-P12-04 | Caché del análisis (`.sgm-cache/`) para repetir corridas | H | segunda corrida más rápida y con la misma salida | 4 |
 
+**Estado:** MG-P12-01 completo (hito 133). En Windows 11, `client_large.sas` (835 630 bytes)
+generó 1/1 paquetes en 6,848 s y 93 872 128 bytes de pico residente del árbol de procesos; los otros
+189 SAS (637 104 bytes) generaron 189/189 en 10,860 s y 81 707 008 bytes. Ambos escenarios
+cumplieron los límites estrictos de menos de 120 s y menos de 1 000 000 000 bytes. Es una línea base
+dependiente de la máquina, registrada en `metrics/performance/mg-p12-01.json`; MG-P12-02 a 04 siguen
+pendientes.
+
 ### MG-P13. Seguridad y cumplimiento (20 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -707,6 +796,17 @@ motivo escrito. La semántica vive en `migrar/semantica.py` y sale de `semantica
 | MG-P13-03 | Datos personales: los registros y archivos de rechazo no copian columnas sensibles si no se pidió (lista configurable) | S | prueba | 5 |
 | MG-P13-04 | Auditoría de dependencias y licencias; SBOM | H | `docs/sbom.md` | 3 |
 | MG-P13-05 | Revisión de seguridad de la generación (inyección en literales SQL y en expresiones Java generadas, escapes) | S | pruebas con entradas hostiles | 9 |
+
+**Estado:** MG-P13-01 completo (hito 134), MG-P13-05 completo (hito 135) y MG-P13-04 completo
+(hito 136). `sgm migrar` prepara el
+paquete en staging y solo lo publica si el escaneo pasa; el workflow deja configurada la revisión
+nocturna de una migración controlada y `decisiones/`, que se activa al integrar el archivo en la
+rama predeterminada. La auditoría del emisor comprobó que el SQL se revalida después del render y
+que los identificadores SQL, las columnas tMap, los nombres de contexto y los name literals no
+portables quedan bloqueados antes de emitir; los literales Java y las rutas de archivo se escapan
+como cadenas seguras. El SBOM SPDX 2.3 enumera cada variante de `uv.lock`; el manifest de
+distribuciones conserva el mapeo individual de archivos, URLs y hashes. La licencia de `sgm` queda
+`NOASSERTION` para decisión legal. MG-P13-02 requiere confirmación humana y MG-P13-03 sigue pendiente.
 
 ### MG-P14. Producción (agente 40 h, personas unos 40 días)
 | Id | Tarea | Tipo | Aceptación |
@@ -772,13 +872,12 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (6 de noviembre de 2026, hito 123m)
+## 11b. Avance medido (10 de noviembre de 2026, hito 137)
 
-**Avance global: 27,1 % de las 895 horas de agente (242,75 h), es decir, cerca de 27 %** (era 19,6 % en el
-hito 107). C7 (producción con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía. Ojo:
-el salto de los hitos 108m a 123m se apoya en los anillos A y B; **nada de lo nuevo se ha compilado en
-Studio**, y por eso el crédito de P9 y P5 se cuenta con 0,25 y no con 0,5 en lo que solo tiene Job
-escrito y validado por `validar_job`.
+**Avance global: 31,4 % de las 895 horas de agente (281,25 h).** Para reconciliar las dos ramas
+integradas, el cálculo conserva el crédito mayor ya demostrado por fase; no suma los totales de ramas
+paralelas ni acredita dos veces trabajo de la misma fase. C7 (producción con personas) está en 0 %;
+ningún criterio C1 a C6 está cumplido todavía.
 
 **Método (reproducible a mano).** Cada tarea `MG-Pn-mm` aporta sus horas multiplicadas por un crédito:
 1 = hecha y su aceptación comprobada; 0,5 = parcial con evidencia de ejecución (corpus pasa en A o B, o
@@ -791,31 +890,35 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 |---|---|---|---|---|
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
 | MG-P1 Modelo y plan lógico | 70 | 43,0 | 61 % | Pendientes y propiedad hechos; tabla de símbolos L0 a L2; tipos deducidos de comparaciones y agregados; sin tipos desde la muestra |
-| MG-P2 Entrada y salida | 50 | 12,0 | 24 % | CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT` |
-| MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
+| MG-P2 Entrada y salida | 50 | 17,0 | 34 % | CSV/DLM y Excel parcial; `INFILE/INPUT` modelados; informats numéricos puntuales candidatos y fechas con opciones pendientes; sin lector posicional, bases, `FILENAME` ni `RSUBMIT` |
+| MG-P3 Expresiones y funciones | 80 | 17,5 | 22 % | Funciones puntuales; candidatos parciales `INTNX`/`INTCK` de fecha sin validar en SAS/Talend; faltan `DATDIF`/`YRDIF`, PRX y `PROC FORMAT` |
 | MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
-| MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos), `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
-| MG-P6 Procedimientos | 50 | 4,0 | 8 % | `PROC SORT` con `NODUP`/`NODUPKEY` y `BY _ALL_`; sin `FREQ`, `MEANS`, `TRANSPOSE` |
-| MG-P7 Macros | 60 | 8,0 | 13 % | `L5`: 8 de 12 casos pasan en el anillo B (`%let`, macro con parámetros, `%eval`); sin `%sysfunc` ni `SELECT INTO` |
+| MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados compuestos, `UNION ALL`, `IN`/`NOT IN` simple con validación de fuente, correlación y orden de versiones, y cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
+| MG-P6 Procedimientos | 50 | 7,5 | 15 % | `PROC SORT` parcial: `NODUPREC`, `NODUPKEY`, `DUPOUT=`, `DESCENDING` y `BY _ALL_`; estabilidad de `NODUPKEY` sin probar en Studio |
+| MG-P7 Macros | 60 | 8,0 | 13 % | `%let`, macros con parámetros, `%eval` y `%SYSFUNC(UPCASE())` constante; faltan `SELECT INTO`, otros casos L5 y validar opciones de sistema |
 | MG-P8 Planificador | 70 | 15,0 | 21 % | Contextos DEV/QA/PROD; `trace.json` parcial; plantillas repetidas desplegadas en línea (provisional); sin segmentación ni límite de tamaño |
-| MG-P9 Emisor | 108 | 34,5 | 32 % | 29 de 40 plantillas con nodo emitido (`tSortRow`, `tUniqRow`, `tAggregateRow`, `tUnite` nuevos, sin Studio), contextos y conexiones; joblets sin validar |
-| MG-P10 Verificación | 80 | 24,0 | 30 % | Validador del `.item` hecho; intérprete B: 86 de 93 casos elegibles pasan (L0 a L6), 7 `xfail`; el comparador sigue sin ser estricto con columnas de más |
-| MG-P11 Experiencia de uso | 30 | 4,0 | 13 % | `sgm migrar` de un programa sin YAML; falta carpeta y `cobertura.md` |
-| MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
-| MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
+| MG-P9 Emisor | 108 | 34,5 | 32 % | 29 de 40 plantillas con nodo emitido (`tSortRow`, `tUniqRow`, `tAggregateRow`, `tUnite`); 85 de 85 Jobs de la tanda compilaron en Studio; joblets sin validar |
+| MG-P10 Verificación | 80 | 24,0 | 30 % | Validador del `.item`; anillo B: 90/96 casos pasan y 6 brechas conocidas son `xfail` estricto; comparador de columnas y agregados; falta la cobertura completa de producción |
+| MG-P11 Experiencia de uso | 30 | 8,0 | 27 % | MG-P11-01 completo: archivo/carpeta, paquetes deterministas e informe `cobertura.md`; faltan MG-P11-02 a 06, incluido el orden por dependencias |
+| MG-P12 Rendimiento | 30 | 8,0 | 27 % | MG-P12-01 medido: programa grande y carpeta de 189 bajo límites; MG-P12-02 a 04 pendientes |
+| MG-P13 Seguridad | 20 | 15,75 | 79 % | MG-P13-01, 04 y 05 completas; MG-P13-02 requiere confirmación humana; privacidad pendiente |
 | MG-P14 Producción | 40 | 0,0 | 0 % | Sin empezar; la parte de personas (unos 40 días) no cuenta aquí |
-| **Total** | **895** | **242,75** | **27,1 %** | |
+| **Total** | **895** | **281,25** | **31,4 %** | Crédito máximo por fase entre ramas integradas, sin sumar estimaciones paralelas |
 
-**Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
-(359,0 h y 360,25 h).
+**Saldo por créditos medidos: 613,75 h.** El reparto nominal entre Andres y Byron en
+`reparto-andres-byron.md` suma 719,25 h (359,0 h y 360,25 h); queda una diferencia de 105,5 h por
+conciliar con el saldo medido. Este hito conserva ese reparto sin cambiar dueños ni estimaciones.
 
-**Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):
-anillo B, 86 de 93 casos elegibles pasan (92 %; hito 123m); anillo A, 84 de los 101 casos de `L0` a
-`L6` migran sin pendientes de traducción (83 %; hito 123m); Studio, 24 Jobs compilan juntos y solo 4 casos se ejecutaron con su esperado
-(representativos, no el corpus). Quedan 5 incompatibilidades Java sin resolver en `L4`.
+**Termómetros directos del corpus** (más honestos que las horas, porque no dependen del crédito):
+anillo A: 101 de 101 programas migran sin perder operadores, los 15 pendientes reales coinciden con
+la lista viva y todos los Jobs generados pasan `validar_job`. Anillo B: 90 de 96 casos coinciden con
+el esperado; seis brechas conocidas permanecen como `xfail` estricto. Studio: 85 de 85 Jobs de la
+tanda compilaron en una ejecución anterior; esta integración no repitió ese lote. La compilación
+confirma apertura y generación de Java, no ejecución ni equivalencia funcional; las corridas de
+Studio no se sustituyen por el anillo B.
 
-**Qué mueve más el número.** La ruta crítica pide P4, P5 y P6 antes que P8 y P9; ahí hoy hay 9,8 %
-de crédito (21,5 de 220 horas). Lo que más sube el porcentaje por hora es `MG-P5-02` a `P5-04`,
+**Qué mueve más el número.** La ruta crítica pide P4, P5 y P6 antes que P8 y P9; ahí hoy hay 29,8 %
+de crédito (65,5 de 220 horas). Lo que más sube el porcentaje por hora es `MG-P5-02` a `P5-04`,
 `MG-P4-03` a `P4-05` y `MG-P9-03` (joblets, el mayor riesgo técnico, sin validar en Studio).
 
 ## 12. Riesgos y mitigaciones

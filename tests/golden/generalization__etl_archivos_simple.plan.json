@@ -56,8 +56,31 @@
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
-      "signature": "f7d83a49f36cd2a2",
+      "signature": "68fa4f219ba17c13",
       "params": {
+        "datafile": "\"C:\\datos\\entrada\\pedidos.csv\"",
+        "infile_line": 7,
+        "infile_options": {
+          "dsd": true,
+          "firstobs": 2,
+          "truncover": true
+        },
+        "unsupported_options": [],
+        "firstobs": 2,
+        "input_mode": "list",
+        "input_names": [
+          "cliente",
+          "producto",
+          "canal",
+          "cantidad",
+          "precio",
+          "fecha_txt"
+        ],
+        "input_statement": "input cliente $ producto $ canal $ cantidad precio fecha_txt $",
+        "input_line": 9,
+        "file_format": "delimited",
+        "infile_statement": "infile \"C:\\datos\\entrada\\pedidos.csv\" dsd firstobs=2 truncover",
+        "statement": "infile \"C:\\datos\\entrada\\pedidos.csv\" dsd firstobs=2 truncover | input cliente $ producto $ canal $ cantidad precio fecha_txt $",
         "outputs": [
           "WORK.pedidos_raw"
         ]
@@ -187,7 +210,7 @@
     {
       "id": "op00009",
       "kind": "dedup",
-      "status": "soportado",
+      "status": "parcial",
       "placement": "flow",
       "signature": "253e97bb004bb320",
       "params": {
@@ -209,7 +232,9 @@
           "call": null
         }
       ],
-      "notes": [],
+      "notes": [
+        "EQUALS conserva empates en orden de entrada; la estabilidad de tSortRow no está verificada para identificar la misma fila"
+      ],
       "component": {
         "name": "tUniqRow",
         "rung": 2,
@@ -862,7 +887,7 @@
       "occurrences": 1
     },
     {
-      "signature": "f7d83a49f36cd2a2",
+      "signature": "68fa4f219ba17c13",
       "options": [
         {
           "opcion": "tFileInputDelimited",
@@ -1151,7 +1176,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tFileInputDelimited; no aplicado"
       },
-      "signature": "f7d83a49f36cd2a2",
+      "signature": "68fa4f219ba17c13",
       "fuente": []
     },
     {

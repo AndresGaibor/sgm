@@ -60,6 +60,8 @@ def escribir(carpeta: Path, esp: Esperado) -> list[Path]:
     carpeta_archivos.mkdir(parents=True, exist_ok=True)
     for nombre, tabla in esp.archivos.items():
         ruta = carpeta_archivos / f"{nombre}.csv"
-        ruta.write_text("".join(_linea_dlm(f) + "\n" for f in tabla.filas), encoding="utf-8")
+        ruta.write_text(
+            "".join(_linea_dlm(f) + "\n" for f in tabla.filas), encoding="utf-8", newline="\n"
+        )
         escritos.append(ruta)
     return escritos

@@ -35,9 +35,10 @@ def _dbms(opciones: dict[str, str]) -> str | None:
     return _sin_comillas(valor).lower() if valor else None
 
 
-def _entero(valor: str | None) -> int | None:
+def _entero(valor: str | None) -> int | str | None:
+    """Convierte el límite literal y conserva MAX o una expresión sin evaluar."""
     texto = _sin_comillas(valor) if valor else ""
-    return int(texto) if texto.isdigit() else None
+    return int(texto) if texto.isdigit() else texto or None
 
 
 def _getnames(opciones: dict[str, str]) -> bool:
@@ -70,6 +71,8 @@ def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
         "dbms": _dbms(opciones),
         "delimiter": _sin_comillas(opciones["delimiter"]) if "delimiter" in opciones else None,
     }
+    if "sheet" in opciones:
+        params["sheet"] = _sin_comillas(opciones["sheet"])
     b.op("write_file", params, ev)
 
 
@@ -111,30 +114,145 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
 
 
 def _sort(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str | None) -> None:
-    by = _names(step.clauses.get("by"))
-    nodup = "nodupkey" in step.flags or "nodup" in step.flags
+    by, descending, error = _sort_keys(step.clauses.get("by"))
+    flags = set(step.flags)
+    nodupkey = "nodupkey" in flags
+    noduprec = bool(flags & {"nodup", "noduprec", "noduprecs"})
+    dupout = step.options.get("dupout")
+    opciones_desconocidas = sorted(set(step.options) - {"data", "out", "dupout"})
+    banderas_admitidas = {"nodupkey", "nodup", "noduprec", "noduprecs", "equals", "noequals"}
+    banderas_desconocidas = sorted(flags - banderas_admitidas)
+    sentencias_desconocidas = [
+        sentencia
+        for sentencia in step.body
+        if sentencia and sentencia.split(None, 1)[0].lower() != "by"
+    ]
+    if error:
+        _unsupported(step, ev, b, error)
+        return
+    if opciones_desconocidas or banderas_desconocidas or sentencias_desconocidas:
+        desconocidos = sorted(
+            [*opciones_desconocidas, *banderas_desconocidas]
+            + [sentencia.split(None, 1)[0].lower() for sentencia in sentencias_desconocidas]
+        )
+        detalle = ", ".join(desconocidos)
+        nota = f"PROC SORT contiene opciones o sentencias aún no traducidas: {detalle}"
+        _unsupported(step, ev, b, nota)
+        return
+    if {"equals", "noequals"} <= flags:
+        _unsupported(step, ev, b, "PROC SORT combina EQUALS y NOEQUALS")
+        return
+    if nodupkey and noduprec:
+        _unsupported(
+            step,
+            ev,
+            b,
+            "PROC SORT combina NODUPKEY con NODUPREC; la combinación no está verificada",
+        )
+        return
+    if dupout and not nodupkey:
+        _unsupported(step, ev, b, "DUPOUT= solo se admite junto con NODUPKEY")
+        return
+    salidas = [qualify(nombre).lower() for nombre in (dupout, out) if nombre]
+    dupout_reemplaza_entrada = bool(
+        dupout and data and qualify(dupout).lower() == qualify(data).lower()
+    )
+    if len(salidas) != len(set(salidas)) or dupout_reemplaza_entrada:
+        _unsupported(step, ev, b, "DUPOUT= no puede compartir dataset con DATA= u OUT=")
+        return
+    es_by_all = by == ["_all_"]
+    if noduprec and not es_by_all:
+        notas = ["NODUPREC solo elimina duplicados adyacentes; sin BY _ALL_ no se demuestra "
+            "que todos queden juntos"]
+        b.op(
+            "sort",
+            {**_sort_params(by, descending, flags, data),
+                "outputs": [qualify(out or data)] if (out or data) else []},
+            ev,
+            status="parcial",
+            notes=notas,
+        )
+        return
+    nodup = nodupkey or noduprec
+    sort_status = "soportado" if by else "parcial"
+    sort_notes = [] if by else ["PROC SORT sin BY: no se puede deducir la clave"]
     sort = b.op(
         "sort",
-        {"by": by, "inputs": [qualify(data)] if data else []},
+        _sort_params(by, descending, flags, data),
         ev,
-        status="soportado" if by else "parcial",
-        notes=[] if by else ["PROC SORT sin BY: no se puede deducir la clave"],
+        status=sort_status,
+        notes=sort_notes,
     )
     current: Operator = sort
     if nodup:
-        dedup = b.op(
-            "dedup",
-            {"by": by, "keep": "first"},
-            ev,
-            status="soportado" if by else "parcial",
-            notes=[] if by else ["NODUP sin clave: deduplicación parcial"],
-        )
+        notas = [] if by else ["NODUPKEY sin clave: deduplicación parcial"]
+        dedup_status = "soportado" if by else "parcial"
+        if nodupkey and by:
+            dedup_status = "parcial"
+            notas.append(
+                "EQUALS conserva empates en orden de entrada; la estabilidad de tSortRow "
+                "no está verificada para identificar la misma fila"
+            )
+        if nodupkey and "noequals" in flags:
+            dedup_status = "parcial"
+            notas.append(
+                "NOEQUALS permite cambiar qué observación queda por cada clave duplicada"
+            )
+        params = {"by": by, "keep": "first"}
+        if dupout:
+            params["duplicate_outputs"] = [qualify(dupout)]
+        dedup = b.op("dedup", params, ev, status=dedup_status, notes=notas)
         b.link(sort, dedup)
         current = dedup
     target = out or data
     if target:
         current.params["outputs"] = [qualify(target)]
         b.refresh(current)
+
+
+def _sort_params(
+    by: list[str], descending: list[bool], flags: set[str], data: str | None
+) -> dict[str, object]:
+    """Guarda solo opciones no predeterminadas para mantener estables las firmas del plan."""
+    params: dict[str, object] = {
+        "by": by,
+        "inputs": [qualify(data)] if data else [],
+    }
+    if any(descending):
+        params["descending"] = descending
+    if "noequals" in flags:
+        params["equals"] = False
+    return params
+
+
+def _sort_keys(clause: str | None) -> tuple[list[str], list[bool], str | None]:
+    """Lee BY y aplica DESCENDING solo a la variable que le sigue, como en SAS."""
+    if not clause:
+        return [], [], None
+    match = re.match(r"(?is)^\s*by\b(.*?);?\s*$", clause)
+    if not match:
+        return [], [], "PROC SORT recibió una cláusula BY que no se pudo interpretar"
+    tokens = match.group(1).split()
+    nombres: list[str] = []
+    descendentes: list[bool] = []
+    pendiente_descendente = False
+    for token in tokens:
+        limpio = token.rstrip(";")
+        if limpio.lower() == "descending":
+            if pendiente_descendente:
+                return [], [], "PROC SORT contiene DESCENDING sin variable asociada"
+            pendiente_descendente = True
+            continue
+        if not re.fullmatch(r"(?i)[a-z_][a-z0-9_]*", limpio):
+            return [], [], f"PROC SORT BY contiene un nombre no admitido: {limpio}"
+        if pendiente_descendente and limpio.lower() == "_all_":
+            return [], [], "DESCENDING _ALL_ no está verificado para PROC SORT"
+        nombres.append(limpio.lower())
+        descendentes.append(pendiente_descendente)
+        pendiente_descendente = False
+    if pendiente_descendente:
+        return [], [], "PROC SORT contiene DESCENDING sin variable asociada"
+    return nombres, descendentes, None
 
 
 def _unsupported(step: Proc, ev: Evidence, b: Builder, note: str) -> None:

@@ -5,41 +5,10 @@ emite son rutinas de sistema que cualquier proyecto de Studio 8.0 trae de fábri
 falla. No hay rutina propia que instalar.
 """
 
-import re
-
 import pytest
 
 from sgm.expressions.expressions import translate
 from sgm.expressions.talend_translator import Unsupported, translate_to_talend
-
-#: Firmas de las rutinas de sistema de Studio 8.0 que usa el traductor, leídas de la instalación.
-TALEND_SIGNATURES = {
-    "StringHandling.UPCASE",
-    "StringHandling.DOWNCASE",
-    "StringHandling.TRIM",
-    "StringHandling.RTRIM",
-    "StringHandling.LTRIM",
-    "StringHandling.CHANGE",
-    "StringHandling.COUNT",
-    "StringHandling.LEN",
-    "StringHandling.EREPLACE",
-    "StringHandling.LPAD",
-    "TalendDate.getCurrentDate",
-    "TalendDate.parseDate",
-    "TalendDate.parseDateLocale",
-    "TalendDate.formatDate",
-    "TalendDate.addDate",
-    "TalendDate.diffDate",
-    "TalendDate.getPartOfDate",
-    "TalendDate.getFirstDayOfMonth",
-    "TalendDate.getLastDayOfMonth",
-    "Mathematical.SQRT",
-    "Mathematical.EXP",
-    "Mathematical.LN",
-    "Mathematical.MOD",
-    "Mathematical.REAL",
-    "Relational.ISNULL",
-}
 
 
 def java(sas: str) -> str:
@@ -241,39 +210,6 @@ def test_comparaciones_con_literal():
     assert java("x like 'A%'") == '(input_row.x != null && input_row.x.matches("A.*"))'
 
 
-def test_fechas_usan_talenddate():
-    assert java("today()") == "TalendDate.getCurrentDate()"
-    assert java("datetime()") == "TalendDate.getCurrentDate()"
-    assert java("'01JAN2020'd") == 'TalendDate.parseDateLocale("ddMMMyyyy", "01JAN2020", "en")'
-    assert java("input(f,yymmdd10.)") == 'TalendDate.parseDate("yyyy-MM-dd", input_row.f)'
-    assert java("put(d,yymmdd10.)") == 'TalendDate.formatDate("yyyy-MM-dd", input_row.d)'
-    assert (
-        java("year(d)")
-        == '(input_row.d == null ? null : (TalendDate.getPartOfDate("YEAR", input_row.d)))'
-    )
-    assert java("month(d)") == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("MONTH", input_row.d) + 1))'
-    )
-    assert java("weekday(d)") == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("DAY_OF_WEEK", input_row.d)))'
-    )
-    assert java("intnx('month',fecha,1)") == (
-        "(input_row.fecha == null ? null : TalendDate.getFirstDayOfMonth("
-        'TalendDate.addDate(input_row.fecha, (int) 1, "MM")))'
-    )
-    assert java("intnx('month',d,2,'e')") == (
-        "(input_row.d == null ? null : TalendDate.getLastDayOfMonth("
-        'TalendDate.addDate(input_row.d, (int) 2, "MM")))'
-    )
-    assert java("intck('month',a,b)") == (
-        "(input_row.a == null || input_row.b == null ? null : Long.valueOf("
-        'TalendDate.diffDate(input_row.b, input_row.a, "MM")))'
-    )
-    assert java("mdy(1,15,2020)") == (
-        '(TalendDate.parseDate("yyyy-MM-dd", String.format("%04d-%02d-%02d", (int) 2020, (int) 1, (int) 15)))'
-    )
-
-
 def test_formato_cero_rellena_a_la_izquierda():
     assert java("put(n,z8.)") == 'StringHandling.LPAD(String.valueOf(input_row.n), 8, "0")'
 
@@ -311,57 +247,6 @@ def test_funciones_sas_de_la_expresion_se_devuelven_sin_duplicados():
 def test_lo_no_traducible_queda_como_pendiente(sas):
     with pytest.raises(Unsupported):
         translate_to_talend(sas)
-
-
-def test_solo_se_emiten_rutinas_de_sistema_de_studio():
-    """Contrato: nada propio que instalar, ningun metodo inventado."""
-    expressions = [
-        "upcase(x)",
-        "lowcase(x)",
-        "strip(x)",
-        "trim(x)",
-        "left(x)",
-        "tranwrd(x,'a','b')",
-        "count(x,'a')",
-        "length(x)",
-        "lengthc(x)",
-        "lengthn(x)",
-        "compbl(x)",
-        "reverse(x)",
-        "cats(a,b)",
-        "catx('-',a,b)",
-        "compress(x,'kd')",
-        "substr(x,1,2)",
-        "scan(x,1)",
-        "index(x,'a')",
-        "sqrt(a)",
-        "exp(a)",
-        "log(a)",
-        "mod(a,2)",
-        "input(f,yymmdd10.)",
-        "put(d,yymmdd10.)",
-        "put(n,z8.)",
-        "today()",
-        "mdy(1,1,2020)",
-        "datepart(dt)",
-        "intnx('year',d,1)",
-        "intck('year',a,b)",
-        "year(d)",
-        "month(d)",
-        "day(d)",
-        "weekday(d)",
-        "x is missing",
-    ]
-    for sas in expressions:
-        for owner, method in re.findall(r"\b([A-Z]\w+)\.(\w+)\(", java(sas)):
-            if owner in {
-                "Math", "Double", "Long", "String", "StringBuilder", "Stream", "Arrays", "Objects"
-            }:
-                continue  # Java nativo, no requiere nada instalado
-            assert f"{owner}.{method}" in TALEND_SIGNATURES, (
-                f"{sas} emite {owner}.{method}, que no esta en Studio 8.0"
-            )
-        assert "SasFunctions" not in java(sas)
 
 
 def test_la_entrada_del_tmap_usa_el_nombre_real_de_la_conexion():

@@ -88,6 +88,38 @@ def test_agregado_con_group_by_no_queda_pendiente():
     assert "pendiente" not in agregado.params
 
 
+def test_group_by_conserva_solo_las_llaves_seleccionadas_y_sus_aliases():
+    plan = _plan(
+        _sql_pass("create table work.t as select k as categoria, sum(v) as total from work.s group by k;")
+    )
+    (agregado,) = _operators(plan, "aggregate")
+
+    assert agregado.params["group_outputs"] == [{"expression": "k", "alias": "categoria"}]
+
+
+def test_group_by_conserva_orden_original_de_salidas():
+    plan = _plan(
+        _sql_pass("create table work.t as select sum(v) as total, k as categoria from work.s group by k;")
+    )
+    (agregado,) = _operators(plan, "aggregate")
+
+    assert agregado.params["output_order"] == ["total", "categoria"]
+
+
+def test_group_by_con_columna_no_agrupada_queda_pendiente():
+    plan = _plan(
+        _sql_pass(
+            "create table work.t as select k, detalle, sum(v) as total "
+            "from work.s group by k;"
+        )
+    )
+    (agregado,) = _operators(plan, "aggregate")
+
+    assert agregado.status == "parcial"
+    assert agregado.params["pendiente"] == ["detalle"]
+    assert sql_semantics.aggregate_pendiente(agregado.params)
+
+
 def test_agregado_pendiente_no_se_lleva_a_la_base():
     plan = _plan(
         PROGRAMA_PUSH % "create table work.t as select id, sum(saldo) as tot from work.clientes;",
@@ -113,6 +145,59 @@ def test_el_generador_lee_la_regla_del_yaml(monkeypatch):
     plan = _plan(_sql_pass("create table work.t as select k, sum(v) as tot from work.s;"))
     (agregado,) = _operators(plan, "aggregate")
     assert agregado.status == "soportado"
+
+
+def test_remezcla_con_group_by_sigue_pendiente_si_cambia_regla_sin_group_by(monkeypatch):
+    otra = sql_semantics.Regla(
+        id=sql_semantics.AGREGADO,
+        tratamiento="programa_anfitrion",
+        etiqueta="AGREGADO_SIN_GROUP_BY",
+        descripcion="",
+    )
+    monkeypatch.setattr(
+        sql_semantics,
+        "reglas",
+        lambda: {sql_semantics.AGREGADO: otra, sql_semantics.SELECT_INTO: otra},
+    )
+    plan = _plan(
+        _sql_pass(
+            "create table work.t as select k, detalle, sum(v) as total "
+            "from work.s group by k;"
+        )
+    )
+    (agregado,) = _operators(plan, "aggregate")
+
+    assert agregado.status == "parcial"
+    assert sql_semantics.aggregate_pendiente(agregado.params)
+
+
+def test_push_to_db_proyecta_solo_llaves_de_group_by_seleccionadas():
+    plan = _plan(
+        PROGRAMA_PUSH
+        % "create table work.t as select sum(saldo) as total from work.clientes group by id;",
+        strategy="push_to_db",
+    )
+    sql_ops = _operators(plan, "exec_sql")
+
+    assert len(sql_ops) == 1
+    texto = sql_ops[0].params["sql"].lower()
+    assert "sum(saldo) as total" in texto
+    assert "group by id" in texto
+    assert "select id" not in texto
+
+
+def test_push_to_db_conserva_orden_de_salidas_del_select():
+    plan = _plan(
+        PROGRAMA_PUSH
+        % "create table work.t as select sum(saldo) as total, id as codigo "
+        "from work.clientes group by id;",
+        strategy="push_to_db",
+    )
+    sql_ops = _operators(plan, "exec_sql")
+
+    assert len(sql_ops) == 1
+    texto = sql_ops[0].params["sql"].lower()
+    assert "sum(saldo) as total, id as codigo" in texto
 
 
 def test_select_into_con_agregado_va_a_set_variable_sin_sql():

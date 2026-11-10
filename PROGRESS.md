@@ -5316,3 +5316,577 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   verificar: el valor `distinct` del `FUNCTION` de `COUNT(DISTINCT)`, el resultado de `sum` con un
   grupo de nulos, el orden de entrada de `tUnite`, y que `tSortRow` ordene los nulos como SAS.
 - Pruebas: suite 2546 pasan, 55 fallan (los de Byron), `ruff` limpio. El anillo A sigue en 84 de 101.
+
+## Hito 119. Sincronizar `main` y cerrar regresiones del traductor
+
+- Fecha: 2026-11-06.
+- Integración solicitada: `main` estaba limpia y tenía tres commits locales frente a `origin/main`.
+  Se actualizó el remoto y se fijó la rama en `c6d2c27` (`hito 116m`), conservando el cambio de
+  nombres y orden de entradas de `tMap`. Los commits locales `6f5054d`, `f956c5f` y `178c6f8`
+  dejaron de estar en la punta de `main`, tal como se pidió sobrescribir.
+- Verificación inicial: la punta recibida tenía **55 fallos** en pruebas ya presentes para `INPUT`
+  con informat dinámico, `COMPRESS`, `LIKE`, `SCAN`, literales y diagnósticos de expresiones. La
+  causa fue que esa punta no contenía las correcciones del traductor que esas pruebas esperaban.
+- Correcciones: se conservan como pendientes los informats dinámicos/no literales; se validan y
+  escapan formatos y expresiones de forma conservadora; `SCAN` admite posiciones negativas seguras,
+  `COMPRESS` limita sus equivalencias demostradas y `LIKE` escapa literales. Los diagnósticos ya no
+  reproducen texto de entrada potencialmente sensible. Se ajustaron los golden y la salida de CSV
+  esperados para finales de línea estables en Windows.
+- Estructura: las funciones de texto se separaron en `talend_funciones_texto.py`; la validación
+  compartida de aridad quedó en `talend_base.py`. Los dos módulos de funciones tienen 173 y 136
+  líneas, respectivamente. No se cambió el contrato importado por la tabla de funciones activa.
+- Pruebas: suite completa **2483 aprobadas, 26 omitidas y 144 `xfail`**; `uv run ruff check .`
+  limpio. Regresiones focalizadas: **110 aprobadas**.
+- Decisión: se mantiene `main` sobre la punta recibida y se registra la reparación como un nuevo
+  commit local del hito 119. No se hace `push`.
+- Bloqueos: ninguna verificación de Talend Studio forma parte de este hito.
+
+## Hito 120. Precisar el formato Excel y conservar opciones de PROC IMPORT/EXPORT
+
+- Fecha: 2026-11-06. Alcance: MG-P2-01.
+- Qué se hizo:
+  - El mapeo de lectores y escritores toma primero el `DBMS` declarado. Un nombre de archivo con
+    extensión contradictoria ya no cambia el componente, y un `DBMS` desconocido no se presenta
+    como delimitado.
+  - `PROC EXPORT DBMS=XLS/XLSX` propone `tFileOutputExcel` y conserva `SHEET` en la IR. Se añadió
+    un caso de regresión. La escritura sigue pendiente porque el repo no contiene una plantilla de
+    ese componente extraída de un Job real; no se inventaron parámetros ni se emitió CSV.
+  - La lectura Excel activa el indicador XLSX solo para `DBMS=XLSX`; `DBMS=XLS` usa formato anterior.
+  - `GUESSINGROWS` numérico, `MAX` y expresión sin evaluar se conservan. El emisor deja el pendiente
+    `P-GUESSINGROWS`, porque Talend requiere tipos explícitos y el SGM no debe adivinar su
+    equivalencia. `PROC EXPORT` solo agrega `SHEET` a la IR cuando el SAS la declara, evitando
+    invalidar firmas de programas que no usan esa opción.
+  - La política de reportes CSV marca explícitamente su formato para mantener su ruta de salida.
+- Pruebas: suite completa **2495 aprobadas, 26 omitidas y 144 `xfail`**; `uv run ruff check .`
+  limpio; **87 pruebas focalizadas** para los cambios del hito.
+- Decisiones: `INFILE/INPUT` sin `DBMS` conserva su candidato actual hasta MG-P2-02, que modelará
+  su formato. Los `PROC IMPORT/EXPORT` sin formato declarado no se asignan automáticamente a Excel
+  ni a delimitados. La asignación del usuario estima MG-P2 en 38 h y el plan maestro desglosa 50 h;
+  se conserva el desglose maestro sin alterar la estimación hasta conciliar ambas cifras.
+- Bloqueo: no hay plantilla real de `tFileOutputExcel`; su generación requiere extraerla de Studio.
+
+## Hito 121. Modelar `INFILE/INPUT` y conservar pendientes de `FILE/PUT`
+
+- Fecha: 2026-11-06. Alcance: MG-P2-02, parcial.
+- Qué se hizo:
+  - El parser conserva la fuente, opciones de `INFILE`, disposición de `INPUT`, nombres de campos
+    y sintaxis original. Una referencia SAS sin resolver no se convierte en una ruta física.
+  - La IR enruta entradas por lista a `tFileInputDelimited` solo si hay un `DLM` literal de un
+    carácter y `FIRSTOBS` positivo. La cabecera de Talend recibe `FIRSTOBS - 1`.
+  - `DSD`, `LRECL`, `MISSOVER`, `TRUNCOVER`, opciones desconocidas, formatos posicionales y rutas
+    sin resolver quedan como pendientes específicos; no se generan nodos con separadores o
+    semánticas adivinadas. El formato posicional tiene una regla candidata, pero no un nodo `.item`.
+  - Los nombres que declara `INPUT` forman el esquema si no existe catálogo; no se deduce su tipo.
+    Las filas de `DATALINES` se conservan en la IR y se marcan como hueco, evitando una lectura de
+    archivo vacía. `FILE/PUT` conserva cada sentencia y agrega un hueco sin crear nodos ficticios.
+  - Se actualizaron las pruebas de equivalencia para documentar los campos de IR nuevos y la firma
+    más precisa del caso `etl_archivos_simple`. Se dividieron módulos que superaban 300 líneas.
+- Pruebas: `uv run pytest -q`: **2512 aprobadas, 26 omitidas, 144 xfailed**; `uv run ruff check .`
+  limpio; `git -c core.whitespace=cr-at-eol diff --check` limpio.
+- Decisiones: `INPUT` formateado y posicional no emite componente hasta completar MG-P2-03 y obtener
+  una plantilla real de `tFileInputPositional`. Las opciones de registro y `DSD` permanecen como
+  pendientes hasta demostrar equivalencia en Talend. El tipo sin evidencia sigue como `String` con
+  `P-TIPO-DESCONOCIDO`.
+- Bloqueos: no hay plantilla de `tFileInputPositional` ni una corrida de SAS/Talend que permita
+  aceptar el lector. MG-P2-02 no cumple todavía toda su aceptación; crédito provisional del plan:
+  3,0 h de 12 h.
+
+## Hito 122. Precisar informats numéricos y cerrar fechas ambiguas
+
+- Fecha: 2026-11-06. Alcance: MG-P2-03, parcial.
+- Qué se hizo:
+  - El informat numérico `w.` demuestra `Double`, no `Long`; un formato desconocido deja el tipo sin
+    resolver en vez de presumir que es numérico. `ANYDTDTE` y `E8601DA` quedan reconocidos como fecha.
+  - `INPUT` con `COMMAw.d`/`DOLLARw.d` genera una expresión candidata con validación de caracteres,
+    paréntesis negativos, escala decimal implícita y preservación de decimales explícitos. El caso
+    `PUT` numérico con `COMMA` sigue pendiente porque no se implementaron anchura, redondeo y salida
+    de separadores.
+  - Los informats de fecha dependientes de opciones del proyecto quedan pendientes. La referencia
+    SAS documenta `YEARCUTOFF` (predeterminado 1940) y el corpus local contiene configuraciones 1910
+    y 1920; fijar un valor global inventaría semántica. `E8601DA` conserva una conversión ISO
+  determinista. Los diagnósticos de informats/formats desconocidos son genéricos y no reflejan su
+  texto literal de entrada.
+  - Se corrigió la clasificación DATA step: una asignación cuyo destino coincide con una palabra de
+    declaración (`label`, `format`, `informat`, `length`, `attrib`, entre otras) ya no se descarta.
+    Una prueba de compilación confirma que el `PUT` no soportado se registra como pendiente.
+- Pruebas: `uv run pytest -q`: **2531 aprobadas, 26 omitidas, 144 `xfail`**; `uv run ruff check .`
+  limpio. Pruebas focalizadas del clasificador, informats y DATA step: **81 aprobadas**.
+- Decisiones: no inferir parseo de fechas sin las opciones reales SAS (`YEARCUTOFF`, `DATESTYLE` y
+  locale). Los candidatos generados no se consideran validados hasta comprobarlos en Talend Studio.
+- Bloqueos: faltan vectores ejecutados contra SAS y Talend para informats/formats de fecha, `PUT`
+  numérico y todos los formatos usados por el corpus; la disponibilidad del catálogo local no prueba
+  equivalencia de ejecución.
+
+## Hito 123. Precisar límites de INTNX e INTCK
+
+- Fecha: 2026-11-06. Alcance: MG-P3-04, parcial.
+- Qué se hizo:
+  - Se separaron `INTNX`/`INTCK` a `talend_funciones_fecha.py`; la tabla activa conserva ambos
+    constructores. El módulo general quedó bajo 300 líneas.
+  - `INTNX` genera candidatos para límites de año, límites/alineación SAME de mes, días y
+    `WEEK/SAME`. Acepta incrementos literales enteros (incluido `1.0`) y protege las columnas contra
+    nulos, fracciones, valores no finitos y desbordamiento; para semanas limita el valor antes de
+    multiplicar por siete.
+  - `INTCK` cuenta límites discretos de mes/año por componentes del calendario y conserva día como
+    diferencia fin-menos-inicio. Acepta los alias documentados `DISCRETE`, `D` y `DISC`.
+  - Las advertencias de ambas funciones piden validar conversión de época SAS 1960, tipos y resultado
+    en Studio; el candidato no se presenta como equivalencia ejecutada.
+  - La fachada pública dejó de usar el emisor inline anterior para `INTNX`/`INTCK` y ahora delega al
+    traductor Talend activo; también queda probado que no emite `INTNX WEEK` con alineación por
+    defecto no comprobada.
+  - Se regeneró el golden de `p1_merge_first_last.sas` para registrar la candidata discreta de
+    `INTCK DAY`; el resto de sus expresiones y sus pendientes se conservaron.
+  - Se dejan pendientes explícitos los intervalos compuestos/desplazados/personalizados/dinámicos,
+    `MIDDLE`, límites de semana, hora/minuto/segundo, `INTCK WEEK`, métodos continuos y
+    `DATDIF`/`YRDIF` mientras falten equivalencias y vectores. Las pruebas comprueban el Java
+    candidato, no una ejecución del motor Talend.
+  - Las pruebas de rutina de fechas se ubicaron en MG-P3 en lugar de MG-P2.
+- Pruebas: `uv run pytest -q`: **2571 aprobadas, 26 omitidas y 144 xfailed**; `uv run ruff check .`
+  limpio; `git -c core.whitespace=cr-at-eol diff --check` limpio. Las pruebas focalizadas de fechas,
+  informats y contrato de Studio: **61 aprobadas**.
+- Métricas: crédito MG-P3-04 0,25 (3 h puntuales); MG-P3 **17,5/80 h (22 %)**. Se recalculó la
+  suma de créditos visibles en la sección 11b: **183,75/895 h (20,5 %)**, saldo medido 711,25 h.
+  La tabla anterior sumaba 180,75 h por fases pero declaraba 177,75 h; se corrigió la diferencia.
+  El reparto nominal entre carriles suma 719,25 h y queda una discrepancia de 8 h por conciliar;
+  los responsables y horas asignadas no se cambiaron.
+- Decisiones: conservar el método discreto explícito porque es equivalente al predeterminado SAS;
+  no aceptar variantes de tiempo ni intervalos sin tipo, límites o basis probados. Un incremento
+  dinámico inválido produce `null` en el candidato, pendiente de validar la respuesta exacta del
+  runtime SAS/Talend.
+- Bloqueos: faltan vectores de salida SAS y compilación/ejecución en Talend Studio para fin de mes,
+  bisiestos, incrementos inválidos y las funciones candidatas. `DATDIF`, `YRDIF`, intervalos no
+  exactos y fechas/hora siguen fuera de aceptación completa.
+
+## Hito 124. Completar con límites explícitos `PROC SORT`
+
+- Fecha: 2026-11-09. Alcance: MG-P6-01, parcial.
+- Qué se hizo:
+  - El `BY` de `PROC SORT` conserva las variables y aplica `DESCENDING` solo a la variable que le
+    sigue. Se omiten en la firma las opciones por omisión; así los planes existentes no cambian si
+    el programa solo ordena ascendente con `EQUALS`.
+  - `NODUPKEY` genera sort y deduplicación con `tUniqRow`. El resultado es parcial mientras no se
+    compruebe que `tSortRow` conserva el orden de entrada para llaves empatadas, como exige el
+    `EQUALS` predeterminado de SAS. `NOEQUALS` también queda parcial porque permite otra fila
+    sobreviviente.
+  - `NODUPREC` y su alias `NODUP` se convierten solo con `BY _ALL_`: la referencia SAS describe la
+    detección de duplicados adyacentes y el orden por todas las columnas demuestra esa adyacencia.
+    Sin `BY _ALL_`, el plan ordena y conserva un pendiente parcial; no elimina filas no adyacentes.
+  - `DUPOUT=` se conserva como segunda salida del `dedup`; el grafo, el intérprete y el emisor
+    conectan esa tabla por la salida `DUPLICATE` de `tUniqRow`, incluso si otro `PROC SORT` la consume.
+    Se dejan como hueco `DUPOUT=` sin `NODUPKEY`, destinos que colisionan con `DATA=`/`OUT=`, y
+    opciones o sentencias que esta implementación no traduce.
+  - `BY _ALL_` se expande al esquema probado al emitir `tSortRow` y `tUniqRow`. El intérprete usa la
+    tabla concreta de cada arista, de modo que un consumidor de `DUPOUT=` no recibe por error la
+    salida de filas únicas.
+  - Se actualizó el golden de `etl_archivos_simple.sas` para registrar el estado y la nota de
+    estabilidad pendiente; la prueba de equivalencia solo permite esos dos cambios exactos.
+- Pruebas: `uv run python -m pytest -q`: **2585 aprobadas, 26 omitidas y 144 xfailed**; `uv run ruff
+  check .` limpio; las pruebas de integración de `PROC SORT`, plan golden y equivalencia pasan.
+- Métricas: MG-P6-01 crédito 0,5 (**5/10 h**); MG-P6 **7,5/50 h (15 %)**; total **188,75/895 h
+  (21,1 %)**; saldo medido **706,25 h**. El reparto nominal conserva una diferencia de 13 h.
+- Decisiones: no declarar estable la selección de fila de `NODUPKEY` hasta ejecutar un caso con
+  llaves repetidas en Talend Studio. `NODUPREC` se limita al patrón cuya adyacencia está demostrada
+  por `BY _ALL_` (SAS `proc.pdf`, p. 2502; `lrcon.pdf`, p. 714).
+- Bloqueos: falta compilar y ejecutar en Talend Studio un caso `NODUPKEY` con filas de igual llave y
+  valores distintos para validar el orden de `tSortRow`; hasta entonces esa traducción conserva
+  `status=parcial`. `NODUPREC` con `BY` parcial o distinto de `_ALL_` y el resto de opciones de sort
+  no cubiertas permanecen pendientes.
+
+## Hito 125. Expandir `%SYSFUNC(UPCASE())` constante
+
+- Fecha: 2026-11-09. Alcance: MG-P7-01, parcial.
+- Qué se hizo:
+  - En `%LET`, el frontend sustituye primero las macrovariables conocidas y evalúa únicamente la
+    forma completa `%SYSFUNC(UPCASE(argumento))` si el argumento resultante es un identificador ASCII
+    simple (`[A-Za-z0-9_]+`). La regex fuerza `re.ASCII` para no aceptar cuatro letras Unicode que
+    Python iguala a rangos ASCII con `IGNORECASE`. No se usa `eval` ni se evalúan otras funciones.
+  - El caso L5-06 pasa por `analyze_program`: no deja `MacroDynamic` para la llamada constante y el
+    SQL contiene `WORK.RES_LEALTAD` y `WORK.DATOS_LEALTAD`.
+  - La regresión compara el SQL sin normalizar mayúsculas; se comprobó que falla al sustituir el
+    evaluador por uno que devuelve el argumento en minúsculas.
+  - Se agregaron diez límites negativos: referencia sin resolver, argumento no ASCII, cuatro letras
+    Unicode que `re.IGNORECASE` Unicode confunde con rangos ASCII, formato opcional, argumentos
+    múltiples, texto mal formado y función distinta. Todos continúan dinámicos.
+  - Si cualquier fuente declara `OPTIONS TRANTAB=`, `ENCODING=`, `LOCALE=` o una opción macro
+    dinámica, el `%SYSFUNC(UPCASE())` queda pendiente. `OPTIONS NODATE` no bloquea la expansión.
+  - El catálogo indica el subconjunto reconocido y la dependencia de `TRANTAB`, `ENCODING` y
+    `LOCALE`; no se deducen opciones externas de sesión.
+- Pruebas: `uv run python -m pytest -q`: **2601 aprobadas, 26 omitidas y 144 xfailed**; `uv run ruff
+  check .` limpio; `uv run python -m sgm.cli rules validate` válido; `uv run python -m pytest tests/unit/test_macros.py
+  tests/unit/test_corpus_l4l6.py -q`: **154 aprobadas, 25 omitidas**;
+  `git -c core.whitespace=cr-at-eol diff --check` limpio. En Windows, `uv run sgm rules validate`
+  está bloqueado por App Control (OS error 4551), por lo que se usó la invocación del mismo CLI vía
+  `python -m`; el `git diff --check` sin `cr-at-eol` interpreta el CR de los archivos CRLF como
+  espacio final.
+- Métricas: MG-P7-01 crédito 0,25 (**4/16 h**); MG-P7 **4/60 h (7 %)**; total **192,75/895 h
+  (21,5 %)**; saldo medido **702,25 h**. Falta conciliar 17 h con el reparto nominal.
+- Decisiones: limitar la forma aceptada al identificador ASCII simple, usar `re.ASCII` y preservar
+  `MacroDynamic` ante toda incertidumbre. Si el SAS declara `TRANTAB`/`ENCODING`/`LOCALE` (o una
+  opción macro dinámica), no se sustituye el valor. Se incorpora esa dependencia a MG-P7-07. El
+  avance se limita a 0,25 hasta cubrir el resto de L5 y el anexo.
+- Bloqueos: no se ejecutó contra SAS ni se compiló/ejecutó un Job Talend; los valores de opciones
+  de sesión configurados externamente no están disponibles, y faltan los vectores L5 restantes. No
+  se afirma equivalencia ejecutada.
+
+## Hito 126. Detectar columnas extra o faltantes en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Revisión independiente: se corrigió el orden de versiones de tablas con evidencia de línea y se
+  agregó un rechazo explícito para wildcard calificado cuando el lado vacío del LEFT JOIN no tiene
+  esquema verificable.
+- Qué se hizo:
+  - El comparador del anillo B ahora revisa las claves de cada fila producida contra el encabezado
+    del CSV de `esperado/`, sin distinguir mayúsculas. Reporta columnas extra y ausentes aunque el
+    valor esperado de la columna ausente sea vacío.
+  - Después de la comprobación estructural, se conserva la comparación previa de valores,
+    tolerancia y orden de filas. No se modificaron los esperados ni el comparador común del corpus.
+  - Se agregaron tres regresiones: columna adicional en una fila posterior con diferencias de
+    mayúsculas, columna esperada ausente cuyo valor es vacío y salida sin filas. Para una salida sin
+    filas no se infiere el esquema: el intérprete no conserva metadatos de columnas en ese resultado.
+  - Se actualizó el estado de MG-P10 y la medición de la sección 11b: el anillo B verifica 56/62
+    casos elegibles; MG-P10-01 y MG-P10 siguen parciales, así que sus créditos no cambian.
+- Pruebas: las dos regresiones estructurales fallaron primero por la razón esperada. Luego,
+  `uv run python -m pytest -n 0 tests/unit/test_migrar_corpus_anillo_b.py -q`: **59 pasaron y 6
+  quedaron xfail**. Suite completa `uv run python -m pytest -q`: **2604 pasaron, 26 omitidas y 144
+  xfailed**. `uv run ruff check .`: limpio.
+- Métricas: MG-P10 **18,0/80 h (23 %)**; avance global **192,75/895 h (21,5 %)**, sin aumento de
+  crédito porque aún quedan seis casos `xfail` y la aceptación de MG-P10-01 exige todos los casos
+  elegibles.
+- Decisiones: limitar la verificación al conjunto de nombres observable en cada fila del anillo B;
+  normalizar mayúsculas como ya hace el intérprete; no cambiar el comparador compartido ni deducir
+  metadatos para una salida sin filas.
+- Bloqueos: siguen pendientes seis casos del anillo B: alias de auto-unión, agregado, tres
+  subconsultas `IN` y `ELSE` del DATA step. El esquema de salidas vacías no puede comprobarse hasta
+  que la IR del intérprete conserve esa información. No se ejecutó SAS ni Talend Studio.
+
+## Hito 127. Interpretar IF THEN DO ELSE en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El lowering reconoce el patrón acotado `IF condición THEN DO`, asignaciones simples con destinos
+    únicos, `END` y `ELSE` con una asignación simple. El parser conserva `THEN DO` dentro de la
+    sentencia `IF`; el grupo empieza en la sentencia siguiente.
+  - Cada destino se representa con una derivación condicional. Si una rama no asigna el destino, se
+    conserva su valor actual. Se rechaza el patrón si la condición depende de una variable que se
+    modifica antes de la última asignación del grupo; las formas rechazadas siguen por el camino
+    parcial existente.
+  - El intérprete ejecuta ambas ramas y preserva el saldo en la rama falsa; el caso real `l0_13_do_end`
+    coincide con sus filas esperadas y ya no está en `CONOCIDOS`.
+  - El emisor Talend genera las dos expresiones ternarias y conserva el tipo demostrado de una
+    columna de entrada cuando la alternativa mantiene el valor anterior, priorizando el tipo de la
+    fuente sobre tipos intermedios inferidos. La aceptación de migración mantiene `P-ESQUEMA-VACIO`
+    para el caso real: el repositorio no aporta esquema de entrada para demostrar sus columnas.
+  - Se añadieron pruebas de rechazo para `OUTPUT`, asignaciones duplicadas y condiciones que se
+    alterarían durante el grupo; la condición vacía también queda rechazada por el patrón estricto.
+    El esquema CSV esperado no se modificó.
+- Pruebas: `uv run python -m pytest -n 0 tests/unit/test_migrar_corpus_anillo_b.py -q`: **60
+  pasaron y 5 quedaron xfail**. Suite completa `uv run python -m pytest -q`: **2613 pasaron, 26
+  omitidas y 143 xfailed**. `uv run ruff check .`: limpio. `git -c core.whitespace=cr-at-eol diff
+  --check`: limpio.
+- Métricas: MG-P10 se mantiene en **18,0/80 h (23 %)**; el anillo B sube a **57/62 casos (92 %)** y
+  conserva cinco `xfail`. Sin crédito nuevo: MG-P10-01 requiere que todos los casos elegibles pasen.
+  El total sigue en **192,75/895 h (21,5 %)**; saldo medido **702,25 h**.
+- Decisiones: limitar la traducción a la forma demostrable; no aceptar una condición que los
+  consumidores actuales reevalúen con valores ya modificados. Sin catálogo de esquemas, se conserva
+  `P-ESQUEMA-VACIO`; no se deducen columnas. No se afirma compilación ni ejecución en Studio.
+- Bloqueos: quedan cinco casos del anillo B: alias de auto-unión, agregado y tres subconsultas `IN`.
+  El caso DATA step puede ejecutarse en el intérprete, pero la migración de corpus continúa pendiente
+  hasta disponer de un esquema que describa la tabla de entrada.
+
+## Hito 128. Evaluar agregados PROC SQL en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El intérprete ejecuta `COUNT(*)`, `COUNT(expresión)`, `SUM`, `AVG`, `MIN` y `MAX` sobre agregados simples. Acepta grupos de una o varias columnas, agregados globales, faltantes y entradas vacías; conserva el orden de primera aparición de los grupos.
+  - El motor quedó en `migrar/interprete_agregados.py`; recibe el parser, el evaluador y el acceso a columnas desde el intérprete, y convierte sus rechazos al error público `NoSoportadoEnInterprete`. Las funciones distintas, `DISTINCT`, alias inválidos, tipos ambiguos y columnas ausentes no se omiten silenciosamente.
+  - `l2_08_case_when_tras_left_join` coincide con las tablas esperadas en el anillo B y salió de la lista de `xfail`. Sigue en `tests/corpus/migrar_pendientes.yaml`: `sgm migrar` no dispone de emisor Talend para `aggregate` ni de un esquema demostrado para las columnas de escritura. No se modificaron los esperados.
+  - El catálogo mantiene `grouping-with-missing-values` en `no_verificada`: el intérprete de verificación trata esa semántica, pero no existe todavía conversión del traductor/emisor. Se documentó la diferencia para que el estado no atribuya soporte al componente incorrecto.
+  - Se documentó la semántica con las páginas de `sqlproc` y `lefunctionsref`, además de la decisión de no inferir tipos.
+- Pruebas: `uv run python -m pytest -n 0 tests/unit/test_migrar_interprete.py -q`: **21 pasaron**; anillo B: **61 pasaron y 4 xfailed**; aceptación del manifiesto: **2 pasaron**; `uv run python -m pytest -q`: **2621 pasaron, 26 omitidas y 142 xfailed**. `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido; `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 sigue en **18,0/80 h (23 %)** y el avance global en **192,75/895 h (21,5 %)**, sin crédito nuevo. El anillo B pasa **58/62 casos elegibles (94 %)** y conserva cuatro `xfail`: alias de auto-unión y tres subconsultas `IN`. El total medido sigue en **192,75/895 h**; saldo **702,25 h**.
+- Decisiones: la equivalencia se limita a funciones documentadas y expresiones que el evaluador ya interpreta; claves de grupo textuales con valor numérico quedan pendientes si el tipo SAS no está demostrado. La verificación del intérprete no se reporta como conversión del traductor. No se conectó a bases ni se ejecutó SAS o Talend Studio.
+- Bloqueos: para completar la migración L2 faltan el emisor Talend `aggregate` y el esquema demostrado de salida. MG-P10-01 sigue parcial por los cuatro casos `xfail`; no se aumentan sus horas hasta cumplir aceptación.
+
+## Hito 129. Corregir proyección y remezcla de agregados revisados
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial; corrección del Hito 128 tras revisión independiente.
+- Qué se hizo:
+  - El operador `aggregate` conserva `group_outputs` y `output_order`: agrupa por todas las llaves declaradas, publica solo las llaves seleccionadas, respeta alias y el orden del `SELECT`. El intérprete y la generación SQL de base usan esa proyección.
+  - La pasada SQL ya no añade un `derive` posterior que descarte los agregados después de una unión.
+  - Se detectan y dejan pendientes las columnas seleccionadas que no están en `GROUP BY`, `SELECT *` con agregados y las referencias `ORDER BY` no seleccionadas que requieren remezcla SAS. `sql_semantics.aggregate_pendiente` evita empujar estos casos a SQL de base, incluso si cambia la regla de agregados sin `GROUP BY`.
+  - Se regeneraron las referencias golden de `p0_ejemplo_basico` y `client_poc` por los campos de IR y cambios de firma. `test_golden_equivalencia.py` permite solo las rutas nuevas y firmas afectadas, documentadas por hito.
+  - Se actualizaron el diseño y el plan de implementación, además del estado maestro. No se cambiaron los esperados del corpus ni se debilitaron pruebas.
+- Pruebas: casos focalizados de intérprete, SQL y anillo B: **139 pasaron y 4 xfailed**; goldens y equivalencia: **11 pasaron**; suite completa `uv run python -m pytest -q`: **2634 pasaron, 26 omitidas y 142 xfailed**. `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido; `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 permanece en **18,0/80 h (23 %)** y el total en **192,75/895 h (21,5 %)**, sin nuevo crédito. El anillo B sigue en **58/62 elegibles (94 %)**, con cuatro `xfail`: alias de auto-unión y tres subconsultas `IN`.
+- Decisiones: los casos de remezcla que no se implementan se rechazan o quedan pendientes, no se sustituyen por resúmenes parciales. `MIN/MAX` sobre texto sigue fuera del alcance numérico de esta implementación. Los golden se regeneran porque los nuevos campos cambian la semántica y firma del plan.
+- Bloqueos: la migración completa L2 aún necesita el emisor Talend `aggregate` y un esquema demostrado para escritura; MG-P10-01 conserva los cuatro casos `xfail`. No se ejecutó SAS ni Talend Studio.
+
+## Hito 130. Interpretar `IN` con subconsulta independiente en el anillo B
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El intérprete evalúa `IN (SELECT ...)` y `NOT IN (SELECT ...)` cuando la subconsulta no es
+    correlacionada, lee una sola tabla disponible, proyecta una columna simple y usa solo un `WHERE`
+    que ya puede evaluar. Resuelve el filtro con el conjunto de valores, sin reescribir la IR ni
+    alterar el emisor Talend.
+  - Se validan expresamente consultas correlacionadas o anidadas, faltantes, tabla/columna sin
+    evidencia, varias columnas, agregaciones, varias fuentes y cláusulas no implementadas. No se
+    inventa equivalencia para esos casos.
+  - El orden de ejecución del intérprete respeta dependencias a tablas derivadas que las subconsultas
+    leen aunque la IR no tenga una arista persistida. El lowerer conserva calificadores dentro del
+    `WHERE` con subconsulta y `SELECT alias.*` proyecta el lado solicitado de la unión.
+  - L2-06, L2-07 y L2-15 pasan contra sus esperados sin editar los golden. Se mantiene el xfail del
+    alias de auto-unión y el manifiesto de migración sigue marcando `P-FILTRO-SIN-TRADUCIR` para
+    L2-15, su primer bloqueo real.
+- Pruebas focalizadas tras la revisión: `uv run pytest -q
+  tests/unit/test_migrar_corpus_anillo_b.py tests/unit/test_migrar_interprete.py`: **105 pasaron,
+  1 xfail**. Suite completa `uv run pytest -q`: **2650 pasaron, 26 omitidas y 139 xfailed**.
+  `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 permanece en **18,0/80 h (23 %)** y avance global en **192,75/895 h (21,5 %)**,
+  sin crédito nuevo. El anillo B pasa **61/62 casos elegibles (98 %)**; resta un xfail por el alias
+  de auto-unión.
+- Decisiones: la p. 394 define `IN` como pertenencia al conjunto; `IN` sobre un conjunto vacío es
+  falso y `NOT IN` verdadero por deducción de esa definición. Las pp. 123–124 describen subconsultas
+  independientes, `NOT IN` y el caso correlacionado aparte. Las pp. 39 y 99 respaldan la selección de
+  todas las columnas y los alias de tabla. No se infieren tipos ni columnas a partir de filas vacías.
+- Bloqueos: el traductor/emisor Talend sigue sin emitir `IN (SELECT ...)`, por lo que los tres casos
+  permanecen pendientes para `sgm migrar`; no se ejecutó SAS ni Talend Studio.
+
+## Hito 131. Distinguir agregados SQL de funciones numéricas por fila
+
+- Fecha: 2026-11-09. Alcance: MG-P10-01, parcial.
+- Qué se hizo:
+  - El normalizador protege llamadas multiargumento de `SUM`, `MIN`, `MAX` y `MEAN` para que
+    `sqlglot` no las lea como agregados SQL de una columna; conserva marcadores por consulta que no
+    colisionan con identificadores de entrada y restaura solo las llamadas protegidas. Las
+    expresiones quedan visibles en la IR como SAS.
+  - El intérprete evalúa esas cuatro funciones por fila, omite los faltantes `None`/vacíos/blancos y
+    devuelve faltante si todos los argumentos faltan. Mantiene los agregados de un argumento y
+    `MEAN(a)` se evalúa como el agregado de promedio equivalente a `AVG(a)`. Rechaza argumentos de
+    texto no numérico, y `AVG` multiargumento queda como `PARSE_ERROR`, según la documentación SAS.
+  - Las búsquedas de `contains`, operadores y funciones por fila respetan comentarios y literales,
+    incluso cuando hay un comentario entre el nombre de una función y su paréntesis. Esto corrige
+    casos donde un apóstrofe ocultaba construcciones posteriores y aridades que el parser no admite.
+    Una regresión integrada protege también nombres de columna que coinciden con un prefijo interno.
+  - Se ajustaron el diseño y el plan maestro. No se cambiaron los esperados del corpus, no se
+    modificó el emisor Talend y no se atribuye equivalencia Talend.
+- Pruebas focalizadas: normalizador, intérprete y anillo B: **136 pasaron y 1 xfailed**. Suite
+  completa `uv run pytest -q`: **2660 pasaron, 26 omitidas y 139 xfailed**.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido.
+- `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P10 permanece en **18,0/80 h (23 %)** y el total en **192,75/895 h (21,5 %)**,
+  sin nuevo crédito. El anillo B conserva **61/62 casos elegibles (98 %)** y un `xfail` estricto
+  por alias de auto-unión.
+- Decisiones: `sqlproc`, pp. 433 y 435–436, lista `AVG`/`MEAN` como nombres de la media, respalda la
+  diferencia entre un argumento agregado por columna y varios argumentos calculados por fila, además
+  del error de `AVG` multiargumento. `lefunctionsref`,
+  pp. 1230, 1233–1234, 1236 y 1580–1581, respalda argumentos numéricos y faltantes; `lrcon`, p. 124,
+  documenta `.A`–`.Z` y `._`. El intérprete solo considera faltantes los valores que ya representa
+  (`None` o vacío/blanco); no infiere que una cadena `.A` sea numérica sin esquema que lo demuestre.
+  Las horas no aumentan porque la aceptación MG-P10 requiere nuevos casos elegibles del corpus.
+- Bloqueos: MG-P10-01 sigue parcial y el emisor Talend de agregados no existe. No se ejecutó SAS ni
+  Talend Studio.
+
+## Hito 132. Lote de migración y cobertura por programa
+
+- Fecha: 2026-11-10. Alcance: MG-P11-01, completo.
+- Qué se hizo:
+  - `sgm migrar` acepta un archivo SAS o una carpeta; recorre `.sas` recursivamente y en orden
+    determinista por ruta relativa. Ignora otras extensiones, no vuelve a recorrer una carpeta de
+    salida anidada y conserva rutas y nombres repetidos al separar el paquete de cada programa.
+  - Las carpetas sin programas terminan con código 0 y un mensaje claro. El lote informa cuántos
+    programas, Jobs y pendientes produjo; advierte que el orden de recorrido no es orden de ejecución.
+  - Cada paquete genera `cobertura.md`: líneas asociadas a nodos con traza, pendientes con línea y
+    pendientes sin línea. Remite el motivo detallado a `pendientes.md`, no repite mensajes y no calcula
+    un porcentaje sin denominador demostrado. Aclara que una traza acredita generación, no ejecución.
+  - Se valida el backend antes de escribir, para que un nombre inválido o variables Talend ausentes
+    no dejen una carpeta de salida parcial. El comando se separó a `cli_migrar_comando.py`; el módulo
+    de migración queda en 299 líneas y conserva la importación previa de `migrar_command`.
+  - El plan maestro, su avance y el plan de implementación quedaron actualizados. MG-P11-03 conserva
+    la responsabilidad de ordenar programas por dependencias.
+- Pruebas focalizadas: `tests/unit/test_cli_migrar.py`, 16 pasaron.
+- Suite completa `uv run pytest -q`: 2665 pasaron, 26 omitidas y 139 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P11 queda en **8,0/30 h (27 %)**; avance global **196,75/895 h (22,0 %)**.
+- Decisiones: cada programa guarda su paquete bajo su ruta relativa y se procesa en orden de ruta,
+  sin atribuir a ese recorrido dependencias de ejecución. La cobertura solo usa traza y pendientes;
+  el denominador de todas las líneas SAS no está demostrado. El informe es por programa; el reporte
+  global y `sgm cobertura` siguen en MG-P10-08.
+- Bloqueos: MG-P11-02 a 06 siguen pendientes; MG-P11-03 debe definir orden por dependencias y proyecto
+  coherente. No se ejecutaron SAS ni Talend Studio.
+
+## Hito 133. Línea base de rendimiento de `sgm migrar`
+
+- Fecha: 2026-11-10. Alcance: MG-P12-01, completo.
+- Qué se hizo:
+  - Se agregó `tools/performance/migrar.py`, un benchmark reproducible que prepara temporalmente el
+    caso grande y la carpeta con los otros 189 SAS, mide el tiempo del comando y comprueba la
+    cantidad de paquetes sin conservar las salidas.
+  - La prueba de 32 MB detectó que Windows estaba midiendo solo el proceso lanzador. Se corrigió la
+    captura para recorrer los descendientes y conservar el mayor uso residente agregado observado;
+    Linux usa el mismo criterio sobre `VmRSS` de `/proc`. Si vence el timeout, el arnés termina todo
+    el árbol de procesos; una prueba comprueba que un hijo no sobreviva. El selector de fuentes ahora
+    desempata rutas que solo difieren por mayúsculas para mantener el orden en Linux.
+  - Se guarda la línea base de esta máquina en `metrics/performance/mg-p12-01.json`; se documentaron
+    límites, campos y el coste del muestreo en `metrics/performance/README.md`. No se alteró
+    `metrics/baseline.json`.
+- Medición en Windows 11, Python 3.12.10:
+  - `client_large.sas`: 835 630 bytes; 6,848 s; pico de árbol 93 872 128 bytes; 1/1 paquetes.
+  - Carpeta: 189 fuentes, 637 104 bytes; 10,860 s; pico de árbol 81 707 008 bytes; 189/189 paquetes.
+  - Ambos escenarios cumplieron `<120 s` y `<1 000 000 000 bytes`.
+- Pruebas focalizadas: `tests/unit/test_performance_benchmark.py`, 5 pasaron. Suite completa
+  `uv run pytest -q`: 2670 pasaron, 26 omitidas y 139 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P12 queda en **8,0/30 h (27 %)**; avance global **204,75/895 h (22,9 %)**. El crédito
+  es únicamente por MG-P12-01, cuya aceptación se midió en ambos escenarios.
+- Decisiones: el pico es el máximo agregado residente observado del árbol, no la suma de máximos
+  independientes por proceso. El cronómetro incluye arranque y muestreo; excluye preparación de
+  fuentes y escritura del reporte. Los valores dependen de la máquina. No se usan Studio, SAS, bases
+  ni dependencias nuevas.
+- Bloqueos: MG-P12-02 a 04 siguen pendientes; el rendimiento de Jobs con millones de filas, las
+  plantillas JVM/Talend y la caché requieren tareas separadas.
+
+## Hito 134. Compuerta de secretos antes de publicar `sgm migrar`
+
+- Fecha: 2026-11-10. Alcance: MG-P13-01, completo.
+- Qué se hizo:
+  - `sgm migrar` genera cada paquete en staging junto al destino, escanea los archivos anteriores y
+    los nuevos, y solo publica después de una revisión limpia. Conserva los archivos manuales del
+    paquete; bloquea los hallazgos, enlaces simbólicos/junctions y errores del escáner sin mostrar el
+    texto sospechoso.
+  - La migración por carpeta sigue procesando programas limpios y devuelve código 1 si algún paquete
+    se bloquea. Una prueba inyecta un valor ficticio desde el escritor y comprueba que no aparece en
+    el destino ni en la salida del comando; otras cubren el paquete previo, el fallo cerrado, lotes y
+    ruta destino como junction de Windows.
+  - `.github/workflows/seguridad-nocturna.yml` queda configurado para correr diario o manual con
+    permisos de lectura; el cron se activa al integrar el archivo en la rama predeterminada. Usa
+    acciones fijadas a SHA y no requiere credenciales de CI. Migra un caso de corpus controlado y
+    escanea el paquete y `decisiones/`.
+  - Se actualizó `docs/secretos.md`, el plan maestro y el avance calculado. Se ejecutaron localmente
+    los comandos del workflow y el parser confirmó la sintaxis YAML.
+- Pruebas focalizadas: 98 pasaron (`test_cli_migrar.py` y pruebas del escáner).
+- Suite completa `uv run pytest -q`: 2678 pasaron, 26 omitidas y 139 xfailed.
+- `uv run ruff check .`: limpio después de ajustar el largo de una línea; `uv run python -m sgm.cli
+  rules validate`: válido; el workflow YAML y sus dos escaneos locales pasaron;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P13 queda en **3,75/20 h (19 %)**; avance global **207,75/895 h (23,2 %)**. El
+  crédito es únicamente por MG-P13-01; el resto de las tareas de seguridad no se acredita.
+- Decisiones: el paquete previo se copia al staging y se escanea junto con lo recién generado para
+  conservar archivos agregados por el usuario. Cualquier error de revisión bloquea sin propagar el
+  texto de excepción; los hallazgos solo informan ruta, línea y tipo. No se agregaron dependencias.
+- Bloqueos: MG-P13-02 requiere confirmación humana del `{SAS002}` y del adjunto con `pwencode`; no se
+  inspeccionaron ni copiaron valores. MG-P13-03 y 04 siguen pendientes. La revisión independiente
+  de MG-P13-05 encontró dos riesgos P1 (inyección SQL por identificador y Java en name literal) y
+  dos riesgos P2, que deben corregirse con pruebas antes de cerrar esa tarea.
+
+## Hito 135. Bloquear identificadores hostiles en la emisión SQL y Java
+
+- Fecha: 2026-11-10. Alcance: MG-P13-05, completo.
+- Qué se hizo:
+  - El árbol SQL conserva identificadores para análisis; lowering y render vuelven a validar los
+    identificadores del árbol actual, y el SQL emitido se analiza otra vez antes de transpilarlo.
+    Los nombres de tabla, destino, alias y proyección no portables quedan como pendiente
+    `SQL_NO_SOPORTADO`, con nota segura y sin operador `exec_sql`, incluso si se muta el árbol tras
+    parsearlo.
+  - El traductor rechaza name literals que no son campos Java portables. El resolvedor no acepta
+    referencias parciales, esquemas con nombres de fila/campo no portables ni separadores de sentencia
+    fuera de una cadena Java; también bloquea escapes Unicode Java que el compilador procesaría antes
+    del parseo. Conserva métodos válidos como `.trim()` y el contenido de los literales.
+  - El límite público de `tMap` valida los esquemas y las expresiones Java aunque se invoque sin el
+    traductor; nombres de entrada/salida que no son portables quedan como pendiente seguro. Las
+    plantillas validan columnas y los constructores directos escapan rutas literales; los generadores
+    de totales y conciliación validan segmentos de nombre y los serializan como literales Java.
+  - La carga de arquitectura y los generadores públicos validan los nombres de contexto antes de
+    interpolarlos. Un helper común escapa literales en Jobs, el traductor inline y las rutas Talend,
+    incluidos controles, Unicode y caracteres suplementarios.
+  - El corpus identifica explícitamente como `P-ESQUEMA-NO-PORTABLE` un caso cuyo esquema inferido
+    contiene alias y comodín que no se pueden representar con seguridad; no se emite un esquema
+    Talend incorrecto.
+  - Se retiró la marca `xfail` obsoleta de `test_sql_empujado_a_la_base`; su aserción se mantuvo y ahora
+    es una prueba normal que pasa.
+- Pruebas focalizadas: 49 y 75 pasaron en los grupos SQL/emisor y corpus/diagnósticos; el caso de SQL
+  empujado a base pasó por separado.
+- Suite completa `uv run pytest -q`: 2712 pasaron, 26 omitidas y 138 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P13 queda en **12,75/20 h (64 %)**; avance global **216,75/895 h (24,2 %)**.
+  Se acreditan MG-P13-01 y MG-P13-05; no se acredita la revisión humana de P13-02.
+- Decisiones: se reutiliza el motivo contractual `SQL_NO_SOPORTADO` y se identifica el bloqueo exacto
+  en la nota, porque la lista de motivos está cerrada y ampliarla requiere acuerdo. La validación se
+  mantiene también en los límites públicos del emisor para que no dependa de que se invoque primero
+  la ruta de migración completa. No se añadieron dependencias ni se ejecutaron SQL, Java o Talend
+  Studio.
+- Bloqueos: MG-P13-02 requiere confirmación humana del `{SAS002}` y del adjunto con `pwencode`; no se
+  inspeccionaron ni copiaron valores. MG-P13-03 (privacidad) y MG-P13-04 (SBOM) siguen pendientes.
+
+## Hito 136. Inventario de dependencias, licencias y SBOM
+
+- Fecha: 2026-11-10. Alcance: MG-P13-04, completo.
+- Qué se hizo:
+  - `tools/seguridad/generar_sbom.py` genera `docs/sbom.md`, `docs/sbom.spdx.json` SPDX 2.3 y
+    `docs/sbom.distribuciones.json` desde `pyproject.toml` y `uv.lock`, usando biblioteca estándar y
+    metadata instalada. Conserva cada variante de resolución, sus relaciones, el alcance
+    runtime/desarrollo y el checksum SPDX del archivo fuente representativo; el manifest relaciona
+    individualmente los 306 wheels/sdists con su nombre, URL y SHA-256. `--check` detecta snapshots
+    ausentes o desactualizados sin escribirlos.
+  - Se documentaron las licencias en identificadores SPDX y se verificaron en la fuente del
+    publicador las excepciones donde el campo de metadata no bastaba. No se infirieron licencias.
+    El propio paquete `sgm` queda como `NOASSERTION`: `pyproject.toml` no declara licencia y se
+    necesita una decisión legal antes de distribuirlo fuera de la organización.
+  - Se separó el modelo del SBOM, el grafo de dependencias y el renderizador para mantener los
+    módulos debajo de 300 líneas. Las aristas y alcances se resuelven por identidad de variante
+    (nombre, versión, origen y marcadores); las referencias ambiguas se rechazan. El informe muestra
+    estos marcadores, el punto de entrada funciona directamente y el namespace SPDX cambia con el
+    contenido canónico.
+- Pruebas focalizadas: 8 pasaron (`tests/unit/test_sbom.py`); `generar_sbom.py --check` confirmó los
+  tres snapshots; el SPDX pasó el esquema JSON oficial 2.3.1 y los 306 hashes quedaron asociados a
+  sus archivos y URLs.
+- Suite completa `uv run pytest -q`: 2720 pasaron, 26 omitidas y 138 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio; `generar_sbom.py --check` y la
+  validación con el esquema JSON oficial SPDX 2.3.1: válidos.
+- Métricas: MG-P13 queda en **15,75/20 h (79 %)**; avance global **219,75/895 h (24,6 %)**. Se
+  acredita MG-P13-04 además de P13-01 y P13-05; P13-02 sigue siendo revisión humana y P13-03 no se
+  acredita.
+- Decisiones: el SBOM incluye dependencias de desarrollo además de runtime, porque ambas forman
+  parte del entorno fijado por `uv.lock`. El generador no consulta red ni agrega dependencias; no
+  realiza un escaneo de vulnerabilidades. La falta de licencia del propio SGM se registra sin
+  escoger una licencia en nombre de la organización.
+- Bloqueos: falta la decisión legal de licencia para `sgm`; MG-P13-02 requiere confirmación humana
+  del `{SAS002}` y del adjunto con `pwencode`, que no se inspeccionaron ni copiaron; MG-P13-03 sigue
+  pendiente de cerrar su comportamiento de privacidad.
+
+## Hito 137. Integrar main y reconciliar el anillo B
+
+- Fecha: 2026-11-10. Alcance: integración de `origin/main` con `codex/mg-p10-01-anillo-b-columnas`;
+  reconciliación funcional de las áreas solapadas.
+- Qué se hizo:
+  - Se resolvieron los conflictos preservando los cambios de ambos lados. El lowering SQL ahora
+    incluye los alias agregados internos en su etapa intermedia y conserva el orden final visible;
+    el intérprete cuenta `COUNT(DISTINCT columna)` sin contar faltantes. La inferencia de esquema
+    reconoce columnas demostradas en `GROUP BY` y expresiones de agregado.
+  - Los cruces generados para `IN`/`NOT IN` conservan la expresión y el lector originales. El anillo B
+    valida correlación, forma de la subconsulta, fuente y faltantes antes de ejecutar el cruce, y
+    ordena la lectura respecto de versiones anteriores y posteriores de la tabla. Los faltantes
+    mezclados con claves demostrables se conservan cuando el corpus confirma el resultado; una lista
+    formada solo por faltantes queda pendiente por tipo no demostrable.
+  - Se recalculó `tests/corpus/migrar_pendientes.yaml` con las migraciones actuales: 15 casos reales,
+    sin claves duplicadas ni casos ya resueltos. Se restauraron como `xfail(strict=True)` las seis
+    brechas actuales del anillo B para que un caso resuelto obligue a actualizar el registro.
+  - Se quitó una asignación sin uso detectada por Ruff. La sección 11b del plan refleja las medidas
+    del corpus integrado y conserva el crédito máximo por fase, sin sumar trabajo duplicado de ramas.
+- Verificación: `uv run pytest -q`: 2.838 pasaron, 26 omitidas y 143 xfailed; anillo B: 90 pasaron y
+  6 xfailed estrictas; anillo A: los 101 casos migran sin perder operadores, los 15 pendientes
+  coinciden con su lista y todos los Jobs generados pasan `validar_job`. `uv run ruff check .`,
+  `uv run python -m sgm.cli rules validate`, `uv run python tools/seguridad/generar_sbom.py --check`
+  y `git -c core.whitespace=cr-at-eol diff --check`: válidos.
+- Métricas: avance global **281,25/895 h (31,4 %)** por crédito máximo demostrado por fase. Anillo B
+  **90/96**; anillo A **101/101** sin operadores perdidos. Studio conserva la última medición
+  registrada de **85/85 Jobs compilados**; no se repitió Studio en esta integración.
+- Decisiones: se conserva un solo crédito por fase al reconciliar ramas paralelas; el anillo B no
+  declara compatibles las subconsultas correlacionadas ni las fuentes cuyo tipo no se puede probar.
+- Bloqueos: siguen abiertos los seis casos `xfail` del intérprete y los 15 pendientes de traducción
+  registrados en el corpus; MG-P13-02 y MG-P13-03 también siguen pendientes según sus hitos.

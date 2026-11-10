@@ -131,6 +131,45 @@ def test_parseo_de_sentencia_con_construcciones_sas():
     assert tree.target and tree.target.upper() == "OUT"
 
 
+def test_normalizador_protege_solo_funciones_multiargumento_fuera_de_literales():
+    normalized = normalize(
+        "select sum(a, max(b, c)) as total, 'sum(x, y)' as literal from t /* max(x, y) */"
+    )
+
+    assert "sgm_row_sum(a, sgm_row_max(b, c))" in normalized.text.lower()
+    assert "'sum(x, y)'" in normalized.text.lower()
+    assert "/* max(x, y) */" in normalized.text.lower()
+
+
+def test_normalizador_protege_funcion_separada_del_parentesis_por_comentario():
+    normalized = normalize("select sum /* nota */ (a, b) as total from t")
+
+    assert "sgm_row_sum /* nota */ (a, b)" in normalized.text.lower()
+    _parse(normalized.text)
+
+
+def test_normalizador_no_extiende_un_literal_desde_apostrofe_en_comentario():
+    normalized = normalize("select /* client's note */ sum(a, b), 'literal' from t")
+
+    assert "sgm_row_sum(a, b)" in normalized.text.lower()
+    assert "/* client's note */" in normalized.text.lower()
+
+
+def test_normalizador_aplica_operadores_despues_de_comentario_con_apostrofe():
+    normalized = normalize("select /* client's note */ a eq 1, sum(b, c), 'literal' from t")
+
+    assert "/* client's note */" in normalized.text.lower()
+    assert "a = 1" in normalized.text.lower()
+    assert "sgm_row_sum(b, c)" in normalized.text.lower()
+
+
+def test_normalizador_reescribe_contains_despues_de_comentario_con_apostrofe():
+    normalized = normalize("select /* client's note */ x contains 'abc' from t")
+
+    assert "/* client's note */" in normalized.text.lower()
+    assert "x like concat('%', 'abc', '%')" in normalized.text.lower()
+
+
 def _sql(body: str) -> str:
     return _SQL.format(body)
 

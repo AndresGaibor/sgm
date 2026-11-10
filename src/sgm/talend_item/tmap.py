@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from sgm.java_expressions import is_safe_java_expression
+from sgm.java_identificadores import is_java_identifier
 from sgm.talend_item.item import _atributo
 from sgm.talend_item.modelo import Columna, Metadata, Nodo
 from sgm.talend_item.plantillas import nodo_desde_plantilla
@@ -112,6 +114,25 @@ def _nulable(columna: Columna) -> str:
     return ' nullable="true"' if columna.nulable else ""
 
 
+def _revisar_seguridad(entradas: list[EntradaMap], salidas: list[SalidaMap]) -> None:
+    """Valida nombres de esquema y expresiones en el límite público del tMap."""
+    columnas = [c for entrada in entradas for c in entrada.columnas]
+    columnas += [c for salida in salidas for c in salida.columnas]
+    if any(not is_java_identifier(columna.nombre) for columna in columnas):
+        raise ValueError("esquema tMap con identificadores Java no portables")
+    expresiones = [
+        *(
+            expresion
+            for entrada in entradas
+            for expresion in entrada.expresiones_union.values()
+        ),
+        *(expresion for salida in salidas for expresion in salida.expresiones.values()),
+        *(salida.filtro for salida in salidas if salida.filtro),
+    ]
+    if any(not is_safe_java_expression(expresion) for expresion in expresiones):
+        raise ValueError("expresión Java de tMap con sintaxis no permitida")
+
+
 def _conector(salida: SalidaMap) -> str:
     """Las salidas de rechazo van por una conexión REJECT; el resto, por FLOW."""
     return "REJECT" if salida.rechazo or salida.rechazo_union else "FLOW"
@@ -190,6 +211,7 @@ def tmap(
         raise ValueError("Un tMap necesita al menos una entrada")
     if not salidas:
         raise ValueError("Un tMap necesita al menos una salida")
+    _revisar_seguridad(entradas, salidas)
     _revisar_union(entradas, salidas)
     nodo = nodo_desde_plantilla("tMap", unico, x, y, ruta_java=ruta_java)
     nodo.metadatas = [Metadata(_conector(s), s.nombre, tuple(s.columnas)) for s in salidas]

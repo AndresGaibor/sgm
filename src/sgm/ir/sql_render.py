@@ -8,12 +8,22 @@ lanza `ValueError` y el llamador se queda en flujo.
 
 from __future__ import annotations
 
+import re
+
 import sqlglot
+from sqlglot import exp
 
 from sgm.frontend.sql_normalize import NormalizedSql
-from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
+from sgm.ir.sql_tree import (
+    SelectSpec,
+    Source,
+    SqlTree,
+    SqlUnsafeIdentifier,
+    validate_portable_identifiers,
+)
 
 _JOIN = {"inner": "INNER JOIN", "left": "LEFT JOIN", "right": "RIGHT JOIN", "full": "FULL JOIN"}
+_PORTABLE_IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z", re.ASCII)
 
 
 def _name(source: Source, normalized: NormalizedSql) -> str:
@@ -53,13 +63,39 @@ def render(tree: SqlTree, normalized: NormalizedSql, dialect: str = "hive") -> s
     Lanza `ValueError` si el resultado no se puede escribir: por ejemplo, con una macro variable en
     un nombre (`&tabla`), que solo se resuelve al ejecutar.
     """
+    validate_portable_identifiers(tree)
     joiner = " UNION ALL " if tree.union_all else " UNION "
     body = joiner.join(_select(spec, normalized) for spec in tree.selects)
     if tree.target:
         body = f"CREATE TABLE {normalized.restore(tree.target)} AS {body}"
     if "&" in body:
         raise ValueError("macro variable en la consulta: no se escribe SQL de base fijo")
+    _validar_sql_emitido(body)
     try:
         return sqlglot.transpile(body, write=dialect)[0]
     except sqlglot.errors.SqlglotError as error:
         raise ValueError(str(error)) from error
+
+
+def _validar_sql_emitido(sql: str) -> None:
+    """Reparsea el texto actual para detectar mutaciones e inyección en el árbol público."""
+    try:
+        sentencias = sqlglot.parse(sql)
+    except sqlglot.errors.SqlglotError as error:
+        raise ValueError("SQL generado no supera la validación de salida") from error
+    if len(sentencias) != 1 or sentencias[0] is None:
+        raise ValueError("SQL generado no supera la validación de salida")
+    sentencia = sentencias[0]
+    if isinstance(sentencia, exp.Create):
+        consulta = sentencia.expression
+        valida = (
+            sentencia.args.get("kind") == "TABLE"
+            and isinstance(consulta, (exp.Select, exp.Union))
+        )
+    else:
+        valida = isinstance(sentencia, (exp.Select, exp.Union))
+    if not valida:
+        raise ValueError("SQL generado no supera la validación de salida")
+    for identifier in sentencia.find_all(exp.Identifier):
+        if not _PORTABLE_IDENTIFIER.fullmatch(identifier.name):
+            raise SqlUnsafeIdentifier("identificador SQL no representable para Talend")

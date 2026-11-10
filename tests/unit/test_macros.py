@@ -1,8 +1,11 @@
 """Pruebas del expansor de macros: evaluación parcial, dinámicos, duplicados e includes."""
 
+import pytest
+
 from sgm.frontend.macros import MacroDynamic
 from sgm.frontend.program import analyze_program
 from sgm.frontend.steps import DataStep
+from sgm.frontend.steps_tipos import Let
 
 
 def _datas(files: dict[str, str]) -> list[DataStep]:
@@ -57,6 +60,62 @@ def test_macro_dinamica_se_marca_con_su_texto_y_motivo():
     assert all(d.reason == "MACRO_DINAMICA" and d.text for d in dynamics)
     details = " | ".join(d.detail for d in dynamics)
     assert "call symput" in details and "sysfunc" in details and "límites" in details
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        "%sysfunc(upcase(&desconocido))",
+        "%sysfunc(upcase(café))",
+        "%sysfunc(upcase(ı))",
+        "%sysfunc(upcase(ſ))",
+        "%sysfunc(upcase(K))",
+        "%sysfunc(upcase(İ))",
+        "%sysfunc(upcase(lealtad),$char8.)",
+        "%sysfunc(upcase(lealtad,otra))",
+        "%sysfunc(upcase(lealtad)) extra",
+        "%sysfunc(lowcase(LEALTAD))",
+    ],
+)
+def test_sysfunc_outside_static_subset_stays_dynamic(expression: str):
+    text = f"%let resultado={expression};\n%put &resultado.;"
+    result = analyze_program({"p.sas": text})
+
+    assert len(result.dynamics) == 1
+    assert "&resultado." in "\n".join(
+        getattr(item.item, "text", "") for item in result.items
+    )
+
+
+@pytest.mark.parametrize(
+    "option",
+    ["trantab=ascii", "encoding='utf-8'", "locale=tr_TR"],
+)
+def test_sysfunc_upcase_with_relevant_sas_option_stays_dynamic(option: str):
+    text = f"options {option};\n%let resultado=%sysfunc(upcase(lealtad));"
+    result = analyze_program({"p.sas": text})
+
+    assert len(result.dynamics) == 1
+    assert option.split("=", maxsplit=1)[0] in result.dynamics[0].item.detail.lower()
+
+
+def test_sysfunc_upcase_with_unrelated_sas_option_expands():
+    result = analyze_program(
+        {"p.sas": "options nodate;\n%let resultado=%sysfunc(upcase(lealtad));"}
+    )
+
+    assert not result.dynamics
+    assert any(
+        isinstance(item.item, Let) and item.item.value == "LEALTAD" for item in result.items
+    )
+
+
+def test_sysfunc_upcase_with_dynamic_options_stays_dynamic():
+    text = "%let ajuste=locale=tr_TR;\noptions &ajuste.;\n%let resultado=%sysfunc(upcase(lealtad));"
+    result = analyze_program({"p.sas": text})
+
+    assert len(result.dynamics) == 1
+    assert "opciones dinámicas" in result.dynamics[0].item.detail.lower()
 
 
 def test_condicion_no_constante_se_marca_y_expande_ambas_ramas():

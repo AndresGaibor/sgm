@@ -29,6 +29,9 @@ def _consumed(op: Operator) -> list[str]:
 
 def _produced(op: Operator) -> list[str]:
     names = [n for n in op.params.get("outputs", []) if isinstance(n, str)]
+    names.extend(
+        n for n in op.params.get("duplicate_outputs", []) if isinstance(n, str)
+    )
     if op.kind == "split" and op.params.get("target"):
         names.append(qualify(op.params["target"]))
     return names

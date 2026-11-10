@@ -14,10 +14,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Column, Operator
+from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion
+from sgm.talend_item.desde_plan_nodos_escritura import nodo_escritura
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Nodo
-from sgm.talend_item.plantillas import disponibles, nodo_desde_plantilla
+from sgm.talend_item.motivo_entrada_data_step import motivo_entrada_data_step
+from sgm.talend_item.plantillas import nodo_desde_plantilla
 
 # Tipo de la IR (`Column.type`) al tipo de Talend. Sin tipo demostrado, texto: es el único que no
 # pierde información al escribir, y la pérdida de precisión se avisa en el pendiente del esquema.
@@ -59,11 +62,15 @@ def ruta(literal: str | None) -> str:
     """Ruta de un literal de SAS (`'/data/x.csv'` o `"/data/x.csv"`) sin las comillas."""
     texto = (literal or "").strip()
     if len(texto) >= 2 and texto[0] == texto[-1] and texto[0] in "\"'":
-        return texto[1:-1]
+        quote = texto[0]
+        return texto[1:-1].replace(quote + quote, quote)
     return texto
 
 
 def _linea(op: Operator) -> int | None:
+    linea_io = op.params.get("infile_line") or op.params.get("input_line")
+    if isinstance(linea_io, int):
+        return linea_io
     return op.evidence[0].line_start if op.evidence else None
 
 
@@ -83,8 +90,10 @@ def separador(dbms: str | None, delimiter: str | None) -> tuple[str | None, str 
     )
 
 
-def _cabecera(getnames: bool | None) -> str:
+def _cabecera(getnames: bool | int | None) -> str:
     """`HEADER` de Studio: las líneas de cabecera que se saltan antes de la primera fila."""
+    if isinstance(getnames, int) and not isinstance(getnames, bool):
+        return str(max(0, getnames))
     return "1" if getnames else "0"
 
 
@@ -96,13 +105,71 @@ def nodo_lectura(
     y: int,
     ruta_java: str | None = None,
 ) -> Resultado:
-    """`read_file` como `tFileInputDelimited` o `tFileInputExcel`."""
+    """`read_file` como componente de archivo cuando la equivalencia está documentada."""
     params = op.params
     dbms = (params.get("dbms") or "").lower()
+    file_format = str(params.get("file_format") or "").lower()
     columnas = columnas_talend(esquema)
     resultado = Resultado(columnas=columnas)
     archivo = ruta(params.get("datafile"))
+    if any(not is_java_identifier(columna.nombre) for columna in columnas):
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-ESQUEMA-NO-PORTABLE",
+                "la lectura tiene nombres de columna no portables para Java",
+                _linea(op),
+            )
+        )
+        return resultado
+    if file_format == "positional":
+        if params.get("input_mode") == "formatted":
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-INFORMAT-SIN-SOPORTE",
+                    f"{archivo or params.get('fileref') or '(sin ruta)'}: se conserva el INPUT "
+                    "con informat, pero falta traducir sus máscaras y conversión de tipo.",
+                    _linea(op),
+                )
+            )
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-COMPONENTE-SIN-PLANTILLA",
+                f"{archivo or params.get('fileref') or '(sin ruta)'}: falta una plantilla real "
+                "de tFileInputPositional y validar la disposición de columnas en Studio.",
+                _linea(op),
+            )
+        )
+        return resultado
+    if file_format == "datalines":
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-DATALINES-SIN-LECTOR",
+                "DATA step con DATALINES requiere conservar y emitir sus filas de entrada.",
+                _linea(op),
+            )
+        )
+        return resultado
+    if file_format and file_format != "delimited" and file_format not in EXCEL:
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-FORMATO-SIN-SOPORTE",
+                f"{archivo or params.get('fileref') or '(sin ruta)'}: formato SAS "
+                f"'{file_format}' no tiene un lector verificado.",
+                _linea(op),
+            )
+        )
+        return resultado
     if dbms in EXCEL:
+        guessingrows = params.get("guessingrows")
+        if guessingrows is not None:
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-GUESSINGROWS",
+                    f"{archivo}: GUESSINGROWS={guessingrows} se limita a archivos delimitados "
+                    "según la referencia SAS; no se aplica a este Excel.",
+                    _linea(op),
+                )
+            )
         if params.get("sheet") is None:
             resultado.pendientes.append(
                 PendienteMigracion(
@@ -119,13 +186,65 @@ def nodo_lectura(
             unico,
             x,
             y,
-            {"FILENAME": archivo, "HEADER": _cabecera(params.get("getnames"))},
+            {
+                "FILENAME": java(archivo),
+                "VERSION_2007": "true" if dbms == "xlsx" else "false",
+                "HEADER": _cabecera(params.get("getnames")),
+            },
             {"SHEETLIST": celdas},
             columnas,
             ruta_java,
         )
         return resultado
-    if dbms not in DELIMITADOS:
+    guessingrows = params.get("guessingrows")
+    if guessingrows is not None:
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-GUESSINGROWS",
+                f"{archivo}: GUESSINGROWS={guessingrows} afecta la inferencia SAS de tipo y "
+                "longitud; "
+                "Talend requiere tipos explícitos, hay que validar el esquema emitido.",
+                _linea(op),
+            )
+        )
+    data_step_input = "infile_statement" in params or "input_statement" in params
+    if data_step_input and file_format != "delimited":
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-FORMATO-SIN-SOPORTE",
+                f"{archivo or params.get('fileref') or '(sin ruta)'}: la sintaxis INFILE/INPUT "
+                "no demuestra un formato delimitado compatible.",
+                _linea(op),
+            )
+        )
+        return resultado
+    if data_step_input:
+        pending_reason = motivo_entrada_data_step(params)
+        if pending_reason:
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-INFILE-SIN-EQUIVALENCIA",
+                    f"{archivo or params.get('fileref')}: {pending_reason}",
+                    _linea(op),
+                )
+            )
+            return resultado
+        if not archivo:
+            codigo = (
+                "P-RUTA-DINAMICA"
+                if params.get("source_dynamic")
+                else "P-FILENAME-SIN-RESOLVER"
+            )
+            referencia = params.get("fileref") or "(sin referencia)"
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    codigo,
+                    f"{referencia}: se necesita resolver la ruta SAS antes de generar la lectura.",
+                    _linea(op),
+                )
+            )
+            return resultado
+    elif dbms not in DELIMITADOS:
         resultado.pendientes.append(
             PendienteMigracion(
                 "P-FORMATO-SIN-SOPORTE",
@@ -136,6 +255,11 @@ def nodo_lectura(
         return resultado
     separa, motivo = separador(dbms, params.get("delimiter"))
     if separa is None:
+        if data_step_input:
+            resultado.pendientes.append(
+                PendienteMigracion("P-DELIMITADOR", f"{archivo}: {motivo}", _linea(op))
+            )
+            return resultado
         resultado.pendientes.append(
             PendienteMigracion("P-DELIMITADOR", f"{archivo}: {motivo}", _linea(op))
         )
@@ -146,76 +270,15 @@ def nodo_lectura(
         x,
         y,
         {
-            "FILENAME": archivo,
+            "FILENAME": java(archivo),
             "FIELDSEPARATOR": java(separa),
-            "HEADER": _cabecera(params.get("getnames")),
+            "HEADER": _cabecera(
+                max(0, params["firstobs"] - 1)
+                if data_step_input and isinstance(params.get("firstobs"), int)
+                else params.get("getnames")
+            ),
         },
         columnas=columnas,
-        ruta_java=ruta_java,
-    )
-    return resultado
-
-
-def nodo_escritura(
-    op: Operator,
-    columnas: list[Columna],
-    unico: str,
-    x: int,
-    y: int,
-    ruta_java: str | None = None,
-) -> Resultado:
-    """`write_file` como `tFileOutputDelimited` o `tFileOutputExcel` si hay plantilla."""
-    params = op.params
-    dbms = (params.get("dbms") or "").lower()
-    resultado = Resultado(columnas=list(columnas))
-    archivo = ruta(params.get("outfile"))
-    if dbms in EXCEL:
-        if "tFileOutputExcel" not in disponibles():
-            resultado.pendientes.append(
-                PendienteMigracion(
-                    "P-COMPONENTE-SIN-PLANTILLA",
-                    f"{archivo}: falta la plantilla de tFileOutputExcel, extraída de un Job real",
-                    _linea(op),
-                )
-            )
-            return resultado
-        resultado.nodo = nodo_desde_plantilla(
-            "tFileOutputExcel",
-            unico,
-            x,
-            y,
-            {"FILENAME": archivo},
-            columnas=list(columnas),
-            ruta_java=ruta_java,
-        )
-        return resultado
-    separa, motivo = separador(dbms, params.get("delimiter"))
-    if dbms not in DELIMITADOS:
-        resultado.pendientes.append(
-            PendienteMigracion(
-                "P-FORMATO-SIN-SOPORTE",
-                f"{archivo}: DBMS={dbms or '(sin DBMS)'} no es un archivo delimitado",
-                _linea(op),
-            )
-        )
-        return resultado
-    if separa is None:
-        resultado.pendientes.append(
-            PendienteMigracion("P-DELIMITADOR", f"{archivo}: {motivo}", _linea(op))
-        )
-        separa = SEPARADORES["csv"]
-    resultado.nodo = nodo_desde_plantilla(
-        "tFileOutputDelimited",
-        unico,
-        x,
-        y,
-        {
-            "FILENAME": archivo,
-            "FIELDSEPARATOR": java(separa),
-            "INCLUDEHEADER": "true",
-            "APPEND": "false",
-        },
-        columnas=list(columnas),
         ruta_java=ruta_java,
     )
     return resultado

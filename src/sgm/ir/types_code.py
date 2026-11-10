@@ -3,8 +3,8 @@
 Cada regla da un tipo solo si la sentencia lo fija sin ambigüedad. Un tipo que no sale de ninguna
 fuente queda como desconocido: nunca se inventa.
 
-- `input(x, w.)` y `input(x, w.d)`: numérico. `Long` si no hay decimales y `w <= 18`; `BigDecimal`
-  si hay decimales; `Double` en otro caso.
+- `input(x, w.)` y `input(x, w.d)`: numérico. El ancho no demuestra que el dato sea entero:
+  `Double` si el informat no declara decimales y `BigDecimal` si declara `d > 0`.
 - Informats de fecha u hora (`yymmdd8.`, `ddmmyy10.`, `datetime20.`...): `Date`.
 - `put(x, w.)` o `put(x, $w.)`: `String` de longitud `w`.
 - `cast(x as T)` en SQL: el tipo del cast.
@@ -24,7 +24,7 @@ from pathlib import Path
 
 import yaml
 
-# Los nombres de fecha, la marca de carácter y los umbrales numéricos viven en
+# Los nombres de fecha, la marca de carácter y los tipos numéricos viven en
 # `rules/sas/informats.yaml` (F1.4). Aquí solo se interpretan.
 INFORMATS_YAML = Path(__file__).resolve().parents[3] / "rules" / "sas" / "informats.yaml"
 
@@ -103,13 +103,11 @@ class CodeType:
     length: int | None = None
 
 
-def numeric_type(width: int, decimals: int) -> CodeType:
-    """Tipo de un informat numérico de ancho `width` y `decimals` decimales."""
+def numeric_type(_width: int, decimals: int) -> CodeType:
+    """Tipo conservador: el ancho no prueba integralidad; `d` sí fija escala decimal."""
     if decimals > 0:
         return CodeType(_NUMERICO["decimals_type"])
-    if width <= _NUMERICO["long_max_width"]:
-        return CodeType(_NUMERICO["long_type"])
-    return CodeType(_NUMERICO["wide_type"])
+    return CodeType(_NUMERICO["no_decimals_type"])
 
 
 def informat_type(spec: str) -> CodeType | None:
@@ -124,6 +122,8 @@ def informat_type(spec: str) -> CodeType | None:
     width = int(width_text or 0)
     if dollar or name.startswith(_CARACTER["prefix"]):
         return CodeType(_CARACTER["type"], width or None)
+    if name and name not in _NUMERICO["names"]:
+        return None
     return numeric_type(width, int(decimals_text or 0))
 
 

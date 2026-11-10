@@ -15,8 +15,6 @@ from sgm.expressions.talend_funciones import (
     _ifv,
     _input,
     _int,
-    _intck,
-    _intnx,
     _mdy,
     _part,
     _put,
@@ -27,6 +25,7 @@ from sgm.expressions.talend_funciones import (
     _substr,
     _unary_math,
 )
+from sgm.expressions.talend_funciones_fecha import _intck, _intnx
 
 _FUNCTIONS = {
     "upcase": _routine("StringHandling", "UPCASE", 1), "lowcase": _routine("StringHandling", "DOWNCASE", 1),

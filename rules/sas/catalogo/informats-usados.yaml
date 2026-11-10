@@ -67,8 +67,8 @@ entries:
 - id: anydtdte
   nombre: ANYDTDTEw.
   fuente: leforinforref.pdf, p. 617
-  estado: no_verificada
-  nota: lee fecha, hora o fecha-hora en cualquier forma y extrae la fecha; el repo no la tipa
+  estado: reconocida
+  nota: tipo Date reconocido; traducción pendiente porque depende de DATESTYLE, YEARCUTOFF y múltiples formas de entrada
 - id: anydtdtm
   nombre: ANYDTDTMw.
   fuente: leforinforref.pdf, p. 620
@@ -87,5 +87,10 @@ entries:
 - id: e8601da
   nombre: E8601DAw.
   fuente: leforinforref.pdf, p. 654
-  estado: no_verificada
-  nota: fecha ISO 8601 extendida (aaaa-mm-dd); el repo no la tipa
+  estado: reconocida
+  nota: fecha ISO 8601 extendida; tipo Date y lectura `yyyy-MM-dd` deterministas
+- id: comma
+  nombre: COMMAw.d
+  fuente: leforinforref.pdf, p. 646
+  estado: reconocida
+  nota: informat numérico que retira separadores, signos monetarios y escala `d` cuando falta punto decimal

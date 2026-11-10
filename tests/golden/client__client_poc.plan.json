@@ -835,9 +835,12 @@
       "kind": "aggregate",
       "status": "soportado",
       "placement": "flow",
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "params": {
         "group_by": [],
+        "output_order": [
+          "count(*)"
+        ],
         "aggregations": [
           {
             "expression": "COUNT(*)",
@@ -996,9 +999,12 @@
       "kind": "aggregate",
       "status": "soportado",
       "placement": "flow",
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "params": {
         "group_by": [],
+        "output_order": [
+          "count(*)"
+        ],
         "aggregations": [
           {
             "expression": "COUNT(*)",
@@ -1076,9 +1082,12 @@
       "kind": "aggregate",
       "status": "soportado",
       "placement": "flow",
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "params": {
         "group_by": [],
+        "output_order": [
+          "count(*)"
+        ],
         "aggregations": [
           {
             "expression": "COUNT(*)",
@@ -1183,9 +1192,12 @@
       "kind": "aggregate",
       "status": "soportado",
       "placement": "flow",
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "params": {
         "group_by": [],
+        "output_order": [
+          "count(*)"
+        ],
         "aggregations": [
           {
             "expression": "COUNT(*)",
@@ -1263,9 +1275,12 @@
       "kind": "aggregate",
       "status": "soportado",
       "placement": "flow",
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "params": {
         "group_by": [],
+        "output_order": [
+          "count(*)"
+        ],
         "aggregations": [
           {
             "expression": "COUNT(*)",
@@ -2552,7 +2567,7 @@
         "talend_expression_candidates": [
           {
             "source": "compress(v, ' ')",
-            "java": "(input_row.v == null ? null : input_row.v.replaceAll(\"(?:\\\\Q \\\\E)\", \"\"))",
+            "java": "(input_row.v == null ? null : StringHandling.EREPLACE(input_row.v, \"[\\\\ ]\", \"\"))",
             "columns": [
               "v"
             ],
@@ -14248,7 +14263,7 @@
   ],
   "pending": [
     {
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "options": [
         {
           "opcion": "tAggregateRow",
@@ -14266,7 +14281,7 @@
       "occurrences": 1
     },
     {
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "options": [
         {
           "opcion": "tAggregateRow",
@@ -14284,7 +14299,7 @@
       "occurrences": 1
     },
     {
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "options": [
         {
           "opcion": "tAggregateRow",
@@ -14302,7 +14317,7 @@
       "occurrences": 1
     },
     {
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "options": [
         {
           "opcion": "tAggregateRow",
@@ -14320,7 +14335,7 @@
       "occurrences": 1
     },
     {
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "options": [
         {
           "opcion": "tAggregateRow",
@@ -24302,7 +24317,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tAggregateRow; no aplicado"
       },
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "fuente": []
     },
     {
@@ -24313,7 +24328,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tAggregateRow; no aplicado"
       },
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "fuente": []
     },
     {
@@ -24324,7 +24339,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tAggregateRow; no aplicado"
       },
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "fuente": []
     },
     {
@@ -24335,7 +24350,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tAggregateRow; no aplicado"
       },
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "fuente": []
     },
     {
@@ -24346,7 +24361,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tAggregateRow; no aplicado"
       },
-      "signature": "584b31fdb8099257",
+      "signature": "129cdd343d40d2cd",
       "fuente": []
     },
     {

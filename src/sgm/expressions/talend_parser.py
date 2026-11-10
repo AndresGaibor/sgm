@@ -15,6 +15,9 @@ from sgm.expressions.talend_base import (
     _truth,
 )
 from sgm.expressions.talend_tabla import _FUNCTIONS
+from sgm.java_identificadores import is_java_identifier
+
+_MACRO_TRIGGER = re.compile(r"&+[A-Za-z_]\w*|%[A-Za-z_]\w*\s*\(")
 
 
 class _P:
@@ -104,9 +107,15 @@ class _P:
         if k == "id" and low == "like":
             self.take()
             pattern = self.add()
-            if pattern.kind != "str":
+            if pattern.kind != "str" or pattern.literal is None:
                 raise Unsupported("LIKE con un patrón que no es literal")
-            regex = _jstr("'" + re.sub(r"%", ".*", re.sub(r"_", ".", pattern.java[1:-1])) + "'")
+            if any(not char.isprintable() for char in pattern.literal):
+                raise Unsupported("LIKE con un patrón que contiene caracteres de control")
+            regex = "".join(
+                ".*" if char == "%" else "." if char == "_" else re.escape(char)
+                for char in pattern.literal
+            )
+            regex = _jstr("'" + regex.replace("'", "''") + "'")
             core = f"({left.java} != null && {left.java}.matches({regex}))"
             return E(f"(!{core})" if negate else core, "bool")
         op = _CMP.get(low) if k in ("op", "id") else None
@@ -176,13 +185,14 @@ class _P:
     def atom(self) -> E:
         k, v = self.take()
         if k == "str":
-            return E(_jstr(v), "str")
+            literal = v[1:-1].replace(v[0] * 2, v[0])
+            return E(_jstr(v), "str", literal)
         if k == "datelit":
             return E(f'TalendDate.parseDateLocale("ddMMMyyyy", "{v[1:-2]}", "en")', "date")
         if k == "num":
             return E(v if re.search(r"[.eE]", v) else v + ".0" if False else v, "num")
         if k == "fmt":
-            return E(_jstr(f"'{v}'"), "str")
+            return E(_jstr(f"'{v}'"), "str", v)
         if k == "mvar":
             name = v.lstrip("&").rstrip(".")
             self.warnings.add(
@@ -190,7 +200,10 @@ class _P:
             )
             return E(f"context.sas_param_{name}")
         if k == "name":
-            return self.column(re.search(r"'([^']+)'[nN]$", v).group(1))
+            literal = re.fullmatch(r"(?:[A-Za-z_]\w*\.)?'([^']+)'[nN]", v)
+            if literal is None or not is_java_identifier(literal.group(1)):
+                raise Unsupported("name literal no representable como campo Java portable")
+            return self.column(literal.group(1))
         if k == "op" and v == ".":
             return E("null", "null")
         if k == "op" and v == "(":
@@ -242,9 +255,12 @@ class _P:
         args: list[E] = []
         if self.peek()[1] != ")":
             while True:
-                args.append(
-                    self.raw_format() if name in _FORMAT_ARGS and len(args) == 1 else self.expr()
-                )
+                if name == "compress" and len(args) == 1 and self.peek()[1] == ",":
+                    args.append(E("", "omitted"))
+                else:
+                    args.append(
+                        self.raw_format() if name in _FORMAT_ARGS and len(args) == 1 else self.expr()
+                    )
                 if self.peek()[1] != ",":
                     break
                 self.take()
@@ -257,13 +273,15 @@ class _P:
 
     def raw_format(self) -> E:
         """El formato de `input`/`put` (`date9.`, `$10.`, `8.`) es un nombre, no una expresión."""
-        parts, depth = [], 0
-        while self.i < len(self.t):
-            _kind, v = self.peek()
-            if depth == 0 and v in (",", ")"):
-                break
-            depth += v == "("
-            depth -= v == ")"
-            parts.append(v.strip("'\""))
-            self.i += 1
-        return E(_jstr("'" + "".join(parts) + "'"), "str")
+        kind, value = self.peek()
+        literal = kind in ("fmt", "str") or (
+            kind == "num" and re.fullmatch(r"\d+\.\d*", value) is not None
+        )
+        unresolved = kind == "str" and value.startswith('"') and _MACRO_TRIGGER.search(value)
+        if not literal or unresolved or self.peek(1)[1] not in (",", ")"):
+            raise Unsupported("informat dinámico o no literal; queda pendiente de resolución")
+        self.take()
+        if kind == "str":
+            quote = value[0]
+            value = value[1:-1].replace(quote * 2, quote)
+        return E(_jstr("'" + value.replace("'", "''") + "'"), "str", value)

@@ -23,12 +23,16 @@ from sgm.ir.sql_tree import Item, SelectSpec, SemiSpec, Source, SqlTree
 
 _AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
 _DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
+_DOTTED_STAR = re.compile(r"\b([A-Za-z_]\w*)\.\*")
+_SIMPLE_COLUMN = re.compile(r"(?i)^(?:[a-z_]\w*\.)*([a-z_]\w*)$")
 
 
 def _restore(text: str, normalized: NormalizedSql) -> str:
     """Devuelve las macro variables a su forma SAS (`mv_x` -> `&x`) en un texto."""
     for placeholder, original in normalized.macros.items():
         text = re.sub(rf"\b{re.escape(placeholder)}\b", original, text)
+    for placeholder, original in normalized.row_functions.items():
+        text = re.sub(rf"(?i)\b{re.escape(placeholder)}\b", original, text)
     return text
 
 
@@ -68,6 +72,10 @@ def _tablas(spec: SelectSpec) -> dict[str, str]:
 
 def _calificar(text: str, tablas: dict[str, str]) -> str:
     """`v.monto` -> `ventas.monto` cuando `v` es un alias de la consulta."""
+
+    text = _DOTTED_STAR.sub(
+        lambda m: f"{tablas.get(m.group(1).lower(), m.group(1))}.*", text
+    )
 
     def cambiar(m: re.Match) -> str:
         tabla = tablas.get(m.group(1).lower())
@@ -128,6 +136,57 @@ def _plain_items(spec: SelectSpec) -> list[str]:
         for it in spec.items
         if not it.star and not _AGGREGATE.search(it.expression)
     ]
+
+
+def _group_outputs(spec: SelectSpec, aliases: set[str]) -> tuple[list[dict], list[str]]:
+    """Columnas simples de GROUP BY seleccionadas y columnas que requieren remezcla."""
+    group_names = set()
+    for group in spec.group_by:
+        match = _SIMPLE_COLUMN.fullmatch(_column(group, aliases).strip())
+        if match:
+            group_names.add(match.group(1).lower())
+
+    outputs = []
+    pendientes = []
+    for item in spec.items:
+        if item.star:
+            pendientes.append("*")
+            continue
+        if _AGGREGATE.search(item.expression):
+            continue
+        expression = _column(item.expression, aliases).strip()
+        match = _SIMPLE_COLUMN.fullmatch(expression)
+        nombre = item.alias or item.column or (match.group(1) if match else item.expression)
+        if match is None or match.group(1).lower() not in group_names:
+            pendientes.append(nombre)
+        else:
+            outputs.append({"expression": expression, "alias": nombre})
+    return outputs, pendientes
+
+
+def _aggregate_order_by(
+    spec: SelectSpec, aliases: set[str]
+) -> tuple[list[tuple[str, bool]], list[str]]:
+    """Resuelve ORDER BY con salidas seleccionadas; las otras referencias remezclan SAS."""
+    selected = {}
+    for item in spec.items:
+        if item.star:
+            continue
+        target = item.alias or item.column or item.expression
+        expression = _column(item.expression, aliases).strip()
+        selected[expression.casefold()] = target
+        selected[target.casefold()] = target
+
+    outputs = []
+    pendientes = []
+    for expression, descending in spec.order_by:
+        nombre = _column(expression, aliases).strip()
+        destino = selected.get(nombre.casefold())
+        if destino is None:
+            pendientes.append(f"ORDER BY {nombre}")
+        else:
+            outputs.append((destino, descending))
+    return outputs, pendientes
 
 
 def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
@@ -227,7 +286,8 @@ def _cruce_de_existencia(
     clave = f"clave_in{numero}"
     alias_sub = {sub.base.alias.lower()} if sub.base and sub.base.alias else set()
     tablas_sub = _tablas(sub)
-    actual = chain.read(sub.base)
+    source_read = chain.read(sub.base)
+    actual = source_read
     if sub.where:
         filtro = _restore(_column(sub.where, alias_sub), normalized)
         actual = chain.step("filter", {"expression": filtro}, actual)
@@ -244,6 +304,10 @@ def _cruce_de_existencia(
         "join_type": "left" if semi.negate else "inner",
         "sources": [],
         "condition": None,
+        "interpreter_subquery": {
+            "expression": _restore(semi.expression, normalized),
+            "source_read": source_read.id,
+        },
     }
     cruce = chain.b.op("join", params, chain.ev)
     chain.b.link(current, cruce)
@@ -283,9 +347,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     for numero, semi in enumerate(spec.semis, start=1):
         current = _cruce_de_existencia(semi, numero, current, chain, tablas, normalized)
     if spec.where:
+        expresion_where = spec.where if spec.subqueries else _column(spec.where, aliases)
         current = chain.step(
             "filter",
-            {"expression": _restore(_column(spec.where, aliases), normalized)},
+            {"expression": _restore(expresion_where, normalized)},
             current,
             status="parcial" if spec.subqueries else "soportado",
         )
@@ -308,8 +373,14 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
         if leidas:
             current = chain.step("derive", {"assignments": leidas}, current)
     if spec.group_by or aggregates:
+        aggregate_order, remezcla_order = _aggregate_order_by(spec, aliases)
         params = {
             "group_by": [_column(g, aliases) for g in spec.group_by],
+            "output_order": [
+                str(it.alias or it.column or it.expression).lower()
+                for it in spec.items
+                if not it.star
+            ],
             "aggregations": [
                 {
                     "expression": _restore(_column(it.expression, aliases), normalized),
@@ -322,16 +393,49 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
                 for llamada, nombre in ocultas.items()
             ],
         }
-        plain = _plain_items(spec) if not spec.group_by else []
-        if plain and sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente":
-            # SAS remezcla las columnas sin agregar en cada fila: no hay SQL equivalente probado.
-            params["pendiente"] = plain
-            label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
-            note = f"{label}: columnas sin agregar {', '.join(plain)}; pendiente de decidir"
-            current = chain.step("aggregate", params, current, status="parcial")
-            current.notes.append(note)
+        group_outputs = []
+        remezcla = []
+        if spec.group_by:
+            group_outputs, remezcla = _group_outputs(spec, aliases)
+            params["group_outputs"] = group_outputs
+        if compuestos:
+            # El agregado entrega también las llamadas ocultas; la derivación posterior arma
+            # el SELECT visible y su orden definitivo.
+            params["output_order"] = [
+                *[str(item["alias"]).lower() for item in group_outputs],
+                *[str(item["alias"]).lower() for item in params["aggregations"]],
+            ]
+        if spec.group_by:
+            remezcla.extend(remezcla_order)
+            if remezcla:
+                params["pendiente"] = remezcla
+                note = (
+                    "REMEZCLA_GROUP_BY_PENDIENTE: referencias no seleccionadas o no agrupadas "
+                    f"{', '.join(remezcla)}; no se implementa la remezcla SAS"
+                )
+                current = chain.step("aggregate", params, current, status="parcial")
+                current.notes.append(note)
+            else:
+                current = chain.step("aggregate", params, current)
         else:
-            current = chain.step("aggregate", params, current)
+            plain = _plain_items(spec)
+            sin_agrupar = []
+            if sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente":
+                sin_agrupar.extend(plain)
+            if any(item.star for item in spec.items):
+                sin_agrupar.append("*")
+            sin_agrupar.extend(remezcla_order)
+            if sin_agrupar:
+                # Sin equivalencia para la remezcla, no producir filas resumen parciales.
+                params["pendiente"] = sin_agrupar
+                label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
+                note = (
+                    f"{label}: columnas sin agregar {', '.join(sin_agrupar)}; pendiente de decidir"
+                )
+                current = chain.step("aggregate", params, current, status="parcial")
+                current.notes.append(note)
+            else:
+                current = chain.step("aggregate", params, current)
         if spec.having:
             having = _column(spec.having, aliases)
             for it in aggregates:
@@ -380,7 +484,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     if spec.distinct:
         current = chain.step("dedup", {"by": _names(spec.items), "keep": "first"}, current)
     if spec.order_by:
-        by = [_column(expr, aliases) for expr, _ in spec.order_by]
+        if spec.group_by or aggregates:
+            by = [expression for expression, _ in aggregate_order]
+        else:
+            by = [_column(expr, aliases) for expr, _ in spec.order_by]
         desc = [desc for _, desc in spec.order_by]
         current = chain.step("sort", {"by": by, "descending": desc}, current)
     return current

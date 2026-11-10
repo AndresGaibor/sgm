@@ -36,6 +36,7 @@ def test_csv_escribe_a_fichero_con_la_ruta_como_contexto():
     plan = _plan(PROGRAMA, "csv")
     outputs = [op for op in plan.graph.operators() if op.kind == "write_file"]
     assert any(op.params.get("outfile") == "contexto.ruta_print" for op in outputs)
+    assert all(op.params.get("dbms") == "csv" for op in outputs)
     names = [op.component["name"] for op in outputs if op.component]
     assert "tFileOutputDelimited" in names
 

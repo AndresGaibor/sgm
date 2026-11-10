@@ -1,9 +1,10 @@
-"""Informes de `sgm migrar`: los cuatro documentos que la persona lee después de la corrida.
+"""Informes de `sgm migrar`: evidencia de la corrida para revisar el Job.
 
 El Job se abre en Studio, pero las decisiones y los huecos no están en el `.item`: están aquí. Por
 eso los informes son parte del entregable y no un adorno del log:
 
 * `pendientes.md` — qué no se pudo traducir, con su código y la línea del SAS.
+* `cobertura.md` — líneas asociadas a nodos del Job y líneas con pendientes.
 * `configuracion-pendiente.md` — qué variable de contexto hay que llenar en cada entorno.
 * `decisiones-tomadas.md` — qué eligió el migrador y cómo se cambia.
 * `migracion.log` — la causa técnica de cada fallo interno.
@@ -193,6 +194,78 @@ def trace_json(programa: str, jobs: list[Job], traza: dict[str, list[int]]) -> s
     return json.dumps(contenido, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
 
 
+def cobertura_md(
+    programa: str,
+    jobs: list[Job],
+    traza: dict[str, list[int]],
+    pendientes: list[PendienteMigracion],
+) -> str:
+    """Resume solo la cobertura demostrada por nodos con traza y pendientes conocidos."""
+    nodos = {
+        nodo.unico: (job.nombre, nodo.componente)
+        for job in jobs
+        for nodo in job.nodos
+    }
+    por_linea: dict[int, set[tuple[str, str, str]]] = {}
+    for unico, lineas in traza.items():
+        job, componente = nodos.get(unico, ("—", "nodo no encontrado en los Jobs"))
+        for linea in lineas:
+            por_linea.setdefault(linea, set()).add((job, componente, unico))
+
+    lineas = [
+        f"# Cobertura de migración — {_celda(programa)}",
+        "",
+        "Resumen de la evidencia que dejó esta corrida.",
+        "",
+        "## Líneas asociadas a nodos de Job",
+        "",
+    ]
+    if por_linea:
+        filas = [
+            [str(linea), job, componente, f"`{unico}`"]
+            for linea in sorted(por_linea)
+            for job, componente, unico in sorted(por_linea[linea])
+        ]
+        lineas += _tabla(["Línea SAS", "Job", "Componente", "Nodo"], filas)
+    else:
+        lineas.append("No hay nodos de Job con línea SAS registrada.")
+
+    con_linea = [pendiente for pendiente in pendientes if pendiente.linea is not None]
+    sin_linea = [pendiente for pendiente in pendientes if pendiente.linea is None]
+    lineas += ["", "## Pendientes con línea", ""]
+    if con_linea:
+        lineas += _tabla(
+            ["Línea SAS", "Código", "Detalle"],
+            [
+                [str(p.linea), f"`{p.codigo}`", "Ver motivo en `pendientes.md`"]
+                for p in sorted(con_linea, key=_orden)
+            ],
+        )
+    else:
+        lineas.append("No hay pendientes con línea de origen.")
+
+    lineas += ["", "## Pendientes sin línea", ""]
+    if sin_linea:
+        lineas += _tabla(
+            ["Código", "Detalle"],
+            [
+                [f"`{p.codigo}`", "Ver motivo en `pendientes.md`"]
+                for p in sorted(sin_linea, key=_orden)
+            ],
+        )
+    else:
+        lineas.append("No hay pendientes sin línea de origen.")
+
+    lineas += [
+        "",
+        "Este informe no calcula un porcentaje de líneas del fuente: no hay un total "
+        "verificado que clasifique "
+        "líneas vacías, comentarios y texto no reconocido. Una línea enlazada a un nodo demuestra "
+        "traza de generación, no compilación ni ejecución en Talend.",
+    ]
+    return "\n".join([*lineas, ""])
+
+
 def migracion_log(notas: list[str]) -> str:
     """Causas técnicas de los fallos internos, en el orden en que ocurrieron."""
     if not notas:
@@ -210,6 +283,7 @@ def escribir(carpeta: Path, nombre: str, contenido: str) -> Path:
 
 __all__ = [
     "configuracion_pendiente_md",
+    "cobertura_md",
     "decisiones_tomadas_md",
     "escribir",
     "migracion_log",

@@ -97,7 +97,7 @@ def _f_compress(args: list[str]) -> str:
     """compress(texto) quita los blancos; con lista de caracteres no hay equivalente simple."""
     if len(args) != 1:
         raise _Unsupported("compress() con lista de caracteres: sin equivalente simple")
-    return _guard(args[0], args[0] + '.replaceAll("\\\\s", "")')
+    return _guard(args[0], args[0] + '.replaceAll(" ", "")')
 
 
 def _f_index(args: list[str]) -> str:
@@ -120,10 +120,6 @@ _DATE_FORMATS = {
     "date9.": "ddMMMyyyy",
     "datetime20.": "ddMMMyyyy:HH:mm:ss",
 }
-#: Intervalos de intnx/intck y su unidad de TalendDate.
-_INTERVALS = {"day": "dd", "week": "dd", "month": "mm", "year": "yy"}
-
-
 def _date_format(literal: str) -> str | None:
     return _DATE_FORMATS.get(literal.strip('"').lower())
 
@@ -146,38 +142,6 @@ def _f_datepart(args: list[str]) -> str:
     )
 
 
-def _f_intnx(args: list[str]) -> str:
-    if len(args) not in (3, 4):
-        raise _Unsupported("intnx() con intervalo, fecha y desplazamiento (alineación opcional)")
-    interval, value, step = args[0], args[1], args[2]
-    alignment = args[3].strip('"').lower() if len(args) == 4 else "same"
-    name = interval.strip('"').lower()
-    unit = _INTERVALS.get(name)
-    if unit is None:
-        raise _Unsupported(f"intnx() con intervalo {name} sin equivalente")
-    if alignment not in ("same", "begin"):
-        raise _Unsupported(f"intnx() con alineación {alignment}: solo same y begin")
-    amount = f"({step}) * 7" if name == "week" else step
-    moved = f'TalendDate.addDate({value}, (int) ({amount}), "{unit}")'
-    if alignment == "begin" and unit == "mm":
-        moved = f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-MM-01", {moved}))'
-    elif alignment == "begin" and unit == "yy":
-        moved = f'TalendDate.parseDate("yyyy-MM-dd", TalendDate.formatDate("yyyy-01-01", {moved}))'
-    return _guard(value, moved)
-
-
-def _f_intck(args: list[str]) -> str:
-    if len(args) != 3:
-        raise _Unsupported("intck() sin los tres argumentos (intervalo, inicio, fin)")
-    interval, start, end = args
-    name = interval.strip('"').lower()
-    unit = _INTERVALS.get(name)
-    if unit is None:
-        raise _Unsupported(f"intck() con intervalo {name} sin equivalente")
-    divisor = " / 7" if name == "week" else ""
-    return _guard(start, f'(TalendDate.diffDate({end}, {start}, "{unit}"){divisor})')
-
-
 def _f_today(args: list[str]) -> str:
     if args:
         raise _Unsupported("today() sin argumentos")
@@ -196,10 +160,13 @@ def _f_date_part(part: str):
 def _f_input(args: list[str]) -> str:
     """input(texto, formato numérico): conversión a número; las fechas de SAS quedan fuera (sin equivalente simple)."""
     if len(args) == 2 and _date_format(args[1]):
-        text = args[0]
-        return _guard(text, f'TalendDate.parseDate("{_date_format(args[1])}", {text})')
+        raise _Unsupported(
+            "informato de fecha requiere YEARCUTOFF, DATESTYLE o locale del proyecto"
+        )
     if len(args) != 2 or not _NUMERIC_FORMAT.fullmatch(args[1]):
         raise _Unsupported("input() solo con formato numérico (best./comma.)")
+    if args[1].strip('"').lower().startswith("comma"):
+        raise _Unsupported("input() con COMMA requiere limpiar separadores según el informato SAS")
     return _guard(args[0], f"Double.parseDouble({args[0]})")
 
 
@@ -207,6 +174,8 @@ def _f_put(args: list[str]) -> str:
     """put(número, formato numérico): conversión a texto."""
     if len(args) == 2 and _date_format(args[1]):
         return _guard(args[0], f'TalendDate.formatDate("{_date_format(args[1])}", {args[0]})')
+    if len(args) == 2 and _NUMERIC_FORMAT.fullmatch(args[1]):
+        raise _Unsupported("put() con BEST/COMMA no conserva anchura, redondeo y separadores SAS")
     if len(args) != 2 or not _NUMERIC_FORMAT.fullmatch(args[1]):
         raise _Unsupported("put() solo con formato numérico (best./comma.)")
     return _guard(args[0], f"String.valueOf({args[0]})")
@@ -215,8 +184,6 @@ def _f_put(args: list[str]) -> str:
 _FUNCTIONS = {
     "mdy": _f_mdy,
     "datepart": _f_datepart,
-    "intnx": _f_intnx,
-    "intck": _f_intck,
     "today": _f_today,
     "year": _f_date_part("YEAR"),
     "month": _f_date_part("MONTH"),
@@ -254,12 +221,6 @@ _FUNCTION_WARNINGS = {
     "mdy": ["mdy(): devuelve un Date de Talend; con missing en mes, día o año devuelve null"],
     "datepart": [
         "datepart(): quita la hora; validar con datetimes SAS (época 1960 frente a Date de Talend)"
-    ],
-    "intnx": [
-        "intnx(): alineación same/begin; end no se traduce. Validar la unidad con datos reales"
-    ],
-    "intck": [
-        "intck(): cuenta fronteras de unidad como SAS; diffDate devuelve la diferencia de la unidad, validar el signo"
     ],
     "input": [
         "input(): convierte texto con el formato indicado; un texto no válido lanza excepción"

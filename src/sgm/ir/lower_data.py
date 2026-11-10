@@ -9,13 +9,16 @@ from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_grupos import programa_por_grupo
+from sgm.ir.lower_data_statements import (
+    conditional_assignment,
+    conditional_do_assignments,
+    record_file_put,
+    statement_op,
+)
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.types_code import declared_types
 
 _HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
-_IF_ASSIGN = re.compile(r"(?is)^if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
-_ELSE_IF_ASSIGN = re.compile(r"(?is)^else\s+if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
-_ELSE_ASSIGN = re.compile(r"(?is)^else\s+([\w]+)\s*=\s*(.+)$")
 
 
 def _join_type(stmts: list[DsStatement], refs: list[dict]) -> str | None:
@@ -94,10 +97,66 @@ def _lower_sources(
 def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator | None:
     if not any(s.kind in ("infile", "input", "datalines") for s in stmts):
         return None
-    rows = next((s.fields.get("rows") for s in stmts if s.kind == "datalines"), None)
-    params = {"datalines_rows": rows} if rows is not None else {}
+    infile = next((s for s in stmts if s.kind == "infile"), None)
+    input_stmt = next((s for s in stmts if s.kind == "input"), None)
+    datalines = next((s for s in stmts if s.kind == "datalines"), None)
+    params: dict = {}
+    if infile is not None:
+        source = str(infile.fields.get("source") or "")
+        if infile.fields.get("source_is_path"):
+            params["datafile"] = source
+        else:
+            params["fileref"] = source
+            if infile.fields.get("source_dynamic"):
+                params["source_dynamic"] = True
+        params["infile_line"] = infile.line
+        params["infile_options"] = dict(infile.fields.get("options") or {})
+        params["unsupported_options"] = list(infile.fields.get("unsupported_options") or [])
+        options = params["infile_options"]
+        if options.get("dlm") is not None:
+            params["delimiter"] = options["dlm"]
+        if isinstance(options.get("firstobs"), int):
+            params["firstobs"] = options["firstobs"]
+    if input_stmt is not None:
+        params["input_mode"] = input_stmt.fields["mode"]
+        params["input_names"] = list(input_stmt.fields["names"])
+        params["input_statement"] = input_stmt.fields["raw"]
+        params["input_line"] = input_stmt.line
+        if input_stmt.fields["mode"] != "list":
+            params["file_format"] = "positional"
+        elif infile is not None:
+            params["file_format"] = "delimited"
+    if datalines is not None:
+        params["datalines_rows"] = datalines.fields.get("rows")
+        params["datalines_data"] = list(datalines.fields.get("data") or [])
+        params["file_format"] = "datalines"
+    if infile is not None:
+        params["infile_statement"] = infile.text
+    raw_statements = [s.text for s in (infile, input_stmt, datalines) if s is not None]
+    if raw_statements:
+        params["statement"] = " | ".join(raw_statements)
+    status = "soportado"
+    if datalines is not None:
+        params["reason"] = "DATALINES_SIN_LECTOR"
+        status = "hueco"
+    elif infile is not None and input_stmt is None:
+        params["reason"] = "INFILE_SIN_INPUT"
+        status = "hueco"
+    elif input_stmt is not None and infile is None:
+        params["reason"] = "INPUT_SIN_INFILE"
+        status = "hueco"
+    if len([s for s in stmts if s.kind == "infile"]) > 1 or len(
+        [s for s in stmts if s.kind == "input"]
+    ) > 1:
+        params["multiple_io_statements"] = True
+        if status == "soportado":
+            status = "parcial"
     return b.op(
-        "read_file", params, ev, notes=["lectura de archivo o de datos en línea del DATA step"]
+        "read_file",
+        params,
+        ev,
+        status=status,
+        notes=["lectura de archivo o de datos en línea del DATA step"],
     )
 
 
@@ -128,8 +187,20 @@ def _statement_evidence(stmt: DsStatement, ev: Evidence) -> Evidence:
 def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     stmts = step.statements
     reads, current = _lower_sources(stmts, ev, b)
-    if current is None:
-        current = _read_file(stmts, ev, b) or (reads[0] if reads else None)
+    file_read = _read_file(stmts, ev, b)
+    if file_read is not None and (current is not None or reads):
+        file_read.params["reason"] = "LECTURAS_DATA_STEP_MIXTAS"
+        file_read.status = "hueco"
+        file_read.notes.append(
+            "SET/MERGE y INFILE/INPUT coexisten; revisar el orden de lectura SAS"
+        )
+        b.refresh(file_read)
+        b.link(current or reads[0], file_read)
+        current = file_read
+    elif file_read is not None:
+        current = file_read
+    elif current is None:
+        current = reads[0] if reads else None
     pending_derive: Operator | None = None
     loose: list[str] = []
     prev: DsStatement | None = None
@@ -150,7 +221,22 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         before, prev = prev, s
         if kind in _HEAD_KINDS:
             continue
-        conditional = _conditional_assignment(stmts, index)
+        conditional_do = conditional_do_assignments(stmts, index)
+        if conditional_do is not None:
+            assignments, siguiente = conditional_do
+            if pending_derive is None:
+                pending_derive = b.op(
+                    "derive", {"assignments": [], "modo": "agrega"}, statement_ev
+                )
+                if current is not None:
+                    b.link(current, pending_derive)
+                current = pending_derive
+            pending_derive.params["assignments"].extend(assignments)
+            b.refresh(pending_derive)
+            omit.update(range(index + 1, siguiente))
+            prev = stmts[siguiente - 1]
+            continue
+        conditional = conditional_assignment(stmts, index)
         if conditional is not None:
             conditional = ([conditional[0]], conditional[1])
         else:
@@ -188,13 +274,16 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             b.refresh(pending_derive)
             continue
         pending_derive = None
+        if kind in ("file", "put") and current is not None:
+            record_file_put(s, current, b)
+            continue
         if kind == "declare":
             _note(current, f"declaración sin efecto en la lógica: {s.text}")
             continue
         if kind in ("array", "do", "end"):
             _note(current, f"{kind} no traducido: revisar el bucle o el arreglo", status="parcial")
             continue
-        new = _statement_op(s, kind, before, statement_ev, b)
+        new = statement_op(s, before, statement_ev, b)
         if new is None:
             _note(current, f"sentencia sin traducción: {s.text}", status="parcial")
             if current is not None:
@@ -225,125 +314,6 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         current.notes.append("salida _NULL_: no escribe dataset")
     current.params["outputs"] = [qualify(o) for o in outputs if o.lower() != "_null_"]
     b.refresh(current)
-
-
-def _conditional_assignment(
-    stmts: list[DsStatement], index: int
-) -> tuple[dict, int] | None:
-    """Combina ramas de asignación con destino común.
-
-    SAS exige que ELSE siga inmediatamente al IF-THEN; se conserva esa condición del lenguaje
-    (`lestmtsref`, p. 132-133) y no se emparejan ramas separadas por otras sentencias.
-    """
-    current = stmts[index]
-    if current.kind != "if":
-        return None
-    first = _IF_ASSIGN.fullmatch(current.text.strip())
-    if first is None:
-        return None
-    target = first.group(2).lower()
-    branches = [{"condition": first.group(1).strip(), "expression": first.group(3).strip()}]
-    cursor = index + 1
-    while cursor < len(stmts):
-        else_if = _ELSE_IF_ASSIGN.fullmatch(stmts[cursor].text.strip())
-        if else_if is None:
-            break
-        if else_if.group(2).lower() != target:
-            return None
-        branches.append(
-            {"condition": else_if.group(1).strip(), "expression": else_if.group(3).strip()}
-        )
-        cursor += 1
-    if cursor >= len(stmts):
-        return None
-    otherwise = _ELSE_ASSIGN.fullmatch(stmts[cursor].text.strip())
-    if otherwise is None or otherwise.group(1).lower() != target:
-        return None
-    alternativa = otherwise.group(2).strip()
-    condicional = (
-        {"condition": branches[0]["condition"], "otherwise": alternativa}
-        if len(branches) == 1
-        else {"branches": branches, "otherwise": alternativa}
-    )
-    return (
-        {
-            "target": target,
-            "expression": branches[0]["expression"],
-            "conditional": condicional,
-        },
-        cursor + 1,
-    )
-
-
-def _statement_op(
-    s: DsStatement, kind: str, before: DsStatement | None, ev: Evidence, b: Builder
-) -> Operator | None:
-    """Operador de una sentencia que no es asignación. None si no tiene traducción directa."""
-    if kind == "where":
-        return b.op("filter", {"expression": s.fields["expression"]}, ev)
-    if kind == "if":
-        split = _conditional_output(s)
-        if split is not None:
-            return b.op("split", split, ev)
-        if s.fields.get("first_last") or "then" not in s.text.lower():
-            if s.fields.get("first_last"):
-                return b.op(
-                    "stateful_row",
-                    {"reason": "first_last", "text": s.text},
-                    ev,
-                    status="parcial",
-                    notes=["lógica de grupo por first./last.: revisar"],
-                )
-            return b.op("filter", {"expression": re.sub(r"(?i)^if\s+", "", s.text)}, ev)
-        return b.op(
-            "derive",
-            {"conditional": s.text},
-            ev,
-            status="parcial",
-            notes=["asignación condicional: traducir como expresión condicional"],
-        )
-    if kind in ("keep", "drop"):
-        return b.op("select", {"mode": kind, "names": [n.lower() for n in s.fields["names"]]}, ev)
-    if kind == "rename":
-        return b.op("rename", {"pairs": [[a.lower(), c.lower()] for a, c in s.fields["pairs"]]}, ev)
-    if kind == "output":
-        condition = before.text if before is not None and before.kind == "if" else ""
-        target = s.fields.get("target")
-        return b.op(
-            "split",
-            {"target": target, "condition": condition},
-            ev,
-            status="soportado" if target else "parcial",
-            notes=(
-                []
-                if target
-                else ["OUTPUT sin destino explícito requiere semántica de salida por defecto"]
-            ),
-        )
-    if kind in ("retain", "lag", "call_symput"):
-        notes = ["estado entre filas: en Talend requiere tJavaRow o tMap con variables"]
-        return b.op(
-            "stateful_row", {"reason": kind, "text": s.text}, ev, status="parcial", notes=notes
-        )
-    return None
-
-
-_OUTPUT_IN_IF = re.compile(
-    r"(?is)^(?:if\s+(?P<cond>.*?)\s+then\s+|else\s+)output\s+(?P<target>[\w.&]+)"
-)
-
-
-def _conditional_output(s: DsStatement) -> dict | None:
-    """`if c then output t;` o `else output t;` como división. None si no aplica."""
-    m = _OUTPUT_IN_IF.match(s.text.strip())
-    if not m:
-        return None
-    cond = m.group("cond")
-    return {
-        "target": m.group("target"),
-        "condition": cond.strip() if cond else None,
-        "branch": "then" if cond else "else",
-    }
 
 
 def _note(op: Operator | None, text: str, status: str | None = None) -> None:

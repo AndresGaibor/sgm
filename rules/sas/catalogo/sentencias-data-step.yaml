@@ -124,7 +124,8 @@ entries:
 - id: file-statement
   nombre: FILE Statement
   fuente: lestmtsref.pdf, p. 97
-  estado: no_reconocida
+  estado: reconocida
+  nota: se reconoce la palabra y la sintaxis original queda pendiente de un emisor verificado
 - id: filename-statement
   nombre: FILENAME Statement
   fuente: lestmtsref.pdf, p. 120
@@ -241,7 +242,8 @@ entries:
 - id: put-statement
   nombre: PUT Statement
   fuente: lestmtsref.pdf, p. 277
-  estado: no_reconocida
+  estado: reconocida
+  nota: se reconoce la palabra y la sintaxis original queda pendiente de un emisor verificado
 - id: putlog-statement
   nombre: PUTLOG Statement
   fuente: lestmtsref.pdf, p. 316

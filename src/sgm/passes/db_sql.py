@@ -67,18 +67,46 @@ def _step_sql(op: Operator, source: str) -> str | None:
         return f"SELECT *, {', '.join(parts)} FROM {source}" if parts else f"SELECT * FROM {source}"
     if op.kind == "aggregate":
         if sql_semantics.aggregate_pendiente(op.params):
-            return None  # columnas sin agregar junto a agregados: la regla lo deja pendiente
-        keys = [str(k) for k in op.params.get("group_by", [])]
+            return None  # una remezcla no implementada no se traduce a SQL de base
+        group_by = [str(k) for k in op.params.get("group_by", [])]
+        group_outputs = op.params.get("group_outputs")
+        if group_outputs is None:
+            group_outputs = [{"expression": key, "alias": key} for key in group_by]
+        projections = {}
+        selected_keys = []
+        for output in group_outputs:
+            expression = sas_to_sql(str(output.get("expression", "")))
+            alias = str(output.get("alias", ""))
+            if expression is None or not alias or alias.casefold() in projections:
+                return None
+            selected = (
+                expression if expression.lower() == alias.lower() else f"{expression} AS {alias}"
+            )
+            selected_keys.append(selected)
+            projections[alias.casefold()] = selected
         aggs = []
         for agg in op.params.get("aggregations", []):
             expr = sas_to_sql(str(agg.get("expression", "")))
-            if expr is None or not agg.get("alias"):
+            alias = str(agg.get("alias", ""))
+            if expr is None or not alias or alias.casefold() in projections:
                 return None
-            aggs.append(f"{expr} AS {agg['alias']}")
+            projection = f"{expr} AS {alias}"
+            aggs.append(projection)
+            projections[alias.casefold()] = projection
         if not aggs:
             return None
-        select = ", ".join(keys + aggs)
-        group = f" GROUP BY {', '.join(keys)}" if keys else ""
+        output_order = op.params.get("output_order")
+        if output_order is None:
+            selected_outputs = selected_keys + aggs
+        else:
+            selected_outputs = []
+            for name in output_order:
+                projection = projections.get(str(name).casefold())
+                if projection is None:
+                    return None
+                selected_outputs.append(projection)
+        select = ", ".join(selected_outputs)
+        group = f" GROUP BY {', '.join(group_by)}" if group_by else ""
         return f"SELECT {select} FROM {source}{group}"
     if op.kind == "sort":
         by = [str(k) for k in op.params.get("by", [])]

@@ -1,0 +1,6 @@
+description: Exportación Excel con selección de hoja.
+env: default
+input: input.sas
+expect:
+  components:
+    - tFileOutputExcel

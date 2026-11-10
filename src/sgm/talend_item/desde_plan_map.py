@@ -19,6 +19,7 @@ import re
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Operator
+from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion, tipo_de_expresion
 from sgm.talend_item.desde_plan_expresiones import expresion
 from sgm.talend_item.desde_plan_nodos import TIPOS
@@ -449,7 +450,9 @@ def _tipo_condicional(meseta: _Meseta, asignacion: dict) -> str | None:
     return "id_Long"
 
 
-def _tipo_de_salida(meseta: _Meseta, java: str, asignacion: dict) -> str:
+def _tipo_de_salida(
+    meseta: _Meseta, java: str, asignacion: dict, tipo_previo: str | None = None
+) -> str:
     """Tipo de la columna que produce una asignación.
 
     Una columna copiada conserva el tipo que trae. Una expresión que opera con números produce un
@@ -457,9 +460,21 @@ def _tipo_de_salida(meseta: _Meseta, java: str, asignacion: dict) -> str:
     Sin esto la salida quedaba `id_String` y Studio no compilaba: `double cannot be converted to
     String`.
     """
-    condicional = _tipo_condicional(meseta, asignacion)
-    if condicional is not None:
-        return condicional
+    tipo_condicional = _tipo_condicional(meseta, asignacion)
+    if tipo_condicional is not None:
+        return tipo_condicional
+    condicional = asignacion.get("conditional")
+    destino = str(asignacion.get("target") or "").strip()
+    if (
+        isinstance(condicional, dict)
+        and str(condicional.get("otherwise") or "").strip().lower() == destino.lower()
+    ):
+        columna, _ = _fila_de_columna(meseta, destino)
+        if columna is not None:
+            fila, _, nombre = columna.partition(".")
+            return meseta.tipo_de(fila, nombre)
+        if tipo_previo is not None:
+            return tipo_previo
     demostrado = tipo_de_expresion(str(asignacion.get("expression") or ""))
     if demostrado is not None:
         if demostrado == "Boolean":
@@ -542,7 +557,7 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
         demostrado = tipo_de_expresion(str(asignacion.get("expression") or ""))
         if demostrado == "Boolean":
             java = f"Long.valueOf(({java}) ? 1L : 0L)"
-        tipo = _tipo_de_salida(meseta, java, asignacion)
+        tipo = _tipo_de_salida(meseta, java, asignacion, tipos_previos.get(destino))
         tipos_previos[destino] = tipo
         if destino in expresiones:
             columnas = [Columna(destino, tipo) if c.nombre == destino else c for c in columnas]
@@ -578,6 +593,15 @@ def _salidas(meseta: _Meseta, op: Operator, armado: Armado) -> list[SalidaMap]:
             cambios.get(nombre.lower(), nombre): expresion
             for nombre, expresion in expresiones.items()
         }
+    if any(not is_java_identifier(columna.nombre) for columna in columnas):
+        armado.pendientes.append(
+            PendienteMigracion(
+                NO_SOPORTADO,
+                "el mapa produce nombres de columna no portables para Java",
+                _linea(op),
+            )
+        )
+        return []
     if not columnas:
         return []
     return [SalidaMap("out1", columnas, expresiones, filtro=filtro)]
@@ -632,6 +656,19 @@ def construir(
         armado.pendientes.append(
             PendienteMigracion(
                 NO_SOPORTADO, "el mapa no tiene ninguna entrada demostrable", _linea(op)
+            )
+        )
+        return armado
+    if any(
+        not is_java_identifier(columna.nombre)
+        for fuente in fuentes
+        for columna in fuente.columnas
+    ):
+        armado.pendientes.append(
+            PendienteMigracion(
+                NO_SOPORTADO,
+                "el esquema de entrada tiene nombres de columna no portables para Java",
+                _linea(op),
             )
         )
         return armado
