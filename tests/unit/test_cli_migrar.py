@@ -1,7 +1,7 @@
 """Comando `sgm migrar`: un programa SAS a Jobs de Talend sin ningún YAML.
 
 Lo que se prueba aquí no es la traducción —eso está en los módulos de `sgm.migrar` y en el emisor—
-sino la promesa del comando: escribe los cinco documentos, dos corridas dan los mismos bytes, y
+sino la promesa del comando: escribe los informes, dos corridas dan los mismos bytes, y
 **nunca falla**: ni con un `PROC REG` que no sabe traducir, ni con un archivo que no es SAS, ni con
 un backend que se rompe a mitad de la escritura. Cuando algo no se puede hacer, queda dicho en
 `pendientes.md` con su línea.
@@ -9,6 +9,7 @@ un backend que se rompe a mitad de la escritura. Cuando algo no se puede hacer, 
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -21,6 +22,13 @@ CORPUS = RAIZ / "corpus"
 L2_01 = CORPUS / "L2" / "l2_01_inner_join_clientes_ventas" / "programa.sas"
 
 runner = CliRunner()
+
+
+def test_migrar_command_conserva_importacion_legacy():
+    from sgm.cli_migrar import migrar_command
+    from sgm.cli_migrar_comando import migrar_command as command
+
+    assert migrar_command is command
 
 # `PROC REG` no tiene emisor: es el caso mínimo de "esto no se traduce y hay que decirlo".
 CON_REG = """PROC IMPORT DATAFILE='.../entradas/ventas.csv' OUT=WORK.VENTAS DBMS=CSV REPLACE;
@@ -65,9 +73,19 @@ def test_migrar_l2_01_escribe_todo(tmp_path):
         "pendientes.md",
         "configuracion-pendiente.md",
         "decisiones-tomadas.md",
+        "cobertura.md",
         "trace.json",
         "migracion.log",
     } <= archivos
+
+    cobertura = _leer(carpeta, "cobertura.md")
+    traza = json.loads(_leer(carpeta, "trace.json"))
+    lineas_trazadas = {
+        linea for nodos in traza["jobs"].values() for lineas in nodos.values() for linea in lineas
+    }
+    assert "# Cobertura de migración" in cobertura
+    assert all(f"| {linea} |" in cobertura for linea in lineas_trazadas)
+    assert "porcentaje de líneas" in cobertura.lower()
 
 
 def test_sin_yaml_no_falla(tmp_path):
@@ -106,6 +124,70 @@ def test_pendientes_se_listan_con_codigo_y_linea(tmp_path):
     # El `PROC REG` empieza en la línea 5 del programa y el pendiente lo dice.
     assert any("| 5 |" in fila for fila in filas), pendientes
     assert "PROC REG" in pendientes
+    cobertura = _leer(tmp_path / "salida" / "con_reg", "cobertura.md")
+    assert "P-OPERADOR-SIN-SOPORTE" in cobertura
+    assert "| 5 |" in cobertura
+
+
+def test_migrar_carpeta_conserva_rutas_y_nombres_repetidos(tmp_path):
+    fuente = tmp_path / "programas"
+    anidada = fuente / "subcarpeta"
+    anidada.mkdir(parents=True)
+    texto = L2_01.read_text(encoding="utf-8")
+    (fuente / "programa.sas").write_text(texto, encoding="utf-8")
+    (anidada / "programa.sas").write_text(texto, encoding="utf-8")
+    (fuente / "ignorar.txt").write_text("no es SAS", encoding="utf-8")
+
+    resultado = runner.invoke(app, ["migrar", str(fuente), "--out", str(tmp_path / "salida")])
+
+    assert resultado.exit_code == 0, resultado.output
+    assert "2 programa(s)" in resultado.output
+    for carpeta in (tmp_path / "salida" / "programa", tmp_path / "salida" / "subcarpeta" / "programa"):
+        assert (carpeta / "trace.json").is_file()
+        assert (carpeta / "cobertura.md").is_file()
+        assert any((carpeta / "process").glob("*.item"))
+    assert not (tmp_path / "salida" / "ignorar").exists()
+
+
+def test_migrar_carpeta_vacia_informa_sin_fallar(tmp_path):
+    fuente = tmp_path / "vacia"
+    fuente.mkdir()
+
+    resultado = runner.invoke(app, ["migrar", str(fuente), "--out", str(tmp_path / "salida")])
+
+    assert resultado.exit_code == 0, resultado.output
+    assert "No hay programas SAS" in resultado.output
+
+
+def test_migrar_carpeta_es_determinista(tmp_path):
+    fuente = tmp_path / "programas"
+    fuente.mkdir()
+    (fuente / "programa.sas").write_text(L2_01.read_text(encoding="utf-8"), encoding="utf-8")
+
+    primera = runner.invoke(app, ["migrar", str(fuente), "--out", str(tmp_path / "una")])
+    segunda = runner.invoke(app, ["migrar", str(fuente), "--out", str(tmp_path / "otra")])
+
+    assert primera.exit_code == 0, primera.output
+    assert segunda.exit_code == 0, segunda.output
+    una, otra = tmp_path / "una" / "programa", tmp_path / "otra" / "programa"
+    archivos = _archivos(una)
+    assert archivos == _archivos(otra)
+    assert all((una / nombre).read_bytes() == (otra / nombre).read_bytes() for nombre in archivos)
+
+
+def test_migrar_carpeta_valida_backend_antes_de_escribir(tmp_path):
+    fuente = tmp_path / "programas"
+    fuente.mkdir()
+    (fuente / "programa.sas").write_text(L2_01.read_text(encoding="utf-8"), encoding="utf-8")
+    salida = tmp_path / "salida"
+
+    resultado = runner.invoke(
+        app, ["migrar", str(fuente), "--out", str(salida), "--backend", "desconocido"]
+    )
+
+    assert resultado.exit_code == 2
+    assert "backend desconocido" in resultado.output
+    assert not salida.exists()
 
 
 @pytest.mark.parametrize("nombre", sorted(BASURA))
@@ -120,6 +202,10 @@ def test_entrada_basura_sale_con_0(tmp_path, nombre):
     pendientes = _leer(tmp_path / "salida" / nombre, "pendientes.md")
     assert "P-" in pendientes
     assert "pendiente" in pendientes
+    if nombre == "vacio":
+        cobertura = _leer(tmp_path / "salida" / nombre, "cobertura.md")
+        assert "P-SIN-PASOS" in cobertura
+        assert "Pendientes sin línea" in cobertura
 
 
 def test_configuracion_pendiente_lista_las_variables_vacias(tmp_path):

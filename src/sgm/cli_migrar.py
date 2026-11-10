@@ -9,6 +9,7 @@ carpeta que se puede abrir en Studio y leer:
     <out>/<programa>/configuracion-pendiente.md     lo que hay que completar antes de ejecutar
     <out>/<programa>/decisiones-tomadas.md          qué eligió el migrador y cómo cambiarlo
     <out>/<programa>/trace.json                     qué líneas del SAS originaron cada nodo
+    <out>/<programa>/cobertura.md                  qué líneas tienen traza o pendientes
     <out>/<programa>/migracion.log                  la causa técnica de cada fallo interno
 
 La promesa del comando es **no fallar nunca**: un operador que no se sabe traducir queda en
@@ -26,7 +27,6 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Annotated
 
 import typer
 
@@ -178,16 +178,26 @@ def _contexto_yaml(grupo: str, parametros: list[ParametroContexto]) -> str:
 
 def _backend(nombre: str, fecha: str) -> BackendTalend:
     """Backend de escritura. Un nombre desconocido es uso incorrecto de la línea de comandos."""
+    validate_backend(nombre)
     if nombre == "archivos":
         return ArchivosBackend(fecha=fecha)
     if nombre == "talend":
-        carpeta = os.environ.get("SGM_TALEND_DIR")
-        proyecto = os.environ.get("SGM_TALEND_PROJECT")
-        if not carpeta or not proyecto:
+        return TalendCliBackend(
+            Path(os.environ["SGM_TALEND_DIR"]), Path(os.environ["SGM_TALEND_PROJECT"]), fecha=fecha
+        )
+    raise AssertionError("validate_backend must reject unknown names")
+
+
+def validate_backend(nombre: str) -> None:
+    """Valida el backend antes de crear salidas, también en lotes de programas."""
+    if nombre == "archivos":
+        return
+    if nombre == "talend":
+        if not os.environ.get("SGM_TALEND_DIR") or not os.environ.get("SGM_TALEND_PROJECT"):
             raise typer.BadParameter(
                 "--backend talend exige SGM_TALEND_DIR y SGM_TALEND_PROJECT en el entorno"
             )
-        return TalendCliBackend(Path(carpeta), Path(proyecto), fecha=fecha)
+        return
     raise typer.BadParameter(f"backend desconocido: {nombre} (usa 'archivos' o 'talend')")
 
 
@@ -197,7 +207,7 @@ def _escribir(
     backend: str,
     source: Path,
 ) -> None:
-    """Escribe los Jobs y los cinco documentos. Ningún fallo deja la carpeta a medias."""
+    """Escribe Jobs e informes; un fallo de backend queda registrado y no los omite."""
     nombre = resultado.carpeta.name
     carpeta = resultado.carpeta
     carpeta.mkdir(parents=True, exist_ok=True)
@@ -231,6 +241,11 @@ def _escribir(
     )
     informes.escribir(
         carpeta, "trace.json", informes.trace_json(nombre, resultado.jobs, resultado.traza)
+    )
+    informes.escribir(
+        carpeta,
+        "cobertura.md",
+        informes.cobertura_md(nombre, resultado.jobs, resultado.traza, resultado.pendientes),
     )
     informes.escribir(carpeta, "migracion.log", informes.migracion_log(resultado.notas))
 
@@ -272,35 +287,13 @@ def migrar(
     return resultado
 
 
-def migrar_command(
-    source: Annotated[Path, typer.Argument(help="Programa SAS a migrar.")],
-    out: Annotated[Path, typer.Option("--out", help="Carpeta de salida.")] = Path("out"),
-    esquemas: Annotated[
-        Path | None,
-        typer.Option("--esquemas", help="Carpeta de esquemas del entorno, como la de env/schemas."),
-    ] = None,
-    muestra: Annotated[
-        Path | None,
-        typer.Option("--muestra", help="Carpeta con archivos de muestra de las entradas."),
-    ] = None,
-    backend: Annotated[
-        str, typer.Option("--backend", help="'archivos' (por omisión) o 'talend'.")
-    ] = "archivos",
-) -> None:
-    """Migra un programa SAS a Jobs de Talend: `process/`, contextos y los informes."""
-    if not source.is_file():
-        raise typer.BadParameter(f"no existe el programa: {source}")
-    if esquemas is not None and not esquemas.is_dir():
-        raise typer.BadParameter(f"no existe la carpeta de esquemas: {esquemas}")
-    if muestra is not None and not muestra.is_dir():
-        raise typer.BadParameter(f"no existe la carpeta de muestra: {muestra}")
-    resultado = migrar(source, out, esquemas=esquemas, muestra=muestra, backend=backend)
-    typer.echo(
-        f"{source.name}: {len(resultado.jobs)} Job(s), {len(resultado.pendientes)} pendiente(s), "
-        f"salida en {resultado.carpeta}"
-    )
-    if resultado.pendientes:
-        typer.echo(f"  ver {resultado.carpeta / 'pendientes.md'}")
+def __getattr__(name: str):
+    """Mantiene el comando importable desde su módulo original sin acoplar los dos módulos."""
+    if name == "migrar_command":
+        from sgm.cli_migrar_comando import migrar_command
+
+        return migrar_command
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-__all__ = ["ResultadoMigrar", "migrar", "migrar_command"]
+__all__ = ["ResultadoMigrar", "migrar", "migrar_command", "validate_backend"]  # noqa: F822

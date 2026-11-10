@@ -36,7 +36,7 @@ from sgm.cli_conformidad import conformidad_command  # noqa: E402
 from sgm.cli_decisiones import decisions_app, gaps_app  # noqa: E402
 from sgm.cli_diseno import diseno_command  # noqa: E402
 from sgm.cli_flow import flujo_command  # noqa: E402
-from sgm.cli_migrar import migrar_command  # noqa: E402
+from sgm.cli_migrar_comando import migrar_command  # noqa: E402
 from sgm.cli_proceso import proceso_command  # noqa: E402
 from sgm.cli_secretos import secretos_command  # noqa: E402
 from sgm.cli_talend import talend_command  # noqa: E402

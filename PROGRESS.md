@@ -5453,3 +5453,32 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Las horas no aumentan porque la aceptación MG-P10 requiere nuevos casos elegibles del corpus.
 - Bloqueos: MG-P10-01 sigue parcial y el emisor Talend de agregados no existe. No se ejecutó SAS ni
   Talend Studio.
+
+## Hito 132. Lote de migración y cobertura por programa
+
+- Fecha: 2026-11-10. Alcance: MG-P11-01, completo.
+- Qué se hizo:
+  - `sgm migrar` acepta un archivo SAS o una carpeta; recorre `.sas` recursivamente y en orden
+    determinista por ruta relativa. Ignora otras extensiones, no vuelve a recorrer una carpeta de
+    salida anidada y conserva rutas y nombres repetidos al separar el paquete de cada programa.
+  - Las carpetas sin programas terminan con código 0 y un mensaje claro. El lote informa cuántos
+    programas, Jobs y pendientes produjo; advierte que el orden de recorrido no es orden de ejecución.
+  - Cada paquete genera `cobertura.md`: líneas asociadas a nodos con traza, pendientes con línea y
+    pendientes sin línea. Remite el motivo detallado a `pendientes.md`, no repite mensajes y no calcula
+    un porcentaje sin denominador demostrado. Aclara que una traza acredita generación, no ejecución.
+  - Se valida el backend antes de escribir, para que un nombre inválido o variables Talend ausentes
+    no dejen una carpeta de salida parcial. El comando se separó a `cli_migrar_comando.py`; el módulo
+    de migración queda en 299 líneas y conserva la importación previa de `migrar_command`.
+  - El plan maestro, su avance y el plan de implementación quedaron actualizados. MG-P11-03 conserva
+    la responsabilidad de ordenar programas por dependencias.
+- Pruebas focalizadas: `tests/unit/test_cli_migrar.py`, 16 pasaron.
+- Suite completa `uv run pytest -q`: 2665 pasaron, 26 omitidas y 139 xfailed.
+- `uv run ruff check .`: limpio; `uv run python -m sgm.cli rules validate`: válido;
+  `git -c core.whitespace=cr-at-eol diff --check`: limpio.
+- Métricas: MG-P11 queda en **8,0/30 h (27 %)**; avance global **196,75/895 h (22,0 %)**.
+- Decisiones: cada programa guarda su paquete bajo su ruta relativa y se procesa en orden de ruta,
+  sin atribuir a ese recorrido dependencias de ejecución. La cobertura solo usa traza y pendientes;
+  el denominador de todas las líneas SAS no está demostrado. El informe es por programa; el reporte
+  global y `sgm cobertura` siguen en MG-P10-08.
+- Bloqueos: MG-P11-02 a 06 siguen pendientes; MG-P11-03 debe definir orden por dependencias y proyecto
+  coherente. No se ejecutaron SAS ni Talend Studio.
