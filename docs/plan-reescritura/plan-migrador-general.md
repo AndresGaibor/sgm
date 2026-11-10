@@ -661,7 +661,7 @@ con el intérprete contra `esperado/` (`tests/unit/test_optimizar_corpus.py`), s
 | MG-P8b-02 | Un cálculo repetido con las mismas entradas se hace una vez (subconsultas y agrupaciones repetidas) | S | `l2_07` y `l3_05` leen y calculan una vez | hecho (hito 152m) |
 | MG-P8b-03 | Un flujo con varios consumidores se reparte con `tReplicate`; si las ramas se vuelven a juntar, una lectura por rama | S | ningún nodo con dos salidas del mismo nombre | hecho (hito 152m), falta compilar en Studio |
 | MG-P8b-04 | Un `map` con ramas es un `tMap` con una salida filtrada por rama | S | `l3_07` escribe Job | hecho (hito 152m) |
-| MG-P8b-05 | Fundir DATA step encadenados (`modo: agrega`, `KEEP`, `DROP`, `RENAME`) | S | caso nuevo en el corpus | pendiente |
+| MG-P8b-05 | Fundir DATA step encadenados (`modo: agrega`, `KEEP`, `DROP`, `RENAME`) | S | caso nuevo en el corpus | parcial (hito 154m: asignaciones aditivas y modificadores solo en el consumidor; falta caso del corpus y modificadores en productor) |
 | MG-P8b-06 | Hermanos sobre la misma fuente en un `tMap` con varias salidas, cada una con su proyección (y `IN`/`NOT IN` de la misma subconsulta como salida y rechazo del cruce) | S | `l2_07`, `l2_10`, `l3_05` sin `tReplicate` | pendiente |
 | MG-P8b-07 | Resultado que usan dos ramas que se vuelven a juntar: `tHashOutput` y `tHashInput` en vez del pendiente `P-REPARTO-RECONVERGE` | S | 4 casos de `client_large.sas` | pendiente |
 | MG-P8b-08 | Llevar el cálculo a la base cuando fuente y destino son la misma (`tDBRow` o ELT), reutilizando `passes/db_push.py` | S | caso con `LIBNAME` de base en el corpus | pendiente |

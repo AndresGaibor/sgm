@@ -8,8 +8,10 @@ une los filtros y escribe cada columna de la salida con la expresión completa.
 La fusión solo se hace cuando se puede demostrar que el resultado es el mismo. Si no, `fundir`
 devuelve el motivo y el plan queda como estaba:
 
-* los dos pasos tienen la forma cruces, filtros y como mucho una proyección al final, sin `modo:
-  agrega`, `KEEP`/`DROP`, `RENAME` ni ramas;
+* los dos pasos tienen la forma cruces, filtros y asignaciones; las asignaciones `modo: agrega` se
+  combinan en orden. `KEEP`/`DROP`/`RENAME` solo se aceptan en el paso consumidor, para aplicarlos al
+  resultado final; los modificadores del productor cambian la interfaz de columnas y bloquean la
+  fusión;
 * la tabla intermedia la lee un solo paso, una sola vez, y no es salida del programa;
 * cada columna que el segundo paso nombra se puede atribuir sin duda al primero o a otra entrada;
 * si la intermedia entra por el lado de consulta de un cruce, el primer paso es una proyección
@@ -38,13 +40,20 @@ from sgm.optimizar.reescribir import (
 
 def _pasos_fundidos(plan: Plan, a: Operator, b: Operator, tabla: str | None) -> list[dict]:
     forma_a, forma_b = forma_de(a), forma_de(b)
+    if forma_a.selecciones or forma_a.renombrados:
+        raise NoFusionable("KEEP, DROP o RENAME en el paso anterior cambia la interfaz de columnas")
     if tabla is None:
         # Un cruce suelto que alimenta al paso siguiente: este ya nombra las tablas originales.
         if forma_a.filtros or forma_a.proyeccion:
             raise NoFusionable("un paso sin tabla de salida que filtra o proyecta")
-        return [*forma_a.uniones, *forma_b.uniones, *forma_b.filtros] + (
-            [forma_b.proyeccion] if forma_b.proyeccion else []
-        )
+        return [
+            *forma_a.uniones,
+            *forma_b.uniones,
+            *forma_b.filtros,
+            *([forma_b.proyeccion] if forma_b.proyeccion else []),
+            *forma_b.selecciones,
+            *forma_b.renombrados,
+        ]
     primero = primero_de(plan, a, forma_a, tabla)
     cruza = bool(forma_b.uniones)
     parte_de = parte_de_paso(plan, b, forma_b)
@@ -65,7 +74,13 @@ def _pasos_fundidos(plan: Plan, a: Operator, b: Operator, tabla: str | None) -> 
         filtros.append(nuevo)
     salidas = b.params.get("outputs") or []
     ultima = proyeccion_fundida(forma_b, primero, forma_a, salidas)
-    return [*uniones, *filtros] + ([ultima] if ultima else [])
+    return [
+        *uniones,
+        *filtros,
+        *([ultima] if ultima else []),
+        *forma_b.selecciones,
+        *forma_b.renombrados,
+    ]
 
 
 def lecturas_por_tabla(plan: Plan) -> dict[str, set[str]]:

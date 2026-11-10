@@ -110,6 +110,9 @@ def proyeccion_fundida(segundo: Forma, primero: Primero, a: Forma, salidas: list
         return paso
     paso = copy.deepcopy(segundo.proyeccion)
     nuevas: list[dict] = []
+    agrega = (paso.get("params") or {}).get("modo") == "agrega"
+    if agrega and a.proyeccion is not None:
+        nuevas.extend(copy.deepcopy((a.proyeccion.get("params") or {}).get("assignments") or []))
     for asignacion in paso["params"].get("assignments") or []:
         texto = str(asignacion.get("expression") or "").strip()
         estrella = texto == "*" and not cruza

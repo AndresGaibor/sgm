@@ -73,6 +73,72 @@ def test_reutilizar_nombre_de_work_no_confunde_las_versiones():
     )["segunda"] == [{"id": "x"}]
 
 
+def test_dos_data_steps_aditivos_se_funden_y_conservan_las_columnas():
+    plan = compile_file(
+        analyze_program(
+            {
+                "p.sas": "DATA WORK.a; SET WORK.ventas; doble = monto * 2; RUN;\n"
+                "DATA WORK.b; SET WORK.a; total = doble + 1; RUN;"
+            }
+        ),
+        "p.sas",
+        project_base(),
+    ).plan
+
+    optimizado, informe = optimizar(plan)
+
+    assert [decision.tabla for decision in informe.decisiones] == ["a"]
+    (mapa,) = _mapas(optimizado)
+    asignaciones = mapa["steps"][-1]["params"]["assignments"]
+    assert [(item["target"], item["expression"]) for item in asignaciones] == [
+        ("doble", "monto * 2"),
+        ("total", "(monto * 2) + 1"),
+    ]
+    assert ejecutar_plan(optimizado, {"ventas": VENTAS})["b"] == [
+        {"id": "1", "zona": "N", "monto": "10", "doble": "20", "total": "21"},
+        {"id": "2", "zona": "S", "monto": "20", "doble": "40", "total": "41"},
+        {"id": "3", "zona": "N", "monto": "30", "doble": "60", "total": "61"},
+    ]
+
+
+def test_data_step_encadenado_aplica_keep_y_rename_en_la_salida():
+    programa = (
+        "DATA WORK.a; SET WORK.ventas; total = monto * 2; RUN;\n"
+        "DATA WORK.b; SET WORK.a; KEEP id total; RENAME total=balance; RUN;"
+    )
+    plan = compile_file(
+        analyze_program({"p.sas": programa}), "p.sas", project_base()
+    ).plan
+
+    optimizado, informe = optimizar(plan)
+
+    assert [decision.tabla for decision in informe.decisiones] == ["a"]
+    assert ejecutar_plan(optimizado, {"ventas": VENTAS})["b"] == [
+        {"id": "1", "balance": "20"},
+        {"id": "2", "balance": "40"},
+        {"id": "3", "balance": "60"},
+    ]
+
+
+def test_data_step_encadenado_aplica_drop_en_la_salida():
+    programa = (
+        "DATA WORK.a; SET WORK.ventas; total = monto * 2; RUN;\n"
+        "DATA WORK.b; SET WORK.a; DROP zona monto; RUN;"
+    )
+    plan = compile_file(
+        analyze_program({"p.sas": programa}), "p.sas", project_base()
+    ).plan
+
+    optimizado, informe = optimizar(plan)
+
+    assert [decision.tabla for decision in informe.decisiones] == ["a"]
+    assert ejecutar_plan(optimizado, {"ventas": VENTAS})["b"] == [
+        {"id": "1", "total": "20"},
+        {"id": "2", "total": "40"},
+        {"id": "3", "total": "60"},
+    ]
+
+
 def test_una_intermedia_que_leen_dos_pasos_no_se_funde():
     plan = _plan(
         "CREATE TABLE WORK.a AS SELECT id, monto FROM WORK.ventas WHERE zona = 'N';\n"

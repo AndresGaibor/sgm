@@ -5931,3 +5931,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   plan y el intérprete, no la compilación del `.item` optimizado.
 - Decisión: cuando un operador `read` tiene aristas de entrada, estas son la fuente autoritativa de
   su versión; el nombre SAS es solo fallback para una lectura sin productor explícito.
+
+## Hito 154m. Fusión acotada de DATA step aditivos
+
+- Fecha: 2026-11-10.
+- Qué se hizo: la fusión combina en orden las asignaciones `modo: agrega` de dos DATA step y reescribe
+  referencias a las columnas calculadas por el primero. `KEEP`, `DROP` y `RENAME` se trasladan al
+  `tMap` final cuando aparecen en el consumidor. La semántica de salida de estos modificadores se
+  apoya en `lestmtsref`, pp. 91-92 (DROP), 216-217 (KEEP) y 326-327 (RENAME).
+- Pruebas: se comparan las filas tras dos DATA step aditivos y se cubren `KEEP` + `RENAME` y `DROP`
+  al final de la cadena. Suite completa: **2754 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
+- Límite: es una entrega parcial de MG-P8b-05. No se funde si `KEEP`, `DROP` o `RENAME` aparece en
+  el productor, porque cambia la interfaz de columnas del paso intermedio; tampoco se fusionan
+  declaraciones `LENGTH`/`FORMAT`. Aún falta un caso nuevo del corpus y demostrar estos límites con
+  la batería de equivalencia del corpus.
+- Decisión: no inferir alias ni columnas que sobreviven a un modificador del productor; mantener
+  esos pasos separados hasta modelar explícitamente su interfaz y probarla.

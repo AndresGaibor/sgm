@@ -1,4 +1,4 @@
-"""La forma de un paso que se puede fundir: cruces, filtros y como mucho una proyección al final."""
+"""Forma de paso fundible: cruces, filtros, asignaciones y modificadores declarativos de salida."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 from sgm.ir.models import Operator, Plan
 
-FUSIONABLES = frozenset({"map", "filter", "derive", "join"})
+FUSIONABLES = frozenset({"map", "filter", "derive", "join", "select", "rename"})
 _PASOS = ("join", "filter", "derive")
 
 
@@ -21,6 +21,8 @@ class Forma:
     uniones: list[dict] = field(default_factory=list)
     filtros: list[dict] = field(default_factory=list)
     proyeccion: dict | None = None
+    selecciones: list[dict] = field(default_factory=list)
+    renombrados: list[dict] = field(default_factory=list)
 
 
 def nombre_tabla(dataset: object) -> str:
@@ -40,6 +42,12 @@ def forma_de(op: Operator) -> Forma:
     for paso in pasos:
         clase = str(paso.get("kind") or "")
         params = paso.get("params") or {}
+        if clase in ("select", "rename"):
+            if clase == "select":
+                forma.selecciones.append(paso)
+            else:
+                forma.renombrados.append(paso)
+            continue
         if clase not in _PASOS or _PASOS.index(clase) < orden or forma.proyeccion is not None:
             raise NoFusionable(f"el paso '{clase}' no está en la forma cruce, filtro, proyección")
         orden = _PASOS.index(clase)
@@ -50,8 +58,8 @@ def forma_de(op: Operator) -> Forma:
         elif clase == "filter":
             forma.filtros.append(paso)
         else:
-            if params.get("modo") == "agrega" or params.get("declared"):
-                raise NoFusionable("una asignación de DATA step conserva columnas que no nombra")
+            if params.get("declared"):
+                raise NoFusionable("una declaración de columnas no se funde")
             forma.proyeccion = paso
     return forma
 
