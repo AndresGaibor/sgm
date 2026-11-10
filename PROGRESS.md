@@ -6039,3 +6039,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límite: MG-P8b-09 sigue parcial hasta compilar los dos casos con bloqueo previo y el Job de base
   con su configuración estructural. MG-P8b-07 continúa bloqueado por la validación pendiente de
   `tHashInput`.
+
+## Hito 161m. Reintento de casos bloqueados por el bridge
+
+- Fecha: 2026-11-10.
+- Qué se hizo: con Studio y el bridge sanos se regeneraron y compilaron `l1_14_expresion_compuesta`
+  y `l1_15_distinct_tildes`, antes bloqueados por el límite de respuesta del bridge (hitos 146m–148m).
+  Ahora hay **58 Jobs** de L0–L3 compilados en los lotes de los hitos 160m y 161m. El arnés limpió los
+  Jobs temporales del proyecto; no quedó ninguno `h160`/`h161` en `process/`.
+- Límite remanente de MG-P8b-09: `l2_16_sql_en_misma_base` sigue sin compilar. Con `LZ` asignado a
+  Impala, la pasada genera `exec_sql`, pero `plan_a_jobs` registra que no existe emisor para
+  `tImpalaRow`; además los nodos `read`/destino de base no tienen aún traducción en este camino.
+  No se conectó a una base ni se envió un Job incompleto a Studio.
+- Studio responde y deja escribir tras los lotes. Sin cambios de código en este hito; la suite de
+  2769 pruebas y `ruff` quedaron en verde en el hito 160m.
+- Decisión: el siguiente trabajo es completar la emisión de `exec_sql`/`tImpalaRow` para MG-P8b-08;
+  entonces se podrá incluir `l2_16` en el lote sin conectar a Impala.
