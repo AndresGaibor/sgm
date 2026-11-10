@@ -887,10 +887,11 @@ def _ejecutar(
         return filas, {nombre: filas for nombre in _nombres(op)}
     if op.kind in ("map", "join", *_PASOS_SUELTOS):
         previos = plan.graph.predecessors(op.id)
-        if op.kind == "map" and op.params.get("branches") and not op.params.get("steps"):
-            primera = por_operador.get(previos[0], []) if previos else []
-            ramas = _ramas(op, primera)
-            return primera, ramas
+        if op.kind == "map" and op.params.get("branches"):
+            filas = _pasos(op, plan, por_operador) if op.params.get("steps") else (
+                por_operador.get(previos[0], []) if previos else []
+            )
+            return filas, _ramas(op, filas)
         filas = _pasos(op, plan, por_operador)
         return filas, {nombre: filas for nombre in _nombres(op)}
     raise NoSoportadoEnInterprete(op.kind, "el intérprete no lo ejecuta")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
+from sgm.ir.desplegar import plan_desplegado
 from sgm.migrar.interprete import ejecutar_plan
 from sgm.optimizar import optimizar
 
@@ -61,7 +62,6 @@ def test_reutilizar_nombre_de_work_no_confunde_las_versiones():
         "CREATE TABLE WORK.temporal AS SELECT id FROM WORK.otra;\n"
         "CREATE TABLE WORK.segunda AS SELECT id FROM WORK.temporal;"
     )
-
     optimizado, informe = optimizar(plan)
 
     assert [decision.tabla for decision in informe.decisiones] == ["temporal", "temporal"]
@@ -137,6 +137,30 @@ def test_data_step_encadenado_aplica_drop_en_la_salida():
         {"id": "2", "total": "40"},
         {"id": "3", "total": "60"},
     ]
+
+
+def test_dos_filtros_hermanos_comparten_tmap_con_dos_salidas():
+    plan = _plan(
+        "CREATE TABLE WORK.norte AS SELECT id, zona FROM WORK.ventas WHERE zona = 'N';\n"
+        "CREATE TABLE WORK.sur AS SELECT id, zona FROM WORK.ventas WHERE zona = 'S';"
+    )
+    plan, _ = plan_desplegado(plan)
+
+    optimizado, informe = optimizar(plan)
+
+    (mapa,) = [op for op in optimizado.graph.operators() if op.kind == "map"]
+    assert len(mapa.params["branches"]) == 2
+    assert {rama["outputs"][0] for rama in mapa.params["branches"]} == {
+        "WORK.norte",
+        "WORK.sur",
+    }
+    assert any(
+        decision.regla == "ramificar-transformaciones-hermanas"
+        for decision in informe.decisiones
+    )
+    salidas = ejecutar_plan(optimizado, {"ventas": VENTAS})
+    assert salidas["norte"] == [{"id": "1", "zona": "N"}, {"id": "3", "zona": "N"}]
+    assert salidas["sur"] == [{"id": "2", "zona": "S"}]
 
 
 def test_una_intermedia_que_leen_dos_pasos_no_se_funde():

@@ -5959,3 +5959,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Se ajustó el tablero del corpus a 118 casos (117 con esperado).
 - Límite de MG-P8b-05: los modificadores `KEEP`/`DROP`/`RENAME` en el productor siguen evitando la
   fusión; hace falta modelar la interfaz de columnas para poder trasladarlos sin alterar referencias.
+
+## Hito 156m. Un `tMap` ramificado para transformaciones hermanas
+
+- Fecha: 2026-11-10.
+- Qué se hizo: mapas hermanos que leen el mismo conjunto, usan la misma proyección y filtran por
+  columnas que pasan intactas se convierten en un solo `map` con dos salidas filtradas. También se
+  consolidan las lecturas puras duplicadas del mismo conjunto, sin cambiar el comportamiento de
+  lectores con parámetros distintos. El intérprete ejecuta los pasos compartidos y reparte sus filas
+  según las ramas.
+- Caso del plan: `l2_10_is_missing_numerico_y_texto` queda con un `tMap` ramificado y conserva ambas
+  salidas; la prueba de corpus compara el resultado con `esperado/`. Se añadió otra prueba de forma e
+  interpretación con filtros complementarios.
+- Límites: si una rama filtra por una columna que la proyección no conserva o que calcula/modifica,
+  no se agrupa. `l2_07` (filtro sobre `canal` que no sale) y `l3_05` (filtros hermanos de agregado)
+  siguen pendientes; tampoco se admiten proyecciones distintas por rama.
+- Pruebas: suite completa **2762 pasan, 27 se saltan, 146 xfail**; `ruff` limpio. La prueba nueva de
+  forma para `l2_10` se añade en este hito y se vuelve a correr la suite completa antes del commit.

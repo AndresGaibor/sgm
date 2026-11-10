@@ -68,3 +68,23 @@ def test_el_plan_optimizado_da_lo_que_el_sas(caso):
     ]
     assert problemas == []
 
+
+def test_l2_10_comparte_la_fuente_en_un_mapa_con_dos_salidas():
+    caso = next(
+        caso
+        for caso in casos.casos_de_nivel(CORPUS, "L2")
+        if caso.nombre == "l2_10_is_missing_numerico_y_texto"
+    )
+    plan, informe = _optimizado(caso)
+
+    ramas = [op for op in plan.graph.operators() if op.kind == "map" and op.params.get("branches")]
+    assert len(ramas) == 1
+    assert {salida for rama in ramas[0].params["branches"] for salida in rama["outputs"]} == {
+        "WORK.clientes_incompletos",
+        "WORK.clientes_completos",
+    }
+    assert any(
+        decision.regla == "ramificar-transformaciones-hermanas"
+        for decision in informe.decisiones
+    )
+

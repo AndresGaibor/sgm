@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from sgm.ir.models import Plan
 from sgm.optimizar.cadenas import FUSIONABLES, NoFusionable, fundir, lecturas_por_tabla
 from sgm.optimizar.duplicados import unir_duplicados
+from sgm.optimizar.ramas import unir_ramas_hermanas
 
 
 @dataclass(frozen=True)
@@ -95,6 +96,25 @@ def _fundir_cadenas(plan: Plan, informe: Informe) -> bool:
     return bool(todos)
 
 
+def _unir_ramas(plan: Plan, informe: Informe) -> bool:
+    lineas = {op.id: _lineas(plan, op.id) for op in plan.graph.operators()}
+    unidos = unir_ramas_hermanas(plan)
+    for conservado, tabla, absorbidos in unidos:
+        for op_id in absorbidos:
+            informe.absorbidos[op_id] = conservado
+        origenes = sorted({linea for op_id in [conservado, *absorbidos] for linea in lineas[op_id]})
+        informe.decisiones.append(
+            Decision(
+                "ramificar-transformaciones-hermanas",
+                f"las transformaciones sobre `{tabla}` comparten lectura y proyección: un `tMap` "
+                "produce sus salidas filtradas",
+                tuple(origenes),
+            )
+        )
+    _quitar_de_trabajos(plan, {op_id for _, _, ids in unidos for op_id in ids})
+    return bool(unidos)
+
+
 def _trabajos(plan: Plan):
     pila = list(plan.jobs)
     while pila:
@@ -109,7 +129,11 @@ def optimizar(plan: Plan) -> tuple[Plan, Informe]:
     copia = copy.deepcopy(plan)
     # Unir duplicados deja pasos con la misma entrada, y fundir cadenas deja pasos iguales: se
     # repite hasta que ninguna de las dos reglas cambia nada.
-    while _unir_duplicados(copia, informe) | _fundir_cadenas(copia, informe):
+    while (
+        _unir_duplicados(copia, informe)
+        | _fundir_cadenas(copia, informe)
+        | _unir_ramas(copia, informe)
+    ):
         pass
     return (copia if informe.absorbidos else plan), informe
 
