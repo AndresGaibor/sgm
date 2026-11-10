@@ -149,37 +149,71 @@ def _principal(fuentes: list[Fuente], join: dict | None) -> int:
     return 0
 
 
-def _llaves(meseta: _Meseta, join: dict, armado: Armado, op: Operator) -> dict[int, dict]:
-    """Por cada lookup, la columna de la unión y su expresión sobre la principal."""
+def _consulta(meseta: _Meseta, tabla: str) -> int | None:
+    """Índice del lookup que trae esa tabla, si es una entrada de consulta del mapa."""
+    for indice, fuente in enumerate(meseta.fuentes):
+        if indice and tabla and fuente.tabla == tabla:
+            return indice
+    return None
+
+
+def _llaves(
+    meseta: _Meseta, uniones: list[dict], armado: Armado, op: Operator
+) -> tuple[dict[int, dict[str, str]], dict[int, bool]]:
+    """Por cada lookup, sus columnas de unión con la expresión que las iguala, y si es interno.
+
+    Un mapa puede traer varios cruces (`a JOIN b JOIN c`, o dos pasos del SAS fundidos en uno):
+    cada lookup toma las llaves y el tipo del cruce que lo nombra. La llave de un lookup puede ser
+    una columna de la principal o de un lookup anterior (`row2.ciudad`), que es como se encadenan
+    las consultas en un `tMap`.
+    """
     union: dict[int, dict[str, str]] = {i: {} for i in range(1, len(meseta.fuentes))}
-    if not join.get("keys") and join.get("by"):
-        # `MERGE ... BY k`: la llave es la misma columna en todas las tablas.
-        for indice in union:
-            for columna in join["by"]:
-                propia = meseta.nombre_real(indice, str(columna))
-                union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, str(columna))}"
-        return union
-    for par in join.get("keys") or []:
-        if len(par) != 2:
-            armado.pendientes.append(
-                PendienteMigracion(
-                    "P-LLAVE-INCOMPLETA", f"llave de unión {par!r} sin las dos columnas", _linea(op)
-                )
-            )
+    internas: dict[int, bool] = {}
+    for join in uniones:
+        interna = str(join.get("join_type", "")).lower() == "inner"
+        if not join.get("keys") and join.get("by"):
+            # `MERGE ... BY k`: la llave es la misma columna en todas las tablas.
+            for indice in union:
+                internas[indice] = interna
+                for columna in join["by"]:
+                    propia = meseta.nombre_real(indice, str(columna))
+                    union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, str(columna))}"
             continue
-        tabla_izq, columna_izq = _tabla(par[0])
-        tabla_der, columna_der = _tabla(par[1])
-        for indice, fuente in enumerate(meseta.fuentes):
-            if indice == 0:
+        for par in join.get("keys") or []:
+            if len(par) != 2:
+                armado.pendientes.append(
+                    PendienteMigracion(
+                        "P-LLAVE-INCOMPLETA",
+                        f"llave de unión {par!r} sin las dos columnas",
+                        _linea(op),
+                    )
+                )
                 continue
-            if fuente.tabla == tabla_der:
-                propia = meseta.nombre_real(indice, columna_der)
-                union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, columna_izq)}"
-            elif fuente.tabla == tabla_izq:
+            tabla_izq, columna_izq = _tabla(par[0])
+            tabla_der, columna_der = _tabla(par[1])
+            der, izq = _consulta(meseta, tabla_der), _consulta(meseta, tabla_izq)
+            if der is not None and izq is not None and der != izq:
+                # Las dos tablas son lookups: la llave es del que llegó después.
+                if der > izq:
+                    indice, propia, otro, ajena = der, columna_der, izq, columna_izq
+                else:
+                    indice, propia, otro, ajena = izq, columna_izq, der, columna_der
+            elif der is not None:
+                indice, propia, otro, ajena = der, columna_der, 0, columna_izq
+            elif izq is not None:
                 # El `ON` escrito al revés: la principal quedó a la derecha.
-                propia = meseta.nombre_real(indice, columna_izq)
-                union[indice][propia] = f"{PRINCIPAL}.{meseta.nombre_real(0, columna_der)}"
-    return union
+                indice, propia, otro, ajena = izq, columna_izq, 0, columna_der
+            else:
+                continue
+            real = meseta.nombre_real(indice, propia)
+            union[indice][real] = f"{meseta.fila(otro)}.{meseta.nombre_real(otro, ajena)}"
+            internas[indice] = interna
+    return union, internas
+
+
+def _tipos_soportados(uniones: list[dict], armado: Armado, op: Operator) -> bool:
+    """Todos los cruces del mapa tienen un tipo que el `tMap` hace."""
+    return all([_tipo_soportado(join, armado, op) for join in uniones])
 
 
 def _tipo_soportado(join: dict | None, armado: Armado, op: Operator) -> bool:
@@ -209,15 +243,16 @@ def _tipo_soportado(join: dict | None, armado: Armado, op: Operator) -> bool:
     return False
 
 
-def _entradas(meseta: _Meseta, join: dict | None, armado: Armado, op: Operator) -> list[EntradaMap]:
+def _entradas(
+    meseta: _Meseta, uniones: list[dict], armado: Armado, op: Operator
+) -> list[EntradaMap]:
     """Entradas del `tMap`: la principal sin unión y cada lookup con sus llaves."""
-    if not join:
+    if not uniones:
         return [
             EntradaMap(meseta.fila(i), list(fuente.columnas))
             for i, fuente in enumerate(meseta.fuentes)
         ]
-    llaves = _llaves(meseta, join, armado, op)
-    interna = str(join.get("join_type", "")).lower() == "inner"
+    llaves, internas = _llaves(meseta, uniones, armado, op)
     entradas: list[EntradaMap] = []
     for indice, fuente in enumerate(meseta.fuentes):
         if indice == 0:
@@ -244,7 +279,7 @@ def _entradas(meseta: _Meseta, join: dict | None, armado: Armado, op: Operator) 
                 # el SAS da 14. `ALL_ROWS` recorre todas y, si la llave es única, se comporta
                 # igual que `UNIQUE_MATCH`.
                 union="ALL_ROWS" if propias else "UNIQUE_MATCH",
-                union_interna=interna and bool(propias),
+                union_interna=internas.get(indice, False) and bool(propias),
             )
         )
     return entradas
@@ -671,10 +706,11 @@ def construir(
         )
         return armado
     uniones = _pasos(op, "join")
-    join = uniones[-1] if uniones else None
-    if not _tipo_soportado(join, armado, op):
+    if not _tipos_soportados(uniones, armado, op):
         return armado
-    principal = _principal(fuentes, join)
+    # De qué tabla parte el mapa lo dice el primer cruce que nombra su `FROM`.
+    con_origen = [u for u in uniones if u.get("sources")]
+    principal = _principal(fuentes, (con_origen or uniones or [None])[0])
     ordenadas = [fuentes[principal], *(f for i, f in enumerate(fuentes) if i != principal)]
     meseta = _Meseta(ordenadas)
     armado.entradas = {fuente.origen: meseta.fila(i) for i, fuente in enumerate(ordenadas)}
@@ -685,7 +721,7 @@ def construir(
                     NO_SOPORTADO, f"el paso '{paso}' no tiene equivalente en el tMap", _linea(op)
                 )
             )
-    entradas = _entradas(meseta, join, armado, op)
+    entradas = _entradas(meseta, uniones, armado, op)
     salidas = _salidas(meseta, op, armado)
     if not salidas:
         armado.pendientes.append(

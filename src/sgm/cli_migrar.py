@@ -75,6 +75,8 @@ class ResultadoMigrar:
     # `read`/`write` que solo nombran un flujo ya producido: no son pasos, se pliegan.
     plegados: set[str] = field(default_factory=set)
     escritos: list[Path] = field(default_factory=list)
+    # Cambios de diseño del optimizador (`sgm.optimizar.Decision`).
+    decisiones: list = field(default_factory=list)
 
 
 def _nombre(source: Path) -> str:
@@ -237,7 +239,7 @@ def _escribir(
     informes.escribir(
         carpeta,
         "decisiones-tomadas.md",
-        informes.decisiones_tomadas_md(nombre, resultado.jobs, contextos),
+        informes.decisiones_tomadas_md(nombre, resultado.jobs, contextos, resultado.decisiones),
     )
     informes.escribir(
         carpeta, "trace.json", informes.trace_json(nombre, resultado.jobs, resultado.traza)
@@ -281,6 +283,7 @@ def migrar(
         # Se informa por los operadores del plan original: el `iterate` cuenta como visitado.
         resultado.visitados = (migracion.visitados & original) | desplegados
         resultado.plegados = migracion.plegados
+        resultado.decisiones = migracion.decisiones
         _validar(resultado)
     _escribir(resultado, contextos, backend, source)
     return resultado

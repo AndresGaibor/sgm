@@ -24,13 +24,20 @@ def test_la_conexion_del_tmap_hacia_el_orden_usa_el_nombre_de_su_salida(tmp_path
     assert resultado.jobs
 
 
-def test_un_tmap_que_alimenta_a_otro_no_se_escribe_y_queda_pendiente(tmp_path: Path):
-    """`l1_10` (dos etapas) hace que un `tMap` alimente a otro. Studio no carga esa conexión
-    («Error al cargar el trabajo», row1): el Job no se escribe y queda como P-JOB-INVALIDO."""
+def test_dos_etapas_encadenadas_se_hacen_en_un_solo_tmap(tmp_path: Path):
+    """`l1_10` escribe `WORK.disponibles` y la lee en la sentencia siguiente. Antes salían dos
+    `tMap` encadenados, que Studio no carga; ahora la intermedia se funde y queda un `tMap` con el
+    filtro de la primera etapa y la expresión de la segunda."""
     caso = Path("tests/corpus/L1/l1_10_dos_etapas_faltantes")
     resultado = migrar(caso / "programa.sas", tmp_path / "out", muestra=caso / "entradas")
-    assert not list(tmp_path.rglob("*.item")), "un Job con defectos no debe escribirse"
-    assert any(p.codigo == "P-JOB-INVALIDO" and "row1" in p.mensaje for p in resultado.pendientes)
+    texto = next(tmp_path.rglob("*.item")).read_text(encoding="utf-8")
+    assert not [p for p in resultado.pendientes if p.codigo == "P-JOB-INVALIDO"]
+    assert [n.componente for n in resultado.jobs[0].nodos].count("tMap") == 1
+    assert "categoria" in texto and "doble_stock" in texto
+    assert [d.tabla for d in resultado.decisiones] == ["disponibles"]
+    assert "WORK.disponibles" in (tmp_path / "out/programa/decisiones-tomadas.md").read_text(
+        encoding="utf-8"
+    )
 
 
 def test_un_case_de_texto_no_se_tipa_como_predicado():

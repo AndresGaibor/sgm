@@ -190,6 +190,19 @@ class Graph:
             if edge.src in self._g and edge.dst in self._g:
                 self._add_once(edge)
 
+    def rewire_inputs(self, op_id: str, edges: list[Edge]) -> None:
+        """Sustituye las aristas de entrada de un operador por `edges`, en ese orden.
+
+        El orden importa: la primera entrada es la fila principal de un `tMap` cuando el paso no
+        dice de qué tabla parte, y un lookup solo puede usar como llave uno que llegó antes.
+        """
+        for pred in list(self._g.predecessors(op_id)):
+            while self._g.has_edge(pred, op_id):
+                self._g.remove_edge(pred, op_id)
+        for edge in edges:
+            if edge.src in self._g:
+                self._add_once(edge)
+
     def topological(self) -> list[str]:
         """Ids en orden topológico (productores antes que consumidores)."""
         return list(nx.topological_sort(self._g))

@@ -23,6 +23,7 @@ from dataclasses import dataclass, field, replace
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Operator, Plan
 from sgm.migrar.esquemas import PendienteMigracion
+from sgm.optimizar import Decision, optimizar
 from sgm.talend_item.componentes import log_row
 from sgm.talend_item.conexiones import lookup
 from sgm.talend_item.desde_plan_agregado import nodo_agregado
@@ -60,6 +61,8 @@ class ResultadoMigracion:
     # son pasos y no tienen línea propia en la traza: su flujo lo representa el operador que los
     # produjo, y eso es lo que la aceptación del corpus comprueba.
     plegados: set[str] = field(default_factory=set)
+    # Cambios de diseño que hizo el optimizador, para `decisiones-tomadas.md`.
+    decisiones: list[Decision] = field(default_factory=list)
 
 
 def _linea(op: Operator) -> int | None:
@@ -390,9 +393,10 @@ class _Job:
         self._instancias[(op.id, consumidor)] = nodo
         self._salida[op.id] = list(salida)
         self._tabla_de[nodo.unico] = tabla
-        evidencia = op.evidence[0] if op.evidence else None
-        if evidencia is not None:
-            self.traza[nodo.unico] = list(range(evidencia.line_start, evidencia.line_end + 1))
+        # Un operador fundido trae la evidencia de cada paso del SAS que absorbió.
+        lineas = {n for ev in op.evidence for n in range(ev.line_start, ev.line_end + 1)}
+        if lineas:
+            self.traza[nodo.unico] = sorted(lineas)
 
     # -- conexiones --------------------------------------------------------------------------
     def _conectar(self) -> None:
@@ -562,6 +566,12 @@ def plan_a_jobs(
     # Cada instancia de una plantilla se escribe en línea hasta que haya Jobs hijos (`tRunJob`).
     plan, desplegados = plan_desplegado(plan)
     resultado.visitados |= desplegados
+    # El diseño de Talend, no el del SAS: las intermedias que nadie más usa se funden. Los
+    # operadores absorbidos cuentan como plegados sobre el que los representa.
+    plan, informe = optimizar(plan)
+    resultado.decisiones = informe.decisiones
+    resultado.visitados |= set(informe.absorbidos)
+    resultado.plegados |= set(informe.absorbidos)
     for job in plan.jobs:
         armado = _Job(plan, esquemas, ruta_java)
         resultado.jobs.append(armado.armar(job))

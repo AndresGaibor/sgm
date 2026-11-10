@@ -126,8 +126,29 @@ def _componentes(jobs: list[Job]) -> list[list[str]]:
     ]
 
 
+def _diseno(decisiones: list) -> list[str]:
+    """Los cambios de diseño del optimizador: qué tabla o paso del SAS no quedó tal cual."""
+    lineas = [
+        "## Diseño del Job",
+        "",
+        "El Job no copia el SAS paso a paso. Estos son los cambios de diseño, con las líneas del "
+        "programa que cubren; el resultado es el mismo y cada uno se hizo solo porque se pudo "
+        "demostrar.",
+        "",
+    ]
+    if not decisiones:
+        return [*lineas, "Ninguno: el programa ya tenía la forma del Job.", ""]
+    for decision in decisiones:
+        donde = ", ".join(str(n) for n in decision.lineas)
+        lineas.append(f"* {decision.resumen}" + (f" (líneas {donde})." if donde else "."))
+    return [*lineas, ""]
+
+
 def decisiones_tomadas_md(
-    programa: str, jobs: list[Job], contextos: dict[str, list[ParametroContexto]]
+    programa: str,
+    jobs: list[Job],
+    contextos: dict[str, list[ParametroContexto]],
+    decisiones: list | None = None,
 ) -> str:
     lineas = [
         f"# Decisiones tomadas — {programa}",
@@ -149,6 +170,7 @@ def decisiones_tomadas_md(
         "* La fecha de los `.properties` es la de modificación del programa, no la del reloj: así "
         "dos corridas sobre el mismo archivo dan los mismos bytes.",
         "",
+        *_diseno(decisiones or []),
         "## Cómo cambiarlo",
         "",
         "* **Tipos de las columnas**: pasar un catálogo con `--esquemas` o dejar los archivos de "

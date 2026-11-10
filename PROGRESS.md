@@ -5819,3 +5819,48 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
     conexión (que la salida del primero tenga el nombre de la entrada del segundo).
   - Lo que Studio abre sin error no se ha comprobado con la ventana de la GUI para los 42 Jobs; la
     compilación por lote sí se comprueba, la carga en la GUI no.
+
+## Hito 151m. Optimizador del plan: las tablas intermedias de `WORK` se funden en un solo `tMap`
+
+- Fecha: 2026-11-10.
+- Pedido del usuario: migrar como lo haría un analista de Talend (fuentes, destinos y transformaciones),
+  no paso a paso con una tabla de `WORK` entre cada dos sentencias.
+- Qué se hizo:
+  - Paquete nuevo `src/sgm/optimizar/`. `optimizar(plan)` devuelve una copia del plan con el diseño de
+    Talend y un `Informe` con cada decisión. Lo llama `plan_a_jobs` después de desplegar las plantillas.
+  - Regla `fundir-pasos-encadenados` (`cadenas.py`, `forma.py`, `reescribir.py`, `sustituir.py`): si una
+    tabla de `WORK` la escribe un paso y la lee un solo paso, una vez, y no se exporta, los dos pasos
+    quedan en un `map`. Los cruces pasan a ser lookups del mismo `tMap`, los filtros se unen y cada
+    columna se escribe con la expresión completa (`doble + 1` pasa a `(monto * 2) + 1`).
+  - La fusión se demuestra antes de hacerse. No se funde si: el paso tiene `modo: agrega`, `KEEP`/`DROP`,
+    `RENAME` o ramas; la intermedia la leen dos pasos o es frontera; una columna no se puede atribuir a
+    una tabla; la llave de un cruce es una columna calculada; o la intermedia entra por el lado de
+    consulta de un cruce y el paso anterior filtra o cruza (aplicado después de un `LEFT JOIN`, el
+    filtro quitaría filas que el SAS conserva).
+  - `talend_item/desde_plan_map.py`: un `map` admite varios pasos `join`. Cada lookup toma las llaves y
+    el tipo (interno o externo) del cruce que lo nombra, y su llave puede ser una columna de un lookup
+    anterior (`row2.ciudad`).
+  - `ir/models.py`: `Graph.rewire_inputs`, para fijar el orden de las entradas de un operador.
+  - `decisiones-tomadas.md` tiene la sección «Diseño del Job» con cada tabla que no se escribe y las
+    líneas del SAS que cubre. La traza de un nodo fundido incluye las líneas de todos sus pasos.
+- Resultado en el corpus: `l1_10`, `l2_11`, `l2_15` y `l5_11` pasaban de no escribir Job
+  (`P-JOB-INVALIDO`, un `tMap` que alimenta a otro) a un Job válido. `l2_11` (tres tablas) queda con
+  tres lecturas y un `tMap`; `l2_15` (validación en cascada) pasa de tres `tMap` a dos. Se quitaron de
+  `tests/corpus/migrar_pendientes.yaml`. Sigue en la lista `l3_07` (un `tMap` con dos consumidores).
+- Pruebas: suite completa **2745 pasan, 27 se saltan, 146 xfail**; `ruff` limpio. Nuevas:
+  `tests/unit/test_optimizar_cadenas.py` (5), `tests/unit/test_optimizar_corpus.py` (el plan optimizado
+  da lo mismo que `esperado/` en los casos que cambian) y `tests/unit/test_optimizar_sustituir.py` (20).
+  `test_un_tmap_que_alimenta_a_otro_no_se_escribe...` afirmaba la limitación vieja sobre `l1_10`; se
+  reemplazó por `test_dos_etapas_encadenadas_se_hacen_en_un_solo_tmap`.
+- Sin verificar: **no se compiló nada en Studio**; el servidor MCP (puerto 3927) estaba apagado. Lo
+  comprobado es el intérprete contra `esperado/` y el validador estructural del `.item`.
+- Límites:
+  - `l2_15` queda como xfail en la prueba de equivalencia: el intérprete no expande `t.*` tras un `JOIN`
+    (el mismo hueco que ya tenía en el anillo B sin optimizar).
+  - Los DATA step encadenados (`modo: agrega`, `KEEP`, `DROP`, `RENAME`) todavía no se funden.
+- Decisiones:
+  - Una tabla de `WORK` que solo lee el paso siguiente no es una salida del programa, aunque el caso
+    del corpus la declare en `salidas` (`aceptadas` en `l2_15`, `base_lealtad` en `l5_11`). El Job no
+    la escribe y `decisiones-tomadas.md` lo dice.
+  - El optimizador trabaja sobre el plan, no sobre el Job: así el intérprete ejecuta el plan
+    optimizado y la equivalencia se comprueba sin Studio.
