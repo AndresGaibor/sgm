@@ -435,6 +435,23 @@ def test_un_select_sin_calificar_arma_el_job_completo():
     assert 'expression="row1.saldo"' in _tmap(resultado.jobs[0])
 
 
+def test_l2_07_emite_la_salida_not_in_como_rechazo_inner():
+    plan = _caso("l2_07_not_in_subconsulta")
+    esquemas, _ = esquemas_de_entrada(plan, {}, None)
+
+    resultado = plan_a_jobs(plan, esquemas)
+    rechazo = [
+        nodo.datos
+        for job in resultado.jobs
+        for nodo in job.nodos
+        if nodo.componente == "tMap" and 'rejectInnerJoin="true"' in nodo.datos
+    ]
+
+    assert resultado.pendientes == []
+    assert len(rechazo) == 1
+    assert 'innerJoin="true"' in rechazo[0]
+
+
 def test_un_operador_que_falla_no_detiene_a_los_demas(monkeypatch):
     """Un `tMap` que revienta deja su pendiente y el Job conserva lectura y escritura.
 

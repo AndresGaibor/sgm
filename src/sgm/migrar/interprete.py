@@ -19,6 +19,7 @@ comparten nombre de columna y la última en entrar gana. Es una limitación cono
 
 from __future__ import annotations
 
+import copy
 import re
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
@@ -846,12 +847,19 @@ def _nombres(op: Operator) -> list[str]:
 
 def _ramas(op: Operator, filas: list[dict]) -> dict[str, list[dict]]:
     """Un `map` con ramas es un IF/THEN/ELSE que escribe en varias salidas: cada rama su filtro."""
-    return {
-        _tabla(rama.get("outputs", ["WORK.sin_nombre"])[0]): _filtrar(
-            filas, str(rama.get("expression") or "")
-        )
-        for rama in op.params.get("branches") or []
-    }
+    resultado = {}
+    for rama in op.params.get("branches") or []:
+        filas_rama = filas
+        join_key = rama.get("joinKey")
+        if join_key:
+            if rama.get("rejectInnerJoin"):
+                filas_rama = [fila for fila in filas if _columna(fila, str(join_key)) is None]
+            elif rama.get("matched"):
+                filas_rama = [fila for fila in filas if _columna(fila, str(join_key)) is not None]
+        if rama.get("expression"):
+            filas_rama = _filtrar(filas_rama, str(rama["expression"]))
+        resultado[_tabla(rama.get("outputs", ["WORK.sin_nombre"])[0])] = filas_rama
+    return resultado
 
 
 def _ejecutar(
@@ -888,10 +896,37 @@ def _ejecutar(
     if op.kind in ("map", "join", *_PASOS_SUELTOS):
         previos = plan.graph.predecessors(op.id)
         if op.kind == "map" and op.params.get("branches"):
-            filas = _pasos(op, plan, por_operador) if op.params.get("steps") else (
+            ejecutable = op
+            rechazo_inner = any(
+                rama.get("rejectInnerJoin") for rama in op.params["branches"]
+            )
+            derivaciones = []
+            if any(rama.get("rejectInnerJoin") for rama in op.params["branches"]):
+                ejecutable = copy.deepcopy(op)
+                derivaciones = [
+                    paso
+                    for paso in ejecutable.params.get("steps") or []
+                    if paso.get("kind") == "derive"
+                ]
+                ejecutable.params["steps"] = [
+                    paso
+                    for paso in ejecutable.params.get("steps") or []
+                    if paso.get("kind") != "derive"
+                ]
+                for paso in ejecutable.params.get("steps") or []:
+                    if paso.get("kind") == "join":
+                        paso["params"]["join_type"] = "left"
+            filas = _pasos(ejecutable, plan, por_operador) if op.params.get("steps") else (
                 por_operador.get(previos[0], []) if previos else []
             )
-            return filas, _ramas(op, filas)
+            propias = _ramas(op, filas)
+            if rechazo_inner and derivaciones:
+                asignaciones = derivaciones[-1].get("params", {}).get("assignments") or []
+                propias = {
+                    nombre: _proyectar(rama, asignaciones, aditivo=False)
+                    for nombre, rama in propias.items()
+                }
+            return filas, propias
         filas = _pasos(op, plan, por_operador)
         return filas, {nombre: filas for nombre in _nombres(op)}
     raise NoSoportadoEnInterprete(op.kind, "el intérprete no lo ejecuta")

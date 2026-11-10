@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from sgm.ir.models import Plan
 from sgm.optimizar.cadenas import FUSIONABLES, NoFusionable, fundir, lecturas_por_tabla
 from sgm.optimizar.duplicados import unir_duplicados
-from sgm.optimizar.ramas import unir_ramas_hermanas
+from sgm.optimizar.ramas import unir_ramas_hermanas, unir_rechazo_inner_hermano
 
 
 @dataclass(frozen=True)
@@ -115,6 +115,22 @@ def _unir_ramas(plan: Plan, informe: Informe) -> bool:
     return bool(unidos)
 
 
+def _unir_rechazo_inner(plan: Plan, informe: Informe) -> bool:
+    lineas = {op.id: _lineas(plan, op.id) for op in plan.graph.operators()}
+    unidos = unir_rechazo_inner_hermano(plan)
+    for conservado, absorbido, salida, rechazo in unidos:
+        informe.absorbidos[absorbido] = conservado
+        informe.decisiones.append(
+            Decision(
+                "unir-inner-y-rechazo",
+                f"el cruce produce `{salida}` por coincidencia y `{rechazo}` por rechazo INNER",
+                tuple(sorted(set(lineas.get(conservado, ())) | set(lineas.get(absorbido, ())))),
+            )
+        )
+    _quitar_de_trabajos(plan, {absorbido for _, absorbido, _, _ in unidos})
+    return bool(unidos)
+
+
 def _trabajos(plan: Plan):
     pila = list(plan.jobs)
     while pila:
@@ -132,6 +148,7 @@ def optimizar(plan: Plan) -> tuple[Plan, Informe]:
     while (
         _unir_duplicados(copia, informe)
         | _fundir_cadenas(copia, informe)
+        | _unir_rechazo_inner(copia, informe)
         | _unir_ramas(copia, informe)
     ):
         pass

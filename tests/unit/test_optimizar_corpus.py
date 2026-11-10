@@ -108,3 +108,21 @@ def test_l3_05_reparte_el_agregado_en_dos_salidas_filtradas():
         for decision in informe.decisiones
     )
 
+
+def test_l2_07_usa_rechazo_inner_para_not_in():
+    caso = next(
+        caso
+        for caso in casos.casos_de_nivel(CORPUS, "L2")
+        if caso.nombre == "l2_07_not_in_subconsulta"
+    )
+    plan, informe = _optimizado(caso)
+
+    mapas = [op for op in plan.graph.operators() if op.kind == "map" and op.params.get("branches")]
+    assert len(mapas) == 1
+    assert {rama["outputs"][0] for rama in mapas[0].params["branches"]} == {
+        "WORK.clientes_con_telefono",
+        "WORK.clientes_sin_telefono",
+    }
+    assert sum(bool(rama.get("rejectInnerJoin")) for rama in mapas[0].params["branches"]) == 1
+    assert any(decision.regla == "unir-inner-y-rechazo" for decision in informe.decisiones)
+

@@ -677,7 +677,15 @@ def _salidas(
         if condicion and not propio:
             return []
         junto = f"({filtro}) && ({propio})" if filtro and propio else (filtro or propio)
-        salidas.append(SalidaMap(f"out{base + posicion}", columnas, expresiones, filtro=junto))
+        salidas.append(
+            SalidaMap(
+                f"out{base + posicion}",
+                columnas,
+                expresiones,
+                rechazo_union=bool(rama.get("rejectInnerJoin")),
+                filtro=junto,
+            )
+        )
     return salidas
 
 

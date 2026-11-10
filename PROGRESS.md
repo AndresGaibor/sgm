@@ -5987,3 +5987,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `esperado/`; la prueba estructural confirma el único mapa con ambas ramas.
 - Límites: `l2_07` sigue pendiente; combinar `IN` y `NOT IN` requiere un `tMap` con flujo de rechazo
   del cruce, no solo filtros hermanos sobre un mismo flujo.
+
+## Hito 158m. Salida de rechazo para `NOT IN` de una subconsulta
+
+- Fecha: 2026-11-10.
+- Qué se hizo: el optimizador reconoce, con fuentes, llaves y proyección iguales, un `INNER JOIN` y su
+  `LEFT JOIN` hermano filtrado por `missing(clave_lookup)`. Los combina en un único mapa: coincidencias
+  por la salida normal y no coincidencias por `rejectInnerJoin`. El emisor escribe el rechazo como
+  conexión `REJECT`; el intérprete usa temporalmente el left join para repartir filas y valida la
+  equivalencia de ambas salidas.
+- Verificación: `l2_07_not_in_subconsulta` coincide con `esperado/`; prueba estructural confirma el
+  mapa ramificado, y prueba del Job confirma `innerJoin="true"` junto con `rejectInnerJoin="true"`.
+  El trabajo existente de `l2_10` y `l3_05` también se mantiene.
+- Límites: solo se aplica al patrón con una llave demostrable, `missing` de la columna del lookup y
+  una única derivación común. La ejecución real en Talend Studio queda pendiente.
+- Pruebas: suite completa **2765 pasan, 27 se saltan, 146 xfail**; `ruff` limpio.
