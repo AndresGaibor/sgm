@@ -96,14 +96,20 @@ def salud_command(
     talend_dir: _TALEND_DIR = None,
     proyecto: _PROYECTO = None,
     tiempo_max: _TIEMPO = 10.0,
+    recuperar: Annotated[
+        bool,
+        typer.Option(
+            "--recuperar", help="Intenta recuperar Studio una vez si el bridge no responde."
+        ),
+    ] = False,
 ) -> None:
-    """Comprueba que Studio responde, deja escribir y no tiene diálogos abiertos."""
+    """Comprueba el estado de Studio: si responde, deja escribir y no tiene diálogos abiertos."""
     elegido = _elegir_backend(backend, url, talend_dir, proyecto, tiempo_max)
-    salud = comprobar_salud(elegido, tiempo_max)
+    salud = comprobar_salud(elegido, tiempo_max, recuperar=recuperar)
     if salud.ok:
-        typer.echo("Studio responde y deja escribir.")
+        typer.echo(f"Studio responde y deja escribir ({salud.estado}).")
         return
-    typer.echo(f"Studio no está disponible: {salud.motivo}", err=True)
+    typer.echo(f"Studio no está disponible ({salud.estado}): {salud.motivo}", err=True)
     raise typer.Exit(code=1)
 
 

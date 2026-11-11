@@ -18,6 +18,8 @@ TOOL_LOTE = "talend_job_build_batch"
 TOOL_VERIFICAR = "talend_job_verify"
 TOOL_REFRESCO = "talend_bridge_refresh_workspace"
 TOOL_PING = "talend_bridge_ping"
+# Recupera Studio una vez y devuelve su estado; la usa `salud.comprobar_salud`.
+TOOL_ENSURE = "talend_studio_ensure_ready"
 PARALELISMO = 4
 
 # Un nombre de variable de contexto que huela a credencial no se manda: ni la CLI ni el MCP
@@ -132,6 +134,7 @@ def veredicto(datos: Any) -> Veredicto:
 
 __all__ = [
     "PARALELISMO",
+    "TOOL_ENSURE",
     "TOOL_LOTE",
     "TOOL_PING",
     "TOOL_REFRESCO",

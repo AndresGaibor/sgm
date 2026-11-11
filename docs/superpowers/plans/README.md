@@ -27,7 +27,7 @@ cierre. Cada plan se expande a pasos cuando empieza su ola. Ya expandido: Plan A
 
 | Plan | Contenido | Estado |
 |---|---|---|
-| A | Studio y `talend-mcp` fiables, `tHashInput`, joblets, cola de validaciones | escrito, sin ejecutar |
+| A | Studio y `talend-mcp` fiables, `tHashInput`, joblets, cola de validaciones | en ejecución: cola de validaciones, salud con estados y tool de diálogos hechas (hito 192); `tHashInput`, joblets, límite del bridge y compilación sin ventana pendientes de corrida con Studio |
 | B a K | DATA step, SQL y procedimientos, E/S y expresiones, macros, arquitectura y emisor, verificación, producto, producción, datos de prueba | por expandir según su ola |
 
 Regla de oro de todos los planes (instrucción del usuario): el migrador **no falla nunca**. Si algo no se puede

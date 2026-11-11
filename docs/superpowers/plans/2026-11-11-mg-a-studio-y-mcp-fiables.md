@@ -228,24 +228,25 @@
 - [ ] **Step 4: Run** `uv run python -m pytest -q -n auto` y `uv run ruff check .` — Expected: verdes.
 - [ ] **Step 5: Commit** `hito 193: validación pendiente de OUTPUT en Studio y autorización sobre talend-mcp`.
 
-## Estado de ejecución (11 de noviembre de 2026, hito 191)
+## Estado de ejecución (11 de noviembre de 2026, hitos 191 y 192)
 
 | Tarea | Estado |
 |---|---|
 | A-1 estado de Studio | hecha en `talend-mcp` (`studio-state.ts`, commit `ae151d2`) |
 | A-2 `ensure_ready` como tool | cambiada: lo que faltaba era un proceso de fondo, no una tool. Hecho como `bun run supervisor` (reinicia el MCP; commit `ae151d2`) |
 | A-3 sonda y latido | latido hecho en `logs/supervisor.json`; la sonda de diálogos la reemplaza A-11 |
-| A-4 límite de 25 s del bridge | pendiente |
-| A-5 `tHashInput` | pendiente |
+| A-4 límite de 25 s del bridge | pendiente: pide medir una compilación real de más de 20 s |
+| A-5 `tHashInput` | pendiente: pide bisecar el Java generado con Studio |
 | A-6 joblets de extremo a extremo | pendiente (decide el plan B con `tRunJob` en la primera semana) |
-| A-7 compilar sin ventana | pendiente |
-| A-8 cola de validaciones | sustituida por `tools/validar_caso_studio.py` mientras Studio responda; la cola sigue pendiente para cuando no responda |
-| A-9 la salud de `sgm` usa el estado | pendiente |
+| A-7 compilar sin ventana | reconocimiento hecho (`docs/studio-internals/10-compilar-sin-ventana.md`): esta instalación no trae `org.talend.commandline*`, así que la opción de línea de comandos no existe; falta medir la opción de Maven/JDK |
+| A-8 cola de validaciones | **hecha** (hito 192): `tools/corpus_lib/studio_cola.py`, `validar` y `lote` encolan cuando no hay Studio, subcomando `pendientes` |
+| A-9 la salud de `sgm` usa el estado | **hecha** (hito 192): `Salud.estado`, una sola recuperación con `--recuperar`, caso `MODAL_BLOCKING` que no reintenta |
 | A-10 vaciar lo pendiente | hecho para `l6_18`, `l6_22`, `l6_23`, `l6_24` (4 de 4 coinciden); falta la nota de `AGENTS.md` |
 | **A-11 nuevo: diálogos autónomos** | **hecha** (`src/talend/studio/modals/`, commit `e88783c`): lee por UI Automation, decide, pulsa y registra; el supervisor lo corre cada 5 s |
 
-Tarea A-11 que queda: registrar `talend_studio_handle_modals` como tool del MCP (hoy es `bun run modales` y el
-supervisor) y un caso más de la política por cada diálogo nuevo que aparezca en `logs/modales.jsonl`.
+A-11: `talend_studio_handle_modals` quedó registrada como tool del MCP en el hito 192 (con `dryRun`
+y sus anotaciones de seguridad; conformidad de tools y `tsc` verdes). Queda un caso más de la
+política por cada diálogo nuevo que aparezca en `logs/modales.jsonl`.
 
 ## Self-review
 

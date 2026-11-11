@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
         backend = TalendCliBackend(args.talend_dir, args.proyecto)
     salud = comprobar_salud(backend, args.tiempo_max)
     if salud.ok:
-        print("Studio responde y deja escribir.")
+        print(f"Studio responde y deja escribir ({salud.estado}).")
         return 0
     print(f"Studio no está disponible: {salud.motivo}")
     return 1

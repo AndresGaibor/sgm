@@ -6555,3 +6555,51 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límites: Plan A sin terminar (`tHashInput`, joblets, spike de compilación sin ventana, cola de
   validaciones). La copia de `Cod2.txt` de Descargas contiene una contraseña en claro (línea 77): no se
   usó y debe tratarse como expuesta. El avance sigue en ≈ 29 % estimado; no se recalculó la sección 11b.
+
+## Hito 192. Cola de validaciones pendientes y salud de Studio con estados
+
+- Decisión de numeración: A-8 y A-9 se cierran en un solo hito 192. El plan les daba 191 y 192,
+  pero 191 ya está publicado; el gancho de cierre rechaza un segundo commit sin volver a validar el
+  árbol, así que se publica un solo hito con las dos tareas y se corrige la referencia en el plan.
+
+- Fecha: 2026-11-11.
+- Qué se hizo: `tools/corpus_lib/studio_cola.py` guarda en `out/studio-pendientes.json` la validación
+  que no se pudo ejecutar (bridge caído, modal, Studio ocupado) con su motivo y su número de
+  intentos. La escritura es atómica (archivo temporal y `os.replace`), así que un corte a mitad del
+  lote no deja la cola a medias; un archivo corrupto devuelve lista vacía y no lanza. Una validación
+  en cola nunca se cuenta como pasada.
+- `tools/corpus_studio.py`: `validar` y `lote` consultan la salud y, si Studio no está disponible,
+  encolan sus casos (`salud.estado` como motivo) y salen con 1 diciendo el estado. Subcomando nuevo
+  `pendientes`: reintenta cada caso con `tools/validar_caso_studio.py` (sufijo nuevo por intento,
+  porque Studio cachea los Jobs por identificador), quita de la cola solo los que coinciden y deja
+  los demás con un intento más.
+- Pruebas: `tests/unit/test_studio_cola.py`, seis pruebas (encolar dos casos, sumar intento sin
+  duplicar, vaciar solo lo resuelto, archivo corrupto sin excepción, escritura atómica sin temporal,
+  cola inexistente).
+- Decisión: la cola vive en `out/` (fuera de git) y guarda el código de estado como motivo, no texto
+  libre, para poder contarla y buscarla.
+
+### La salud distingue estados y se recupera una vez
+
+- Qué se hizo: `Salud` gana `estado` con los seis literales de `classifyStudioState` de `talend-mcp`
+  (`READY`, `NOT_RUNNING`, `WAITING_LOGIN`, `BRIDGE_DEAD`, `MODAL_BLOCKING`, `BUSY`). El código de
+  error del puente se traduce a estado (`STUDIO_DIALOG_OPEN` → `MODAL_BLOCKING`, `STUDIO_BUSY` →
+  `BUSY`, `STUDIO_BRIDGE_DOWN` y `BRIDGE_UNAVAILABLE` → `BRIDGE_DEAD`); un código desconocido queda
+  como bridge caído. `comprobar_salud(..., recuperar=True)` llama una sola vez a
+  `talend_studio_ensure_ready` con `restart: true` y solo con `BRIDGE_DEAD`: con un diálogo modal, un
+  login pendiente o Studio ocupado no toca Studio. `sgm studio salud` muestra el estado y acepta
+  `--recuperar`; `tools/studio_salud.py` también lo imprime.
+- `comun.py`: constante `TOOL_ENSURE`.
+- Pruebas: `tests/unit/test_backend_salud.py` pasa de 7 a 12 pruebas (estado `READY`, bridge caído
+  sin recuperar que no llama al ensure, recuperación única con `restart: true`, modal que nombra el
+  diálogo y no reintenta, código desconocido como bridge caído).
+- `talend-mcp` (autorización del usuario registrada en `AGENTS.md`): `talend_studio_handle_modals`
+  queda registrada como tool —antes solo existía `bun run modales` y el supervisor—, con `dryRun` y
+  sus anotaciones de seguridad. `bun test tests/tools/tool-conformance.test.ts` verde y `tsc` limpio.
+- Plan A: quedan pendientes con motivo A-4 (límite de respuesta del bridge), A-5 (`tHashInput`), A-6
+  (joblets) y A-7 (compilar sin ventana): los cuatro piden corridas medidas con Studio real. De A-7
+  se hizo el reconocimiento y quedó escrito: esta instalación no trae `org.talend.commandline*`, así
+  que el modo por línea de comandos no está disponible
+  (`talend-mcp/docs/studio-internals/10-compilar-sin-ventana.md`).
+- Límite: la cola no se probó contra un Studio caído de verdad en esta sesión (el de este equipo
+  responde); las pruebas usan rutas temporales y un backend doble.

@@ -5,10 +5,13 @@ Uso (desde la raíz del repo):
         --proyecto RUTA [--contexto clave=valor ...] [--mapa mapa.yaml]
     uv run python tools/corpus_studio.py comparar <caso> --salida CARPETA
     uv run python tools/corpus_studio.py lote <caso...> --jobs CARPETA --proyecto RUTA
+    uv run python tools/corpus_studio.py pendientes
 
 `validar` necesita el servidor talend-mcp arrancado con escritura y ejecución (ver
 `tools/validar_en_studio.py`). `comparar` no usa Studio y es lo que va a pytest. `lote` compila
-muchos Jobs en una sola llamada, con un sufijo nuevo y limpiando `process/` al terminar.
+muchos Jobs en una sola llamada, con un sufijo nuevo y limpiando `process/` al terminar. Si Studio
+no está disponible, `validar` y `lote` dejan sus casos en `out/studio-pendientes.json` y
+`pendientes` vuelve a intentarlos; un pendiente nunca se cuenta como validado.
 Documentación: tools/corpus_lib/STUDIO.md. Plan: docs/plan-reescritura/plan-corpus-y-equivalencia.md
 (sección 6).
 
@@ -20,11 +23,20 @@ from __future__ import annotations
 
 import argparse
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
 
 from corpus_lib.caso import resolver
+from corpus_lib.studio_cola import (
+    MOTIVO_REINTENTO,
+    RUTA_POR_OMISION,
+    Pendiente,
+    encolar,
+    leer,
+    vaciar,
+)
 from corpus_lib.studio_informe import ResultadoCaso, comparar_caso, tabla_markdown
 from corpus_lib.studio_lote import compilar_en_lote
 from corpus_lib.studio_mapa import leer_mapa
@@ -67,6 +79,12 @@ def _comparar(args: argparse.Namespace) -> int:
 
 def _validar(args: argparse.Namespace) -> int:
     caso = _un_caso(args.corpus, args.caso)
+    salud = comprobar_salud(McpBackend(tiempo_max=args.tiempo_max))
+    if not salud.ok:
+        encolar(args.cola, Pendiente(caso.nombre, salud.estado or "SIN_ESTADO"))
+        print(f"Studio no está disponible ({salud.estado}): {salud.motivo}")
+        print(f"el caso {caso.nombre} quedó en la cola {args.cola}")
+        return 1
     if not args.proyecto:
         raise ValueError("falta --proyecto (o la variable TALEND_PROJECT)")
     mapa = leer_mapa(args.mapa)
@@ -112,7 +130,10 @@ def _lote(args: argparse.Namespace) -> int:
         backend = TalendCliBackend(args.talend_dir, args.proyecto, tiempo_max=args.tiempo_max)
     salud = comprobar_salud(backend)
     if not salud.ok:
-        print(f"Studio no está disponible: {salud.motivo}")
+        for caso in args.casos:
+            encolar(args.cola, Pendiente(caso, salud.estado or "SIN_ESTADO"))
+        print(f"Studio no está disponible ({salud.estado}): {salud.motivo}")
+        print(f"{len(args.casos)} casos quedaron en la cola {args.cola}")
         return 1
     sufijo = args.sufijo or sufijo_nuevo()
     inicio = time.perf_counter()
@@ -125,6 +146,34 @@ def _lote(args: argparse.Namespace) -> int:
     for nombre, motivo in sorted(resultado.no_compilan.items()):
         print(f"  no compila {nombre}: {motivo}")
     return 0 if not resultado.no_compilan else 1
+
+
+def _pendientes(args: argparse.Namespace) -> int:
+    """Reintenta la cola con Studio sano y quita lo que se resuelva."""
+    pendientes = leer(args.cola)
+    if not pendientes:
+        print(f"No hay validaciones pendientes en {args.cola}.")
+        return 0
+    validador = Path(__file__).resolve().parent / "validar_caso_studio.py"
+    resueltos: set[str] = set()
+    fallidos: list[str] = []
+    for pendiente in pendientes:
+        print(f"reintentando {pendiente.caso} (intento {pendiente.intentos + 1})")
+        codigo = subprocess.call([sys.executable, str(validador), pendiente.caso], cwd=str(REPO))
+        if codigo == 0:
+            resueltos.add(pendiente.caso)
+        else:
+            fallidos.append(pendiente.caso)
+    vaciar(args.cola, resueltos)
+    for caso in fallidos:
+        encolar(args.cola, Pendiente(caso, MOTIVO_REINTENTO))
+    siguen = len(leer(args.cola))
+    print(f"{len(resueltos)} resueltos, {siguen} siguen pendientes")
+    return 0 if siguen == 0 else 1
+
+
+def _agregar_cola(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--cola", type=Path, default=RUTA_POR_OMISION, help="cola de pendientes")
 
 
 def _crear_parser() -> argparse.ArgumentParser:
@@ -154,6 +203,8 @@ def _crear_parser() -> argparse.ArgumentParser:
     validar.add_argument("--informe", type=Path, help="escribe el informe Markdown en este archivo")
     validar.add_argument("--ignorar-orden-columnas", action="store_true")
     validar.add_argument("--corpus", type=Path, default=CORPUS_DEFECTO)
+    validar.add_argument("--tiempo-max", type=float, default=10.0, help="segundos por llamada")
+    _agregar_cola(validar)
     validar.set_defaults(func=_validar)
 
     comparar = subcomandos.add_parser("comparar", help="compara una carpeta de salida ya hecha")
@@ -194,7 +245,14 @@ def _crear_parser() -> argparse.ArgumentParser:
     )
     lote.add_argument("--sufijo", help="sufijo nuevo de los Jobs (por defecto, con fecha)")
     lote.add_argument("--tiempo-max", type=float, default=900.0, help="segundos por llamada")
+    _agregar_cola(lote)
     lote.set_defaults(func=_lote)
+
+    pendientes = subcomandos.add_parser(
+        "pendientes", help="reintenta lo que quedó en la cola de validaciones"
+    )
+    _agregar_cola(pendientes)
+    pendientes.set_defaults(func=_pendientes)
     return parser
 
 

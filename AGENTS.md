@@ -92,17 +92,35 @@ sobre una secuencia de fases ya superada.
 
 ## Studio y `talend-mcp`
 
-Si `sgm studio salud` no conecta, **no reinstales nada ni cambies `talend-mcp`**: casi siempre es que el
-servidor MCP (puerto 3927) está apagado mientras Studio sí corre. Pasos y errores conocidos en
+Si `sgm studio salud` no conecta, **no reinstales nada**: casi siempre es que el servidor MCP (puerto
+3927) está apagado mientras Studio sí corre. Pasos y errores conocidos en
 `docs/guia-validacion-studio.md`, sección 7. En este Windows, `uv run pytest` y `uv run sgm` pueden
 bloquearse por Control de aplicaciones: usar `uv run python -m pytest` y `uv run python -m sgm.cli`.
+
+`sgm studio salud` da un estado nombrado (`READY`, `NOT_RUNNING`, `WAITING_LOGIN`, `BRIDGE_DEAD`,
+`MODAL_BLOCKING`, `BUSY`) y con `--recuperar` intenta una sola recuperación cuando el bridge está
+caído. Si una validación no se puede hacer, `tools/corpus_studio.py` la deja en
+`out/studio-pendientes.json` y `pendientes` la reintenta: un pendiente nunca cuenta como validado.
+
+El usuario autorizó el 11 de noviembre de 2026 modificar `talend-mcp` para estas tareas (estado de
+Studio, supervisor, diálogos autónomos y `talend_studio_ensure_ready`). La frontera se mantiene: el
+núcleo de `sgm` no importa el MCP ni la CLI fuera de `src/sgm/backend_talend/`, y lo vigila
+`tests/unit/test_backend_aislado.py`.
 
 ## Forma de trabajar
 
 - Lee antes de escribir. Los archivos grandes (`client_large.sas`, unos 800 KB) no se leen enteros: usa búsqueda y lecturas por rango de líneas.
 - Archivos pequeños, una responsabilidad. Si un archivo pasa de 300 líneas, divídelo.
 - Código e identificadores en inglés. Comentarios, docstrings, mensajes de usuario y documentación en español.
-- Después de cada cambio corre `uv run pytest -q` y `uv run ruff check .`. Un hito termina solo con las dos cosas en verde.
+- Después de cada cambio corre `uv run pytest -q` y `uv run ruff check .` (o `--testmon` para iterar).
+  Un hito termina solo con `uv run python tools/ci.py` en verde: ese comando corre `ruff`, la suite
+  completa, los cruces y el oráculo, y deja el estado que exige el gancho `pre-commit`.
+- **El commit está bloqueado sin cierre verde.** `.githooks/pre-commit` compara la huella del árbol
+  con la que se validó y rechaza el commit si falta la suite completa, `ruff`, los cruces o el
+  oráculo, o si se editó algo después del cierre. Se instala una vez por copia con
+  `uv run python tools/instalar_ganchos.py`. `uv run python tools/validacion.py estado` dice qué
+  falta y `historial` muestra los intentos; el detalle queda en `.cache/validacion/`. No uses
+  `git commit --no-verify`.
 - `PROGRESS.md` se actualiza al cerrar cada hito: fecha, qué se hizo, pruebas, métricas, bloqueos y decisiones.
 - Si una decisión de diseño no está en el prompt, elige la opción más simple que respete las reglas y anótala en `PROGRESS.md` bajo "Decisiones".
 - Dependencias permitidas: `networkx`, `typer`, `pyyaml`, `pydantic` (opcional). Dev: `pytest`, `pytest-xdist`, `ruff`. Cualquier otra se anota en "Decisiones".
