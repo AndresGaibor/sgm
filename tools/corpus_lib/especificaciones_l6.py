@@ -108,6 +108,12 @@ def _calc_output_condicional_implicit(e: Entradas) -> dict[str, list[dict]]:
     return {"PRIMERA": coinciden, "SEGUNDA": coinciden}
 
 
+def _calc_output_sin_destino_en_punto(e: Entradas) -> dict[str, list[dict]]:
+    """OUTPUT captura las dos tablas antes de las asignaciones siguientes."""
+    filas = [dict(fila) for fila in e["REGISTROS"]]
+    return {"ANTES": filas, "COPIA": [dict(fila) for fila in filas]}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -427,6 +433,30 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "Cuando OUTPUT no nombra un dataset, SAS escribe la observación en todos los datasets "
             "del encabezado DATA. El IF limita la escritura a las filas cuyo valor es 1. "
             "Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_17_output_sin_destino_en_punto_del_pdv": {
+        "construcciones": ["DATA STEP", "OUTPUT SIN DESTINO", "ASIGNACIÓN POSTERIOR"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 2), ("y", 5)],
+            ),
+        },
+        "calculo_salidas": _calc_output_sin_destino_en_punto,
+        "columnas": ["id", "valor"],
+        "salidas": ["ANTES", "COPIA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(ANTES) == 2",
+            "filas(COPIA) == 2",
+            "suma(ANTES.valor) == 7",
+            "suma(COPIA.valor) == 7",
+        ],
+        "razonamiento": (
+            "OUTPUT sin argumento escribe de inmediato el PDV en ambos datasets del encabezado. "
+            "La asignación posterior no produce una escritura implícita porque el DATA step ya "
+            "contiene OUTPUT explícito. Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }

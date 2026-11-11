@@ -6334,3 +6334,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   datasets indicados en `DATA`.
 - Límite: el Job no se ha compilado en Studio; persiste el diálogo `Confirm`. `FIRST.`/`LAST.` se
   mantienen fuera de esta regla y conservan su tratamiento con estado.
+
+## Hito 180. Continuar tras `OUTPUT;` sin destino
+
+- Fecha: 2026-11-10.
+- Qué se hizo: un `OUTPUT;` incondicional en medio del DATA step ahora expande sus destinos a todos
+  los datasets declarados y agrega una rama de continuación. Las asignaciones posteriores siguen
+  procesándose, pero no generan escrituras implícitas al final de la iteración.
+- Seguridad: la detección de escrituras repetidas resuelve también los destinos implícitos; si se
+  repite un destino del encabezado, el paso queda `OUTPUT_DESTINO_REPETIDO` y no se emite parcialmente.
+- Corpus: `L6/l6_17_output_sin_destino_en_punto_del_pdv` verifica dos capturas antes de una asignación
+  posterior. El intérprete coincide con los CSV esperados y el Job emite ambas salidas y pasa el
+  validador estructural.
+- Corpus total: 124 casos, 17 en L6 y 122 con esperado.
+- Pruebas: suite completa **3066 pasan, 32 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
+- Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` escribe inmediatamente; un `OUTPUT` explícito
+  suprime la escritura automática al final de la iteración.
+- Límite: Studio continúa pendiente por el diálogo `Confirm`; no se compiló el Job.

@@ -446,6 +446,28 @@ def test_output_condicional_sin_destino_emite_todas_las_salidas_filtradas():
     assert validar_job(job) == []
 
 
+def test_output_sin_destino_intermedio_emite_todas_las_salidas_sin_duplicar_filas():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.primera WORK.segunda;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT;\n"
+        "valor=valor+10;\n"
+        "RUN;\n"
+        "PROC EXPORT DATA=WORK.primera OUTFILE='primera.csv' DBMS=CSV REPLACE; RUN;\n"
+        "PROC EXPORT DATA=WORK.segunda OUTFILE='segunda.csv' DBMS=CSV REPLACE; RUN;"
+    )
+    esquema = {"work.entrada": [Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    job = resultado.jobs[0]
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in job.nodos) == 2
+    assert validar_job(job) == []
+
+
 def test_output_else_if_encadenado_emite_filtros_priorizados_en_tmap():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"

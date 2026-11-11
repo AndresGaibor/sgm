@@ -805,6 +805,22 @@ def test_output_condicional_sin_destino_escribe_a_todos_los_datasets_de_data():
     assert tablas["segunda"] == esperadas
 
 
+def test_output_sin_destino_intermedio_captura_el_pdv_y_suprime_la_salida_implicita():
+    plan = _plan(
+        "DATA WORK.primera WORK.segunda;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT;\n"
+        "valor=valor+10;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(plan, {"entrada": [{"valor": "1"}, {"valor": "2"}]})
+
+    esperadas = [{"valor": "1"}, {"valor": "2"}]
+    assert tablas["primera"] == esperadas
+    assert tablas["segunda"] == esperadas
+
+
 def test_output_contiguos_a_destinos_distintos_distribuyen_cada_observacion():
     plan = _plan(
         "DATA WORK.primera WORK.segunda;\n"

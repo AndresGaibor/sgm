@@ -101,6 +101,21 @@ def test_output_condicional_sin_destino_usa_todas_las_salidas_data():
     assert not _by_kind(ops, "unsupported")
 
 
+def test_output_sin_destino_intermedio_resuelve_las_salidas_del_encabezado():
+    ops = _ops("data a b; set src; output; x=x+1; run;")
+
+    (mapa,) = _by_kind(ops, "map")
+
+    assert mapa.params["outputs"] == ["WORK.a", "WORK.b"]
+    assert [rama.get("outputs") for rama in mapa.params["branches"]] == [
+        ["WORK.a"],
+        ["WORK.b"],
+        [],
+    ]
+    assert mapa.params["branches"][-1]["continue"] is True
+    assert not _by_kind(ops, "unsupported")
+
+
 def test_output_explicito_sin_condicion_no_se_descarta():
     ops = _ops("data a; set src; output a; run;")
     (split,) = _by_kind(ops, "split")
@@ -135,6 +150,15 @@ def test_output_repetido_a_mismo_destino_se_marca_como_hueco():
     assert pendiente.params["reason_detail"] == "OUTPUT_DESTINO_REPETIDO"
     assert "más de una vez" in pendiente.notes[0]
     assert not _by_kind(ops, "split")
+
+
+def test_output_sin_destino_repetido_marca_todos_los_destinos_data_como_hueco():
+    ops = _ops("data a b; set src; output; output; run;")
+
+    (pendiente,) = _by_kind(ops, "unsupported")
+
+    assert pendiente.params["reason_detail"] == "OUTPUT_DESTINO_REPETIDO"
+    assert not _by_kind(ops, "map")
 
 
 def test_output_condicional_no_terminal_agrega_rama_de_continuacion():

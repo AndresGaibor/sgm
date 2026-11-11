@@ -203,7 +203,7 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     prev: DsStatement | None = None
     omit: set[int] = set()
     destinos_invalidos = _undeclared_output_targets(stmts, step.outputs)
-    destinos_repetidos = _repeated_output_targets(stmts)
+    destinos_repetidos = _repeated_output_targets(stmts, step.outputs)
     paso_output_invalido = destinos_invalidos is not None or destinos_repetidos is not None
     if paso_output_invalido:
         if destinos_invalidos is not None:
@@ -371,7 +371,30 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
                     current.params["statement"] = " | ".join(unsupported)
                     b.refresh(current)
             continue
-        new = _statement_op(s, kind, before, statement_ev, b)
+        if kind == "output" and not s.fields.get("targets") and index < len(stmts) - 1:
+            destinos = [
+                qualify(nombre) for nombre in step.outputs if nombre.lower() != "_null_"
+            ]
+            if destinos:
+                ramas = [{"outputs": [destino]} for destino in destinos]
+                ramas.append({"outputs": [], "continue": True})
+                salida_continuacion = b.op(
+                    "map",
+                    {"steps": [], "outputs": destinos, "branches": ramas},
+                    statement_ev,
+                )
+                if current is not None:
+                    b.link(current, salida_continuacion)
+                current = salida_continuacion
+                continue
+        new = _statement_op(
+            s,
+            kind,
+            before,
+            statement_ev,
+            b,
+            [qualify(nombre) for nombre in step.outputs if nombre.lower() != "_null_"],
+        )
         if new is None:
             _note(current, f"sentencia sin traducción: {s.text}", status="parcial")
             if current is not None:
@@ -481,7 +504,12 @@ def _conditional_assignment(
 
 
 def _statement_op(
-    s: DsStatement, kind: str, before: DsStatement | None, ev: Evidence, b: Builder
+    s: DsStatement,
+    kind: str,
+    before: DsStatement | None,
+    ev: Evidence,
+    b: Builder,
+    default_outputs: list[str],
 ) -> Operator | None:
     """Operador de una sentencia que no es asignación. None si no tiene traducción directa."""
     if kind == "where":
@@ -513,7 +541,7 @@ def _statement_op(
         return b.op("rename", {"pairs": [[a.lower(), c.lower()] for a, c in s.fields["pairs"]]}, ev)
     if kind == "output":
         condition = before.text if before is not None and before.kind == "if" else ""
-        targets = s.fields.get("targets") or []
+        targets = s.fields.get("targets") or default_outputs
         target = targets[0] if targets else None
         params = {"target": target, "condition": condition}
         if len(targets) > 1:
@@ -666,14 +694,14 @@ def _undeclared_output_targets(
 
 
 def _repeated_output_targets(
-    stmts: list[DsStatement],
+    stmts: list[DsStatement], default_outputs: list[str]
 ) -> tuple[list[DsStatement], set[str]] | None:
     """Detecta escrituras múltiples al mismo destino en una iteración del DATA step."""
     vistos: dict[str, DsStatement] = {}
     sentencias: list[DsStatement] = []
     repetidos: set[str] = set()
     for sentencia in stmts:
-        for destino in _output_targets(sentencia):
+        for destino in _output_targets(sentencia, default_outputs):
             clave = qualify(destino).casefold()
             if clave in vistos:
                 if vistos[clave] not in sentencias:
@@ -686,14 +714,17 @@ def _repeated_output_targets(
     return (sentencias, repetidos) if sentencias else None
 
 
-def _output_targets(stmt: DsStatement) -> list[str]:
+def _output_targets(
+    stmt: DsStatement, default_outputs: list[str] | None = None
+) -> list[str]:
+    destinos_por_defecto = default_outputs or []
     if stmt.kind == "output":
-        return list(stmt.fields.get("targets") or [])
+        return list(stmt.fields.get("targets") or destinos_por_defecto)
     if stmt.kind == "if":
         salida = _conditional_output(stmt)
         if salida:
             destinos = salida.get("targets") or ([salida["target"]] if salida.get("target") else [])
-            return list(destinos)
+            return list(destinos or destinos_por_defecto)
     return []
 
 
