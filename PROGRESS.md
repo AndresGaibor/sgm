@@ -6682,3 +6682,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   borraron; el informe `talend-mcp/docs/studio-internals/12-plazos-de-las-operaciones-largas.md` lo
   deja anotado.
 - Límite: sigue pendiente el tiempo real de un lote de Jobs de verdad en Studio.
+
+## Hito 197. Compilacion sin ventana: reconocimiento cerrado
+
+- Fecha: 2026-11-11.
+- Que se hizo (A-7 del Plan A, en `talend-mcp`): se cerro el reconocimiento con las tres opciones del
+  plan medidas contra lo que hay en el equipo. (1) El bridge es la unica via que existe y funciona.
+  (2) El modo por linea de comandos no existe: no hay `org.talend.commandline*` entre los 1 382
+  plugins de la instalacion. (3) Maven/JDK no se puede ejecutar: `mvn` no esta en el PATH y no hay
+  `mvn.cmd`, `mvn.bat` ni `mvnw` en `C:\Talend\8.0.1`; lo que trae Studio es
+  `org.eclipse.m2e.maven.runtime` embebido y la cache `.m2`, que son piezas del IDE.
+- Decision: se mantiene el bridge y no se escribe `talend_job_build_headless`, porque la regla de
+  adopcion del plan exige comparar contra alternativas que aqui no existen. Si se instala Maven 3.9
+  contra la cache de Studio, la medicion queda definida en el propio informe.
+- Informe: `talend-mcp/docs/studio-internals/10-compilar-sin-ventana.md`, con la salida literal de
+  los plugins y las busquedas.
+- Límite: sigue pendiente el tiempo real de un lote de compilacion en Studio; el segundo intento de
+  medirlo encontro el hilo de la interfaz ocupado 300 s mientras el ping daba `READY`.
