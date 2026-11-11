@@ -790,6 +790,22 @@ def test_output_sin_destinos_explicitamente_usa_todas_las_salidas_data():
     assert tablas["segunda"] == esperadas
 
 
+def test_output_contiguos_a_destinos_distintos_distribuyen_cada_observacion():
+    plan = _plan(
+        "DATA WORK.primera WORK.segunda;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT WORK.primera;\n"
+        "OUTPUT WORK.segunda;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(plan, {"entrada": [{"id": "1"}, {"id": "2"}]})
+
+    esperadas = [{"id": "1"}, {"id": "2"}]
+    assert tablas["primera"] == esperadas
+    assert tablas["segunda"] == esperadas
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"

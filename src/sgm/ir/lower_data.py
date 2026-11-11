@@ -218,6 +218,23 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         before, prev = prev, s
         if kind in _HEAD_KINDS:
             continue
+        secuencia_output = _output_sequence(stmts, index)
+        if secuencia_output is not None:
+            destinos, ultimo = secuencia_output
+            parametros = {"target": destinos[0], "condition": ""}
+            if len(destinos) > 1:
+                parametros["targets"] = destinos
+            salida_multiple = b.op("split", parametros, statement_ev)
+            salida_multiple.evidence.extend(
+                Evidence(ev.file, stmts[posicion].line, stmts[posicion].line, ev.label, ev.call)
+                for posicion in range(index + 1, ultimo + 1)
+            )
+            if current is not None:
+                b.link(current, salida_multiple)
+            current = salida_multiple
+            omit.update(range(index + 1, ultimo + 1))
+            prev = stmts[ultimo]
+            continue
         salidas_condicionales = _conditional_output_pair(stmts, index)
         if salidas_condicionales is not None:
             ramas, destinos, siguiente = salidas_condicionales
@@ -541,6 +558,25 @@ def _conditional_output_pair(
         for destino in segunda.get("targets", [segunda["target"]])
     )
     return ramas, [qualify(destino) for destino in destinos], index + 1
+
+
+def _output_sequence(stmts: list[DsStatement], index: int) -> tuple[list[str], int] | None:
+    """Agrupa OUTPUT consecutivos sin condición ni destinos repetidos."""
+    if index >= len(stmts) or stmts[index].kind != "output":
+        return None
+    destinos: list[str] = []
+    cursor = index
+    while cursor < len(stmts) and stmts[cursor].kind == "output":
+        actuales = stmts[cursor].fields.get("targets") or []
+        if not actuales:
+            return None
+        destinos.extend(nombre for nombre in actuales if nombre.lower() != "_null_")
+        cursor += 1
+    if cursor - index < 2 or not destinos:
+        return None
+    if len({nombre.lower() for nombre in destinos}) != len(destinos):
+        return None
+    return destinos, cursor - 1
 
 
 def _note(op: Operator | None, text: str, status: str | None = None) -> None:

@@ -6193,3 +6193,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Se sigue la instrucción del repositorio: no reinstalar ni cambiar Talend ante este error.
 - Estado: MG-P4-02 sigue parcial; quedan pendientes otras secuencias de `OUTPUT` y la compilación
   del caso en Studio.
+
+## Hito 170. Agrupar `OUTPUT` contiguos a destinos distintos
+
+- Fecha: 2026-11-10.
+- Qué se hizo: varias sentencias `OUTPUT` consecutivas, sin condición y con destinos distintos, se
+  agrupan en un operador `split` que el emisor convierte en un `tMap` con una salida por dataset. El
+  intérprete conserva todas las filas en cada destino. Se añadió una prueba que confirma que repetir
+  un mismo destino sigue pendiente, pues agruparlo cambiaría el número de observaciones escritas.
+- Pruebas: suite completa **3024 pasan, 28 se saltan, 142 xfail**; Ruff y `git diff --check` limpios.
+- Límite: no se repitió la compilación Studio: el diálogo `Network Issue Occured` reportado en el hito
+  169 sigue sin resolver. Las secuencias con `ELSE IF`, DO y destinos repetidos siguen pendientes.
+- Decisión: solo se agrupan OUTPUT adyacentes cuyos destinos son únicos, sin alterar el orden ni
+  combinar escrituras múltiples a una misma tabla.

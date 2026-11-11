@@ -300,7 +300,7 @@ def test_output_con_varios_destinos_emite_un_tmap_con_todas_las_salidas():
     assert {conexion.nombre for conexion in resultado.jobs[0].conexiones} >= {"out1", "out2"}
 
 
-def test_varias_sentencias_output_encadenadas_se_mantienen_pendientes():
+def test_varias_sentencias_output_contiguas_distintas_se_emiten_como_tmap():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
         "GETNAMES=YES;\nRUN;\n"
@@ -308,6 +308,24 @@ def test_varias_sentencias_output_encadenadas_se_mantienen_pendientes():
         "SET WORK.entrada;\n"
         "OUTPUT WORK.primera;\n"
         "OUTPUT WORK.segunda;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("id", "String")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    assert all(f'name="out{indice}"' in _tmap(resultado.jobs[0]) for indice in (1, 2))
+
+
+def test_output_repetido_al_mismo_destino_sigue_pendiente():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.primera;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT WORK.primera;\n"
+        "OUTPUT WORK.primera;\n"
         "RUN;"
     )
     esquema = {"work.entrada": [Column("id", "String")]}
