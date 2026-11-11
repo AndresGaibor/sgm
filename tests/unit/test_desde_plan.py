@@ -251,6 +251,25 @@ def test_output_explicito_sin_condicion_se_emite_como_una_salida_tmap():
     assert 'name="out1"' in _tmap(resultado.jobs[0])
 
 
+def test_output_no_declarado_no_emite_escritura_parcial():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.declarada;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT WORK.no_declarada;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("id", "String")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert any(p.codigo == "P-OPERADOR-SIN-SOPORTE" for p in resultado.pendientes)
+    assert not any(
+        nodo.componente == "tFileOutputDelimited" for job in resultado.jobs for nodo in job.nodos
+    )
+
+
 def test_output_con_varios_destinos_conserva_todos_y_suprime_salida_implicita():
     plan = _plan(
         "DATA primera segunda tercera;\n"

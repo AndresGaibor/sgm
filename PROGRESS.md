@@ -6239,10 +6239,25 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   El caso contiene una observación que no satisface ninguna condición y confirma que no aparece en
   las salidas, mientras cada rama conserva sus destinos. La prueba estructural fija que no se agregue
   una rama de salida implícita.
-- Referencia: `lestmtsref`, pp. 120–121 y 261–262: `ELSE` es opcional, se ejecuta la primera rama
+- Referencia: `lestmtsref`, PDF pp. 132–133 y 273–274: `ELSE` es opcional, se ejecuta la primera rama
   aplicable, y `OUTPUT` explícito suprime la escritura automática al final de la iteración.
 - Pruebas: suite completa **3030 pasan, 28 se saltan, 142 xfail**; Ruff limpio. La regeneración del
   corpus y la comparación del anillo B para L6 pasan.
 - Bloqueo: `sgm studio salud` detectó un diálogo `Confirm`; no se compiló el Job ni se cambió Talend.
 - Decisión: sin `ELSE`, las observaciones que no satisfacen ninguna condición no se escriben; no se
   agrega una salida de respaldo.
+
+## Hito 174. Rechazar destinos `OUTPUT` no declarados
+
+- Fecha: 2026-11-10.
+- Qué se hizo: el lowering comprueba que cada destino explícito de `OUTPUT` esté incluido en el
+  encabezado `DATA`, tanto en sentencias directas como en ramas condicionales. Si falta, todo el paso
+  se conserva como `unsupported` con motivo `OUTPUT_DESTINO_NO_DECLARADO`; no se emite un split parcial.
+- Referencia: `lestmtsref`, PDF p. 274 (página impresa 261), restricción del argumento `data-set-name`.
+- Pruebas: suite completa **3033 pasan, 28 se saltan, 142 xfail**; Ruff limpio. Pruebas unitarias
+  cubren destinos ausentes directos y condicionales, y que la emisión no genere una escritura
+  parcial; diff check configurado para CRLF.
+- Bloqueo: Studio continúa mostrando un diálogo `Confirm`; no se compiló el Job.
+- Decisión: se comparan nombres SAS sin distinguir mayúsculas y se califican los nombres no
+  calificados como `WORK`, igual que el resto del lowering. Ante cualquier destino no declarado se
+  deja pendiente el DATA step entero, sin simular salidas válidas parcialmente.

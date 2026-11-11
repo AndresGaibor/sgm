@@ -326,7 +326,7 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "IF/ELSE IF conserva la prioridad y enruta a destinos explícitos; "
             "la rama THEN escribe en "
             "dos datasets y la observación sin rama se descarta por OUTPUT explícito. Referencia: "
-            "lestmtsref, pp. 120–121 y 261–262."
+            "lestmtsref, PDF pp. 132–133 y 273–274."
         ),
     },
 }

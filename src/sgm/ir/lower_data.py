@@ -202,8 +202,28 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     loose: list[str] = []
     prev: DsStatement | None = None
     omit: set[int] = set()
+    destinos_invalidos = _undeclared_output_targets(stmts, step.outputs)
+    if destinos_invalidos is not None:
+        sentencias, faltantes = destinos_invalidos
+        detalle = ", ".join(sorted(faltantes))
+        evidencia_salida = _statement_evidence(sentencias[0], ev)
+        pendiente = b.op(
+            "unsupported",
+            {
+                "reason": "SENTENCIA_NO_SOPORTADA",
+                "reason_detail": "OUTPUT_DESTINO_NO_DECLARADO",
+                "statement": " | ".join(sentencia.text for sentencia in sentencias),
+            },
+            evidencia_salida,
+            status="hueco",
+            notes=[f"OUTPUT nombra destinos ausentes del encabezado DATA: {detalle}"],
+        )
+        if current is not None:
+            b.link(current, pendiente)
+        current = pendiente
+        omit = set(range(len(stmts)))
     grupo = programa_por_grupo(stmts)
-    if grupo is not None:
+    if grupo is not None and destinos_invalidos is None:
         # BY con FIRST./LAST./RETAIN/suma: un programa por fila con estado, no sentencias sueltas.
         estado = b.op("stateful_row", grupo, ev)
         if current is not None:
@@ -592,6 +612,30 @@ def _output_sequence(stmts: list[DsStatement], index: int) -> tuple[list[str], i
     if len({nombre.lower() for nombre in destinos}) != len(destinos):
         return None
     return destinos, cursor - 1
+
+
+def _undeclared_output_targets(
+    stmts: list[DsStatement], declared_outputs: list[str]
+) -> tuple[list[DsStatement], set[str]] | None:
+    """SAS exige destinos declarados en DATA (`lestmtsref`, PDF p. 274; impresa p. 261)."""
+    declarados = {qualify(destino).casefold() for destino in declared_outputs}
+    sentencias: list[DsStatement] = []
+    faltantes: set[str] = set()
+    for sentencia in stmts:
+        if sentencia.kind == "output":
+            destinos = sentencia.fields.get("targets") or []
+        elif sentencia.kind == "if":
+            salida = _conditional_output(sentencia)
+            destinos = (salida or {}).get("targets") or ([salida["target"]] if salida else [])
+        else:
+            continue
+        no_declarados = {
+            destino for destino in destinos if qualify(destino).casefold() not in declarados
+        }
+        if no_declarados:
+            sentencias.append(sentencia)
+            faltantes.update(no_declarados)
+    return (sentencias, faltantes) if sentencias else None
 
 
 def _note(op: Operator | None, text: str, status: str | None = None) -> None:

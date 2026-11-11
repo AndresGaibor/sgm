@@ -96,6 +96,24 @@ def test_output_explicito_sin_condicion_no_se_descarta():
     assert split.params.get("outputs", []) == []
 
 
+def test_output_a_dataset_ausente_del_encabezado_se_marca_como_hueco():
+    ops = _ops("data salida; set origen; output otra; run;")
+
+    (pendiente,) = _by_kind(ops, "unsupported")
+
+    assert pendiente.status == "hueco"
+    assert pendiente.params["reason_detail"] == "OUTPUT_DESTINO_NO_DECLARADO"
+    assert "otra" in pendiente.notes[0]
+    assert not _by_kind(ops, "split")
+
+
+def test_output_condicional_a_dataset_ausente_del_encabezado_no_se_emite():
+    ops = _ops("data salida; set origen; if x=1 then output otra; run;")
+
+    assert _by_kind(ops, "unsupported")
+    assert not _by_kind(ops, "split")
+
+
 def test_retain_lag_y_first_last_son_estado_por_fila():
     ops = _ops("data t; set s; by g; retain acc 0; prev = lag(x); if first.g then acc = 0; run;")
     stateful = _by_kind(ops, "stateful_row")
