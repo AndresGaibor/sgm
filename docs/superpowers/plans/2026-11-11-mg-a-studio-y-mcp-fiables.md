@@ -236,7 +236,7 @@
 | A-2 `ensure_ready` como tool | cambiada: lo que faltaba era un proceso de fondo, no una tool. Hecho como `bun run supervisor` (reinicia el MCP; commit `ae151d2`) |
 | A-3 sonda y latido | latido hecho en `logs/supervisor.json`; la sonda de diálogos la reemplaza A-11 |
 | A-4 límite de 25 s del bridge | pendiente: pide medir una compilación real de más de 20 s |
-| A-5 `tHashInput` | pendiente: pide bisecar el Java generado con Studio |
+| A-5 `tHashInput` | **hecha** (hito 193): el `SUBJOB_OK` salia del `tHashOutput` y eso es un diseno invalido; el enlace se cuelga del `tFixedFlowInput` de arranque y ese nodo lleva `schemaDespuesDeConectar` porque conectar borra sus valores. Escenario `transformaciones/hash-memoria-entre-subjobs` en verde |
 | A-6 joblets de extremo a extremo | pendiente (decide el plan B con `tRunJob` en la primera semana) |
 | A-7 compilar sin ventana | reconocimiento hecho (`docs/studio-internals/10-compilar-sin-ventana.md`): esta instalación no trae `org.talend.commandline*`, así que la opción de línea de comandos no existe; falta medir la opción de Maven/JDK |
 | A-8 cola de validaciones | **hecha** (hito 192): `tools/corpus_lib/studio_cola.py`, `validar` y `lote` encolan cuando no hay Studio, subcomando `pendientes` |

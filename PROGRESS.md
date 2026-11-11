@@ -6603,3 +6603,25 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   (`talend-mcp/docs/studio-internals/10-compilar-sin-ventana.md`).
 - Límite: la cola no se probó contra un Studio caído de verdad en esta sesión (el de este equipo
   responde); las pruebas usan rutas temporales y un backend doble.
+
+## Hito 193. `tHashInput` lee lo que escribe `tHashOutput`
+
+- Fecha: 2026-11-11.
+- Que se hizo (A-5 del Plan A, en `talend-mcp`): se quito `pendiente` del escenario
+  `transformaciones/hash-memoria-entre-subjobs` y se corrio en Studio hasta que paso. Pasan las tres
+  filas esperadas (`1|Ana`, `2|Jose`, `3|Lucia`).
+- Causa 1: la conexion era `guarda (tHashOutput) -SUBJOB_OK-> lee (tHashInput)`. Un componente que no
+  es el arranque de su subjob no puede tener enlaces de subjob; Studio lo rechaza en la vista
+  Problemas con «A component that is not a sub process start can not have any link on sub job ok / on
+  sub job error in input». El enlace ahora sale del `tFixedFlowInput`.
+- Causa 2, la que dejaba el Job «sin filas»: al conectar ese `SUBJOB_OK`, Talend vuelve a propagar
+  esquemas y borra los valores del `tFixedFlowInput` de arranque; el Job compila y ejecuta con codigo
+  0 y 0 filas sin marcar error. El nodo de arranque lleva `schemaDespuesDeConectar: true`, que
+  reaplica esquema y valores tras conectar. Es exactamente el defecto que el arnes ya preveia para
+  otros componentes.
+- La configuracion de los componentes queda como estaba y es la correcta: `tHashOutput` sin
+  `LINK_WITH` (MEMORY, KEEP_ALL, APPEND) y `tHashInput` con `LINK_WITH=true` y `LIST` al
+  `uniqueName` del output. El codigo generado ya leia con la clave del output; no se toco.
+- Documentado en `talend-mcp/docs/studio-internals/07-componentes-avanzados.md`, seccion 70, que
+  deja de estar pendiente.
+- Límite: el resto del Plan A sigue abierto (A-4, A-6; A-7 solo tiene el reconocimiento).
