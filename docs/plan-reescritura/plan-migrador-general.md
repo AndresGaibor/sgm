@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 185, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 186, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -627,12 +627,12 @@ ELSE IF al mismo destino sin `ELSE`; se conserva el filtro combinado y se excluy
 coincidentes. `L6/l6_21_output_destinos_parcialmente_comunes` comprueba ramas con conjuntos de
 destinos parcialmente solapados: la salida común recibe cada fila una vez y las salidas exclusivas
 mantienen sus filtros; el intérprete coincide y el Job pasa el validador.
-La comprobación real de Studio confirma que salud responde y deja escribir, pero no permite cerrar
-MG-P4-02: al compilar `L6/l6_21`, Talend rechazó el filtro numérico porque el esquema sin tipo
-demostrado emite `valor` como `String` (`String cannot be converted to Number`). La muestra local
-solo demuestra nombres de columna, no su tipo, así que no se inventó un esquema numérico. La
-validación terminó con `1 casos, 0 coinciden`; queda pendiente resolver cómo bloquear o traducir de
-forma segura comparaciones numéricas sobre tipos desconocidos antes de declarar compilación válida.
+En el hito 185, la primera compilación real de Studio encontró que el filtro numérico no compilaba
+con `valor` como `String`. La traducción actual aplica conversión automática texto-a-número para
+comparaciones de igualdad, según `lrcon`, pp. 141-142; las cadenas inválidas se tratan como faltantes
+en la comparación. El Job regenerado compiló y ejecutó en Studio; `L6/l6_21` terminó con
+`1 casos, 1 coinciden`. Se conserva `P-TIPO-DESCONOCIDO`: la conversión de la expresión no se presenta
+como prueba del tipo de origen.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

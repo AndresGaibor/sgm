@@ -41,6 +41,10 @@ _NUMERO_GUARDADO = re.compile(
     r"\(\(Number\)\s*([A-Za-z_][\w.]*)\)\.doubleValue\(\)\s*(?:<=|>=|<|>)\s*"
     r"(?:-?\d+(?:\.\d+)?|\([\d.\s*/+-]+\))"
 )
+_IGUALDAD_NUMERICA_GUARDADA = re.compile(
+    r"\(\(Number\)\s*([A-Za-z_][\w.]*)\)\.doubleValue\(\)\s*==\s*"
+    r"(-?\d+(?:\.\d+)?|\([\d.\s*/+-]+\))"
+)
 _TEXTO_GUARDADO = re.compile(
     r"\(\(Comparable\)\s*([A-Za-z_][\w.]*)\)\.compareTo\(\"[^\"]*\"\)\s*(?:<=|>=|<|>)\s*0"
 )
@@ -189,6 +193,19 @@ def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str |
     se devuelve el motivo.
     """
     comparaciones_seguras: list[str] = []
+
+    def igualdad_numerica_texto(encontrada: re.Match[str]) -> str:
+        columna, literal = encontrada.groups()
+        if tipos.get(columna) != "id_String":
+            return encontrada.group(0)
+        # SAS convierte automáticamente texto a número en comparaciones mixtas (`lrcon`, PDF
+        # pp. 141-142). Un texto inválido pasa a faltante: igualdad con un número es falsa; el NOT
+        # que genera NE la invierte.
+        no_numerica = faltante(columna.rsplit(".", 1)[-1], columna.rpartition(".")[0] or "row1")
+        numero = f"java.lang.Double.parseDouble({columna})"
+        return f"(!{no_numerica} && {numero} == {literal})"
+
+    java = _IGUALDAD_NUMERICA_GUARDADA.sub(igualdad_numerica_texto, java)
 
     def comparar_columnas(encontrada: re.Match[str]) -> str:
         izquierda, derecha, operador = encontrada.groups()

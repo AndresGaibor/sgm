@@ -6432,3 +6432,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Siguiente: corregir la generación/validación de expresiones con columnas sin tipo demostrado y
   volver a compilar en Studio.
 - Límite: MG-P4-02 no está cerrado; el validador estructural no sustituye la compilación real.
+
+## Hito 186. Traducir comparación numérica de texto
+
+- Fecha: 2026-11-11.
+- Qué se hizo: se ajustó la comparación de igualdad entre una columna `String` y un literal numérico.
+  Talend valida el texto numérico y lo convierte antes de comparar; un valor no numérico se trata
+  como faltante para que `=` sea falso y el `NOT` de `NE` lo invierta. Las columnas demostradas como
+  numéricas conservan su ruta directa.
+- Referencia: `lrcon`, PDF pp. 141-142: SAS convierte automáticamente texto a número en una
+  comparación mixta y asigna faltante si la conversión es inválida.
+- Studio: el Job se regeneró con el tipo no demostrado aún marcado como `String` y se compiló y
+  ejecutó con el sufijo único `mgp402l621c`. Resultado literal: `1 casos, 1 coinciden`.
+- Corpus total: 128 casos, 21 en L6 y 126 con esperado. `L6/l6_21_output_destinos_parcialmente_comunes`
+  ahora valida también la compilación y ejecución real del Job.
+- Pruebas: suite completa **3099 pasan, 36 se saltan y 142 xfail**; Ruff y diff check limpios.
+- Seguridad: no se asignó un tipo de columna supuesto; queda `P-TIPO-DESCONOCIDO` para que el
+  operador confirme el esquema. El arnés eliminó el Job temporal de Studio.
+- Límite: MG-P4-02 sigue parcial; falta compilar otros patrones `OUTPUT` recientes en Studio.

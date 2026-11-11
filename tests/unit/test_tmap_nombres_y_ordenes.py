@@ -64,6 +64,28 @@ def test_el_orden_numerico_guardado_exige_columna_numerica():
     assert "numérica" in (motivo or "")
 
 
+def test_comparacion_numerica_de_columna_texto_aplica_conversion_automatica_sas():
+    tipos = {"row1.valor": "id_String"}
+
+    igual, motivo_igual = expresion("valor=1", {"row1": {"valor"}}, tipos)
+    distinto, motivo_distinto = expresion("valor ne 1", {"row1": {"valor"}}, tipos)
+
+    assert motivo_igual is None
+    assert motivo_distinto is None
+    assert igual is not None and "Double.parseDouble(row1.valor) == 1" in igual
+    assert "!row1.valor.matches" in igual
+    assert distinto is not None and "Double.parseDouble(row1.valor) == 1" in distinto
+    assert "!(row1.valor != null &&" in distinto
+    assert "!row1.valor.matches" in distinto
+
+    numerica, motivo_numerica = expresion(
+        "valor=1", {"row1": {"valor"}}, {"row1.valor": "id_Long"}
+    )
+
+    assert motivo_numerica is None
+    assert numerica is not None and "Double.parseDouble" not in numerica
+
+
 def test_comparar_por_orden_con_un_numero_demuestra_una_columna_numerica():
     assert _columnas_ordenadas("cantidad BETWEEN 2 AND 5") == {"cantidad"}
     assert _columnas_ordenadas("ventas.monto >= 500") == {"monto"}
