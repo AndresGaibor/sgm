@@ -78,10 +78,10 @@ def _calc_ordenar_merge(e: Entradas) -> list[dict]:
 
 
 def _calc_output_multiple(e: Entradas) -> dict[str, list[dict]]:
-    """Cada observación va a una o dos salidas según el valor, según OUTPUT y ELSE de SAS."""
+    """Enruta las ramas coincidentes; OUTPUT explícito descarta la observación sin rama."""
     filas = e["REGISTROS"]
     bajas = [fila for fila in filas if fila["VALOR"] <= 2]
-    altas = [fila for fila in filas if fila["VALOR"] > 2]
+    altas = [fila for fila in filas if fila["VALOR"] >= 4]
     return {"SALIDA_BAJA": bajas, "COPIA_BAJA": bajas, "SALIDA_ALTA": altas}
 
 
@@ -306,11 +306,11 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
         "razonamiento": "MERGE exige entradas ordenadas: PROC SORT primero, como en el original.",
     },
     "l6_13_output_multiple_destinos": {
-        "construcciones": ["DATA STEP", "OUTPUT múltiple", "IF/ELSE"],
+        "construcciones": ["DATA STEP", "OUTPUT múltiple", "IF/ELSE IF"],
         "entradas": {
             "REGISTROS": (
                 ["ID", "VALOR"],
-                [("a", 1), ("b", 2), ("c", 3), ("d", 4)],
+                [("a", 1), ("b", 2), ("c", 3), ("d", 4), ("e", 5)],
             ),
         },
         "calculo_salidas": _calc_output_multiple,
@@ -323,8 +323,10 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "filas(SALIDA_ALTA) == 2",
         ],
         "razonamiento": (
-            "El IF/ELSE enruta cada observación a destinos explícitos; la rama THEN escribe en dos "
-            "datasets. Referencia: lestmtsref, pp. 273–274."
+            "IF/ELSE IF conserva la prioridad y enruta a destinos explícitos; "
+            "la rama THEN escribe en "
+            "dos datasets y la observación sin rama se descarta por OUTPUT explícito. Referencia: "
+            "lestmtsref, pp. 120–121 y 261–262."
         ),
     },
 }

@@ -76,6 +76,18 @@ def test_output_else_if_encadenado_conserva_prioridad_en_las_condiciones():
     ]
 
 
+def test_output_else_if_sin_else_no_agrega_rama_implicita():
+    ops = _ops(
+        "data a b; set src; if x = 1 then output a; "
+        "else if x = 2 then output b; run;"
+    )
+    (mapa,) = _by_kind(ops, "map")
+    assert [rama["expression"] for rama in mapa.params["branches"]] == [
+        "(x = 1)",
+        "not (x = 1) and (x = 2)",
+    ]
+
+
 def test_output_explicito_sin_condicion_no_se_descarta():
     ops = _ops("data a; set src; output a; run;")
     (split,) = _by_kind(ops, "split")

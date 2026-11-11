@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 172, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 173, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -591,9 +591,11 @@ El caso `L6/l6_13_output_multiple_destinos` valida tres destinos, tanto en el in
 `tMap` y sus exportaciones. También se agrupan sentencias `OUTPUT` contiguas e incondicionales cuando
 sus destinos no se repiten; también se emiten `IF ... THEN OUTPUT destino;` y una cadena terminal
 `IF/ELSE IF/ELSE OUTPUT` como salidas filtradas de un solo `tMap`, preservando la prioridad de las
-condiciones. Destinos repetidos y otras secuencias no cubiertas siguen pendientes. La validación Studio
-quedó bloqueada por el diálogo `Network Issue Occured`; no se reinstaló ni cambió Talend. MG-P4-02
-permanece parcial hasta compilar el Job en Studio y ampliar esos patrones.
+condiciones. `L6/l6_13` prueba además una cadena sin `ELSE`: el valor que no satisface ninguna rama no
+se escribe, por la regla de supresión de salida implícita. Destinos repetidos y otras secuencias no
+cubiertas siguen pendientes. La validación Studio volvió a quedar bloqueada por un diálogo `Confirm`;
+no se reinstaló ni cambió Talend. MG-P4-02 permanece parcial hasta compilar el Job y ampliar esos
+patrones.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

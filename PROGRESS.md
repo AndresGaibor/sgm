@@ -6231,3 +6231,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   repetidos siguen pendientes. No se compiló en Studio por el diálogo `Network Issue Occured`.
 - Decisión: no se reordena ni se agrupa la cadena si hay sentencias posteriores que podrían cambiar
   el PDV o afectar cuándo se escribe la observación.
+
+## Hito 173. Verificar `IF/ELSE IF OUTPUT` sin rama final
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se amplió `L6/l6_13_output_multiple_destinos` a una cadena `IF/ELSE IF` sin `ELSE`.
+  El caso contiene una observación que no satisface ninguna condición y confirma que no aparece en
+  las salidas, mientras cada rama conserva sus destinos. La prueba estructural fija que no se agregue
+  una rama de salida implícita.
+- Referencia: `lestmtsref`, pp. 120–121 y 261–262: `ELSE` es opcional, se ejecuta la primera rama
+  aplicable, y `OUTPUT` explícito suprime la escritura automática al final de la iteración.
+- Pruebas: suite completa **3030 pasan, 28 se saltan, 142 xfail**; Ruff limpio. La regeneración del
+  corpus y la comparación del anillo B para L6 pasan.
+- Bloqueo: `sgm studio salud` detectó un diálogo `Confirm`; no se compiló el Job ni se cambió Talend.
+- Decisión: sin `ELSE`, las observaciones que no satisfacen ninguna condición no se escriben; no se
+  agrega una salida de respaldo.
