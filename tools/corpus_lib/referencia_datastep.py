@@ -32,6 +32,10 @@ URL_MERGE = (
     "https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/"
     "n1i8w2bwu1fn5kn1gpxj18xttbb0.htm"
 )
+URL_OUTPUT = (
+    "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/"
+    "docsets/lestmtsref/content/lestmtsref.pdf?locale=en"
+)
 URL_MUCHOS_A_MUCHOS = "https://support.sas.com/kb/24/752.html"
 URL_BY_GROUPS = (
     "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/"

@@ -67,6 +67,23 @@ def calcular_l6(spec: dict) -> Tabla:
     return Tabla(list(columnas), [tuple(_celda(fila[c]) for c in columnas) for fila in salida])
 
 
+def calcular_l6_salidas(spec: dict) -> dict[str, Tabla]:
+    """Calcula un esperado por dataset para los casos L6 con varios destinos."""
+    entradas = {
+        nombre: [dict(zip(cols, fila, strict=True)) for fila in filas]
+        for nombre, (cols, filas) in spec["entradas"].items()
+    }
+    resultados = spec["calculo_salidas"](entradas)
+    columnas = spec["columnas"]
+    return {
+        nombre: Tabla(
+            list(columnas),
+            [tuple(_celda(fila[c]) for c in columnas) for fila in filas],
+        )
+        for nombre, filas in resultados.items()
+    }
+
+
 def _entradas(nivel: str, spec: dict) -> dict[str, tuple[list[str], list[tuple]]]:
     if nivel == "L4":
         nombre, columnas, filas, _numericas = spec["entrada"]
@@ -140,9 +157,15 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
         escribir_csv(ruta, calcular_l4(spec))
         escritos.append(ruta)
     if nivel == "L6":
-        ruta = directorio / "esperado" / f"{spec['salida']}.csv"
-        escribir_csv(ruta, calcular_l6(spec))
-        escritos.append(ruta)
+        if "calculo_salidas" in spec:
+            for nombre, tabla in calcular_l6_salidas(spec).items():
+                ruta = directorio / "esperado" / f"{nombre}.csv"
+                escribir_csv(ruta, tabla)
+                escritos.append(ruta)
+        else:
+            ruta = directorio / "esperado" / f"{spec['salida']}.csv"
+            escribir_csv(ruta, calcular_l6(spec))
+            escritos.append(ruta)
     if nivel == "L5":
         fuente = (directorio / "programa.sas").read_text(encoding="utf-8")
         ruta = directorio / "programa_expandido.sas"

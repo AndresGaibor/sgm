@@ -6177,3 +6177,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   permanece parcial. La transformación del par IF/ELSE solo se aplica cuando es el final del DATA step.
 - Decisión: el `ELSE` se traduce como complemento de la condición original únicamente para el par
   inmediato terminal, sin reordenar sentencias ni extender la equivalencia a `ELSE IF` o `DO`.
+
+## Hito 169. Caso L6 de `OUTPUT` con varios destinos
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se agregó `L6/l6_13_output_multiple_destinos` al corpus, con entradas y tres CSV
+  esperados generados desde una función de referencia explícita. El caso cubre la rama THEN con dos
+  destinos y la ELSE con un tercero; el anillo B compara todas las salidas con el intérprete. Se
+  añade además una prueba de emisión del mismo programa con tres salidas de `tMap` y tres exportaciones.
+- Se amplió el generador de casos L6 para reproducir los esperados de varias tablas. El tablero refleja
+  el corpus ampliado: 120 casos, 13 de nivel L6 y 118 con esperado.
+- Pruebas: suite completa **3022 pasan, 28 se saltan, 142 xfail**; `uv run ruff check .` y
+  `git diff --check` limpios. También pasan el anillo B del caso y la regeneración del corpus.
+- Bloqueo: `sgm studio salud` detectó el diálogo `Network Issue Occured`; no se pudo compilar el Job.
+  Se sigue la instrucción del repositorio: no reinstalar ni cambiar Talend ante este error.
+- Estado: MG-P4-02 sigue parcial; quedan pendientes otras secuencias de `OUTPUT` y la compilación
+  del caso en Studio.

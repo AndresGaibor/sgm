@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- OUTPUT múltiple
+- IF/ELSE
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- SALIDA_BAJA
+- COPIA_BAJA
+- SALIDA_ALTA
+razonamiento: 'El IF/ELSE enruta cada observación a destinos explícitos; la rama THEN escribe en dos datasets. Referencia: lestmtsref, pp. 273–274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(SALIDA_BAJA) == 2
+- filas(COPIA_BAJA) == 2
+- filas(SALIDA_ALTA) == 2

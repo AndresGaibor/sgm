@@ -368,6 +368,28 @@ def test_output_sin_destinos_emite_todas_las_salidas_del_encabezado():
     )
 
 
+def test_l6_13_output_multiple_destinos_emite_el_mismo_enrutamiento_del_corpus():
+    programa = (
+        Path(__file__).resolve().parents[1]
+        / "corpus"
+        / "L6"
+        / "l6_13_output_multiple_destinos"
+        / "programa.sas"
+    )
+    plan = _plan(programa.read_text(encoding="utf-8"))
+    esquema = {"work.registros": [Column("ID", "String"), Column("VALOR", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [
+        pendiente
+        for pendiente in resultado.pendientes
+        if pendiente.codigo in {"P-OPERADOR-SIN-SOPORTE", "P-FILTRO-SIN-TRADUCIR"}
+    ]
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in resultado.jobs[0].nodos) == 3
+    assert all(f'name="out{indice}"' in _tmap(resultado.jobs[0]) for indice in (1, 2, 3))
+
+
 def test_asignacion_condicional_numerica_derivada_queda_pendiente_por_faltante_sas():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.productos DBMS=CSV REPLACE;\n"

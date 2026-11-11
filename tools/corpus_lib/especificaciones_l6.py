@@ -9,6 +9,7 @@ from .referencia_datastep import (
     URL_BY_GROUPS,
     URL_MERGE,
     URL_MUCHOS_A_MUCHOS,
+    URL_OUTPUT,
     acumulado_por_grupo,
     contador_retain,
     merge_by,
@@ -74,6 +75,14 @@ def _calc_ordenar_merge(e: Entradas) -> list[dict]:
     izquierda = proc_sort(e["NOMBRES"], ["ID"])
     derecha = proc_sort(e["SALDOS"], ["ID"])
     return merge_by([izquierda, derecha], ["ID"])
+
+
+def _calc_output_multiple(e: Entradas) -> dict[str, list[dict]]:
+    """Cada observación va a una o dos salidas según el valor, según OUTPUT y ELSE de SAS."""
+    filas = e["REGISTROS"]
+    bajas = [fila for fila in filas if fila["VALOR"] <= 2]
+    altas = [fila for fila in filas if fila["VALOR"] > 2]
+    return {"SALIDA_BAJA": bajas, "COPIA_BAJA": bajas, "SALIDA_ALTA": altas}
 
 
 _URL_SORT = (
@@ -295,5 +304,27 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
         "fuentes": [URL_MERGE, _URL_SORT],
         "invariantes": ["filas(NOMBRES_CON_SALDO) == 3", "suma(NOMBRES_CON_SALDO.SALDO) == 60"],
         "razonamiento": "MERGE exige entradas ordenadas: PROC SORT primero, como en el original.",
+    },
+    "l6_13_output_multiple_destinos": {
+        "construcciones": ["DATA STEP", "OUTPUT múltiple", "IF/ELSE"],
+        "entradas": {
+            "REGISTROS": (
+                ["ID", "VALOR"],
+                [("a", 1), ("b", 2), ("c", 3), ("d", 4)],
+            ),
+        },
+        "calculo_salidas": _calc_output_multiple,
+        "columnas": ["ID", "VALOR"],
+        "salidas": ["SALIDA_BAJA", "COPIA_BAJA", "SALIDA_ALTA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(SALIDA_BAJA) == 2",
+            "filas(COPIA_BAJA) == 2",
+            "filas(SALIDA_ALTA) == 2",
+        ],
+        "razonamiento": (
+            "El IF/ELSE enruta cada observación a destinos explícitos; la rama THEN escribe en dos "
+            "datasets. Referencia: lestmtsref, pp. 273–274."
+        ),
     },
 }
