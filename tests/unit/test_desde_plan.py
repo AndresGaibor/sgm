@@ -387,6 +387,31 @@ def test_output_if_sin_else_emite_una_salida_filtrada_en_tmap():
     assert "row1.valor" in tmap
 
 
+def test_output_else_if_encadenado_emite_filtros_priorizados_en_tmap():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.uno WORK.dos WORK.otros;\n"
+        "SET WORK.entrada;\n"
+        "IF valor >= 1 THEN OUTPUT WORK.uno;\n"
+        "ELSE IF valor >= 2 THEN OUTPUT WORK.dos;\n"
+        "ELSE OUTPUT WORK.otros;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [
+        pendiente
+        for pendiente in resultado.pendientes
+        if pendiente.codigo in {"P-OPERADOR-SIN-SOPORTE", "P-FILTRO-SIN-TRADUCIR"}
+    ]
+    tmap = _tmap(resultado.jobs[0])
+    assert all(f'name="out{indice}"' in tmap for indice in (1, 2, 3))
+    assert tmap.count('activateExpressionFilter="true"') == 3
+
+
 def test_output_sin_destinos_emite_todas_las_salidas_del_encabezado():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"

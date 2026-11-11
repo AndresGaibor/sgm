@@ -6218,3 +6218,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   validación Studio continúa bloqueada por `Network Issue Occured`; no se cambió la instalación.
 - Decisión: solo se emite `IF ... THEN OUTPUT` si la condición y el destino están explícitos; el Job
   no genera salida implícita para las filas que no cumplen la condición.
+
+## Hito 172. Enrutar una cadena `IF/ELSE IF/ELSE OUTPUT`
+
+- Fecha: 2026-11-10.
+- Qué se hizo: una cadena terminal `IF/ELSE IF/ELSE` con `OUTPUT` en cada rama se convierte en un
+  `map` con una salida filtrada por destino. Las condiciones posteriores incluyen la negación de las
+  condiciones anteriores, de modo que se conserva la prioridad de SAS; el intérprete y la emisión
+  Talend validan el mismo reparto.
+- Pruebas: suite completa **3029 pasan, 28 se saltan, 142 xfail**; Ruff y `git diff --check` limpios.
+- Límites: la cadena debe ser terminal y los destinos deben ser únicos; ELSE aislado y destinos
+  repetidos siguen pendientes. No se compiló en Studio por el diálogo `Network Issue Occured`.
+- Decisión: no se reordena ni se agrupa la cadena si hay sentencias posteriores que podrían cambiar
+  el PDV o afectar cuándo se escribe la observación.
