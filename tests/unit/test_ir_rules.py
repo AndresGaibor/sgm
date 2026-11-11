@@ -124,6 +124,19 @@ def test_output_repetido_a_mismo_destino_se_marca_como_hueco():
     assert not _by_kind(ops, "split")
 
 
+def test_output_condicional_seguido_de_asignacion_y_otro_output_queda_pendiente():
+    ops = _ops(
+        "data temprano tarde final; set origen; "
+        "if x=1 then output temprano; else output tarde; "
+        "x=x+10; output final; run;"
+    )
+
+    (pendiente,) = _by_kind(ops, "unsupported")
+
+    assert pendiente.params["reason_detail"] == "OUTPUT_CONDICIONAL_NO_TERMINAL"
+    assert not _by_kind(ops, "split")
+
+
 def test_retain_lag_y_first_last_son_estado_por_fila():
     ops = _ops("data t; set s; by g; retain acc 0; prev = lag(x); if first.g then acc = 0; run;")
     stateful = _by_kind(ops, "stateful_row")

@@ -270,6 +270,28 @@ def test_output_no_declarado_no_emite_escritura_parcial():
     )
 
 
+def test_output_condicional_no_terminal_no_emite_escritura_parcial():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.temprano WORK.tarde WORK.final;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT WORK.temprano;\n"
+        "ELSE OUTPUT WORK.tarde;\n"
+        "valor=valor+10;\n"
+        "OUTPUT WORK.final;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert any(p.codigo == "P-OPERADOR-SIN-SOPORTE" for p in resultado.pendientes)
+    assert not any(
+        nodo.componente == "tFileOutputDelimited" for job in resultado.jobs for nodo in job.nodos
+    )
+
+
 def test_output_con_destino_repetido_en_sentencias_distintas_queda_pendiente():
     plan = _plan(
         "DATA primera segunda tercera;\n"

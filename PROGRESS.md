@@ -6289,3 +6289,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` escribe la observación inmediatamente en el punto
   donde aparece, no al final del DATA step.
 - Bloqueo: la compilación en Studio sigue pendiente por el diálogo `Confirm`; no se modificó Talend.
+
+## Hito 177. Bloquear `OUTPUT` condicional no terminal
+
+- Fecha: 2026-11-10.
+- Qué se hizo: las sentencias condicionales `OUTPUT` solo se traducen cuando son una salida simple
+  terminal o una cadena terminal IF/ELSE IF/ELSE. Si después hay más sentencias, el DATA step queda
+  como `OUTPUT_CONDICIONAL_NO_TERMINAL`; no se emite un filtro que pierda las observaciones que deben
+  continuar por el flujo.
+- Pruebas: suite completa **3044 pasan, 29 se saltan, 142 xfail**; Ruff y diff check con CRLF limpios.
+- Límites: no cambia el soporte de cadenas terminales ni de `IF ... THEN OUTPUT` terminal. La
+  compilación de `L6/l6_14` en Studio continúa pendiente por el diálogo `Confirm`.
+- Decisión: diferir la emisión no terminal hasta contar con una salida de continuación que conserve
+  todas las filas y los valores del PDV en cada punto de escritura.

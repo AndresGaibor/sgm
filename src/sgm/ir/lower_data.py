@@ -204,17 +204,29 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     omit: set[int] = set()
     destinos_invalidos = _undeclared_output_targets(stmts, step.outputs)
     destinos_repetidos = _repeated_output_targets(stmts)
-    if destinos_invalidos is not None or destinos_repetidos is not None:
+    condicionales_no_terminales = _nonterminal_conditional_outputs(stmts)
+    paso_output_invalido = any(
+        problema is not None
+        for problema in (destinos_invalidos, destinos_repetidos, condicionales_no_terminales)
+    )
+    if paso_output_invalido:
         if destinos_invalidos is not None:
             sentencias, faltantes = destinos_invalidos
             reason_detail = "OUTPUT_DESTINO_NO_DECLARADO"
             nombres = ", ".join(sorted(faltantes))
             mensaje = f"OUTPUT nombra destinos ausentes del encabezado DATA: {nombres}"
-        else:
+        elif destinos_repetidos is not None:
             sentencias, repetidos = destinos_repetidos
             reason_detail = "OUTPUT_DESTINO_REPETIDO"
             nombres = ", ".join(sorted(repetidos))
             mensaje = f"OUTPUT escribe más de una vez en el mismo destino: {nombres}"
+        else:
+            sentencias = condicionales_no_terminales or []
+            reason_detail = "OUTPUT_CONDICIONAL_NO_TERMINAL"
+            mensaje = (
+                "OUTPUT condicional seguido de más sentencias requiere preservar "
+                "el flujo restante"
+            )
         evidencia_salida = _statement_evidence(sentencias[0], ev)
         pendiente = b.op(
             "unsupported",
@@ -232,7 +244,7 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         current = pendiente
         omit = set(range(len(stmts)))
     grupo = programa_por_grupo(stmts)
-    if grupo is not None and destinos_invalidos is None:
+    if grupo is not None and not paso_output_invalido:
         # BY con FIRST./LAST./RETAIN/suma: un programa por fila con estado, no sentencias sueltas.
         estado = b.op("stateful_row", grupo, ev)
         if current is not None:
@@ -602,6 +614,22 @@ def _conditional_output_chain(
             for destino in objetivos
         )
     return ramas, [qualify(destino) for destino in destinos], cursor - 1
+
+
+def _nonterminal_conditional_outputs(stmts: list[DsStatement]) -> list[DsStatement] | None:
+    """Una rama condicional solo es segura si es un OUTPUT simple terminal o cadena terminal."""
+    indices = [index for index, stmt in enumerate(stmts) if _conditional_output(stmt)]
+    if not indices:
+        return None
+    if (
+        len(indices) == 1
+        and indices[0] == len(stmts) - 1
+        and (_conditional_output(stmts[indices[0]]) or {}).get("branch") == "then"
+    ):
+        return None
+    if _conditional_output_chain(stmts, indices[0]) is not None:
+        return None
+    return [stmts[index] for index in indices]
 
 
 def _output_sequence(stmts: list[DsStatement], index: int) -> tuple[list[str], int] | None:

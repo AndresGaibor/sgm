@@ -819,6 +819,21 @@ def test_output_repetido_a_mismo_destino_no_finge_el_numero_de_filas():
         ejecutar_plan(plan, {"entrada": [{"id": "1"}]})
 
 
+def test_output_condicional_no_terminal_no_se_salta_el_flujo_que_continua():
+    plan = _plan(
+        "DATA WORK.temprano WORK.tarde WORK.final;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT WORK.temprano;\n"
+        "ELSE OUTPUT WORK.tarde;\n"
+        "valor=valor+10;\n"
+        "OUTPUT WORK.final;\n"
+        "RUN;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="unsupported"):
+        ejecutar_plan(plan, {"entrada": [{"valor": "1"}]})
+
+
 def test_output_if_sin_else_escribe_solo_si_se_cumple_la_condicion():
     plan = _plan(
         "DATA WORK.coinciden;\n"
