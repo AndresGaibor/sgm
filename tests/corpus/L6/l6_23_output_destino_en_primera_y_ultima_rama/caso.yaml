@@ -1,0 +1,19 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- IF/ELSE IF/ELSE
+- OUTPUT DESTINO COMPARTIDO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- PRINCIPAL
+- INTERMEDIA
+razonamiento: 'PRINCIPAL recibe las observaciones de la primera rama IF y de la rama ELSE final; INTERMEDIA solo recibe ELSE IF. La condición de PRINCIPAL es la unión priorizada de esas ramas. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(PRINCIPAL) == 3
+- filas(INTERMEDIA) == 1
+- suma(PRINCIPAL.valor) == 8

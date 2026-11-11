@@ -967,6 +967,30 @@ def test_output_if_else_if_y_else_al_mismo_destino_escribe_cada_fila_una_vez():
     assert tablas["salida"] == entrada
 
 
+def test_output_destino_en_if_y_else_se_emite_para_ambas_ramas_priorizadas():
+    plan = _plan(
+        "DATA WORK.principal WORK.intermedia;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT WORK.principal;\n"
+        "ELSE IF valor=2 THEN OUTPUT WORK.intermedia;\n"
+        "ELSE OUTPUT WORK.principal;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(
+        plan,
+        {"entrada": [{"id": "x", "valor": "1"}, {"id": "y", "valor": "2"},
+                     {"id": "z", "valor": "3"}, {"id": "w", "valor": "4"}]},
+    )
+
+    assert tablas["principal"] == [
+        {"id": "x", "valor": "1"},
+        {"id": "z", "valor": "3"},
+        {"id": "w", "valor": "4"},
+    ]
+    assert tablas["intermedia"] == [{"id": "y", "valor": "2"}]
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"

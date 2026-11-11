@@ -6484,3 +6484,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: suite completa **3107 pasan, 37 se saltan y 142 xfail**; Ruff y diff check limpios.
 - Studio: sigue sin responder el bridge (hito 187); este caso aún no tiene compilación real.
 - Límite: MG-P4-02 sigue parcial; también permanece pendiente la validación real de `L6/l6_18`.
+
+## Hito 189. Combinar salidas de ramas no contiguas
+
+- Fecha: 2026-11-11.
+- Qué se hizo: se agregó `L6/l6_23_output_destino_en_primera_y_ultima_rama`. `PRINCIPAL` se escribe
+  en la primera rama IF y en el ELSE final, pero no en ELSE IF; `INTERMEDIA` recibe solo la segunda
+  rama. Se comprueba que los predicados se combinen respetando prioridad y que cada salida conserve
+  su filtro.
+- Verificación local: intérprete y CSV esperados coinciden; el Job emite dos salidas filtradas y pasa
+  el validador estructural. Pruebas específicas cubren IR, interpretación y emisión.
+- Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` escribe en los datasets indicados por la rama que se
+  ejecuta.
+- Corpus total: 130 casos, 23 en L6 y 128 con esperado.
+- Pruebas: suite completa **3115 pasan, 38 se saltan y 142 xfail**; Ruff y diff check limpios.
+- Studio: no se compiló; el bridge sigue sin responder según `sgm studio salud`.
+- Límite: MG-P4-02 sigue parcial; queda pendiente validar en Studio los patrones nuevos y `L6/l6_18`.

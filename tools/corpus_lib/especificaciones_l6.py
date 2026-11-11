@@ -144,6 +144,15 @@ def _calc_output_destinos_solapados(e: Entradas) -> dict[str, list[dict]]:
     return {"PRIMERA": primeros, "COMUN": [dict(fila) for fila in filas], "OTROS": otros}
 
 
+def _calc_output_destino_en_primera_y_ultima_rama(e: Entradas) -> dict[str, list[dict]]:
+    """El destino común solo se escribe en la primera y la rama ELSE final."""
+    filas = e["REGISTROS"]
+    return {
+        "PRINCIPAL": [dict(fila) for fila in filas if fila["valor"] != 2],
+        "INTERMEDIA": [dict(fila) for fila in filas if fila["valor"] == 2],
+    }
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -602,6 +611,29 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "Las tres ramas IF, ELSE IF y ELSE son mutuamente excluyentes y escriben una vez en el "
             "mismo dataset; se consolidan en una salida sin filtro. Referencia: lestmtsref, "
             "PDF p. 274."
+        ),
+    },
+    "l6_23_output_destino_en_primera_y_ultima_rama": {
+        "construcciones": ["DATA STEP", "IF/ELSE IF/ELSE", "OUTPUT DESTINO COMPARTIDO"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 3), ("w", 4)],
+            ),
+        },
+        "calculo_salidas": _calc_output_destino_en_primera_y_ultima_rama,
+        "columnas": ["id", "valor"],
+        "salidas": ["PRINCIPAL", "INTERMEDIA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(PRINCIPAL) == 3",
+            "filas(INTERMEDIA) == 1",
+            "suma(PRINCIPAL.valor) == 8",
+        ],
+        "razonamiento": (
+            "PRINCIPAL recibe las observaciones de la primera rama IF y de la rama ELSE final; "
+            "INTERMEDIA solo recibe ELSE IF. La condición de PRINCIPAL es la unión priorizada de "
+            "esas ramas. Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }
