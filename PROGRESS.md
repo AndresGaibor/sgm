@@ -6450,3 +6450,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Seguridad: no se asignó un tipo de columna supuesto; queda `P-TIPO-DESCONOCIDO` para que el
   operador confirme el esquema. El arnés eliminó el Job temporal de Studio.
 - Límite: MG-P4-02 sigue parcial; falta compilar otros patrones `OUTPUT` recientes en Studio.
+
+## Hito 187. Validar OUTPUT ELSE IF en Studio
+
+- Fecha: 2026-11-11.
+- Studio: `L6/l6_20_output_else_if_mismo_destino` compiló y ejecutó con el sufijo único
+  `mgp402l620a`. Resultado literal: `1 casos, 1 coinciden`.
+- Siguiente patrón: `L6/l6_18_output_condicional_sin_destino_con_continuacion`, que comprueba la
+  captura del PDV antes de una asignación y la ruta sin salida implícita. El intento agotó 180 s
+  esperando el bridge de Studio; resultado literal: `1 casos, 0 coinciden` por error de bridge, no por
+  diferencia de datos.
+- Diagnóstico: `sgm studio salud` también agotó el tiempo de espera; no hay procesos escuchando en
+  3927/3930 aunque `Talend-Studio-win-x86_64` permanece abierto. No se mató ni reinstaló ningún proceso.
+  El arnés limpió los Jobs temporales; no hay artefactos `job_programa_mgp402l618a`/`mgp402l620a` en
+  `process/` del proyecto.
+- Corpus total: 128 casos, 21 en L6 y 126 con esperado.
+- Pruebas: sin cambios de código; suite completa **3099 pasan, 36 se saltan y 142 xfail**; Ruff y
+  diff check limpios.
+- Límite: la validación de `L6/l6_18` queda pendiente hasta que Studio/bridge vuelva a responder.

@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 186, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 187, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -633,6 +633,11 @@ comparaciones de igualdad, según `lrcon`, pp. 141-142; las cadenas inválidas s
 en la comparación. El Job regenerado compiló y ejecutó en Studio; `L6/l6_21` terminó con
 `1 casos, 1 coinciden`. Se conserva `P-TIPO-DESCONOCIDO`: la conversión de la expresión no se presenta
 como prueba del tipo de origen.
+`L6/l6_20_output_else_if_mismo_destino` también compiló y ejecutó en Studio, con `1 casos, 1 coinciden`.
+El intento de `L6/l6_18_output_condicional_sin_destino_con_continuacion` no llegó a compilar: el
+bridge agotó 180 s y después `sgm studio salud` agotó el tiempo de espera. No hay procesos escuchando
+en 3927/3930, aunque Talend Studio sigue abierto; el arnés limpió los Jobs de prueba. Esta validación
+queda pendiente hasta recuperar la comunicación con Studio; no se contabiliza como pasada.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`
