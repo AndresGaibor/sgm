@@ -6468,3 +6468,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: sin cambios de código; suite completa **3099 pasan, 36 se saltan y 142 xfail**; Ruff y
   diff check limpios.
 - Límite: la validación de `L6/l6_18` queda pendiente hasta que Studio/bridge vuelva a responder.
+
+## Hito 188. Cubrir ELSE IF/ELSE al mismo destino
+
+- Fecha: 2026-11-11.
+- Qué se hizo: se agregó `L6/l6_22_output_else_if_else_mismo_destino`, con una cadena IF/ELSE IF/ELSE
+  exhaustiva en la que cada rama escribe una vez al mismo dataset. El lowering consolida el destino
+  en una salida sin filtro, sin duplicar observaciones.
+- Verificación local: coinciden el intérprete con el CSV esperado y el Job generado pasa el
+  validador estructural. Pruebas específicas de IR, intérprete y emisor confirman una salida sin
+  filtro y tres filas, una por entrada.
+- Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` escribe la observación en el dataset nombrado desde
+  la rama que se ejecuta.
+- Corpus total: 129 casos, 22 en L6 y 127 con esperado.
+- Pruebas: suite completa **3107 pasan, 37 se saltan y 142 xfail**; Ruff y diff check limpios.
+- Studio: sigue sin responder el bridge (hito 187); este caso aún no tiene compilación real.
+- Límite: MG-P4-02 sigue parcial; también permanece pendiente la validación real de `L6/l6_18`.

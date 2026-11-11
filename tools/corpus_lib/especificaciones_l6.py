@@ -131,6 +131,11 @@ def _calc_output_else_if_mismo_destino(e: Entradas) -> dict[str, list[dict]]:
     return {"SALIDA": [dict(fila) for fila in filas]}
 
 
+def _calc_output_else_if_todos_mismo_destino(e: Entradas) -> dict[str, list[dict]]:
+    """Las ramas IF, ELSE IF y ELSE escriben una vez cada una en el mismo destino."""
+    return {"SALIDA": [dict(fila) for fila in e["REGISTROS"]]}
+
+
 def _calc_output_destinos_solapados(e: Entradas) -> dict[str, list[dict]]:
     """Combina el destino común y conserva los filtros de los destinos exclusivos."""
     filas = e["REGISTROS"]
@@ -578,6 +583,25 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "IF y ELSE escriben en destinos parcialmente comunes: COMUN recibe cada observación "
             "una vez; PRIMERA y OTROS conservan su rama y filtro. El emisor consolida el destino "
             "común y combina las condiciones de los exclusivos. Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_22_output_else_if_else_mismo_destino": {
+        "construcciones": ["DATA STEP", "IF/ELSE IF/ELSE", "OUTPUT MISMO DESTINO"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 3)],
+            ),
+        },
+        "calculo_salidas": _calc_output_else_if_todos_mismo_destino,
+        "columnas": ["id", "valor"],
+        "salidas": ["SALIDA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": ["filas(SALIDA) == 3", "suma(SALIDA.valor) == 6"],
+        "razonamiento": (
+            "Las tres ramas IF, ELSE IF y ELSE son mutuamente excluyentes y escriben una vez en el "
+            "mismo dataset; se consolidan en una salida sin filtro. Referencia: lestmtsref, "
+            "PDF p. 274."
         ),
     },
 }

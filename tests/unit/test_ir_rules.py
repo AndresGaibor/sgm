@@ -203,6 +203,19 @@ def test_output_else_if_al_mismo_destino_combina_sus_condiciones():
     assert not _by_kind(ops, "unsupported")
 
 
+def test_output_if_else_if_y_else_al_mismo_destino_se_emite_sin_filtro():
+    ops = _ops(
+        "data salida; set src; if x=1 then output salida; "
+        "else if x=2 then output salida; else output salida; run;"
+    )
+
+    (mapa,) = _by_kind(ops, "map")
+
+    assert mapa.params["outputs"] == ["WORK.salida"]
+    assert mapa.params["branches"] == [{"outputs": ["WORK.salida"]}]
+    assert not _by_kind(ops, "unsupported")
+
+
 def test_output_if_else_con_destino_comun_lo_consolida_sin_quitar_filtros_exclusivos():
     ops = _ops(
         "data primera comun otros; set src; "

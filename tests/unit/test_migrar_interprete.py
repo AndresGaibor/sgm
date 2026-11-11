@@ -951,6 +951,22 @@ def test_output_else_if_al_mismo_destino_escribe_si_cualquiera_de_las_ramas_coin
     assert tablas["salida"] == [{"valor": "1"}, {"valor": "3"}]
 
 
+def test_output_if_else_if_y_else_al_mismo_destino_escribe_cada_fila_una_vez():
+    plan = _plan(
+        "DATA WORK.salida;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT WORK.salida;\n"
+        "ELSE IF valor=2 THEN OUTPUT WORK.salida;\n"
+        "ELSE OUTPUT WORK.salida;\n"
+        "RUN;"
+    )
+
+    entrada = [{"valor": "1"}, {"valor": "2"}, {"valor": "3"}]
+    tablas = ejecutar_plan(plan, {"entrada": entrada})
+
+    assert tablas["salida"] == entrada
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"
