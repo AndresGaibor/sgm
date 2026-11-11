@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 184, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 185, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -602,8 +602,8 @@ sin un mecanismo validado para duplicar esas escrituras. El nuevo caso
 `L6/l6_14_output_en_puntos_del_pdv` verifica el orden de
 escritura: el primer `OUTPUT` conserva el PDV antes de una asignación y el segundo, el valor posterior
 (`lestmtsref`, p. 274). El emisor usa `tReplicate` para preservar la primera captura y alinea los
-nombres de salida/entrada entre `tMap` sucesivos; el Job pasa el validador estructural. Studio
-continúa bloqueado por un diálogo `Confirm`; no se reinstaló ni cambió Talend. MG-P4-02 permanece
+nombres de salida/entrada entre `tMap` sucesivos; el Job pasa el validador estructural. En la
+validación registrada hasta el hito 184 aún no se había compilado en Studio. MG-P4-02 permanece
 parcial hasta compilar el Job y ampliar esos patrones. Una cadena condicional no terminal agrega una
 salida de continuación sin filtro: las salidas condicionales capturan sus filas en ese punto y todas
 las filas siguen por el flujo para las sentencias posteriores. `L6/l6_15_output_condicional_con_continuacion`
@@ -627,6 +627,12 @@ ELSE IF al mismo destino sin `ELSE`; se conserva el filtro combinado y se excluy
 coincidentes. `L6/l6_21_output_destinos_parcialmente_comunes` comprueba ramas con conjuntos de
 destinos parcialmente solapados: la salida común recibe cada fila una vez y las salidas exclusivas
 mantienen sus filtros; el intérprete coincide y el Job pasa el validador.
+La comprobación real de Studio confirma que salud responde y deja escribir, pero no permite cerrar
+MG-P4-02: al compilar `L6/l6_21`, Talend rechazó el filtro numérico porque el esquema sin tipo
+demostrado emite `valor` como `String` (`String cannot be converted to Number`). La muestra local
+solo demuestra nombres de columna, no su tipo, así que no se inventó un esquema numérico. La
+validación terminó con `1 casos, 0 coinciden`; queda pendiente resolver cómo bloquear o traducir de
+forma segura comparaciones numéricas sobre tipos desconocidos antes de declarar compilación válida.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

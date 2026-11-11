@@ -6413,3 +6413,22 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` puede nombrar varios datasets y escribe la
   observación inmediatamente.
 - Límite: la compilación Studio sigue pendiente por el diálogo `Confirm`.
+
+## Hito 185. Diagnosticar compilación Studio de OUTPUT
+
+- Fecha: 2026-11-11.
+- Qué se hizo: con Studio saludable se generó `L6/l6_21_output_destinos_parcialmente_comunes` y se
+  intentó compilar/ejecutar mediante `tools/corpus_studio.py validar`, usando el CSV local como
+  muestra de cabecera. La muestra demuestra los nombres `id` y `valor`, pero no sus tipos.
+- Resultado literal del arnés: `1 casos, 0 coinciden`.
+- Hallazgo: Talend no compila el Job. El catálogo ausente deja `id` y `valor` como `String` con
+  `P-TIPO-DESCONOCIDO`, pero el filtro numérico emitido intenta convertir `row1.valor` a `Number`;
+  Studio informa `incompatible types: String cannot be converted to Number`. No se inventó un tipo
+  numérico a partir de los valores del CSV.
+- Seguridad: el arnés limpió el Job temporal del proyecto; no se cambió ni reinstaló Talend. La
+  comprobación `sgm studio salud` respondió `Studio responde y deja escribir.`
+- Corpus total: 128 casos, 21 en L6 y 126 con esperado.
+- Pruebas: suite completa **3098 pasan, 36 se saltan y 142 xfail**; Ruff y diff check limpios.
+- Siguiente: corregir la generación/validación de expresiones con columnas sin tipo demostrado y
+  volver a compilar en Studio.
+- Límite: MG-P4-02 no está cerrado; el validador estructural no sustituye la compilación real.
