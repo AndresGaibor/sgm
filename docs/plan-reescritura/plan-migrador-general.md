@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 178, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 179, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -607,6 +607,11 @@ salida de continuación sin filtro: las salidas condicionales capturan sus filas
 las filas siguen por el flujo para las sentencias posteriores. `L6/l6_15_output_condicional_con_continuacion`
 verifica ambas salidas de rama y el `OUTPUT` posterior tras una asignación. El intérprete coincide con
 los esperados y el Job pasa el validador estructural; Studio aún no ha compilado el Job.
+`IF condición THEN OUTPUT;` sin argumento ahora conserva la condición y escribe solo las filas
+coincidentes en todos los datasets declarados en `DATA`, según `lestmtsref`, p. 274. El caso
+`L6/l6_16_output_condicional_sin_destino` valida el intérprete, las dos salidas del `tMap` y sus
+exportaciones. Las condiciones `FIRST.`/`LAST.` no entran en esta regla general: mantienen su
+tratamiento con estado.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

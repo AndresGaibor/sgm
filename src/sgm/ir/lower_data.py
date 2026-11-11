@@ -265,7 +265,9 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             omit.update(range(index + 1, ultimo + 1))
             prev = stmts[ultimo]
             continue
-        salidas_condicionales = _conditional_output_chain(stmts, index)
+        salidas_condicionales = _conditional_output_chain(
+            stmts, index, [destino for destino in step.outputs if destino.lower() != "_null_"]
+        )
         if salidas_condicionales is not None:
             ramas, destinos, siguiente, terminal = salidas_condicionales
             if not terminal:
@@ -537,17 +539,19 @@ def _statement_op(
 
 _OUTPUT_IN_IF = re.compile(
     r"(?is)^(?:if\s+(?P<cond>.*?)\s+then\s+|else\s+if\s+(?P<else_if>.*?)\s+then\s+|else\s+)"
-    r"output\s+(?P<targets>[\w.&]+(?:\s+[\w.&]+)*)"
+    r"output(?:\s+(?P<targets>[\w.&]+(?:\s+[\w.&]+)*))?"
 )
 
 
 def _conditional_output(s: DsStatement) -> dict | None:
     """`if c then output t;` o `else output t;` como división. None si no aplica."""
+    if s.fields.get("first_last"):
+        return None
     m = _OUTPUT_IN_IF.match(s.text.strip())
     if not m:
         return None
     cond = m.group("cond") or m.group("else_if")
-    targets = re.findall(r"[\w.&]+", m.group("targets"))
+    targets = re.findall(r"[\w.&]+", m.group("targets") or "")
     result = {
         "target": targets[0] if targets else None,
         "condition": cond.strip() if cond else None,
@@ -559,13 +563,19 @@ def _conditional_output(s: DsStatement) -> dict | None:
 
 
 def _conditional_output_chain(
-    stmts: list[DsStatement], index: int
+    stmts: list[DsStatement], index: int, default_targets: list[str]
 ) -> tuple[list[dict], list[str], int, bool] | None:
     """Agrupa salidas condicionales y deja una rama sin filtro para continuar el DATA step."""
     primera = _conditional_output(stmts[index])
     if primera is None or primera.get("branch") != "then" or not primera.get("condition"):
         return None
-    alternativas = [(str(primera["condition"]), primera.get("targets", [primera["target"]]))]
+    sin_destino = not primera.get("target") and not primera.get("targets")
+    destinos_iniciales = primera.get("targets") or (
+        [primera["target"]] if primera.get("target") else []
+    )
+    if not destinos_iniciales:
+        destinos_iniciales = default_targets
+    alternativas = [(str(primera["condition"]), destinos_iniciales)]
     cursor = index + 1
     hay_else = False
     while cursor < len(stmts):
@@ -573,18 +583,24 @@ def _conditional_output_chain(
         if siguiente is None:
             break
         if siguiente.get("branch") == "else_if" and not hay_else:
-            alternativas.append(
-                (str(siguiente["condition"]), siguiente.get("targets", [siguiente["target"]]))
+            objetivos = siguiente.get("targets") or (
+                [siguiente["target"]] if siguiente.get("target") else default_targets
             )
+            alternativas.append((str(siguiente["condition"]), objetivos))
             cursor += 1
             continue
         if siguiente.get("branch") == "else" and not hay_else:
-            alternativas.append(("", siguiente.get("targets", [siguiente["target"]])))
+            objetivos = siguiente.get("targets") or (
+                [siguiente["target"]] if siguiente.get("target") else default_targets
+            )
+            alternativas.append(("", objetivos))
             hay_else = True
             cursor += 1
         break
     terminal = cursor == len(stmts)
-    if cursor <= index + 1 and terminal:
+    if sin_destino and not terminal:
+        return None
+    if cursor <= index + 1 and terminal and not sin_destino:
         return None  # IF ... THEN OUTPUT terminal se conserva como split simple.
     if cursor < len(stmts):
         siguiente = _conditional_output(stmts[cursor])

@@ -6319,3 +6319,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Límite: el Job todavía no se ha compilado en Studio; persiste el diálogo `Confirm` documentado.
 - Decisión: la continuación solo recibe una rama sin condición para la cadena condicional reconocida;
   no se infieren ramas faltantes de otras formas de control de flujo.
+
+## Hito 179. Respetar la condición de `OUTPUT` sin destino
+
+- Fecha: 2026-11-10.
+- Qué se hizo: `IF condición THEN OUTPUT;` terminal sin destino explícito ahora se enruta a todos
+  los datasets del encabezado `DATA` y conserva el filtro condicional, en vez de emitir todas las
+  filas sin condición.
+- Corpus: se añadió `L6/l6_16_output_condicional_sin_destino`; el intérprete coincide con ambos CSV
+  esperados y el Job genera las dos exportaciones con filtros en el `tMap`.
+- Corpus total: 123 casos, 16 en L6 y 121 con esperado.
+- Pruebas: suite completa **3057 pasan, 31 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
+- Referencia: `lestmtsref`, PDF p. 274 (impresa p. 261): sin argumento, `OUTPUT` escribe en los
+  datasets indicados en `DATA`.
+- Límite: el Job no se ha compilado en Studio; persiste el diálogo `Confirm`. `FIRST.`/`LAST.` se
+  mantienen fuera de esta regla y conservan su tratamiento con estado.

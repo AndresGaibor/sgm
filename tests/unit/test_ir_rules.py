@@ -88,6 +88,19 @@ def test_output_else_if_sin_else_no_agrega_rama_implicita():
     ]
 
 
+def test_output_condicional_sin_destino_usa_todas_las_salidas_data():
+    ops = _ops("data a b; set src; if x=1 then output; run;")
+
+    (mapa,) = _by_kind(ops, "map")
+
+    assert mapa.params["outputs"] == ["WORK.a", "WORK.b"]
+    assert mapa.params["branches"] == [
+        {"expression": "(x=1)", "outputs": ["WORK.a"]},
+        {"expression": "(x=1)", "outputs": ["WORK.b"]},
+    ]
+    assert not _by_kind(ops, "unsupported")
+
+
 def test_output_explicito_sin_condicion_no_se_descarta():
     ops = _ops("data a; set src; output a; run;")
     (split,) = _by_kind(ops, "split")

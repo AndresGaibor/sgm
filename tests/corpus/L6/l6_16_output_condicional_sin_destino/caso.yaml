@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- IF/THEN
+- OUTPUT SIN DESTINO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- PRIMERA
+- SEGUNDA
+razonamiento: 'Cuando OUTPUT no nombra un dataset, SAS escribe la observación en todos los datasets del encabezado DATA. El IF limita la escritura a las filas cuyo valor es 1. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(PRIMERA) == 2
+- filas(SEGUNDA) == 2
+- suma(PRIMERA.valor) == 2
+- suma(SEGUNDA.valor) == 2

@@ -102,6 +102,12 @@ def _calc_output_continuacion(e: Entradas) -> dict[str, list[dict]]:
     return {"TEMPRANO": tempranas, "TARDE": tardias, "FINAL": finales}
 
 
+def _calc_output_condicional_implicit(e: Entradas) -> dict[str, list[dict]]:
+    """OUTPUT sin destino escribe en todos los datasets DATA cuando se cumple la condición."""
+    coinciden = [dict(fila) for fila in e["REGISTROS"] if fila["valor"] == 1]
+    return {"PRIMERA": coinciden, "SEGUNDA": coinciden}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -397,6 +403,30 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "Los OUTPUT condicionales escriben cada observación en TEMPRANO o TARDE y no detienen "
             "la iteración. La asignación posterior se procesa para todas las observaciones y el "
             "OUTPUT final las escribe en FINAL. Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_16_output_condicional_sin_destino": {
+        "construcciones": ["DATA STEP", "IF/THEN", "OUTPUT SIN DESTINO"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 1)],
+            ),
+        },
+        "calculo_salidas": _calc_output_condicional_implicit,
+        "columnas": ["id", "valor"],
+        "salidas": ["PRIMERA", "SEGUNDA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(PRIMERA) == 2",
+            "filas(SEGUNDA) == 2",
+            "suma(PRIMERA.valor) == 2",
+            "suma(SEGUNDA.valor) == 2",
+        ],
+        "razonamiento": (
+            "Cuando OUTPUT no nombra un dataset, SAS escribe la observación en todos los datasets "
+            "del encabezado DATA. El IF limita la escritura a las filas cuyo valor es 1. "
+            "Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }
