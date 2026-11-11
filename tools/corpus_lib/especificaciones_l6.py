@@ -120,6 +120,11 @@ def _calc_output_condicional_sin_destino_continuacion(e: Entradas) -> dict[str, 
     return {"PRIMERA": coinciden, "SEGUNDA": [dict(fila) for fila in coinciden]}
 
 
+def _calc_output_if_else_mismo_destino(e: Entradas) -> dict[str, list[dict]]:
+    """Las dos ramas excluyentes escriben una vez en el mismo destino."""
+    return {"SALIDA": [dict(fila) for fila in e["REGISTROS"]]}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -493,6 +498,25 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "todas las observaciones restantes; la asignación posterior no genera salida "
             "implícita. "
             "Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_19_output_if_else_mismo_destino": {
+        "construcciones": ["DATA STEP", "IF/THEN/ELSE", "OUTPUT MISMO DESTINO"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 3)],
+            ),
+        },
+        "calculo_salidas": _calc_output_if_else_mismo_destino,
+        "columnas": ["id", "valor"],
+        "salidas": ["SALIDA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": ["filas(SALIDA) == 3", "suma(SALIDA.valor) == 6"],
+        "razonamiento": (
+            "Las ramas IF y ELSE son excluyentes y ambas ejecutan una única escritura al mismo "
+            "dataset. Se consolida una sola salida sin filtro, equivalente a que cada observación "
+            "se escriba una vez. Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }

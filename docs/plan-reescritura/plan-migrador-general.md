@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 181, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 182, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -595,10 +595,11 @@ condiciones. `L6/l6_13` prueba además una cadena sin `ELSE`: el valor que no sa
 se escribe, por la regla de supresión de salida implícita. Se añade una guarda según `lestmtsref`,
 p. 274: todo destino nombrado debe aparecer en el encabezado `DATA`; de lo contrario el paso queda
 como hueco y no se emite una salida parcial. También se detectan destinos escritos más de una vez en
-el mismo DATA step y se marca el paso como `OUTPUT_DESTINO_REPETIDO`; el intérprete los rechaza en
-vez de sobrescribir filas. No se emite un Job parcial sin un mecanismo validado para duplicar esas
-escrituras. El nuevo caso `L6/l6_14_output_en_puntos_del_pdv` verifica dos escrituras en puntos
-distintos: la primera conserva el PDV antes de una asignación y la segunda el valor posterior
+el mismo DATA step y se marca el paso como `OUTPUT_DESTINO_REPETIDO`, salvo IF/ELSE inmediatos que
+escriben una sola vez en los mismos destinos desde ramas excluyentes. Las demás repeticiones se
+rechazan en vez de sobrescribir filas y no se emite un Job parcial sin un mecanismo validado para
+duplicar esas escrituras. El nuevo caso `L6/l6_14_output_en_puntos_del_pdv` verifica el orden de
+escritura: el primer `OUTPUT` conserva el PDV antes de una asignación y el segundo, el valor posterior
 (`lestmtsref`, p. 274). El emisor usa `tReplicate` para preservar la primera captura y alinea los
 nombres de salida/entrada entre `tMap` sucesivos; el Job pasa el validador estructural. Studio
 continúa bloqueado por un diálogo `Confirm`; no se reinstaló ni cambió Talend. MG-P4-02 permanece
@@ -618,7 +619,9 @@ Las escrituras repetidas a destinos cubiertos por `OUTPUT;` siguen bloqueadas co
 `OUTPUT_DESTINO_REPETIDO`. La condición sin destino explícito también puede ser no terminal: sus
 escrituras conservan el filtro y una rama sin filtro continúa el procesamiento de todas las filas.
 `L6/l6_18_output_condicional_sin_destino_con_continuacion` valida esa ruta; las exportaciones del Job
-pasan el validador estructural.
+pasan el validador estructural. El par IF/ELSE inmediato con el mismo destino también se consolida
+en una salida única: `L6/l6_19_output_if_else_mismo_destino` valida que cada observación llegue una
+vez, y el Job pasa el validador.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

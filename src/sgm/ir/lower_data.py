@@ -265,6 +265,28 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             omit.update(range(index + 1, ultimo + 1))
             prev = stmts[ultimo]
             continue
+        misma_salida = _same_destination_if_else(stmts, index, step.outputs)
+        if misma_salida is not None:
+            destinos, ultimo = misma_salida
+            ramas = [{"outputs": [destino]} for destino in destinos]
+            terminal = ultimo == len(stmts) - 1
+            if not terminal:
+                ramas.append({"outputs": [], "continue": True})
+            salida_condicional = b.op(
+                "map",
+                {"steps": [], "outputs": destinos, "branches": ramas},
+                statement_ev,
+            )
+            salida_condicional.evidence.extend(
+                Evidence(ev.file, stmts[posicion].line, stmts[posicion].line, ev.label, ev.call)
+                for posicion in range(index + 1, ultimo + 1)
+            )
+            if current is not None:
+                b.link(current, salida_condicional)
+            current = salida_condicional
+            omit.update(range(index + 1, ultimo + 1))
+            prev = stmts[ultimo]
+            continue
         salidas_condicionales = _conditional_output_chain(
             stmts, index, [destino for destino in step.outputs if destino.lower() != "_null_"]
         )
@@ -593,6 +615,42 @@ def _conditional_output(s: DsStatement) -> dict | None:
     return result
 
 
+def _same_destination_if_else(
+    stmts: list[DsStatement], index: int, default_targets: list[str]
+) -> tuple[list[str], int] | None:
+    """Combina IF/ELSE que escriben una vez en los mismos destinos en ramas excluyentes."""
+    if index + 1 >= len(stmts):
+        return None
+    primera = _conditional_output(stmts[index])
+    segunda = _conditional_output(stmts[index + 1])
+    if (
+        primera is None
+        or segunda is None
+        or primera.get("branch") != "then"
+        or segunda.get("branch") != "else"
+    ):
+        return None
+    izquierda = _effective_output_targets(primera, default_targets)
+    derecha = _effective_output_targets(segunda, default_targets)
+    llaves_izquierda = [destino.casefold() for destino in izquierda]
+    llaves_derecha = [destino.casefold() for destino in derecha]
+    if (
+        not izquierda
+        or llaves_izquierda != llaves_derecha
+        or len(set(llaves_izquierda)) != len(llaves_izquierda)
+        or any(destino.lower() == "_null_" for destino in izquierda)
+    ):
+        return None
+    return [qualify(destino) for destino in izquierda], index + 1
+
+
+def _effective_output_targets(output: dict, default_targets: list[str]) -> list[str]:
+    return list(
+        output.get("targets")
+        or ([output["target"]] if output.get("target") else default_targets)
+    )
+
+
 def _conditional_output_chain(
     stmts: list[DsStatement], index: int, default_targets: list[str]
 ) -> tuple[list[dict], list[str], int, bool] | None:
@@ -701,8 +759,17 @@ def _repeated_output_targets(
     vistos: dict[str, DsStatement] = {}
     sentencias: list[DsStatement] = []
     repetidos: set[str] = set()
-    for sentencia in stmts:
-        for destino in _output_targets(sentencia, default_outputs):
+    index = 0
+    while index < len(stmts):
+        sentencia = stmts[index]
+        pareja = _same_destination_if_else(stmts, index, default_outputs)
+        if pareja is not None:
+            destinos, ultimo = pareja
+            index = ultimo + 1
+        else:
+            destinos = _output_targets(sentencia, default_outputs)
+            index += 1
+        for destino in destinos:
             clave = qualify(destino).casefold()
             if clave in vistos:
                 if vistos[clave] not in sentencias:

@@ -400,6 +400,28 @@ def test_output_if_else_emite_ramas_filtradas_en_un_tmap():
     assert "activateExpressionFilter=\"true\"" in tmap
 
 
+def test_output_if_else_al_mismo_destino_emite_una_salida_sin_filtro():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.salida;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT WORK.salida;\n"
+        "ELSE OUTPUT WORK.salida;\n"
+        "RUN;\n"
+        "PROC EXPORT DATA=WORK.salida OUTFILE='salida.csv' DBMS=CSV REPLACE; RUN;"
+    )
+    esquema = {"work.entrada": [Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    job = resultado.jobs[0]
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in job.nodos) == 1
+    assert 'activateExpressionFilter="true"' not in _tmap(job)
+    assert validar_job(job) == []
+
+
 def test_output_if_sin_else_emite_una_salida_filtrada_en_tmap():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"

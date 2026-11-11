@@ -920,6 +920,20 @@ def test_output_else_if_encadenado_distribuye_por_primera_condicion_cumplida():
     assert tablas["otros"] == [{"valor": "0"}]
 
 
+def test_output_if_else_al_mismo_destino_escribe_cada_observacion_una_vez():
+    plan = _plan(
+        "DATA WORK.salida;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT WORK.salida;\n"
+        "ELSE OUTPUT WORK.salida;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(plan, {"entrada": [{"valor": "1"}, {"valor": "2"}]})
+
+    assert tablas["salida"] == [{"valor": "1"}, {"valor": "2"}]
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"

@@ -6368,3 +6368,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` sin argumento escribe en los datasets de `DATA` y
   la escritura es inmediata; no hay salida implícita tras usar `OUTPUT` explícito.
 - Límite: el Job aún no se compila en Studio por el diálogo `Confirm` documentado.
+
+## Hito 182. Consolidar ramas IF/ELSE al mismo destino
+
+- Fecha: 2026-11-10.
+- Qué se hizo: un par inmediato `IF ... THEN OUTPUT destino; ELSE OUTPUT destino;` se consolida en
+  una sola salida sin filtro, porque las ramas son excluyentes y escriben una vez en el mismo
+  destino. La optimización admite listas iguales de destinos, incluidos los destinos implícitos del
+  encabezado `DATA`.
+- Seguridad: los demás `OUTPUT` repetidos siguen marcados `OUTPUT_DESTINO_REPETIDO`; una salida
+  posterior adicional al mismo dataset no se confunde con el par excluyente.
+- Corpus: `L6/l6_19_output_if_else_mismo_destino` verifica que cada fila se escriba una vez. El
+  intérprete coincide con el esperado y el Job emite una salida y pasa el validador estructural.
+- Corpus total: 126 casos, 19 en L6 y 124 con esperado.
+- Pruebas: suite completa **3083 pasan, 34 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
+- Referencia: `lestmtsref`, PDF p. 274, `OUTPUT` condicionado por IF/ELSE y escritura inmediata.
+- Límite: sigue pendiente compilar el Job en Studio por el diálogo `Confirm`.

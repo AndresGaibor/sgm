@@ -175,6 +175,27 @@ def test_output_sin_destino_repetido_marca_todos_los_destinos_data_como_hueco():
     assert not _by_kind(ops, "map")
 
 
+def test_output_if_else_al_mismo_destino_no_cuenta_como_escritura_repetida():
+    ops = _ops("data salida; set src; if x=1 then output salida; else output salida; run;")
+
+    (mapa,) = _by_kind(ops, "map")
+
+    assert mapa.params["outputs"] == ["WORK.salida"]
+    assert mapa.params["branches"] == [{"outputs": ["WORK.salida"]}]
+    assert not _by_kind(ops, "unsupported")
+
+
+def test_output_if_else_igual_mas_output_posterior_sigue_detectando_repeticion():
+    ops = _ops(
+        "data salida; set src; if x=1 then output salida; "
+        "else output salida; output salida; run;"
+    )
+
+    (pendiente,) = _by_kind(ops, "unsupported")
+
+    assert pendiente.params["reason_detail"] == "OUTPUT_DESTINO_REPETIDO"
+
+
 def test_output_condicional_no_terminal_agrega_rama_de_continuacion():
     ops = _ops(
         "data temprano tarde final; set origen; "
