@@ -490,6 +490,29 @@ def test_output_destino_en_if_y_else_emite_filtros_combinados_por_destino():
     assert validar_job(job) == []
 
 
+def test_output_if_else_sin_destino_emite_todas_las_salidas_data_sin_filtros():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.principal WORK.copia;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT;\n"
+        "ELSE OUTPUT;\n"
+        "RUN;\n"
+        "PROC EXPORT DATA=WORK.principal OUTFILE='principal.csv' DBMS=CSV REPLACE; RUN;\n"
+        "PROC EXPORT DATA=WORK.copia OUTFILE='copia.csv' DBMS=CSV REPLACE; RUN;"
+    )
+    esquema = {"work.entrada": [Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    job = resultado.jobs[0]
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in job.nodos) == 2
+    assert 'activateExpressionFilter="true"' not in _tmap(job)
+    assert validar_job(job) == []
+
+
 def test_output_if_else_con_destino_comun_emite_tres_salidas_con_filtros_necesarios():
     programa = (
         Path(__file__).resolve().parents[1]

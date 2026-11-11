@@ -234,6 +234,19 @@ def test_output_destino_en_rama_if_y_else_conserva_union_priorizada():
     assert not _by_kind(ops, "unsupported")
 
 
+def test_output_if_else_sin_destino_usa_todos_los_destinos_data_sin_filtro():
+    ops = _ops("data principal copia; set src; if x=1 then output; else output; run;")
+
+    (mapa,) = _by_kind(ops, "map")
+
+    assert mapa.params["outputs"] == ["WORK.principal", "WORK.copia"]
+    assert mapa.params["branches"] == [
+        {"outputs": ["WORK.principal"]},
+        {"outputs": ["WORK.copia"]},
+    ]
+    assert not _by_kind(ops, "unsupported")
+
+
 def test_output_if_else_con_destino_comun_lo_consolida_sin_quitar_filtros_exclusivos():
     ops = _ops(
         "data primera comun otros; set src; "

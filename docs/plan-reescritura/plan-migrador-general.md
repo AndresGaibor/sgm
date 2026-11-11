@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 189, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 190, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -640,6 +640,9 @@ destino no requiere filtro.
 `L6/l6_23_output_destino_en_primera_y_ultima_rama` cubre un destino presente en IF y en el ELSE
 final, pero no en ELSE IF; se emite la unión de predicados con prioridad, y el destino intermedio
 conserva solo su filtro. Intérprete y Job estructural coinciden con los dos CSV esperados.
+`L6/l6_24_output_else_destinos_por_defecto` comprueba que IF y ELSE con `OUTPUT;` sin destinos
+explícitos escriben cada observación una vez en todos los datasets declarados en `DATA`, sin filtros;
+el intérprete y el Job estructural coinciden con ambos CSV esperados.
 El intento de `L6/l6_18_output_condicional_sin_destino_con_continuacion` no llegó a compilar: el
 bridge agotó 180 s y después `sgm studio salud` agotó el tiempo de espera. No hay procesos escuchando
 en 3927/3930, aunque Talend Studio sigue abierto; el arnés limpió los Jobs de prueba. Esta validación

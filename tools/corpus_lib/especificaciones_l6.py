@@ -153,6 +153,15 @@ def _calc_output_destino_en_primera_y_ultima_rama(e: Entradas) -> dict[str, list
     }
 
 
+def _calc_output_else_destinos_por_defecto(e: Entradas) -> dict[str, list[dict]]:
+    """Cada rama escribe a los destinos por defecto del encabezado DATA."""
+    filas = e["REGISTROS"]
+    return {
+        "PRINCIPAL": [dict(fila) for fila in filas],
+        "COPIA": [dict(fila) for fila in filas],
+    }
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -634,6 +643,30 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "PRINCIPAL recibe las observaciones de la primera rama IF y de la rama ELSE final; "
             "INTERMEDIA solo recibe ELSE IF. La condición de PRINCIPAL es la unión priorizada de "
             "esas ramas. Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_24_output_else_destinos_por_defecto": {
+        "construcciones": ["DATA STEP", "IF/ELSE", "OUTPUT SIN DESTINO EXPLÍCITO"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 3)],
+            ),
+        },
+        "calculo_salidas": _calc_output_else_destinos_por_defecto,
+        "columnas": ["id", "valor"],
+        "salidas": ["PRINCIPAL", "COPIA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(PRINCIPAL) == 3",
+            "filas(COPIA) == 3",
+            "suma(PRINCIPAL.valor) == 6",
+        ],
+        "razonamiento": (
+            "OUTPUT sin destinos explícitos escribe a todos los datasets declarados en DATA. Como "
+            "IF y ELSE cubren todas las observaciones, cada fila se escribe una vez en cada "
+            "salida, "
+            "sin filtro. Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }

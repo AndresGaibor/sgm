@@ -991,6 +991,22 @@ def test_output_destino_en_if_y_else_se_emite_para_ambas_ramas_priorizadas():
     assert tablas["intermedia"] == [{"id": "y", "valor": "2"}]
 
 
+def test_output_if_else_sin_destino_escribe_en_todas_las_salidas_data():
+    plan = _plan(
+        "DATA WORK.principal WORK.copia;\n"
+        "SET WORK.entrada;\n"
+        "IF valor=1 THEN OUTPUT;\n"
+        "ELSE OUTPUT;\n"
+        "RUN;"
+    )
+    entrada = [{"valor": "1"}, {"valor": "2"}, {"valor": "3"}]
+
+    tablas = ejecutar_plan(plan, {"entrada": entrada})
+
+    assert tablas["principal"] == entrada
+    assert tablas["copia"] == entrada
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"

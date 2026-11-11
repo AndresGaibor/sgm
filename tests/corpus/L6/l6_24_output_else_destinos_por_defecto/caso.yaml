@@ -1,0 +1,19 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- IF/ELSE
+- OUTPUT SIN DESTINO EXPLÍCITO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- PRINCIPAL
+- COPIA
+razonamiento: 'OUTPUT sin destinos explícitos escribe a todos los datasets declarados en DATA. Como IF y ELSE cubren todas las observaciones, cada fila se escribe una vez en cada salida, sin filtro. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(PRINCIPAL) == 3
+- filas(COPIA) == 3
+- suma(PRINCIPAL.valor) == 6

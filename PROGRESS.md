@@ -6500,3 +6500,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: suite completa **3115 pasan, 38 se saltan y 142 xfail**; Ruff y diff check limpios.
 - Studio: no se compiló; el bridge sigue sin responder según `sgm studio salud`.
 - Límite: MG-P4-02 sigue parcial; queda pendiente validar en Studio los patrones nuevos y `L6/l6_18`.
+
+## Hito 190. Cubrir OUTPUT sin destinos en IF/ELSE
+
+- Fecha: 2026-11-11.
+- Qué se hizo: se agregó `L6/l6_24_output_else_destinos_por_defecto`. Las ramas IF y ELSE usan
+  `OUTPUT;` sin lista de datasets, por lo que cada observación debe escribirse una vez a todos los
+  destinos del encabezado `DATA`.
+- Verificación local: intérprete y CSV esperados coinciden; el Job estructural emite dos salidas sin
+  filtros y pasa el validador. Pruebas específicas cubren IR, interpretación y emisión.
+- Referencia: `lestmtsref`, PDF p. 274: sin destinos explícitos, `OUTPUT` escribe a los datasets
+  nombrados en `DATA`.
+- Corpus total: 131 casos, 24 en L6 y 129 con esperado.
+- Pruebas: suite completa **3123 pasan, 39 se saltan y 142 xfail**; Ruff y diff check limpios.
+- Studio: el bridge sigue sin responder; este caso aún no tiene compilación real.
+- Límite: MG-P4-02 sigue parcial; las validaciones Studio pendientes incluyen `L6/l6_18` y los nuevos
+  `L6/l6_22`–`L6/l6_24`.
