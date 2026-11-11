@@ -6163,3 +6163,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: se limita la emisión a un operador `split` incondicional con destinos demostrados. Las
   ramas condicionales necesitan un único `tMap` que conserve todas las filas y aplique filtros
   complementarios sin encadenar salidas ya filtradas.
+
+## Hito 168. Enrutamiento condicional y `OUTPUT;` terminal (MG-P4-02 parcial)
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se agrupa un par terminal `IF ... THEN OUTPUT; ELSE OUTPUT;` en un `map` con ramas
+  filtradas y condición complementaria; cada destino se vuelve una salida del `tMap`. Un único
+  `OUTPUT;` terminal toma los destinos del encabezado `DATA`, como establece SAS. Se conserva como
+  pendiente el caso de varias sentencias `OUTPUT` encadenadas fuera del par condicional reconocido.
+- Validación: pruebas de IR, interpretación y XML generado para ambos destinos; suite completa
+  **3016 pasan, 27 se saltan, 142 xfail**; Ruff y `git diff --check` limpios.
+- Límites: no se añadió aún un caso L6 al corpus ni se compiló el Job en Studio; por ello MG-P4-02
+  permanece parcial. La transformación del par IF/ELSE solo se aplica cuando es el final del DATA step.
+- Decisión: el `ELSE` se traduce como complemento de la condición original únicamente para el par
+  inmediato terminal, sin reordenar sentencias ni extender la equivalencia a `ELSE IF` o `DO`.

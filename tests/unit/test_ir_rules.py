@@ -54,12 +54,12 @@ def test_merge_con_condicion_no_deducible_queda_parcial():
     assert join.notes
 
 
-def test_output_condicionado_es_split():
+def test_output_if_else_se_baja_a_ramas_de_un_map():
     ops = _ops("data a b; set src; if x = 1 then output a; else output b; run;")
-    splits = _by_kind(ops, "split")
-    assert [o.params["target"] for o in splits] == ["a", "b"]
-    assert splits[0].params["condition"] == "x = 1"
-    assert splits[1].params["branch"] == "else"
+    (mapa,) = _by_kind(ops, "map")
+    assert [rama["outputs"] for rama in mapa.params["branches"]] == [["WORK.a"], ["WORK.b"]]
+    assert mapa.params["branches"][0]["expression"] == "x = 1"
+    assert mapa.params["branches"][1]["expression"] == "not (x = 1)"
 
 
 def test_output_explicito_sin_condicion_no_se_descarta():

@@ -582,13 +582,13 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 167, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
-conservan todos los destinos de `OUTPUT a b;`; el grafo los registra como productores, y el intérprete
-reparte la observación a cada destino, respeta la rama `ELSE` cubierta y suprime la salida implícita
-cuando existe cualquier `OUTPUT` explícito. El emisor genera un `tMap` con varias salidas para un
-`OUTPUT` con destinos y sin condición. `OUTPUT` sin destinos y el enrutamiento de sentencias
-condicionales o separadas siguen pendientes, así como su validación en Studio; MG-P4-02 no se marca
-como completada ni se presenta un Job incompleto como válido.
+**Actualización (hito 168, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
+las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
+`tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
+que usa los destinos del encabezado) y para un par terminal `IF ... THEN OUTPUT; ELSE OUTPUT;`.
+Varias sentencias `OUTPUT` encadenadas sin ese patrón siguen pendientes, así como la validación en
+Studio y la aceptación mediante un caso L6 del corpus. MG-P4-02 no se marca como completada.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

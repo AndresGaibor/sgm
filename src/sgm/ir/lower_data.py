@@ -218,6 +218,25 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         before, prev = prev, s
         if kind in _HEAD_KINDS:
             continue
+        salidas_condicionales = _conditional_output_pair(stmts, index)
+        if salidas_condicionales is not None:
+            ramas, destinos, siguiente = salidas_condicionales
+            salida_condicional = b.op(
+                "map",
+                {"steps": [], "outputs": destinos, "branches": ramas},
+                statement_ev,
+            )
+            if siguiente < len(stmts):
+                segunda = stmts[siguiente]
+                salida_condicional.evidence.append(
+                    Evidence(ev.file, segunda.line, segunda.line, ev.label, ev.call)
+                )
+            if current is not None:
+                b.link(current, salida_condicional)
+            current = salida_condicional
+            omit.add(siguiente)
+            prev = stmts[siguiente]
+            continue
         conditional = _conditional_assignment(stmts, index)
         if conditional is not None:
             conditional = ([conditional[0]], conditional[1])
@@ -331,13 +350,35 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         b.refresh(current)
     if "_null_" in [o.lower() for o in outputs]:
         current.notes.append("salida _NULL_: no escribe dataset")
+    salidas_explicitas = [statement for statement in step.statements if statement.kind == "output"]
+    if (
+        len(salidas_explicitas) == 1
+        and current.kind == "split"
+        and not salidas_explicitas[0].fields.get("targets")
+    ):
+        destinos = [qualify(nombre) for nombre in outputs if nombre.lower() != "_null_"]
+        if destinos:
+            current.params["target"] = destinos[0]
+            current.params["condition"] = ""
+            current.params.pop("branch", None)
+            if len(destinos) > 1:
+                current.params["targets"] = destinos
+            else:
+                current.params.pop("targets", None)
+            current.status = "soportado"
+            current.notes = [
+                nota
+                for nota in current.notes
+                if "OUTPUT sin destino explícito" not in nota
+            ]
+            b.refresh(current)
     # OUTPUT explícito suprime la escritura implícita al final de cada iteración SAS.
     # Sus operadores split son los únicos productores de las tablas de salida.
-    current.params["outputs"] = (
-        []
-        if any(statement.kind == "output" for statement in step.statements)
-        else [qualify(o) for o in outputs if o.lower() != "_null_"]
-    )
+    if any(statement.kind == "output" for statement in step.statements):
+        if not (current.kind == "map" and current.params.get("branches")):
+            current.params["outputs"] = []
+    else:
+        current.params["outputs"] = [qualify(o) for o in outputs if o.lower() != "_null_"]
     b.refresh(current)
 
 
@@ -466,6 +507,40 @@ def _conditional_output(s: DsStatement) -> dict | None:
     if len(targets) > 1:
         result["targets"] = targets
     return result
+
+
+def _conditional_output_pair(
+    stmts: list[DsStatement], index: int
+) -> tuple[list[dict], list[str], int] | None:
+    """Agrupa `IF ... THEN OUTPUT; ELSE OUTPUT;` terminal en ramas mutuamente excluyentes."""
+    if index + 1 >= len(stmts) or index + 2 != len(stmts):
+        return None
+    primera = _conditional_output(stmts[index])
+    segunda = _conditional_output(stmts[index + 1])
+    if (
+        primera is None
+        or segunda is None
+        or primera.get("branch") != "then"
+        or segunda.get("branch") != "else"
+        or not primera.get("condition")
+    ):
+        return None
+    destinos = [
+        *primera.get("targets", [primera["target"]]),
+        *segunda.get("targets", [segunda["target"]]),
+    ]
+    if any(not destino or destino.lower() == "_null_" for destino in destinos):
+        return None
+    condicion = str(primera["condition"])
+    ramas = [
+        {"expression": condicion, "outputs": [qualify(destino)]}
+        for destino in primera.get("targets", [primera["target"]])
+    ]
+    ramas.extend(
+        {"expression": f"not ({condicion})", "outputs": [qualify(destino)]}
+        for destino in segunda.get("targets", [segunda["target"]])
+    )
+    return ramas, [qualify(destino) for destino in destinos], index + 1
 
 
 def _note(op: Operator | None, text: str, status: str | None = None) -> None:

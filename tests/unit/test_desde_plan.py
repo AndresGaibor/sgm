@@ -320,6 +320,54 @@ def test_varias_sentencias_output_encadenadas_se_mantienen_pendientes():
     )
 
 
+def test_output_if_else_emite_ramas_filtradas_en_un_tmap():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.uno WORK.dos WORK.otros;\n"
+        "SET WORK.entrada;\n"
+        "IF valor = 1 THEN OUTPUT WORK.uno WORK.dos;\n"
+        "ELSE OUTPUT WORK.otros;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [
+        pendiente
+        for pendiente in resultado.pendientes
+        if pendiente.codigo in {"P-OPERADOR-SIN-SOPORTE", "P-FILTRO-SIN-TRADUCIR"}
+    ]
+    tmap = _tmap(resultado.jobs[0])
+    assert all(f'name="out{indice}"' in tmap for indice in (1, 2, 3))
+    assert "row1.valor" in tmap
+    assert "activateExpressionFilter=\"true\"" in tmap
+
+
+def test_output_sin_destinos_emite_todas_las_salidas_del_encabezado():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.primera WORK.segunda;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("id", "String")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [
+        pendiente
+        for pendiente in resultado.pendientes
+        if pendiente.codigo == "P-OPERADOR-SIN-SOPORTE"
+    ]
+    assert all(
+        f'name="out{indice}"' in _tmap(resultado.jobs[0]) for indice in (1, 2)
+    )
+
+
 def test_asignacion_condicional_numerica_derivada_queda_pendiente_por_faltante_sas():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.productos DBMS=CSV REPLACE;\n"

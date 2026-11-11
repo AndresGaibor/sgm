@@ -775,6 +775,21 @@ def test_output_condicional_multiple_respeta_rama_else():
     assert tablas["otros"] == [{"valor": "2"}]
 
 
+def test_output_sin_destinos_explicitamente_usa_todas_las_salidas_data():
+    plan = _plan(
+        "DATA WORK.primera WORK.segunda;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(plan, {"entrada": [{"id": "1"}, {"id": "2"}]})
+
+    esperadas = [{"id": "1"}, {"id": "2"}]
+    assert tablas["primera"] == esperadas
+    assert tablas["segunda"] == esperadas
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"
