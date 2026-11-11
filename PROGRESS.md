@@ -6643,3 +6643,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   para cerrar A-6.
 - Los archivos de prueba se borraron del proyecto del usuario: no queda un joblet incompleto en el
   repositorio.
+
+## Hito 195. Plazo propio para las operaciones largas del bridge
+
+- Fecha: 2026-11-11.
+- Que se hizo (A-4 del Plan A, en `talend-mcp`): `jobBuild` y `jobBuildBatch` no pasaban plazo y
+  heredaban el `timeoutMs` de la configuracion del cliente (2 500 ms). Generar y compilar un Job
+  tarda mas: la peticion se abortaba a mitad y el error culpaba al bridge, que en realidad estaba
+  trabajando. Ahora `build` lleva `BUILD_TIMEOUT_MS` (180 000 ms, el mismo plazo que ya usa el
+  plugin para generar) y `build-batch` lleva `BUILD_BATCH_TIMEOUT_MS` (300 000 ms); las dos aceptan
+  `timeoutMs` para pedir otro plazo.
+- Medido en el codigo del plugin: `UiThread.DEFAULT_TIMEOUT_MS` es 10 000 ms pero solo aplica a las
+  rutas de interfaz (`uiBody`); `build-batch` y `build` van por `route`, asi que ese tope no los
+  cortaba. El limite real era el del cliente.
+- Prueba: `tests/talend/bridge-long-response.test.ts`, con un bridge de mentira que tarda 1 200 ms.
+  Tres casos: el lote se espera y termina bien aunque la configuracion de 300 ms; una lectura lenta
+  se corta en 200 ms con `BRIDGE_UNAVAILABLE` y el mensaje de reintento, sin exito falso; y un lote
+  con plazo menor falla limpio.
+- Documentado en `talend-mcp/docs/studio-internals/12-plazos-de-las-operaciones-largas.md`.
+- Límite: falta medir un lote real de mas de 20 s con Studio libre; si 300 000 ms no alcanza para
+  5 000 Jobs, hay que partir el lote en tramos (opcion b del plan).

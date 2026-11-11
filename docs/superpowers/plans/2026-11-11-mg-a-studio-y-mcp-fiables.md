@@ -235,7 +235,7 @@
 | A-1 estado de Studio | hecha en `talend-mcp` (`studio-state.ts`, commit `ae151d2`) |
 | A-2 `ensure_ready` como tool | cambiada: lo que faltaba era un proceso de fondo, no una tool. Hecho como `bun run supervisor` (reinicia el MCP; commit `ae151d2`) |
 | A-3 sonda y latido | latido hecho en `logs/supervisor.json`; la sonda de diálogos la reemplaza A-11 |
-| A-4 límite de 25 s del bridge | pendiente: pide medir una compilación real de más de 20 s |
+| A-4 límite de 25 s del bridge | **parcial** (hito 195, en `talend-mcp`): `build` y `build-batch` heredaban los 2 500 ms del cliente y se abortaban a mitad; ahora llevan 180 s y 300 s propios, con prueba de que una lectura lenta se corta limpia y no finge éxito. Falta medir un lote real de más de 20 s |
 | A-5 `tHashInput` | **hecha** (hito 193): el `SUBJOB_OK` salia del `tHashOutput` y eso es un diseno invalido; el enlace se cuelga del `tFixedFlowInput` de arranque y ese nodo lleva `schemaDespuesDeConectar` porque conectar borra sus valores. Escenario `transformaciones/hash-memoria-entre-subjobs` en verde |
 | A-6 joblets de extremo a extremo | spike hecho (hito 194): el joblet se escribe en `joblets/`, pero no se pudo confirmar que Studio lo cargue (refresco con el IDE ocupado; el endpoint de componentes no enumera joblets). Se adopta el plan B con `tRunJob` hasta verlo en la interfaz |
 | A-7 compilar sin ventana | reconocimiento hecho (`docs/studio-internals/10-compilar-sin-ventana.md`): esta instalación no trae `org.talend.commandline*`, así que la opción de línea de comandos no existe; falta medir la opción de Maven/JDK |
