@@ -1,7 +1,8 @@
-"""Salud de Talend Studio: si responde, si deja escribir y si hay diálogos que bloquean.
+"""Salud de Talend Studio: si responde, si deja escribir, si hay diálogos y si la interfaz está libre.
 
 Las respuestas de prueba son las reales del puente, guardadas en `tests/fixtures/talend_cli/`: el
-ping devuelve `mode: "readWrite"` (no un booleano) y los diálogos vienen en `blocking`.
+ping devuelve `mode: "readWrite"` (no un booleano) y los diálogos vienen en `blocking`. La tercera
+sonda, `talend_bridge_workbench_state`, es la única que corre en el hilo de la interfaz.
 """
 
 from __future__ import annotations
@@ -50,6 +51,7 @@ def _libre() -> EjecutorPorHerramienta:
         {
             "talend_bridge_ping": _respuesta("ping.json"),
             "talend_studio_ui_dialogs": '{"ok": true, "data": {"blocked": false, "dialogs": []}}',
+            "talend_bridge_workbench_state": '{"ok": true, "data": {"openEditors": []}}',
         }
     )
 
@@ -64,6 +66,7 @@ def test_salud_ok_con_la_respuesta_real_del_puente():
     assert [comando[comando.index("call") + 1] for comando, _ in ejecutor.llamadas] == [
         "talend_bridge_ping",
         "talend_studio_ui_dialogs",
+        "talend_bridge_workbench_state",
     ]
     assert all(tiempo == 10.0 for _, tiempo in ejecutor.llamadas)
 
@@ -137,7 +140,7 @@ def test_salud_lee_el_sobre_data_del_mcp():
 
 
 class BackendQueSeRecupera:
-    """Primero el bridge caído; tras `talend_studio_ensure_ready` vuelve a READY."""
+    """Primero el bridge caído; tras `talend_studio_restart` vuelve a READY."""
 
     def __init__(self) -> None:
         self.llamadas: list[tuple[str, dict]] = []
@@ -145,9 +148,9 @@ class BackendQueSeRecupera:
 
     def llamar(self, tool: str, entrada: dict, tiempo_max: float | None = None) -> dict:
         self.llamadas.append((tool, entrada))
-        if tool == "talend_studio_ensure_ready":
-            self.recuperado = entrada.get("restart") is True
-            return {"ok": True, "data": {"state": "READY", "recovered": True, "elapsedMs": 900}}
+        if tool == "talend_studio_restart":
+            self.recuperado = entrada.get("force") is True
+            return {"ok": True, "data": {"pid": 4242, "previousPid": 4241, "seconds": 40}}
         if tool == "talend_bridge_ping":
             if self.recuperado:
                 return {"ok": True, "data": {"mode": "readWrite"}}
@@ -195,7 +198,7 @@ def test_salud_bridge_caido_sin_recuperar_no_toca_studio():
     assert salud.ok is False
     assert salud.estado == "BRIDGE_DEAD"
     assert "BRIDGE_DEAD" in salud.motivo
-    assert "talend_studio_ensure_ready" not in backend.herramientas()
+    assert "talend_studio_restart" not in backend.herramientas()
 
 
 def test_salud_bridge_caido_se_recupera_una_vez():
@@ -205,8 +208,8 @@ def test_salud_bridge_caido_se_recupera_una_vez():
 
     assert salud.ok is True
     assert salud.estado == "READY"
-    assert backend.herramientas().count("talend_studio_ensure_ready") == 1
-    assert dict(backend.llamadas)["talend_studio_ensure_ready"] == {"restart": True}
+    assert backend.herramientas().count("talend_studio_restart") == 1
+    assert dict(backend.llamadas)["talend_studio_restart"] == {"force": True}
 
 
 def test_salud_modal_nombra_el_dialogo_y_no_reintenta():
@@ -217,7 +220,7 @@ def test_salud_modal_nombra_el_dialogo_y_no_reintenta():
     assert salud.ok is False
     assert salud.estado == "MODAL_BLOCKING"
     assert "Network Issue Occured" in salud.motivo
-    assert "talend_studio_ensure_ready" not in backend.llamadas
+    assert "talend_studio_restart" not in backend.llamadas
 
 
 def test_salud_de_un_codigo_de_error_desconocido_queda_como_bridge_caido():
@@ -236,3 +239,61 @@ def test_la_respuesta_guardada_es_la_del_puente():
     datos = json.loads(_respuesta("ping.json"))["data"]
 
     assert datos["mode"] == "readWrite"
+
+
+class BackendConInterfazOcupada:
+    """Studio responde, pero el hilo de la interfaz está tomado por una compilación."""
+
+    MENSAJE = (
+        "java.lang.IllegalStateException: El hilo de la interfaz de Studio esta ocupado "
+        "(se acabo el tiempo de espera)"
+    )
+
+    def __init__(self) -> None:
+        self.llamadas: list[str] = []
+
+    def llamar(self, tool: str, entrada: dict, tiempo_max: float | None = None) -> dict:
+        self.llamadas.append(tool)
+        if tool == "talend_bridge_ping":
+            return {"ok": True, "data": {"mode": "readWrite"}}
+        if tool == "talend_studio_ui_dialogs":
+            return {"ok": True, "data": {"blocked": False, "dialogs": []}}
+        return {"ok": False, "error": {"code": "INTERNAL_ERROR", "message": self.MENSAJE}}
+
+
+def test_salud_interfaz_ocupada_no_es_listo():
+    salud = comprobar_salud(BackendConInterfazOcupada())
+
+    assert salud.ok is False
+    assert salud.estado == "BUSY"
+    assert "compilación" in salud.motivo
+
+
+def test_salud_interfaz_ocupada_no_reinicia_studio():
+    backend = BackendConInterfazOcupada()
+
+    comprobar_salud(backend, recuperar=True)
+
+    assert "talend_studio_restart" not in backend.llamadas
+
+
+class BackendQueNoContestaLaInterfaz:
+    """El ping y los diálogos responden; la sonda de la interfaz se queda sin tiempo."""
+
+    def __init__(self) -> None:
+        self.llamadas: list[str] = []
+
+    def llamar(self, tool: str, entrada: dict, tiempo_max: float | None = None) -> dict:
+        self.llamadas.append(tool)
+        if tool == "talend_bridge_ping":
+            return {"ok": True, "data": {"mode": "readWrite"}}
+        if tool == "talend_studio_ui_dialogs":
+            return {"ok": True, "data": {"blocked": False}}
+        raise BackendNoDisponible("tiempo agotado")
+
+
+def test_salud_interfaz_sin_tiempo_es_ocupada():
+    salud = comprobar_salud(BackendQueNoContestaLaInterfaz())
+
+    assert salud.estado == "BUSY"
+    assert "tiempo" in salud.motivo

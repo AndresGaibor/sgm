@@ -18,8 +18,8 @@ TOOL_LOTE = "talend_job_build_batch"
 TOOL_VERIFICAR = "talend_job_verify"
 TOOL_REFRESCO = "talend_bridge_refresh_workspace"
 TOOL_PING = "talend_bridge_ping"
-# Recupera Studio una vez y devuelve su estado; la usa `salud.comprobar_salud`.
-TOOL_ENSURE = "talend_studio_ensure_ready"
+# Reinicia Studio una vez; la usa `salud.comprobar_salud` cuando el bridge esta caido.
+TOOL_ENSURE = "talend_studio_restart"
 PARALELISMO = 4
 
 # Un nombre de variable de contexto que huela a credencial no se manda: ni la CLI ni el MCP

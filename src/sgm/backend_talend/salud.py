@@ -1,15 +1,21 @@
 """Salud de Talend Studio: estado nombrado, si deja escribir y si hay diálogos abiertos.
 
-Se pregunta por `talend_bridge_ping` y por `talend_studio_ui_dialogs`, con un corte de diez segundos
-cada una. Un diálogo modal abierto en Studio bloquea la compilación aunque el puente responda: es
-justo el caso que hay que detectar antes de lanzar un lote de Jobs, no después de esperar dos
-minutos a que falle.
+Se pregunta por `talend_bridge_ping`, por `talend_studio_ui_dialogs` y por
+`talend_bridge_workbench_state`, con un corte de diez segundos cada una. Un diálogo modal abierto en
+Studio bloquea la compilación aunque el puente responda: es justo el caso que hay que detectar antes
+de lanzar un lote de Jobs, no después de esperar dos minutos a que falle.
+
+La tercera sonda es la única de las tres que corre en el hilo de la interfaz, así que es la que dice
+si ese hilo está libre. El ping responde desde el hilo de trabajo del puente y sigue diciendo
+`READY` mientras una compilación tiene la interfaz tomada; con el hilo ocupado, el refresco del
+workspace y todo lo que toque el modelo del Job falla, y esa es la razón por la que vale medirlo.
 
 El resultado lleva un `estado` con los mismos literales que `classifyStudioState` de `talend-mcp`
 (`READY`, `NOT_RUNNING`, `WAITING_LOGIN`, `BRIDGE_DEAD`, `MODAL_BLOCKING`, `BUSY`), para que el
 llamador decida sin leer el motivo. Cuando el estado es `BRIDGE_DEAD` y el llamador pasa
-`recuperar=True`, se intenta una sola recuperación con `talend_studio_ensure_ready`; en cualquier
-otro estado no se toca Studio.
+`recuperar=True`, se reinicia Studio una sola vez con `talend_studio_restart` y se vuelve a medir;
+en cualquier otro estado no se toca Studio, y con un hilo ocupado tampoco, porque reiniciar Studio
+no es la respuesta a una compilación en curso.
 """
 
 from __future__ import annotations
@@ -28,7 +34,14 @@ class Llamable(Protocol):
 
 _TOOL_PING = "talend_bridge_ping"
 _TOOL_DIALOGOS = "talend_studio_ui_dialogs"
+# Única sonda que corre en el hilo de la interfaz: si contesta, el hilo está libre.
+_TOOL_INTERFAZ = "talend_bridge_workbench_state"
 _DIALOGO = "revisa si hay un diálogo abierto en Talend Studio"
+# Lo que responde el puente cuando el hilo de la interfaz no queda libre a tiempo.
+_OCUPADO = (
+    "hilo de la interfaz de Studio esta ocupado",
+    "demasiadas acciones esperando al hilo de la interfaz",
+)
 
 ESTADOS = ("READY", "NOT_RUNNING", "WAITING_LOGIN", "BRIDGE_DEAD", "MODAL_BLOCKING", "BUSY")
 # Código de error del puente → estado. Un código desconocido deja el bridge como caído.
@@ -63,6 +76,13 @@ def _codigo(error: object) -> str:
     return str(error)
 
 
+def _mensaje(error: object) -> str:
+    """Texto del error, sin el código: es donde el puente dice por qué no pudo."""
+    if isinstance(error, dict):
+        return str(error.get("message") or error.get("code") or "sin motivo")
+    return str(error)
+
+
 def _escribe(ping: dict) -> bool:
     """El puente deja escribir: `mode` es `readWrite` (es lo que devuelve el ping real)."""
     if ping.get("readWrite") is True:
@@ -77,8 +97,36 @@ def _titulos(dialogos: dict) -> str:
     return ", ".join(titulos) if titulos else "sin título"
 
 
+def _ocupada(backend: Llamable, tiempo_max: float) -> Salud | None:
+    """`BUSY` si el hilo de la interfaz no contesta, `None` si contesta o falla por otra cosa.
+
+    El hilo ocupado se reconoce por el texto del puente, que es el único sitio donde aparece: llega
+    como `INTERNAL_ERROR` con el `IllegalStateException` de `UiThread`. Un fallo distinto en esta
+    sonda no rebaja una salud que el ping y los diálogos ya dieron por buena.
+    """
+    try:
+        respuesta = detalle(backend.llamar(_TOOL_INTERFAZ, {}, tiempo_max), ("error",))
+    except BackendNoDisponible as error:
+        return _sin_salud(
+            "BUSY",
+            f"la interfaz de Studio no contestó a tiempo ({error}). "
+            f"{_DIALOGO.capitalize()} o espera a que termine la operación en curso",
+        )
+    error = respuesta.get("error")
+    if not error:
+        return None
+    mensaje = _mensaje(error)
+    if any(marca in mensaje for marca in _OCUPADO):
+        return _sin_salud(
+            "BUSY",
+            f"el hilo de la interfaz de Studio está tomado: {mensaje}. Hay una compilación u otra "
+            f"operación en curso; {_DIALOGO} y espera a que termine",
+        )
+    return None
+
+
 def _sonda(backend: Llamable, tiempo_max: float) -> Salud:
-    """Mide el estado de Studio con el ping y la lista de diálogos."""
+    """Mide el estado de Studio con el ping, la lista de diálogos y el hilo de la interfaz."""
     try:
         # La CLI entrega `data` plano; el MCP lo envuelve en su sobre `{ok, data}`.
         ping = detalle(backend.llamar(_TOOL_PING, {}, tiempo_max), ("mode", "readWrite", "error"))
@@ -104,30 +152,29 @@ def _sonda(backend: Llamable, tiempo_max: float) -> Salud:
         )
     if dialogos.get("blocked"):
         return _sin_salud("MODAL_BLOCKING", f"{_DIALOGO}: {_titulos(dialogos)}")
-    return Salud(True, "", "READY")
+    return _ocupada(backend, tiempo_max) or Salud(True, "", "READY")
 
 
 def _recuperar(backend: Llamable, tiempo_max: float) -> Salud | None:
-    """Pide a Studio que se recupere; `None` si no lo logró y sigue valiendo la sonda original."""
+    """Reinicia Studio una vez y vuelve a medir; `None` si el reinicio no se pudo hacer."""
     try:
         respuesta = detalle(
-            backend.llamar(TOOL_ENSURE, {"restart": True}, tiempo_max),
-            ("state", "recovered", "reason"),
+            backend.llamar(TOOL_ENSURE, {"force": True}, tiempo_max),
+            ("pid", "previousPid", "error"),
         )
     except BackendNoDisponible:
         return None
-    estado = str(respuesta.get("state") or "")
-    if estado != "READY":
+    if respuesta.get("error") or respuesta.get("pid") is None:
         return None
-    # `ensure_ready` ya midió el estado después de recuperar: se cree su READY, sin otra ronda.
-    return Salud(True, "", "READY")
+    # Con Studio nuevo, la salud se vuelve a medir: el reinicio no garantiza que responda.
+    return _sonda(backend, tiempo_max)
 
 
 def comprobar_salud(backend: Llamable, tiempo_max: float = 10.0, recuperar: bool = False) -> Salud:
-    """`Salud(True, "", estado)` si Studio responde, escribe y no tiene diálogos; si no, el motivo.
+    """`Salud(True, "", estado)` si Studio responde, escribe y tiene la interfaz libre.
 
-    Con `recuperar=True` y el bridge caído se intenta una sola recuperación; con un diálogo modal,
-    un login pendiente o Studio ocupado no se reintenta nada.
+    Con `recuperar=True` y el bridge caído se reinicia Studio una sola vez; con un diálogo modal, un
+    login pendiente o el hilo de la interfaz ocupado no se toca Studio.
     """
     salud = _sonda(backend, tiempo_max)
     if salud.ok or not recuperar or salud.estado != "BRIDGE_DEAD":
