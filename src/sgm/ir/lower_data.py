@@ -203,20 +203,29 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     prev: DsStatement | None = None
     omit: set[int] = set()
     destinos_invalidos = _undeclared_output_targets(stmts, step.outputs)
-    if destinos_invalidos is not None:
-        sentencias, faltantes = destinos_invalidos
-        detalle = ", ".join(sorted(faltantes))
+    destinos_repetidos = _repeated_output_targets(stmts)
+    if destinos_invalidos is not None or destinos_repetidos is not None:
+        if destinos_invalidos is not None:
+            sentencias, faltantes = destinos_invalidos
+            reason_detail = "OUTPUT_DESTINO_NO_DECLARADO"
+            nombres = ", ".join(sorted(faltantes))
+            mensaje = f"OUTPUT nombra destinos ausentes del encabezado DATA: {nombres}"
+        else:
+            sentencias, repetidos = destinos_repetidos
+            reason_detail = "OUTPUT_DESTINO_REPETIDO"
+            nombres = ", ".join(sorted(repetidos))
+            mensaje = f"OUTPUT escribe más de una vez en el mismo destino: {nombres}"
         evidencia_salida = _statement_evidence(sentencias[0], ev)
         pendiente = b.op(
             "unsupported",
             {
                 "reason": "SENTENCIA_NO_SOPORTADA",
-                "reason_detail": "OUTPUT_DESTINO_NO_DECLARADO",
+                "reason_detail": reason_detail,
                 "statement": " | ".join(sentencia.text for sentencia in sentencias),
             },
             evidencia_salida,
             status="hueco",
-            notes=[f"OUTPUT nombra destinos ausentes del encabezado DATA: {detalle}"],
+            notes=[mensaje],
         )
         if current is not None:
             b.link(current, pendiente)
@@ -622,13 +631,7 @@ def _undeclared_output_targets(
     sentencias: list[DsStatement] = []
     faltantes: set[str] = set()
     for sentencia in stmts:
-        if sentencia.kind == "output":
-            destinos = sentencia.fields.get("targets") or []
-        elif sentencia.kind == "if":
-            salida = _conditional_output(sentencia)
-            destinos = (salida or {}).get("targets") or ([salida["target"]] if salida else [])
-        else:
-            continue
+        destinos = _output_targets(sentencia)
         no_declarados = {
             destino for destino in destinos if qualify(destino).casefold() not in declarados
         }
@@ -636,6 +639,38 @@ def _undeclared_output_targets(
             sentencias.append(sentencia)
             faltantes.update(no_declarados)
     return (sentencias, faltantes) if sentencias else None
+
+
+def _repeated_output_targets(
+    stmts: list[DsStatement],
+) -> tuple[list[DsStatement], set[str]] | None:
+    """Detecta escrituras múltiples al mismo destino en una iteración del DATA step."""
+    vistos: dict[str, DsStatement] = {}
+    sentencias: list[DsStatement] = []
+    repetidos: set[str] = set()
+    for sentencia in stmts:
+        for destino in _output_targets(sentencia):
+            clave = qualify(destino).casefold()
+            if clave in vistos:
+                if vistos[clave] not in sentencias:
+                    sentencias.append(vistos[clave])
+                if sentencia not in sentencias:
+                    sentencias.append(sentencia)
+                repetidos.add(destino)
+            else:
+                vistos[clave] = sentencia
+    return (sentencias, repetidos) if sentencias else None
+
+
+def _output_targets(stmt: DsStatement) -> list[str]:
+    if stmt.kind == "output":
+        return list(stmt.fields.get("targets") or [])
+    if stmt.kind == "if":
+        salida = _conditional_output(stmt)
+        if salida:
+            destinos = salida.get("targets") or ([salida["target"]] if salida.get("target") else [])
+            return list(destinos)
+    return []
 
 
 def _note(op: Operator | None, text: str, status: str | None = None) -> None:

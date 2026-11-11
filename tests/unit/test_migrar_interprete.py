@@ -806,6 +806,19 @@ def test_output_contiguos_a_destinos_distintos_distribuyen_cada_observacion():
     assert tablas["segunda"] == esperadas
 
 
+def test_output_repetido_a_mismo_destino_no_finge_el_numero_de_filas():
+    plan = _plan(
+        "DATA WORK.salida;\n"
+        "SET WORK.entrada;\n"
+        "OUTPUT WORK.salida;\n"
+        "OUTPUT WORK.salida;\n"
+        "RUN;"
+    )
+
+    with pytest.raises(NoSoportadoEnInterprete, match="unsupported"):
+        ejecutar_plan(plan, {"entrada": [{"id": "1"}]})
+
+
 def test_output_if_sin_else_escribe_solo_si_se_cumple_la_condicion():
     plan = _plan(
         "DATA WORK.coinciden;\n"

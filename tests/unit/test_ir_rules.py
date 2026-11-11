@@ -114,6 +114,16 @@ def test_output_condicional_a_dataset_ausente_del_encabezado_no_se_emite():
     assert not _by_kind(ops, "split")
 
 
+def test_output_repetido_a_mismo_destino_se_marca_como_hueco():
+    ops = _ops("data salida; set origen; output salida; output salida; run;")
+
+    (pendiente,) = _by_kind(ops, "unsupported")
+
+    assert pendiente.params["reason_detail"] == "OUTPUT_DESTINO_REPETIDO"
+    assert "más de una vez" in pendiente.notes[0]
+    assert not _by_kind(ops, "split")
+
+
 def test_retain_lag_y_first_last_son_estado_por_fila():
     ops = _ops("data t; set s; by g; retain acc 0; prev = lag(x); if first.g then acc = 0; run;")
     stateful = _by_kind(ops, "stateful_row")

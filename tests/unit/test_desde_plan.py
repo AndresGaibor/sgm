@@ -270,7 +270,7 @@ def test_output_no_declarado_no_emite_escritura_parcial():
     )
 
 
-def test_output_con_varios_destinos_conserva_todos_y_suprime_salida_implicita():
+def test_output_con_destino_repetido_en_sentencias_distintas_queda_pendiente():
     plan = _plan(
         "DATA primera segunda tercera;\n"
         "SET entrada;\n"
@@ -279,19 +279,11 @@ def test_output_con_varios_destinos_conserva_todos_y_suprime_salida_implicita():
         "RUN;"
     )
 
-    operadores = list(plan.graph.operators())
-    splits = [operador for operador in operadores if operador.kind == "split"]
-    assert [operador.params["targets"] for operador in splits] == [
-        ["primera", "segunda"],
-        ["segunda", "tercera"],
+    (pendiente,) = [
+        operador for operador in plan.graph.operators() if operador.kind == "unsupported"
     ]
-    transformaciones = [
-        operador
-        for operador in operadores
-        if operador.kind in ("derive", "filter", "select", "rename", "join")
-        and operador.params.get("outputs") is not None
-    ]
-    assert all(not operador.params["outputs"] for operador in transformaciones)
+    assert pendiente.params["reason_detail"] == "OUTPUT_DESTINO_REPETIDO"
+    assert not [operador for operador in plan.graph.operators() if operador.kind == "split"]
 
 
 def test_output_con_varios_destinos_emite_un_tmap_con_todas_las_salidas():
@@ -352,7 +344,8 @@ def test_output_repetido_al_mismo_destino_sigue_pendiente():
     resultado = plan_a_jobs(plan, esquema)
 
     assert any(
-        pendiente.codigo == "P-OPERADOR-SIN-SOPORTE" and "split" in pendiente.mensaje
+        pendiente.codigo == "P-OPERADOR-SIN-SOPORTE"
+        and "OUTPUT escribe más de una vez" in pendiente.mensaje
         for pendiente in resultado.pendientes
     )
 

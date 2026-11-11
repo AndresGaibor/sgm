@@ -6261,3 +6261,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: se comparan nombres SAS sin distinguir mayúsculas y se califican los nombres no
   calificados como `WORK`, igual que el resto del lowering. Ante cualquier destino no declarado se
   deja pendiente el DATA step entero, sin simular salidas válidas parcialmente.
+
+## Hito 175. Bloquear escrituras `OUTPUT` repetidas al mismo destino
+
+- Fecha: 2026-11-10.
+- Qué se hizo: el lowering detecta si un DATA step escribe más de una vez al mismo dataset, incluso
+  desde sentencias distintas o ramas condicionales. Lo registra como `OUTPUT_DESTINO_REPETIDO` y no
+  crea operadores `split`. El intérprete rechaza explícitamente el paso pendiente en lugar de
+  sobrescribir silenciosamente la primera escritura; el emisor no produce una salida parcial.
+- Pruebas: suite completa **3035 pasan, 28 se saltan, 142 xfail**; Ruff y diff check con CRLF limpios.
+- Bloqueo: no se pudo compilar en Studio; `sgm studio salud` sigue detectando el diálogo `Confirm`.
+- Decisión: aunque algunas ramas mutuamente excluyentes podrían combinarse, se rechazan todas las
+  repeticiones hasta validar una emisión que preserve tanto las ramas como las escrituras múltiples
+  en la misma iteración.
