@@ -6663,3 +6663,22 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Documentado en `talend-mcp/docs/studio-internals/12-plazos-de-las-operaciones-largas.md`.
 - Límite: falta medir un lote real de mas de 20 s con Studio libre; si 300 000 ms no alcanza para
   5 000 Jobs, hay que partir el lote en tramos (opcion b del plan).
+
+## Hito 196. Un lote sin estado por Job no se cuenta como compilado
+
+- Fecha: 2026-11-11.
+- Que se hizo (A-4 del Plan A, en `talend-mcp`): al intentar medir un lote real aparecio un exito
+  falso. `talend_job_build_batch` contestaba `ok: true` con el mapa `jobs` vacio cuando los Jobs no
+  estaban en el repositorio de Studio (recien escritos sin refrescar) o cuando el lote se cortaba. El
+  llamador recibia un lote "correcto" sin ningun Job compilado.
+- Arreglo: `src/talend/studio/build-batch-resultado.ts` completa la respuesta con cada Job pedido que
+  falte, con `ok: false` y el codigo `JOB_SIN_ESTADO_EN_LA_RESPUESTA`, y la tool agrega un aviso con
+  cuantos quedaron sin estado. Con eso `resultado_lote` de `sgm` los cuenta como no compilados.
+- Pruebas: `tests/talend/build-batch-resultado.test.ts`, cuatro casos (lote completo, mapa vacio, Job
+  perdido con el resto intacto, aviso con muestra y resumen).
+- Medicion: no se pudo completar. Se duplicaron 20 Jobs en disco en 0,9 s, pero el refresco del
+  workspace fallo seis veces con el hilo de la interfaz ocupado (otra sesion compilando en el mismo
+  Studio), y sin refresco los Jobs no existen para el repositorio. Los 40 archivos de prueba se
+  borraron; el informe `talend-mcp/docs/studio-internals/12-plazos-de-las-operaciones-largas.md` lo
+  deja anotado.
+- Límite: sigue pendiente el tiempo real de un lote de Jobs de verdad en Studio.
