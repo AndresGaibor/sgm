@@ -185,6 +185,24 @@ def test_output_if_else_al_mismo_destino_no_cuenta_como_escritura_repetida():
     assert not _by_kind(ops, "unsupported")
 
 
+def test_output_else_if_al_mismo_destino_combina_sus_condiciones():
+    ops = _ops(
+        "data salida; set src; if x=1 then output salida; "
+        "else if x=3 then output salida; run;"
+    )
+
+    (mapa,) = _by_kind(ops, "map")
+
+    assert mapa.params["outputs"] == ["WORK.salida"]
+    assert mapa.params["branches"] == [
+        {
+            "expression": "((x=1)) or (not (x=1) and (x=3))",
+            "outputs": ["WORK.salida"],
+        }
+    ]
+    assert not _by_kind(ops, "unsupported")
+
+
 def test_output_if_else_igual_mas_output_posterior_sigue_detectando_repeticion():
     ops = _ops(
         "data salida; set src; if x=1 then output salida; "

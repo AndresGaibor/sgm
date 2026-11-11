@@ -1,0 +1,17 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- IF/ELSE IF
+- OUTPUT MISMO DESTINO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- SALIDA
+razonamiento: 'Las dos ramas IF y ELSE IF son mutuamente excluyentes y escriben en el mismo dataset. Se combinan sus predicados con prioridad, sin agregar una salida para las filas que no coinciden. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(SALIDA) == 2
+- suma(SALIDA.valor) == 4

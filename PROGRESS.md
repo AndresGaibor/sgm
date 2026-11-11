@@ -6384,3 +6384,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: suite completa **3083 pasan, 34 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
 - Referencia: `lestmtsref`, PDF p. 274, `OUTPUT` condicionado por IF/ELSE y escritura inmediata.
 - Límite: sigue pendiente compilar el Job en Studio por el diálogo `Confirm`.
+
+## Hito 183. Combinar ramas condicionales al mismo destino
+
+- Fecha: 2026-11-11.
+- Qué se hizo: la consolidación ahora cubre cadenas IF/ELSE IF/ELSE: cuando un dataset recibe como
+  máximo una escritura por iteración desde ramas mutuamente excluyentes, sus predicados se combinan
+  en una sola salida del `tMap`. Con `ELSE`, un destino presente en todas las ramas queda sin filtro;
+  sin `ELSE`, el filtro combinado mantiene fuera las observaciones no coincidentes.
+- Seguridad: se rechaza una rama que nombra el mismo destino más de una vez y se conservan los
+  pendientes para otras escrituras repetidas fuera de cadenas excluyentes.
+- Corpus: `L6/l6_20_output_else_if_mismo_destino` valida dos ramas que escriben al mismo dataset, sin
+  `ELSE`. El intérprete coincide con el CSV esperado y el Job pasa el validador estructural.
+- Corpus total: 127 casos, 20 en L6 y 125 con esperado.
+- Pruebas: suite completa **3091 pasan, 35 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
+- Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` puede ser parte de IF-THEN y escribe inmediatamente.
+- Límite: Studio todavía no compila el Job por el diálogo `Confirm` documentado.

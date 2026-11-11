@@ -125,6 +125,12 @@ def _calc_output_if_else_mismo_destino(e: Entradas) -> dict[str, list[dict]]:
     return {"SALIDA": [dict(fila) for fila in e["REGISTROS"]]}
 
 
+def _calc_output_else_if_mismo_destino(e: Entradas) -> dict[str, list[dict]]:
+    """Una salida común recoge la unión de dos ramas priorizadas sin ELSE final."""
+    filas = [fila for fila in e["REGISTROS"] if fila["valor"] in (1, 3)]
+    return {"SALIDA": [dict(fila) for fila in filas]}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -517,6 +523,25 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "Las ramas IF y ELSE son excluyentes y ambas ejecutan una única escritura al mismo "
             "dataset. Se consolida una sola salida sin filtro, equivalente a que cada observación "
             "se escriba una vez. Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_20_output_else_if_mismo_destino": {
+        "construcciones": ["DATA STEP", "IF/ELSE IF", "OUTPUT MISMO DESTINO"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 3)],
+            ),
+        },
+        "calculo_salidas": _calc_output_else_if_mismo_destino,
+        "columnas": ["id", "valor"],
+        "salidas": ["SALIDA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": ["filas(SALIDA) == 2", "suma(SALIDA.valor) == 4"],
+        "razonamiento": (
+            "Las dos ramas IF y ELSE IF son mutuamente excluyentes y escriben en el mismo dataset. "
+            "Se combinan sus predicados con prioridad, sin agregar una salida para las filas que "
+            "no coinciden. Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }
