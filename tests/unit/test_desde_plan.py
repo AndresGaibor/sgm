@@ -456,7 +456,7 @@ def test_l6_13_output_multiple_destinos_emite_el_mismo_enrutamiento_del_corpus()
         / "programa.sas"
     )
     plan = _plan(programa.read_text(encoding="utf-8"))
-    esquema = {"work.registros": [Column("ID", "String"), Column("VALOR", "Long")]}
+    esquema = {"work.registros": [Column("id", "String"), Column("valor", "Long")]}
 
     resultado = plan_a_jobs(plan, esquema)
 
@@ -467,6 +467,30 @@ def test_l6_13_output_multiple_destinos_emite_el_mismo_enrutamiento_del_corpus()
     ]
     assert sum(nodo.componente == "tFileOutputDelimited" for nodo in resultado.jobs[0].nodos) == 3
     assert all(f'name="out{indice}"' in _tmap(resultado.jobs[0]) for indice in (1, 2, 3))
+
+
+def test_l6_14_output_en_puntos_del_pdv_conserva_el_orden_y_dos_salidas():
+    programa = (
+        Path(__file__).resolve().parents[1]
+        / "corpus"
+        / "L6"
+        / "l6_14_output_en_puntos_del_pdv"
+        / "programa.sas"
+    )
+    plan = _plan(programa.read_text(encoding="utf-8"))
+    esquema = {"work.registros": [Column("id", "String"), Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    job = resultado.jobs[0]
+    mapas = [nodo.datos for nodo in job.nodos if nodo.componente == "tMap"]
+    assert len(mapas) >= 3
+    assert 'name="valor" expression="row1.valor"' in mapas[0]
+    assert 'name="valor" expression="(row2.valor + 10)"' in mapas[1]
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in job.nodos) == 2
+    assert any(nodo.componente == "tReplicate" for nodo in job.nodos)
+    assert validar_job(job) == []
 
 
 def test_asignacion_condicional_numerica_derivada_queda_pendiente_por_faltante_sas():

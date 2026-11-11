@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 175, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 176, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -597,8 +597,12 @@ p. 274: todo destino nombrado debe aparecer en el encabezado `DATA`; de lo contr
 como hueco y no se emite una salida parcial. También se detectan destinos escritos más de una vez en
 el mismo DATA step y se marca el paso como `OUTPUT_DESTINO_REPETIDO`; el intérprete los rechaza en
 vez de sobrescribir filas. No se emite un Job parcial sin un mecanismo validado para duplicar esas
-escrituras. Studio continúa bloqueado por un diálogo `Confirm`; no se reinstaló ni cambió Talend.
-MG-P4-02 permanece parcial hasta compilar el Job y ampliar esos patrones.
+escrituras. El nuevo caso `L6/l6_14_output_en_puntos_del_pdv` verifica dos escrituras en puntos
+distintos: la primera conserva el PDV antes de una asignación y la segunda el valor posterior
+(`lestmtsref`, p. 274). El emisor usa `tReplicate` para preservar la primera captura y alinea los
+nombres de salida/entrada entre `tMap` sucesivos; el Job pasa el validador estructural. Studio
+continúa bloqueado por un diálogo `Confirm`; no se reinstaló ni cambió Talend. MG-P4-02 permanece
+parcial hasta compilar el Job y ampliar esos patrones.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

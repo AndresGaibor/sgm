@@ -6274,3 +6274,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: aunque algunas ramas mutuamente excluyentes podrían combinarse, se rechazan todas las
   repeticiones hasta validar una emisión que preserve tanto las ramas como las escrituras múltiples
   en la misma iteración.
+
+## Hito 176. Capturar `OUTPUT` antes y después de una asignación
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se añadió `L6/l6_14_output_en_puntos_del_pdv`. El primer `OUTPUT` escribe `valor` antes
+  de una asignación; el segundo escribe el valor incrementado. El oráculo de referencia, el intérprete
+  y los CSV esperados coinciden en ambas salidas.
+- Emisión: se corrige el nombre del conector entre un `tMap` con un único consumidor `tMap` y la
+  entrada de este último. El caso genera dos escrituras, separa la primera captura mediante
+  `tReplicate`, y el Job pasa `validar_job` sin pendientes.
+- Corpus: 121 casos en total, 14 en L6 y 119 con esperado.
+- Pruebas: suite completa **3041 pasan, 29 se saltan, 142 xfail**; Ruff y diff check con CRLF limpios.
+- Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` escribe la observación inmediatamente en el punto
+  donde aparece, no al final del DATA step.
+- Bloqueo: la compilación en Studio sigue pendiente por el diálogo `Confirm`; no se modificó Talend.

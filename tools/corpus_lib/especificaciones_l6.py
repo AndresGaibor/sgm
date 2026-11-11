@@ -85,6 +85,14 @@ def _calc_output_multiple(e: Entradas) -> dict[str, list[dict]]:
     return {"SALIDA_BAJA": bajas, "COPIA_BAJA": bajas, "SALIDA_ALTA": altas}
 
 
+def _calc_output_en_puntos(e: Entradas) -> dict[str, list[dict]]:
+    """Cada OUTPUT captura el valor actual del PDV en el punto donde se ejecuta."""
+    filas = e["REGISTROS"]
+    antes = [dict(fila) for fila in filas]
+    despues = [{**fila, "valor": fila["valor"] + 10} for fila in filas]
+    return {"ANTES": antes, "DESPUES": despues}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -327,6 +335,30 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "la rama THEN escribe en "
             "dos datasets y la observación sin rama se descarta por OUTPUT explícito. Referencia: "
             "lestmtsref, PDF pp. 132–133 y 273–274."
+        ),
+    },
+    "l6_14_output_en_puntos_del_pdv": {
+        "construcciones": ["DATA STEP", "OUTPUT MÚLTIPLE", "ASIGNACIÓN ENTRE OUTPUT"],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 2), ("y", 5)],
+            ),
+        },
+        "calculo_salidas": _calc_output_en_puntos,
+        "columnas": ["id", "valor"],
+        "salidas": ["ANTES", "DESPUES"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(ANTES) == 2",
+            "filas(DESPUES) == 2",
+            "suma(ANTES.valor) == 7",
+            "suma(DESPUES.valor) == 27",
+        ],
+        "razonamiento": (
+            "OUTPUT escribe el PDV inmediatamente. La primera tabla conserva VALOR antes de la "
+            "asignación; la segunda recibe VALOR después de sumarle 10. Referencia: "
+            "lestmtsref, PDF p. 274."
         ),
     },
 }

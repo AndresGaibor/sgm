@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- OUTPUT MÚLTIPLE
+- ASIGNACIÓN ENTRE OUTPUT
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- ANTES
+- DESPUES
+razonamiento: 'OUTPUT escribe el PDV inmediatamente. La primera tabla conserva VALOR antes de la asignación; la segunda recibe VALOR después de sumarle 10. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(ANTES) == 2
+- filas(DESPUES) == 2
+- suma(ANTES.valor) == 7
+- suma(DESPUES.valor) == 27

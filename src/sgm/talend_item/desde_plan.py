@@ -18,6 +18,7 @@ en vez de generar un nodo vacío o un pendiente que no existe.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field, replace
 
 from sgm.ir.desplegar import plan_desplegado
@@ -557,6 +558,30 @@ class _Job:
             self.traza[nodo.unico] = sorted(lineas)
 
     # -- conexiones --------------------------------------------------------------------------
+    def _alinear_tmaps(self) -> None:
+        """Alinea la salida de un `tMap` con la única entrada del `tMap` siguiente."""
+        for arista in self.plan.graph.edges():
+            desde, hasta = self._resolver(arista.src), self._resolver(arista.dst)
+            if (
+                desde is None
+                or hasta is None
+                or desde not in self._salidas_map
+                or hasta not in self._entradas_map
+                or len(self.plan.graph.successors(desde)) != 1
+            ):
+                continue
+            entrada = self._entradas_map[hasta].get(desde)
+            nodo = self._nodo.get(desde)
+            actual = self._salidas_map[desde]
+            if not entrada or not nodo or entrada == actual:
+                continue
+            patron = rf'(<outputTables\b[^>]*\bname="){re.escape(actual)}(")'
+            nodo.datos, cambios = re.subn(
+                patron, rf"\g<1>{entrada}\g<2>", nodo.datos, count=1
+            )
+            if cambios:
+                self._salidas_map[desde] = entrada
+
     def _repartos(self) -> None:
         """Un nodo con varios consumidores reparte su flujo con un `tReplicate`.
 
@@ -739,6 +764,7 @@ class _Job:
                     )
                 )
             self.visitados.add(op_id)
+        self._alinear_tmaps()
         self._repartos()
         self._conectar()
         self._cierres()
