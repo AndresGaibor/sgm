@@ -582,6 +582,12 @@ class _Job:
                 patron, rf"\g<1>{entrada}\g<2>", nodo.datos, count=1
             )
             if cambios:
+                # El esquema de la salida se llama como la salida: si no, Studio carga el Job
+                # pero avisa de un error en esa conexión («Some errors appear after the migration»).
+                nodo.metadatas = [
+                    replace(bloque, nombre=entrada) if bloque.nombre == actual else bloque
+                    for bloque in nodo.metadatas or []
+                ]
                 if rama:
                     self._ramas[desde][hasta] = entrada
                 else:

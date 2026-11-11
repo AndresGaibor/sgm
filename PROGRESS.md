@@ -6516,3 +6516,42 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Studio: el bridge sigue sin responder; este caso aún no tiene compilación real.
 - Límite: MG-P4-02 sigue parcial; las validaciones Studio pendientes incluyen `L6/l6_18` y los nuevos
   `L6/l6_22`–`L6/l6_24`.
+
+## Hito 191. Studio autónomo, validación de OUTPUT y defecto `row2` del `tMap`
+
+- Fecha: 2026-11-11.
+- Causa de que Studio «no respondiera» (hitos 144m a 187): no era Studio. El bridge (3930) estaba
+  sano y lo que estaba apagado era el servidor MCP (3927). Se levantó y `sgm studio salud` volvió a
+  dar `Studio responde y deja escribir.`
+- `talend-mcp` (repositorio propio, con autorización del usuario; commits `ae151d2` y `e88783c`):
+  - `bun run supervisor`: proceso de fondo que mide el MCP y el bridge cada 10 s y relanza el MCP si
+    muere o no responde tres muestras seguidas (espera de 1 a 30 s). Probado matando el MCP: vuelve en
+    unos 6 s. Latido en `logs/supervisor.json`. No reinicia Studio.
+  - `classifyStudioState` (`studio-state.ts`): READY, NOT_RUNNING, WAITING_LOGIN, BRIDGE_DEAD,
+    MODAL_BLOCKING y BUSY como función pura.
+  - **Diálogos autónomos** (`src/talend/studio/modals/`): lee título, mensajes y botones con UI
+    Automation de Windows, sin pasar por el bridge; decide con una política (`modal-policy.ts`) y pulsa
+    (`InvokePattern` o `BM_CLICK`). Cada diálogo queda en `logs/modales.jsonl`. Reglas: respuesta fija
+    para los conocidos, licencias y módulos se aceptan (decisión del usuario), error o aviso se registra
+    y se cierra, pregunta desconocida contesta lo que no cambia nada, y contraseña, campos editables o
+    «borrar o sobrescribir» se dejan para una persona. Probado con un diálogo de error real de otro
+    proceso con el texto exacto de `row2`: lo leyó, lo clasificó como error, pulsó «Aceptar» y se cerró.
+    `bun run modales -- --dry-run` lo usa a mano. 698 pruebas de `talend-mcp` pasan y `tsc` está limpio.
+  - No se pudo registrar el supervisor como tarea de inicio de sesión: el sistema bloqueó esa acción
+    (persistencia en el equipo). El instalador existe en `scripts/supervisor-install.ts` y lo corre el
+    usuario con `bun run scripts/supervisor-install.ts`.
+- `sgm`:
+  - `tools/validar_caso_studio.py <caso>...`: migra con la muestra, deduce el mapa de contexto y valida
+    en Studio con un solo comando. **Validados en Studio: `l6_18`, `l6_22`, `l6_23` y `l6_24`, 4 de 4
+    `coincide`, 0 diferencias.** Cierra las validaciones pendientes de los hitos 187 a 190.
+  - Defecto real que vio el usuario en Studio: al abrir el Job de `l6_18`, «Error when loading the job
+    ... connections: row2». `_alinear_tmaps` renombraba la salida del `tMap` (`out3` a `row2`) pero no su
+    esquema `<metadata>`. Corregido en `desde_plan.py` y nueva regla `_esquemas_de_tmap` en el validador
+    estructural (`validar_job`), con `tests/unit/test_metadatos_salidas_tmap.py`. El Job compiló y ejecutó
+    bien antes y después; el defecto era del esquema, no del resultado.
+- Planes: `docs/superpowers/plans/2026-11-11-ruta-al-100.md` (Planes A a K, con olas) y
+  `2026-11-11-mg-a-studio-y-mcp-fiables.md` (Plan A detallado).
+- Pruebas: suite completa **3128 pasan, 39 se saltan y 142 xfail**; `ruff` limpio.
+- Límites: Plan A sin terminar (`tHashInput`, joblets, spike de compilación sin ventana, cola de
+  validaciones). La copia de `Cod2.txt` de Descargas contiene una contraseña en claro (línea 77): no se
+  usó y debe tratarse como expuesta. El avance sigue en ≈ 29 % estimado; no se recalculó la sección 11b.

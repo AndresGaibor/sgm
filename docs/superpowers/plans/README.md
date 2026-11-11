@@ -20,6 +20,16 @@ termina, con las firmas reales que dejó el anterior.
 | MG-11 (por escribir) | Rendimiento, seguridad y experiencia de uso (MG-P11 a MG-P13) | MG-07 | pendiente |
 | MG-12 (por escribir) | Producción: empaquetado, piloto, corrida paralela, corte (MG-P14, personas) | todos | pendiente |
 
+**Ruta al 100 % (11 de noviembre de 2026).** `2026-11-11-ruta-al-100.md` es el plan maestro de planes: reemplaza
+la lista «por escribir» de arriba (MG-04 a MG-12) por los Planes A a K, con dueño, dependencias, olas y prueba de
+cierre. Cada plan se expande a pasos cuando empieza su ola. Ya expandido: Plan A en
+`2026-11-11-mg-a-studio-y-mcp-fiables.md` (Studio y `talend-mcp` fiables).
+
+| Plan | Contenido | Estado |
+|---|---|---|
+| A | Studio y `talend-mcp` fiables, `tHashInput`, joblets, cola de validaciones | escrito, sin ejecutar |
+| B a K | DATA step, SQL y procedimientos, E/S y expresiones, macros, arquitectura y emisor, verificación, producto, producción, datos de prueba | por expandir según su ola |
+
 Regla de oro de todos los planes (instrucción del usuario): el migrador **no falla nunca**. Si algo no se puede
 traducir o falta configuración o credenciales, se omite, se documenta en `pendientes.md` y
 `configuracion-pendiente.md`, y el resto se genera al máximo.

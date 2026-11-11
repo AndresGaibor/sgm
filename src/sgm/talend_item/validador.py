@@ -206,6 +206,25 @@ def _nombres_de_tmap(job: Job) -> list[str]:
     return problemas
 
 
+def _esquemas_de_tmap(job: Job) -> list[str]:
+    """Cada salida de un `tMap` necesita un esquema `<metadata>` con su mismo nombre.
+
+    Si la salida se llama `row2` y su esquema `out3`, Studio abre el Job pero avisa «Some errors
+    appear after the migration in the following connections: row2».
+    """
+    problemas: list[str] = []
+    for nodo in job.nodos:
+        if nodo.componente != "tMap" or not nodo.metadatas:
+            continue
+        esquemas = {bloque.nombre for bloque in nodo.metadatas}
+        for salida in sorted(_nombres_tmap(nodo, "outputTables") - esquemas):
+            problemas.append(
+                f"la salida '{salida}' del tMap '{nodo.unico}' no tiene un esquema con su nombre "
+                f"(tiene {sorted(esquemas)}): Studio avisa de un error en esa conexión"
+            )
+    return problemas
+
+
 def _enumerar(nombres: list[str]) -> str:
     """Une nombres en castellano: «A y B», «A, B y C»."""
     if len(nombres) == 1:
@@ -223,6 +242,7 @@ def validar_job(job: Job) -> list[str]:
         *_contextos(job),
         *_superposicion(job),
         *_nombres_de_tmap(job),
+        *_esquemas_de_tmap(job),
     ]
 
 

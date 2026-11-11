@@ -647,6 +647,7 @@ El intento de `L6/l6_18_output_condicional_sin_destino_con_continuacion` no lleg
 bridge agotó 180 s y después `sgm studio salud` agotó el tiempo de espera. No hay procesos escuchando
 en 3927/3930, aunque Talend Studio sigue abierto; el arnés limpió los Jobs de prueba. Esta validación
 queda pendiente hasta recuperar la comunicación con Studio; no se contabiliza como pasada.
+**Hito 191 (11 de noviembre de 2026).** Con Studio de nuevo disponible se validaron `L6/l6_18`, `l6_22`, `l6_23` y `l6_24` con `tools/validar_caso_studio.py`: 4 de 4 `coincide`. Studio abría `l6_18` con el aviso «connections: row2»: el esquema de la salida del `tMap` no se renombraba junto con la salida; corregido y vigilado por el validador estructural. MG-P4-02 sigue parcial: faltan el generador de combinaciones de `OUTPUT` y una validación en lote.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`
