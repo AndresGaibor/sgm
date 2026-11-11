@@ -6625,3 +6625,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Documentado en `talend-mcp/docs/studio-internals/07-componentes-avanzados.md`, seccion 70, que
   deja de estar pendiente.
 - Límite: el resto del Plan A sigue abierto (A-4, A-6; A-7 solo tiene el reconocimiento).
+
+## Hito 194. Joblets: spike desde archivo y decision provisional
+
+- Fecha: 2026-11-11.
+- Que se hizo (A-6 del Plan A, en `talend-mcp`): se escribio un joblet minimo con el generador del
+  repositorio (`JL_prueba_mcp`, con `tJobletInput`, `tJobletOutput`, una conexion `row1` y una
+  variable de contexto) en `PRJ_BANCOLOMBIA/joblets/`. El generador produce las dos piezas que Studio
+  espera: el `.item` con los nodos y el parametro de contexto, y el `.properties` con
+  `TalendProperties:JobletProcessItem`.
+- No se pudo confirmar la carga: `/workspace/refresh` del bridge contesto que el hilo de la interfaz
+  de Studio estaba ocupado (el IDE compilaba a la vez) y `/automation/components` solo enumera los
+  componentes `t*` de la paleta, no los joblets del proyecto.
+- Decision: se adopta el **plan B** del plan, un Job hijo con `tRunJob` para reutilizar logica, y no
+  se registra `talend_joblets_create_from_spec` mientras no haya prueba de carga en la interfaz.
+  Queda escrito en `talend-mcp/docs/studio-internals/11-joblets-desde-archivo.md`, con lo que falta
+  para cerrar A-6.
+- Los archivos de prueba se borraron del proyecto del usuario: no queda un joblet incompleto en el
+  repositorio.
