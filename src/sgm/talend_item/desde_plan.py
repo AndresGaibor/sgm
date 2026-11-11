@@ -567,12 +567,14 @@ class _Job:
                 or hasta is None
                 or desde not in self._salidas_map
                 or hasta not in self._entradas_map
-                or len(self.plan.graph.successors(desde)) != 1
             ):
                 continue
             entrada = self._entradas_map[hasta].get(desde)
             nodo = self._nodo.get(desde)
-            actual = self._salidas_map[desde]
+            rama = self._ramas.get(desde, {}).get(hasta)
+            if not rama and len(self.plan.graph.successors(desde)) != 1:
+                continue
+            actual = rama or self._salidas_map[desde]
             if not entrada or not nodo or entrada == actual:
                 continue
             patron = rf'(<outputTables\b[^>]*\bname="){re.escape(actual)}(")'
@@ -580,7 +582,10 @@ class _Job:
                 patron, rf"\g<1>{entrada}\g<2>", nodo.datos, count=1
             )
             if cambios:
-                self._salidas_map[desde] = entrada
+                if rama:
+                    self._ramas[desde][hasta] = entrada
+                else:
+                    self._salidas_map[desde] = entrada
 
     def _repartos(self) -> None:
         """Un nodo con varios consumidores reparte su flujo con un `tReplicate`.

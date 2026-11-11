@@ -270,7 +270,7 @@ def test_output_no_declarado_no_emite_escritura_parcial():
     )
 
 
-def test_output_condicional_no_terminal_no_emite_escritura_parcial():
+def test_output_condicional_no_terminal_emite_salidas_y_continuacion():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
         "GETNAMES=YES;\nRUN;\n"
@@ -280,16 +280,19 @@ def test_output_condicional_no_terminal_no_emite_escritura_parcial():
         "ELSE OUTPUT WORK.tarde;\n"
         "valor=valor+10;\n"
         "OUTPUT WORK.final;\n"
-        "RUN;"
+        "RUN;\n"
+        "PROC EXPORT DATA=WORK.temprano OUTFILE='temprano.csv' DBMS=CSV REPLACE; RUN;\n"
+        "PROC EXPORT DATA=WORK.tarde OUTFILE='tarde.csv' DBMS=CSV REPLACE; RUN;\n"
+        "PROC EXPORT DATA=WORK.final OUTFILE='final.csv' DBMS=CSV REPLACE; RUN;"
     )
     esquema = {"work.entrada": [Column("valor", "Long")]}
 
     resultado = plan_a_jobs(plan, esquema)
 
-    assert any(p.codigo == "P-OPERADOR-SIN-SOPORTE" for p in resultado.pendientes)
-    assert not any(
-        nodo.componente == "tFileOutputDelimited" for job in resultado.jobs for nodo in job.nodos
-    )
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    job = resultado.jobs[0]
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in job.nodos) == 3
+    assert validar_job(job) == []
 
 
 def test_output_con_destino_repetido_en_sentencias_distintas_queda_pendiente():

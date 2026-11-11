@@ -1,0 +1,22 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- OUTPUT CONDICIONAL
+- CONTINUACIÓN DEL FLUJO
+- OUTPUT POSTERIOR
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- TEMPRANO
+- TARDE
+- FINAL
+razonamiento: 'Los OUTPUT condicionales escriben cada observación en TEMPRANO o TARDE y no detienen la iteración. La asignación posterior se procesa para todas las observaciones y el OUTPUT final las escribe en FINAL. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(TEMPRANO) == 2
+- filas(TARDE) == 1
+- filas(FINAL) == 3
+- suma(FINAL.valor) == 34

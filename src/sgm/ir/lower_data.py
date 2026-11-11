@@ -204,11 +204,7 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     omit: set[int] = set()
     destinos_invalidos = _undeclared_output_targets(stmts, step.outputs)
     destinos_repetidos = _repeated_output_targets(stmts)
-    condicionales_no_terminales = _nonterminal_conditional_outputs(stmts)
-    paso_output_invalido = any(
-        problema is not None
-        for problema in (destinos_invalidos, destinos_repetidos, condicionales_no_terminales)
-    )
+    paso_output_invalido = destinos_invalidos is not None or destinos_repetidos is not None
     if paso_output_invalido:
         if destinos_invalidos is not None:
             sentencias, faltantes = destinos_invalidos
@@ -220,13 +216,6 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             reason_detail = "OUTPUT_DESTINO_REPETIDO"
             nombres = ", ".join(sorted(repetidos))
             mensaje = f"OUTPUT escribe más de una vez en el mismo destino: {nombres}"
-        else:
-            sentencias = condicionales_no_terminales or []
-            reason_detail = "OUTPUT_CONDICIONAL_NO_TERMINAL"
-            mensaje = (
-                "OUTPUT condicional seguido de más sentencias requiere preservar "
-                "el flujo restante"
-            )
         evidencia_salida = _statement_evidence(sentencias[0], ev)
         pendiente = b.op(
             "unsupported",
@@ -278,7 +267,9 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             continue
         salidas_condicionales = _conditional_output_chain(stmts, index)
         if salidas_condicionales is not None:
-            ramas, destinos, siguiente = salidas_condicionales
+            ramas, destinos, siguiente, terminal = salidas_condicionales
+            if not terminal:
+                ramas.append({"outputs": [], "continue": True})
             salida_condicional = b.op(
                 "map",
                 {"steps": [], "outputs": destinos, "branches": ramas},
@@ -569,8 +560,8 @@ def _conditional_output(s: DsStatement) -> dict | None:
 
 def _conditional_output_chain(
     stmts: list[DsStatement], index: int
-) -> tuple[list[dict], list[str], int] | None:
-    """Agrupa un IF/ELSE IF/ELSE de OUTPUT terminal en ramas mutuamente excluyentes."""
+) -> tuple[list[dict], list[str], int, bool] | None:
+    """Agrupa salidas condicionales y deja una rama sin filtro para continuar el DATA step."""
     primera = _conditional_output(stmts[index])
     if primera is None or primera.get("branch") != "then" or not primera.get("condition"):
         return None
@@ -592,8 +583,13 @@ def _conditional_output_chain(
             hay_else = True
             cursor += 1
         break
-    if cursor <= index + 1 or cursor != len(stmts):
-        return None
+    terminal = cursor == len(stmts)
+    if cursor <= index + 1 and terminal:
+        return None  # IF ... THEN OUTPUT terminal se conserva como split simple.
+    if cursor < len(stmts):
+        siguiente = _conditional_output(stmts[cursor])
+        if siguiente and siguiente.get("branch") in {"else_if", "else"}:
+            return None
     destinos = [destino for _condicion, objetivos in alternativas for destino in objetivos]
     if any(not destino or destino.lower() == "_null_" for destino in destinos):
         return None
@@ -613,23 +609,7 @@ def _conditional_output_chain(
             {"expression": expresion_rama, "outputs": [qualify(destino)]}
             for destino in objetivos
         )
-    return ramas, [qualify(destino) for destino in destinos], cursor - 1
-
-
-def _nonterminal_conditional_outputs(stmts: list[DsStatement]) -> list[DsStatement] | None:
-    """Una rama condicional solo es segura si es un OUTPUT simple terminal o cadena terminal."""
-    indices = [index for index, stmt in enumerate(stmts) if _conditional_output(stmt)]
-    if not indices:
-        return None
-    if (
-        len(indices) == 1
-        and indices[0] == len(stmts) - 1
-        and (_conditional_output(stmts[indices[0]]) or {}).get("branch") == "then"
-    ):
-        return None
-    if _conditional_output_chain(stmts, indices[0]) is not None:
-        return None
-    return [stmts[index] for index in indices]
+    return ramas, [qualify(destino) for destino in destinos], cursor - 1, terminal
 
 
 def _output_sequence(stmts: list[DsStatement], index: int) -> tuple[list[str], int] | None:

@@ -819,7 +819,7 @@ def test_output_repetido_a_mismo_destino_no_finge_el_numero_de_filas():
         ejecutar_plan(plan, {"entrada": [{"id": "1"}]})
 
 
-def test_output_condicional_no_terminal_no_se_salta_el_flujo_que_continua():
+def test_output_condicional_no_terminal_escribe_y_continua_con_todas_las_filas():
     plan = _plan(
         "DATA WORK.temprano WORK.tarde WORK.final;\n"
         "SET WORK.entrada;\n"
@@ -830,8 +830,11 @@ def test_output_condicional_no_terminal_no_se_salta_el_flujo_que_continua():
         "RUN;"
     )
 
-    with pytest.raises(NoSoportadoEnInterprete, match="unsupported"):
-        ejecutar_plan(plan, {"entrada": [{"valor": "1"}]})
+    tablas = ejecutar_plan(plan, {"entrada": [{"valor": "1"}, {"valor": "2"}]})
+
+    assert tablas["temprano"] == [{"valor": "1"}]
+    assert tablas["tarde"] == [{"valor": "2"}]
+    assert tablas["final"] == [{"valor": "11"}, {"valor": "12"}]
 
 
 def test_output_if_sin_else_escribe_solo_si_se_cumple_la_condicion():

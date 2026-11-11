@@ -93,6 +93,15 @@ def _calc_output_en_puntos(e: Entradas) -> dict[str, list[dict]]:
     return {"ANTES": antes, "DESPUES": despues}
 
 
+def _calc_output_continuacion(e: Entradas) -> dict[str, list[dict]]:
+    """Las salidas condicionales no interrumpen el procesamiento de las filas."""
+    filas = e["REGISTROS"]
+    tempranas = [dict(fila) for fila in filas if fila["valor"] == 1]
+    tardias = [dict(fila) for fila in filas if fila["valor"] != 1]
+    finales = [{**fila, "valor": fila["valor"] + 10} for fila in filas]
+    return {"TEMPRANO": tempranas, "TARDE": tardias, "FINAL": finales}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -359,6 +368,35 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "OUTPUT escribe el PDV inmediatamente. La primera tabla conserva VALOR antes de la "
             "asignación; la segunda recibe VALOR después de sumarle 10. Referencia: "
             "lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_15_output_condicional_con_continuacion": {
+        "construcciones": [
+            "DATA STEP",
+            "OUTPUT CONDICIONAL",
+            "CONTINUACIÓN DEL FLUJO",
+            "OUTPUT POSTERIOR",
+        ],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 1)],
+            ),
+        },
+        "calculo_salidas": _calc_output_continuacion,
+        "columnas": ["id", "valor"],
+        "salidas": ["TEMPRANO", "TARDE", "FINAL"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(TEMPRANO) == 2",
+            "filas(TARDE) == 1",
+            "filas(FINAL) == 3",
+            "suma(FINAL.valor) == 34",
+        ],
+        "razonamiento": (
+            "Los OUTPUT condicionales escriben cada observación en TEMPRANO o TARDE y no detienen "
+            "la iteración. La asignación posterior se procesa para todas las observaciones y el "
+            "OUTPUT final las escribe en FINAL. Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }

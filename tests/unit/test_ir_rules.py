@@ -124,17 +124,22 @@ def test_output_repetido_a_mismo_destino_se_marca_como_hueco():
     assert not _by_kind(ops, "split")
 
 
-def test_output_condicional_seguido_de_asignacion_y_otro_output_queda_pendiente():
+def test_output_condicional_no_terminal_agrega_rama_de_continuacion():
     ops = _ops(
         "data temprano tarde final; set origen; "
         "if x=1 then output temprano; else output tarde; "
         "x=x+10; output final; run;"
     )
 
-    (pendiente,) = _by_kind(ops, "unsupported")
+    (mapa,) = _by_kind(ops, "map")
 
-    assert pendiente.params["reason_detail"] == "OUTPUT_CONDICIONAL_NO_TERMINAL"
-    assert not _by_kind(ops, "split")
+    assert [rama.get("outputs") for rama in mapa.params["branches"]] == [
+        ["WORK.temprano"],
+        ["WORK.tarde"],
+        [],
+    ]
+    assert mapa.params["branches"][-1]["continue"] is True
+    assert not _by_kind(ops, "unsupported")
 
 
 def test_retain_lag_y_first_last_son_estado_por_fila():

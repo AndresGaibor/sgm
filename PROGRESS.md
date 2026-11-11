@@ -6302,3 +6302,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   compilación de `L6/l6_14` en Studio continúa pendiente por el diálogo `Confirm`.
 - Decisión: diferir la emisión no terminal hasta contar con una salida de continuación que conserve
   todas las filas y los valores del PDV en cada punto de escritura.
+
+## Hito 178. Continuar el flujo tras `OUTPUT` condicional
+
+- Fecha: 2026-11-10.
+- Qué se hizo: las cadenas condicionales `OUTPUT` seguidas de más sentencias agregan una rama de
+  continuación sin filtro. Las tablas condicionales capturan las observaciones donde aparece cada
+  `OUTPUT`; el flujo completo continúa hacia las sentencias posteriores.
+- Emisión e intérprete: se conserva la salida de continuación al conectar con el siguiente `tMap`, y
+  el intérprete usa todas las filas del mapa anterior como entrada de las transformaciones posteriores.
+- Corpus: se añadió `L6/l6_15_output_condicional_con_continuacion`, con dos ramas condicionales, una
+  asignación posterior y un `OUTPUT` final que recibe todas las filas. El intérprete coincide con los
+  CSV esperados; el Job emite tres exportaciones y pasa `validar_job`.
+- Corpus total: 122 casos, 15 en L6 y 120 con esperado.
+- Pruebas: suite completa **3049 pasan, 30 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
+- Límite: el Job todavía no se ha compilado en Studio; persiste el diálogo `Confirm` documentado.
+- Decisión: la continuación solo recibe una rama sin condición para la cadena condicional reconocida;
+  no se infieren ramas faltantes de otras formas de control de flujo.

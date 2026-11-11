@@ -824,7 +824,12 @@ def _base(
     """La entrada que se acumula: el primer predecesor que no es el lado derecho de una unión."""
     previos = plan.graph.predecessors(op.id)
     for previo in previos:
-        nombres = _nombres(plan.graph.operator(previo))
+        operador_previo = plan.graph.operator(previo)
+        if operador_previo.kind == "map" and any(
+            rama.get("continue") for rama in operador_previo.params.get("branches") or []
+        ):
+            return por_operador.get(previo, [])
+        nombres = _nombres(operador_previo)
         if not nombres or not set(nombres) <= derechos:
             nombre = next((nombre for nombre in nombres if nombre in (tablas or {})), None)
             return (tablas or {}).get(nombre, por_operador.get(previo, []))
@@ -919,6 +924,8 @@ def _ramas(
     """Un `map` con ramas es un IF/THEN/ELSE que escribe en varias salidas: cada rama su filtro."""
     resultado = {}
     for rama in op.params.get("branches") or []:
+        if rama.get("continue"):
+            continue
         filas_rama = filas
         join_key = rama.get("joinKey")
         if join_key:
