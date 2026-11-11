@@ -6699,3 +6699,24 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   los plugins y las busquedas.
 - Límite: sigue pendiente el tiempo real de un lote de compilacion en Studio; el segundo intento de
   medirlo encontro el hilo de la interfaz ocupado 300 s mientras el ping daba `READY`.
+
+## Hito 198. La salud ve el hilo de la interfaz; la recuperacion usa la herramienta real
+
+- Fecha: 2026-11-11.
+- Que se hizo (A-8/A-9 del Plan A, en `sgm-v2`): `comprobar_salud` sondea ademas
+  `talend_bridge_workbench_state`, la unica de las tres sondas que corre en el hilo de la interfaz.
+  El ping y la lista de dialogos responden desde el hilo de trabajo del puente, asi que daban `READY`
+  mientras una compilacion tenia la interfaz tomada y el refresco del workspace fallaba. Con el
+  mensaje del puente (`UiThread`, «El hilo de la interfaz de Studio esta ocupado») o con la sonda sin
+  contestar, el estado pasa a `BUSY` y el motivo dice que hay una operacion en curso.
+- Arreglo de la recuperacion: `TOOL_ENSURE` apuntaba a `talend_studio_ensure_ready`, una herramienta
+  que no existe en `talend-mcp`; el rescate de `--recuperar` nunca podia funcionar. Ahora usa
+  `talend_studio_restart` (real, lee el pid del proceso aunque el bridge este caido), vuelve a medir
+  tras el reinicio y sigue sin reiniciar nada con `BUSY`, `MODAL_BLOCKING` o `WAITING_LOGIN`.
+- Pruebas: `tests/unit/test_backend_salud.py` pasa de 2 a 3 sondas en orden, y suma cuatro casos:
+  interfaz ocupada por mensaje del puente, interfaz sin tiempo, y que ninguno de los dos reinicie
+  Studio.
+- Comprobado contra el Studio real: `sgm studio salud` da `READY` cuando la interfaz responde.
+- Nota de operacion: el gancho incluye el codigo de `git status` en la huella, asi que preparar los
+  archivos despues de `tools/ci.py` invalida el cierre. El orden que pasa es preparar, validar y
+  commitear.
