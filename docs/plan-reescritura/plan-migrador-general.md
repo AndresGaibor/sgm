@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 180, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 181, 10 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -615,7 +615,10 @@ tratamiento con estado. Un `OUTPUT;` incondicional no terminal ahora crea, adem�
 declaradas, una rama de continuación completa. `L6/l6_17_output_sin_destino_en_punto_del_pdv` valida
 que las salidas capturen el valor previo a una asignación posterior y que no haya salida implícita.
 Las escrituras repetidas a destinos cubiertos por `OUTPUT;` siguen bloqueadas como
-`OUTPUT_DESTINO_REPETIDO`.
+`OUTPUT_DESTINO_REPETIDO`. La condición sin destino explícito también puede ser no terminal: sus
+escrituras conservan el filtro y una rama sin filtro continúa el procesamiento de todas las filas.
+`L6/l6_18_output_condicional_sin_destino_con_continuacion` valida esa ruta; las exportaciones del Job
+pasan el validador estructural.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

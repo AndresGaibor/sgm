@@ -101,6 +101,20 @@ def test_output_condicional_sin_destino_usa_todas_las_salidas_data():
     assert not _by_kind(ops, "unsupported")
 
 
+def test_output_condicional_sin_destino_no_terminal_conserva_la_continuacion():
+    ops = _ops("data a b; set src; if x=1 then output; x=x+1; run;")
+
+    (mapa,) = _by_kind(ops, "map")
+
+    assert [rama.get("outputs") for rama in mapa.params["branches"]] == [
+        ["WORK.a"],
+        ["WORK.b"],
+        [],
+    ]
+    assert mapa.params["branches"][-1]["continue"] is True
+    assert not _by_kind(ops, "unsupported")
+
+
 def test_output_sin_destino_intermedio_resuelve_las_salidas_del_encabezado():
     ops = _ops("data a b; set src; output; x=x+1; run;")
 

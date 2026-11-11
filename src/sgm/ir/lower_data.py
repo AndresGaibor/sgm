@@ -447,7 +447,10 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             b.refresh(current)
     # OUTPUT explícito suprime la escritura implícita al final de cada iteración SAS.
     # Sus operadores split son los únicos productores de las tablas de salida.
-    if any(statement.kind == "output" for statement in step.statements):
+    if any(
+        statement.kind == "output" or _conditional_output(statement) is not None
+        for statement in step.statements
+    ):
         if not (current.kind == "map" and current.params.get("branches")):
             current.params["outputs"] = []
     else:
@@ -626,8 +629,6 @@ def _conditional_output_chain(
             cursor += 1
         break
     terminal = cursor == len(stmts)
-    if sin_destino and not terminal:
-        return None
     if cursor <= index + 1 and terminal and not sin_destino:
         return None  # IF ... THEN OUTPUT terminal se conserva como split simple.
     if cursor < len(stmts):

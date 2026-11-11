@@ -6351,3 +6351,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` escribe inmediatamente; un `OUTPUT` explícito
   suprime la escritura automática al final de la iteración.
 - Límite: Studio continúa pendiente por el diálogo `Confirm`; no se compiló el Job.
+
+## Hito 181. Continuar tras `IF ... THEN OUTPUT;` sin destino
+
+- Fecha: 2026-11-10.
+- Qué se hizo: se extendió la rama de continuación al `OUTPUT` condicional sin argumento. Las filas
+  que cumplen la condición se escriben en todos los datasets de `DATA`; todas las filas continúan por
+  la transformación posterior, y la salida implícita sigue suprimida.
+- Seguridad: si un `OUTPUT` posterior vuelve a escribir en cualquiera de los destinos implícitos, el
+  DATA step se conserva como `OUTPUT_DESTINO_REPETIDO`, sin Job parcial.
+- Corpus: `L6/l6_18_output_condicional_sin_destino_con_continuacion` verifica el filtro, ambas salidas
+  y la continuación del flujo. El intérprete coincide con los esperados y las exportaciones pasan el
+  validador estructural.
+- Corpus total: 125 casos, 18 en L6 y 123 con esperado.
+- Pruebas: suite completa **3074 pasan, 33 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
+- Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` sin argumento escribe en los datasets de `DATA` y
+  la escritura es inmediata; no hay salida implícita tras usar `OUTPUT` explícito.
+- Límite: el Job aún no se compila en Studio por el diálogo `Confirm` documentado.

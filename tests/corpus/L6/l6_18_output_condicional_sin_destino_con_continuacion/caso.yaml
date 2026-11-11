@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- IF/THEN OUTPUT SIN DESTINO
+- CONTINUACIÓN DEL FLUJO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- PRIMERA
+- SEGUNDA
+razonamiento: 'El OUTPUT condicional sin argumentos escribe el PDV actual en todos los datasets de DATA solo cuando se cumple la condición. La rama de continuación permite procesar todas las observaciones restantes; la asignación posterior no genera salida implícita. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(PRIMERA) == 2
+- filas(SEGUNDA) == 2
+- suma(PRIMERA.valor) == 2
+- suma(SEGUNDA.valor) == 2

@@ -114,6 +114,12 @@ def _calc_output_sin_destino_en_punto(e: Entradas) -> dict[str, list[dict]]:
     return {"ANTES": filas, "COPIA": [dict(fila) for fila in filas]}
 
 
+def _calc_output_condicional_sin_destino_continuacion(e: Entradas) -> dict[str, list[dict]]:
+    """La condición limita OUTPUT, pero todas las filas continúan a las sentencias siguientes."""
+    coinciden = [dict(fila) for fila in e["REGISTROS"] if fila["valor"] == 1]
+    return {"PRIMERA": coinciden, "SEGUNDA": [dict(fila) for fila in coinciden]}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -457,6 +463,36 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "OUTPUT sin argumento escribe de inmediato el PDV en ambos datasets del encabezado. "
             "La asignación posterior no produce una escritura implícita porque el DATA step ya "
             "contiene OUTPUT explícito. Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_18_output_condicional_sin_destino_con_continuacion": {
+        "construcciones": [
+            "DATA STEP",
+            "IF/THEN OUTPUT SIN DESTINO",
+            "CONTINUACIÓN DEL FLUJO",
+        ],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 1)],
+            ),
+        },
+        "calculo_salidas": _calc_output_condicional_sin_destino_continuacion,
+        "columnas": ["id", "valor"],
+        "salidas": ["PRIMERA", "SEGUNDA"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(PRIMERA) == 2",
+            "filas(SEGUNDA) == 2",
+            "suma(PRIMERA.valor) == 2",
+            "suma(SEGUNDA.valor) == 2",
+        ],
+        "razonamiento": (
+            "El OUTPUT condicional sin argumentos escribe el PDV actual en todos los datasets "
+            "de DATA solo cuando se cumple la condición. La rama de continuación permite procesar "
+            "todas las observaciones restantes; la asignación posterior no genera salida "
+            "implícita. "
+            "Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }
