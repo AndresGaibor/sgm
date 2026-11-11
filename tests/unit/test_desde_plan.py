@@ -444,6 +444,26 @@ def test_output_else_if_al_mismo_destino_emite_una_salida_con_predicado_combinad
     assert validar_job(job) == []
 
 
+def test_output_if_else_con_destino_comun_emite_tres_salidas_con_filtros_necesarios():
+    programa = (
+        Path(__file__).resolve().parents[1]
+        / "corpus"
+        / "L6"
+        / "l6_21_output_destinos_parcialmente_comunes"
+        / "programa.sas"
+    )
+    plan = _plan(programa.read_text(encoding="utf-8"))
+    esquema = {"work.registros": [Column("id", "String"), Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [p for p in resultado.pendientes if p.codigo == "P-OPERADOR-SIN-SOPORTE"]
+    job = resultado.jobs[0]
+    assert sum(nodo.componente == "tFileOutputDelimited" for nodo in job.nodos) == 3
+    assert _tmap(job).count('activateExpressionFilter="true"') == 2
+    assert validar_job(job) == []
+
+
 def test_output_if_sin_else_emite_una_salida_filtrada_en_tmap():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"

@@ -582,7 +582,7 @@ Studio compilaron en lote 17 Jobs completos de L0–L2 y siete casos L4 enfocado
 con esquemas basados en cabeceras de muestra, se ejecutaron y coincidieron con sus CSV esperados. La
 cabecera solo prueba nombres; los tipos no demostrados siguen explícitos como pendientes.
 
-**Actualización (hito 183, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
+**Actualización (hito 184, 11 de noviembre de 2026).** MG-P4-02 avanza parcialmente: el parser e IR
 conservan los destinos de `OUTPUT`; el grafo los registra como productores, y el intérprete reparte
 las observaciones, respeta la rama `ELSE` cubierta y suprime la salida implícita. El emisor genera un
 `tMap` con una salida por destino para `OUTPUT` incondicional (incluido un único `OUTPUT;` terminal,
@@ -624,7 +624,9 @@ pasan el validador estructural. El par IF/ELSE inmediato con el mismo destino ta
 en una salida única: `L6/l6_19_output_if_else_mismo_destino` valida que cada observación llegue una
 vez, y el Job pasa el validador. `L6/l6_20_output_else_if_mismo_destino` valida la unión de dos ramas
 ELSE IF al mismo destino sin `ELSE`; se conserva el filtro combinado y se excluyen las filas no
-coincidentes.
+coincidentes. `L6/l6_21_output_destinos_parcialmente_comunes` comprueba ramas con conjuntos de
+destinos parcialmente solapados: la salida común recibe cada fila una vez y las salidas exclusivas
+mantienen sus filtros; el intérprete coincide y el Job pasa el validador.
 
 **Actualización (hito 111n, 6 de noviembre de 2026).** Los predicados emitidos en columnas de DATA
 step se convierten a valores numéricos `Long` 1/0, manteniendo la semántica SAS en la salida. `OUTPUT`

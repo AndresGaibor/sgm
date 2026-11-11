@@ -6400,3 +6400,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: suite completa **3091 pasan, 35 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
 - Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` puede ser parte de IF-THEN y escribe inmediatamente.
 - Límite: Studio todavía no compila el Job por el diálogo `Confirm` documentado.
+
+## Hito 184. Verificar destinos parcialmente solapados
+
+- Fecha: 2026-11-11.
+- Qué se hizo: se añadió `L6/l6_21_output_destinos_parcialmente_comunes` para verificar cadenas
+  IF/ELSE IF/ELSE cuyas listas de destinos se solapan parcialmente. La salida común recibe cada fila
+  una vez y las salidas exclusivas solo reciben la rama correspondiente. El intérprete coincide con
+  el CSV esperado y el Job pasa el validador.
+- Corpus total: 128 casos, 21 en L6 y 126 con esperado.
+- Pruebas: suite completa **3098 pasan, 36 se saltan y 142 xfail**; Ruff y diff check con CRLF limpios.
+- Referencia: `lestmtsref`, PDF p. 274: `OUTPUT` puede nombrar varios datasets y escribe la
+  observación inmediatamente.
+- Límite: la compilación Studio sigue pendiente por el diálogo `Confirm`.

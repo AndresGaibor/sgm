@@ -131,6 +131,14 @@ def _calc_output_else_if_mismo_destino(e: Entradas) -> dict[str, list[dict]]:
     return {"SALIDA": [dict(fila) for fila in filas]}
 
 
+def _calc_output_destinos_solapados(e: Entradas) -> dict[str, list[dict]]:
+    """Combina el destino común y conserva los filtros de los destinos exclusivos."""
+    filas = e["REGISTROS"]
+    primeros = [dict(fila) for fila in filas if fila["valor"] == 1]
+    otros = [dict(fila) for fila in filas if fila["valor"] != 1]
+    return {"PRIMERA": primeros, "COMUN": [dict(fila) for fila in filas], "OTROS": otros}
+
+
 _URL_SORT = (
     "https://support.sas.com/documentation/cdl/en/hosto390/65144/HTML/default/"
     "p03pc2ubulklb5n1hhgpilswqaf6.htm"
@@ -542,6 +550,34 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
             "Las dos ramas IF y ELSE IF son mutuamente excluyentes y escriben en el mismo dataset. "
             "Se combinan sus predicados con prioridad, sin agregar una salida para las filas que "
             "no coinciden. Referencia: lestmtsref, PDF p. 274."
+        ),
+    },
+    "l6_21_output_destinos_parcialmente_comunes": {
+        "construcciones": [
+            "DATA STEP",
+            "IF/ELSE",
+            "OUTPUT CON DESTINOS SOLAPADOS",
+        ],
+        "entradas": {
+            "REGISTROS": (
+                ["id", "valor"],
+                [("x", 1), ("y", 2), ("z", 3)],
+            ),
+        },
+        "calculo_salidas": _calc_output_destinos_solapados,
+        "columnas": ["id", "valor"],
+        "salidas": ["PRIMERA", "COMUN", "OTROS"],
+        "fuentes": [URL_OUTPUT],
+        "invariantes": [
+            "filas(PRIMERA) == 1",
+            "filas(COMUN) == 3",
+            "filas(OTROS) == 2",
+            "suma(COMUN.valor) == 6",
+        ],
+        "razonamiento": (
+            "IF y ELSE escriben en destinos parcialmente comunes: COMUN recibe cada observación "
+            "una vez; PRIMERA y OTROS conservan su rama y filtro. El emisor consolida el destino "
+            "común y combina las condiciones de los exclusivos. Referencia: lestmtsref, PDF p. 274."
         ),
     },
 }

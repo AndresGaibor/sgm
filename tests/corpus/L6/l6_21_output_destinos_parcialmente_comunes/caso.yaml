@@ -1,0 +1,21 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- IF/ELSE
+- OUTPUT CON DESTINOS SOLAPADOS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- PRIMERA
+- COMUN
+- OTROS
+razonamiento: 'IF y ELSE escriben en destinos parcialmente comunes: COMUN recibe cada observación una vez; PRIMERA y OTROS conservan su rama y filtro. El emisor consolida el destino común y combina las condiciones de los exclusivos. Referencia: lestmtsref, PDF p. 274.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(PRIMERA) == 1
+- filas(COMUN) == 3
+- filas(OTROS) == 2
+- suma(COMUN.valor) == 6
