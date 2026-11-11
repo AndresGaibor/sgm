@@ -363,6 +363,30 @@ def test_output_if_else_emite_ramas_filtradas_en_un_tmap():
     assert "activateExpressionFilter=\"true\"" in tmap
 
 
+def test_output_if_sin_else_emite_una_salida_filtrada_en_tmap():
+    plan = _plan(
+        "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"
+        "GETNAMES=YES;\nRUN;\n"
+        "DATA WORK.coinciden;\n"
+        "SET WORK.entrada;\n"
+        "IF valor = 1 THEN OUTPUT WORK.coinciden;\n"
+        "RUN;"
+    )
+    esquema = {"work.entrada": [Column("valor", "Long")]}
+
+    resultado = plan_a_jobs(plan, esquema)
+
+    assert not [
+        pendiente
+        for pendiente in resultado.pendientes
+        if pendiente.codigo in {"P-OPERADOR-SIN-SOPORTE", "P-FILTRO-SIN-TRADUCIR"}
+    ]
+    tmap = _tmap(resultado.jobs[0])
+    assert 'name="out1"' in tmap
+    assert "activateExpressionFilter=\"true\"" in tmap
+    assert "row1.valor" in tmap
+
+
 def test_output_sin_destinos_emite_todas_las_salidas_del_encabezado():
     plan = _plan(
         "PROC IMPORT DATAFILE='entrada.csv' OUT=WORK.entrada DBMS=CSV REPLACE;\n"

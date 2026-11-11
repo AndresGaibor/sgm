@@ -6206,3 +6206,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   169 sigue sin resolver. Las secuencias con `ELSE IF`, DO y destinos repetidos siguen pendientes.
 - Decisión: solo se agrupan OUTPUT adyacentes cuyos destinos son únicos, sin alterar el orden ni
   combinar escrituras múltiples a una misma tabla.
+
+## Hito 171. Emitir `IF ... THEN OUTPUT` sin rama `ELSE`
+
+- Fecha: 2026-11-10.
+- Qué se hizo: `IF condición THEN OUTPUT destino;` se representa como un `tMap` de una salida con
+  `expressionFilter`; el intérprete emite solo las filas que cumplen la condición. El caso con ELSE
+  sigue usando el mapa de ramas complementarias existente.
+- Pruebas: suite completa **3026 pasan, 28 se saltan, 142 xfail**; Ruff y `git diff --check` limpios.
+- Límites: ELSE aislado, destinos repetidos y otros patrones no reconocidos siguen pendientes. La
+  validación Studio continúa bloqueada por `Network Issue Occured`; no se cambió la instalación.
+- Decisión: solo se emite `IF ... THEN OUTPUT` si la condición y el destino están explícitos; el Job
+  no genera salida implícita para las filas que no cumplen la condición.

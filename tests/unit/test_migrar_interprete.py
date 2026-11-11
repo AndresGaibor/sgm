@@ -806,6 +806,22 @@ def test_output_contiguos_a_destinos_distintos_distribuyen_cada_observacion():
     assert tablas["segunda"] == esperadas
 
 
+def test_output_if_sin_else_escribe_solo_si_se_cumple_la_condicion():
+    plan = _plan(
+        "DATA WORK.coinciden;\n"
+        "SET WORK.entrada;\n"
+        "IF valor = 1 THEN OUTPUT WORK.coinciden;\n"
+        "RUN;"
+    )
+
+    tablas = ejecutar_plan(
+        plan,
+        {"entrada": [{"valor": "1"}, {"valor": "0"}, {"valor": "1"}]},
+    )
+
+    assert tablas["coinciden"] == [{"valor": "1"}, {"valor": "1"}]
+
+
 def test_in_subconsulta_usa_version_previa_a_una_sobreescritura_futura():
     plan = _plan(
         "PROC SQL;\n"

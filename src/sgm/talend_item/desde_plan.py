@@ -345,17 +345,23 @@ class _Job:
             ):
                 self._sin_soporte(op)
                 return
-            if op.params.get("condition") or op.params.get("branch"):
+            condicion = str(op.params.get("condition") or "").strip()
+            rama = op.params.get("branch")
+            if rama and (rama != "then" or not condicion):
                 self._sin_soporte(op)
                 return
             salidas = [str(destino) for destino in destinos]
+            ramas = [
+                {"outputs": [destino], **({"expression": condicion} if condicion else {})}
+                for destino in salidas
+            ]
             para_armar = replace(
                 op,
                 kind="map",
                 params={
                     "steps": [],
                     "outputs": salidas,
-                    "branches": [{"outputs": [destino]} for destino in salidas],
+                    "branches": ramas,
                 },
             )
         armado = construir(
