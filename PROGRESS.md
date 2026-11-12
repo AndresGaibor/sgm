@@ -6889,3 +6889,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión pendiente: (a) que `ordenar` y `deduplicar` acepten un modo compacto que reproduzca la forma actual, o
   (b) aceptar firmas nuevas y actualizar los golden en un hito propio. No se elige en silencio.
 - Lo que sí quedó de B-5: WHERE, KEEP/DROP y RENAME del DATA step (hito 213m).
+
+## Hito 215m. B-5: PROC SORT por constructores (opción a) y corrección del hito 213m
+
+- Decisión: opción (a) de la parada del hito 214m. `operadores.ordenar` y `operadores.deduplicar` aceptan un modo
+  compacto (`compacto=True`, `inputs`, `equals`, `duplicate_outputs`) que reproduce la forma de `PROC SORT`.
+  `lower_procs._sort` construye su `sort` y su `dedup` con `op_validado`. Las firmas no cambian: 617 pruebas de
+  golden, IR, SORT y desde-plan pasan.
+- Corrección del hito 213m: el cambio de WHERE, KEEP/DROP y RENAME se hizo en `lower_data_statements.py`, pero ese
+  archivo no lo llama nadie. El lowering vivo está en `lower_data.py` (`_statement_op`). Ahora el cambio está también
+  ahí, con la evidencia como lista. Antes de este hito, `op_validado` recibía una `Evidence` suelta y los constructores
+  no la aceptan (`list(evidence)`): el error no se vio porque la rama no se recorría en las pruebas.
+- Prueba de regresión: `test_sentencias_where_keep_y_rename_del_data_step_pasan_por_los_constructores` llama a
+  `_statement_op` con sentencias construidas a mano.
+- Pendiente, decisión del dueño: `statement_op` de `lower_data_statements.py` es código muerto duplicado de
+  `lower_data._statement_op`. Propongo borrarlo en un hito propio.
+- Pendiente de B-5: `lower_data.py` pasa de 300 líneas (770): antes de tocarlo más hay que extraer bloques a módulos
+  nuevos, como piden las Global Constraints del plan B.

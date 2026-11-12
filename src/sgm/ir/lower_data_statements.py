@@ -145,7 +145,7 @@ def statement_op(
         expresion = statement.fields["expression"]
         return op_validado(
             builder,
-            lambda: operadores.filtrar("_", expresion, evidence=evidence),
+            lambda: operadores.filtrar("_", expresion, evidence=[evidence]),
             "filter",
             {"expression": expresion},
             evidence,
@@ -177,7 +177,7 @@ def statement_op(
         nombres = [n.lower() for n in statement.fields["names"]]
         return op_validado(
             builder,
-            lambda: operadores.proyectar("_", kind, nombres, evidence=evidence),
+            lambda: operadores.proyectar("_", kind, nombres, evidence=[evidence]),
             "select",
             {"mode": kind, "names": nombres},
             evidence,
@@ -186,7 +186,7 @@ def statement_op(
         pares = [[a.lower(), c.lower()] for a, c in statement.fields["pairs"]]
         return op_validado(
             builder,
-            lambda: operadores.renombrar("_", [(a, c) for a, c in pares], evidence=evidence),
+            lambda: operadores.renombrar("_", [(a, c) for a, c in pares], evidence=[evidence]),
             "rename",
             {"pairs": pares},
             evidence,

@@ -60,3 +60,31 @@ def test_op_validado_con_builder_usa_el_constructor_o_el_legado() -> None:
         ("filter", {"expression": "x > 1"}, "soportado"),
         ("filter", {"expression": ""}, "soportado"),
     ]
+
+
+
+def test_sentencias_where_keep_y_rename_del_data_step_pasan_por_los_constructores() -> None:
+    """Regresión: `_statement_op` de `lower_data.py` pasa la evidencia como lista a los constructores.
+    Sin la lista, un WHERE, un KEEP o un RENAME rompía el lowering (lo hacía en el hito 213m)."""
+    from sgm.frontend.datastep import DsStatement
+    from sgm.ir.builder import Builder
+    from sgm.ir.lower_data import _statement_op
+    from sgm.ir.models import Evidence, Graph
+
+    ev = Evidence(file="p.sas", line_start=1, line_end=1, label=None)
+    b = Builder(Graph())
+    where = DsStatement(kind="where", text="where x > 1;", line=1, fields={"expression": "x > 1"})
+    op = _statement_op(where, "where", None, ev, b, [])
+    assert op.kind == "filter"
+    assert op.params == {"expression": "x > 1"}
+    assert op.evidence == [ev]
+
+    keep = DsStatement(kind="keep", text="keep X Y;", line=2, fields={"names": ["X", "Y"]})
+    op = _statement_op(keep, "keep", None, ev, b, [])
+    assert op.kind == "select"
+    assert op.params == {"mode": "keep", "names": ["x", "y"]}
+
+    rename = DsStatement(kind="rename", text="rename x=z;", line=3, fields={"pairs": [("x", "z")]})
+    op = _statement_op(rename, "rename", None, ev, b, [])
+    assert op.kind == "rename"
+    assert op.params == {"pairs": [["x", "z"]]}

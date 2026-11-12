@@ -297,10 +297,16 @@ def ordenar(
     descending: bool | list[bool] = False,
     outputs: list[str] | None = None,
     evidence=None,
+    *,
+    compacto: bool = False,
+    inputs: list[str] | None = None,
+    equals: bool | None = None,
 ) -> Operator:
     """Ordenar: clave de orden (PROC SORT BY y ORDER BY).
 
     `descending` es un booleano para todas las claves o una lista por clave (como el lowering).
+    Con `compacto` tiene la forma de `PROC SORT` en el lowering: `inputs` siempre, `descending` solo
+    si alguna clave es descendente y `equals` solo si se da (`lower_procs._sort_params`).
     """
     claves = [n.lower() for n in _lista(by, "by")]
     if isinstance(descending, bool):
@@ -309,24 +315,40 @@ def ordenar(
         indicadores = [bool(d) for d in descending]
         if len(indicadores) != len(claves):
             raise ValueError("descending necesita un valor por cada clave de by")
-    params: dict[str, Any] = {"by": claves, "descending": indicadores}
+    if compacto:
+        params: dict[str, Any] = {"by": claves, "inputs": _lista(inputs or [], "inputs", minimo=0)}
+        if any(indicadores):
+            params["descending"] = indicadores
+        if equals is not None:
+            params["equals"] = bool(equals)
+    else:
+        params = {"by": claves, "descending": indicadores}
     if outputs is not None:
         params["outputs"] = _lista(outputs, "outputs")
     return _operador(op_id, "sort", params, evidence)
 
 
 def deduplicar(
-    op_id: str, by: list[str], keep: str = "first", outputs: list[str] | None = None, evidence=None
+    op_id: str,
+    by: list[str],
+    keep: str = "first",
+    outputs: list[str] | None = None,
+    evidence=None,
+    *,
+    duplicate_outputs: list[str] | None = None,
 ) -> Operator:
     """Deduplicar: una fila por clave (NODUP, NODUPKEY, DISTINCT sobre una clave).
 
     `outputs` solo aparece en los parámetros si se da, como en el lowering de PROC SORT.
+    `duplicate_outputs` (DUPOUT= de PROC SORT) solo aparece si se da.
     """
     if keep not in MODOS_DEDUP:
         raise ValueError(f"keep debe ser {MODOS_DEDUP}, no '{keep}'")
     params: dict[str, Any] = {"by": [n.lower() for n in _lista(by, "by")], "keep": keep}
     if outputs is not None:
         params["outputs"] = _lista(outputs, "outputs")
+    if duplicate_outputs is not None:
+        params["duplicate_outputs"] = _lista(duplicate_outputs, "duplicate_outputs", minimo=0)
     return _operador(op_id, "dedup", params, evidence)
 
 

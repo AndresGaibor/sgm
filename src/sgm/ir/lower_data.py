@@ -6,10 +6,12 @@ import re
 from dataclasses import replace
 
 from sgm.frontend.datastep import DataStep, DsStatement
+from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_grupos import programa_por_grupo
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 from sgm.ir.types_code import declared_types
 
 _HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
@@ -516,7 +518,14 @@ def _statement_op(
 ) -> Operator | None:
     """Operador de una sentencia que no es asignación. None si no tiene traducción directa."""
     if kind == "where":
-        return b.op("filter", {"expression": s.fields["expression"]}, ev)
+        expresion = s.fields["expression"]
+        return op_validado(
+            b,
+            lambda: operadores.filtrar("_", expresion, evidence=[ev]),
+            "filter",
+            {"expression": expresion},
+            ev,
+        )
     if kind == "if":
         split = _conditional_output(s)
         if split is not None:
@@ -539,9 +548,23 @@ def _statement_op(
             notes=["asignación condicional: traducir como expresión condicional"],
         )
     if kind in ("keep", "drop"):
-        return b.op("select", {"mode": kind, "names": [n.lower() for n in s.fields["names"]]}, ev)
+        nombres = [n.lower() for n in s.fields["names"]]
+        return op_validado(
+            b,
+            lambda: operadores.proyectar("_", kind, nombres, evidence=[ev]),
+            "select",
+            {"mode": kind, "names": nombres},
+            ev,
+        )
     if kind == "rename":
-        return b.op("rename", {"pairs": [[a.lower(), c.lower()] for a, c in s.fields["pairs"]]}, ev)
+        pares = [[a.lower(), c.lower()] for a, c in s.fields["pairs"]]
+        return op_validado(
+            b,
+            lambda: operadores.renombrar("_", [(a, c) for a, c in pares], evidence=[ev]),
+            "rename",
+            {"pairs": pares},
+            ev,
+        )
     if kind == "output":
         condition = before.text if before is not None and before.kind == "if" else ""
         targets = s.fields.get("targets") or default_outputs

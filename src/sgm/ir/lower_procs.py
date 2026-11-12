@@ -5,8 +5,10 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.steps import Proc
+from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 from sgm.ir.proc_rules import declared, lower_declared, names_of
 
 _names = names_of
@@ -176,9 +178,20 @@ def _sort(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str | Non
     nodup = nodupkey or noduprec
     sort_status = "soportado" if by else "parcial"
     sort_notes = [] if by else ["PROC SORT sin BY: no se puede deducir la clave"]
-    sort = b.op(
+    params_sort = _sort_params(by, descending, flags, data)
+    sort = op_validado(
+        b,
+        lambda: operadores.ordenar(
+            "_",
+            by,
+            descending,
+            compacto=True,
+            inputs=[qualify(data)] if data else [],
+            equals=False if "noequals" in flags else None,
+            evidence=[ev],
+        ),
         "sort",
-        _sort_params(by, descending, flags, data),
+        params_sort,
         ev,
         status=sort_status,
         notes=sort_notes,
@@ -198,10 +211,19 @@ def _sort(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str | Non
             notas.append(
                 "NOEQUALS permite cambiar qué observación queda por cada clave duplicada"
             )
+        dup = [qualify(dupout)] if dupout else None
         params = {"by": by, "keep": "first"}
-        if dupout:
-            params["duplicate_outputs"] = [qualify(dupout)]
-        dedup = b.op("dedup", params, ev, status=dedup_status, notes=notas)
+        if dup is not None:
+            params["duplicate_outputs"] = dup
+        dedup = op_validado(
+            b,
+            lambda: operadores.deduplicar("_", by, "first", duplicate_outputs=dup, evidence=[ev]),
+            "dedup",
+            params,
+            ev,
+            status=dedup_status,
+            notes=notas,
+        )
         b.link(sort, dedup)
         current = dedup
     target = out or data
