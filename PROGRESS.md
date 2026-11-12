@@ -6761,3 +6761,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `tests/unit/test_esquemas_propagacion.py`, 4 pasan (los cuatro casos de B-3).
 - Pendiente: el pase no está conectado todavía a `esquemas_de_entrada`. Conectarlo cambia el conteo de
   `P-TIPO-DESCONOCIDO` del corpus; se hace con su propia medición (B-4).
+
+## Hito 203m. Herramienta que propone el bloque esquemas de un caso (B-4, parte 1)
+
+- Que se hizo: `tools/proponer_esquemas_caso.py` imprime el bloque `esquemas` que sale del migrador para un
+  caso. Cada tipo demostrado trae su línea del SAS; lo que no tiene prueba sale como `pendiente` con motivo.
+  No escribe `caso.yaml`.
+- Cambio en B-3: `TipoColumna` guarda `linea` (la del operador que define la columna) y `_declarado` acepta
+  una longitud nula. Sin esto `l3_08_preparacion_input_left` fallaba.
+- Pruebas: `tests/unit/test_proponer_esquemas_caso.py`, 4 pasan; con B-3, 8 pasan.
+- Medición sobre el corpus (84 casos, L2 a L8): 0 fallos; 398 columnas, 298 con tipo demostrado y 100 pendientes.
+  Los bloques escritos a mano en L2 y L3 tienen casi todo pendiente; el migrador ya demuestra casi todo con
+  la muestra de `entradas/`. Por eso ninguno se pega sin revisar contra el SAS y el CSV.
+- B-4 **sigue abierto**: falta revisar y declarar los bloques caso por caso, y la prueba parametrizada de
+  `test_corpus_esquemas.py` que exige que el bloque coincida con lo demostrado.

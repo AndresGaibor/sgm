@@ -37,6 +37,7 @@ class TipoColumna:
     tipo: str | None  # numerico, caracter o None si no hay demostración
     largo: int | None = None
     fuente: str = ""
+    linea: int | None = None  # línea del SAS del operador que la define
 
 
 @dataclass(frozen=True)
@@ -78,6 +79,10 @@ def _mezclar(listas: list[dict[str, TipoColumna]]) -> dict[str, TipoColumna]:
         for nombre, columna in lista.items():
             merged.setdefault(nombre, columna)
     return merged
+
+
+def _linea(op: Operator) -> int | None:
+    return op.evidence[0].line_start if op.evidence else None
 
 
 def _conjunto(op: Operator) -> str:
@@ -131,7 +136,7 @@ def _derivar(
         expresion = str(asignacion.get("expression", ""))
         if any(nombre.lower() == destino for nombre in declarados):
             tipo, largo = _declarado(declarados, destino)
-            salida[destino] = TipoColumna(destino, tipo, largo, "LENGTH")
+            salida[destino] = TipoColumna(destino, tipo, largo, "LENGTH", _linea(op))
             continue
         tipo, faltan = _tipo_de_asignacion(expresion, salida)
         for falta in faltan:
@@ -142,7 +147,7 @@ def _derivar(
                     None,
                 )
             )
-        salida[destino] = TipoColumna(destino, tipo, None, "derivada")
+        salida[destino] = TipoColumna(destino, tipo, None, "derivada", _linea(op))
     return salida
 
 
@@ -152,7 +157,7 @@ def _declarado(declarados: dict, destino: str) -> tuple[str | None, int | None]:
             continue
         if isinstance(valor, (list, tuple)):
             tipo = str(valor[0])
-            largo = int(valor[1]) if len(valor) > 1 else None
+            largo = int(valor[1]) if len(valor) > 1 and valor[1] is not None else None
         else:
             tipo, largo = str(valor), None
         return (CARACTER if tipo == "String" else NUMERICO), largo
@@ -190,7 +195,7 @@ def _agregar(op: Operator, entrada: dict[str, TipoColumna]) -> dict[str, TipoCol
     for agregado in op.params.get("aggregations") or []:
         alias = str(agregado.get("alias", "")).lower()
         tipo, _ = _tipo_de_asignacion(str(agregado.get("expression", "")), entrada)
-        salida[alias] = TipoColumna(alias, tipo, None, "agregado")
+        salida[alias] = TipoColumna(alias, tipo, None, "agregado", _linea(op))
     return salida
 
 
