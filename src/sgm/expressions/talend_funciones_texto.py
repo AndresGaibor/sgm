@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from sgm.expressions.talend_parser import _P
+
+import re
 
 from sgm.expressions.talend_base import E, Unsupported, _guard, _jstr, _need, _num, _str
 
@@ -31,7 +32,7 @@ def _cat(trim: bool, sep: bool = False):
         else:
             glue, items = E('""', "str"), args
         parts = [f"StringHandling.TRIM({_str(i)})" if trim else _str(i) for i in items]
-        if sep:
+        if sep:  # catx omite los vacíos
             return E(
                 "String.join("
                 + glue.java
@@ -47,112 +48,124 @@ def _cat(trim: bool, sep: bool = False):
 
 def _substr(_p: _P, args: list[E]) -> E:
     _need(args, 2, 3, "substr")
-    source, start = args[0], args[1]
+    s, start = args[0], args[1]
     end = f", {_num(start)} - 1 + {_num(args[2])}" if len(args) == 3 else ""
     body = (
-        f"{source.java}.substring((int) {_num(start)} - 1"
-        f"{(', (int) (' + end[2:] + ')') if end else ''})"
+        f"{s.java}.substring((int) {_num(start)} - 1{(', (int) (' + end[2:] + ')') if end else ''})"
     )
-    return E(_guard([source], body), "str")
+    return E(_guard([s], body), "str")
 
 
 def _scan(p: _P, args: list[E]) -> E:
     _need(args, 2, 3, "scan")
-    if args[1].kind != "num" or (len(args) == 3 and args[2].kind != "str"):
-        raise Unsupported("scan con posición o delimitadores que no son literales")
-    if not re.fullmatch(r"-?\d+", args[1].java):
+    if args[1].kind != "num" or not re.fullmatch(r"-?\d+", args[1].java):
         raise Unsupported("scan con una posición que no es entera")
     n = int(args[1].java)
-    if n == 0:
-        raise Unsupported("scan requiere una posición distinta de cero")
-    if abs(n) > 2_147_483_647:
-        raise Unsupported("scan con una posición fuera del rango seguro")
-    if len(args) == 3:
-        delims = args[2].literal
-        if delims is None or not delims or any(not char.isprintable() for char in delims):
-            raise Unsupported("scan con delimitadores vacíos o que requieren escape no demostrado")
-        delims = re.escape(delims)
+    if n == 0 or abs(n) > 2_147_483_647:
+        raise Unsupported(
+            "scan con una posición no válida: debe ser distinta de cero y estar en el rango seguro"
+        )
+    explicito = len(args) == 3
+    if explicito:
+        if args[2].kind != "str" or not args[2].literal:
+            raise Unsupported("scan con delimitadores vacíos o que no son literales")
+        if any(not char.isprintable() for char in args[2].literal):
+            raise Unsupported("scan con delimitadores de control: queda pendiente de revisión")
+        delims = re.escape(args[2].literal)
+        prefijo = _jstr(chr(34) + f"^[{delims}]+" + chr(34))
+        separador = _jstr(chr(34) + f"[{delims}]+" + chr(34))
     else:
         delims = r"\s!$%&()*+,\-./;\x3c^"
+        prefijo = _jstr(chr(34) + f"^[{delims}]+" + chr(34))
+        separador = _jstr(chr(34) + f"[{delims}]+" + chr(34))
     p.warnings.add("scan: los delimitadores consecutivos cuentan como uno, como en SAS")
-    prefix = _jstr('"^[' + delims + ']+"')
-    token_pattern = _jstr('"[' + delims + ']+"')
-    tokens = f"{args[0].java}.replaceAll({prefix}, \"\").split({token_pattern})"
-    if n > 0:
-        body = f"java.util.Arrays.stream({tokens}).skip({n - 1}).findFirst().orElse(\"\")"
-    else:
-        skip = f"Math.abs({tokens}.length - {abs(n)})"
-        body = f"java.util.Arrays.stream({tokens}).skip({skip}).findFirst().orElse(\"\")"
+    tokens = f'{args[0].java}.replaceAll({prefijo}, "").split({separador})'
+    # Con delimitadores declarados o cuenta negativa se indexa el arreglo; el `skip` no sabe contar
+    # desde el final, y sin delimitadores el flujo perezoso es el que ya se emitía.
+    if explicito or n < 0:
+        index = str(n - 1) if n > 0 else f"Math.abs({tokens}.length - {abs(n)})"
+        return E(
+            _guard([args[0]], f"java.util.Arrays.stream({tokens}).skip({index}).findFirst().orElse(\"\")"), "str"
+        )
+    body = f'java.util.Arrays.stream({tokens}).skip({n - 1}).findFirst().orElse("")'
     return E(_guard([args[0]], body), "str")
 
 
 def _compress(p: _P, args: list[E]) -> E:
     _need(args, 1, 3, "compress")
-    source = args[0]
     if len(args) == 1:
         return E(
-            _guard([source], f'StringHandling.CHANGE({source.java}, " ", "")'), "str"
+            _guard(
+                [args[0]],
+                f'StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + " " + chr(39))}, "")',
+            ),
+            "str",
         )
-    char_arg = args[1]
-    if char_arg.kind not in ("str", "omitted") or (
-        char_arg.kind == "str" and char_arg.literal is None
-    ):
+    if args[1].kind == "omitted":
+        # Solo `kd` está demostrado con la lista omitida (quitar todo lo que no sea dígito).
+        if len(args) == 3 and (args[2].kind != "str" or args[2].literal.lower() != "kd"):
+            raise Unsupported("compress con la lista omitida y modificadores no demostrados")
+        chars = ""
+    elif args[1].kind != "str" or args[1].literal is None:
         raise Unsupported("compress con caracteres o modificadores no literales")
-    chars = char_arg.literal if char_arg.kind == "str" else None
-    if len(args) == 2:
-        if chars is None or not chars or any(not char.isprintable() for char in chars):
-            raise Unsupported("compress con una lista de caracteres vacía o no demostrada")
-        regex = "[" + re.escape(chars) + "]"
-        java_pattern = _jstr('"' + regex + '"')
-        return E(
-            _guard([source], f"StringHandling.EREPLACE({source.java}, {java_pattern}, \"\")"),
-            "str",
-        )
-
-    modifier_arg = args[2]
-    if modifier_arg.kind != "str" or modifier_arg.literal is None:
-        raise Unsupported("compress con modificadores que no son literales")
-    modifiers = modifier_arg.literal.lower()
-    if any(not char.isprintable() for char in (chars or "") + modifier_arg.literal):
-        raise Unsupported("compress con caracteres de control")
-
-    if modifiers == "kd":
-        if char_arg.kind == "omitted":
-            regex = "[^0-9]"
-        elif chars == ".":
-            regex = "[^0-9.]"
-        else:
-            raise Unsupported("compress con modificadores no demostrados")
-        java_pattern = _jstr('"' + regex + '"')
-        return E(
-            _guard([source], f"StringHandling.EREPLACE({source.java}, {java_pattern}, \"\")"),
-            "str",
-        )
-
-    if modifiers == "d":
-        if chars != "":
-            raise Unsupported("compress con modificadores no demostrados")
-        regex = "[0-9]"
-        java_pattern = _jstr('"' + regex + '"')
-        return E(
-            _guard([source], f"StringHandling.EREPLACE({source.java}, {java_pattern}, \"\")"),
-            "str",
-        )
-
-    if modifiers not in ("i", "k") or chars is None:
-        raise Unsupported("compress con modificadores no demostrados")
-    if not chars:
-        if modifiers == "k":
-            return E(_guard([source], '""'), "str")
-        raise Unsupported("compress con una lista de caracteres vacía")
-
-    alternatives = [r"\Q" + char.replace(r"\E", r"\E\\E\Q") + r"\E" for char in chars]
-    pattern = "(?:" + "|".join(alternatives) + ")"
-    if modifiers == "i":
-        pattern = "(?i:" + pattern + ")"
     else:
-        pattern = f"(?!(?:{pattern}))[\\s\\S]"
-    java_pattern = _jstr('"' + pattern + '"')
-    return E(
-        _guard([source], f"{source.java}.replaceAll({java_pattern}, \"\")"), "str"
-    )
+        chars = args[1].literal
+    if not chars and len(args) == 2:
+        raise Unsupported("compress con una lista de caracteres vacía")
+    if any(not char.isprintable() for char in chars):
+        raise Unsupported("compress con caracteres de control: queda pendiente de revisión")
+    modifiers = ""
+    if len(args) == 3:
+        if args[2].kind != "str" or args[2].literal is None:
+            raise Unsupported("compress con caracteres o modificadores no literales")
+        modifiers = args[2].literal.lower()
+    # `kd` solo está demostrado para quitar todo lo que no sea dígito, con o sin punto decimal.
+    if modifiers == "kd":
+        if chars == "":
+            patron = "[^0-9]"
+        elif chars == ".":
+            patron = "[^0-9.]"
+        else:
+            raise Unsupported("compress con 'kd' y una lista de caracteres no demostrada")
+        return E(
+            _guard(
+                [args[0]],
+                f'StringHandling.EREPLACE({args[0].java}, {_jstr(chr(34) + patron + chr(34))}, "")',
+            ),
+            "str",
+        )
+    if len(args) == 2:
+        if len(chars) == 1:
+            return E(
+                _guard(
+                    [args[0]],
+                    f'StringHandling.CHANGE({args[0].java}, {_jstr(chr(39) + chars + chr(39))}, "")',
+                ),
+                "str",
+            )
+        return E(
+            _guard(
+                [args[0]],
+                f'StringHandling.EREPLACE({args[0].java}, {_jstr(chr(34) + "[" + re.escape(chars) + "]" + chr(34))}, "")',
+            ),
+            "str",
+        )
+    desconocidos = set(modifiers) - {"d", "i", "k"}
+    if desconocidos:
+        raise Unsupported(
+            "compress con modificadores no cubiertos: " + "".join(sorted(desconocidos))
+        )
+
+    alternativas = [r"\Q" + caracter.replace(r"\E", r"\E\\E\Q") + r"\E" for caracter in chars]
+    if "d" in modifiers:
+        alternativas.append("[0-9]")
+    if not alternativas:
+        kept = '""' if "k" in modifiers else args[0].java
+        return E(_guard([args[0]], kept), "str")
+    patron = "(?:" + "|".join(alternativas) + ")"
+    if "i" in modifiers:
+        patron = "(?i:" + patron + ")"
+    if "k" in modifiers:
+        patron = f"(?!(?:{patron}))[\\s\\S]"
+    java = f"{args[0].java}.replaceAll({_jstr(chr(34) + patron + chr(34))}, \"\")"
+    return E(_guard([args[0]], java), "str")

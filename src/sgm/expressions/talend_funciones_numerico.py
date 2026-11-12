@@ -1,29 +1,26 @@
-"""Funciones numéricas y condicionales de SAS para Talend."""
+"""Constructores Talend para funciones SAS numéricas y agregaciones por fila."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from sgm.expressions.talend_parser import ExpressionParser as _P
+    from sgm.expressions.talend_parser import _P
 
-from sgm.expressions.talend_core import E, Unsupported, _guard, _need, _num, _truth
+from sgm.expressions.talend_base import E, Unsupported, _guard, _need, _num, _truth
 
 
 def _round(_p: _P, args: list[E]) -> E:
-    """ROUND de SAS redondea el 0,5 hacia fuera del cero (`Math.round` lo lleva hacia arriba: -2,5 -> -2)."""
+    """ROUND conserva el tipo numérico y redondea los empates alejándose de cero."""
     _need(args, 1, 2, "round")
     x = args[0]
-    if len(args) == 1:
-        v = _num(x)
-        return E(
-            _guard([x], f"Double.valueOf({v} < 0 ? -Math.round(-{v}) : Math.round({v}))"), "num"
-        )
-    unit = args[1]
+    unit = args[1] if len(args) == 2 else E("1", "num")
     v, u = _num(x), _num(unit)
-    q = f"({v} / {u})"
+    q = v if len(args) == 1 else f"({v} / {u})"
+    rounded = f"Math.copySign(Math.floor(Math.abs({q}) + 0.5), {q})"
+    result = rounded if len(args) == 1 else f"({rounded} * {u})"
     return E(
-        _guard([x, unit], f"Double.valueOf(({q} < 0 ? -Math.round(-{q}) : Math.round({q})) * {u})"),
+        _guard([x, *([unit] if len(args) == 2 else [])], f"Double.valueOf({result})"),
         "num",
     )
 

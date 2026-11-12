@@ -7,25 +7,28 @@ from sgm.expressions.talend_base import (
     Unsupported,
 )
 from sgm.expressions.talend_funciones import (
-    _aggregate,
-    _cat,
-    _coalesce,
-    _compress,
     _datepart,
-    _ifv,
-    _input,
-    _int,
     _mdy,
     _part,
-    _put,
-    _round,
     _routine,
+)
+from sgm.expressions.talend_funciones_fecha import _intck, _intnx
+from sgm.expressions.talend_funciones_formato import _input, _put
+from sgm.expressions.talend_funciones_numerico import (
+    _aggregate,
+    _coalesce,
+    _ifv,
+    _int,
+    _round,
+    _unary_math,
+)
+from sgm.expressions.talend_funciones_texto import (
+    _cat,
+    _compress,
     _scan,
     _strfn,
     _substr,
-    _unary_math,
 )
-from sgm.expressions.talend_funciones_fecha import _intck, _intnx
 
 _FUNCTIONS = {
     "upcase": _routine("StringHandling", "UPCASE", 1), "lowcase": _routine("StringHandling", "DOWNCASE", 1),
