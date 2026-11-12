@@ -6852,3 +6852,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   numérico para `MISSING`, mientras el auxiliar del oráculo devuelve booleano. Los motores se comparan
   ignorando mayúsculas; los conteos verificados rechazan claves duplicadas tras normalización para no
   sobrecontar. El commit no atribuirá coautoría a una persona o agente que no participó.
+
+## Hito 210n. Funciones del intérprete en módulos propios, sin cambio de comportamiento
+
+- Qué se hizo: se extrajeron el error `NoSoportadoEnInterprete` y las funciones del intérprete a
+  `interprete_errores.py`, `interprete_texto.py`, `interprete_numerico.py`, `interprete_formatos.py` y
+  `interprete_funciones.py`. `interprete.py` conserva `_funcion` como envoltorio y reexporta la clase
+  de error para mantener la compatibilidad de importación.
+- Tamaño: `interprete.py` pasó de 1103 a 967 líneas (136 menos). Los módulos nuevos tienen 12, 126,
+  62, 31 y 30 líneas, respectivamente; todos quedan bajo el límite de 300 líneas.
+- Compatibilidad: la búsqueda de importaciones no encontró consumidores externos de las ayudas
+  extraídas que requirieran alias. El alcance mantuvo la lógica existente; la prueba golden quedó igual.
+- Pruebas focalizadas: 247 pasaron y 5 `xfailed` en la tanda de referencia, frente a 223 pasadas y
+  5 `xfailed` antes del cambio. Los tests de funciones y del intérprete dieron 88 pasadas.
+- Cierre `uv run python tools/ci.py`: Ruff OK; suite 3562 pasaron, 315 omitidas y 142 `xfailed`;
+  cruces del corpus, oráculo y tablero, todo verde.
+- Decisión: `COMPRESS` conserva el comportamiento existente cuando recibe una lista de caracteres
+  en blanco; esta extracción no modifica ni redefine esa semántica.
