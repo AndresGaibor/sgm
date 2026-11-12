@@ -5,10 +5,13 @@ from __future__ import annotations
 import math
 
 from . import semantica
-from .interprete import _arbol, _valor
+from .interprete import _arbol, _aritmetica, _valor
 from .interprete_funciones import llamar
+from .interprete_operadores import entre, parecido, pertenece
 
-FUNCIONES_VECTOR = frozenset({"cmp", "concat", "is_missing", "round", "trim_concat"})
+FUNCIONES_VECTOR = frozenset(
+    {"between", "cmp", "concat", "in", "is_missing", "like", "round", "suma_mas", "trim_concat"}
+)
 _COMPARADORES = {
     "=": lambda resultado: resultado == 0,
     "<": lambda resultado: resultado < 0,
@@ -58,6 +61,22 @@ def evaluar_vector(funcion: str, entrada: list) -> object:
         if len(entrada) != 3 or entrada[1] not in _COMPARADORES:
             raise ValueError("el vector CMP requiere dos valores y un operador documentado")
         return _COMPARADORES[entrada[1]](semantica.comparar(entrada[0], entrada[2]))
+    if nombre == "in":
+        if len(entrada) != 2 or not isinstance(entrada[1], list):
+            raise ValueError("el vector IN requiere un valor y una lista")
+        return pertenece(entrada[0], entrada[1])
+    if nombre == "between":
+        if len(entrada) != 3:
+            raise ValueError("el vector BETWEEN requiere valor y dos límites")
+        return entre(*entrada)
+    if nombre == "like":
+        if len(entrada) != 2:
+            raise ValueError("el vector LIKE requiere texto y patrón")
+        return parecido(*entrada)
+    if nombre == "suma_mas":
+        if len(entrada) != 2:
+            raise ValueError("el vector SUMA_MAS requiere dos operandos")
+        return _aritmetica("+", entrada[0], entrada[1])
     if nombre == "is_missing":
         if len(entrada) != 1:
             raise ValueError("el vector IS MISSING requiere un valor")

@@ -32,7 +32,9 @@ from sgm.ir.models import Operator, Plan
 from sgm.migrar import semantica
 from sgm.migrar.interprete_agregados import AgregadoNoSoportado, agregar
 from sgm.migrar.interprete_errores import NoSoportadoEnInterprete
+from sgm.migrar.interprete_funciones import FUNCIONES as FUNCIONES_INTERPRETE
 from sgm.migrar.interprete_funciones import llamar
+from sgm.migrar.interprete_operadores import concatenar, entre, parecido, pertenece
 from sgm.migrar.interprete_subconsultas import (
     SubconsultaNoSoportada,
     _fuentes,
@@ -49,7 +51,25 @@ _PASOS_SUELTOS = (
     "filter", "derive", "select", "rename", "sort", "dedup", "aggregate", "stateful_row"
 )
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
-_FUNCIONES_SAS = re.compile(r"(?i)\b(input|left|substrn|substr|coalescec|compress|scan)\s*(?=\()")
+_AGREGADOS_SQL = frozenset({"sum", "min", "max", "count", "avg"})
+_NOMBRES_FUNCIONES = sorted(
+    FUNCIONES_INTERPRETE.keys() - _AGREGADOS_SQL, key=lambda nombre: (-len(nombre), nombre)
+)
+_FUNCIONES_SAS = re.compile(
+    r"(?i)\b(" + "|".join(re.escape(nombre) for nombre in _NOMBRES_FUNCIONES) + r")\s*(?=\()"
+)
+_LITERALES_SAS = re.compile(r"('(?:''|[^'])*'|\"(?:\"\"|[^\"])*\")")
+
+
+def _normalizar_funciones_sas(expresion: str) -> str:
+    """Renombra llamadas fuera de literales para no modificar texto del programa."""
+    partes = _LITERALES_SAS.split(expresion)
+    return "".join(
+        parte
+        if indice % 2
+        else _FUNCIONES_SAS.sub(lambda coincidencia: f"sgm_{coincidencia.group(1).lower()}", parte)
+        for indice, parte in enumerate(partes)
+    )
 
 
 # -- valores ------------------------------------------------------------------------------------
@@ -66,7 +86,7 @@ def _primero(params: dict, clave: str) -> str:
 def _arbol(expresion: str):
     """Árbol de una expresión SQL; lo que no se puede leer no se adivina."""
     try:
-        preparada = _FUNCIONES_SAS.sub(lambda m: f"sgm_{m.group(1).lower()}", expresion)
+        preparada = _normalizar_funciones_sas(expresion)
         return sqlglot.parse_one(preparada)
     except ParseError as error:
         raise NoSoportadoEnInterprete("expresion", f"'{expresion}': {error}") from None
@@ -87,20 +107,6 @@ def _verdad(valor: object) -> bool:
         return valor
     numero = _numero(valor)
     return numero is not None and numero != 0
-
-
-def _patron(patron: str) -> re.Pattern[str]:
-    """`LIKE` de SQL: `%` cualquier secuencia, `_` un carácter; el resto, literal."""
-    partes = ["^"]
-    for caracter in patron:
-        if caracter == "%":
-            partes.append(".*")
-        elif caracter == "_":
-            partes.append(".")
-        else:
-            partes.append(re.escape(caracter))
-    partes.append("$")
-    return re.compile("".join(partes), re.DOTALL)
 
 
 def _funcion(nombre: str, argumentos: list) -> object:
@@ -185,21 +191,18 @@ def _valor(nodo, fila: dict) -> object:
         nulo = isinstance(nodo.expression, exp.Null)
         return semantica.es_faltante(_valor(nodo.this, fila)) is nulo
     if isinstance(nodo, exp.Like):
-        texto = semantica.como_texto(_valor(nodo.this, fila))
-        patron = semantica.como_texto(_valor(nodo.expression, fila))
-        return _patron(patron).match(texto) is not None
+        return parecido(_valor(nodo.this, fila), _valor(nodo.expression, fila))
     if isinstance(nodo, exp.In):
         if nodo.args.get("query") is not None:
             raise NoSoportadoEnInterprete("subconsulta", "IN con SELECT")
         buscado = _valor(nodo.this, fila)
-        return any(
-            semantica.iguales(buscado, _valor(opcion, fila)) for opcion in nodo.expressions
-        )
+        opciones = [_valor(opcion, fila) for opcion in nodo.expressions]
+        return pertenece(buscado, opciones)
     if isinstance(nodo, exp.Between):
         valor = _valor(nodo.this, fila)
         bajo = _valor(nodo.args["low"], fila)
         alto = _valor(nodo.args["high"], fila)
-        return semantica.mayor_igual(valor, bajo) and semantica.menor_igual(valor, alto)
+        return entre(valor, bajo, alto)
     if isinstance(nodo, exp.Case):
         for rama in nodo.args.get("ifs") or []:
             if _verdad(_valor(rama.this, fila)):
@@ -210,9 +213,7 @@ def _valor(nodo, fila: dict) -> object:
         simbolo = {exp.Add: "+", exp.Sub: "-", exp.Mul: "*", exp.Div: "/"}[type(nodo)]
         return _aritmetica(simbolo, _valor(nodo.this, fila), _valor(nodo.expression, fila))
     if isinstance(nodo, (exp.DPipe, exp.Concat)):
-        izquierda = _texto_funcion(_valor(nodo.this, fila))
-        derecha = _texto_funcion(_valor(nodo.expression, fila))
-        return izquierda + derecha
+        return concatenar(_valor(nodo.this, fila), _valor(nodo.expression, fila))
     if isinstance(nodo, exp.Trim):
         recortado = _texto_funcion(_valor(nodo.this, fila)).rstrip(" ")
         return recortado or " "

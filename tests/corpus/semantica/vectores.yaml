@@ -514,3 +514,67 @@ vectores:
     fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
     cita: "and false if it is not missing."
     confianza: deducido
+  # Operadores de comparación y aritmética con faltantes
+  - id: cmp-in-01
+    funcion: in
+    entrada: [null, [1, 2]]
+    esperado: false
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "lrcon, pp. 125, 145: Within SAS, a missing value for a numeric variable is smaller than all numbers."
+    confianza: deducido
+  - id: cmp-in-02
+    funcion: in
+    entrada: ["AB ", ["AB", "CD"]]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "lrcon, p. 147: Since trailing blanks are ignored in a comparison, 'fox ' is equivalent to 'fox'."
+    confianza: deducido
+  - id: cmp-between-01
+    funcion: between
+    entrada: [null, 0, 10]
+    esperado: false
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "lrcon, p. 125: Within SAS, a missing value for a numeric variable is smaller than all numbers."
+    confianza: deducido
+  - id: cmp-between-02
+    funcion: between
+    entrada: [10, 0, 10]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "sqlproc, p. 70: Because the BETWEEN-AND operators are inclusive, the values that you specify are included."
+    confianza: documentado
+  - id: cmp-like-01
+    funcion: like
+    entrada: ["ABC", "A%"]
+    esperado: true
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "sqlproc, p. 72: The percent sign (%) and underscore (_) are wildcard characters."
+    confianza: deducido
+  - id: cmp-like-02
+    funcion: like
+    entrada: ["ABC ", "ABC"]
+    esperado: false
+    fuente_url: "https://support.sas.com/documentation/cdl/en/sqlproc/63043/HTML/default/n12r23rldq4799n1j9mdyfyf7i6t.htm"
+    cita: "sqlproc, p. 412: You might have to use the TRIM function to remove trailing blanks in order to match values."
+    confianza: deducido
+  - id: ar-faltante-01
+    funcion: suma_mas
+    entrada: [1, null]
+    esperado: faltante
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "lrcon, p. 128: If you use a missing value in an arithmetic calculation, SAS sets the result to missing."
+    confianza: documentado
+  - id: ar-faltante-02
+    funcion: sum
+    entrada: [1, null]
+    esperado: 1
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0zxive1z1ctqin12w06c85jfigd.htm"
+    cita: "lefunctionsref, p. 1580: Returns the sum of the nonmissing arguments."
+    confianza: documentado
+  - id: cat-01
+    funcion: concat
+    entrada: ["ab ", "c"]
+    esperado: "ab c"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "lrcon, p. 151: The concatenation operator does not trim leading or trailing blanks."
+    confianza: deducido

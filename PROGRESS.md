@@ -6895,3 +6895,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: los vectores son una interfaz entre dos representaciones; el adaptador conserva el literal
   del informat y crea literales SQL escapados para usar el evaluador del intérprete sin tratar los
   valores del vector como código. El oráculo sigue siendo el motor predeterminado de la CLI.
+
+## Hito 212n. Despacho universal de funciones y operadores con faltantes
+
+- Fecha: 2026-11-12. Base: `114beea` (hito 211n).
+- Qué se hizo: `_FUNCIONES_SAS` ahora se deriva de la tabla `interprete_funciones.FUNCIONES`, prioriza nombres largos y evita renombrar agregados SQL o texto dentro de literales. Se extrajeron `IN`, `BETWEEN`, `LIKE` y `||` a `interprete_operadores.py`; los adaptadores de vectores ejecutan `in`, `between`, `like` y `suma_mas`.
+- Semántica documentada: `IN` y `BETWEEN` usan las comparaciones SAS con faltantes; `BETWEEN` incluye límites; `LIKE` conserva los blancos finales. Se añadieron vectores y referencias SAS revisadas, incluida la suma aritmética con faltante y `SUM` de argumentos no faltantes. Las funciones fuera de la tabla siguen rechazadas.
+- Límite explícito: `LIKE` con operando faltante/en blanco emite `Pendiente: P-LIKE-TIPO-Y-LONGITUD-VARIABLE`, porque no se conocen tipo y longitud declarada. `LIKE ... ESCAPE` sigue rechazado como nodo no soportado. El relleno de concatenación según `LENGTH` queda en `P-CONCAT-LONGITUD-VARIABLE`.
+- Vectores: 79 en total (55 documentados, 22 deducidos, 2 inciertos); los 77 conocidos pasan en ambos motores, con cero fallos y cero diferencias. Los inciertos `input-11` y `input-12` permanecen fuera del conteo.
+- Pruebas enfocadas: 103 pasaron en intérprete/vector/oráculo; 179 pasaron y 5 `xfail` en la tanda del intérprete y golden. Ruff y `git diff --check`, limpios.
+- Cierre `uv run python tools/ci.py`: Ruff OK; suite 3593 pasaron, 315 omitidas y 142 `xfail`; cruces del corpus 78, oráculo 131 casos y tablero, todo OK.
+- Revisión independiente: se corrigió la discrepancia de `LIKE` faltante alineando ambos motores en un pendiente explícito; no se fijó un resultado sin evidencia sobre el tipo y la longitud.
+- Decisión: conservar `||` sin recortar blancos y no inventar el relleno sin longitud declarada. Siguiente tarea: D1-5, generar casos L4 desde los vectores.

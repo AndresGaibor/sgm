@@ -221,6 +221,54 @@ def cmp(izquierda: object, op: str, derecha: object) -> bool:
     return _OPERADORES[op](a, b)
 
 
+def pertenece(buscado: object, opciones: list[object]) -> bool:
+    """IN compara el valor con cada miembro mediante la comparación independiente del oráculo."""
+    return any(cmp(buscado, "=", opcion) for opcion in opciones)
+
+
+def entre(valor: object, bajo: object, alto: object) -> bool:
+    """BETWEEN incluye ambos extremos y usa el orden SAS del comparador del oráculo."""
+    return cmp(valor, ">=", bajo) and cmp(valor, "<=", alto)
+
+
+def like(texto: object, patron: object) -> bool:
+    """LIKE conserva blancos finales e interpreta `%` y `_` como comodines."""
+    if _omitido(texto) or _omitido(patron):
+        raise ValueError(
+            "Pendiente: P-LIKE-TIPO-Y-LONGITUD-VARIABLE; no se conoce el tipo ni la longitud "
+            "declarada del valor faltante"
+        )
+    if (isinstance(texto, str) and not texto.strip()) or (
+        isinstance(patron, str) and not patron.strip()
+    ):
+        raise ValueError(
+            "Pendiente: P-LIKE-TIPO-Y-LONGITUD-VARIABLE; no se conoce la longitud declarada "
+            "del valor en blanco"
+        )
+    valor = texto if isinstance(texto, str) else str(texto)
+    especificacion = patron if isinstance(patron, str) else str(patron)
+    regex = "".join(
+        ".*" if c == "%" else "." if c == "_" else re.escape(c) for c in especificacion
+    )
+    return re.fullmatch(regex, valor, flags=re.DOTALL) is not None
+
+
+def suma_mas(izquierda: object, derecha: object) -> float | Faltante:
+    """La suma aritmética propaga el faltante según la regla documentada."""
+    if _omitido(izquierda) or _omitido(derecha):
+        return FALTANTE
+    try:
+        return float(izquierda) + float(derecha)
+    except (TypeError, ValueError):
+        return FALTANTE
+
+
+def sum_sas(*argumentos: object) -> float | Faltante:
+    """SUM omite los argumentos faltantes; si todos faltan, el resultado también falta."""
+    valores = [float(valor) for valor in argumentos if not _omitido(valor)]
+    return sum(valores) if valores else FALTANTE
+
+
 def is_missing(valor: object) -> bool:
     """IS MISSING / IS NULL: verdadero para el faltante y para el texto en blanco."""
     if isinstance(valor, Faltante):
@@ -247,6 +295,11 @@ FUNCIONES = {
     "round": round_sas,
     "cmp": cmp,
     "is_missing": is_missing,
+    "in": pertenece,
+    "between": entre,
+    "like": like,
+    "suma_mas": suma_mas,
+    "sum": sum_sas,
 }
 
 

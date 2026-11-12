@@ -63,7 +63,7 @@ def test_inventario_recibe_los_conteos_reales_del_interprete() -> None:
     ejecucion = cs.verificar(motor="interprete")
     total = resumen(inventario(REPO), ejecucion["ejecuciones_por_funcion"])
 
-    assert total["vectores_en_interprete"] == 68
+    assert total["vectores_en_interprete"] == 77
 
 
 def test_verificar_identifica_vector_que_difiere_del_oraculo(

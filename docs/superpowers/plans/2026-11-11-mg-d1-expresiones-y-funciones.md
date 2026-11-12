@@ -160,9 +160,11 @@ El aceptable de MG-P3-01 es «todos los vectores de `vectores.yaml` ejecutados e
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete.py`
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_operadores.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_vectores.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\semantica\vectores.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_semantica_funciones.py`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_operadores.py`
+- Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_vectores.py`
 
 **Interfaces:**
 - Consumes: `_arbol(expresion: str)` (`interprete.py:73`), `_valor(nodo, fila: dict) -> object` (268), `_verdad(valor: object) -> bool` (86), `_aritmetica(operador: str, izquierda: object, derecha: object) -> object` (241), `interprete_funciones.FUNCIONES`, `semantica.iguales / menor / mayor_igual / menor_igual`.
@@ -183,22 +185,23 @@ El aceptable de MG-P3-01 es «todos los vectores de `vectores.yaml` ejecutados e
 
 | id | funcion | entrada | esperado | página |
 |---|---|---|---|---|
-| `cmp-in-01` | `in` | `[null, [1, 2]]` | `false` | `lrcon`, p. 144 (un faltante no es igual a 1 ni a 2) |
-| `cmp-in-02` | `in` | `["AB ", ["AB", "CD"]]` | `true` | `lrcon`, p. 144 (blancos finales no cuentan) |
+| `cmp-in-01` | `in` | [null, [1, 2]] | `false` | `lrcon`, pp. 125 y 145 (faltantes numéricos y operador IN) |
+| `cmp-in-02` | `in` | `["AB ", ["AB", "CD"]]` | `true` | `lrcon`, pp. 145 y 147 (IN y blancos finales en comparaciones) |
 | `cmp-between-01` | `between` | `[null, 0, 10]` | `false` | `lrcon`, p. 125 (el faltante es menor que 0) |
-| `cmp-between-02` | `between` | `[10, 0, 10]` | `true` | `lrcon`, p. 144 (inclusivo) |
-| `cmp-like-01` | `like` | `["ABC", "A%"]` | `true` | `sqlproc`, p. 73 (verificar) |
+| `cmp-between-02` | `between` | `[10, 0, 10]` | `true` | `sqlproc`, p. 70 (los límites se incluyen) |
+| `cmp-like-01` | `like` | `["ABC", "A%"]` | `true` | `sqlproc`, p. 72 (comodín %) |
+| `cmp-like-02` | `like` | `["ABC ", "ABC"]` | `false` | `sqlproc`, p. 412 (los blancos finales pueden afectar LIKE) |
 | `ar-faltante-01` | `suma_mas` | `[1, null]` | `faltante` | `lrcon`, p. 128 (propagación) |
 | `ar-faltante-02` | `sum` | `[1, null]` | `1` | `lefunctionsref`, p. 1580 |
 | `cat-01` | `concat` | `["ab ", "c"]` | `"ab c"` | `lrcon`, p. 151 |
 
-El oráculo gana las funciones `in`, `between`, `like` y `suma_mas` (de 3 a 6 líneas cada una; usa su propio `cmp` de `tools/corpus_semantica_funciones.py:211`, no `sgm.migrar.semantica`, para que sigan siendo dos implementaciones). `concatenar` usa el texto tal cual, **sin** `rstrip` (hoy `_valor` pasa por `como_texto`, que recorta blancos finales y daría `"abc"` en `cat-01`); el recorte de blancos finales es de la comparación, no de `||`. `Pendiente: P-CONCAT-LONGITUD-VARIABLE`: `||` sobre una variable con `LENGTH` mayor que su contenido añade los blancos de relleno de esa longitud (`lrcon`, p. 151), y el intérprete recibe los valores del CSV sin relleno; mientras el esquema no traiga la longitud (Plan B, B-3 y B-4), `concatenar` no rellena y lo declara en su docstring.
+El oráculo agrega `in`, `between`, `like`, `suma_mas` y `sum`; `in` y `between` usan su propio `cmp` (`tools/corpus_semantica_funciones.py:211`), no `sgm.migrar.semantica`, para mantener implementaciones independientes. `sum` cubre la función Base SAS con varios argumentos; `SUM(x)` en una consulta sigue siendo agregado SQL. `concatenar` conserva el texto y los blancos finales. `Pendiente: P-CONCAT-LONGITUD-VARIABLE`: `||` sobre una variable puede añadir blancos de relleno según su `LENGTH` (`lrcon`, p. 151); sin la longitud en el esquema, el intérprete no rellena. `LIKE` conserva blancos finales (`sqlproc`, p. 412); si un operando es faltante/en blanco, queda `Pendiente: P-LIKE-TIPO-Y-LONGITUD-VARIABLE`, porque no se conocen el tipo ni el `LENGTH` declarado para decidir cuántos blancos comparar. `LIKE ... ESCAPE` permanece rechazado explícitamente como nodo `Escape` no soportado.
 
-- [ ] **Step 1: Write the failing tests** en `test_interprete_operadores.py`: `_valor(_arbol("length(a)"), {"a": "abc   "}) == 3` (`LENGTH` ignora los blancos finales, `lefunctionsref`, p. 1180; hoy lanza `NoSoportadoEnInterprete` porque `sqlglot` lo lee como `exp.Length`); `_valor(_arbol("UPCASE(a)"), {"a": "ab"}) == "AB"` por el camino `sgm_upcase`; `_valor(_arbol("no_es_funcion_sas(a)"), {"a": 1})` sigue lanzando `NoSoportadoEnInterprete` (una función fuera de la tabla no se adivina); los ocho vectores de la tabla pasan con `verificar(motor="interprete")`; `pertenece(None, [1, 2]) is False`, `entre(None, 0, 10) is False`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_operadores.py -q -p no:cacheprovider`; esperado: `NoSoportadoEnInterprete: expresion: Length: ...`.
-- [ ] **Step 3: Implement.** Construir `_FUNCIONES_SAS` a partir de las claves de `FUNCIONES` (ordenadas de la más larga a la más corta, con `\b` y `(?=\()`), de modo que `substrn` no quede cortado por `substr`; mover los cuatro operadores a `interprete_operadores.py`; agregar los vectores y las cuatro funciones del oráculo.
-- [ ] **Step 4: Run** los tests del paso 1, `tests/unit/test_corpus_semantica.py`, `tests/unit/test_migrar_interprete.py` y la tanda del golden; mismas pasadas que en D1-2.
-- [ ] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito N n: despacho universal de funciones y operadores con faltantes en el interprete`.
+- [x] **Step 1: Write the failing tests** en `test_interprete_operadores.py`: `LENGTH`, `UPCASE`, rechazo de funciones desconocidas, literales sin reescritura, los vectores nuevos y operadores con faltantes. Resultado rojo inicial: 5 fallos esperados y 1 prueba aprobada; la revisión detectó luego la divergencia de `LIKE` faltante y la nueva prueba también falló antes de corregirla.
+- [x] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_operadores.py -q -p no:cacheprovider`; se confirmó el error original de `Length` y las ausencias del módulo/vector antes de implementar.
+- [x] **Step 3: Implement.** Construir `_FUNCIONES_SAS` desde las claves de `FUNCIONES` (nombres largos primero, con `\b` y `(?=\()`), sin renombrar agregados ni contenido entre comillas; mover los cuatro operadores a `interprete_operadores.py`; conectar los adaptadores; agregar vectores y cinco funciones del oráculo. `LIKE` conserva blancos y ambos motores dejan el faltante como pendiente explícito.
+- [x] **Step 4: Run** las pruebas focalizadas: 103 pasaron en la tanda de vectores/corpus/operadores; 179 pasaron y 5 `xfail` en la tanda del intérprete y golden.
+- [x] **Step 5: Run** `uv run ruff check src tests tools` limpio. `uv run python tools/ci.py`: Ruff OK; suite 3593 pasaron, 315 omitidas y 142 `xfail`; cruces 78, oráculo 131 casos y tablero OK. **Commit** `hito 212n: despacho universal de funciones y operadores con faltantes en el interprete`.
 
 ---
 
