@@ -6803,3 +6803,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 
 - Decisión del usuario (12 de noviembre de 2026): se quita de `AGENTS.md` la regla que prohibía `git push`. Los commits siguen siendo locales por hito con el mensaje `hito N: <resumen>`.
 - Se subió a `origin/main` todo lo commiteado hasta el hito 205m (de `8004647` a `3e96393`). No se subieron los cambios sin commitear de otra sesión (`README.md`, `tools/ci.py`, tests y ganchos de validación).
+
+## Hito 208m. Línea base medida del plan lógico y de L6 (B-1)
+
+- Que se hizo: `tools/linea_base_plan_logico.py` mide los casos `traducible` del corpus: compila el plan y cuenta
+  operadores, soportados y no migrados; los pendientes salen de `sgm migrar` con su código `P-…`.
+- Cifras (94 casos `traducible`: L1 16, L2 15, L3 12, L4 19, L5 12, L6 19, L8 1): 594 operadores, 504 soportados,
+  11 no migrados. Pendientes: P-CONFIGURACION-RESUELTA 14, P-ESCRITURA-SIN-COLUMNAS 8, P-UNION-TIPO-SIN-SOPORTE 8,
+  P-JOB-INVALIDO 6, P-OPERADOR-SIN-SOPORTE 5, P-AGREGADO-SIN-TRADUCIR 3, P-REPARTO-RECONVERGE 2,
+  P-ASIGNACION-SIN-TRADUCIR 1, P-ESQUEMA-NO-PORTABLE 1.
+- Salida: `out/linea_base_plan_logico.json` (no versionada).
+- Diferencia con el plan: B-1 suponía que un `MERGE` no soportado da `P-UNION-TIPO-SIN-SOPORTE`. Hoy da
+  `P-OPERADOR-SIN-SOPORTE`. La prueba fija el código real.
+- No medido: la columna «construidos por constructor» (depende de los constructores de `ir/operadores.py`, B-5 y B-6)
+  y la coincidencia en el anillo B. L0 no aparece porque ninguno de sus casos está marcado `traducible`.
+- Pruebas: `tests/unit/test_linea_base_plan_logico.py`, 2 pasan.
+- Nota: esta entrada llegó en un commit posterior al código del mismo hito (el primero se subió sin ella).
