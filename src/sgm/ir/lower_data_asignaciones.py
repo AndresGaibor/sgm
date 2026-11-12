@@ -98,7 +98,14 @@ def _statement_op(
                     status="parcial",
                     notes=["lógica de grupo por first./last.: revisar"],
                 )
-            return b.op("filter", {"expression": re.sub(r"(?i)^if\s+", "", s.text)}, ev)
+            expresion = re.sub(r"(?i)^if\s+", "", s.text)
+            return op_validado(
+                b,
+                lambda: operadores.filtrar("_", expresion, evidence=[ev]),
+                "filter",
+                {"expression": expresion},
+                ev,
+            )
         return b.op(
             "derive",
             {"conditional": s.text},

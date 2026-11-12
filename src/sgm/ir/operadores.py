@@ -113,14 +113,20 @@ def escribir_archivo(
     dbms: str | None = None,
     delimiter: str | None = None,
     evidence=None,
+    sheet: str | None = None,
 ) -> Operator:
-    """Escribir archivo: PROC EXPORT o salida de archivo de una o más tablas."""
+    """Escribir archivo: PROC EXPORT o salida de archivo de una o más tablas.
+
+    `sheet` solo aparece en los parámetros si se da, como en el lowering de PROC EXPORT.
+    """
     params = {
         "inputs": _lista(inputs, "inputs"),
         "outfile": _texto(outfile, "outfile"),
         "dbms": dbms,
         "delimiter": delimiter,
     }
+    if sheet is not None:
+        params["sheet"] = _texto(sheet, "sheet")
     return _operador(op_id, "write_file", params, evidence)
 
 

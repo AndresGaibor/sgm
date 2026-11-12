@@ -6938,3 +6938,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Cambio de prueba: `test_sentencias_where_keep_y_rename_del_data_step_pasan_por_los_constructores` importa
   `_statement_op` desde `lower_data_asignaciones`, porque ya no lo reexporta `lower_data`.
 - Pendiente: `lower_data_statements.py` sigue siendo código muerto (decisión del dueño, ver hito 216m).
+
+## Hito 219m. B-5: filter, lectura y escritura de archivos, y el SORT con salida por los constructores
+
+- Que se hizo: los dos `filter` de `lower_data.py` y `lower_data_asignaciones.py` usan `operadores.filtrar`; `read_file`
+  y `write_file` de `PROC IMPORT` y `PROC EXPORT` usan `leer_archivo` y `escribir_archivo`; `escribir_archivo` gana
+  `sheet` opcional (solo aparece si se da); el `sort` de la rama NODUPREC con salida usa `ordenar` en modo compacto.
+- Guardia: `tests/unit/test_ir_sin_forma_directa.py` cuenta, por archivo y por tipo, las llamadas directas a
+  `Builder.op` de `filter`, `select`, `rename`, `sort`, `dedup`, `read_file`, `write_file` y `derive`. Solo se permiten
+  las excepciones listadas con su motivo.
+- Excepciones que quedan (con motivo en la prueba): `read_file` de INFILE/INPUT en `lower_data.py` (sus parámetros
+  `reason` y `multiple_io_statements` no caben en `leer_archivo`); `derive` pendientes del DATA step y el derive
+  condicional (no hay constructor para una lista vacía ni para `conditional`).
+- Verificado: `ruff` limpio en `src/sgm/ir`; 928 pruebas de golden, IR, DATA step, SORT, lectura y escritura pasan.
+- Pendiente de B-5: el contador de formas anteriores en `Plan.resumen` (lo pide el paso 3 del plan, para B-6), y las
+  excepciones de arriba si se quieren cerrar del todo.

@@ -61,7 +61,23 @@ def _read_file(step: Proc, ev: Evidence, b: Builder, out: str | None) -> None:
         "sheet": _sin_comillas(opciones["sheet"]) if "sheet" in opciones else None,
         "guessingrows": _entero(opciones.get("guessingrows")),
     }
-    b.op("read_file", params, ev)
+    op_validado(
+        b,
+        lambda: operadores.leer_archivo(
+            "_",
+            step.options.get("datafile"),
+            params["outputs"],
+            dbms=params["dbms"],
+            delimiter=params["delimiter"],
+            getnames=params["getnames"],
+            sheet=params["sheet"],
+            guessingrows=params["guessingrows"],
+            evidence=[ev],
+        ),
+        "read_file",
+        params,
+        ev,
+    )
 
 
 def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
@@ -75,7 +91,21 @@ def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
     }
     if "sheet" in opciones:
         params["sheet"] = _sin_comillas(opciones["sheet"])
-    b.op("write_file", params, ev)
+    op_validado(
+        b,
+        lambda: operadores.escribir_archivo(
+            "_",
+            params["inputs"],
+            step.options.get("outfile"),
+            dbms=params["dbms"],
+            delimiter=params["delimiter"],
+            sheet=params.get("sheet"),
+            evidence=[ev],
+        ),
+        "write_file",
+        params,
+        ev,
+    )
 
 
 def _report(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
@@ -166,10 +196,21 @@ def _sort(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str | Non
     if noduprec and not es_by_all:
         notas = ["NODUPREC solo elimina duplicados adyacentes; sin BY _ALL_ no se demuestra "
             "que todos queden juntos"]
-        b.op(
+        salida_orden = [qualify(out or data)] if (out or data) else []
+        op_validado(
+            b,
+            lambda: operadores.ordenar(
+                "_",
+                by,
+                descending,
+                outputs=salida_orden,
+                compacto=True,
+                inputs=[qualify(data)] if data else [],
+                equals=False if "noequals" in flags else None,
+                evidence=[ev],
+            ),
             "sort",
-            {**_sort_params(by, descending, flags, data),
-                "outputs": [qualify(out or data)] if (out or data) else []},
+            {**_sort_params(by, descending, flags, data), "outputs": salida_orden},
             ev,
             status="parcial",
             notes=notas,

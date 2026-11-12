@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.datastep import DataStep, DsStatement
+from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_grupos import programa_por_grupo
 from sgm.ir.lower_data_recorrido import _Recorrido, _statement_evidence
@@ -14,6 +15,7 @@ from sgm.ir.lower_data_salidas import (
     _undeclared_output_targets,
 )
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 from sgm.ir.types_code import declared_types
 
 
@@ -58,7 +60,13 @@ def _lower_sources(
     for ref, read in zip(refs, reads, strict=True):
         where = ref.get("where")
         if where:
-            filtrado = b.op("filter", {"expression": where}, ev)
+            filtrado = op_validado(
+                b,
+                lambda where=where: operadores.filtrar("_", where, evidence=[ev]),
+                "filter",
+                {"expression": where},
+                ev,
+            )
             b.link(read, filtrado)
             entradas.append(filtrado)
         else:
