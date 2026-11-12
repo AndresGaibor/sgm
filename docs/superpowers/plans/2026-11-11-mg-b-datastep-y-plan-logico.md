@@ -152,11 +152,11 @@ Los constructores de `src/sgm/ir/operadores.py` existen para 13 de los 14 operad
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\operadores.py` (`renombrar` usado; `pivotar` como hueco con `P-OPERADOR-PIVOTAR` y motivo)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_ir_operadores_corpus.py`
 
-- [ ] **Step 1: Write the failing test.** Para los casos `traducible` de L1 a L3, el contador de «formas anteriores usadas» (B-5) es cero. Para cada operador, una prueba de constructor + validador con una entrada inválida (por ejemplo `agregar` sin función, `ordenar` sin columnas) que lanza `ValueError` con el motivo.
-- [ ] **Step 2: Run test to verify it fails** en los agregados de SQL.
-- [ ] **Step 3: Implement.** Extraer el bloque de agregados de `lower_sql_flow.py` a `lower_sql_agregados.py` (sin cambio de comportamiento, commit propio) y pasarlo por `operadores.agregar`.
-- [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_ir_operadores_corpus.py tests/unit/test_golden*.py -q`; luego suite completa.
-- [ ] **Step 5: Commit.** `hito N m: L1 a L3 construyen su plan por constructores`.
+- [x] **Step 1: Write the failing test.** Para los casos `traducible` de L1 a L3, el contador de «formas anteriores usadas» (B-5) es cero. Para cada operador, una prueba de constructor + validador con una entrada inválida (por ejemplo `agregar` sin función, `ordenar` sin columnas) que lanza `ValueError` con el motivo.
+- [x] **Step 2: Run test to verify it fails** en los agregados de SQL.
+- [x] **Step 3: Implement.** Extraer el bloque de agregados de `lower_sql_flow.py` a `lower_sql_agregados.py` (sin cambio de comportamiento, commit propio) y pasarlo por `operadores.agregar`.
+- [x] **Step 4: Run** `uv run python -m pytest tests/unit/test_ir_operadores_corpus.py tests/unit/test_golden*.py -q`; luego suite completa.
+- [x] **Step 5: Commit.** `hito N m: L1 a L3 construyen su plan por constructores`.
 
 ---
 

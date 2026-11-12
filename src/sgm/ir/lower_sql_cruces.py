@@ -11,6 +11,7 @@ from sgm.frontend.sql_normalize import NormalizedSql
 from sgm.ir import operadores
 from sgm.ir.lower_sql_texto import _calificar, _column, _restore, _tablas
 from sgm.ir.models import Operator
+from sgm.ir.pasos import params_validados
 from sgm.ir.pasos import paso as _paso
 from sgm.ir.sql_tree import SemiSpec, Source
 
@@ -108,8 +109,8 @@ def _params_de_union(
     Si el constructor rechaza la unión (tipo desconocido, sin llaves), se devuelve la forma anterior
     `legado`, para que el operador salga como antes y no se pierda el caso.
     """
-    try:
-        pares = [(izquierda, derecha) for izquierda, derecha in keys]
-        return operadores.unir("_", join_type, pares, sources, condition).params
-    except ValueError:
-        return legado
+    return params_validados(
+        lambda: operadores.unir("_", join_type, list(keys), sources, condition),
+        "join",
+        legado,
+    )

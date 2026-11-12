@@ -30,6 +30,7 @@ from sgm.ir.lower_sql_texto import (
     _target_name,
 )
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 from sgm.ir.pasos import paso as _paso
 from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
 
@@ -119,9 +120,12 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     for numero, semi in enumerate(spec.semis, start=1):
         current = _cruce_de_existencia(semi, numero, current, chain, tablas, normalized)
     if spec.where:
-        current = chain.step(
+        filtro = _restore(_column(spec.where, aliases), normalized)
+        current = _paso(
+            chain,
             "filter",
-            {"expression": _restore(_column(spec.where, aliases), normalized)},
+            {"expression": filtro},
+            lambda: operadores.filtrar("_", filtro),
             current,
             status="parcial" if spec.subqueries else "soportado",
         )
@@ -143,12 +147,20 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
         or current.kind == "read"
         or current.kind == "join"
     ):
-        current = chain.step(
-            "derive",
-            {"assignments": assignments},
-            current,
-            status="parcial" if spec.windows else "soportado",
-        )
+        estado = "parcial" if spec.windows else "soportado"
+        if assignments:
+            current = _paso(
+                chain,
+                "derive",
+                {"assignments": assignments},
+                lambda: operadores.calcular("_", assignments),
+                current,
+                status=estado,
+            )
+        else:
+            # Sin columnas que calcular (`SELECT *` sobre un cruce): `calcular` exige asignaciones.
+            # La lista vacía se queda en su forma directa (guardia en test_ir_sin_forma_sql.py).
+            current = chain.step("derive", {"assignments": assignments}, current, status=estado)
     if spec.distinct:
         current = _paso(
             chain,
@@ -178,7 +190,13 @@ def lower_query(tree: SqlTree, normalized: NormalizedSql, ev: Evidence, b: Build
     chain = _Chain(ev, b, normalized)
     ends = [_branch(spec, chain, normalized) for spec in tree.selects]
     if len(ends) > 1:
-        final = b.op("union", {"sources": [], "all": tree.union_all}, ev)
+        final = op_validado(
+            b,
+            lambda: operadores.ramas_union("_", tree.union_all),
+            "union",
+            {"sources": [], "all": tree.union_all},
+            ev,
+        )
         for end in ends:
             b.link(end, final)
     else:

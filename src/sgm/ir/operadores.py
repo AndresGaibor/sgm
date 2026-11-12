@@ -365,6 +365,16 @@ def concatenar(op_id: str, sources: list[str], evidence=None) -> Operator:
     )
 
 
+def ramas_union(op_id: str, union_all: bool, evidence=None) -> Operator:
+    """Ramas de un UNION de SQL: el operador une las ramas que se enlazan después (sin `sources`).
+
+    `union_all` dice si conserva los duplicados (UNION ALL), como el lowering de `PROC SQL`.
+    """
+    if not isinstance(union_all, bool):
+        raise ValueError(f"union_all debe ser verdadero o falso, no {union_all!r}")
+    return _operador(op_id, "union", {"sources": [], "all": union_all}, evidence)
+
+
 def pivotar(
     op_id: str, by: list[str], var: str, evidence=None
 ) -> Operator:

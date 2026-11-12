@@ -241,9 +241,12 @@ def lower_agregado(
             having = _column(spec.having, aliases)
             for it in aggregates:
                 having = having.replace(_column(it.expression, aliases), it.alias or it.expression)
-            current = chain.step(
+            filtro = _restore(_null_tests(having), normalized)
+            current = _paso(
+                chain,
                 "filter",
-                {"expression": _restore(_null_tests(having), normalized)},
+                {"expression": filtro},
+                lambda: operadores.filtrar("_", filtro),
                 current,
             )
     if compuestos:

@@ -6985,3 +6985,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Nota de saneamiento: al empezar, `lower_sql_flow.py` y `pasos.py` estaban en el índice con finales de línea LF
   (churn de CRLF, sin cambio de contenido). Se quitaron del índice sin tocar su contenido; `pasos.py` vuelve a CRLF
   igual que `HEAD`.
+
+## Hito 222m. B-6: `join`, `union`, `derive` y filtros de SQL pasan por los constructores; cierra MG-P1-03 para L1 a L3
+
+- Que se hizo:
+  - `operadores.ramas_union` (operador `union` del UNION de SQL, con `all` booleano). `lower_query` lo usa con `op_validado`.
+  - `ir/pasos.params_validados`: parámetros del constructor con el contador de forma legado. `_params_de_union`
+    (joins de SQL y cruces `IN`/`NOT IN`) lo usa, así que un `unir` rechazado ya no pasa en silencio.
+  - WHERE y HAVING pasan por `filtrar` con `_paso`; las asignaciones de la rama pasan por `calcular` con `_paso`
+    cuando hay al menos una.
+- Excepciones que quedan, con motivo en `tests/unit/test_ir_sin_forma_sql.py`: `derive` de `SELECT` sin FROM
+  (`calcular` exige asignaciones), `derive` con lista vacía (`SELECT *` sobre un cruce) y los dos `join` cuyos
+  parámetros ya vienen de `unir` (solo se añade el operador con sus enlaces).
+- Paso 1 de B-6: las pruebas de constructor con entrada inválida ya existían en `test_ir_operadores.py` (una por
+  operador) y el contador de L1 a L3 en `test_ir_sin_forma_legado.py` (hito 220m). Esta vez se añadieron las de
+  `ramas_union` y `params_validados`. No se vio fallar la prueba antes del cambio: el paso 2 no aplica como
+  observación, porque las pruebas ya estaban en verde.
+- `pivotar`: el constructor existe como hueco (`test_pivotar_queda_como_hueco`) y el lowering todavía no lo usa; el
+  `P-OPERADOR-PIVOTAR` con motivo y página se hace en B-8, donde entra `PROC TRANSPOSE`.
+- Verificado: `ruff check .` limpio; 89 pruebas de golden, IR, constructores, contador y guardia pasan; suite
+  completa antes del cierre (ver abajo).

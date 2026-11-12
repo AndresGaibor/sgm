@@ -16,7 +16,7 @@ from corpus_lib.caso import todos_los_casos  # noqa: E402
 
 from sgm.compile import compile_file, project_base  # noqa: E402
 from sgm.frontend.program import analyze_program  # noqa: E402
-from sgm.ir.pasos import contador_legado, reiniciar_contador_legado  # noqa: E402
+from sgm.ir.pasos import contador_legado, params_validados, reiniciar_contador_legado  # noqa: E402
 
 
 def test_contador_cuenta_la_forma_legado_cuando_el_constructor_rechaza() -> None:
@@ -34,6 +34,22 @@ def test_contador_cuenta_la_forma_legado_cuando_el_constructor_rechaza() -> None
     paso(_Cadena(), "sort", {"legado": True}, rechaza, None)
     assert contador_legado() == {"sort": 1}
     reiniciar_contador_legado()
+
+
+def test_params_validados_devuelve_la_forma_legado_y_cuenta_el_rechazo() -> None:
+    def rechaza():
+        raise ValueError("sin datos")
+
+    reiniciar_contador_legado()
+    assert params_validados(lambda: _Params({"ok": 1}), "join", {"x": 0}) == {"ok": 1}
+    assert params_validados(rechaza, "join", {"x": 0}) == {"x": 0}
+    assert contador_legado() == {"join": 1}
+    reiniciar_contador_legado()
+
+
+class _Params:
+    def __init__(self, params: dict) -> None:
+        self.params = params
 
 
 def test_casos_traducibles_de_l1_a_l3_no_usan_la_forma_legado() -> None:

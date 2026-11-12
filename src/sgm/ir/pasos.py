@@ -38,6 +38,15 @@ class Cadena(Protocol):
     ) -> Operator: ...
 
 
+def params_validados(construir: Any, kind: str, legado: dict) -> dict:
+    """Parámetros del constructor; si lo rechaza, la forma `legado`, y el contador lo registra."""
+    try:
+        return construir().params
+    except ValueError:
+        _LEGADO[kind] += 1
+        return legado
+
+
 def paso(
     chain: Cadena,
     kind: str,
@@ -47,11 +56,7 @@ def paso(
     status: str = "soportado",
 ) -> Operator:
     """Añade un paso con los parámetros del constructor; si lo rechaza, usa la forma `legado`."""
-    try:
-        params = construir().params
-    except ValueError:
-        params = legado
-        _LEGADO[kind] += 1
+    params = params_validados(construir, kind, legado)
     return chain.step(kind, params, previous, status=status)
 
 
@@ -74,4 +79,11 @@ def op_validado(
     return builder.op(kind, params, ev, status=status, notes=notes)
 
 
-__all__ = ["Cadena", "contador_legado", "op_validado", "paso", "reiniciar_contador_legado"]
+__all__ = [
+    "Cadena",
+    "contador_legado",
+    "op_validado",
+    "paso",
+    "params_validados",
+    "reiniciar_contador_legado",
+]

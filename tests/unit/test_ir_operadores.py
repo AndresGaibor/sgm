@@ -72,6 +72,7 @@ def test_los_nombres_se_normalizan_a_minusculas():
         (lambda: op.concatenar("1", ["solo"]), "al menos 2"),
         (lambda: op.iterar("1", "p", []), "instancia"),
         (lambda: op.controlar("1", ""), "reason"),
+        (lambda: op.ramas_union("1", "si"), "verdadero o falso"),
     ],
 )
 def test_parametros_invalidos_se_rechazan(construir, error):
