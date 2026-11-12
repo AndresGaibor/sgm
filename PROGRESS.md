@@ -6798,3 +6798,8 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendiente de B-4: L0 a L2 siguen con bloques escritos a mano, casi todo pendiente, aunque la muestra ya demuestra
   varios de sus tipos; revisar uno por uno. Y el pase de `propagar_tipos` (B-3) sigue sin conectarse a
   `esquemas_de_entrada`.
+
+## Hito 206m. Se permite git push (AGENTS.md)
+
+- Decisión del usuario (12 de noviembre de 2026): se quita de `AGENTS.md` la regla que prohibía `git push`. Los commits siguen siendo locales por hito con el mensaje `hito N: <resumen>`.
+- Se subió a `origin/main` todo lo commiteado hasta el hito 205m (de `8004647` a `3e96393`). No se subieron los cambios sin commitear de otra sesión (`README.md`, `tools/ci.py`, tests y ganchos de validación).

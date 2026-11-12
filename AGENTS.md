@@ -11,7 +11,7 @@ Instrucciones para agentes de IA que trabajen en `sgm-v2`.
    y no cambia el plan ni la guía. Es una vista de cómo funciona el programa, no una traducción.
 3. No conectarte a Impala ni a ninguna base. Los esquemas salen de un archivo JSON local (`env/schemas.json`).
 4. No modificar el repositorio viejo (`migrador-sasgrid-qlik`). Solo leerlo y copiar.
-5. No hacer `git push`. Sí se hacen commits locales, uno por hito, con el mensaje `hito N: <resumen>`.
+5. Commits locales, uno por hito, con el mensaje `hito N: <resumen>`.
 6. No inventar datos: si el SAS no demuestra un tipo, una columna, un valor o una equivalencia, queda como pendiente con su motivo.
 7. No guardar secretos. Nunca copiar una contraseña en claro de `proc pwencode in='...'`; se reemplaza por `'***'`.
 8. No borrar ni debilitar pruebas para que pasen. Si una prueba falla, se arregla el código o se anota el bloqueo.
