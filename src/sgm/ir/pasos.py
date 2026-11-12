@@ -6,9 +6,12 @@ rechaza los datos, usa la forma `legado`. Lo usan los lowering de SQL, del DATA 
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from sgm.ir.models import Operator
+
+if TYPE_CHECKING:  # solo para anotar
+    from sgm.ir.builder import Builder
 
 
 class Cadena(Protocol):
@@ -35,4 +38,22 @@ def paso(
     return chain.step(kind, params, previous, status=status)
 
 
-__all__ = ["Cadena", "paso"]
+def op_validado(
+    builder: "Builder",
+    construir: Any,
+    kind: str,
+    legado: dict,
+    ev: Any,
+    *,
+    status: str = "soportado",
+    notes: list[str] | None = None,
+) -> Operator:
+    """Como `paso`, pero añade el operador con el `Builder` del lowering de DATA step y PROC."""
+    try:
+        params = construir().params
+    except ValueError:
+        params = legado
+    return builder.op(kind, params, ev, status=status, notes=notes)
+
+
+__all__ = ["Cadena", "op_validado", "paso"]

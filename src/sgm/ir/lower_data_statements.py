@@ -5,8 +5,10 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.datastep import DsStatement
+from sgm.ir import operadores
 from sgm.ir.builder import Builder
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 
 _IF_ASSIGN = re.compile(r"(?is)^if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
 _IF_DO = re.compile(r"(?is)^if\s+(.*?)\s+then\s+do\s*$")
@@ -140,7 +142,14 @@ def statement_op(
     """Operador de una sentencia sin traducción directa de asignación."""
     kind = statement.kind
     if kind == "where":
-        return builder.op("filter", {"expression": statement.fields["expression"]}, evidence)
+        expresion = statement.fields["expression"]
+        return op_validado(
+            builder,
+            lambda: operadores.filtrar("_", expresion, evidence=evidence),
+            "filter",
+            {"expression": expresion},
+            evidence,
+        )
     if kind == "if":
         split = conditional_output(statement)
         if split is not None:
@@ -165,15 +174,21 @@ def statement_op(
             notes=["asignación condicional: traducir como expresión condicional"],
         )
     if kind in ("keep", "drop"):
-        return builder.op(
+        nombres = [n.lower() for n in statement.fields["names"]]
+        return op_validado(
+            builder,
+            lambda: operadores.proyectar("_", kind, nombres, evidence=evidence),
             "select",
-            {"mode": kind, "names": [n.lower() for n in statement.fields["names"]]},
+            {"mode": kind, "names": nombres},
             evidence,
         )
     if kind == "rename":
-        return builder.op(
+        pares = [[a.lower(), c.lower()] for a, c in statement.fields["pairs"]]
+        return op_validado(
+            builder,
+            lambda: operadores.renombrar("_", [(a, c) for a, c in pares], evidence=evidence),
             "rename",
-            {"pairs": [[a.lower(), c.lower()] for a, c in statement.fields["pairs"]]},
+            {"pairs": pares},
             evidence,
         )
     if kind == "output":

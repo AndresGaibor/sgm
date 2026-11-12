@@ -6868,3 +6868,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Lo que desbloquea el spike: un joblet creado a mano en Studio (`tJobletInput` a `tJobletOutput`, guardado). Con ese
   `.item` se lee la versión y la estructura real.
 - A-4 quedó cerrada en el hito 211m. A-6 queda abierta hasta tener ese joblet.
+
+## Hito 213m. El DATA step usa los constructores para WHERE, KEEP/DROP y RENAME (B-5, parte 2)
+
+- Que se hizo: `op_validado` en `ir/pasos.py` (la variante de `paso` para `Builder`). `lower_data_statements.py`
+  construye `filter`, `select` y `rename` con `operadores.filtrar`, `proyectar` y `renombrar`. Si el constructor
+  rechaza el valor (por ejemplo, un WHERE vacío), usa la forma anterior.
+- Verificado: los parámetros que dan los constructores son los mismos que la forma anterior en los casos válidos.
+- Pruebas: 366 pasan en golden, IR, DATA step y desde-plan; `tests/unit/test_ir_pasos.py` (3 pasan).
+- Pendiente de B-5: `split`, `derive` condicional, `stateful_row`, `unsupported` en `lower_data_statements.py`;
+  `lower_data_grupos.py` y `lower_procs.py`.
