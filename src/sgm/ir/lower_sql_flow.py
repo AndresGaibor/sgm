@@ -8,7 +8,7 @@ traduciría a `tJava`.
 
 Las expresiones se guardan como texto SQL (con las macro variables restauradas). Si una función no
 tiene equivalente Talend, la pasada 10 la deja pendiente (`FUNCION_NO_MAPEADA`) sin cambiar el
-componente.
+componente. Los helpers de texto, de agregados y de cruces viven en sus módulos `lower_sql_*.py`.
 """
 
 from __future__ import annotations
@@ -18,64 +18,20 @@ import re
 from sgm.frontend.sql_normalize import NormalizedSql
 from sgm.ir import operadores, sql_semantics
 from sgm.ir.builder import Builder, qualify
+from sgm.ir.lower_sql_agregados import lower_agregado
+from sgm.ir.lower_sql_cruces import _cruce_de_existencia, _params_de_union
+from sgm.ir.lower_sql_texto import (
+    _AGGREGATE,
+    _calificar,
+    _column,
+    _names,
+    _restore,
+    _tablas,
+    _target_name,
+)
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.pasos import paso as _paso
-from sgm.ir.sql_tree import Item, SelectSpec, SemiSpec, Source, SqlTree
-
-_AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
-_DOTTED = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
-_SIMPLE_COLUMN = re.compile(r"(?i)^(?:[a-z_]\w*\.)*([a-z_]\w*)$")
-
-
-def _restore(text: str, normalized: NormalizedSql) -> str:
-    """Devuelve las macro variables a su forma SAS (`mv_x` -> `&x`) en un texto."""
-    for placeholder, original in normalized.macros.items():
-        text = re.sub(rf"\b{re.escape(placeholder)}\b", original, text)
-    return text
-
-
-_NOT_NULL = re.compile(r"(?i)\bNOT\s+([\w.]+)\s+IS\s+NULL\b")
-_IS_NOT_NULL = re.compile(r"(?i)\b([\w.]+)\s+IS\s+NOT\s+NULL\b")
-_IS_NULL = re.compile(r"(?i)\b([\w.]+)\s+IS\s+NULL\b")
-
-
-def _null_tests(text: str) -> str:
-    """`x IS NULL` y `x IS NOT NULL` (como los escribe sqlglot) a `missing(x)`, la forma SAS."""
-    text = _NOT_NULL.sub(lambda m: f"NOT missing({m.group(1)})", text)
-    text = _IS_NOT_NULL.sub(lambda m: f"NOT missing({m.group(1)})", text)
-    return _IS_NULL.sub(lambda m: f"missing({m.group(1)})", text)
-
-
-def _column(text: str, aliases: set[str]) -> str:
-    """Nombre de columna de una referencia (`a.k` -> `k`) si el prefijo es un alias de fuente."""
-    return _null_tests(
-        _DOTTED.sub(lambda m: m.group(2) if m.group(1).lower() in aliases else m.group(0), text)
-    )
-
-
-def _tablas(spec: SelectSpec) -> dict[str, str]:
-    """Alias y nombre de tabla, en minúsculas, al nombre de tabla sin biblioteca (`work.x` -> `x`).
-
-    El `tMap` no conoce los alias del SAS: sus llaves y sus expresiones llevan la tabla delante.
-    """
-    mapa: dict[str, str] = {}
-    for source in [spec.base, *(join.source for join in spec.joins)]:
-        if source is None:
-            continue
-        tabla = source.name.lower().split(".")[-1]
-        mapa[source.alias.lower() if source.alias else tabla] = tabla
-        mapa.setdefault(tabla, tabla)
-    return mapa
-
-
-def _calificar(text: str, tablas: dict[str, str]) -> str:
-    """`v.monto` -> `ventas.monto` cuando `v` es un alias de la consulta."""
-
-    def cambiar(m: re.Match) -> str:
-        tabla = tablas.get(m.group(1).lower())
-        return f"{tabla}.{m.group(2)}" if tabla else m.group(0)
-
-    return _DOTTED.sub(cambiar, text)
+from sgm.ir.sql_tree import SelectSpec, Source, SqlTree
 
 
 def _asignacion(item, tablas: dict[str, str], normalized: NormalizedSql) -> dict:
@@ -112,75 +68,6 @@ class _Chain:
         return op
 
 
-def _target_name(expression: str) -> str:
-    """Nombre de columna para una expresión sin alias: su texto, sin signos, en minúsculas."""
-    name = re.sub(r"\W+", "_", expression).strip("_").lower()
-    return name or "expr"
-
-
-def _names(items) -> list[str]:
-    """Nombres de salida de los elementos del SELECT (alias o columna); `*` no tiene nombre."""
-    return [it.alias or it.column for it in items if not it.star and (it.alias or it.column)]
-
-
-def _plain_items(spec: SelectSpec) -> list[str]:
-    """Elementos del SELECT que no son agregados (ni `*`): columnas que quedarían sin agrupar."""
-    return [
-        it.alias or it.column or it.expression
-        for it in spec.items
-        if not it.star and not _AGGREGATE.search(it.expression)
-    ]
-
-
-def _group_outputs(spec: SelectSpec, aliases: set[str]) -> tuple[list[dict], list[str]]:
-    """Columnas simples de GROUP BY seleccionadas y columnas que requieren remezcla."""
-    group_names = {
-        match.group(1).lower()
-        for group in spec.group_by
-        if (match := _SIMPLE_COLUMN.fullmatch(_column(group, aliases).strip()))
-    }
-    outputs = []
-    pendientes = []
-    for item in spec.items:
-        if item.star:
-            pendientes.append("*")
-            continue
-        if _AGGREGATE.search(item.expression):
-            continue
-        expression = _column(item.expression, aliases).strip()
-        match = _SIMPLE_COLUMN.fullmatch(expression)
-        nombre = item.alias or item.column or (match.group(1) if match else item.expression)
-        if match is None or match.group(1).lower() not in group_names:
-            pendientes.append(nombre)
-        else:
-            outputs.append({"expression": expression, "alias": nombre})
-    return outputs, pendientes
-
-
-def _aggregate_order_by(
-    spec: SelectSpec, aliases: set[str]
-) -> tuple[list[tuple[str, bool]], list[str]]:
-    """Resuelve ORDER BY con salidas seleccionadas; las otras referencias remezclan SAS."""
-    selected = {}
-    for item in spec.items:
-        if item.star:
-            continue
-        target = item.alias or item.column or item.expression
-        expression = _column(item.expression, aliases).strip()
-        selected[expression.casefold()] = target
-        selected[target.casefold()] = target
-    outputs = []
-    pendientes = []
-    for expression, descending in spec.order_by:
-        nombre = _column(expression, aliases).strip()
-        destino = selected.get(nombre.casefold())
-        if destino is None:
-            pendientes.append(f"ORDER BY {nombre}")
-        else:
-            outputs.append((destino, descending))
-    return outputs, pendientes
-
-
 def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
     """Si el SELECT cambia algo: una lista de columnas deja solo esas, y un alias o una expresión
     cambian lo que hay.
@@ -196,163 +83,6 @@ def _necesita_proyeccion(spec: SelectSpec, assignments: list[dict]) -> bool:
     if spec.joins or spec.semis:
         return True
     return bool(assignments)
-
-
-_ARGUMENTO = re.compile(
-    r"(?is)^\s*\w+\s*\(\s*(?:distinct\s+)?([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\s*\)\s*$"
-)
-
-
-def _columnas_del_agregado(
-    spec: SelectSpec, aggregates: list, tablas: dict[str, str], normalized: NormalizedSql
-) -> list[dict]:
-    """Columnas que un `GROUP BY` lee de un cruce: las llaves y el argumento de cada agregado.
-
-    Tras un `JOIN` el agregado no puede leer «lo que haya»: necesita que el cruce entregue, con el
-    nombre y la tabla de origen, las columnas que agrupa y suma. Un argumento que no es una columna
-    sola (`SUM(a * b)`) no se proyecta: el agregado lo deja pendiente.
-    """
-    textos = [str(g) for g in spec.group_by]
-    for it in aggregates:
-        encontrado = _ARGUMENTO.match(it.expression)
-        if encontrado:
-            textos.append(encontrado.group(1))
-    columnas: dict[str, dict] = {}
-    for texto in textos:
-        expresion = _calificar(_restore(texto, normalized), tablas)
-        destino = expresion.split(".")[-1]
-        columnas.setdefault(
-            destino.lower(), {"target": destino, "expression": expresion, "origin": "columna"}
-        )
-    return list(columnas.values())
-
-
-_LLAMADA_AGREGADO = re.compile(
-    r"(?i)\b(?:count|sum|avg|mean|min|max)\s*\(\s*(?:distinct\s+)?"
-    r"(?:\*|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\s*\)"
-)
-
-
-def _descomponer(expresion: str, ocultas: dict[str, str]) -> str | None:
-    """Una expresión sobre agregados (`COUNT(*) - COUNT(x)`) con cada llamada por un nombre.
-
-    Devuelve el texto con los nombres (`agg_1 - agg_2`) y deja en `ocultas` llamada -> nombre.
-    `None` si no es de esa clase: ya es una llamada sola, lleva una subconsulta o trae un agregado
-    que no es `FUNCION(columna)`.
-    """
-    if re.search(r"(?i)\bselect\b", expresion) or _LLAMADA_AGREGADO.fullmatch(expresion.strip()):
-        return None
-
-    locales = dict(ocultas)
-
-    def cambiar(m: re.Match) -> str:
-        return locales.setdefault(m.group(0), f"agg_{len(locales) + 1}")
-
-    reemplazada = _LLAMADA_AGREGADO.sub(cambiar, expresion)
-    if reemplazada == expresion or _AGGREGATE.search(reemplazada):
-        return None
-    ocultas.update(locales)
-    return reemplazada
-
-
-def _cruce_de_existencia(
-    semi: SemiSpec,
-    numero: int,
-    current: Operator,
-    chain: _Chain,
-    tablas: dict[str, str],
-    normalized: NormalizedSql,
-) -> Operator:
-    """`col IN (SELECT k ...)` como un cruce: la subconsulta se reduce a sus llaves sin repetir.
-
-    * `IN`: cruce interno contra las llaves únicas; ninguna fila se repite.
-    * `NOT IN`: cruce izquierdo y se quedan las filas sin pareja. En SAS el faltante es un valor
-      más, así que `NOT IN` con faltantes en la lista se comporta como una comparación de valores.
-    La subconsulta se arma como una cadena aparte que termina en una tabla temporal del programa.
-    """
-    sub = semi.sub
-    linea = chain.ev.line_start
-    tabla = f"WORK.__in_l{linea}_{numero}"
-    clave = f"clave_in{numero}"
-    alias_sub = {sub.base.alias.lower()} if sub.base and sub.base.alias else set()
-    tablas_sub = _tablas(sub)
-    source_read = chain.read(sub.base)
-    actual = source_read
-    if sub.where:
-        filtro = _restore(_column(sub.where, alias_sub), normalized)
-        actual = _paso(
-            chain, "filter", {"expression": filtro}, lambda: operadores.filtrar("_", filtro), actual
-        )
-    leida = _calificar(_restore(semi.key, normalized), tablas_sub)
-    proyeccion = [{"target": clave, "expression": leida, "origin": "columna"}]
-    actual = _paso(
-        chain,
-        "derive",
-        {"assignments": proyeccion},
-        lambda: operadores.calcular("_", proyeccion),
-        actual,
-    )
-    actual = _paso(
-        chain,
-        "dedup",
-        {"by": [clave], "keep": "first", "outputs": [tabla]},
-        lambda: operadores.deduplicar("_", [clave], "first", [tabla]),
-        actual,
-    )
-    derecha = chain.read(Source(tabla))
-    chain.b.link(actual, derecha)
-    izquierda = _calificar(_restore(semi.column, normalized), tablas)
-    params = _params_de_union(
-        "left" if semi.negate else "inner",
-        [[izquierda, f"{tabla.split('.')[-1].lower()}.{clave}"]],
-        [],
-        None,
-        legado={
-            "by": [izquierda.split(".")[-1]],
-            "keys": [[izquierda, f"{tabla.split('.')[-1].lower()}.{clave}"]],
-            "join_type": "left" if semi.negate else "inner",
-            "sources": [],
-            "condition": None,
-        },
-    )
-    params["interpreter_subquery"] = {
-        "expression": _restore(semi.expression, normalized),
-        "source_read": source_read.id,
-    }
-    cruce = chain.b.op("join", params, chain.ev)
-    chain.b.link(current, cruce)
-    chain.b.link(derecha, cruce)
-    if not semi.negate:
-        return cruce
-    return _paso(
-        chain,
-        "filter",
-        {"expression": f"missing({clave})"},
-        lambda: operadores.filtrar("_", f"missing({clave})"),
-        cruce,
-    )
-
-
-def _agregado(
-    chain: _Chain, params: dict, previous: Operator, status: str = "soportado"
-) -> Operator:
-    """Paso `aggregate` por `operadores.agregar`; si rechaza los datos, va la forma legado."""
-    return _paso(
-        chain,
-        "aggregate",
-        params,
-        lambda: operadores.agregar(
-            "_",
-            params["group_by"],
-            params["aggregations"],
-            pendiente=params.get("pendiente"),
-            group_outputs=params.get("group_outputs"),
-            output_order=params.get("output_order"),
-            evidence=[chain.ev],
-        ),
-        previous,
-        status=status,
-    )
 
 
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
@@ -398,106 +128,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     aggregates = [it for it in spec.items if not it.star and _AGGREGATE.search(it.expression)]
     # Una expresión sobre agregados (`COUNT(*) - COUNT(x)`): cada llamada se agrega por su cuenta
     # (`agg_1`, `agg_2`) y un `derive` detrás calcula la expresión con esos nombres.
-    ocultas: dict[str, str] = {}
-    compuestos: dict[int, str] = {}
-    for it in aggregates:
-        reemplazada = _descomponer(it.expression, ocultas)
-        if reemplazada is not None:
-            compuestos[id(it)] = reemplazada
-    if any(not it.alias for it in aggregates):
-        ocultas, compuestos = {}, {}  # sin alias no hay nombre con el que volver a leerlos
-    simples = [it for it in aggregates if id(it) not in compuestos]
-    if spec.joins and (spec.group_by or aggregates):
-        leidas = _columnas_del_agregado(
-            spec, [*simples, *(Item(llamada) for llamada in ocultas)], tablas, normalized
-        )
-        if leidas:
-            current = _paso(
-                chain,
-                "derive",
-                {"assignments": leidas},
-                lambda: operadores.calcular("_", leidas),
-                current,
-            )
+    aggregate_order: list[tuple[str, bool]] = []
     if spec.group_by or aggregates:
-        aggregate_order, remezcla_order = _aggregate_order_by(spec, aliases)
-        params = {
-            "group_by": [_column(g, aliases) for g in spec.group_by],
-            "aggregations": [
-                {
-                    "expression": _restore(_column(it.expression, aliases), normalized),
-                    "alias": it.alias or it.column or it.expression,
-                }
-                for it in simples
-            ]
-            + [
-                {"expression": _restore(_column(llamada, aliases), normalized), "alias": nombre}
-                for llamada, nombre in ocultas.items()
-            ],
-            "output_order": [
-                str(it.alias or it.column or it.expression).lower()
-                for it in spec.items
-                if not it.star
-            ],
-        }
-        if spec.group_by:
-            group_outputs, remezcla = _group_outputs(spec, aliases)
-            params["group_outputs"] = group_outputs
-            remezcla.extend(remezcla_order)
-            if remezcla:
-                params["pendiente"] = remezcla
-        if compuestos:
-            params["output_order"] = [
-                *[str(item["alias"]).lower() for item in params.get("group_outputs", [])],
-                *[str(item["alias"]).lower() for item in params["aggregations"]],
-            ]
-        plain = _plain_items(spec) if not spec.group_by else []
-        if params.get("pendiente") or (
-            plain and sql_semantics.tratamiento(sql_semantics.AGREGADO) == "pendiente"
-        ):
-            # SAS remezcla las columnas sin agregar en cada fila: no hay SQL equivalente probado.
-            params.setdefault("pendiente", plain)
-            label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
-            detalle = ", ".join(params["pendiente"])
-            note = f"{label}: columnas sin agregar {detalle}; pendiente de decidir"
-            current = _agregado(chain, params, current, status="parcial")
-            current.notes.append(note)
-        else:
-            current = _agregado(chain, params, current)
-        if spec.having:
-            having = _column(spec.having, aliases)
-            for it in aggregates:
-                having = having.replace(_column(it.expression, aliases), it.alias or it.expression)
-            current = chain.step(
-                "filter",
-                {"expression": _restore(_null_tests(having), normalized)},
-                current,
-            )
-    if compuestos:
-        # La salida del agregado ya trae grupos, agregados simples y ocultos: el `derive` arma las
-        # columnas del SELECT en su orden, con las expresiones sobre los nombres `agg_k`.
-        salida = []
-        for it in spec.items:
-            if it.star:
-                continue
-            nombre = it.alias or it.column or _target_name(it.expression)
-            if id(it) in compuestos:
-                texto = compuestos[id(it)]
-                salida.append(
-                    {
-                        "target": nombre,
-                        "expression": _restore(texto, normalized),
-                        "origin": "expresion",
-                    }
-                )
-            else:
-                salida.append({"target": nombre, "expression": nombre, "origin": "columna"})
-        current = _paso(
-            chain,
-            "derive",
-            {"assignments": salida},
-            lambda: operadores.calcular("_", salida),
-            current,
+        current, aggregate_order = lower_agregado(
+            spec, chain, current, aliases, tablas, normalized, aggregates
         )
     assignments = [
         _asignacion(it, tablas, normalized)
@@ -593,25 +227,3 @@ def _host_assignments(
                 f"{variable} sin demostrar (varias filas sin separador, elemento no nombrado "
                 "o regla pendiente)"
             )
-
-
-def _params_de_union(
-    join_type: str,
-    keys: list[list[str]],
-    sources: list[str],
-    condition: str | None,
-    *,
-    legado: dict,
-) -> dict:
-    """Parámetros de un JOIN de SQL, validados por el constructor `unir` (ir/operadores.py).
-
-    Si el constructor rechaza la unión (tipo desconocido, sin llaves), se devuelve la forma anterior
-    `legado`, para que el operador salga como antes y no se pierda el caso.
-    """
-    try:
-        pares = [(izquierda, derecha) for izquierda, derecha in keys]
-        return operadores.unir("_", join_type, pares, sources, condition).params
-    except ValueError:
-        return legado
-
-

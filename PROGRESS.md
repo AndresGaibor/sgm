@@ -6967,3 +6967,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   quedan `join`, `union` y `derive` construidos con `Builder.op` directo (el contador no los ve, por eso la guardia de
   B-5 no los cubre todavía).
 - Verificado: `ruff` limpio en `src/sgm/ir`; 570 pruebas de IR, SQL, golden, desde-plan y las nuevas pasan.
+
+## Hito 221m. `lower_sql_flow.py` baja de 300 líneas: texto, agregados y cruces pasan a módulos propios (B-6)
+
+- Que se hizo: sin cambio de comportamiento, `lower_sql_flow.py` (617 líneas) se parte en cuatro módulos:
+  `lower_sql_texto.py` (macros, alias, columnas y nombres de salida), `lower_sql_agregados.py` (GROUP BY, agregados,
+  HAVING y el `derive` de expresiones sobre agregados, ahora en `lower_agregado`), `lower_sql_cruces.py`
+  (subconsultas `IN`/`NOT IN` y `_params_de_union`) y `lower_sql_flow.py` (229 líneas: la rama de SELECT y el
+  `lower_query`). `lower_agregado` devuelve también el orden de `ORDER BY` ya resuelto, que antes era una variable
+  local de `_branch`.
+- Decisión: el bloque de agregados de `_branch` se extrae como función entera y no se reescribe; es el paso mínimo
+  que deja el archivo bajo 300 líneas sin tocar la lógica.
+- Verificado: `ruff check src/sgm/ir/` limpio; 516 pruebas de IR, SQL, golden y desde-plan pasan; suite completa
+  3 541 pasadas, 316 omitidas, 142 xfail.
+- Pendiente de B-6: `join`, `union` y `derive` de `lower_sql_flow.py` siguen con `Builder.op` directo (el contador
+  de forma legado no los cuenta). Es el siguiente paso (hito 222m).
+- Nota de saneamiento: al empezar, `lower_sql_flow.py` y `pasos.py` estaban en el índice con finales de línea LF
+  (churn de CRLF, sin cambio de contenido). Se quitaron del índice sin tocar su contenido; `pasos.py` vuelve a CRLF
+  igual que `HEAD`.
