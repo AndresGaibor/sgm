@@ -1,0 +1,106 @@
+fases:
+- id: MG-P0
+  nombre: Preparación
+  horas: 37.0
+  credito_sin_desglosar: 25.0
+  tareas: []
+  sostiene: Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las
+    mediciones de tiempo
+- id: MG-P1
+  nombre: Modelo y plan lógico
+  horas: 70.0
+  credito_sin_desglosar: 37.5
+  tareas: []
+  sostiene: Pendientes, propiedad y tabla de símbolos hechos; tipos de `LENGTH` demostrados
+    en 3 casos (bloque `esquemas` en L0 a L2); 14 operadores con constructor validado
+    y pruebas de forma en L1 a L3, sin que ningún pase los use; `PROC TRANSPOSE` como
+    hueco
+- id: MG-P2
+  nombre: Entrada y salida
+  horas: 50.0
+  credito_sin_desglosar: 12.0
+  tareas: []
+  sostiene: CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT`
+- id: MG-P3
+  nombre: Expresiones y funciones
+  horas: 80.0
+  credito_sin_desglosar: 14.5
+  tareas: []
+  sostiene: Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT`
+- id: MG-P4
+  nombre: DATA step
+  horas: 90.0
+  credito_sin_desglosar: 21.0
+  tareas: []
+  sostiene: '`IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete;
+    emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete,
+    sin emisor); sin `OUTPUT` múltiple ni `ARRAY`'
+- id: MG-P5
+  nombre: '`PROC SQL`'
+  horas: 80.0
+  credito_sin_desglosar: 37.0
+  tareas: []
+  sostiene: '`ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos),
+    `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin
+    auto-`JOIN`, subconsulta escalar ni `full`/`right`'
+- id: MG-P6
+  nombre: Procedimientos
+  horas: 50.0
+  credito_sin_desglosar: 4.0
+  tareas: []
+  sostiene: '`PROC SORT` con `NODUP`/`NODUPKEY` y `BY _ALL_`; sin `FREQ`, `MEANS`,
+    `TRANSPOSE`'
+- id: MG-P7
+  nombre: Macros
+  horas: 60.0
+  credito_sin_desglosar: 8.0
+  tareas: []
+  sostiene: '`L5`: 8 de 12 casos pasan en el anillo B (`%let`, macro con parámetros,
+    `%eval`); sin `%sysfunc` ni `SELECT INTO`'
+- id: MG-P8
+  nombre: Planificador
+  horas: 70.0
+  credito_sin_desglosar: 15.0
+  tareas: []
+  sostiene: Contextos DEV/QA/PROD; `trace.json` parcial; plantillas repetidas desplegadas
+    en línea (provisional); sin segmentación ni límite de tamaño
+- id: MG-P9
+  nombre: Emisor
+  horas: 108.0
+  credito_sin_desglosar: 34.5
+  tareas: []
+  sostiene: 29 de 40 plantillas con nodo emitido (`tSortRow`, `tUniqRow`, `tAggregateRow`,
+    `tUnite` nuevos, sin Studio), contextos y conexiones; joblets sin validar
+- id: MG-P10
+  nombre: Verificación
+  horas: 80.0
+  credito_sin_desglosar: 24.0
+  tareas: []
+  sostiene: 'Validador del `.item` hecho; intérprete B: 86 de 93 casos elegibles pasan
+    (L0 a L6), 7 `xfail`; el comparador sigue sin ser estricto con columnas de más'
+- id: MG-P11
+  nombre: Experiencia de uso
+  horas: 30.0
+  credito_sin_desglosar: 4.0
+  tareas: []
+  sostiene: '`sgm migrar` de un programa sin YAML; falta carpeta y `cobertura.md`'
+- id: MG-P12
+  nombre: Rendimiento
+  horas: 30.0
+  credito_sin_desglosar: 0.0
+  tareas: []
+  sostiene: Sin empezar
+- id: MG-P13
+  nombre: Seguridad
+  horas: 20.0
+  credito_sin_desglosar: 0.75
+  tareas: []
+  sostiene: '`sgm secretos` existe, sin integrar en `sgm migrar`'
+- id: MG-P14
+  nombre: Producción
+  horas: 40.0
+  credito_sin_desglosar: 0.0
+  tareas: []
+  sostiene: 'La compuerta de liberación quedó verde en el hito 126m, pero no se acredita:
+    su aceptación incluye el lote de Studio sobre toda la salida y eso sigue pendiente;
+    la parte de personas tampoco cuenta aquí'

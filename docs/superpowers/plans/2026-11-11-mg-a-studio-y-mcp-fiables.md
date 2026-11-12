@@ -241,7 +241,7 @@
 | A-7 compilar sin ventana | **reconocimiento cerrado** (hito 197): no hay `org.talend.commandline*` y tampoco hay Maven ejecutable (`mvn` fuera del PATH y ningún `mvn.cmd`/`mvn.bat`/`mvnw` en `C:\Talend\8.0.1`), solo el Maven embebido del IDE. En este equipo la única opción medible es el bridge, que se mantiene; no se escribe `talend_job_build_headless` |
 | A-8 cola de validaciones | **hecha** (hito 192): `tools/corpus_lib/studio_cola.py`, `validar` y `lote` encolan cuando no hay Studio, subcomando `pendientes` |
 | A-9 la salud de `sgm` usa el estado | **hecha** (hito 192): `Salud.estado`, una sola recuperación con `--recuperar`, caso `MODAL_BLOCKING` que no reintenta |
-| A-10 vaciar lo pendiente | hecho para `l6_18`, `l6_22`, `l6_23`, `l6_24` (4 de 4 coinciden); falta la nota de `AGENTS.md` |
+| A-10 vaciar lo pendiente | hecho para `l6_18`, `l6_22`, `l6_23`, `l6_24` (4 de 4 coinciden); la nota de `AGENTS.md` está en la sección «Studio y `talend-mcp`» |
 | **A-11 nuevo: diálogos autónomos** | **hecha** (`src/talend/studio/modals/`, commit `e88783c`): lee por UI Automation, decide, pulsa y registra; el supervisor lo corre cada 5 s |
 
 A-11: `talend_studio_handle_modals` quedó registrada como tool del MCP en el hito 192 (con `dryRun`

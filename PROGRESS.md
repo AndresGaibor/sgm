@@ -6720,3 +6720,31 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Nota de operacion: el gancho incluye el codigo de `git status` en la huella, asi que preparar los
   archivos despues de `tools/ci.py` invalida el cierre. El orden que pasa es preparar, validar y
   commitear.
+
+## Hito 200n. La tabla 11b sale de un YAML de creditos con un comando
+
+- Que se hizo (G-4): `tools/avance_creditos.py` con `--importar`, `--imprimir`, `--actualizar` y `--verificar`.
+  `docs/plan-reescritura/creditos.yaml` se genera con `--importar` desde la tabla anterior, sin copiarla a mano.
+  La tabla de la seccion 11b queda entre las marcas `<!-- avance:inicio -->` y `<!-- avance:fin -->`.
+- Pruebas: `tests/unit/test_avance_creditos.py`, 12 pasan. Incluye el trinquete
+  `test_la_tabla_del_plan_sale_del_yaml`: la tabla del plan es la que sale del YAML.
+- Hallazgo: 895 − 237,25 = 657,75 h restantes, pero el plan y `reparto-andres-byron.md` dicen 719,25 h.
+  Se anoto la contradiccion en la seccion 11b; la cifra vigente queda pendiente de decision.
+- Plan A: la fila A-10 deja de decir que falta la nota de `AGENTS.md` (la seccion ya existe).
+- Decision: el YAML guarda el credito total de cada fase en `credito_sin_desglosar`, porque el desglose por tarea
+  no esta registrado en ninguna parte.
+
+## Hito 201m. Tipos de PROC IMPORT demostrados por la muestra (B-2)
+
+- Que se hizo: `src/sgm/migrar/tipos_import.py` (`tipo_desde_muestra`, `tipos_de_archivo`). Una columna es numerica si
+  sus valores no vacios de las primeras 20 filas lo son; si no, es caracter. Sin valores, no se inventa tipo.
+- Integracion: `esquemas_de_entrada` usa la muestra despues de catalogo y expresiones, y antes del `String` por omision.
+  Si hay texto despues de la fila 20, se registra `P-TIPO-FUERA-DE-MUESTRA`.
+- Fuente: `proc.pdf`, seccion «PROC IMPORT Statement», p. 1380.
+- Pruebas: `tests/unit/test_tipos_import.py` (6 nuevas); con las de esquemas y E/S, 100 pasan y 1 se omite.
+  `test_corpus_esquemas` pasa, asi que `P-TIPO-DESCONOCIDO` no sube.
+- Pendiente: falta una prueba directa de `esquemas_de_entrada` con un CSV.
+- Ajustes de expectativas que la muestra vuelve falsas: `test_cabecera_de_la_muestra` pasa de dos pendientes
+  `P-TIPO-DESCONOCIDO` a uno (`work.ventas`, sin archivo); `test_order_by_descendente_es_un_criterio_por_columna`
+  ordena `saldo` e `id` como `num` porque la muestra los demuestra numéricos.
+- `l2_12_auto_join_misma_ciudad` sale de `tests/corpus/migrar_pendientes.yaml`: ya migra sin pendientes reales.

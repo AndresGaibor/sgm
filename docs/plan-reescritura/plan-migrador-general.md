@@ -880,6 +880,7 @@ evidencia. Los créditos salen de las secciones «Estado» de cada fase y de `PR
 la pista del programa grande que nadie midió contra el corpus (por ejemplo, el expansor de macros de
 `MG-P7`) cuenta 0 hasta que un caso lo demuestre. **Al cerrar un hito, recalcula la fila de su fase.**
 
+<!-- avance:inicio -->
 | Fase | Horas | Crédito | % de la fase | Qué sostiene la cifra |
 |---|---|---|---|---|
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
@@ -898,9 +899,10 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | La compuerta de liberación quedó verde en el hito 126m, pero no se acredita: su aceptación incluye el lote de Studio sobre toda la salida y eso sigue pendiente; la parte de personas tampoco cuenta aquí |
 | **Total** | **895** | **237,25** | **26,5 %** | |
+<!-- avance:fin -->
 
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
-(359,0 h y 360,25 h).
+(359,0 h y 360,25 h). **Ojo (G-4):** 895 − 237,25 = 657,75 h, que es lo que imprime `tools/avance_creditos.py --imprimir`; la cifra de 719,25 h no sale de esta tabla. La decisión sobre cuál es la vigente queda pendiente y el reparto por persona se revisa con ella.
 
 **Termómetros directos del corpus** (más honestos que las horas, porque no dependen de mi crédito):anillo B, 86 de 93 casos elegibles pasan (92 %; hito 123m); anillo A, 84 de los 101 casos de `L0` a `L6` migran sin pendientes de traducción (83 %; hito 123m); Studio, 85 de 85 Jobs de `L0` a `L6` compilan tras los arreglos del hito 125m y **ninguno se ejecutó** ni se comparó con su esperado.
 
