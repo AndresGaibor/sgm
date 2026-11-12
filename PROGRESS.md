@@ -6878,3 +6878,14 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: 366 pasan en golden, IR, DATA step y desde-plan; `tests/unit/test_ir_pasos.py` (3 pasan).
 - Pendiente de B-5: `split`, `derive` condicional, `stateful_row`, `unsupported` en `lower_data_statements.py`;
   `lower_data_grupos.py` y `lower_procs.py`.
+
+## Hito 214m. B-5 parada: `PROC SORT` no se puede pasar a `ordenar` sin cambiar firmas
+
+- Medido: `lower_procs._sort_params` guarda solo las opciones no predeterminadas (`by`, `inputs`, y `descending`
+  o `equals` si aplican). `operadores.ordenar` siempre emite `descending` y no tiene `inputs`. El `dedup` de
+  `PROC SORT` además añade `duplicate_outputs`, que `deduplicar` no tiene.
+- Consecuencia: convertir `PROC SORT` cambia las firmas de todos los `PROC SORT` del corpus, y el plan prohíbe
+  cambiar las de L0 a L3.
+- Decisión pendiente: (a) que `ordenar` y `deduplicar` acepten un modo compacto que reproduzca la forma actual, o
+  (b) aceptar firmas nuevas y actualizar los golden en un hito propio. No se elige en silencio.
+- Lo que sí quedó de B-5: WHERE, KEEP/DROP y RENAME del DATA step (hito 213m).
