@@ -6828,3 +6828,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `test_golden*`, `test_sql*`) pasan sin cambios: 182 pruebas.
 - Pendiente de B-5: `lower_data_statements.py`, `lower_data_grupos.py` y `lower_procs.py` todavía construyen con
   `Builder.op` directamente; pasan a `paso` con su constructor en un hito propio.
+
+## Hito 210m. A-4, paso 1 medido en Studio sin resultado válido
+
+- Que se hizo: se generaron los Jobs de `l1_14_expresion_compuesta` y `l1_15_distinct_tildes` con `sgm migrar`
+  (backend archivos) y se mandaron en un lote con `tools/corpus_studio.py lote --backend mcp` (sufijo `a4c`).
+- Resultado literal: `Lote de 2 Jobs (sufijo a4c) en 29.6 s: 0 compilan, 2 no` con
+  `job_programa_a4c00: El job no existe en el repositorio` y lo mismo para `a4c01`.
+- Lectura: el lote tardó más de 25 s (el límite del puente) y no hubo error de puente, pero Studio no vio los Jobs
+  copiados a `process/` del proyecto `C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA`.
+  Con `--backend talend_cli` el refresco falla con `source: unavailable`.
+- No se cierra A-4: falta saber si Studio tiene abierto ese proyecto y repetir el lote. Decisión (a) o (b) pendiente.
+- A-6 no se empezó: su spike de carga necesita el repositorio de `talend-mcp` y un joblet escrito a mano.
+- Nota: `validar_en_studio.py` no sirve para casos del corpus; pide `decisiones/<programa>.jobs.yaml`.
