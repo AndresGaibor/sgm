@@ -6841,3 +6841,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - No se cierra A-4: falta saber si Studio tiene abierto ese proyecto y repetir el lote. Decisión (a) o (b) pendiente.
 - A-6 no se empezó: su spike de carga necesita el repositorio de `talend-mcp` y un joblet escrito a mano.
 - Nota: `validar_en_studio.py` no sirve para casos del corpus; pide `decisiones/<programa>.jobs.yaml`.
+
+## Hito 211m. A-4 medido en Studio: el límite de 25 s no corta el lote (cierra el spike)
+
+- Causa de los fallos del hito 210m, corregida: Studio tiene abierto el workspace `C:/Talend/8.0.1/studio/workspace3`
+  (lo dice `talend_bridge_workspace_state`), no `workspace`. Y faltaban los `.properties` de cada Job; sin ellos
+  Studio responde «El job no existe en el repositorio».
+- Mediciones literales (`tools/corpus_studio.py lote --backend mcp`, proyecto `workspace3`):
+  - 2 Jobs (`l1_14`, `l1_15`): `Lote de 2 Jobs (sufijo a4d) en 26.6 s: 2 compilan, 0 no`.
+  - 8 Jobs (L1 de los 8 primeros casos): `Lote de 8 Jobs (sufijo a4h) en 20.1 s: 8 compilan, 0 no`.
+  - 16 Jobs (todo L1): `Lote de 16 Jobs (sufijo a4i) en 25.4 s: 16 compilan, 0 no`.
+  - 32 Jobs (L1 dos veces): `Lote de 32 Jobs (sufijo a4j) en 31.6 s: 32 compilan, 0 no`.
+- Lectura con la regla de A-4: un Job tarda unos 1,0 s en compilar, no 20 s, y la respuesta es pequeña. El puente no
+  corta ninguno de los lotes, ni siquiera de 31,6 s. No hace falta (a) ni (b); el plazo propio de 180 s y 300 s del
+  hito 195 de `talend-mcp` cubre `build` y `build-batch`.
+- Pendiente de A-4: la prueba del paso 3 (respuesta de 40 s) vive en `talend-mcp`, no en `sgm-v2`, y no se corrió aquí.
+- Resultado para el plan: A-4 cerrada con evidencia de medición en `sgm-v2`; la prueba del repositorio de `talend-mcp`
+  queda por verificar allá.
