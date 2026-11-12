@@ -169,7 +169,9 @@ Los constructores de `src/sgm/ir/operadores.py` existen para 13 de los 14 operad
 
 Hoy están listados en `migrar_pendientes.yaml` de L1 y L2 `l0_12`, `l2_12`, `l2_16` y `l3_09`. El criterio es «`L1` y `L2` generan plan sin pendientes que no sean de alcance».
 
-- [ ] **Step 1: Write the failing test.** Clasificar cada pendiente de L1 y L2 como `alcance` (SQL fuera del dialecto soportado, con página de `sqlproc` que lo diga) o `defecto`. La prueba exige `defecto == 0`.
+**Estado (hito 223m):** parcial. `l2_12` ya estaba resuelto; `l2_16` queda bloqueada por una decisión del dueño (motor de `LIBNAME LZ`), ver `docs/BLOQUEOS.md`. Step 2 no se observó fallar: al escribir la prueba, L1 y L2 ya no tenían defectos.
+
+- [x] **Step 1: Write the failing test.** Clasificar cada pendiente de L1 y L2 como `alcance` (SQL fuera del dialecto soportado, con página de `sqlproc` que lo diga) o `defecto`. La prueba exige `defecto == 0`.
 - [ ] **Step 2: Run test to verify it fails** (`l2_12` `P-FILTRO-SIN-TRADUCIR`, `l2_16` `P-OPERADOR-SIN-SOPORTE`).
 - [ ] **Step 3: Implement.** `l2_12` (auto-join por ciudad): el filtro referencia dos alias de la misma tabla; atribuir cada columna calificada a su alias en `sql_semantics.py`. `l2_16` (SQL en la misma base) ya compiló con `tImpalaRow` (hito 164m): el pendiente restante es del plan, no del emisor; cerrar con el operador `leer` con `sql` literal. Los que dependen de tipos (`l3_09`, agregado sin esquema) quedan con su motivo si B-3 no los resuelve.
 - [ ] **Step 4: Run** suite completa; quitar de `migrar_pendientes.yaml` los casos resueltos (la prueba falla si no se quitan).

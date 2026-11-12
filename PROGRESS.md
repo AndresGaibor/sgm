@@ -7005,3 +7005,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `P-OPERADOR-PIVOTAR` con motivo y página se hace en B-8, donde entra `PROC TRANSPOSE`.
 - Verificado: `ruff check .` limpio; 89 pruebas de golden, IR, constructores, contador y guardia pasan; suite
   completa antes del cierre (ver abajo).
+
+## Hito 223m. B-7: pendientes de L1 y L2 clasificados; `l2_16` queda bloqueada por un dato del entorno
+
+- Qué se hizo: `tests/unit/test_pendientes_sql_l1_l2.py` migra todos los casos de L1 y L2 y exige que cada
+  pendiente real esté clasificado. `alcance` (SQL fuera del dialecto, con página de `sqlproc`) o `entorno`
+  (falta un dato que el repositorio no tiene). Un pendiente sin clasificar es un defecto y rompe la prueba.
+  La prueba también falla si queda una clasificación que ya no corresponde.
+- Medición: `l2_12_auto_join_misma_ciudad` ya no tiene pendientes; no hacía falta el cambio de `sql_semantics.py`
+  del plan. En L1 no hay pendientes. El único caso que queda es `l2_16_sql_en_misma_base`, con 4 pendientes
+  `P-OPERADOR-SIN-SOPORTE`.
+- `l2_16`: el `LIBNAME LZ '/data/lz'` no dice qué motor sirve `LZ`, y `env/engines.json` tiene `libraries` vacío.
+  Cerrarlo con un `read` con `sql` literal en `db:impala` sería inventar el motor (regla 6). Queda en
+  `docs/BLOQUEOS.md` como decisión del dueño. `l0_12` y `l3_09` no están en el alcance de L1 y L2.
+- No se quitó ninguna entrada de `migrar_pendientes.yaml`: ningún caso de L1 y L2 se resolvió en esta tarea.
+- Verificado: la prueba nueva pasa (2 pruebas); ver el cierre de CI en el commit.
