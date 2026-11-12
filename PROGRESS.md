@@ -6918,3 +6918,12 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   y de asignaciones condicionales.
 - Decisión sin tomar: `lower_data_statements.py` es casi código muerto (solo `conditional_do_assignments` lo usa un
   test). Borrarlo implica borrar o reescribir `tests/unit/test_lower_data_do_else.py`, y no se hace sin confirmarlo.
+
+## Hito 217m. `lower_data.py` extrae las asignaciones condicionales y el operador por sentencia (B-5)
+
+- Que se hizo: `_conditional_assignment`, `_statement_op` y las tres expresiones regulares de IF/ELSE pasan a
+  `src/sgm/ir/lower_data_asignaciones.py`, sin cambio de comportamiento. `lower_data.py` baja de 599 a 467 líneas;
+  el módulo nuevo tiene 150.
+- Verificado: `ruff` limpio en `src/sgm/ir`; 861 pruebas de golden, IR, DATA step, salidas y desde-plan pasan.
+- Pendiente: `lower_data.py` sigue por encima de 300 líneas (467). Falta `_lower_data_steps` (unas 275 líneas), que
+  hay que partir en estado por fila y en el resto del recorrido.
