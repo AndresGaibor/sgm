@@ -532,9 +532,11 @@ de CSV y DLM generan `tFileInputDelimited` y `tFileOutputDelimited` con cabecera
 | MG-P3-08 | Generador automático de la tabla de funciones soportadas y de `docs/funciones.md` | H | documento generado, sin edición manual | 4 |
 | MG-P3-09 | Cierre de brechas del oráculo (`LENGTH`, `COMPBL`, `CONTAINS`, `IS MISSING` sobre expresión) | H | los 19 resultados sin verificar de `L8/validaciones` pasan a verificados | 6 |
 
-**Estado (hito 107, 6 de noviembre de 2026).** MG-P3-01 sigue parcial: el intérprete ejecuta el
-subconjunto de expresiones ejercido por los vectores y casos L0/L4; quedan 20 `xfail` con motivo y no
-se ejecutaron todos los vectores de `semantica/vectores.yaml`. MG-P3-02, 03 y 05 avanzan solo en
+**Estado histórico (hito 107, 6 de noviembre de 2026).** MG-P3-01 seguía parcial: el intérprete ejecutaba el
+subconjunto de expresiones ejercido por los vectores y casos L0/L4; en ese corte se registraban 20 `xfail`
+con motivo y no se habían ejecutado todos los vectores de `semantica/vectores.yaml`. Esa cifra es histórica,
+no el recuento vigente: al hito 209n, `CONOCIDOS` tiene 5 casos y ninguno es de funciones; el detalle de la
+línea base está en `PROGRESS.md`. MG-P3-02, 03 y 05 avanzan solo en
 funciones concretas respaldadas por evidencia (`INPUT`, `LEFT`, `SUBSTR`/`SUBSTRN`, `COALESCEC`,
 `COMPRESS`, `SCAN`, `ROUND` y funciones ya cubiertas), no como catálogos completos. `COMPRESS` cubre
 los modificadores `K`, `D` e `I` usados en L4; `SCAN` usa los delimitadores ASCII documentados para

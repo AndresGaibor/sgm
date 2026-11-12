@@ -6819,3 +6819,36 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   y la coincidencia en el anillo B. L0 no aparece porque ninguno de sus casos está marcado `traducible`.
 - Pruebas: `tests/unit/test_linea_base_plan_logico.py`, 2 pasan.
 - Nota: esta entrada llegó en un commit posterior al código del mismo hito (el primero se subió sin ella).
+
+## Hito 209n. Inventario de funciones por motor y línea base de MG-P3
+
+- Base: `544d1f1` (`origin/main`, hito 208m).
+- Qué se hizo: `tools/funciones_inventario.py` cruza las funciones del traductor Talend, el oráculo,
+  el intérprete, vectores, reglas y catálogos. También incorpora los nombres de la tabla 5.7 del plan
+  maestro; expande `CAT*` y `LENGTH*` solo con nombres concretos presentes en el plan o en los motores.
+  La salida reproducible queda en `out/linea_base_funciones.json` (ignorada por Git). El catálogo
+  `funciones-guia.yaml` agrega `COMPBL` con su página comprobada y estado `no_verificada`; el test del
+  catálogo también valida sus páginas e implementaciones.
+- Línea base: 82 nombres en la unión de la tabla 5.7, motores, vectores, reglas y catálogos; Talend 58,
+  oráculo 18, intérprete 0.
+  Hay 69 vectores para 18 nombres; ninguno se ejecuta aún por el intérprete. De las funciones de la
+  sección 5.7, 35 no tienen entrada de catálogo: `abs`, `catt`, `catx`, `ceil`, `coalesce`, `datdif`,
+  `day`, `exp`, `find`, `floor`, `index`, `intck`, `intnx`, `lengthc`, `lengthn`, `log`, `mdy`, `mean`,
+  `min`, `missing`, `month`, `n`, `nmiss`, `propcase`, `repeat`, `reverse`, `right`, `scan`, `sqrt`,
+  `today`, `translate`, `tranwrd`, `trim`, `weekday`, `yrdif`.
+- Deuda de expresiones: `CONOCIDOS` contiene 5 casos (`l2_12`, `l3_07`, `l3_09`, `l5_08`, `l5_09`),
+  ninguno es de funciones. `migrar_pendientes.yaml` contiene 15 casos; dos son de expresiones:
+  `l0_12_bandera_numerica` (`P-FILTRO-SIN-TRADUCIR`, Plan B) y `l4_20_put_fechas_pendiente`
+  (`P-ASIGNACION-SIN-TRADUCIR`, D1). El plan maestro conserva el dato de 20 `xfail` del hito 107
+  como histórico y ya no lo presenta como actual.
+- Pruebas focalizadas: inventario y catálogo, 38 pasan; `uv run ruff check src tests tools` y
+  `git -c core.whitespace=cr-at-eol diff --check`, limpios (el archivo conserva su CRLF histórico).
+- Cierre `uv run python tools/ci.py`: Ruff OK; suite 3538 pasan, 315 omitidas y 142 `xfailed`;
+  cruces del corpus, oráculo y tablero, OK.
+- Decisiones: `sin_catalogo_plan` se calcula solo con nombres explícitos del plan y motores; no incluye
+  auxiliares como `trim_concat` o `is_missing` solo por compartir prefijo. `vectores_en_interprete` solo
+  aumenta con conteos explícitos de ejecución verificada; queda en cero hasta que D1-3 entregue ese
+  reporte. No se normaliza `is_missing` como `MISSING`: `lefunctionsref`, p. 1239, especifica resultado
+  numérico para `MISSING`, mientras el auxiliar del oráculo devuelve booleano. Los motores se comparan
+  ignorando mayúsculas; los conteos verificados rechazan claves duplicadas tras normalización para no
+  sobrecontar. El commit no atribuirá coautoría a una persona o agente que no participó.

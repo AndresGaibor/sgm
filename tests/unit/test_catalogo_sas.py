@@ -79,17 +79,18 @@ def test_cada_funcion_reconocida_tiene_su_implementacion():
     # o de la tabla del traductor de Talend (varios argumentos, rutinas). Cualquiera de las dos
     # tiene que existir de verdad.
     tabla = set(talend_tabla._FUNCTIONS)
-    for entrada in _entradas("funciones-usadas"):
-        if entrada["estado"] != "reconocida":
-            continue
-        nombre = entrada["nombre"].split()[0].lower()
-        regla = re.search(r"rules/sas/functions/\S+\.yaml", entrada.get("nota", ""))
-        if regla:
-            assert (REPO / regla.group(0)).exists(), regla.group(0)
-            sas = yaml.safe_load((REPO / regla.group(0)).read_text(encoding="utf-8"))["sas"]
-            assert sas == nombre, f"{entrada['id']}: la regla dice {sas!r}"
-        else:
-            assert nombre in tabla, f"{entrada['id']}: {nombre} no está en la tabla del traductor"
+    for catalogo in ("funciones-usadas", "funciones-guia"):
+        for entrada in _entradas(catalogo):
+            if entrada["estado"] != "reconocida":
+                continue
+            nombre = entrada["nombre"].split()[0].lower()
+            regla = re.search(r"rules/sas/functions/\S+\.yaml", entrada.get("nota", ""))
+            if regla:
+                assert (REPO / regla.group(0)).exists(), regla.group(0)
+                sas = yaml.safe_load((REPO / regla.group(0)).read_text(encoding="utf-8"))["sas"]
+                assert sas == nombre, f"{entrada['id']}: la regla dice {sas!r}"
+            else:
+                assert nombre in tabla, f"{entrada['id']}: {nombre} no está en la tabla del traductor"
 
 
 # Una muestra por palabra clave que el parser del DATA step reconoce.

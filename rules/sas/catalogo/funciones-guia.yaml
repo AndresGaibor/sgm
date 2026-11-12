@@ -1,0 +1,10 @@
+id: funciones-guia
+kind: catalogo
+version: 1
+description: Funciones de la guía de SAS que este repo implementa o planea, con su página; las del programa grande están en funciones-usadas.yaml.
+entries:
+  - id: compbl-function
+    nombre: COMPBL Function
+    fuente: lefunctionsref.pdf, p. 572
+    estado: no_verificada
+    nota: 'sin oráculo, intérprete ni Java; lo cierra D1-8'

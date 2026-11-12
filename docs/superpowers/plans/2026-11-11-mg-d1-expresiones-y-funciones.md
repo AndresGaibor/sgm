@@ -16,7 +16,7 @@
 
 ## Global Constraints
 
-- Sin `git push`, sin `--amend`. Un commit local por hito: `hito N n: <resumen>`, terminado con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Antes de escribir, buscar el último `## Hito` de `PROGRESS.md` (al redactar este plan era el 198) y sumar uno; si otra sesión ya tomó el número, tomar el siguiente. No renumerar entradas publicadas.
+- Sin `git push`, sin `--amend`. Un commit local por hito: `hito N n: <resumen>`. Usar la identidad configurada en Git; no atribuir coautoría a una persona o agente que no haya participado. Antes de escribir, buscar el último `## Hito` de `PROGRESS.md` y sumar uno; si otra sesión ya tomó el número, tomar el siguiente. No renumerar entradas publicadas.
 - No tocar `tools/ci.py`, `tools/validacion.py`, `tools/instalar_ganchos.py`, `README.md` ni `.githooks/` (son del Plan A y están sin commitear).
 - Nada de nombres de scripts de ejemplo (`cod1`, `cod2`, `cars_poc`, `exogena`, `split2`, `split3`, `executeBulkload`, `waitForBulkLoads`, `bulkload_generic`) en `src/` ni `rules/`; lo vigila `tests/unit/test_no_script_specific_names.py`.
 - **Sin página, no hay equivalencia.** Cada función cita `<guía>, p. N` con una página que exista en `docs/referencia/sas/<guía>.INDEX.md` (`lefunctionsref`, `leforinforref`, `lrcon`, `lesysoptsref`, `proc`). No leer el PDF ni el `.txt` entero: ubicar la sección en el `.INDEX.md` y la página con `grep -n "<!-- página N -->" docs/referencia/sas/<guía>.txt`. Los números de página son las del PDF (las del índice). Lo que este plan llama «esperado deducido» es un valor que sale de la regla escrita en la página pero que la página no da como ejemplo; el paso que lo fija **lee la página antes**, y si la página lo contradice se corrige el vector (con su cita), nunca el código para que coincida.
@@ -60,17 +60,21 @@ Hoy no hay una cifra de cuántas funciones de la guía existen en cada motor ni 
       """Por función SAS (minúsculas): {"talend": bool, "oraculo": bool, "interprete": bool,
       "vectores": int, "catalogo": "reconocida"|"no_reconocida"|"no_verificada"|None,
       "pagina": "lefunctionsref.pdf, p. N"|None}. `interprete` es False hasta D1-2."""
-  def resumen(inv: dict[str, dict]) -> dict:
+  def resumen(
+      inv: dict[str, dict], vectores_ejecutados: dict[str, int] | None = None
+  ) -> dict:
       """{"funciones": n, "en_talend": n, "en_oraculo": n, "en_interprete": n,
-      "con_vectores": n, "vectores_en_interprete": n, "sin_catalogo": [nombres]}"""
+      "con_vectores": n, "vectores_en_interprete": n, "sin_catalogo": [nombres]}.
+      `vectores_en_interprete` solo cuenta resultados de ejecución explícitos; sin ese reporte es
+      cero. Tener la función en la tabla no significa que se haya ejecutado ningún vector."""
   ```
   Salida JSON en `out/linea_base_funciones.json` (no versionada) al correr `tools/funciones_inventario.py` como programa.
 
-- [ ] **Step 1: Write the failing test.** Con un repo mínimo en `tmp_path` (una función `trim` en una tabla simulada pasada por parámetro, un vector de `trim` y una entrada de catálogo `reconocida` con `fuente: lefunctionsref.pdf, p. 1624`), `inventario` devuelve `{"trim": {"talend": True, "oraculo": True, "interprete": False, "vectores": 1, "catalogo": "reconocida", "pagina": "lefunctionsref.pdf, p. 1624"}}`; `resumen` cuenta `con_vectores == 1` y `vectores_en_interprete == 0`. Para poder simular las tablas, `inventario(repo, talend=None, oraculo=None, interprete=None)` acepta diccionarios opcionales que sustituyen a los reales.
-- [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_funciones_inventario.py -q -p no:cacheprovider`; esperado: no existe el módulo.
-- [ ] **Step 3: Implement** `inventario` y `resumen` con `yaml.safe_load` y las tablas reales. Crear `rules/sas/catalogo/funciones-guia.yaml` con el encabezado (`id: funciones-guia`, `kind: catalogo`, `version: 1`, `description`: «Funciones de la guía de SAS que este repo implementa o planea, con su página; las del programa grande están en funciones-usadas.yaml») y una sola entrada de arranque, `compbl-function` (`nombre: COMPBL Function`, `fuente: lefunctionsref.pdf, p. 572`, `estado: no_verificada`, `nota: 'sin oráculo, intérprete ni Java; lo cierra D1-8'`). En `tests/unit/test_catalogo_sas.py` (líneas 70 y 77) iterar también `funciones-guia` para páginas e implementación.
-- [ ] **Step 4: Run** `uv run python tools/funciones_inventario.py` y pegar en `PROGRESS.md`, como línea base de este plan: funciones por motor, vectores totales (hoy 69, de los cuales cero se ejecutan por el intérprete) y las funciones de la sección 5.7 del plan maestro sin entrada de catálogo. Anotar también los `xfail` de expresiones que hay hoy y su motivo: `CONOCIDOS` de `tests/unit/test_migrar_corpus_anillo_b.py` tiene 5 entradas (`l2_12`, `l3_07`, `l3_09`, `l5_08`, `l5_09`, ninguna es de funciones) y `tests/corpus/migrar_pendientes.yaml` tiene 16, de los cuales `l0_12_bandera_numerica` (`P-FILTRO-SIN-TRADUCIR`) y `l4_20_put_fechas_pendiente` (`P-ASIGNACION-SIN-TRADUCIR`) son de expresiones; el «20 xfail» que cita el plan maestro (hito 107) está superado, y esta tarea corrige esa cifra en el plan maestro en el mismo cambio.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_funciones_inventario.py tests/unit/test_catalogo_sas.py -q -p no:cacheprovider` y `uv run ruff check src tests tools`. **Commit** `hito N n: inventario de funciones por motor y linea base de MG-P3` (con la línea `Co-Authored-By`).
+- [x] **Step 1: Write the failing test.** Con un repo mínimo en `tmp_path` (una función `trim` en una tabla simulada pasada por parámetro, un vector de `trim` y una entrada de catálogo `reconocida` con `fuente: lefunctionsref.pdf, p. 1624`), `inventario` devuelve `{"trim": {"talend": True, "oraculo": True, "interprete": False, "vectores": 1, "catalogo": "reconocida", "pagina": "lefunctionsref.pdf, p. 1624"}}`; `resumen` cuenta `con_vectores == 1` y `vectores_en_interprete == 0`. Para poder simular las tablas, `inventario(repo, talend=None, oraculo=None, interprete=None)` acepta diccionarios opcionales que sustituyen a los reales.
+- [x] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_funciones_inventario.py -q -p no:cacheprovider`; esperado: no existe el módulo.
+- [x] **Step 3: Implement** `inventario` y `resumen` con `yaml.safe_load` y las tablas reales. Crear `rules/sas/catalogo/funciones-guia.yaml` con el encabezado (`id: funciones-guia`, `kind: catalogo`, `version: 1`, `description`: «Funciones de la guía de SAS que este repo implementa o planea, con su página; las del programa grande están en funciones-usadas.yaml») y una sola entrada de arranque, `compbl-function` (`nombre: COMPBL Function`, `fuente: lefunctionsref.pdf, p. 572`, `estado: no_verificada`, `nota: 'sin oráculo, intérprete ni Java; lo cierra D1-8'`). En `tests/unit/test_catalogo_sas.py` (líneas 70 y 77) iterar también `funciones-guia` para páginas e implementación. El inventario agrega las funciones nombradas por la tabla 5.7 y expande familias solo con nombres concretos presentes en el plan o en los motores. `vectores_en_interprete` cuenta solo el número explícito de ejecuciones informado por la verificación; la presencia de una función en la tabla no cuenta como ejecución.
+- [x] **Step 4: Run** `uv run python tools/funciones_inventario.py` y pegar en `PROGRESS.md`, como línea base de este plan: funciones por motor, vectores totales (69, de los cuales cero se ejecutan por el intérprete) y las funciones de la sección 5.7 del plan maestro sin entrada de catálogo. `CONOCIDOS` de `tests/unit/test_migrar_corpus_anillo_b.py` tiene 5 entradas (`l2_12`, `l3_07`, `l3_09`, `l5_08`, `l5_09`, ninguna es de funciones) y `tests/corpus/migrar_pendientes.yaml` tiene 15; `l0_12_bandera_numerica` (`P-FILTRO-SIN-TRADUCIR`, Plan B) y `l4_20_put_fechas_pendiente` (`P-ASIGNACION-SIN-TRADUCIR`, D1) son los dos pendientes de expresiones. El «20 xfail» del hito 107 queda identificado como cifra histórica y se corrige su lectura en el plan maestro en este mismo cambio.
+- [x] **Step 5: Run** `uv run python -m pytest tests/unit/test_funciones_inventario.py tests/unit/test_catalogo_sas.py -q -p no:cacheprovider`, la suite y el cierre de `uv run python tools/ci.py`, y `uv run ruff check src tests tools`. **Commit** `hito N n: inventario de funciones por motor y linea base de MG-P3`.
 
 ---
 
@@ -121,6 +125,7 @@ El aceptable de MG-P3-01 es «todos los vectores de `vectores.yaml` ejecutados e
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_vectores.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_semantica.py` (130 líneas: sigue bajo 300)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\funciones_inventario.py` (pasar los conteos verificados a `resumen`)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_vectores.py`
 
 **Interfaces:**
@@ -133,14 +138,14 @@ El aceptable de MG-P3-01 es «todos los vectores de `vectores.yaml` ejecutados e
       faltante sale como None. Adapta: input [campo, w, d] a informat 'w.d'; cmp [a, op, b] a
       semantica.comparar; is_missing a semantica.es_faltante; concat, trim_concat y catx a su
       traducción por `||`, TRIM y CATX del intérprete."""
-  # tools/corpus_semantica.py
-  def verificar(ruta: Path = RUTA_VECTORES, motor: str = "oraculo") -> dict: ...  # motor: "oraculo" | "interprete"
+      # tools/corpus_semantica.py
+      def verificar(ruta: Path = RUTA_VECTORES, motor: str = "oraculo") -> dict: ...  # incluye ejecuciones_por_funcion: {nombre: cantidad}
   # CLI: python tools/corpus_semantica.py verificar --motor interprete
   ```
 
 - [ ] **Step 1: Write the failing tests** en `test_interprete_vectores.py`: (a) `evaluar_vector("scan", ["a b c", 2])` da `"b"` (ya documentado por `scan-01`); (b) `evaluar_vector("input", ["23.0", 6, 2])` da `23.0` (vector `input-01`, `leforinforref`, p. 556) y `evaluar_vector("input", ["0023", 6, 2])` da `0.23` (`input-06`, deducido); (c) `evaluar_vector("cmp", [None, "<", 500])` da `True` (`cmp-missing-01`, `lrcon`, p. 125); (d) `evaluar_vector("is_missing", ["   "])` da `True`; (e) `verificar(motor="interprete")["fallos"] == []` para todo vector `documentado` o `deducido`; (f) para cada vector no `incierto`, el resultado del oráculo y el del intérprete coinciden (`_coincide`); un vector inventado con un esperado que el oráculo cumple y el intérprete no hace que (f) falle con el `id` del vector.
 - [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_vectores.py -q -p no:cacheprovider`; esperado: no existe el módulo.
-- [ ] **Step 3: Implement** `evaluar_vector` y el parámetro `motor` de `verificar` (`"oraculo"` conserva el comportamiento de hoy). Correr `uv run python tools/corpus_semantica.py verificar --motor interprete` y pegar la lista de vectores que fallan: es el trabajo del paso siguiente.
+- [ ] **Step 3: Implement** `evaluar_vector` y el parámetro `motor` de `verificar` (`"oraculo"` conserva el comportamiento de hoy). `verificar` devuelve `ejecuciones_por_funcion` con el número real de vectores ejecutados por función (incluye los que fallan); `tools/funciones_inventario.py` obtiene esos conteos y los pasa a `resumen` para que la línea base no infiera ejecución desde la tabla. Correr `uv run python tools/corpus_semantica.py verificar --motor interprete` y pegar la lista de vectores que fallan: es el trabajo del paso siguiente.
 - [ ] **Step 4: Corregir el intérprete** (nunca el vector) hasta que el paso (e) pase: cada fallo se arregla en el módulo de la función (`interprete_texto.py`, `interprete_numerico.py` o `interprete_formatos.py`) con un test propio en `tests/unit/test_interprete_funciones.py`. Si un vector contradice su página, se lee la página (`grep -n "<!-- página N -->" docs/referencia/sas/<guía>.txt`) y se corrige el vector y su `cita` en el mismo commit, anotándolo en `PROGRESS.md` («Decisiones»). Un vector que ni el oráculo ni la página sostienen pasa a `confianza: incierto`, no se borra.
 - [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_interprete_vectores.py tests/unit/test_corpus_semantica.py -q -p no:cacheprovider`, la tanda del golden y `uv run ruff check src tests tools`. **Commit** `hito N n: los vectores de semantica se ejecutan en el interprete y coinciden con el oraculo`.
 
