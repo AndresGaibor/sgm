@@ -121,6 +121,8 @@ def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator |
         params["input_names"] = list(input_stmt.fields["names"])
         params["input_statement"] = input_stmt.fields["raw"]
         params["input_line"] = input_stmt.line
+        if input_stmt.fields.get("types"):
+            params["input_types"] = dict(input_stmt.fields["types"])
         if input_stmt.fields["mode"] != "list":
             params["file_format"] = "positional"
         elif infile is not None:

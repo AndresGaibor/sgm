@@ -97,7 +97,32 @@ def input_fields(text: str) -> dict:
             if token.lower() not in {name.lower() for name in names}:
                 names.append(token)
         index += 1
-    return {"mode": mode, "names": names, "raw": text}
+    resultado = {"mode": mode, "names": names, "raw": text}
+    tipos = _tipos_caracter(tokens)
+    if tipos:
+        resultado["types"] = tipos
+    return resultado
+
+
+def _tipos_caracter(tokens: list[str]) -> dict[str, str]:
+    """Registra campos que declaran un informat de carácter, como `$CHARw.`."""
+    tipos: dict[str, str] = {}
+    nombre: str | None = None
+    for indice, token in enumerate(tokens):
+        if token == "$":
+            siguiente = tokens[indice + 1] if indice + 1 < len(tokens) else ""
+            if nombre and _INFORMAT.fullmatch(siguiente):
+                tipos[nombre] = "caracter"
+                nombre = None
+            continue
+        if _INFORMAT.fullmatch(token):
+            nombre = None
+            continue
+        if token in {":", "@", "@@", "#", "+", "/", "-", "?"} or token.isdigit():
+            continue
+        if re.fullmatch(r"[A-Za-z_][\w.&]*", token):
+            nombre = token
+    return tipos
 
 
 def _source(text: str) -> tuple[str, str]:

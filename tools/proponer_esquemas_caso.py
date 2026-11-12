@@ -1,8 +1,8 @@
 """Propone el bloque `esquemas` de un caso desde el migrador (B-4, MG-P1-02).
 
 Imprime el bloque para que una persona lo revise. No escribe `caso.yaml`: cada tipo se contrasta con
-el SAS y con `entradas/*.csv` antes de pegarlo. Lo que no tiene prueba sale como `pendiente` con su
-motivo; nunca como `String` por omisión.
+el SAS del caso y, cuando corresponde, con `entradas/*.csv`. Lo que no tiene prueba sale como
+`pendiente` con su motivo; nunca como `String` por omisión.
 
 Uso: uv run python tools/proponer_esquemas_caso.py <carpeta-del-caso>
 """
@@ -47,8 +47,7 @@ def _linea_de_declaracion(nombre: str, lineas: list[str], hasta: int) -> int | N
 
 
 def _entrada_de(columna: TipoColumna, lineas: list[str]) -> dict[str, Any]:
-    """Solo `LENGTH` o `FORMAT` demuestran un tipo en este contrato (no la aritmética ni un
-    informato de `INPUT`)."""
+    """Solo declaraciones SAS que prueban tipo y longitud entran como tipo `sas`."""
     declarado = columna.fuente == "declarado"
     util = columna.tipo in (NUMERICO, CARACTER)
     if not columna.linea or not declarado or not util:
@@ -65,7 +64,7 @@ def _entrada_de(columna: TipoColumna, lineas: list[str]) -> dict[str, Any]:
 
 
 def _lecturas(caso: Path, plan: Plan, bloque: dict[str, dict[str, Any]]) -> set[str]:
-    """Tablas de los `read_file`: tipo por la muestra de `entradas/`; el resto, pendiente."""
+    """Tablas leídas: respeta los tipos del `INPUT` SAS y usa la muestra solo si hace falta."""
     leidas: set[str] = set()
     for op in plan.graph.operators():
         if op.kind != "read_file":
@@ -75,6 +74,29 @@ def _lecturas(caso: Path, plan: Plan, bloque: dict[str, dict[str, Any]]) -> set[
             continue
         tabla = str(salidas[0]).upper()
         leidas.add(tabla.lower())
+        input_names = op.params.get("input_names") or []
+        input_types = {
+            str(nombre).lower(): str(tipo).lower()
+            for nombre, tipo in (op.params.get("input_types") or {}).items()
+        }
+        if input_names and input_types:
+            linea_input = op.params.get("input_line") or (
+                op.evidence[0].line_start if op.evidence else None
+            )
+            columnas_input: dict[str, Any] = {}
+            for nombre_col in input_names:
+                tipo_sas = input_types.get(str(nombre_col).lower())
+                tipo = {"caracter": "String", "numerico": "Double"}.get(tipo_sas)
+                if tipo and linea_input:
+                    columnas_input[str(nombre_col)] = {"tipo": tipo, "linea": linea_input}
+                else:
+                    columnas_input[str(nombre_col)] = {
+                        "tipo": "pendiente",
+                        "motivo": MOTIVO_SIN_TIPO,
+                    }
+            if columnas_input:
+                bloque[tabla] = columnas_input
+            continue
         nombre = Path(str(op.params.get("datafile") or "").strip("'\"").replace("\\", "/")).name
         ruta = caso / "entradas" / nombre
         getnames = op.params.get("getnames") is not False

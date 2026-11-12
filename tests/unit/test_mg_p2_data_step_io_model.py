@@ -89,6 +89,21 @@ def test_nombres_de_input_se_conservan_en_el_esquema_sin_inventar_tipos():
     assert any(p.codigo == "P-TIPO-DESCONOCIDO" for p in pendientes)
 
 
+def test_informat_char_explicito_demuestra_tipo_texto_sin_muestra():
+    plan = _plan(
+        "data work.entrada;\n"
+        "infile '/datos/entrada.csv' dsd dlm=',' firstobs=2;\n"
+        "input texto : $char7.;\n"
+        "run;"
+    )
+    op = _archivo(plan)
+    esquemas, pendientes = esquemas_de_entrada(plan, {}, None)
+
+    assert op.params["input_types"] == {"texto": "caracter"}
+    assert [(col.name, col.type) for col in esquemas["work.entrada"]] == [("texto", "String")]
+    assert not any(p.codigo == "P-TIPO-DESCONOCIDO" for p in pendientes)
+
+
 def test_input_sas_prevalece_sobre_primera_fila_de_muestra(tmp_path):
     (tmp_path / "entrada.txt").write_text("A|10\nB|20\n", encoding="utf-8")
     plan = _plan(

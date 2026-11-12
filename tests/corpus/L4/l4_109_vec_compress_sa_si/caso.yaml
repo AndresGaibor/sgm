@@ -1,0 +1,24 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- COMPRESS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- RESULTADO_L4
+razonamiento: 'Vectores verificables por el oráculo: compress-07. Confianza: documentado.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
+invariantes:
+- filas(RESULTADO_L4) == 1
+esquemas:
+  WORK.ENTRADA_L4:
+    TEXTO:
+      tipo: String
+      linea: 4
+  WORK.RESULTADO_L4:
+    resultado:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

@@ -1,7 +1,8 @@
-"""Genera los casos L4 a L6: `caso.yaml`, `entradas/`, `esperado/` (capa B) y el expandido de L5.
+"""Genera casos L4 a L6 y el SAS expandido de L5.
 
-El `programa.sas` de cada caso se escribe a mano. Este script es reproducible: dos ejecuciones dan
-los mismos bytes. Desde la carpeta `tools/`:
+Los programas existentes se mantienen a mano; los casos L4 derivados de vectores pueden generar
+su `programa.sas` desde la especificación. Este script es reproducible: dos ejecuciones dan los
+mismos bytes. Desde la carpeta `tools/`:
 
     uv run python -m corpus_lib.generar_entradas_l4l6
 
@@ -19,6 +20,7 @@ from corpus_semantica_funciones import FALTANTE, Faltante, evaluar
 
 from .csv_tabla import Tabla, escribir_csv
 from .especificaciones_l4 import ESPECIFICACIONES_L4
+from .especificaciones_l4_vectores import ESPECIFICACIONES_L4V
 from .especificaciones_l4b import ESPECIFICACIONES_L4B
 from .especificaciones_l5 import ESPECIFICACIONES_L5
 from .especificaciones_l6 import ESPECIFICACIONES_L6
@@ -44,12 +46,17 @@ def calcular_l4(spec: dict) -> Tabla:
     cols = list(columnas)
     registros = [dict(zip(cols, fila, strict=True)) for fila in filas]
     for variable, columna, pasos, _sas in spec["asignaciones"]:
+        columnas_asignacion = [columna] if isinstance(columna, str) else list(columna)
         for registro in registros:
-            valor = registro[columna]
-            if valor is None:
-                valor = FALTANTE if columna in numericas else ""
+            valores = []
+            for nombre_columna in columnas_asignacion:
+                valor_columna = registro[nombre_columna]
+                if valor_columna is None:
+                    valor_columna = FALTANTE if nombre_columna in numericas else ""
+                valores.append(valor_columna)
             for paso in pasos:
-                valor = evaluar(paso[0], valor, *paso[1:])
+                valores = [evaluar(paso[0], *valores, *paso[1:])]
+            valor = valores[0]
             registro[variable] = _celda(valor)
         if variable not in cols:
             cols.append(variable)
@@ -156,6 +163,10 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
         ruta = directorio / "esperado" / f"{spec['salida']}.csv"
         escribir_csv(ruta, calcular_l4(spec))
         escritos.append(ruta)
+    if nivel == "L4" and "programa" in spec:
+        ruta = directorio / "programa.sas"
+        ruta.write_text(spec["programa"], encoding="utf-8", newline="\n")
+        escritos.append(ruta)
     if nivel == "L6":
         if "calculo_salidas" in spec:
             for nombre, tabla in calcular_l6_salidas(spec).items():
@@ -176,7 +187,7 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
 
 
 ESPECIFICACIONES = {
-    "L4": {**ESPECIFICACIONES_L4, **ESPECIFICACIONES_L4B},
+    "L4": {**ESPECIFICACIONES_L4, **ESPECIFICACIONES_L4B, **ESPECIFICACIONES_L4V},
     "L5": ESPECIFICACIONES_L5,
     "L6": ESPECIFICACIONES_L6,
 }

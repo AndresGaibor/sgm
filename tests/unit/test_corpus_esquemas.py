@@ -75,7 +75,7 @@ def _casos_con_esquemas():
 
 
 def test_todo_tipo_demostrado_cita_una_linea_con_su_declaracion():
-    """Cada tipo demostrado apunta a una línea del SAS que declara esa columna (LENGTH/FORMAT)."""
+    """Cada tipo demostrado apunta a LENGTH/FORMAT o a un INPUT con informat explícito."""
     for caso in _casos_con_esquemas():
         lineas = caso.programa.read_text(encoding="utf-8").splitlines()
         for tabla, columnas in caso.extra["esquemas"].items():
@@ -88,7 +88,12 @@ def test_todo_tipo_demostrado_cita_una_linea_con_su_declaracion():
                     assert "PROC IMPORT" in linea.upper(), (caso.nombre, tabla, columna, linea)
                     continue
                 assert columna.lower() in linea.lower(), (caso.nombre, tabla, columna, linea)
-                assert "LENGTH" in linea.upper() or "FORMAT" in linea.upper(), (caso.nombre, linea)
+                tiene_informat_caracter = "INPUT" in linea.upper() and "$CHAR" in linea.upper()
+                assert (
+                    "LENGTH" in linea.upper()
+                    or "FORMAT" in linea.upper()
+                    or tiene_informat_caracter
+                ), (caso.nombre, linea)
 
 
 def test_el_corpus_l0_a_l2_declara_esquemas():

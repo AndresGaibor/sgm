@@ -1,0 +1,25 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- INPUT
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- RESULTADO_L4
+razonamiento: 'Vectores verificables por el oráculo: input-01, input-02, input-04, input-05, input-06, input-07, input-08, input-09, input-10. Confianza: deducido, documentado.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p19en16vskd2vhn1vwmxpxnglxxs.htm
+invariantes:
+- filas(RESULTADO_L4) == 9
+esquemas:
+  WORK.ENTRADA_L4:
+    TEXTO:
+      tipo: String
+      linea: 4
+  WORK.RESULTADO_L4:
+    resultado:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

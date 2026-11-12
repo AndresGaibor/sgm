@@ -1,0 +1,14 @@
+/* Caso l4_126_vec_coalescec_sin_literales_a3_TTT: vector de semántica SAS verificado por el oráculo. */
+DATA WORK.ENTRADA_L4;
+  INFILE '.../entradas/ENTRADA_L4.csv' DSD DLM=',' FIRSTOBS=2 TRUNCOVER;
+  INPUT TEXTO_1 : $CHAR1. TEXTO_2 : $CHAR7. TEXTO_3 : $CHAR5.;
+RUN;
+
+DATA WORK.RESULTADO_L4;
+  SET WORK.ENTRADA_L4;
+  RESULTADO=coalescec(TEXTO_1, TEXTO_2, TEXTO_3);
+RUN;
+
+PROC EXPORT DATA=WORK.RESULTADO_L4 OUTFILE='.../salida/RESULTADO_L4.csv'
+  DBMS=CSV REPLACE;
+RUN;

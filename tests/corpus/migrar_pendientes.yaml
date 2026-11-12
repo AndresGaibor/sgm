@@ -7,8 +7,8 @@
 # obligar a quitar su entrada.
 #
 # Los pendientes de tipo (`P-TIPO-DESCONOCIDO`) **no cuentan**: sin catálogo del entorno no hay tipo
-# que demostrar, el Job se ejecuta igual con `String`, y una lista que los incluyera tendría los 101
-# casos para siempre y no diría nada. Lo que cuenta es lo que no se tradujo.
+# que demostrar, y una lista que los incluyera mezclaría esa deuda con traducciones incompletas.
+# Lo que cuenta aquí es lo que no se tradujo.
 #
 # Cada caso se migra con su carpeta `entradas/` como muestra (`sgm migrar --muestra`), que es como se
 # usa la herramienta: la cabecera de la CSV da las columnas, y sin ella un `WHERE` sobre una columna
@@ -17,6 +17,31 @@
 l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
 l3_09_conciliacion_diferencia_plantada: P-AGREGADO-SIN-TRADUCIR
 l4_20_put_fechas_pendiente: P-ASIGNACION-SIN-TRADUCIR
+l4_100_vec_input_6_2: P-COMPONENTE-SIN-PLANTILLA
+l4_101_vec_input_8_2: P-COMPONENTE-SIN-PLANTILLA
+l4_102_vec_left_sin_literales: P-COMPONENTE-SIN-PLANTILLA
+l4_103_vec_compress_sin_literales: P-COMPONENTE-SIN-PLANTILLA
+l4_104_vec_compress_s12: P-COMPONENTE-SIN-PLANTILLA
+l4_105_vec_compress_omitido_ss: P-COMPONENTE-SIN-PLANTILLA
+l4_106_vec_compress_sABCD_sk: P-COMPONENTE-SIN-PLANTILLA
+l4_107_vec_compress_s_sd: P-COMPONENTE-SIN-PLANTILLA
+l4_108_vec_compress_s_sa: P-COMPONENTE-SIN-PLANTILLA
+l4_109_vec_compress_sa_si: P-COMPONENTE-SIN-PLANTILLA
+l4_110_vec_compress_s_sl: P-COMPONENTE-SIN-PLANTILLA
+l4_111_vec_strip_sin_literales: P-COMPONENTE-SIN-PLANTILLA
+l4_112_vec_trim_sin_literales: P-COMPONENTE-SIN-PLANTILLA
+l4_113_vec_upcase_sin_literales: P-COMPONENTE-SIN-PLANTILLA
+l4_114_vec_lowcase_sin_literales: P-COMPONENTE-SIN-PLANTILLA
+l4_115_vec_substr_4_2: P-COMPONENTE-SIN-PLANTILLA
+l4_116_vec_substr_2_3: P-COMPONENTE-SIN-PLANTILLA
+l4_119_vec_substrn_4_2: P-COMPONENTE-SIN-PLANTILLA
+l4_120_vec_scan_3: P-COMPONENTE-SIN-PLANTILLA
+l4_121_vec_scan_2: P-COMPONENTE-SIN-PLANTILLA
+l4_122_vec_scan_1: P-COMPONENTE-SIN-PLANTILLA
+l4_123_vec_scan_3_s2c: P-COMPONENTE-SIN-PLANTILLA
+l4_124_vec_scan_2_s2c: P-COMPONENTE-SIN-PLANTILLA
+l4_125_vec_coalescec_sin_literales_a2_TT: P-COMPONENTE-SIN-PLANTILLA
+l4_126_vec_coalescec_sin_literales_a3_TTT: P-COMPONENTE-SIN-PLANTILLA
 l5_09_into_primer_fila: P-ESQUEMA-NO-PORTABLE
 l6_01_merge_by_uno_a_uno: P-UNION-TIPO-SIN-SOPORTE
 l6_02_merge_muchos_a_muchos: P-UNION-TIPO-SIN-SOPORTE

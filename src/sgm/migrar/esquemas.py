@@ -233,8 +233,19 @@ def esquemas_de_entrada(
             if ruta and origen == "file_header"
             else {}
         )
+        tipos_input = {
+            str(nombre).lower(): str(tipo).lower()
+            for nombre, tipo in (op.params.get("input_types") or {}).items()
+        }
         esquemas[tabla] = [
-            Column(nombre, _tipo_de(nombre, numericas, demostrados), None, origen)
+            Column(
+                nombre,
+                {"caracter": "String", "numerico": "Double"}.get(
+                    tipos_input.get(nombre.lower()), _tipo_de(nombre, numericas, demostrados)
+                ),
+                None,
+                origen,
+            )
             for nombre in nombres
         ]
         for nombre, tipo in demostrados.items():
@@ -251,7 +262,9 @@ def esquemas_de_entrada(
         sin_tipo = [
             nombre
             for nombre in nombres
-            if nombre.lower() not in numericas and nombre not in demostrados
+            if nombre.lower() not in numericas
+            and nombre not in demostrados
+            and tipos_input.get(nombre.lower()) not in {"caracter", "numerico"}
         ]
         if not sin_tipo:
             continue

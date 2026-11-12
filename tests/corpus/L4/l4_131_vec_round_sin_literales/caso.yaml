@@ -1,0 +1,25 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- ROUND
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- RESULTADO_L4
+razonamiento: 'Vectores verificables por el oráculo: round-05, round-06. Confianza: documentado.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm
+invariantes:
+- filas(RESULTADO_L4) == 2
+esquemas:
+  WORK.ENTRADA_L4:
+    VALOR:
+      tipo: Double
+      linea: 2
+      fuente: muestra
+  WORK.RESULTADO_L4:
+    resultado:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

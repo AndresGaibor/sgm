@@ -1,0 +1,14 @@
+/* Caso l4_124_vec_scan_2_s2c: vector de semántica SAS verificado por el oráculo. */
+DATA WORK.ENTRADA_L4;
+  INFILE '.../entradas/ENTRADA_L4.csv' DSD DLM=',' FIRSTOBS=2 TRUNCOVER;
+  INPUT TEXTO : $CHAR5.;
+RUN;
+
+DATA WORK.RESULTADO_L4;
+  SET WORK.ENTRADA_L4;
+  RESULTADO=scan(TEXTO, 2, ',');
+RUN;
+
+PROC EXPORT DATA=WORK.RESULTADO_L4 OUTFILE='.../salida/RESULTADO_L4.csv'
+  DBMS=CSV REPLACE;
+RUN;

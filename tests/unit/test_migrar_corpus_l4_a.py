@@ -11,6 +11,9 @@ import yaml
 from sgm.cli_migrar import migrar
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L4"
+PENDIENTES_A = yaml.safe_load(
+    (CORPUS.parent / "migrar_pendientes.yaml").read_text(encoding="utf-8")
+) or {}
 CASOS = sorted(
     caso
     for caso in CORPUS.iterdir()
@@ -19,6 +22,7 @@ CASOS = sorted(
     and (caso / "caso.yaml").is_file()
     and yaml.safe_load((caso / "caso.yaml").read_text(encoding="utf-8")).get("estado")
     in {"traducible", "revisado"}
+    and caso.name not in PENDIENTES_A
 )
 
 
