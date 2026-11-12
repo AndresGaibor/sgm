@@ -56,3 +56,20 @@ salidas_esperadas:
   - CLIENTES_SIN_TIPO_DOC
   - MASTER_POR_MES
   archivos: []
+esquemas:
+  WORK.MCD_CONTEO:
+    nro_filas_ultimo_dia:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CLIENTES_POR_TIPO_DOC:
+    nro_clientes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CLIENTES_SIN_TIPO_DOC:
+    nro_sin_tipo_doc:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTROL_IMPALA:
+    nro_filas_ultimo_dia:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

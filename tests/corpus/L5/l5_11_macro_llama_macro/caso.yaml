@@ -16,3 +16,31 @@ fuentes_url:
 invariantes:
 - filas(BASE_LEALTAD) == 6
 - filas(DEP_LEALTAD) == 4
+esquemas:
+  WORK.DATOS_LEALTAD:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    ESTADO:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.BASE_LEALTAD:
+    id:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    saldo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.DEP_LEALTAD:
+    id:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    saldo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

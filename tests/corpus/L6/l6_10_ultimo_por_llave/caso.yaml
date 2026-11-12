@@ -16,3 +16,13 @@ fuentes_url:
 invariantes:
 - filas(SALDO_FINAL) == 3
 - suma(SALDO_FINAL.MONTO) == 43
+esquemas:
+  WORK.MOVIMIENTOS:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    MONTO:
+      tipo: Double
+      linea: 4
+      fuente: muestra

@@ -10,3 +10,41 @@ invariantes:
   - "valor(resumen_saldos.con_saldo) + valor(resumen_saldos.sin_saldo) == valor(resumen_saldos.total)"
   - "valor(resumen_saldos.sin_saldo) == 3"
 razonamiento: "Se plantan tres saldos vacíos en clientes.csv."
+esquemas:
+  WORK.CLIENTES:
+    id_cliente:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    nombre:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    ciudad:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    saldo:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    estado:
+      tipo: String
+      linea: 6
+      fuente: muestra
+  WORK.RESUMEN_SALDOS:
+    total:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    con_saldo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    agg_1:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    agg_2:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    sin_saldo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

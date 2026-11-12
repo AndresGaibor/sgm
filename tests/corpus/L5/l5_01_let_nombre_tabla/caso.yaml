@@ -15,3 +15,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/mcrolref/62978/HTML/default/p1mw9xt2ti8f2xn1ozbct4305aqa.htm
 invariantes:
 - filas(RES_LEALTAD) == 4
+esquemas:
+  WORK.DATOS_LEALTAD:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    ESTADO:
+      tipo: String
+      linea: 5
+      fuente: muestra

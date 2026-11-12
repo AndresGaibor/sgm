@@ -62,3 +62,12 @@ invariantes:
 - suma(CONTEO_NRO_DOC_TIT_COT.NRO_RECHAZOS) + suma(CONTEO_NRO_DOC_FA.NRO_RECHAZOS) == filas(RECHAZO_NRO_DOC_CTE)
   + filas(RECHAZO_NRO_DOC_AHO)
 - valor(SUMA_SALDO_CTE_VALIDAS.SUMA_SALDO_FINAL_CTE) == suma(NRO_DOC_NO_VACIO_NI_0_CTE.FIN_SALDO_CTA)
+esquemas:
+  WORK.FORMAT_SALDO_CTE:
+    form_fin_saldo_cta:
+      tipo: Double
+      linea: 237
+  WORK.SUMA_SALDO_CTE_VALIDAS:
+    suma_saldo_final_cte:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

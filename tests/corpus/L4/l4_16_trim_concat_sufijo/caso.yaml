@@ -14,3 +14,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
 invariantes:
 - filas(CODIGOS_CON_SUFIJO) == 3
+esquemas:
+  WORK.CODIGOS_L4_16:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    CODIGO:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.CODIGOS_CON_SUFIJO:
+    codigo_ok:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

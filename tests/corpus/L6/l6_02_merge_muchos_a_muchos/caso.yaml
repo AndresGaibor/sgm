@@ -16,3 +16,22 @@ fuentes_url:
 - https://go.documentation.sas.com/api/docsets/lestmtsref/9.4/content/n1i8w2bwu1fn5kn1gpxj18xttbb0.htm
 invariantes:
 - filas(BOTH) == 7
+esquemas:
+  WORK.ONE:
+    id:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    fruit:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.TWO:
+    id:
+      tipo: String
+      linea: 9
+      fuente: muestra
+    color:
+      tipo: String
+      linea: 9
+      fuente: muestra

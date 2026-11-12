@@ -15,3 +15,17 @@ fuentes_url:
 invariantes:
 - filas(VENTAS_SIN_REPETIR) == 3
 motivo: Regla sin fuente oficial consultada; ver razonamiento.
+esquemas:
+  WORK.VENTAS_DUP:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    TEXTO:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    MONTO:
+      tipo: Double
+      linea: 5
+      fuente: muestra

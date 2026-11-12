@@ -17,3 +17,17 @@ fuentes_url:
 invariantes:
 - filas(CUENTAS_CONVERTIDAS) == filas(CUENTAS_L4_01)
 - suma(CUENTAS_CONVERTIDAS.NRO_CTA) == 9888889
+esquemas:
+  WORK.CUENTAS_L4_01:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    VAR7:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+  WORK.CUENTAS_CONVERTIDAS:
+    nro_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

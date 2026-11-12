@@ -16,3 +16,22 @@ fuentes_url:
 invariantes:
 - filas(COBERTURA_PAGOS) == 5
 - suma(COBERTURA_PAGOS.EN_PAGOS) == 3
+esquemas:
+  WORK.CLIENTES:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    NOMBRE:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.PAGOS:
+    ID:
+      tipo: Double
+      linea: 9
+      fuente: muestra
+    MONTO:
+      tipo: Double
+      linea: 9
+      fuente: muestra

@@ -14,3 +14,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0xk6tl87f4b4qn1sp1ywen1ntan.htm
 invariantes:
 - filas(TEXTOS_LIMPIOS) == 4
+esquemas:
+  WORK.TEXTOS_L4_09:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    TEXTO:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.TEXTOS_LIMPIOS:
+    texto_limpio:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

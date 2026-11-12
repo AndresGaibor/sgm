@@ -16,3 +16,17 @@ fuentes_url:
 invariantes:
 - filas(PARTE_1) == 3
 - filas(PARTE_2) == 6
+esquemas:
+  WORK.DATOS_LEALTAD:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    ESTADO:
+      tipo: String
+      linea: 4
+      fuente: muestra

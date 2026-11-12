@@ -16,3 +16,30 @@ fuentes_url:
 invariantes:
 - filas(RES_LEALTAD) == 4
 - filas(RES_AHORRO) == 2
+esquemas:
+  WORK.DATOS_LEALTAD:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    ESTADO:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.DATOS_AHORRO:
+    ID:
+      tipo: Double
+      linea: 9
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 9
+      fuente: muestra
+    ESTADO:
+      tipo: String
+      linea: 9
+      fuente: muestra

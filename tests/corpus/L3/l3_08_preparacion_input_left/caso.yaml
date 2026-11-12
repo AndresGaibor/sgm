@@ -18,3 +18,28 @@ invariantes:
   - "valor(total_saldo_final.con_saldo) == filas(FORM_SALDO_CTA_CTE) - 2"
   - "valor(total_saldo_final.suma_saldo_final) == suma(FORM_SALDO_CTA_CTE.FORM_FIN_SALDO_CTA)"
 razonamiento: "El DATA step (input(left(x), 20.)) no lo ejecuta el oraculo SQL: lo calcula la preparacion con corpus_semantica_funciones.evaluar y lo guarda en entradas_preparadas/."
+esquemas:
+  WORK.COLUMNAS_DEPOSITOS:
+    id_cuenta:
+      tipo: Double
+      linea: 8
+      fuente: muestra
+    tipo_cta:
+      tipo: String
+      linea: 8
+      fuente: muestra
+    fin_saldo_cta:
+      tipo: Double
+      linea: 8
+      fuente: muestra
+  WORK.FORM_SALDO_CTA_CTE:
+    form_fin_saldo_cta:
+      tipo: Double
+      linea: 15
+  WORK.TOTAL_SALDO_FINAL:
+    suma_saldo_final:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    con_saldo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

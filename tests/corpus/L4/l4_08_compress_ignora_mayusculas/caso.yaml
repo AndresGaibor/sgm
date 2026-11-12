@@ -13,3 +13,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
 invariantes:
 - filas(CODIGOS_SIN_A) == 3
+esquemas:
+  WORK.CODIGOS_L4_08:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    COD:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.CODIGOS_SIN_A:
+    cod_sin_a:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

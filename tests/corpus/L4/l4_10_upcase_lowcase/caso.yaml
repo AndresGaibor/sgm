@@ -14,3 +14,24 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
 invariantes:
 - filas(NOMBRES_NORMALIZADOS) == 2
+esquemas:
+  WORK.NOMBRES_L4_10:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    NOMBRE:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    CODIGO:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.NOMBRES_NORMALIZADOS:
+    nombre_mayus:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    codigo_min:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

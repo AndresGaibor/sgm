@@ -13,3 +13,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
 invariantes:
 - filas(NOMBRES_LIMPIOS) == 3
+esquemas:
+  WORK.NOMBRES_L4_04:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    DESCRIPCION:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.NOMBRES_LIMPIOS:
+    clave:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

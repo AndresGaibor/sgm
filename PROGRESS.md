@@ -6775,3 +6775,26 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   la muestra de `entradas/`. Por eso ninguno se pega sin revisar contra el SAS y el CSV.
 - B-4 **sigue abierto**: falta revisar y declarar los bloques caso por caso, y la prueba parametrizada de
   `test_corpus_esquemas.py` que exige que el bloque coincida con lo demostrado.
+
+## Hito 204m. Bloques esquemas en L3 a L8; el tipo del Job se compara con el declarado (B-4, parte 2)
+
+- Contrato: `esquemas` admite `fuente: muestra` (el tipo sale de la muestra de `entradas/` que lee el `PROC IMPORT`
+  de esa línea). Solo `LENGTH` o `FORMAT` demuestran un tipo por declaración; la aritmética, los agregados y un
+  informato dentro de `INPUT` van como `pendiente`.
+- `tools/proponer_esquemas_caso.py` propone el bloque desde el migrador; cita la línea de la declaración `LENGTH`
+  o `FORMAT` que contiene el nombre de la columna. Un nombre que no lo tenga, pendiente.
+- Correcciones de la misma tanda:
+  - `GETNAMES=NO` nombra las columnas `VAR1`, `VAR2`… (`proc.pdf`, p. 1387 a 1388). Antes la cabecera siempre era la
+    primera fila, tanto en el migrador como en la herramienta.
+  - Solo se lee como muestra un archivo que sea texto UTF-8 (un `.xlsx` con extensión `.csv` daba nombres basura).
+  - El reconocimiento numérico ya no acepta `nan` ni `inf`.
+- Las pruebas de regeneración de L4-L6 y L8 comparan el `caso.yaml` sin su bloque derivado
+  (`sin_bloque`); el bloque se verifica aparte en `tests/unit/test_esquemas_sincronizados.py`,
+  que pide que coincida con lo que propone el migrador hoy (79 pasan, 5 sin tablas).
+- Pruebas: `test_corpus_esquemas_migrar` ahora compara el tipo de Talend (`id_String`/`id_Double`) y el largo de cada
+  columna declarada que aparece en el Job: 264 comparaciones pasan. Las otras 272 se saltan porque el Job no emite
+  esa tabla (el caso tiene pendientes de traducción). Es el límite actual de la comparación, no un pase.
+- Corpus: 131 casos, 123 con bloque; 1447 columnas, 536 con tipo demostrado.
+- Pendiente de B-4: L0 a L2 siguen con bloques escritos a mano, casi todo pendiente, aunque la muestra ya demuestra
+  varios de sus tipos; revisar uno por uno. Y el pase de `propagar_tipos` (B-3) sigue sin conectarse a
+  `esquemas_de_entrada`.

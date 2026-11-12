@@ -15,3 +15,22 @@ fuentes_url:
 invariantes:
 - filas(RES_ANIO) == 4
 - valor(RES_ANIO.ANIO_CORTE) == 2026
+esquemas:
+  WORK.DATOS_LEALTAD:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    ESTADO:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.VALIDACION_FECHA:
+    AÑO:
+      tipo: Double
+      linea: 9
+      fuente: muestra

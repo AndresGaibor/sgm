@@ -17,3 +17,13 @@ invariantes:
 - filas(PRINCIPAL) == 3
 - filas(INTERMEDIA) == 1
 - suma(PRINCIPAL.valor) == 8
+esquemas:
+  WORK.REGISTROS:
+    id:
+      tipo: String
+      linea: 1
+      fuente: muestra
+    valor:
+      tipo: Double
+      linea: 1
+      fuente: muestra

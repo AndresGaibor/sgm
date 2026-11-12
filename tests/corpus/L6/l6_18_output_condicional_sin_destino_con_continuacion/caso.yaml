@@ -18,3 +18,13 @@ invariantes:
 - filas(SEGUNDA) == 2
 - suma(PRIMERA.valor) == 2
 - suma(SEGUNDA.valor) == 2
+esquemas:
+  WORK.REGISTROS:
+    id:
+      tipo: String
+      linea: 1
+      fuente: muestra
+    valor:
+      tipo: Double
+      linea: 1
+      fuente: muestra

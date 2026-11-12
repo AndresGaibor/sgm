@@ -11,10 +11,10 @@ def _plan(texto: str):
     return compile_file(analyze_program({"p.sas": texto}), "p.sas", project_base()).plan
 
 
-def test_length_declara_caracter_con_largo_y_fuente_length() -> None:
+def test_length_declara_caracter_con_largo_y_fuente_declarado() -> None:
     resultado = propagar_tipos(_plan("data work.t; length x $8; x='a'; run;"))
     columna = resultado.tablas["work.t"]["x"]
-    assert (columna.tipo, columna.largo, columna.fuente) == ("caracter", 8, "LENGTH")
+    assert (columna.tipo, columna.largo, columna.fuente) == ("caracter", 8, "declarado")
 
 
 def test_aritmetica_da_numerico_y_la_entrada_desconocida_queda_pendiente() -> None:

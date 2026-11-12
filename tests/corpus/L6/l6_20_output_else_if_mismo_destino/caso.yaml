@@ -15,3 +15,13 @@ fuentes_url:
 invariantes:
 - filas(SALIDA) == 2
 - suma(SALIDA.valor) == 4
+esquemas:
+  WORK.REGISTROS:
+    id:
+      tipo: String
+      linea: 1
+      fuente: muestra
+    valor:
+      tipo: Double
+      linea: 1
+      fuente: muestra

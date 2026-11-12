@@ -22,6 +22,7 @@ sys.path.insert(0, str(REPO / "tools"))
 import totales  # noqa: E402
 from corpus_lib import invariantes  # noqa: E402
 from corpus_lib.caso import cargar_caso  # noqa: E402
+from corpus_lib.esquemas_caso import sin_bloque  # noqa: E402
 
 CASOS_DIR = REPO / "tests" / "corpus" / "L8" / "totales"
 IDS = [p.name for p in sorted(CASOS_DIR.iterdir()) if (p / "caso.yaml").is_file()]
@@ -59,7 +60,12 @@ def test_regeneracion_coincide_con_lo_guardado(tmp_path: Path) -> None:
     assert generados == guardados
     for ruta in escritos:
         relativa = ruta.relative_to(tmp_path)
-        assert ruta.read_bytes() == (CASOS_DIR / relativa).read_bytes(), str(relativa)
+        if relativa.name == "caso.yaml":
+            # el bloque `esquemas` es derivado del programa: lo verifica test_esquemas_sincronizados
+            guardado = (CASOS_DIR / relativa).read_text(encoding="utf-8")
+            assert ruta.read_text(encoding="utf-8") == sin_bloque(guardado), str(relativa)
+        else:
+            assert ruta.read_bytes() == (CASOS_DIR / relativa).read_bytes(), str(relativa)
 
 
 def test_cada_caso_tiene_programa_y_longitud_adecuada() -> None:

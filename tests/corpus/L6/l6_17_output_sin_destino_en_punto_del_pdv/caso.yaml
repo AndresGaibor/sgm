@@ -18,3 +18,13 @@ invariantes:
 - filas(COPIA) == 2
 - suma(ANTES.valor) == 7
 - suma(COPIA.valor) == 7
+esquemas:
+  WORK.REGISTROS:
+    id:
+      tipo: String
+      linea: 1
+      fuente: muestra
+    valor:
+      tipo: Double
+      linea: 1
+      fuente: muestra

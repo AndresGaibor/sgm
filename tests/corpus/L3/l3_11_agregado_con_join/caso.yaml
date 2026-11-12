@@ -9,3 +9,60 @@ invariantes:
   - "suma(por_ciudad.filas_cruce) == filas(ventas) + filas(sin_ventas)"
   - "suma(por_ciudad.ventas) == filas(ventas)"
   - "suma(por_ciudad.monto_total) == suma(ventas.monto)"
+esquemas:
+  WORK.CLIENTES:
+    id_cliente:
+      tipo: Double
+      linea: 7
+      fuente: muestra
+    nombre:
+      tipo: String
+      linea: 7
+      fuente: muestra
+    ciudad:
+      tipo: String
+      linea: 7
+      fuente: muestra
+    saldo:
+      tipo: Double
+      linea: 7
+      fuente: muestra
+    estado:
+      tipo: String
+      linea: 7
+      fuente: muestra
+  WORK.VENTAS:
+    id_venta:
+      tipo: Double
+      linea: 11
+      fuente: muestra
+    id_cliente:
+      tipo: Double
+      linea: 11
+      fuente: muestra
+    fecha:
+      tipo: String
+      linea: 11
+      fuente: muestra
+    monto:
+      tipo: Double
+      linea: 11
+      fuente: muestra
+    canal:
+      tipo: String
+      linea: 11
+      fuente: muestra
+    cantidad:
+      tipo: Double
+      linea: 11
+      fuente: muestra
+  WORK.POR_CIUDAD:
+    filas_cruce:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    ventas:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    monto_total:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

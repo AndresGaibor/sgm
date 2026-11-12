@@ -20,3 +20,13 @@ invariantes:
 - filas(TARDE) == 1
 - filas(FINAL) == 3
 - suma(FINAL.valor) == 34
+esquemas:
+  WORK.REGISTROS:
+    id:
+      tipo: String
+      linea: 1
+      fuente: muestra
+    valor:
+      tipo: Double
+      linea: 1
+      fuente: muestra

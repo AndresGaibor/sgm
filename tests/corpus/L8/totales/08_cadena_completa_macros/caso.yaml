@@ -94,3 +94,197 @@ salidas_esperadas:
   - INCONS_DEP_CTE.csv
   - CIERRE_AHO_20260930.csv
   - INCONS_DEP_AHO.csv
+esquemas:
+  WORK.IMPORT_CTE:
+    VAR1:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR2:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR3:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR4:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR5:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR6:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR7:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR8:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR9:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR10:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR11:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR12:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR13:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR14:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR15:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR16:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR17:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR18:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR19:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR20:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR21:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR22:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR23:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+  WORK.IMPORT_AHO:
+    VAR1:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR2:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR3:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR4:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR5:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR6:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR7:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR8:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR9:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR10:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR11:
+      tipo: String
+      linea: 43
+      fuente: muestra
+    VAR12:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR13:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR14:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR15:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR16:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR17:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR18:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR19:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR20:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR21:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR22:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+    VAR23:
+      tipo: Double
+      linea: 43
+      fuente: muestra
+  WORK.FECHA_TEXTO:
+    mes_txt:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    dia_txt:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

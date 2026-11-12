@@ -83,6 +83,10 @@ def test_todo_tipo_demostrado_cita_una_linea_con_su_declaracion():
                 if entrada["tipo"] == "pendiente":
                     continue
                 linea = lineas[entrada["linea"] - 1]
+                if entrada.get("fuente") == "muestra":
+                    # el tipo sale de la muestra: la línea es el PROC IMPORT que la lee
+                    assert "PROC IMPORT" in linea.upper(), (caso.nombre, tabla, columna, linea)
+                    continue
                 assert columna.lower() in linea.lower(), (caso.nombre, tabla, columna, linea)
                 assert "LENGTH" in linea.upper() or "FORMAT" in linea.upper(), (caso.nombre, linea)
 

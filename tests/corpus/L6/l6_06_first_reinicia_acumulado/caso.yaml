@@ -17,3 +17,13 @@ invariantes:
 - filas(PAGOS_ACUMULADOS) == 5
 - suma(PAGOS_ACUMULADOS.ACUM) == 57
 motivo: Regla sin fuente oficial consultada; ver razonamiento.
+esquemas:
+  WORK.PAGOS_DEPTO:
+    DEPTO:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    PAGO:
+      tipo: Double
+      linea: 5
+      fuente: muestra

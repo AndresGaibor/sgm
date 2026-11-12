@@ -8,3 +8,41 @@ salidas: [total_origen, total_web, total_resto]
 invariantes:
   - "valor(total_origen.suma_origen) == suma(ventas.monto)"
   - "valor(total_web.suma_salida) + valor(total_resto.suma_resto) == valor(total_origen.suma_origen)"
+esquemas:
+  WORK.VENTAS:
+    id_venta:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    id_cliente:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    fecha:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    monto:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    canal:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    cantidad:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+  WORK.TOTAL_ORIGEN:
+    suma_origen:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.TOTAL_WEB:
+    suma_salida:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.TOTAL_RESTO:
+    suma_resto:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

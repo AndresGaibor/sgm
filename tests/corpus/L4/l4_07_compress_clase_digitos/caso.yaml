@@ -13,3 +13,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0fcshr0ir3h73n1b845c4aq58hz.htm
 invariantes:
 - filas(PLACAS_SIN_DIGITOS) == 3
+esquemas:
+  WORK.PLACAS_L4_07:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    CODIGO:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.PLACAS_SIN_DIGITOS:
+    solo_letras:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

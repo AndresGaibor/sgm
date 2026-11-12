@@ -62,3 +62,12 @@ invariantes:
 - filas(SABANA_NORM_CTE) == filas(SABANA_CTE)
 - suma(CONTEO_MOTIVO_CTE.NRO_FILAS) == filas(SABANA_CTE)
 - suma(CONTEO_MOTIVO_AHO.NRO_FILAS) == filas(SABANA_AHO)
+esquemas:
+  WORK.CONTEO_MOTIVO_CTE:
+    nro_filas:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTEO_MOTIVO_AHO:
+    nro_filas:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

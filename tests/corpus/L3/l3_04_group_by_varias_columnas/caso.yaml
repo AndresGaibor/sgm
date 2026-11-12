@@ -8,3 +8,32 @@ salidas: [por_ciudad_estado]
 invariantes:
   - "suma(por_ciudad_estado.clientes) == filas(clientes)"
   - "filas(por_ciudad_estado) <= filas(clientes)"
+esquemas:
+  WORK.CLIENTES:
+    id_cliente:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    nombre:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    ciudad:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    saldo:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    estado:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.POR_CIUDAD_ESTADO:
+    clientes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    saldo_promedio:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

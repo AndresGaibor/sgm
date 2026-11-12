@@ -13,3 +13,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0jshdjy2z9zdzn1h7k90u99lyq6.htm
 invariantes:
 - filas(FRASES_PALABRA) == 3
+esquemas:
+  WORK.FRASES_L4_14:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    TEXTO:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.FRASES_PALABRA:
+    palabra_2:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

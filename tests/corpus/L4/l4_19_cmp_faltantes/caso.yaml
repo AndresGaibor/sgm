@@ -17,3 +17,20 @@ invariantes:
 - filas(SALDOS_MARCADOS) == 4
 - suma(SALDOS_MARCADOS.BAJO_500) == 2
 - suma(SALDOS_MARCADOS.ES_FALTANTE) == 1
+esquemas:
+  WORK.SALDOS_L4_19:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+  WORK.SALDOS_MARCADOS:
+    bajo_500:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    es_faltante:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

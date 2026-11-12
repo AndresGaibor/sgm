@@ -23,6 +23,7 @@ sys.path.insert(0, str(REPO / "tools"))
 
 from corpus_lib import referencia_datastep as ref  # noqa: E402
 from corpus_lib.caso import cargar_caso  # noqa: E402
+from corpus_lib.esquemas_caso import sin_bloque  # noqa: E402
 from corpus_lib.expansor_macros import ErrorMacro, expandir  # noqa: E402
 from corpus_lib.generar_entradas_l4l6 import (  # noqa: E402
     ESPECIFICACIONES,
@@ -63,7 +64,12 @@ def test_regeneracion_da_los_mismos_bytes(tmp_path: Path) -> None:
         relativa = ruta.relative_to(copia)
         original = CORPUS / relativa
         assert original.exists(), f"falta el archivo del corpus: {relativa}"
-        assert filecmp.cmp(ruta, original, shallow=False), f"difiere: {relativa}"
+        if relativa.name == "caso.yaml":
+            # el bloque `esquemas` es derivado del programa: lo verifica test_esquemas_sincronizados
+            guardado = original.read_text(encoding="utf-8")
+            assert ruta.read_text(encoding="utf-8") == sin_bloque(guardado), f"difiere: {relativa}"
+        else:
+            assert filecmp.cmp(ruta, original, shallow=False), f"difiere: {relativa}"
 
 
 @pytest.mark.parametrize(("nivel", "nombre"), _todos_los_casos())

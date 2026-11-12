@@ -14,3 +14,20 @@ fuentes_url:
 invariantes:
 - filas(MONTOS_REDONDEADOS) == 3
 - suma(MONTOS_REDONDEADOS.MONTO_ENTERO) == 1235
+esquemas:
+  WORK.MONTOS_L4_18:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    MONTO:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+  WORK.MONTOS_REDONDEADOS:
+    monto_cent:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    monto_entero:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

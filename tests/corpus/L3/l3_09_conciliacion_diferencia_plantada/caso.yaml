@@ -10,3 +10,47 @@ invariantes:
   - "valor(conciliacion.validos) + valor(conciliacion.invalidos) == valor(conciliacion.origen) + filas(cc_operaciones)"
   - "valor(conciliacion.diferencia) == 0 - filas(cc_operaciones)"
 razonamiento: "La diferencia plantada es negativa e igual al número de operaciones con CC, porque la homologación repite CC."
+esquemas:
+  WORK.OPERACIONES:
+    id_operacion:
+      tipo: Double
+      linea: 8
+      fuente: muestra
+    tipo_doc:
+      tipo: String
+      linea: 8
+      fuente: muestra
+    id_cliente:
+      tipo: Double
+      linea: 8
+      fuente: muestra
+    monto:
+      tipo: Double
+      linea: 8
+      fuente: muestra
+    canal:
+      tipo: String
+      linea: 8
+      fuente: muestra
+  WORK.HOMOLOGACION_TPO_DOC_DUP:
+    CNAME:
+      tipo: String
+      linea: 12
+      fuente: muestra
+    DESCRIPCION:
+      tipo: String
+      linea: 12
+      fuente: muestra
+  WORK.CONCILIACION:
+    origen:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    validos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    invalidos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    diferencia:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

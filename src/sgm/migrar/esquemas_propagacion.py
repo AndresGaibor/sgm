@@ -136,7 +136,7 @@ def _derivar(
         expresion = str(asignacion.get("expression", ""))
         if any(nombre.lower() == destino for nombre in declarados):
             tipo, largo = _declarado(declarados, destino)
-            salida[destino] = TipoColumna(destino, tipo, largo, "LENGTH", _linea(op))
+            salida[destino] = TipoColumna(destino, tipo, largo, "declarado", _linea(op))
             continue
         tipo, faltan = _tipo_de_asignacion(expresion, salida)
         for falta in faltan:

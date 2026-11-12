@@ -7,6 +7,7 @@ son numéricos; si alguno no lo es, es carácter. Las filas que SAS no lee queda
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -21,12 +22,12 @@ class TipoDemostrado:
     pendientes: tuple[str, ...] = field(default=())
 
 
+_NUMERO_SAS = re.compile(r"[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?")
+
+
 def _es_numero(valor: str) -> bool:
-    try:
-        float(valor)
-    except ValueError:
-        return False
-    return True
+    """Decimal con signo y exponente opcionales; `nan`, `inf` y otros textos no son números."""
+    return _NUMERO_SAS.fullmatch(valor) is not None
 
 
 def tipo_desde_muestra(
@@ -45,26 +46,51 @@ def tipo_desde_muestra(
     return TipoDemostrado("numerico", fuente, len(muestra), pendientes)
 
 
+def _texto_de(ruta: Path) -> str | None:
+    """Contenido del archivo si es texto UTF-8 de verdad; None si no lo es (p. ej. un .xlsx)."""
+    try:
+        datos = Path(ruta).read_bytes()
+    except OSError:
+        return None
+    if b"\x00" in datos[:4096]:
+        return None
+    try:
+        return datos.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return None
+
+
+def filas_del_archivo(
+    ruta: Path, delimiter: str | None, getnames: bool = True
+) -> tuple[list[str], list[list[str]]]:
+    """Nombres de columna y filas de un archivo delimitado.
+
+    Con `GETNAMES=YES` (por omisión) la primera fila son los nombres. Con `GETNAMES=NO` SAS los
+    nombra `VAR1`, `VAR2`, y la primera fila es dato (`proc.pdf`, p. 1387 a 1388).
+    """
+    texto = _texto_de(ruta)
+    if texto is None:
+        return [], []
+    lineas = texto.splitlines()
+    lineas = [linea for linea in lineas if linea.strip()]
+    if not lineas:
+        return [], []
+    separador = delimiter or (";" if ";" in lineas[0] else ",")
+    filas = [[c.strip().strip("'\"") for c in linea.split(separador)] for linea in lineas]
+    if not getnames:
+        return [f"VAR{i}" for i in range(1, len(filas[0]) + 1)], filas
+    return [c for c in filas[0] if c], filas[1:]
+
+
 def tipos_de_archivo(
     ruta: Path,
     delimiter: str | None,
     nombres: list[str],
     guessingrows: int = GUESSINGROWS_POR_OMISION,
+    getnames: bool = True,
 ) -> dict[str, TipoDemostrado]:
     """Tipo demostrado de cada columna de `nombres` leyendo el archivo delimitado en `ruta`."""
-    try:
-        lineas = Path(ruta).read_text(encoding="utf-8-sig", errors="replace").splitlines()
-    except OSError:
-        return {}
-    if not lineas:
-        return {}
-    separador = delimiter or (";" if ";" in lineas[0] else ",")
-    cabecera = [c.strip().strip("'\"") for c in lineas[0].split(separador)]
-    filas = [
-        [c.strip().strip("'\"") for c in linea.split(separador)]
-        for linea in lineas[1:]
-        if linea.strip()
-    ]
+    cabecera, filas = filas_del_archivo(ruta, delimiter, getnames)
     tipos: dict[str, TipoDemostrado] = {}
     for nombre in nombres:
         if nombre not in cabecera:
@@ -77,4 +103,10 @@ def tipos_de_archivo(
     return tipos
 
 
-__all__ = ["GUESSINGROWS_POR_OMISION", "TipoDemostrado", "tipo_desde_muestra", "tipos_de_archivo"]
+__all__ = [
+    "GUESSINGROWS_POR_OMISION",
+    "TipoDemostrado",
+    "filas_del_archivo",
+    "tipo_desde_muestra",
+    "tipos_de_archivo",
+]

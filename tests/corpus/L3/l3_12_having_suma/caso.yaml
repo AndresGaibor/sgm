@@ -9,3 +9,36 @@ invariantes:
   - "suma(stock_por_categoria.productos) == filas(productos)"
   - "suma(stock_por_categoria.stock_total) == suma(productos.stock)"
   - "filas(categorias_altas) <= filas(stock_por_categoria)"
+esquemas:
+  WORK.PRODUCTOS:
+    codigo:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    descripcion:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    precio:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    stock:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    categoria:
+      tipo: String
+      linea: 6
+      fuente: muestra
+  WORK.STOCK_POR_CATEGORIA:
+    productos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    stock_total:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CATEGORIAS_ALTAS:
+    stock_total:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

@@ -9,3 +9,24 @@ invariantes:
   - "suma(total_por_canal.facturas) == filas(facturas)"
   - "suma(total_por_canal.total) == suma(facturas.importe)"
 razonamiento: "Suma de decimales en coma flotante. La tolerancia de 0.005 es de un centavo."
+esquemas:
+  WORK.FACTURAS:
+    id_factura:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    canal:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    importe:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+  WORK.TOTAL_POR_CANAL:
+    facturas:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    total:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

@@ -10,3 +10,45 @@ invariantes:
   - "valor(resumen_monto.minimo) <= valor(resumen_monto.maximo)"
   - "valor(resumen_monto.n) == filas(ventas) - 3"
 razonamiento: "AVG usa coma flotante: la tolerancia del caso cubre el redondeo de 12 cifras."
+esquemas:
+  WORK.VENTAS:
+    id_venta:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    id_cliente:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    fecha:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    monto:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    canal:
+      tipo: String
+      linea: 6
+      fuente: muestra
+    cantidad:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+  WORK.RESUMEN_MONTO:
+    suma:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    minimo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    maximo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    promedio:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    n:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

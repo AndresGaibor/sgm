@@ -14,3 +14,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p1g9btrql8d9x6n1iz6yowaqrq1v.htm
 invariantes:
 - filas(CLIENTES_CIUDAD) == 3
+esquemas:
+  WORK.CLIENTES_L4_17:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    CIUDAD:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.CLIENTES_CIUDAD:
+    ciudad_ok:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

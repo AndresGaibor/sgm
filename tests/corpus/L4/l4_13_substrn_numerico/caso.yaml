@@ -13,3 +13,17 @@ fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a002255112.htm
 invariantes:
 - filas(SALDOS_TEXTO) == 3
+esquemas:
+  WORK.SALDOS_L4_13:
+    ID:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+    SALDO:
+      tipo: Double
+      linea: 4
+      fuente: muestra
+  WORK.SALDOS_TEXTO:
+    saldo_txt:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

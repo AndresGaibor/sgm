@@ -16,3 +16,13 @@ fuentes_url:
 invariantes:
 - filas(EMPLEADOS_NUMERADOS) == 3
 motivo: Regla sin fuente oficial consultada; ver razonamiento.
+esquemas:
+  WORK.EMPLEADOS:
+    DEPTO:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    NOMBRE:
+      tipo: String
+      linea: 5
+      fuente: muestra

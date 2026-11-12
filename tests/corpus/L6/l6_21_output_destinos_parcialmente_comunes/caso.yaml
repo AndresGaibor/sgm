@@ -19,3 +19,13 @@ invariantes:
 - filas(COMUN) == 3
 - filas(OTROS) == 2
 - suma(COMUN.valor) == 6
+esquemas:
+  WORK.REGISTROS:
+    id:
+      tipo: String
+      linea: 1
+      fuente: muestra
+    valor:
+      tipo: Double
+      linea: 1
+      fuente: muestra

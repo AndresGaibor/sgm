@@ -56,3 +56,290 @@ salidas_esperadas:
   - FUERA_DEL_PERIODO_AHO
   archivos:
   - RESULTADO_AHO_20260930.csv
+esquemas:
+  WORK.IMPORT_ORIGEN_AHO:
+    VAR1:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR2:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR3:
+      tipo: String
+      linea: 13
+      fuente: muestra
+    VAR4:
+      tipo: String
+      linea: 13
+      fuente: muestra
+    VAR5:
+      tipo: String
+      linea: 13
+      fuente: muestra
+    VAR6:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR7:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR8:
+      tipo: String
+      linea: 13
+      fuente: muestra
+    VAR9:
+      tipo: String
+      linea: 13
+      fuente: muestra
+    VAR10:
+      tipo: String
+      linea: 13
+      fuente: muestra
+    VAR11:
+      tipo: String
+      linea: 13
+      fuente: muestra
+    VAR12:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR13:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR14:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR15:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR16:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR17:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR18:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR19:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR20:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR21:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR22:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    VAR23:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+  WORK.ORIGEN_AHO:
+    anio_proceso:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    mes_proceso:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    codigo_oficina:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    relacion:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    codigo_sucursal:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    tipo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    llave_nombre:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    tipo_doc:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_doc:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    gmf:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    val_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    prom_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    med_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    val_deb_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_deb_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    prom_deb_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    med_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    prom_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    max_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    min_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    fin_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    form_fin_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.FORMATO_TEXTO_FECHA:
+    mes_vig:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    dia_vig:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.RESULTADO_AHO_PERIODO:
+    anio_proceso:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    mes_proceso:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    codigo_oficina:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    relacion:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    codigo_sucursal:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    tipo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    llave_nombre:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    tipo_doc:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_doc:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    gmf:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    val_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    prom_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    med_cred_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    val_deb_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_deb_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    prom_deb_mes:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    med_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    prom_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    max_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    min_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    fin_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    form_fin_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CUENTA_PERIODO_AHO:
+    nro_registros_periodo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    suma_saldo_periodo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTROL_PERIODO:
+    anio_txt:
+      tipo: String
+      linea: 96
+      longitud: 4
+    mes_txt_out:
+      tipo: String
+      linea: 96
+      longitud: 2
+    dia_txt_out:
+      tipo: String
+      linea: 96
+      longitud: 2
+    fecha_concat:
+      tipo: String
+      linea: 96
+      longitud: 8
+  WORK.PERIODO_TEXTO:
+    periodo:
+      tipo: String
+      linea: 112
+      longitud: 7
+  WORK.MESES_ORIGEN_AHO:
+    mes_proceso:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_filas:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.FUERA_DEL_PERIODO_AHO:
+    nro_filas_fuera:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

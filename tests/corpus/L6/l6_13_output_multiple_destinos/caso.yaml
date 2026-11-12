@@ -18,3 +18,13 @@ invariantes:
 - filas(SALIDA_BAJA) == 2
 - filas(COPIA_BAJA) == 2
 - filas(SALIDA_ALTA) == 2
+esquemas:
+  WORK.REGISTROS:
+    ID:
+      tipo: String
+      linea: 1
+      fuente: muestra
+    VALOR:
+      tipo: Double
+      linea: 1
+      fuente: muestra

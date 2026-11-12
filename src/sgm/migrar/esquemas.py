@@ -31,7 +31,12 @@ from sgm.migrar.esquemas_tipos import (
     _textos,
     tipo_de_expresion,
 )
-from sgm.migrar.tipos_import import GUESSINGROWS_POR_OMISION, TipoDemostrado, tipos_de_archivo
+from sgm.migrar.tipos_import import (
+    GUESSINGROWS_POR_OMISION,
+    TipoDemostrado,
+    filas_del_archivo,
+    tipos_de_archivo,
+)
 
 _TIPO_DESCONOCIDO = "P-TIPO-DESCONOCIDO"
 _REFERENCIA = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b")
@@ -163,14 +168,9 @@ def _ruta_de_muestra(muestra: Path | None, datafile: object) -> Path | None:
     return candidata if candidata.is_file() else None
 
 
-def _cabecera(ruta: Path, delimiter: str | None) -> list[str]:
-    """Nombres de la primera línea del archivo, con el separador declarado o el que se vea."""
-    try:
-        primera = ruta.read_text(encoding="utf-8-sig", errors="replace").splitlines()[0]
-    except (OSError, IndexError):
-        return []
-    separador = delimiter or (";" if ";" in primera else ",")
-    return [_sin_comillas(campo) for campo in primera.split(separador) if campo.strip()]
+def _cabecera(ruta: Path, delimiter: str | None, getnames: bool = True) -> list[str]:
+    """Nombres de columna del archivo: su primera línea con `GETNAMES=YES`, `VAR1`... con `NO`."""
+    return filas_del_archivo(ruta, delimiter, getnames)[0]
 
 
 def _de_catalogo(tabla: str, catalogo: dict[str, list[Column]]) -> list[Column] | None:
@@ -209,7 +209,11 @@ def esquemas_de_entrada(
             esquemas[tabla] = demostrado
             continue
         ruta = _ruta_de_muestra(muestra, op.params.get("datafile"))
-        cabecera = _cabecera(ruta, op.params.get("delimiter")) if ruta else []
+        cabecera = (
+            _cabecera(ruta, op.params.get("delimiter"), op.params.get("getnames") is not False)
+            if ruta
+            else []
+        )
         if op.params.get("input_names"):
             origen = "sas_input"
             nombres = [str(nombre) for nombre in op.params["input_names"]]
@@ -220,7 +224,12 @@ def esquemas_de_entrada(
             origen = "derived"
             nombres = _columnas_usadas(plan, tabla)
         demostrados = (
-            tipos_de_archivo(ruta, op.params.get("delimiter"), nombres)
+            tipos_de_archivo(
+                ruta,
+                op.params.get("delimiter"),
+                nombres,
+                getnames=op.params.get("getnames") is not False,
+            )
             if ruta and origen == "file_header"
             else {}
         )

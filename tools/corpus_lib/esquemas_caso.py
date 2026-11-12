@@ -10,6 +10,10 @@ Forma:
 Reglas:
 - Un tipo demostrado trae `linea` (línea del `programa.sas` que lo prueba). `longitud` es opcional y
   solo aplica a `String`.
+- `fuente` es opcional: `sas` (por omisión) si la línea declara la columna (`LENGTH`/`FORMAT`);
+  `muestra`
+  si el tipo sale de la muestra de `entradas/` que lee el `PROC IMPORT` de esa línea. Un tipo por
+  operación (aritmética, agregados) no es demostrado en este contrato: va como `pendiente`.
 - Un tipo no demostrado es `pendiente` y trae `motivo`. No se inventa un tipo: si el SAS no lo
   demuestra, queda pendiente (AGENTS.md, regla 6).
 - Los tipos son los de `ir/models.py` (`Column.type`): String, Integer, Long, Double, BigDecimal,
@@ -24,6 +28,14 @@ from typing import Any
 TIPOS = frozenset({"String", "Integer", "Long", "Double", "BigDecimal", "Date", "Boolean"})
 _TABLA = re.compile(r"(?:[A-Za-z_]\w*\.)?[A-Za-z_]\w*$")
 _COLUMNA = re.compile(r"[A-Za-z_]\w*$")
+_BLOQUE = re.compile(r"^esquemas:.*\Z", re.MULTILINE | re.DOTALL)
+
+
+def sin_bloque(texto: str) -> str:
+    """`caso.yaml` sin su bloque `esquemas`, lo que escribe el generador.
+    El bloque sale del migrador (`tools/proponer_esquemas_caso.py`) y lo verifica
+    `tests/unit/test_esquemas_sincronizados.py`."""
+    return _BLOQUE.sub("", texto)
 
 
 def validar(bloque: Any) -> dict[str, dict[str, dict[str, Any]]]:
@@ -61,6 +73,9 @@ def _entrada(ruta: str, entrada: Any) -> dict[str, Any]:
         return {"tipo": "pendiente", "motivo": motivo}
     if tipo not in TIPOS:
         raise ValueError(f"'esquemas.{ruta}': 'tipo' debe ser {sorted(TIPOS)} o 'pendiente'")
+    fuente = entrada.get("fuente", "sas")
+    if fuente not in ("sas", "muestra"):
+        raise ValueError(f"'esquemas.{ruta}': 'fuente' debe ser 'sas' o 'muestra'")
     linea = entrada.get("linea")
     if isinstance(linea, bool) or not isinstance(linea, int) or linea < 1:
         raise ValueError(f"'esquemas.{ruta}': un tipo demostrado necesita 'linea' (entero >= 1)")
@@ -70,10 +85,14 @@ def _entrada(ruta: str, entrada: Any) -> dict[str, Any]:
             raise ValueError(f"'esquemas.{ruta}': 'longitud' solo aplica a String")
         if isinstance(longitud, bool) or not isinstance(longitud, int) or longitud < 1:
             raise ValueError(f"'esquemas.{ruta}': 'longitud' debe ser entero >= 1")
-    extra = set(entrada) - {"tipo", "linea", "longitud"}
+    extra = set(entrada) - {"tipo", "linea", "longitud", "fuente"}
     if extra:
         raise ValueError(f"'esquemas.{ruta}': campos no reconocidos {sorted(extra)}")
     normal: dict[str, Any] = {"tipo": tipo, "linea": linea}
+    if fuente == "muestra":
+        if longitud is not None:
+            raise ValueError(f"'esquemas.{ruta}': 'longitud' no aplica a un tipo de la muestra")
+        normal["fuente"] = "muestra"
     if longitud is not None:
         normal["longitud"] = longitud
     return normal

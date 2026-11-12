@@ -39,3 +39,12 @@ def test_tipos_de_archivo_lee_las_columnas_por_nombre(tmp_path) -> None:
     tipos = tipos_de_archivo(ruta, ",", ["id", "nombre"])
     assert tipos["id"].tipo_sas == "numerico"
     assert tipos["nombre"].tipo_sas == "caracter"
+
+
+def test_nan_e_inf_no_son_numeros() -> None:
+    assert tipo_desde_muestra(["nan"]).tipo_sas == "caracter"
+    assert tipo_desde_muestra(["inf", "1"]).tipo_sas == "caracter"
+
+
+def test_formatos_numericos_sas_son_numericos() -> None:
+    assert tipo_desde_muestra(["-3.5", "+2", ".5", "1e5", "12."]).tipo_sas == "numerico"

@@ -18,3 +18,22 @@ invariantes:
 - filas(VENTAS_ZONA) == 3
 - suma(VENTAS_ZONA.ACUM) == 42
 motivo: Regla sin fuente oficial consultada; ver razonamiento.
+esquemas:
+  WORK.ZONAS:
+    ZONA:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    NOMBRE:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.VENTAS:
+    ZONA:
+      tipo: String
+      linea: 9
+      fuente: muestra
+    MONTO:
+      tipo: Double
+      linea: 9
+      fuente: muestra

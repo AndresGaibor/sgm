@@ -9,6 +9,7 @@ Uso: uv run python tools/proponer_esquemas_caso.py <carpeta-del-caso>
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -24,7 +25,7 @@ from sgm.compile import compile_file, project_base  # noqa: E402
 from sgm.frontend.program import analyze_program  # noqa: E402
 from sgm.ir.models import Plan  # noqa: E402
 from sgm.migrar.esquemas_propagacion import CARACTER, NUMERICO, TipoColumna, propagar_tipos  # noqa: E402
-from sgm.migrar.tipos_import import tipos_de_archivo  # noqa: E402
+from sgm.migrar.tipos_import import filas_del_archivo, tipos_de_archivo  # noqa: E402
 
 MOTIVO_SIN_TIPO = "sin tipo demostrado en el programa ni en la muestra de entradas"
 
@@ -35,15 +36,32 @@ def _plan(programa: Path) -> Plan:
     return compile_file(analisis, "programa.sas", project_base()).plan
 
 
-def _entrada_de(columna: TipoColumna) -> dict[str, Any]:
-    if columna.tipo == NUMERICO and columna.linea:
-        return {"tipo": "Double", "linea": columna.linea}
-    if columna.tipo == CARACTER and columna.linea:
-        entrada: dict[str, Any] = {"tipo": "String", "linea": columna.linea}
+def _linea_de_declaracion(nombre: str, lineas: list[str], hasta: int) -> int | None:
+    """Línea (1-based) de la última declaración `LENGTH` o `FORMAT` de `nombre` antes de `hasta`."""
+    patron = re.compile(r'\b' + re.escape(nombre) + r'\b', re.IGNORECASE)
+    for indice in range(min(hasta, len(lineas)) - 1, -1, -1):
+        texto = lineas[indice]
+        if ("LENGTH" in texto.upper() or "FORMAT" in texto.upper()) and patron.search(texto):
+            return indice + 1
+    return None
+
+
+def _entrada_de(columna: TipoColumna, lineas: list[str]) -> dict[str, Any]:
+    """Solo `LENGTH` o `FORMAT` demuestran un tipo en este contrato (no la aritmética ni un
+    informato de `INPUT`)."""
+    declarado = columna.fuente == "declarado"
+    util = columna.tipo in (NUMERICO, CARACTER)
+    if not columna.linea or not declarado or not util:
+        return {"tipo": "pendiente", "motivo": MOTIVO_SIN_TIPO}
+    linea = _linea_de_declaracion(columna.nombre, lineas, columna.linea)
+    if linea is None:
+        return {"tipo": "pendiente", "motivo": MOTIVO_SIN_TIPO}
+    if columna.tipo == CARACTER:
+        entrada: dict[str, Any] = {"tipo": "String", "linea": linea}
         if columna.largo:
             entrada["longitud"] = columna.largo
         return entrada
-    return {"tipo": "pendiente", "motivo": MOTIVO_SIN_TIPO}
+    return {"tipo": "Double", "linea": linea}
 
 
 def _lecturas(caso: Path, plan: Plan, bloque: dict[str, dict[str, Any]]) -> set[str]:
@@ -59,15 +77,11 @@ def _lecturas(caso: Path, plan: Plan, bloque: dict[str, dict[str, Any]]) -> set[
         leidas.add(tabla.lower())
         nombre = Path(str(op.params.get("datafile") or "").strip("'\"").replace("\\", "/")).name
         ruta = caso / "entradas" / nombre
-        cabecera = []
-        if ruta.is_file():
-            primera = ruta.read_text(encoding="utf-8-sig", errors="replace").splitlines()[:1]
-            linea_cabecera = primera[0] if primera else ""
-            separador = op.params.get("delimiter") or (";" if ";" in linea_cabecera else ",")
-            partes = linea_cabecera.split(separador)
-            cabecera = [c.strip().strip("'\"") for c in partes if c.strip()]
+        getnames = op.params.get("getnames") is not False
+        delimiter = op.params.get("delimiter")
+        cabecera = filas_del_archivo(ruta, delimiter, getnames)[0] if ruta.is_file() else []
         demostrados = (
-            tipos_de_archivo(ruta, op.params.get("delimiter"), cabecera) if cabecera else {}
+            tipos_de_archivo(ruta, delimiter, cabecera, getnames=getnames) if cabecera else {}
         )
         linea = op.evidence[0].line_start if op.evidence else None
         columnas: dict[str, Any] = {}
@@ -76,7 +90,7 @@ def _lecturas(caso: Path, plan: Plan, bloque: dict[str, dict[str, Any]]) -> set[
             if tipo is not None and linea:
                 cadena = tipo.tipo_sas == "caracter"
                 tipo_salida = "String" if cadena else "Double"
-                columnas[nombre_col] = {"tipo": tipo_salida, "linea": linea}
+                columnas[nombre_col] = {"tipo": tipo_salida, "linea": linea, "fuente": "muestra"}
             else:
                 columnas[nombre_col] = {"tipo": "pendiente", "motivo": MOTIVO_SIN_TIPO}
         if columnas:
@@ -86,13 +100,16 @@ def _lecturas(caso: Path, plan: Plan, bloque: dict[str, dict[str, Any]]) -> set[
 
 def bloque_del_caso(caso: Path) -> dict[str, dict[str, Any]]:
     plan = _plan(caso / "programa.sas")
+    lineas = (caso / "programa.sas").read_text(encoding="utf-8").splitlines()
     bloque: dict[str, dict[str, Any]] = {}
     leidas = _lecturas(caso, plan, bloque)
     resultado = propagar_tipos(plan)
     for conjunto, columnas in resultado.tablas.items():
         if conjunto in leidas or not columnas:
             continue
-        bloque[conjunto.upper()] = {nombre: _entrada_de(col) for nombre, col in columnas.items()}
+        bloque[conjunto.upper()] = {
+            nombre: _entrada_de(col, lineas) for nombre, col in columnas.items()
+        }
     return bloque
 
 

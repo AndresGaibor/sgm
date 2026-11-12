@@ -39,7 +39,7 @@ def test_muestra_da_tipo_y_linea_a_cada_columna_leida(tmp_path: Path) -> None:
 
 def test_length_da_carácter_con_longitud_y_linea(tmp_path: Path) -> None:
     bloque = propuesta.bloque_del_caso(_caso(tmp_path))
-    assert bloque["WORK.T"]["x"] == {"tipo": "String", "linea": 6, "longitud": 8}
+    assert bloque["WORK.T"]["x"] == {"tipo": "String", "linea": 5, "longitud": 8}
 
 
 def test_el_bloque_propuesto_pasa_la_validacion_del_corpus(tmp_path: Path) -> None:
@@ -47,10 +47,11 @@ def test_el_bloque_propuesto_pasa_la_validacion_del_corpus(tmp_path: Path) -> No
     assert esquemas_caso.validar(bloque) == bloque
 
 
-def test_aritmetica_es_numerica_y_la_entrada_desconocida_sale_pendiente(tmp_path: Path) -> None:
+def test_aritmetica_no_demuestra_tipo_en_el_contrato(tmp_path: Path) -> None:
     caso = tmp_path / "c"
     caso.mkdir()
     (caso / "programa.sas").write_text("data work.t; y = x + 1; run;\n", encoding="utf-8")
     bloque = propuesta.bloque_del_caso(caso)
-    assert bloque["WORK.T"]["y"] == {"tipo": "Double", "linea": 1}
+    # una operación no demuestra el tipo en este contrato: solo LENGTH o la muestra lo hacen
+    assert bloque["WORK.T"]["y"]["tipo"] == "pendiente"
     assert esquemas_caso.validar(bloque) == bloque

@@ -15,3 +15,13 @@ fuentes_url:
 invariantes:
 - filas(ULTIMA_VENTA) == 3
 - suma(ULTIMA_VENTA.MONTO) == 34
+esquemas:
+  WORK.VENTAS:
+    CIUDAD:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    MONTO:
+      tipo: Double
+      linea: 4
+      fuente: muestra

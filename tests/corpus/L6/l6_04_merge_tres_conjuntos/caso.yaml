@@ -16,3 +16,31 @@ fuentes_url:
 - https://support.sas.com/kb/24/752.html
 invariantes:
 - filas(CONSUMO) == 4
+esquemas:
+  WORK.CAFE:
+    id:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    cafe:
+      tipo: String
+      linea: 5
+      fuente: muestra
+  WORK.SNACK:
+    id:
+      tipo: Double
+      linea: 9
+      fuente: muestra
+    snack:
+      tipo: String
+      linea: 9
+      fuente: muestra
+  WORK.VENDING:
+    id:
+      tipo: Double
+      linea: 13
+      fuente: muestra
+    bebida:
+      tipo: String
+      linea: 13
+      fuente: muestra
