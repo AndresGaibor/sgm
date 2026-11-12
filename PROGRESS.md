@@ -6869,3 +6869,29 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   cruces del corpus, oráculo y tablero, todo verde.
 - Decisión: `COMPRESS` conserva el comportamiento existente cuando recibe una lista de caracteres
   en blanco; esta extracción no modifica ni redefine esa semántica.
+
+## Hito 211n. Vectores semánticos ejecutados por el intérprete y cruzados con el oráculo
+
+- Base: `2200c6b` (hito 210n). Se creó `interprete_vectores.py` para adaptar el formato de los vectores
+  al intérprete; `corpus_semantica.py verificar --motor interprete` ahora informa fallos, diferencias
+  entre motores y ejecuciones reales por función. La ruta del oráculo importa el intérprete solo si se
+  solicita ese motor, conservando su independencia por defecto.
+- `funciones_inventario.py` integra los conteos reales por función en `resumen` y guarda el resultado
+  de la verificación. Los adaptadores de vectores para `cmp`, `concat`, `is_missing`, `round` y
+  `trim_concat` se incluyen en la presencia del intérprete; inventario actual: 82 funciones, 58 en
+  Talend, 18 en el oráculo y 25 en el intérprete.
+- Diferencias corregidas sin cambiar ni reclasificar los vectores que las revelaron: `left-03`,
+  `strip-03` y `concat-01` expusieron pérdida de espacios en `LEFT`, `TRIM` de un blanco y `||`.
+  `CATX` se agregó al despacho según `lefunctionsref`, p. 508-509. `INPUT w.d` ahora respeta el ancho
+  del campo y el literal del informat conserva los ceros finales de `d` (`8.10`), según
+  `leforinforref`, p. 744. La revisión independiente detectó la notación científica de `w.d`; se
+  agregó `input-13` con cita a las páginas 744-745, y se corrigieron ambos motores.
+- Resultado del corpus: 70 vectores; 52 documentados, 16 deducidos y 2 inciertos. Los 68 conocidos
+  se ejecutan y pasan; cero fallos y cero diferencias entre oráculo e intérprete. Los dos inciertos
+  (`input-11`, `input-12`) siguen sin ejecutarse y no se cuentan como cobertura.
+- Pruebas enfocadas (intérprete, corpus, inventario y golden): 339 pasan, 5 `xfailed`; Ruff y
+  `git diff --check`, limpios. Cierre final `uv run python tools/ci.py`: Ruff OK; suite 3576 pasan,
+  315 omitidas y 142 `xfailed`; cruces del corpus 78 pasan; oráculo 131 casos sin fallos; tablero OK.
+- Decisión: los vectores son una interfaz entre dos representaciones; el adaptador conserva el literal
+  del informat y crea literales SQL escapados para usar el evaluador del intérprete sin tratar los
+  valores del vector como código. El oráculo sigue siendo el motor predeterminado de la CLI.

@@ -95,6 +95,13 @@ vectores:
     fuente_url: ninguna
     cita: "sin cita: no se encontró la regla para blancos embebidos en w.d"
     confianza: incierto
+  - id: input-13
+    funcion: input
+    entrada: ["1E3", 8, 2]
+    esperado: 1000
+    fuente_url: "https://support.sas.com/documentation/cdl/en/leforinforref/64790/HTML/default/n14sqpf1cubqknn1vmkzkp1oph87.htm"
+    cita: "The w.d informat can read values in scientific E notation exactly as the Ew.d informat does."
+    confianza: deducido
   # LEFT
   - id: left-01
     funcion: left

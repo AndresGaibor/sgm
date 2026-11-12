@@ -76,6 +76,11 @@ def _numero(valor: object) -> float | None:
     return semantica.como_numero(valor)
 
 
+def _texto_funcion(valor: object) -> str:
+    """Conserva los blancos de un texto; los valores no textuales usan la conversión común."""
+    return valor if isinstance(valor, str) else semantica.como_texto(valor)
+
+
 def _verdad(valor: object) -> bool:
     """True si la expresión no es cero ni faltante (`lestmtsref`, p. 130)."""
     if isinstance(valor, bool):
@@ -205,21 +210,31 @@ def _valor(nodo, fila: dict) -> object:
         simbolo = {exp.Add: "+", exp.Sub: "-", exp.Mul: "*", exp.Div: "/"}[type(nodo)]
         return _aritmetica(simbolo, _valor(nodo.this, fila), _valor(nodo.expression, fila))
     if isinstance(nodo, (exp.DPipe, exp.Concat)):
-        izquierda = semantica.como_texto(_valor(nodo.this, fila))
-        derecha = semantica.como_texto(_valor(nodo.expression, fila))
+        izquierda = _texto_funcion(_valor(nodo.this, fila))
+        derecha = _texto_funcion(_valor(nodo.expression, fila))
         return izquierda + derecha
     if isinstance(nodo, exp.Trim):
-        return semantica.como_texto(_valor(nodo.this, fila)).rstrip()
+        recortado = _texto_funcion(_valor(nodo.this, fila)).rstrip(" ")
+        return recortado or " "
     if isinstance(nodo, exp.Coalesce):
         # En sqlglot el primer argumento va en `this`, no en `expressions`.
         argumentos = [nodo.this, *nodo.expressions]
         return _funcion("coalesce", [_valor(arg, fila) for arg in argumentos])
     if isinstance(nodo, exp.Upper):
-        return semantica.como_texto(_valor(nodo.this, fila)).upper()
+        return _texto_funcion(_valor(nodo.this, fila)).upper()
     if isinstance(nodo, exp.Lower):
-        return semantica.como_texto(_valor(nodo.this, fila)).lower()
+        return _texto_funcion(_valor(nodo.this, fila)).lower()
     if isinstance(nodo, exp.Anonymous):
-        return _funcion(nodo.name.lower(), [_valor(arg, fila) for arg in nodo.expressions])
+        argumentos = [_valor(arg, fila) for arg in nodo.expressions]
+        if (
+            nodo.name.lower() in {"input", "sgm_input"}
+            and len(argumentos) == 2
+            and isinstance(nodo.expressions[1], exp.Literal)
+            and not nodo.expressions[1].is_string
+        ):
+            # El literal numérico de w.d debe conservar los ceros de d (8.10 no es 8.1).
+            argumentos[1] = str(nodo.expressions[1].this)
+        return _funcion(nodo.name.lower(), argumentos)
     raise NoSoportadoEnInterprete("expresion", f"{type(nodo).__name__}: {nodo.sql()}")
 
 

@@ -69,7 +69,7 @@ def _escribir_csv(pares: list[str], lista: list[dict], cambio: dict[str, str] | 
 
 def test_los_vectores_tienen_columna_expresion_y_esperado():
     lista = prueba.casos()
-    assert len(lista) == 45
+    assert len(lista) == 46
     assert len({c["columna"] for c in lista}) == len(lista)
     for caso in lista:
         assert caso["columna"].startswith("v_")
@@ -80,7 +80,7 @@ def test_los_vectores_tienen_columna_expresion_y_esperado():
 
 def test_el_esperado_de_la_semantica_lo_calcula_el_oraculo():
     semanticos = {c["id"]: c for c in prueba.casos_semantica()}
-    assert len(semanticos) == 29
+    assert len(semanticos) == 30
     assert semanticos["input-06"]["esperado"] == evaluar("input", "0023", 6, 2)
     assert isinstance(semanticos["input-09"]["esperado"], Faltante)
     assert semanticos["compress-04"]["esperado"] == "ABCAB"
@@ -163,7 +163,7 @@ def test_validar_coincide_con_el_oraculo_y_limpia_lo_que_copio(
     monkeypatch.setattr(prueba, "ejecutar", lanzador_falso)
     assert prueba.validar(proyecto, tmp_path / "trabajo", "v9", None, None) == 0
     texto = capsys.readouterr().out
-    assert "Vectores: 45; coinciden: 45; fallan: 0" in texto
+    assert "Vectores: 46; coinciden: 46; fallan: 0" in texto
     assert "la normalización coincide con el oráculo" in texto
     assert list((proyecto / "process").iterdir()) == []
     assert doble.llamadas.count("talend_bridge_refresh_workspace") == 2

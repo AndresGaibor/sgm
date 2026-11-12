@@ -27,6 +27,7 @@ def test_funciones_reune_las_familias_actuales():
         "compress",
         "scan",
         "coalescec",
+        "catx",
         "mean",
         "min",
         "max",
@@ -81,3 +82,21 @@ def test_funcion_no_registrada_conserva_el_error_del_interprete():
 
 def test_el_wrapper_de_interprete_delega_al_mismo_despacho():
     assert _funcion("sgm_trim", ["ab  "]) == llamar("sgm_trim", ["ab  "])
+
+
+def test_input_respeta_ancho_y_dinamica_de_dos_digitos():
+    assert llamar("input", ["1234567", 3.0]) == 123.0
+    assert llamar("input", ["1", "8.10"]) == 1e-10
+
+
+def test_input_en_notacion_cientifica_no_aplica_d():
+    assert llamar("input", ["1E3", "8.2"]) == 1000.0
+
+
+def test_catx_omite_elementos_en_blanco_y_recorta_los_extremos():
+    assert llamar("catx", [",", " a ", "b ", "  ", "c"]) == "a,b,c"
+
+
+def test_left_y_trim_conservan_la_semantica_de_un_campo_en_blanco():
+    assert llamar("left", ["   "]) == "   "
+    assert llamar("trim", ["   "]) == " "

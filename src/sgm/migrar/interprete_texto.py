@@ -7,29 +7,37 @@ from collections.abc import Callable
 
 from sgm.migrar import semantica
 
+from .interprete_errores import NoSoportadoEnInterprete
+
+
+def _texto_funcion(valor: object) -> str:
+    """Conserva blancos significativos en argumentos de funciones de texto."""
+    return valor if isinstance(valor, str) else semantica.como_texto(valor)
+
 
 def _texto_substr(valor: object, funcion: str) -> str:
     """Conversión numérica documentada para SUBSTR/SUBSTRN en las expresiones del corpus."""
     if isinstance(valor, (int, float)):
         texto = format(valor, ".12g")
         return texto if funcion == "substrn" else texto.rjust(12)
-    return semantica.como_texto(valor)
+    return _texto_funcion(valor)
 
 
 def _trim(argumentos: list) -> str:
-    return semantica.como_texto(argumentos[0] if argumentos else None).rstrip()
+    texto = _texto_funcion(argumentos[0] if argumentos else None).rstrip(" ")
+    return texto or " "
 
 
 def _strip(argumentos: list) -> str:
-    return semantica.como_texto(argumentos[0] if argumentos else None).strip()
+    return _texto_funcion(argumentos[0] if argumentos else None).strip(" ")
 
 
 def _upcase(argumentos: list) -> str:
-    return semantica.como_texto(argumentos[0] if argumentos else None).upper()
+    return _texto_funcion(argumentos[0] if argumentos else None).upper()
 
 
 def _lowcase(argumentos: list) -> str:
-    return semantica.como_texto(argumentos[0] if argumentos else None).lower()
+    return _texto_funcion(argumentos[0] if argumentos else None).lower()
 
 
 def _length(argumentos: list) -> int:
@@ -37,7 +45,7 @@ def _length(argumentos: list) -> int:
 
 
 def _left(argumentos: list) -> str:
-    texto = semantica.como_texto(argumentos[0] if argumentos else None)
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
     return texto.lstrip(" ") + " " * (len(texto) - len(texto.lstrip(" ")))
 
 
@@ -66,9 +74,9 @@ def _substrn(argumentos: list) -> str:
 
 def _compress(argumentos: list) -> str:
     """COMPRESS con lista de caracteres y modificadores usados por los vectores documentados."""
-    texto = semantica.como_texto(argumentos[0] if argumentos else None)
-    lista = semantica.como_texto(argumentos[1]) if len(argumentos) > 1 else " "
-    modificadores = semantica.como_texto(argumentos[2]).lower() if len(argumentos) > 2 else ""
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
+    lista = _texto_funcion(argumentos[1]) if len(argumentos) > 1 else " "
+    modificadores = _texto_funcion(argumentos[2]).lower() if len(argumentos) > 2 else ""
     quitar: set[str] = set(lista)
     if "d" in modificadores:
         quitar.update("0123456789")
@@ -92,10 +100,10 @@ def _scan(argumentos: list) -> str:
     """SCAN con delimitadores explícitos y blancos por omisión, según vectores del corpus."""
     if len(argumentos) < 2:
         return " "
-    texto = semantica.como_texto(argumentos[0])
+    texto = _texto_funcion(argumentos[0])
     posicion = int(semantica.como_numero(argumentos[1]) or 0)
     delimitadores = (
-        semantica.como_texto(argumentos[2])
+        _texto_funcion(argumentos[2])
         if len(argumentos) > 2
         else " \t\n\r!$%&()*+,-./;<^|"
     )
@@ -111,6 +119,15 @@ def _coalescec(argumentos: list) -> object:
     return next((valor for valor in argumentos if not semantica.es_faltante(valor)), None)
 
 
+def _catx(argumentos: list) -> str:
+    """CATX recorta cada elemento y omite blancos antes de insertar separadores."""
+    if len(argumentos) < 2:
+        raise NoSoportadoEnInterprete("funcion", "CATX requiere separador y al menos un elemento")
+    separador = semantica.como_texto(argumentos[0])
+    elementos = [semantica.como_texto(valor).strip(" ") for valor in argumentos[1:]]
+    return separador.join(valor for valor in elementos if valor)
+
+
 FUNCIONES: dict[str, Callable[[list], object]] = {
     "trim": _trim,
     "strip": _strip,
@@ -123,4 +140,5 @@ FUNCIONES: dict[str, Callable[[list], object]] = {
     "compress": _compress,
     "scan": _scan,
     "coalescec": _coalescec,
+    "catx": _catx,
 }

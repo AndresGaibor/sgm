@@ -31,11 +31,12 @@ def _tabla_oraculo() -> dict[str, object]:
 def _tabla_interprete() -> dict[str, object]:
     try:
         from sgm.migrar.interprete_funciones import FUNCIONES
+        from sgm.migrar.interprete_vectores import FUNCIONES_VECTOR
     except ModuleNotFoundError as error:
         if error.name != "sgm.migrar.interprete_funciones":
             raise
         return {}
-    return FUNCIONES
+    return {**FUNCIONES, **dict.fromkeys(FUNCIONES_VECTOR)}
 
 
 def _nombre_sas(nombre: str) -> str:
@@ -243,10 +244,18 @@ def main() -> None:
     """Escribe el inventario de la copia actual sin versionar el resultado."""
     repo = Path(__file__).resolve().parents[1]
     funciones = inventario(repo)
+    from corpus_semantica import verificar
+
+    verificacion = verificar(motor="interprete")
     datos = {
-        "resumen": resumen(funciones),
+        "resumen": resumen(funciones, verificacion["ejecuciones_por_funcion"]),
         "inventario": funciones,
         "sin_catalogo_plan": _sin_catalogo_plan(repo, funciones),
+        "verificacion_interprete": {
+            "pasan": verificacion["pasan"],
+            "fallos": [f["id"] for f in verificacion["fallos"]],
+            "diferencias_motores": [d["id"] for d in verificacion["diferencias_motores"]],
+        },
     }
     salida = repo / "out" / "linea_base_funciones.json"
     salida.parent.mkdir(parents=True, exist_ok=True)

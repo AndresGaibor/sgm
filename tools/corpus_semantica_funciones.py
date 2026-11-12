@@ -31,7 +31,7 @@ class Faltante:
 
 
 FALTANTE = Faltante()
-_NUMERO = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)$")
+_NUMERO = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$")
 _CLASES = {
     "a": string.ascii_letters,
     "d": string.digits,
@@ -79,7 +79,7 @@ def input_wd(campo: object, w: int, d: int) -> float | Faltante:
     texto = str(campo)[: int(w)].strip(" ")
     if texto in ("", ".") or not _NUMERO.match(texto):
         return FALTANTE
-    if "." in texto:
+    if "." in texto or "e" in texto.lower():
         return float(texto)
     return int(texto) / 10 ** int(d)
 
