@@ -6927,3 +6927,14 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Verificado: `ruff` limpio en `src/sgm/ir`; 861 pruebas de golden, IR, DATA step, salidas y desde-plan pasan.
 - Pendiente: `lower_data.py` sigue por encima de 300 líneas (467). Falta `_lower_data_steps` (unas 275 líneas), que
   hay que partir en estado por fila y en el resto del recorrido.
+
+## Hito 218m. `lower_data.py` baja de 300 líneas: el recorrido del DATA step pasa a una clase (B-5)
+
+- Que se hizo: el bucle de `_lower_data_steps` pasa a `src/sgm/ir/lower_data_recorrido.py` como la clase `_Recorrido`.
+  El estado que el bucle reasignaba (`current`, `pending_derive`, `loose`, `prev`, `omit`) vive en la clase, y cada
+  rama es un método que dice si la sentencia ya quedó resuelta. Mismo orden de ramas que antes.
+- `lower_data.py` baja de 467 a 286 líneas (dentro del límite de 300). `lower_data_recorrido.py` tiene 243.
+- Verificado: `ruff` limpio en `src/sgm/ir`; 880 pruebas de golden, IR, DATA step, salidas y desde-plan pasan.
+- Cambio de prueba: `test_sentencias_where_keep_y_rename_del_data_step_pasan_por_los_constructores` importa
+  `_statement_op` desde `lower_data_asignaciones`, porque ya no lo reexporta `lower_data`.
+- Pendiente: `lower_data_statements.py` sigue siendo código muerto (decisión del dueño, ver hito 216m).

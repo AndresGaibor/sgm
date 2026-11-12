@@ -68,7 +68,7 @@ def test_sentencias_where_keep_y_rename_del_data_step_pasan_por_los_constructore
     Sin la lista, un WHERE, un KEEP o un RENAME rompía el lowering (lo hacía en el hito 213m)."""
     from sgm.frontend.datastep import DsStatement
     from sgm.ir.builder import Builder
-    from sgm.ir.lower_data import _statement_op
+    from sgm.ir.lower_data_asignaciones import _statement_op
     from sgm.ir.models import Evidence, Graph
 
     ev = Evidence(file="p.sas", line_start=1, line_end=1, label=None)

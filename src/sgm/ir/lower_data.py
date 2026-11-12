@@ -3,28 +3,18 @@
 from __future__ import annotations
 
 import re
-from dataclasses import replace
 
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
-from sgm.ir.lower_data_asignaciones import (
-    _conditional_assignment,
-    _statement_op,
-)
-from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_grupos import programa_por_grupo
+from sgm.ir.lower_data_recorrido import _Recorrido, _statement_evidence
 from sgm.ir.lower_data_salidas import (
     _conditional_output,
-    _conditional_output_chain,
-    _note,
-    _output_sequence,
     _repeated_output_targets,
     _undeclared_output_targets,
 )
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.types_code import declared_types
-
-_HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
 
 
 def _join_type(stmts: list[DsStatement], refs: list[dict]) -> str | None:
@@ -186,12 +176,6 @@ def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
                 b.refresh(op)
 
 
-def _statement_evidence(stmt: DsStatement, ev: Evidence) -> Evidence:
-    return replace(
-        ev, file=stmt.file or ev.file, line_start=stmt.line, line_end=stmt.end_line or stmt.line
-    )
-
-
 def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     stmts = step.statements
     reads, current = _lower_sources(stmts, ev, b)
@@ -249,175 +233,10 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             b.link(current, estado)
         current = estado
         omit = set(range(len(stmts)))
-    for index, s in enumerate(stmts):
-        if index in omit:
-            continue
-        kind = s.kind
-        statement_ev = Evidence(ev.file, s.line, s.line, ev.label, ev.call)
-        before, prev = prev, s
-        if kind in _HEAD_KINDS:
-            continue
-        secuencia_output = _output_sequence(stmts, index)
-        if secuencia_output is not None:
-            destinos, ultimo = secuencia_output
-            parametros = {"target": destinos[0], "condition": ""}
-            if len(destinos) > 1:
-                parametros["targets"] = destinos
-            salida_multiple = b.op("split", parametros, statement_ev)
-            salida_multiple.evidence.extend(
-                Evidence(ev.file, stmts[posicion].line, stmts[posicion].line, ev.label, ev.call)
-                for posicion in range(index + 1, ultimo + 1)
-            )
-            if current is not None:
-                b.link(current, salida_multiple)
-            current = salida_multiple
-            omit.update(range(index + 1, ultimo + 1))
-            prev = stmts[ultimo]
-            continue
-        salidas_condicionales = _conditional_output_chain(
-            stmts, index, [destino for destino in step.outputs if destino.lower() != "_null_"]
-        )
-        if salidas_condicionales is not None:
-            ramas, destinos, siguiente, terminal = salidas_condicionales
-            if not terminal:
-                ramas.append({"outputs": [], "continue": True})
-            salida_condicional = b.op(
-                "map",
-                {"steps": [], "outputs": destinos, "branches": ramas},
-                statement_ev,
-            )
-            salida_condicional.evidence.extend(
-                Evidence(ev.file, stmts[posicion].line, stmts[posicion].line, ev.label, ev.call)
-                for posicion in range(index + 1, siguiente + 1)
-                )
-            if current is not None:
-                b.link(current, salida_condicional)
-            current = salida_condicional
-            omit.update(range(index + 1, siguiente + 1))
-            prev = stmts[siguiente]
-            continue
-        conditional = _conditional_assignment(stmts, index)
-        if conditional is not None:
-            conditional = ([conditional[0]], conditional[1])
-        else:
-            conditional = bloque_condicional(stmts, index)
-        if conditional is not None:
-            asignaciones, siguiente = conditional
-            if pending_derive is None:
-                pending_derive = b.op(
-                    "derive", {"assignments": [], "modo": "agrega"}, statement_ev
-                )
-                if current is not None:
-                    b.link(current, pending_derive)
-                current = pending_derive
-            pending_derive.params["assignments"].extend(asignaciones)
-            b.refresh(pending_derive)
-            omit.update(range(index + 1, siguiente))
-            prev = stmts[siguiente - 1]
-            continue
-        if kind == "assign":
-            assignment = {"target": s.fields["target"], "expression": s.fields["expression"]}
-            if pending_derive is None:
-                # `modo`: una asignación de DATA step conserva las columnas que ya venían; el
-                # `derive` de un `SELECT` las reemplaza. Sin la marca, el emisor escribiría un
-                # `tMap` con una sola columna y el Job perdería el resto de la fila.
-                pending_derive = b.op(
-                    "derive", {"assignments": [], "modo": "agrega"}, statement_ev
-                )
-                if current is not None:
-                    b.link(current, pending_derive)
-                current = pending_derive
-            pending_derive.params["assignments"].append(assignment)
-            origin = _statement_evidence(s, ev)
-            path = ("assignments", len(pending_derive.params["assignments"]) - 1, "expression")
-            pending_derive.expression_evidence[path] = [origin]
-            b.refresh(pending_derive)
-            continue
-        pending_derive = None
-        if kind == "declare":
-            _note(current, f"declaración sin efecto en la lógica: {s.text}")
-            continue
-        if kind in ("array", "do", "end"):
-            _note(current, f"{kind} no traducido: revisar el bucle o el arreglo", status="parcial")
-            continue
-        if kind in ("file", "put"):
-            if current is not None and current.kind != "unsupported":
-                note = f"FILE_PUT_SIN_PLANTILLA: {s.text}"
-                if note not in current.notes:
-                    current.notes.append(note)
-                unsupported = b.op(
-                    "unsupported",
-                    {
-                        "reason": "SENTENCIA_NO_SOPORTADA",
-                        "reason_detail": "FILE_PUT_SIN_PLANTILLA",
-                        "unsupported_statements": [s.text],
-                        "statement": s.text,
-                    },
-                    statement_ev,
-                    status="hueco",
-                )
-                b.link(current, unsupported)
-                current = unsupported
-            elif current is None:
-                current = b.op(
-                    "unsupported",
-                    {
-                        "reason": "SENTENCIA_NO_SOPORTADA",
-                        "reason_detail": "FILE_PUT_SIN_PLANTILLA",
-                        "unsupported_statements": [s.text],
-                        "statement": s.text,
-                    },
-                    statement_ev,
-                    status="hueco",
-                )
-            else:
-                note = f"FILE_PUT_SIN_PLANTILLA: {s.text}"
-                if note not in current.notes:
-                    current.notes.append(note)
-                unsupported = current.params.setdefault("unsupported_statements", [])
-                if s.text not in unsupported:
-                    unsupported.append(s.text)
-                    current.params["statement"] = " | ".join(unsupported)
-                    b.refresh(current)
-            continue
-        if kind == "output" and not s.fields.get("targets") and index < len(stmts) - 1:
-            destinos = [
-                qualify(nombre) for nombre in step.outputs if nombre.lower() != "_null_"
-            ]
-            if destinos:
-                ramas = [{"outputs": [destino]} for destino in destinos]
-                ramas.append({"outputs": [], "continue": True})
-                salida_continuacion = b.op(
-                    "map",
-                    {"steps": [], "outputs": destinos, "branches": ramas},
-                    statement_ev,
-                )
-                if current is not None:
-                    b.link(current, salida_continuacion)
-                current = salida_continuacion
-                continue
-        new = _statement_op(
-            s,
-            kind,
-            before,
-            statement_ev,
-            b,
-            [qualify(nombre) for nombre in step.outputs if nombre.lower() != "_null_"],
-        )
-        if new is None:
-            _note(current, f"sentencia sin traducción: {s.text}", status="parcial")
-            if current is not None:
-                current.params.setdefault("untranslated", []).append(s.text)
-                b.refresh(current)
-            else:
-                loose.append(s.text)  # sin operador aún: se adjunta al operador final
-            continue
-        if new.kind == "filter":
-            origin = _statement_evidence(s, ev)
-            new.expression_evidence[("expression",)] = [origin]
-        if current is not None:
-            b.link(current, new)
-        current = new
+    recorrido = _Recorrido(step, ev, b, current, omit, pending_derive, loose, prev)
+    recorrido.ejecutar()
+    current = recorrido.current
+    loose = recorrido.loose
     outputs = step.outputs
     if current is None:
         current = b.op(
