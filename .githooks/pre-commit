@@ -1,0 +1,18 @@
+#!/bin/sh
+# Rechaza el commit si el árbol actual no tiene la suite completa y `ruff` en verde.
+# Se instala una vez por copia con: uv run python tools/instalar_ganchos.py
+set -u
+
+raiz=$(git rev-parse --show-toplevel 2>/dev/null) || exit 1
+raiz=$(printf '%s' "$raiz" | tr '\\' '/')
+cd "$raiz" || exit 1
+
+if [ -x ".venv/Scripts/python.exe" ]; then
+    python=".venv/Scripts/python.exe"
+elif [ -x ".venv/bin/python" ]; then
+    python=".venv/bin/python"
+else
+    python="python"
+fi
+
+exec "$python" tools/validacion.py exigir --origen gancho-git

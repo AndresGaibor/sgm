@@ -70,6 +70,12 @@ paso obligatorio falla, imprime la cola de la salida del que falló y deja una t
 de cada paso. `--sin-suite` sirve para iterar y `--sin-tablero` cuando no hace falta la
 fotografía. El tablero solo informa: nunca hace fallar el cierre.
 
+El commit está protegido: `.githooks/pre-commit` rechaza el commit si el árbol cambió desde el
+último cierre verde o si algún paso obligatorio quedó en rojo. Se instala una vez por copia con
+`uv run python tools/instalar_ganchos.py`. `uv run python tools/validacion.py estado` dice qué
+falta, `historial` muestra las últimas validaciones y los intentos de commit, y el detalle queda en
+`.cache/validacion/`.
+
 ## Compuerta de liberación
 
 Antes de publicar una versión, un solo comando decide si el código se puede liberar:
