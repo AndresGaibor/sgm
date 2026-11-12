@@ -6953,3 +6953,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Verificado: `ruff` limpio en `src/sgm/ir`; 928 pruebas de golden, IR, DATA step, SORT, lectura y escritura pasan.
 - Pendiente de B-5: el contador de formas anteriores en `Plan.resumen` (lo pide el paso 3 del plan, para B-6), y las
   excepciones de arriba si se quieren cerrar del todo.
+
+## Hito 220m. Contador de forma legado y agregados de SQL por `agregar` (B-5 paso 3, B-6 parcial)
+
+- Contador: `ir/pasos.py` cuenta cada vez que `paso` u `op_validado` usan la forma legado (el constructor rechazó los
+  datos), con `contador_legado()` y `reiniciar_contador_legado()`. Desviación del plan: el contador no va en `Plan.resumen`,
+  porque añadir un campo a `Plan` cambiaría la serialización de todos los planes.
+- Agregados de SQL: `lower_sql_flow._agregado` construye el paso `aggregate` con `operadores.agregar` (los dos caminos,
+  con y sin `pendiente`). Los golden de SQL y del plan pasan sin cambios.
+- Medición: los 43 casos `traducible` de L1 a L3 no usan la forma legado (contador vacío). La prueba
+  `tests/unit/test_ir_sin_forma_legado.py` lo exige.
+- Pendiente de B-6: `lower_sql_flow.py` (595 líneas) sigue por encima de 300 y no se ha extraído `lower_sql_agregados.py`;
+  quedan `join`, `union` y `derive` construidos con `Builder.op` directo (el contador no los ve, por eso la guardia de
+  B-5 no los cubre todavía).
+- Verificado: `ruff` limpio en `src/sgm/ir`; 570 pruebas de IR, SQL, golden, desde-plan y las nuevas pasan.

@@ -333,6 +333,28 @@ def _cruce_de_existencia(
     )
 
 
+def _agregado(
+    chain: _Chain, params: dict, previous: Operator, status: str = "soportado"
+) -> Operator:
+    """Paso `aggregate` por `operadores.agregar`; si rechaza los datos, va la forma legado."""
+    return _paso(
+        chain,
+        "aggregate",
+        params,
+        lambda: operadores.agregar(
+            "_",
+            params["group_by"],
+            params["aggregations"],
+            pendiente=params.get("pendiente"),
+            group_outputs=params.get("group_outputs"),
+            output_order=params.get("output_order"),
+            evidence=[chain.ev],
+        ),
+        previous,
+        status=status,
+    )
+
+
 def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Operator:
     """Operadores de una rama de SELECT, en el orden lógico de SQL. Devuelve el último."""
     aliases = {s.alias.lower() for s in [spec.base] if s and s.alias}
@@ -438,10 +460,10 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
             label = sql_semantics.reglas()[sql_semantics.AGREGADO].etiqueta
             detalle = ", ".join(params["pendiente"])
             note = f"{label}: columnas sin agregar {detalle}; pendiente de decidir"
-            current = chain.step("aggregate", params, current, status="parcial")
+            current = _agregado(chain, params, current, status="parcial")
             current.notes.append(note)
         else:
-            current = chain.step("aggregate", params, current)
+            current = _agregado(chain, params, current)
         if spec.having:
             having = _column(spec.having, aliases)
             for it in aggregates:

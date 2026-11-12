@@ -6,12 +6,28 @@ rechaza los datos, usa la forma `legado`. Lo usan los lowering de SQL, del DATA 
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import TYPE_CHECKING, Any, Protocol
 
 from sgm.ir.models import Operator
 
 if TYPE_CHECKING:  # solo para anotar
     from sgm.ir.builder import Builder
+
+
+# Cuántas veces se usó la forma legado (el constructor rechazó los datos), por tipo de operador.
+# Es el contador que mide cuánto queda de la forma anterior (B-5 paso 3, B-6). No vive en el plan:
+# añadir un campo a `Plan` cambiaría la serialización de todos los planes.
+_LEGADO: Counter[str] = Counter()
+
+
+def contador_legado() -> dict[str, int]:
+    """Copia del contador de formas legado por tipo de operador."""
+    return dict(_LEGADO)
+
+
+def reiniciar_contador_legado() -> None:
+    _LEGADO.clear()
 
 
 class Cadena(Protocol):
@@ -35,6 +51,7 @@ def paso(
         params = construir().params
     except ValueError:
         params = legado
+        _LEGADO[kind] += 1
     return chain.step(kind, params, previous, status=status)
 
 
@@ -53,7 +70,8 @@ def op_validado(
         params = construir().params
     except ValueError:
         params = legado
+        _LEGADO[kind] += 1
     return builder.op(kind, params, ev, status=status, notes=notes)
 
 
-__all__ = ["Cadena", "op_validado", "paso"]
+__all__ = ["Cadena", "contador_legado", "op_validado", "paso", "reiniciar_contador_legado"]
