@@ -6858,3 +6858,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendiente de A-4: la prueba del paso 3 (respuesta de 40 s) vive en `talend-mcp`, no en `sgm-v2`, y no se corrió aquí.
 - Resultado para el plan: A-4 cerrada con evidencia de medición en `sgm-v2`; la prueba del repositorio de `talend-mcp`
   queda por verificar allá.
+
+## Hito 212m. A-6, spike de joblets: bloqueado por falta de una referencia de Studio
+
+- Paso 1 del plan (escribir un joblet mínimo y ver si Studio lo lista) no se puede hacer aún, por dos razones medidas:
+  - `componentVersion` de `tJobletInput` y `tJobletOutput` no está en el repositorio (`rules/`, `docs/`, `talend-mcp`).
+    Sin ella Studio no resuelve el componente (lo dice `talend-mcp/src/talend/job-generator/types.ts`). No se inventa.
+  - `PRJ_BANCOLOMBIA/joblets/` está vacío (solo `.gitkeep`): no hay un joblet de Studio que copiar como modelo.
+- Lo que desbloquea el spike: un joblet creado a mano en Studio (`tJobletInput` a `tJobletOutput`, guardado). Con ese
+  `.item` se lee la versión y la estructura real.
+- A-4 quedó cerrada en el hito 211m. A-6 queda abierta hasta tener ese joblet.
