@@ -1,0 +1,27 @@
+tabla: sashelp.cars
+origen: sintetico
+filas: 40
+columnas:
+  Make: String
+  Model: String
+  Type: String
+  Origin: String
+  DriveTrain: String
+  MSRP: Double
+  Invoice: Double
+  EngineSize: Double
+  Cylinders: Double
+  Horsepower: Double
+  MPG_City: Double
+  MPG_Highway: Double
+  Weight: Double
+  Wheelbase: Double
+  Length: Double
+semilla: 20261111
+generador: tools/datos_sinteticos/cars.py:generar_cars
+procedencia: null
+nota: Conjunto sintetico con las 15 columnas de sashelp.cars; los valores son inventados.
+  Reemplazar por la exportacion real cuando el usuario la aporte. El tipo de cada
+  columna lo declara el fixture, no el SAS. La semilla base del corpus (20261104)
+  es solo referencia y no interviene en estos valores; este generador usa exclusivamente
+  la semilla de esta ficha.
