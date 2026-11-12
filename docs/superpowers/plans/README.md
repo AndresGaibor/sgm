@@ -28,7 +28,17 @@ cierre. Cada plan se expande a pasos cuando empieza su ola. Ya expandido: Plan A
 | Plan | Contenido | Estado |
 |---|---|---|
 | A | Studio y `talend-mcp` fiables, `tHashInput`, joblets, cola de validaciones | en ejecución: cola de validaciones, salud con estados y tool de diálogos hechas (hito 192); `tHashInput`, joblets, límite del bridge y compilación sin ventana pendientes de corrida con Studio |
-| B a K | DATA step, SQL y procedimientos, E/S y expresiones, macros, arquitectura y emisor, verificación, producto, producción, datos de prueba | por expandir según su ola |
+| B | DATA step y plan lógico (`2026-11-11-mg-b-datastep-y-plan-logico.md`) | detallado, sin ejecutar |
+| C | SQL y procedimientos (`2026-11-11-mg-c-sql-y-procedimientos.md`) | detallado, sin ejecutar |
+| D1 | Expresiones y funciones (`2026-11-11-mg-d1-expresiones-y-funciones.md`) | detallado, sin ejecutar |
+| D2 | Entrada y salida (`2026-11-11-mg-d2-entrada-y-salida.md`) | detallado, sin ejecutar |
+| E | Macros (`2026-11-11-mg-e-macros.md`) | detallado, sin ejecutar |
+| F1 | Planificador y optimizador (`2026-11-11-mg-f1-planificador-y-optimizador.md`) | detallado, sin ejecutar |
+| F2 | Emisor y joblets (`2026-11-11-mg-f2-emisor-y-joblets.md`) | detallado, sin ejecutar |
+| G | Verificación y cobertura (`2026-11-11-mg-g-verificacion-y-cobertura.md`) | detallado, sin ejecutar |
+| H | Producto, rendimiento y seguridad (`2026-11-11-mg-h-producto-rendimiento-seguridad.md`) | detallado, sin ejecutar |
+| I | Producción (`2026-11-11-mg-i-produccion.md`) | detallado, sin ejecutar |
+| K | Datos de prueba y bases (`2026-11-11-mg-k-datos-de-prueba-y-bases.md`) | detallado, sin ejecutar |
 
 Regla de oro de todos los planes (instrucción del usuario): el migrador **no falla nunca**. Si algo no se puede
 traducir o falta configuración o credenciales, se omite, se documenta en `pendientes.md` y
