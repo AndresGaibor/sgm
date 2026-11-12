@@ -48,11 +48,25 @@ def _table_name(name: object) -> str:
 
 
 def _empty_columns(plan: Plan, name: str) -> list[str]:
-    """Recupera una cabecera solo de un esquema de la salida solicitado al compilador."""
+    """Consulta la última versión escrita; nunca hereda el esquema de una versión anterior."""
+    writers = []
+    for index, operator in enumerate(plan.graph.operators()):
+        if operator.kind != "write":
+            continue
+        base, _, version = _table_name(operator.params.get("dataset", "")).partition("@v")
+        if base == name:
+            writers.append((int(version or "1"), index, operator))
+    if writers:
+        latest = max(writers, key=lambda item: item[:2])[2]
+        if latest.schema:
+            return [column.name for column in latest.schema]
+        raise ValueError(f"{name}: salida vacía sin cabecera demostrada en el plan")
     for operator in reversed(plan.graph.operators()):
-        names = [operator.params.get("dataset", ""), *operator.params.get("outputs", [])]
-        if operator.schema and any(_table_name(output) == name for output in names):
-            return [column.name for column in operator.schema]
+        names = operator.params.get("outputs") or []
+        if any(_table_name(output) == name for output in names):
+            if operator.schema:
+                return [column.name for column in operator.schema]
+            break
     raise ValueError(f"{name}: salida vacía sin cabecera demostrada en el plan")
 
 
@@ -80,10 +94,23 @@ def calcular(caso: Caso, repeticiones: dict[str, int] | None = None) -> dict[str
 
 
 def escribir(caso: Caso, tablas: dict[str, Tabla]) -> list[Path]:
-    """Guarda únicamente las tablas recibidas en esperado/ con el escritor CSV del corpus."""
-    paths = []
-    for name, table in tablas.items():
-        path = caso.esperado / f"{name}.csv"
+    """Valida todas las salidas y sus rutas antes de escribir CSV dentro del caso."""
+    try:
+        root, expected = caso.directorio.resolve(), caso.esperado.resolve()
+        if expected == root or not expected.is_relative_to(root):
+            raise ValueError(f"ruta de esperado fuera de la carpeta del caso: {caso.esperado}")
+        paths = []
+        for name in tablas:
+            if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z_]\w*", name):
+                raise ValueError(f"nombre de salida inválido: {name!r}")
+            if name not in caso.salidas:
+                raise ValueError(f"salida no declarada en el caso: {name}")
+            path = caso.esperado / f"{name}.csv"
+            if not path.resolve().is_relative_to(expected):
+                raise ValueError(f"ruta de salida fuera de esperado: {path}")
+            paths.append(path)
+    except (OSError, RuntimeError) as error:
+        raise ValueError(f"ruta de salida no verificable: {error}") from None
+    for path, table in zip(paths, tablas.values(), strict=True):
         escribir_csv(path, table)
-        paths.append(path)
     return paths

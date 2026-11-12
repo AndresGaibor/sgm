@@ -59,14 +59,19 @@ def armar(rebanada: Rebanada, texto_fuente: str) -> str:
 
 
 def verificar(rebanada: Rebanada, raiz: Path) -> list[str]:
-    """Reporta fuente ausente, rango inválido o huella original distinta, sin volcarla."""
-    path = raiz / rebanada.fuente
-    if not path.is_file():
-        return [f"{rebanada.fuente}: la fuente no existe"]
+    """Verifica únicamente fuentes relativas contenidas en la raíz, incluso tras symlinks."""
+    source_path = Path(rebanada.fuente)
+    if source_path.anchor or ".." in source_path.parts:
+        return [f"{rebanada.fuente}: la fuente debe ser una ruta relativa sin '..'"]
     try:
+        path = (raiz / source_path).resolve()
+        if not path.is_relative_to(raiz.resolve()):
+            return [f"{rebanada.fuente}: la fuente resuelta queda fuera de la raíz"]
+        if not path.is_file():
+            return [f"{rebanada.fuente}: la fuente no existe"]
         with path.open(encoding="utf-8", newline="") as source:
             actual = huella(rebanar(source.read(), rebanada.rangos))
-    except (OSError, UnicodeError, ValueError) as error:
+    except (OSError, UnicodeError, ValueError, RuntimeError) as error:
         return [f"{rebanada.fuente}: no se pudo verificar: {error}"]
     if actual != rebanada.sha256:
         return [f"{rebanada.fuente}: huella distinta (esperada {rebanada.sha256}, actual {actual})"]

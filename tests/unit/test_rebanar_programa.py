@@ -15,6 +15,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools"))
 
 from corpus_lib.caso import cargar_caso  # noqa: E402
+from corpus_lib.csv_tabla import Tabla  # noqa: E402
 from corpus_lib.esperado_interprete import _overrides, calcular, escribir  # noqa: E402
 from rebanar_programa import (  # noqa: E402
     Rebanada,
@@ -222,3 +223,72 @@ def test_herramientas_admiten_import_como_modulo_tools_sin_ajustar_sys_path():
         cwd=REPO, capture_output=True, text=True, check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_calcular_no_reutiliza_cabecera_de_una_version_anterior(tmp_path):
+    case = _case(tmp_path, "proc sql; create table WORK.s as select x from WORK.e; quit;\n"
+                 "data WORK.s; set WORK.e; where x > 5; run;")
+    with pytest.raises(ValueError, match="s.*cabecera"):
+        calcular(case)
+
+
+@pytest.mark.parametrize("name", ["no_declarada", "../../escaped"])
+def test_escribir_rechaza_nombre_no_declarado_y_no_escapa_de_esperado(tmp_path, name):
+    case = _case(tmp_path, "data WORK.s; set WORK.e; run;")
+    outside = case.esperado.parent.parent / "escaped.csv"
+    with pytest.raises(ValueError, match="declarad|nombre|ruta"):
+        escribir(case, {name: Tabla(["x"], [(1,)])})
+    assert not outside.exists()
+    assert not (case.esperado / "no_declarada.csv").exists()
+
+
+@pytest.mark.parametrize("absolute", [False, True])
+def test_verificar_rechaza_fuente_fuera_de_la_raiz(tmp_path, absolute):
+    root = tmp_path / "raiz"
+    root.mkdir()
+    outside = tmp_path / "outside.sas"
+    outside.write_bytes(b"a\n")
+    source = str(outside) if absolute else "../outside.sas"
+    errors = verificar(Rebanada(source, ((1, 1),), huella("a\n")), root)
+    assert errors, "la fuente externa no debe verificarse aunque coincida su huella"
+    assert source in errors[0]
+
+
+def test_verificar_rechaza_symlink_hacia_fuente_fuera_de_la_raiz(tmp_path):
+    root = tmp_path / "raiz"
+    root.mkdir()
+    outside = tmp_path / "outside.sas"
+    outside.write_bytes(b"a\n")
+    link = root / "link.sas"
+    try:
+        link.symlink_to(outside)
+    except OSError as error:
+        if getattr(error, "winerror", None) == 1314:
+            pytest.skip("Windows no permite crear symlinks sin privilegio (error 1314)")
+        raise
+    errors = verificar(Rebanada("link.sas", ((1, 1),), huella("a\n")), root)
+    assert errors, "un symlink no debe permitir verificar una fuente externa"
+    assert "link.sas" in errors[0]
+
+
+@pytest.mark.parametrize("folder", [False, True])
+def test_escribir_rechaza_symlink_de_salida_hacia_fuera_del_caso(tmp_path, folder):
+    case = _case(tmp_path, "data WORK.s; set WORK.e; run;")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    outside_file = outside / "s.csv"
+    outside_file.write_bytes(b"original\n")
+    if folder:
+        link, target = case.esperado, outside
+    else:
+        case.esperado.mkdir()
+        link, target = case.esperado / "s.csv", outside_file
+    try:
+        link.symlink_to(target, target_is_directory=folder)
+    except OSError as error:
+        if getattr(error, "winerror", None) == 1314:
+            pytest.skip("Windows no permite crear symlinks sin privilegio (error 1314)")
+        raise
+    with pytest.raises(ValueError, match="ruta|fuera"):
+        escribir(case, {"s": Tabla(["x"], [(1,)])})
+    assert outside_file.read_bytes() == b"original\n"
