@@ -31,6 +31,7 @@ from sgm.migrar.esquemas_tipos import (
     _textos,
     tipo_de_expresion,
 )
+from sgm.migrar.tipos_import import GUESSINGROWS_POR_OMISION, TipoDemostrado, tipos_de_archivo
 
 _TIPO_DESCONOCIDO = "P-TIPO-DESCONOCIDO"
 _REFERENCIA = re.compile(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b")
@@ -179,6 +180,16 @@ def _de_catalogo(tabla: str, catalogo: dict[str, list[Column]]) -> list[Column] 
     return [Column(c.name, c.type, c.length, "catalog") for c in columnas]
 
 
+def _tipo_de(nombre: str, numericas: set[str], demostrados: dict[str, TipoDemostrado]) -> str:
+    """Tipo de una columna: expresión aritmética o muestra numérica; si no, `String` por omisión."""
+    if nombre.lower() in numericas:
+        return TIPO_NUMERICO
+    tipo = demostrados.get(nombre)
+    if tipo is not None and tipo.tipo_sas == "numerico":
+        return TIPO_NUMERICO
+    return TIPO_POR_OMISION
+
+
 def esquemas_de_entrada(
     plan: Plan, catalogo: dict[str, list[Column]], muestra: Path | None = None
 ) -> tuple[dict[str, list[Column]], list[PendienteMigracion]]:
@@ -208,16 +219,31 @@ def esquemas_de_entrada(
         else:
             origen = "derived"
             nombres = _columnas_usadas(plan, tabla)
+        demostrados = (
+            tipos_de_archivo(ruta, op.params.get("delimiter"), nombres)
+            if ruta and origen == "file_header"
+            else {}
+        )
         esquemas[tabla] = [
-            Column(
-                nombre,
-                TIPO_NUMERICO if nombre.lower() in numericas else TIPO_POR_OMISION,
-                None,
-                origen,
-            )
+            Column(nombre, _tipo_de(nombre, numericas, demostrados), None, origen)
             for nombre in nombres
         ]
-        sin_tipo = [nombre for nombre in nombres if nombre.lower() not in numericas]
+        for nombre, tipo in demostrados.items():
+            for pendiente in tipo.pendientes:
+                pendientes.append(
+                    PendienteMigracion(
+                        pendiente,
+                        f"{tabla}.{nombre}: hay texto después de las primeras "
+                        f"{GUESSINGROWS_POR_OMISION} filas que SAS no lee; el tipo es "
+                        f"{TIPO_NUMERICO} según la muestra",
+                        _linea(op),
+                    )
+                )
+        sin_tipo = [
+            nombre
+            for nombre in nombres
+            if nombre.lower() not in numericas and nombre not in demostrados
+        ]
         if not sin_tipo:
             continue
         pendientes.append(

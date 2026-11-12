@@ -54,12 +54,12 @@ def test_order_by_descendente_es_un_criterio_por_columna(tmp_path):
 
     orden = _nodo(resultado, "tSortRow")
 
-    # `saldo` no tiene tipo demostrado (el programa no opera con ella): se ordena como texto y el
-    # `P-TIPO-DESCONOCIDO` ya lo avisa. Con un catálogo o una operación numérica sería `num`.
+        # La muestra de PROC IMPORT demuestra que `saldo` es numérica (los vacíos no cuentan):
+        # se ordena como número.
     assert _reales(resultado) == []
     assert _tabla(orden, "CRITERIA") == (
-        ("COLNAME", "saldo"), ("SORT", "alpha"), ("ORDER", "desc"),
-        ("COLNAME", "id"), ("SORT", "alpha"), ("ORDER", "asc"),
+        ("COLNAME", "saldo"), ("SORT", "num"), ("ORDER", "desc"),
+        ("COLNAME", "id"), ("SORT", "num"), ("ORDER", "asc"),
     )  # fmt: skip
     _validos(resultado)
 

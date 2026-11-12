@@ -15,7 +15,6 @@
 # sin calificar tras un `JOIN` no se puede atribuir a ninguna tabla.
 
 l0_12_bandera_numerica: P-FILTRO-SIN-TRADUCIR
-l2_12_auto_join_misma_ciudad: P-FILTRO-SIN-TRADUCIR
 l3_09_conciliacion_diferencia_plantada: P-AGREGADO-SIN-TRADUCIR
 l4_20_put_fechas_pendiente: P-ASIGNACION-SIN-TRADUCIR
 l5_09_into_primer_fila: P-ESQUEMA-NO-PORTABLE

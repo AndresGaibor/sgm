@@ -59,7 +59,11 @@ def test_cabecera_de_la_muestra(tmp_path):
 
     assert _nombres(esquemas["work.clientes"]) == ["id", "nombre"]
     assert {columna.source for columna in esquemas["work.clientes"]} == {"file_header"}
-    assert [p.codigo for p in pendientes] == ["P-TIPO-DESCONOCIDO", "P-TIPO-DESCONOCIDO"]
+    # la muestra demuestra los tipos: id numérico y nombre carácter (PROC IMPORT, GUESSINGROWS)
+    assert {c.name: c.type for c in esquemas["work.clientes"]} == {"id": "Double", "nombre": "String"}
+    # queda solo el de work.ventas, que no tiene archivo: antes había uno por cada tabla
+    assert [p.codigo for p in pendientes] == ["P-TIPO-DESCONOCIDO"]
+    assert "work.ventas" in pendientes[0].mensaje
 
 
 def test_columnas_usadas_aguas_abajo():
