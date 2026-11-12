@@ -6748,3 +6748,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `P-TIPO-DESCONOCIDO` a uno (`work.ventas`, sin archivo); `test_order_by_descendente_es_un_criterio_por_columna`
   ordena `saldo` e `id` como `num` porque la muestra los demuestra numéricos.
 - `l2_12_auto_join_misma_ciudad` sale de `tests/corpus/migrar_pendientes.yaml`: ya migra sin pendientes reales.
+
+## Hito 202m. Tipos propagados por el plan con su fuente (B-3)
+
+- Que se hizo: `src/sgm/migrar/esquemas_propagacion.py` (`propagar_tipos`). Recorre el plan en orden y da a cada
+  columna tipo (`numerico` o `caracter`), largo y fuente (`LENGTH` o `derivada`, `agregado`).
+  - `LENGTH x $8` declara carácter de largo 8 (`lrcon`, p. 68 y 73).
+  - Una aritmética da numérico aunque la entrada no tenga tipo; esa entrada queda como `P-TIPO-DESCONOCIDO`
+    (`lrcon`, p. 75).
+  - `SET a b` con tipos distintos es `P-UNION-TIPO-CONFLICTO` con los dos orígenes (`lestmtsref`, p. 343).
+  - `COUNT` de `PROC SQL` da numérico (`sqlproc`).
+- Pruebas: `tests/unit/test_esquemas_propagacion.py`, 4 pasan (los cuatro casos de B-3).
+- Pendiente: el pase no está conectado todavía a `esquemas_de_entrada`. Conectarlo cambia el conteo de
+  `P-TIPO-DESCONOCIDO` del corpus; se hace con su propia medición (B-4).
