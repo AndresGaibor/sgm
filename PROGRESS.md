@@ -6906,3 +6906,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `lower_data._statement_op`. Propongo borrarlo en un hito propio.
 - Pendiente de B-5: `lower_data.py` pasa de 300 líneas (770): antes de tocarlo más hay que extraer bloques a módulos
   nuevos, como piden las Global Constraints del plan B.
+
+## Hito 216m. `lower_data.py` extrae las salidas condicionales (B-5, parte de la división)
+
+- Que se hizo: el bloque de salidas (`OUTPUT` dentro de `IF`, cadenas de salidas, destinos repetidos o sin declarar)
+  pasa de `lower_data.py` a `src/sgm/ir/lower_data_salidas.py`, sin cambio de comportamiento. `lower_data.py` baja de
+  770 a 599 líneas; `lower_data_salidas.py` tiene 214.
+- Verificado: `ruff` limpio en `src/sgm/ir`; 853 pruebas de golden, IR, DATA step y salidas pasan. Los saltos de la
+  corrida son los de siempre (columnas sin Job en el corpus, falta de JDK, expresiones no aplicables).
+- Pendiente: `lower_data.py` sigue por encima de 300 líneas (599). Quedan por extraer los bloques de estado por fila
+  y de asignaciones condicionales.
+- Decisión sin tomar: `lower_data_statements.py` es casi código muerto (solo `conditional_do_assignments` lo usa un
+  test). Borrarlo implica borrar o reescribir `tests/unit/test_lower_data_do_else.py`, y no se hace sin confirmarlo.
