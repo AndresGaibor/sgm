@@ -6819,3 +6819,12 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   y la coincidencia en el anillo B. L0 no aparece porque ninguno de sus casos está marcado `traducible`.
 - Pruebas: `tests/unit/test_linea_base_plan_logico.py`, 2 pasan.
 - Nota: esta entrada llegó en un commit posterior al código del mismo hito (el primero se subió sin ella).
+
+## Hito 209m. `paso` pasa a `ir/pasos.py` sin cambio de comportamiento (B-5, parte 1)
+
+- Que se hizo: `_paso` de `lower_sql_flow.py` pasa a `src/sgm/ir/pasos.py` como `paso`, con el mismo cuerpo. Se importa
+  como `_paso` en `lower_sql_flow.py`, así que sus llamadas no cambian. Ese archivo baja de 608 a 595 líneas.
+- Pruebas: `tests/unit/test_ir_pasos.py` (2 pasan). Los golden de SQL y del plan (`test_ir_operadores_corpus`,
+  `test_golden*`, `test_sql*`) pasan sin cambios: 182 pruebas.
+- Pendiente de B-5: `lower_data_statements.py`, `lower_data_grupos.py` y `lower_procs.py` todavía construyen con
+  `Builder.op` directamente; pasan a `paso` con su constructor en un hito propio.

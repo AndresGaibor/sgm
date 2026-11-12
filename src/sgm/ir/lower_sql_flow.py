@@ -19,6 +19,7 @@ from sgm.frontend.sql_normalize import NormalizedSql
 from sgm.ir import operadores, sql_semantics
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import paso as _paso
 from sgm.ir.sql_tree import Item, SelectSpec, SemiSpec, Source, SqlTree
 
 _AGGREGATE = re.compile(r"(?i)\b(sum|count|avg|mean|min|max|std|stddev|n|nmiss|range|median)\s*\(")
@@ -592,17 +593,3 @@ def _params_de_union(
         return legado
 
 
-def _paso(
-    chain: "_Chain",
-    kind: str,
-    legado: dict,
-    construir,
-    previous: Operator,
-    status: str = "soportado",
-) -> Operator:
-    """Añade un paso con los parámetros del constructor; si lo rechaza, usa la forma `legado`."""
-    try:
-        params = construir().params
-    except ValueError:
-        params = legado
-    return chain.step(kind, params, previous, status=status)
