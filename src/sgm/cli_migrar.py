@@ -20,17 +20,18 @@ que no existe o un `--backend` que no existe.
 
 from __future__ import annotations
 
-import json
 import os
-import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 
 import typer
 
 from sgm.backend_talend import ArchivosBackend, BackendTalend, TalendCliBackend
 from sgm.catalog.schemas import load_schemas
+from sgm.cli_migrar_contexto import _SECRETO as _SECRETO
+from sgm.cli_migrar_contexto import _contexto_yaml
+from sgm.cli_migrar_fuente import _FECHA_SIN_ARCHIVO as _FECHA_SIN_ARCHIVO
+from sgm.cli_migrar_fuente import _fecha, _nombre
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
 from sgm.ir.desplegar import plan_desplegado
@@ -41,7 +42,6 @@ from sgm.seguridad.compuerta_migracion import publicar_con_revision
 from sgm.seguridad.escaner_secretos import Hallazgo
 from sgm.talend_item.desde_plan import plan_a_jobs
 from sgm.talend_item.desde_plan_contextos import GRUPOS, contextos_de_plan
-from sgm.talend_item.escritura import fecha_studio
 from sgm.talend_item.modelo import Job, ParametroContexto
 from sgm.talend_item.validador import validar_job
 
@@ -55,11 +55,6 @@ FALLO_ESCRITURA = "P-FALLO-ESCRITURA"
 ILLEGIBLE = "P-PROGRAMA-ILLEGIBLE"
 # Una excepción no prevista durante el análisis o la compilación.
 FALLO = "P-FALLO-INTERNO"
-# Un nombre de variable que huele a credencial no se escribe con su valor, ni en el YAML.
-_SECRETO = re.compile(r"(pass|pwd|secret|token|clave)", re.IGNORECASE)
-# Fecha de los `.properties` si el programa no se puede leer: determinista y sin `fromtimestamp`,
-# que falla en Windows por debajo de 1970.
-_FECHA_SIN_ARCHIVO = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
 @dataclass
@@ -80,28 +75,6 @@ class ResultadoMigrar:
     decisiones: list = field(default_factory=list)
     hallazgos_seguridad: tuple[Hallazgo, ...] = ()
     fallo_seguridad: str | None = None
-
-
-def _nombre(source: Path) -> str:
-    """Nombre de la carpeta de salida: el del programa, sin extensión."""
-    return source.stem or source.name
-
-
-def _fecha(source: Path) -> str:
-    """Fecha de modificación del programa en el formato de los `.properties`.
-
-    No es la del reloj a propósito: con la fecha del archivo, dos corridas sobre el mismo programa
-    dan los mismos bytes y dos migraciones se pueden comparar con `diff`.
-
-    Un programa que no se puede leer no puede tumbar la migración. En Windows
-    `datetime.fromtimestamp` levanta `OSError` con marcas por debajo de 1970 —y el respaldo de un
-    archivo ilegible era justo la marca 0—, así que la fecha de respaldo se construye sin pasar por
-    la marca de tiempo.
-    """
-    try:
-        return fecha_studio(datetime.fromtimestamp(source.stat().st_mtime).astimezone())
-    except (OSError, OverflowError, ValueError):
-        return fecha_studio(_FECHA_SIN_ARCHIVO)
 
 
 def _catalogo(esquemas: Path | None) -> dict[str, list[Column]]:
@@ -165,30 +138,6 @@ def _validar(resultado: ResultadoMigrar) -> None:
         if not defectos:
             aceptados.append(job)
     resultado.jobs = aceptados
-
-
-def _contexto_yaml(grupo: str, parametros: list[ParametroContexto]) -> str:
-    """Un grupo de contexto como YAML: la lista de variables, con su valor y para qué sirve."""
-    lineas = [
-        f"# Contexto {grupo} del Job.",
-        "# Editar estos valores y volver a importar el Job: el .item no se toca.",
-        f"grupo: {grupo}",
-    ]
-    if not parametros:
-        return "\n".join([*lineas, "variables: []", ""])
-    lineas.append("variables:")
-    for parametro in parametros:
-        oculto = bool(_SECRETO.search(parametro.nombre))
-        descripcion = parametro.comentario or "sin descripción"
-        if oculto:
-            descripcion += " (valor oculto: no se escribe en el archivo)"
-        lineas += [
-            f"  - nombre: {parametro.nombre}",
-            f"    tipo: {parametro.tipo}",
-            f"    valor: {json.dumps('' if oculto else parametro.valor, ensure_ascii=False)}",
-            f"    descripcion: {json.dumps(descripcion, ensure_ascii=False)}",
-        ]
-    return "\n".join([*lineas, ""])
 
 
 def _backend(nombre: str, fecha: str) -> BackendTalend:

@@ -7015,3 +7015,10 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Corrección: la máscara reconoce `%* ...;` fuera de cadenas en cualquier posición y conserva la restricción de `* ...;` al inicio de sentencia. Las 39 pruebas enfocadas pasan, junto con Ruff global y `src tests tools`.
 - Verificación: la suite completa y el cierre integral con cruces, oráculo y estado del gancho quedan registrados en el informe K-2. Sin dependencias, conexiones a bases, Studio, red, contenedores ni push.
 - Decisiones y límites: la máscara mantiene offsets, no expande macros y la detección de escrituras sigue limitada a `DATA`, `CREATE TABLE` y `OUT=`.
+
+## Hito 224n. Extracción de contextos YAML de migración
+
+- Fecha: 2026-11-13. Base: `5e11d3c` (223n), árbol limpio al iniciar. Alcance: solo K-9 Step 1.
+- Se trasladan `_SECRETO` y `_contexto_yaml` a `cli_migrar_contexto.py`, importando ambos en `cli_migrar.py`; se mantiene `ParametroContexto` en el módulo original por sus demás usos. También se trasladan `_nombre`, `_fecha` y `_FECHA_SIN_ARCHIVO` a `cli_migrar_fuente.py` para cumplir el límite de tamaño. El texto y el AST de las cinco definiciones coinciden exactamente con la base; nombre, fecha y respaldo se verifican antes y después.
+- Pruebas enfocadas antes y después: 31 aprobadas en ambos casos (`test_cli_migrar.py` y `test_talend_contextos.py`). Ruff global y `src tests tools`, verdes. La suite y el cierre integral quedan registrados en el informe K-9 Step 1.
+- Decisiones y límites: se conserva la reexportación de `_SECRETO` para no alterar la interfaz existente. `cli_migrar.py` baja de 340 a 289 líneas; la extracción adicional de metadatos es solo estructural y cumple el límite de 300 líneas. No se implementan tablas locales ni se alteran sus opciones. Sin dependencias, Studio, bases, red, contenedores, push ni coautoría ajena.
