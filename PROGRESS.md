@@ -7020,3 +7020,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `docs/BLOQUEOS.md` como decisión del dueño. `l0_12` y `l3_09` no están en el alcance de L1 y L2.
 - No se quitó ninguna entrada de `migrar_pendientes.yaml`: ningún caso de L1 y L2 se resolvió en esta tarea.
 - Verificado: la prueba nueva pasa (2 pruebas); ver el cierre de CI en el commit.
+
+## Hito 224m. B-8: `calcular` con estado y `combinar` con `in_flags` y `modo`; TRANSPOSE como pivote hueco (parcial)
+
+- Qué se hizo:
+  - `operadores.calcular` acepta `estado` (`retain` y `sum`, con nombre e `init` faltante, número o texto). Se
+    rechazan otros `op`, `init` booleanos o compuestos y nombres vacíos. Que `init` tenga el tipo de la columna
+    queda para la propagación de tipos (B-3).
+  - `operadores.combinar` acepta `in_flags` (una variable por fuente) y `modo="merge"`. `por` del plan es `by` en el
+    código.
+  - `PROC TRANSPOSE` ya no es `unsupported` genérico: sale como `pivot` en estado `hueco` (`lower_procs_transpose.py`,
+    página 2745) y el emisor lo reporta como `P-OPERADOR-PIVOTAR` (`desde_plan.py`). Cambia la expectativa de
+    `test_proc_transpose_es_no_soportado_con_motivo` a `test_proc_transpose_es_pivote_hueco_con_motivo`: mismo estado
+    `hueco` y mismo motivo, con el tipo nuevo.
+- Sin hacer, con motivo en `docs/BLOQUEOS.md`: `PROC FREQ` y `PROC MEANS` no tienen página verificada en el
+  índice, y sus reglas YAML emiten `aggregate` sin `aggregations`. Espera decisión del dueño.
+- `PROC APPEND` ya era `union` por `rules/sas/procs/proc-append.yaml` (p. 161): no se cambia.
+- Verificado: `ruff` limpio; 167 pruebas de reglas PROC, golden, aceptación y TRANSPOSE; constructores pasan.

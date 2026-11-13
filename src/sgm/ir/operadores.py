@@ -168,6 +168,33 @@ def renombrar(op_id: str, pairs: list[tuple[str, str]], evidence=None) -> Operat
     return _operador(op_id, "rename", {"pairs": normal}, evidence)
 
 
+ESTADOS_FILA = ("retain", "sum")
+
+
+def _estado(entradas: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Variables que conservan valor entre filas (RETAIN y la sentencia suma), validadas.
+
+    `init` es faltante (`None`), un número o un texto. Que coincida con el tipo de la columna lo
+    demuestra la propagación de tipos (B-3) cuando el lowering la tenga; aquí solo se rechaza lo que
+    no es ni número ni texto.
+    """
+    normal: list[dict[str, Any]] = []
+    for entrada in entradas:
+        if entrada.get("op") not in ESTADOS_FILA:
+            raise ValueError(f"estado: op debe ser {ESTADOS_FILA}, no {entrada.get('op')!r}")
+        init = entrada.get("init")
+        if isinstance(init, bool) or not (init is None or isinstance(init, (int, float, str))):
+            raise ValueError(f"estado: init debe ser faltante, número o texto, no {init!r}")
+        normal.append(
+            {
+                "op": entrada["op"],
+                "name": _texto(entrada.get("name", ""), "name del estado").lower(),
+                "init": init,
+            }
+        )
+    return normal
+
+
 def calcular(
     op_id: str,
     assignments: list[dict[str, Any]],
@@ -175,6 +202,7 @@ def calcular(
     modo: str | None = None,
     declared: dict[str, Any] | None = None,
     evidence=None,
+    estado: list[dict[str, Any]] | None = None,
 ) -> Operator:
     """Calcular: asignaciones `target = expression` de columnas nuevas o modificadas.
 
@@ -196,6 +224,8 @@ def calcular(
         params["modo"] = _texto(modo, "modo")
     if declared is not None:
         params["declared"] = dict(declared)
+    if estado is not None:
+        params["estado"] = _estado(estado)
     return _operador(op_id, "derive", params, evidence)
 
 
@@ -237,18 +267,36 @@ def combinar(
     by: list[str],
     sources: list[str],
     evidence=None,
+    *,
+    in_flags: list[str] | None = None,
+    modo: str | None = None,
 ) -> Operator:
     """Combinar (MERGE): emparejamiento por llave con `by` y sin `keys`, como lower_data.
 
-    La semántica fila con fila la aplica el intérprete; el emisor no lo traduce a tMap (hito 132m).
+    `in_flags` da una variable `IN=` por fuente (misma longitud que `sources`). `modo` solo admite
+    `merge`. `by` es la lista `por` del plan. Que `by` esté en el esquema de todas las fuentes lo
+    comprueba la propagación de tipos (B-3). La semántica fila con fila la aplica el intérprete; el
+    emisor no lo traduce a tMap (hito 132m).
     """
     if join_type not in TIPOS_UNION:
         raise ValueError(f"join_type debe ser {TIPOS_UNION}, no '{join_type}'")
-    params = {
+    fuentes = _lista(sources, "sources", minimo=2)
+    params: dict[str, Any] = {
         "by": [n.lower() for n in _lista(by, "by")],
         "join_type": join_type,
-        "sources": [s for s in _lista(sources, "sources", minimo=2)],
+        "sources": fuentes,
     }
+    if in_flags is not None:
+        banderas = _lista(in_flags, "in_flags", minimo=0)
+        if len(banderas) != len(fuentes):
+            raise ValueError(
+                f"in_flags necesita una variable por fuente ({len(fuentes)}), no {len(banderas)}"
+            )
+        params["in_flags"] = banderas
+    if modo is not None:
+        if _texto(modo, "modo").lower() != "merge":
+            raise ValueError(f"modo de combinar debe ser 'merge', no '{modo}'")
+        params["modo"] = "merge"
     return _operador(op_id, "join", params, evidence)
 
 

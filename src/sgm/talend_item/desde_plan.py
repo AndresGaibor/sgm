@@ -44,6 +44,7 @@ from sgm.talend_item.plantillas import nodo_desde_plantilla
 CONFIG_RESUELTA = "P-CONFIGURACION-RESUELTA"
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
 SIN_SOPORTE = "P-OPERADOR-SIN-SOPORTE"
+PIVOTAR = "P-OPERADOR-PIVOTAR"  # PROC TRANSPOSE: el pivote sin componente (B-8)
 RECONVERGE = "P-REPARTO-RECONVERGE"
 # Operadores que el emisor sabe traducir a un componente del Job.
 CON_NODO = frozenset(
@@ -250,7 +251,8 @@ class _Job:
             self.pendientes.append(PendienteMigracion(CONFIG_RESUELTA, motivo, _linea(op)))
             return
         motivo = op.notes[0] if op.notes else f"el operador '{op.kind}' no tiene componente"
-        self.pendientes.append(PendienteMigracion(SIN_SOPORTE, motivo, _linea(op)))
+        codigo = PIVOTAR if op.kind == "pivot" else SIN_SOPORTE
+        self.pendientes.append(PendienteMigracion(codigo, motivo, _linea(op)))
 
     def _lectura(self, op: Operator, x: int) -> None:
         tabla = str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]).lower()

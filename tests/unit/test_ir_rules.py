@@ -329,10 +329,12 @@ def test_proc_means_es_aggregate():
     assert ops[0].params["class"] == ["g"] and ops[0].params["var"] == ["v"]
 
 
-def test_proc_transpose_es_no_soportado_con_motivo():
+def test_proc_transpose_es_pivote_hueco_con_motivo():
+    # B-8: TRANSPOSE ya no es `unsupported` genérico: es un `pivot` hueco con su página (p. 2745).
     (op,) = _ops("proc transpose data=x out=y; by k; var v; run;")
-    assert op.kind == "unsupported"
-    assert op.status == "hueco" and op.params["reason"] == "PROC_NO_SOPORTADO"
+    assert op.kind == "pivot"
+    assert op.status == "hueco" and op.params["procedure"] == "transpose"
+    assert "p. 2745" in op.notes[0]
 
 
 def test_pass_through_select_es_lectura_en_la_base_con_sql_intacto():
