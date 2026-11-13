@@ -7045,3 +7045,12 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - TDD: una cabecera con comilla sin cerrar hacía que `tools.datos_sinteticos.ficha.validar_ficha` lanzara `csv.Error`; la prueba roja fija su resultado histórico `[]` para una ficha coincidente sin filas.
 - `validar_cabecera` conserva lectura estricta por omisión para el cargador de tablas locales; la herramienta pide explícitamente lectura no estricta, como su API anterior. La comprobación de cabeceras de 226n sigue vigente.
 - Enfocadas: 40 aprobadas y tres symlinks omitidos por permisos de Windows; Ruff global y `src tests tools` verdes. Suite completa, cierre integral y huella del gancho se registran en el informe K-9. Sin dependencias nuevas, bases, Studio, red, contenedores ni push.
+
+## Hito 228n. Generación sintética y SQL tipado por esquema
+
+- Fecha: 2026-11-13. Base: `3fe834d` (227n), árbol limpio al iniciar. K-3 Steps 1–4 y 6; revisión independiente pendiente.
+- Generador determinista por tabla y semilla: Integer/Long y Double usan valores numéricos; String y tipo no demostrado usan códigos sintéticos, sin aviso para `None`. Los tipos no soportados generan `P-TIPO-GENERADOR`; los valores exigidos se sitúan primero y se validan según tipo.
+- `cargar_tablas.py` acepta `--esquemas`, `--semilla` y `--verificar`. Un lector opt-in de tools consume las propuestas `_inferido` conservando su `source` sin convertirlas en catálogo; `load_schemas` sigue ignorándolas. Las tablas sin esquema conservan la ruta STRING anterior. SQL valida nombres, rangos y sintaxis numérica, escapa textos y rechaza esquemas vacíos o ambiguos.
+- TDD: rojo inicial por `sentencias_tipadas` ausente; regresiones adicionales cubren script directo, SQL no seguro, valores exigidos incompatibles, esquema ausente, columnas ambiguas y conteos. Enfocadas: 73 aprobadas; Ruff global y `src tests tools` verdes. Suite completa y cierre integral registrados en el informe K-3.
+- contenedor pendiente: docker ps no pudo conectarse al daemon/pipe. Step 5 no se marca; el test `contenedores` está excluido por defecto y solo se recopiló, no se ejecutó. La instrucción del usuario prohíbe conectar a cualquier base; no se abrió ninguna conexión.
+- Decisiones y límites: identificadores SQL no ASCII o con caracteres especiales se rechazan en lugar de transformarlos; las verificaciones de conteo contra Impala siguen sin validación real hasta disponer de autorización y contenedor. Sin dependencias nuevas, Studio, red, bases ni push.
