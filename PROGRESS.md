@@ -7007,3 +7007,11 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Corrección: se usa `qualify` para comparar nombres sin biblioteca con sus equivalentes de `WORK`; una máscara conserva los desplazamientos y oculta cadenas y comentarios antes de buscar copias o escrituras. Se reconoce la siguiente escritura de la misma tabla sin atribuirle columnas de otra versión.
 - Validación: Ruff global y `src tests tools` verdes; suite completa y cierre integral, cruces, oráculo y huella del gancho registrados en el informe K-2. Todos los archivos modificados quedan por debajo de 300 líneas.
 - Decisiones y límites: la máscara no ejecuta macros ni resuelve escrituras dinámicas; las formas de escritura detectadas siguen limitadas a `DATA`, `CREATE TABLE` y `OUT=`. Sin dependencias nuevas, Studio, red, bases, contenedores ni push.
+
+## Hito 223n. Comentarios macro dentro de sentencias
+
+- Fecha: 2026-11-13. Base: `8a84577` (222n), árbol limpio al iniciar. Corrección de revisión independiente de K-2.
+- TDD: dos regresiones dieron rojo antes de editar producción: un comentario `%*` dentro de `%put` cortaba falsamente la atribución de una copia y quedaba visible en la máscara. Pruebas directas cubren longitud, posiciones de saltos CR/LF, comillas SAS duplicadas y conservación de multiplicación `*` ordinaria.
+- Corrección: la máscara reconoce `%* ...;` fuera de cadenas en cualquier posición y conserva la restricción de `* ...;` al inicio de sentencia. Las 39 pruebas enfocadas pasan, junto con Ruff global y `src tests tools`.
+- Verificación: la suite completa y el cierre integral con cruces, oráculo y estado del gancho quedan registrados en el informe K-2. Sin dependencias, conexiones a bases, Studio, red, contenedores ni push.
+- Decisiones y límites: la máscara mantiene offsets, no expande macros y la detección de escrituras sigue limitada a `DATA`, `CREATE TABLE` y `OUT=`.

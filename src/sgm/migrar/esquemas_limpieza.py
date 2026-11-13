@@ -11,7 +11,7 @@ def mascara_codigo(texto: str) -> str:
         if texto.startswith("/*", i):
             cierre = texto.find("*/", i + 2)
             fin = len(texto) if cierre < 0 else cierre + 2
-        elif inicio and (texto[i] == "*" or texto.startswith("%*", i)):
+        elif texto.startswith("%*", i) or (inicio and texto[i] == "*"):
             cierre = texto.find(";", i)
             fin = len(texto) if cierre < 0 else cierre + 1
         elif texto[i] in "'\"":

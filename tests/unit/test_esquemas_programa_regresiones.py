@@ -89,3 +89,35 @@ def test_comentario_de_sentencia_no_interrumpe_atribucion():
     """
     sources = tablas_base_del_programa(text)
     assert [c.lower() for c in sources["lib.t"]] == ["x"]
+
+
+def test_comentario_macro_dentro_sentencia_no_interrumpe_copia():
+    text = """
+        data work.c; set lib.t; run;
+        %put texto %* data work.c; ;
+        proc sql; select c.x from work.c c; quit;
+    """
+    sources = tablas_base_del_programa(text)
+    assert [c.lower() for c in sources["lib.t"]] == ["x"]
+
+
+def test_mascara_preserva_offsets_saltos_y_comillas_duplicadas():
+    from sgm.migrar.esquemas_limpieza import mascara_codigo
+
+    text = "data x;\r\n%put 'uno''data work.c;' \"dos\"\"data x;\";\n%put texto %* data work.c; ;\nrun;"
+    masked = mascara_codigo(text)
+    assert len(masked) == len(text)
+    assert [i for i, c in enumerate(masked) if c in "\r\n"] == [
+        i for i, c in enumerate(text) if c in "\r\n"
+    ]
+    assert "data work.c" not in masked
+    assert masked.index("run") == text.index("run")
+
+
+def test_mascara_conserva_multiplicacion_y_oculta_comentario_inicio():
+    from sgm.migrar.esquemas_limpieza import mascara_codigo
+
+    text = "data x; y = a * 2; * data work.c;\nrun;"
+    masked = mascara_codigo(text)
+    assert "a * 2" in masked
+    assert "data work.c" not in masked
