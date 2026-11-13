@@ -308,3 +308,14 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   grupo requiere un diseño que no he verificado, así que no lo invento. `RETAIN`, la suma, `LAG`/`DIF` y `FIRST.` se
   emiten donde ya se emiten; el resto sigue como está.
 - Estas decisiones no necesitan Studio. Se validarán cuando Studio esté disponible.
+
+## B-18: lote de OUTPUT en Studio sin validar (JOB_NO_EN_REPOSITORIO)
+
+- **Qué se hizo:** los 108 casos `l6_g*` se migraron (108 Jobs, todos generados) y se intentó compilarlos en Studio
+  por lotes de 6, con refresco del workspace antes de compilar y espera de salud entre lotes.
+- **Qué pasó:** el puente responde, pero `talend_job_build_batch` devuelve `El job no existe en el repositorio` para
+  cada Job, incluso con un Job de prueba renombrado y el refresco hecho. Studio no indexa los Jobs copiados a `process/`.
+- **Estado:** ningún caso de B-18 está validado. Los 108 quedan en `out/studio-pendientes.json` con motivo
+  `JOB_NO_EN_REPOSITORIO`. No se cuenta nada como compilado.
+- **Qué hace falta:** que Studio vea la carpeta `process/` (por ejemplo, recargar el proyecto desde su interfaz),
+  o que el lote pase por el flujo de `validar` que ya funcionó (hito 143m). Decisión tomada: no inventar resultados.
