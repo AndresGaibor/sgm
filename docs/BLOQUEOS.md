@@ -80,7 +80,8 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   queda con dos columnas de valor y la comparación con el oráculo falla. La corrección está en `interprete.py`
   (1 103 líneas, zona de Byron, con la decisión (a/b/c) pendiente, ver B-11 a B-14 y B-19). El traductor
   (`talend_item`) no se puede validar sin Studio.
-- **Motivo (`--escribir`):** de las 386 combinaciones positivas, las 386 migran sin pendiente (hito 240m). Escribirlas
+- **Decidido y hecho en 245m (punto 3):** `--escribir` escribe un caso por clase de equivalencia (108), no los 386.
+- **Motivo (`--escribir`, antes de la decisión):** de las 386 combinaciones positivas, las 386 migran sin pendiente (hito 240m). Escribirlas
   todas en `tests/corpus/L6/` añadiría 386 casos y cambiaría los conteos del tablero y del corpus (139 casos hoy). Cuántas
   entran (todas, o un subconjunto con las que cubren `l6_13` a `l6_24`) es una decisión del dueño.
 - **Decisiones que faltan (dueño):** (1) la de `interprete.py` (B-11 a B-14, B-19); (2) cuántas combinaciones

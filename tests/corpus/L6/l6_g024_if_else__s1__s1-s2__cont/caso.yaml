@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- OUTPUT
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+origen: generado
+salidas:
+- S1
+- S2
+- S3
+razonamiento: 'Generado por tools/generar_combinaciones_output.py --escribir. Clase de rama if_else, destinos por bloque uno, par, continuación sí. Esperado de un oráculo independiente que sigue lestmtsref, p. 273-274 (OUTPUT) y lrcon, p. 498 (la observación se escribe con el PDV).'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(S1) == 5
+- filas(S2) == 2
+- filas(S3) == 0

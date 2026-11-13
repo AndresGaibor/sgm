@@ -7366,3 +7366,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Queda pendiente en BLOQUEOS.
 - Pruebas: `test_interprete_n_automatica.py` (2, nuevos). Suite completa: 4094 pasan, 332 omitidas, 142 xfail;
   `ruff check` limpio.
+
+## Hito 245m. B-17: --escribir añade un caso por clase de equivalencia (decisión 3 del dueño)
+
+- Clase de equivalencia (definida en `tools/corpus_output/gramatica.py`, `clase`): la rama, la forma del destino de
+  cada bloque (todos, uno o par) y la continuación. El espacio de 386 combinaciones tiene 108 clases.
+- Qué se hizo: `tools/generar_combinaciones_output.py --escribir` escribe una combinación por clase (la primera del
+  orden de `combinaciones()`) en `tests/corpus/L6/l6_gNNN_*`, con `programa.sas`, `entradas/REGISTROS.csv`, `esperado/`
+  y `caso.yaml` (`origen: generado`). El `esperado/` sale del oráculo independiente, no del traductor. Citas: `lestmtsref`,
+  p. 273-274 (OUTPUT) y `lrcon`, p. 498 (la observación se escribe con el PDV).
+- Los casos de coincidencia estructural (`l6_13` a `l6_24`) ya están en el corpus desde 240m; no se duplican.
+- `tools/corpus_lib/caso.py`: `origen` pasa a ser un campo de metadatos permitido.
+- Pruebas: suite completa 4580 pasan, 440 omitidas, 142 xfail. `test_tablero.py` pasa a 247 casos, L6 137, con `esperado`
+  241. `ruff check .` limpio.
+- Pendiente: los casos de la clase de los negativos (dos `IF` que repiten dataset) no se escriben: no son migrables y
+  quedan como `P-OUTPUT-DESTINO-REPETIDO` (244m y antes).

@@ -23,7 +23,7 @@ ESTADOS = (
 METADATOS = frozenset(
     {
         "id", "productos", "supuestos", "anomalias_plantadas", "salidas_esperadas", "tema",
-        "fuentes_url",
+        "fuentes_url", "origen",
     }
 )
 CAMPOS = frozenset(

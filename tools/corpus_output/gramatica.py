@@ -128,3 +128,24 @@ def _repite_destino(destinos: tuple[tuple[str, ...], ...]) -> bool:
             return True
         vistos |= set(d)
     return False
+
+
+def _tipo_de_destino(destino: tuple[str, ...]) -> str:
+    """Forma del destino de un bloque: omitido (todos), un dataset o un par."""
+    if not destino:
+        return "todos"
+    return "uno" if len(destino) == 1 else "par"
+
+
+def clase(c: Combinacion) -> tuple:
+    """Clase de equivalencia de una combinación (B-17, decisión 3): la rama, la forma del destino
+    de cada bloque y la continuación. Las combinaciones de una clase piden la misma prueba."""
+    return (c.rama, tuple(_tipo_de_destino(d) for d in c.destinos), c.continuacion)
+
+
+def representantes() -> list[Combinacion]:
+    """Una combinación por clase: la primera del orden de `combinaciones()`. Son 108."""
+    vistas: dict[tuple, Combinacion] = {}
+    for c in combinaciones():
+        vistas.setdefault(clase(c), c)
+    return list(vistas.values())
