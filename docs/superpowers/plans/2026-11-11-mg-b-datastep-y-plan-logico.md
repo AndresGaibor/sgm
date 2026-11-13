@@ -506,6 +506,8 @@ Semántica (`lrcon`, «Using the Hash Object», p. 628 a 641): `DECLARE HASH h(D
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\PROGRESS.md`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_catalogo_sas.py`
 
+**Bloqueada (Studio):** ver `docs/BLOQUEOS.md`, B-22.
+
 - [ ] **Step 1: Catálogo.** Para cada sentencia o función cubierta, pasar `estado` a `reconocida` con su `fuente` (`lestmtsref, p. 243`, etc.) y para las parciales dejar `no_reconocida` con `nota` (`MODIFY`, `UPDATEMODE`, hash mutable, `_ERROR_`). Las páginas se toman de este plan, ya verificadas contra el índice.
 - [ ] **Step 2: Plan maestro.** Corregir la sección 2 y la tabla 5.2 (`tUnite` compila con conexiones `MERGE`, ver B-9); reemplazar en MG-P4-02 la lista de hitos 166 a 190 por la línea de B-18; sustituir el estado de MG-P1 y MG-P4 por lo medido en B-1 y B-Gate. Los créditos de la 11b se calculan con el método de esa sección tarea por tarea (1 = hecha; 0,5 = parcial con ejecución; 0,25 = casos puntuales; 0 = sin evidencia), no por juicio global.
 - [ ] **Step 3: Run** `uv run python -m pytest tests/unit/test_catalogo_sas.py tests/unit/test_referencia_tools.py -q`. Una página citada que no exista en el índice rompe el test: es lo que se quiere.

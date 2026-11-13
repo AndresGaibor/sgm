@@ -7114,3 +7114,11 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendiente de B-21: (a) el patrón `find` como `unir` por la izquierda con `rc` (no hecho: requiere el constructor y la
   emisión del tMap, y la clave única demostrada); (b) la regla de duplicados según las páginas; (c) `h.ADD()` con
   `P-HASH-MUTABLE` (hoy sale como sentencia sin traducción, que ya es pendiente).
+
+## Hito 230m. B-22 bloqueada en BLOQUEOS; marca en el plan
+
+- Qué se hizo: B-22 (catálogo y plan maestro) queda bloqueada por Studio: sus correcciones del plan maestro dependen de
+  B-9, B-18 y B-Gate. Se anota en `docs/BLOQUEOS.md` y en el plan. Sin cambio de código.
+- Estado del carril m al cerrar esta entrada: B-6 cerrada (222m); B-7, B-8, B-15, B-16, B-17, B-20 y B-21 parciales
+  (ver sus entradas); B-9, B-10, B-12, B-14, B-18, B-22 y B-Gate bloqueadas por Studio; B-11, B-13 y B-19 bloqueadas por
+  la decisión sobre `interprete.py`.

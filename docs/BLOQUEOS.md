@@ -73,3 +73,13 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
   validarse.
 - **Lo que ya queda seguro (hito 228m):** `_N_` y `_ERROR_` no se traducen como columnas: salen hueco con su código.
 - **Desbloqueo:** decisión sobre `interprete.py` y Studio disponible.
+
+## B-22: catálogo y plan maestro al día (depende de Studio)
+
+- **Tarea:** B-22, pasos 1 y 2. El paso 2 corrige la tabla 5.2 (`tUnite` con conexiones `MERGE`, según B-9), reemplaza
+  la lista de hitos 166 a 190 en MG-P4-02 por la línea de B-18 y pone el estado de MG-P1 y MG-P4 con lo medido en B-1 y
+  B-Gate. Todo eso espera resultados de Studio.
+- **Motivo:** las frases del plan maestro dependen de B-9, B-18 y B-Gate. El paso 1 (estados del catálogo con su
+  página) sí puede hacerse, pero cada estado hay que contrastarlo con la guía antes de cambiarlo, y se hará con el
+  resto del cierre.
+- **Desbloqueo:** Studio en `READY` y el lote de B-18 y B-Gate ejecutados.
