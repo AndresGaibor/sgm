@@ -42,6 +42,14 @@ def test_select_sin_otherwise_queda_sin_traducir():
     assert any("SELECT" in t for t in _sin_traducir(_plan(cuerpo)))
 
 
+def test_select_sin_otherwise_lleva_el_codigo_p_select_sin_otherwise():
+    # SAS aborta si ningún WHEN coincide y no hay OTHERWISE (lestmtsref, p. 340): el código va
+    # en una nota del plan, no se inventa un valor por omisión.
+    cuerpo = "  SELECT (x);\n    WHEN (1) y = 'a';\n  END;\n"
+    notas = [n for op in _plan(cuerpo).graph.operators() for n in op.notes]
+    assert any("P-SELECT-SIN-OTHERWISE" in n for n in notas)
+
+
 def test_delete_condicional_es_filtro_con_la_condicion_negada():
     cuerpo = "  z = k * 10;\n  IF k > 2 THEN DELETE;\n"
     salida = _correr(cuerpo, [{"k": "1"}, {"k": "3"}, {"k": "2"}])

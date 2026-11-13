@@ -19,7 +19,7 @@ from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_o
 from sgm.ir.lower_data_automaticas import automaticas_en, motivo
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_salidas import _conditional_output_chain, _note, _output_sequence
-from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado
+from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado, select_sin_otherwise
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.pasos import op_validado
 
@@ -210,6 +210,13 @@ class _Recorrido:
                 self.stmts, index
             )
         if conditional is None:
+            if select_sin_otherwise(self.stmts, index):
+                _note(
+                    self.current,
+                    "P-SELECT-SIN-OTHERWISE: SELECT sin OTHERWISE; si ningún WHEN coincide SAS "
+                    "detiene el paso (lestmtsref, p. 340)",
+                    status="parcial",
+                )
             return False
         asignaciones, siguiente = conditional
         if self.pending_derive is None:

@@ -7122,3 +7122,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Estado del carril m al cerrar esta entrada: B-6 cerrada (222m); B-7, B-8, B-15, B-16, B-17, B-20 y B-21 parciales
   (ver sus entradas); B-9, B-10, B-12, B-14, B-18, B-22 y B-Gate bloqueadas por Studio; B-11, B-13 y B-19 bloqueadas por
   la decisión sobre `interprete.py`.
+
+## Hito 231m. B-15: `P-SELECT-SIN-OTHERWISE` se emite con su página (parcial)
+
+- Qué se hizo: un `SELECT` con `WHEN` y sin `OTHERWISE` ya no sale sin código. `select_sin_otherwise`
+  (`src/sgm/ir/lower_data_select.py`) lo detecta y el recorrido (`lower_data_recorrido.py`) anota
+  `P-SELECT-SIN-OTHERWISE` como parcial. La sentencia sigue sin traducir, como antes: no se inventa valor por omisión.
+- Prueba: `test_select_sin_otherwise_lleva_el_codigo_p_select_sin_otherwise` (primero en rojo, luego en verde).
+- Cita: `lestmtsref`, p. 340 (si ningún `WHEN` coincide y no hay `OTHERWISE`, SAS emite error y detiene el paso).
+- Decisión: la instrucción pedía citar `lrcon`. El índice de `lrcon` no tiene entrada para `SELECT`, así que la regla
+  se cita a `lestmtsref`, p. 340. No se cita una página de `lrcon` inventada.
+- Pruebas: `tests/unit/test_lower_data_select.py` y `tests/unit/test_corpus_l4l6.py` (156 pasan, 37 omitidas);
+  suite completa `uv run python -m pytest -q`: 3624 pasan, 316 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): los casos `l4_21`, `l4_22` y `l4_23` del plan no existen en `tests/corpus/L4/`; el lote de Studio es de B-Gate.
