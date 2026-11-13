@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -40,3 +41,10 @@ def validar_procedencia(ficha: Ficha) -> list[str]:
     if ficha.origen == "real" and not ficha.procedencia:
         errors.append("origen real sin procedencia")
     return errors
+
+
+def validar_cabecera(ficha: Ficha, ruta: Path, delimitador: str = ",") -> list[str]:
+    """Compara solo la cabecera del archivo con las columnas declaradas, en orden."""
+    with ruta.open(encoding="utf-8", newline="") as stream:
+        cabecera = next(csv.reader(stream, delimiter=delimitador, strict=True), [])
+    return [] if cabecera == list(ficha.columnas) else ["encabezado distinto de columnas"]

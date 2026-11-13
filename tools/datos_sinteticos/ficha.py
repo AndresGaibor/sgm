@@ -10,7 +10,7 @@ import yaml
 
 from sgm.migrar.ficha import Ficha as Ficha
 from sgm.migrar.ficha import leer_ficha as leer_ficha
-from sgm.migrar.ficha import validar_procedencia
+from sgm.migrar.ficha import validar_cabecera, validar_procedencia
 
 
 def escribir_ficha(ficha: Ficha, ruta: Path) -> None:
@@ -21,13 +21,11 @@ def escribir_ficha(ficha: Ficha, ruta: Path) -> None:
 
 def validar_ficha(ficha: Ficha, csv: Path) -> list[str]:
     """Comprueba procedencia, cabecera en orden y cantidad de filas del CSV."""
-    errors = validar_procedencia(ficha)
+    errors = validar_procedencia(ficha) + validar_cabecera(ficha, csv)
     with csv.open(encoding="utf-8", newline="") as stream:
         reader = csv_module.reader(stream)
-        header = next(reader, [])
+        next(reader, [])
         count = sum(1 for _ in reader)
-    if header != list(ficha.columnas):
-        errors.append("encabezado distinto de columnas")
     if count != ficha.filas:
         errors.append(f"numero de filas distinto: ficha={ficha.filas}, csv={count}")
     return errors

@@ -193,20 +193,23 @@ def test_tipos_salen_de_ficha_y_no_de_contenido_csv(tmp_path):
     assert (col.name, col.type, col.source) == ("a", "Double", "fixture")
 
 
-def test_cli_no_toma_directorio_actual_como_raiz_de_confianza(tmp_path, monkeypatch):
-    source = tmp_path / "p.sas"
+def test_cli_rechaza_config_absoluta_fuera_del_proyecto(tmp_path, monkeypatch):
+    project = tmp_path / "proyecto"
+    project.mkdir()
+    source = project / "p.sas"
     source.write_text(PROGRAM, encoding="utf-8")
-    (tmp_path / "config.json").write_text("{}", encoding="utf-8")
-    monkeypatch.chdir(tmp_path)
+    config = tmp_path / "config.json"
+    config.write_text("{}", encoding="utf-8")
+    monkeypatch.chdir(project)
     result = CliRunner().invoke(
         app,
-        ["migrar", str(source), "--out", str(tmp_path / "out"), "--tablas-locales", "config.json"],
+        ["migrar", str(source), "--out", str(project / "out"), "--tablas-locales", str(config)],
     )
     assert result.exit_code == 2
-    assert not (tmp_path / "out").exists()
+    assert not (project / "out").exists()
 
 
-def test_cli_desde_otro_cwd_acepta_config_absoluta_del_repositorio(tmp_path, monkeypatch):
+def test_cli_rechaza_config_absoluta_de_otro_repositorio(tmp_path, monkeypatch):
     source = tmp_path / "p.sas"
     source.write_text(PROGRAM, encoding="utf-8")
     monkeypatch.chdir(tmp_path)
@@ -214,8 +217,8 @@ def test_cli_desde_otro_cwd_acepta_config_absoluta_del_repositorio(tmp_path, mon
         app,
         ["migrar", str(source), "--out", str(tmp_path / "out"), "--tablas-locales", str(CONFIG)],
     )
-    assert result.exit_code == 0, result.output
-    assert "P-DATOS-SINTETICOS" in (tmp_path / "out/p/pendientes.md").read_text(encoding="utf-8")
+    assert result.exit_code == 2
+    assert not (tmp_path / "out").exists()
 
 
 def test_ficha_sintetica_sin_procedencia_sintetica_es_invalida(tmp_path):

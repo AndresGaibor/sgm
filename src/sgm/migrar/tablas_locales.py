@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv as csv_module
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,9 +10,8 @@ from pathlib import Path
 import yaml
 
 from sgm.catalog.schemas import TALEND_TYPES
-from sgm.compile import ROOT_DIR
 from sgm.ir.models import Column
-from sgm.migrar.ficha import leer_ficha, validar_procedencia
+from sgm.migrar.ficha import leer_ficha, validar_cabecera, validar_procedencia
 
 
 @dataclass(frozen=True)
@@ -26,8 +26,8 @@ class TablaLocal:
 
 
 def raiz_repositorio() -> Path:
-    """Raíz del código, independiente del directorio desde el que se invoca la CLI."""
-    return ROOT_DIR
+    """Raíz del proyecto desde el que se invoca la CLI."""
+    return Path.cwd().resolve()
 
 
 def _dentro(ruta: Path, raiz: Path, nombre: str) -> Path:
@@ -90,6 +90,12 @@ def cargar_tablas_locales(ruta: Path, raiz: Path) -> dict[str, TablaLocal]:
             or any(not isinstance(t, str) or t not in TALEND_TYPES for t in info.columnas.values())
         ):
             raise ValueError(f"{nombre}: columnas o tipos inválidos en ficha")
+        try:
+            errores_cabecera = validar_cabecera(info, csv, delimitador)
+        except (OSError, UnicodeError, csv_module.Error) as error:
+            raise ValueError(f"{nombre}: no se pudo leer la cabecera del CSV") from error
+        if errores_cabecera:
+            raise ValueError(f"{nombre}: {errores_cabecera[0]}")
         columnas = tuple(Column(n, t, None, "fixture") for n, t in info.columnas.items())
         tablas[nombre.lower()] = TablaLocal(
             nombre.lower(), csv.relative_to(raiz).as_posix(), delimitador, columnas, info.origen
