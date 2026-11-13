@@ -7038,3 +7038,10 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - La comparación de cabecera vive en `sgm.migrar.ficha` y se comparte con la validación histórica de tools, que conserva su conteo de filas. La CLI toma `Path.cwd().resolve()` como raíz del proyecto de invocación, según el plan y la corrección del usuario; sustituye la decisión de 225n de usar `ROOT_DIR`. Rutas con `..`, configuración externa y enlaces que resuelvan fuera siguen rechazados.
 - Las 85 pruebas enfocadas pasan; tres escenarios de enlace simbólico se omiten porque Windows deniega crearlos. Ruff global y `src tests tools`, verdes. Suite completa, cierre integral y estado del gancho se registran en el informe K-9.
 - Decisiones y límites: la primera fila solo se acepta si coincide con la ficha; el contenido posterior no se usa para inferir tipos. Sin dependencias nuevas, bases, Studio, red, contenedores ni push. Revisión independiente pendiente.
+
+## Hito 227n. Compatibilidad del validador histórico de fichas
+
+- Fecha: 2026-11-13. Base: `7e8fc07` (226n), árbol limpio al iniciar. Corrección de revisión independiente de K-9; pendiente nueva revisión.
+- TDD: una cabecera con comilla sin cerrar hacía que `tools.datos_sinteticos.ficha.validar_ficha` lanzara `csv.Error`; la prueba roja fija su resultado histórico `[]` para una ficha coincidente sin filas.
+- `validar_cabecera` conserva lectura estricta por omisión para el cargador de tablas locales; la herramienta pide explícitamente lectura no estricta, como su API anterior. La comprobación de cabeceras de 226n sigue vigente.
+- Enfocadas: 40 aprobadas y tres symlinks omitidos por permisos de Windows; Ruff global y `src tests tools` verdes. Suite completa, cierre integral y huella del gancho se registran en el informe K-9. Sin dependencias nuevas, bases, Studio, red, contenedores ni push.

@@ -136,3 +136,10 @@ def test_zero_seed_and_real_provenance_are_valid():
     assert validar_ficha(replace(ficha, semilla=0), DATA / "cars.csv") == []
     real = replace(ficha, origen="real", semilla=None, generador=None, procedencia="exportación")
     assert validar_ficha(real, DATA / "cars.csv") == []
+
+
+def test_validar_ficha_con_comilla_sin_cerrar_conserva_lectura_historica(tmp_path):
+    archivo = tmp_path / 'entrada.csv'
+    archivo.write_text('"a', encoding='utf-8')
+    ficha = Ficha('lib.t', 'real', 0, {'a': 'String'}, procedencia='prueba')
+    assert validar_ficha(ficha, archivo) == []

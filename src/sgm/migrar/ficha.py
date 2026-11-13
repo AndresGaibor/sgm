@@ -43,8 +43,10 @@ def validar_procedencia(ficha: Ficha) -> list[str]:
     return errors
 
 
-def validar_cabecera(ficha: Ficha, ruta: Path, delimitador: str = ",") -> list[str]:
+def validar_cabecera(
+    ficha: Ficha, ruta: Path, delimitador: str = ",", *, estricto: bool = True
+) -> list[str]:
     """Compara solo la cabecera del archivo con las columnas declaradas, en orden."""
     with ruta.open(encoding="utf-8", newline="") as stream:
-        cabecera = next(csv.reader(stream, delimiter=delimitador, strict=True), [])
+        cabecera = next(csv.reader(stream, delimiter=delimitador, strict=estricto), [])
     return [] if cabecera == list(ficha.columnas) else ["encabezado distinto de columnas"]

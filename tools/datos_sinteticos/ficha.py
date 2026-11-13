@@ -21,7 +21,7 @@ def escribir_ficha(ficha: Ficha, ruta: Path) -> None:
 
 def validar_ficha(ficha: Ficha, csv: Path) -> list[str]:
     """Comprueba procedencia, cabecera en orden y cantidad de filas del CSV."""
-    errors = validar_procedencia(ficha) + validar_cabecera(ficha, csv)
+    errors = validar_procedencia(ficha) + validar_cabecera(ficha, csv, estricto=False)
     with csv.open(encoding="utf-8", newline="") as stream:
         reader = csv_module.reader(stream)
         next(reader, [])
