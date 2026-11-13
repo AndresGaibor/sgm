@@ -7214,3 +7214,24 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   desde HEAD con solo las líneas cambiadas (diff de 9 líneas).
 - Pendiente (parcial): la continuación y la captura del PDV entre dos `OUTPUT` (no están en el espacio), `--escribir`
   para generar casos en `tests/corpus/L6/`, y la cobertura explícita de `l6_13` a `l6_24` como combinaciones.
+
+## Hito 236m. B-17: continuación en el espacio y sumidero muerto tras el último OUTPUT (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: cada combinación tiene un campo `continuacion`. Con él, una asignación
+    `CONT = 1;` va después de la cadena de `OUTPUT`. El espacio pasa de 51 a 102 combinaciones positivas y los
+    negativos de 9 a 18. Cita: `lrcon`, p. 498 (la fila se escribe al ejecutarse el `OUTPUT`; lo que la
+    asignación cambia después no entra en lo escrito).
+  - `src/sgm/optimizar/sumideros.py` (nuevo): un `derive` sin sucesores ni `outputs` se quita, con la decisión
+    `sumidero_muerto`, si el paso tiene alguna escritura. Antes, las dos combinaciones `incondicional` con
+    continuación (`incondicional__S1__cont`, `incondicional__S1-S2__cont`) fallaban `validar_job`: la conexión
+    `row2` salía de un `tMap` sin esa salida, y un `tMap` quedaba sin entrada. Ahora pasan.
+    - `optimizar/__init__.py`: la regla entra en el bucle de reescritura, y `optimizar` devuelve la copia si hubo
+      decisiones (no solo si hubo absorbidos). Los `Job` que nombraban el operador quitado se actualizan.
+  - `tests/unit/test_optimizar_sumideros.py` (nuevo): dos casos, con y sin escritura implícita.
+- Pruebas: `test_combinaciones_output.py` (102 combinaciones, 18 negativos, oráculo, Anillo A), optimizador:
+  126 pasan en total con `test_optimizar_sumideros.py`.
+- Bloqueado (B-17 en BLOQUEOS): la captura del PDV y `--escribir`. Un hallazgo sin resolver: el intérprete
+  distingue `VALOR` de `valor` (SAS no), y su arreglo toca `interprete.py`.
+- Pendiente sin bloqueo: la cobertura explícita de `l6_13` a `l6_24` como combinaciones del espacio.
+- Test repuntado: `test_metadatos_salidas_tmap.py` usaba `l6_18` para comprobar el `row2` de un `tMap`; ese `row2` era el sumidero muerto. Ahora usa `l6_15`, cuyo `row2` es una salida viva. El sumidero quitado queda en `Informe.absorbidos` apuntando a su predecesor, para que `test_ningun_operador_se_pierde` siga cuadrando.

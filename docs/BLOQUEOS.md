@@ -56,6 +56,21 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
   paso propio, y se puede hacer sin Byron; con (a) o (b) hay que coordinar con Byron.
 - **Bloquea también:** B-18 (lote de Studio de `OUTPUT`, depende de B-17 y de Studio) y B-Gate (Studio y lote C).
 
+## B-17: captura del PDV entre dos OUTPUT y `--escribir` (dueño e `interprete.py`)
+
+- **Tarea:** B-17, paso 1 (patrón de captura PDV) y paso 4 (`--escribir N`, casos en `tests/corpus/L6/`).
+- **Motivo (captura):** el intérprete trata `VALOR` (asignada) y `valor` (de la entrada) como dos columnas. SAS no
+  distingue mayúsculas en nombres de variables; con `OUTPUT S1; VALOR = VALOR + 10; OUTPUT S2;` el dataset `S2`
+  queda con dos columnas de valor y la comparación con el oráculo falla. La corrección está en `interprete.py`
+  (1 103 líneas, zona de Byron, con la decisión (a/b/c) pendiente, ver B-11 a B-14 y B-19). El traductor
+  (`talend_item`) no se puede validar sin Studio.
+- **Motivo (`--escribir`):** de las 102 combinaciones, 84 migran sin pendiente. Escribirlas todas en
+  `tests/corpus/L6/` cambia los conteos del tablero y del corpus (134 casos hoy). Cuántas entran (todas, o un
+  subconjunto con las que cubren `l6_13` a `l6_24`) es una decisión del dueño.
+- **Decisiones que faltan (dueño):** (1) la de `interprete.py` (B-11 a B-14, B-19); (2) cuántas combinaciones
+  de `OUTPUT` entran al corpus L6.
+- **Desbloqueo:** esas dos decisiones. La captura además necesita Studio para validarse en B-18.
+
 ## B-18 y B-Gate: Studio
 
 - **Tareas:** B-18 (validación en lote de las combinaciones de `OUTPUT` en Studio), B-Gate (compuerta GM1 y L6

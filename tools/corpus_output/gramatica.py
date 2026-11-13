@@ -6,8 +6,8 @@ encabezado `DATA` (0 = todos). Las ramas de una cadena son excluyentes, así que
 destino. Las ramas de `IF` independientes no pueden repetirlo: `OUTPUT_DESTINO_REPETIDO` lo rechaza,
 y el generador no lo produce (son casos negativos, aparte).
 
-Fuera de este espacio por ahora: el `OUTPUT` seguido de una continuación del paso y la captura
-del PDV entre dos `OUTPUT`. Quedan como parte pendiente de B-17.
+Cada combinación se da con y sin una asignación después de la cadena (continuación). Fuera del
+espacio, por ahora: la captura del PDV entre dos `OUTPUT` (ver BLOQUEOS, B-17).
 """
 
 from __future__ import annotations
@@ -41,6 +41,9 @@ class Combinacion:
 
     rama: str
     destinos: tuple[tuple[str, ...], ...]
+    # Continuación: una asignación después de la cadena de `OUTPUT`. La fila ya se escribió, así que
+    # no cambia lo que sale (`lrcon`, p. 498: el PDV se escribe al ejecutarse el `OUTPUT`).
+    continuacion: bool = False
 
     @property
     def condiciones(self) -> tuple[tuple | None, ...]:
@@ -49,7 +52,8 @@ class Combinacion:
     @property
     def nombre(self) -> str:
         partes = ["-".join(d) if d else "todos" for d in self.destinos]
-        return f"{self.rama}__" + "__".join(partes)
+        sufijo = "__cont" if self.continuacion else ""
+        return f"{self.rama}__" + "__".join(partes) + sufijo
 
     def programa_sas(self) -> str:
         """El programa completo: entrada, el `DATA` con sus ramas y ninguna sentencia más."""
@@ -74,6 +78,8 @@ class Combinacion:
                     continue
                 prefijo = "ELSE IF" if cadena and i > 0 else "IF"
                 lineas.append(f"    {prefijo} {_texto(condicion)} THEN {sentencia}")
+        if self.continuacion:
+            lineas.append("    CONT = 1;")
         lineas.append("RUN;")
         return "\n".join(lineas) + "\n"
 
@@ -93,7 +99,8 @@ def combinaciones() -> Iterator[Combinacion]:
         for destinos in product(DESTINOS, repeat=len(condiciones)):
             if not cadena and _repite_destino(destinos):
                 continue  # ramas independientes: un destino repetido es un caso negativo
-            yield Combinacion(rama, tuple(destinos))
+            for continuacion in (False, True):
+                yield Combinacion(rama, tuple(destinos), continuacion)
 
 
 def negativos() -> Iterator[Combinacion]:
@@ -105,7 +112,8 @@ def negativos() -> Iterator[Combinacion]:
             continue
         for destinos in product(DESTINOS, repeat=len(condiciones)):
             if _repite_destino(destinos):
-                yield Combinacion(rama, tuple(destinos))
+                for continuacion in (False, True):
+                    yield Combinacion(rama, tuple(destinos), continuacion)
 
 
 def _repite_destino(destinos: tuple[tuple[str, ...], ...]) -> bool:
