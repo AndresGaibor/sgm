@@ -48,3 +48,44 @@ def test_cli_muestra_motivos_de_tabla_dinamica_y_copia_transformada(tmp_path):
     assert result.exit_code == 0, result.output
     assert "P-TABLA-DINAMICA" in result.output and "&lib..t" in result.output
     assert "P-COLUMNAS-NO-ATRIBUIDAS" in result.output and "lib.t" in result.output.lower()
+
+
+def test_sobrescritura_sin_biblioteca_equivale_a_work():
+    text = """
+        data work.c; set lib.t; run;
+        data c; set lib.u; run;
+        proc sql; select c.x from work.c c; quit;
+    """
+    sources = tablas_base_del_programa(text)
+    assert "x" not in [c.lower() for c in sources.get("lib.t", [])]
+    assert [c.lower() for c in sources["lib.u"]] == ["x"]
+
+
+def test_comentario_no_interrumpe_atribucion_de_copia():
+    text = """
+        data work.c; set lib.t; run;
+        /* data work.c; */
+        proc sql; select c.x from work.c c; quit;
+    """
+    sources = tablas_base_del_programa(text)
+    assert [c.lower() for c in sources["lib.t"]] == ["x"]
+
+
+def test_cadena_no_interrumpe_atribucion_de_copia():
+    text = """
+        data work.c; set lib.t; run;
+        %put "data work.c;";
+        proc sql; select c.x from work.c c; quit;
+    """
+    sources = tablas_base_del_programa(text)
+    assert [c.lower() for c in sources["lib.t"]] == ["x"]
+
+
+def test_comentario_de_sentencia_no_interrumpe_atribucion():
+    text = """
+        data work.c; set lib.t; run;
+        * data work.c;
+        proc sql; select c.x from work.c c; quit;
+    """
+    sources = tablas_base_del_programa(text)
+    assert [c.lower() for c in sources["lib.t"]] == ["x"]

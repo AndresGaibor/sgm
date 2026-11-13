@@ -7,8 +7,10 @@ import re
 from sgm.compile import compile_file, project_base
 from sgm.flow.model import build_flows
 from sgm.frontend.program import analyze_program
+from sgm.ir.builder import qualify
 from sgm.ir.models import Column, Plan
 from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
+from sgm.migrar.esquemas_limpieza import mascara_codigo
 from sgm.migrar.esquemas_tipos import _columnas_numericas
 from sgm.proceso.columnas_fuente import columnas_usadas
 from sgm.proceso.entradas_salidas import entradas_y_salidas
@@ -27,7 +29,7 @@ def _fuentes(texto: str, nombre: str):
 
 
 def _copias(texto: str):
-    limpio = re.sub(r"/\*.*?\*/", lambda m: re.sub(r"[^\n]", " ", m.group()), texto, flags=re.S)
+    limpio = mascara_codigo(texto)
     patron = r"\bdata\s+([\w.]+)\s*;\s*(.*?)\brun\s*;"
     for match in re.finditer(patron, limpio, re.I | re.S):
         destino, cuerpo = match.groups()
@@ -46,14 +48,15 @@ def _copias(texto: str):
 def _columnas_copia(texto: str, destino: str, desde: int) -> list[str]:
     """Limita las columnas a la versión de la copia antes de otra escritura."""
     restante = texto[desde:]
-    nombre = re.escape(destino)
-    siguiente = re.search(
-        rf"(?i)\b(?:data\s+|create\s+table\s+|out\s*=\s*){nombre}(?![\w.])",
-        restante,
-    )
-    if siguiente:
-        restante = restante[: siguiente.start()]
-    return columnas_usadas(restante, destino)
+    limpio = mascara_codigo(restante)
+    nombre = qualify(destino).lower()
+    patron = r"(?i)\b(?:data\s+|create\s+table\s+|out\s*=\s*)([\w.]+)"
+    for escritura in re.finditer(patron, limpio):
+        if qualify(escritura.group(1)).lower() == nombre:
+            restante = restante[: escritura.start()]
+            break
+    buscado = nombre[5:] if nombre.startswith("work.") else nombre
+    return columnas_usadas(restante, buscado)
 
 
 def _numericas_por_lectura(plan: Plan) -> dict[str, set[str]]:

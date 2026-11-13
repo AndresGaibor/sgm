@@ -6999,3 +6999,11 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Corrección: los tipos de una lectura se demuestran solo con operadores conectados directamente a ella y sin ambigüedad de lectura. La atribución de columnas de una copia termina en la siguiente escritura del destino. La CLI informa código, motivo y línea disponible para cada pendiente. La compatibilidad de `fuentes_sas.tablas_base` permanece sin atribución de copias.
 - Validación enfocada: 32 pruebas aprobadas, incluidas las tres regresiones; Ruff global y `src tests tools`, verdes. El cierre integral, cruces, oráculo y estado del gancho se registran en el informe K-2.
 - Decisiones y límites: se prioriza no inventar tipos o atribuciones; expresiones alejadas de la lectura pueden quedar sin tipo demostrado. La detección de sobrescrituras es conservadora para `DATA`, `CREATE TABLE` y `OUT=` y no pretende resolver todas las construcciones dinámicas SAS. Sin dependencias nuevas, conexiones a bases, Studio, red, contenedores ni push.
+
+## Hito 222n. Normalización y limpieza de escrituras de copias
+
+- Fecha: 2026-11-12. Base: `6167a0b` (221n), árbol limpio al iniciar. Correcciones de revisión independiente sobre la atribución de copias.
+- TDD: cuatro regresiones fallaron antes de producción: sobrescritura `c` frente a `work.c`, y cortes falsos por comentario de bloque, cadena y comentario SAS de sentencia. Las 36 pruebas enfocadas pasan, incluida la compatibilidad de la API anterior.
+- Corrección: se usa `qualify` para comparar nombres sin biblioteca con sus equivalentes de `WORK`; una máscara conserva los desplazamientos y oculta cadenas y comentarios antes de buscar copias o escrituras. Se reconoce la siguiente escritura de la misma tabla sin atribuirle columnas de otra versión.
+- Validación: Ruff global y `src tests tools` verdes; suite completa y cierre integral, cruces, oráculo y huella del gancho registrados en el informe K-2. Todos los archivos modificados quedan por debajo de 300 líneas.
+- Decisiones y límites: la máscara no ejecuta macros ni resuelve escrituras dinámicas; las formas de escritura detectadas siguen limitadas a `DATA`, `CREATE TABLE` y `OUT=`. Sin dependencias nuevas, Studio, red, bases, contenedores ni push.
