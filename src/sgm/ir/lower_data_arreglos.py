@@ -71,6 +71,19 @@ _DO_CONDICIONAL = re.compile(r"(?i)^do\s+(while|until)\b")
 _ABRE_BLOQUE = re.compile(r"(?i)^(do|select)\b|\b(then|else)\s+do$")
 
 
+_DO_ITERATIVO = re.compile(r"(?i)^do\s+(\w+)\s*=\s*(\S+)\s+to\s+(\S+)\s*$")
+_ENTERO = re.compile(r"-?\d+")
+
+
+def es_do_limite_no_constante(texto: str) -> bool:
+    """`DO i = 1 TO n;`: un DO iterativo cuyo límite inicial o final no es un entero literal
+    (`lrcon`, p. 671). Un `WHILE`/`UNTIL` pegado al límite no encaja en el patrón y no cuenta."""
+    partes = _DO_ITERATIVO.fullmatch(texto.strip())
+    if partes is None:
+        return False
+    return not (_ENTERO.fullmatch(partes.group(2)) and _ENTERO.fullmatch(partes.group(3)))
+
+
 def es_do_condicional(texto: str) -> bool:
     """`DO WHILE (...)` o `DO UNTIL (...)`: la forma que no se desenrolla (`lrcon`, p. 675)."""
     return _DO_CONDICIONAL.match(texto.strip()) is not None

@@ -7172,3 +7172,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   corrigió a 10 (el error era de la invariante, no del traductor).
 - Conteo del tablero: 134 casos, L6 27, con `esperado` 130 (`tests/unit/test_tablero.py`).
 - Pendiente (parcial): `l6_30` y `l6_31` no los define el plan; el bucle `DO WHILE` en `tJavaRow` está en BLOQUEOS (B-16).
+
+## Hito 234m. B-16: casos l6_30 y l6_31 y código `P-DO-LIMITE-NO-CONSTANTE` (parcial en la emisión)
+
+- Qué se hizo:
+  - `P-DO-LIMITE-NO-CONSTANTE`: un `DO i = a TO b` cuyo límite no es entero literal sale como hueco con su código
+    (`es_do_limite_no_constante` en `lower_data_arreglos.py`; cita `lrcon`, p. 671: el DO iterativo repite el cuerpo
+    según su índice). Antes no tenía código: el paso no se marcaba como pendiente.
+  - Casos pendientes nuevos: `l6_30_do_until` (P-DO-WHILE-UNTIL, DO UNTIL, `lrcon` p. 675) y
+    `l6_31_do_limite_no_constante` (P-DO-LIMITE-NO-CONSTANTE, `lrcon` p. 671). Se listan en `migrar_pendientes.yaml`.
+  - El test `test_limite_no_constante_queda_sin_desenrollar` pasa a `test_limite_no_constante_lleva_el_codigo_p_do_limite_no_constante`:
+    antes solo miraba la nota genérica «do no traducido»; ahora exige el código y que no salga ninguna asignación.
+- Conteo: 136 casos, L6 29, `esperado/` 130 (`tests/unit/test_tablero.py`). Los casos nuevos son pendientes sin `esperado/`.
+- Pruebas: `test_lower_data_arreglos.py` (7), `test_migrar_corpus_aceptacion.py`, `test_corpus_l4l6.py`,
+  `test_esquemas_sincronizados.py`, `test_corpus_esquemas.py`, `test_tablero.py`: pasan; `ruff check .` limpio.
+- Pendiente (parcial): el bucle `DO WHILE`/`UNTIL` y el `DO` con límite variable en `tJavaRow` (paso 1 b y 3) están
+  bloqueados por `interprete.py` y Studio: ver `docs/BLOQUEOS.md`, B-16. `P-DO-OUTPUT-EN-BUCLE` tampoco se emite.

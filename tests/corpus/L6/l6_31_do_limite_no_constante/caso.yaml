@@ -1,0 +1,28 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- DO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- REPITE_L6_31
+razonamiento: 'Caso reservado: el límite final del DO iterativo es la columna N. El número de vueltas depende de cada fila, así que no hay desenrollado estático (lrcon, p. 671).'
+fuentes_url: []
+invariantes: []
+motivo: El DO con límite no constante necesita un bucle en tJavaRow, todavía sin validar en Studio. Queda como pendiente P-DO-LIMITE-NO-CONSTANTE.
+esquemas:
+  WORK.VALORES_L6_31:
+    ID:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    N:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    X1:
+      tipo: Double
+      linea: 6
+      fuente: muestra

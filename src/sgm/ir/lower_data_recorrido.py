@@ -18,6 +18,7 @@ from sgm.ir.lower_data_arreglos import (
     arreglos_declarados,
     bucle_desenrollado,
     es_do_condicional,
+    es_do_limite_no_constante,
     fin_de_bloque,
     indice_fuera_de_rango,
 )
@@ -186,6 +187,20 @@ class _Recorrido:
         if desenrollado is None:
             fuera = indice_fuera_de_rango(self.stmts, index, arreglos)
             if fuera is None:
+                if es_do_limite_no_constante(s.text):
+                    fin = fin_de_bloque(self.stmts, index)
+                    if fin is None:
+                        return False
+                    self._hueco_de_bucle(
+                        index,
+                        statement_ev,
+                        "P-DO-LIMITE-NO-CONSTANTE: el DO iterativo tiene un límite que no es "
+                        "constante; el bucle necesita tJavaRow, pendiente (lrcon, p. 671)",
+                        "DO_LIMITE_NO_CONSTANTE",
+                        "P-DO-LIMITE-NO-CONSTANTE",
+                        fin,
+                    )
+                    return True
                 return False
             elemento, fin = fuera
             self._hueco_de_bucle(

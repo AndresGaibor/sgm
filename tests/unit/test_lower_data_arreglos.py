@@ -46,9 +46,14 @@ def test_indice_dentro_de_rango_no_lleva_codigo_de_fuera_de_rango():
     assert not any("P-ARRAY-FUERA-DE-RANGO" in n for n in _notas(_plan(cuerpo)))
 
 
-def test_limite_no_constante_queda_sin_desenrollar():
+def test_limite_no_constante_lleva_el_codigo_p_do_limite_no_constante():
+    # lrcon, p. 671: el DO iterativo repite el cuerpo según su índice; con un límite que no es un
+    # entero literal no se desenrolla, y el paso queda como hueco con su código.
     cuerpo = "  ARRAY a{3} x1 x2 x3;\n  DO i = 1 TO n;\n    a{i} = 0;\n  END;\n"
-    assert any("do no traducido" in n for n in _notas(_plan(cuerpo)))
+    plan = _plan(cuerpo)
+    assert any("P-DO-LIMITE-NO-CONSTANTE" in n and "lrcon, p. 671" in n for n in _notas(plan))
+    assert any(op.status == "hueco" for op in plan.graph.operators())
+    assert not any(op.kind == "derive" for op in plan.graph.operators())
 
 
 def test_do_while_lleva_el_codigo_p_do_while_until():

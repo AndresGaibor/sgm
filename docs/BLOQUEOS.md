@@ -83,7 +83,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Motivo:** el paso 3 toca `src/sgm/migrar/interprete.py` (1 103 líneas, zona de Byron). La decisión (a, b o c) sobre
   ese archivo está pendiente (ver B-11 a B-14 y B-19). La emisión en `tJavaRow` necesita Studio para validarse.
 - **Decisión que falta (dueño):** la de B-11 a B-14 sobre `interprete.py`.
-- **Desbloqueo:** esa decisión y Studio en `READY` para validar `l6_33`.
+- **Desbloqueo:** esa decisión y Studio en `READY` para validar `l6_30`, `l6_31` y `l6_33` (los tres quedan pendientes con su código).
 
 ## B-22: catálogo y plan maestro al día (depende de Studio)
 
