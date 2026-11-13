@@ -7,7 +7,7 @@ import re
 from sgm.compile import compile_file, project_base
 from sgm.flow.model import build_flows
 from sgm.frontend.program import analyze_program
-from sgm.ir.models import Column
+from sgm.ir.models import Column, Plan
 from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
 from sgm.migrar.esquemas_tipos import _columnas_numericas
 from sgm.proceso.columnas_fuente import columnas_usadas
@@ -34,7 +34,53 @@ def _copias(texto: str):
         copia = re.fullmatch(r"\s*set\s+([\w.]+)\s*;\s*", cuerpo, re.I | re.S)
         origen = re.search(r"\bset\s+([\w.]+)", cuerpo, re.I)
         if origen:
-            yield destino, origen.group(1), bool(copia), texto.count("\n", 0, match.start()) + 1
+            yield (
+                destino,
+                origen.group(1),
+                bool(copia),
+                texto.count("\n", 0, match.start()) + 1,
+                match.end(),
+            )
+
+
+def _columnas_copia(texto: str, destino: str, desde: int) -> list[str]:
+    """Limita las columnas a la versión de la copia antes de otra escritura."""
+    restante = texto[desde:]
+    nombre = re.escape(destino)
+    siguiente = re.search(
+        rf"(?i)\b(?:data\s+|create\s+table\s+|out\s*=\s*){nombre}(?![\w.])",
+        restante,
+    )
+    if siguiente:
+        restante = restante[: siguiente.start()]
+    return columnas_usadas(restante, destino)
+
+
+def _numericas_por_lectura(plan: Plan) -> dict[str, set[str]]:
+    """Demuestra tipos solo en expresiones conectadas directamente a una lectura única."""
+    resultado: dict[str, set[str]] = {}
+    for op in plan.graph.operators():
+        previos = plan.graph.predecessors(op.id)
+        if len(previos) != 1:
+            continue
+        previo = plan.graph.operator(previos[0])
+        if previo.kind == "read":
+            anteriores = plan.graph.predecessors(previo.id)
+            if len(anteriores) == 1:
+                previo = plan.graph.operator(anteriores[0])
+        if previo.kind == "read_file":
+            nombres = previo.params.get("outputs") or []
+        elif previo.kind == "read" and not plan.graph.predecessors(previo.id):
+            nombres = [previo.params.get("dataset")]
+        else:
+            continue
+        parcial = Plan(program=plan.program)
+        parcial.graph.add_operator(op)
+        numericas = _columnas_numericas(parcial)
+        for nombre in nombres:
+            if nombre:
+                resultado.setdefault(str(nombre).lower(), set()).update(numericas)
+    return resultado
 
 
 def _detalle_fuentes(texto: str, nombre: str, atribuir_copias: bool):
@@ -49,9 +95,9 @@ def _detalle_fuentes(texto: str, nombre: str, atribuir_copias: bool):
             omitidas.append((fuente, "nombre no literal biblioteca.tabla"))
             continue
         columnas = columnas_usadas(texto, fuente)
-        for destino, origen, simple, _ in copias:
+        for destino, origen, simple, _, desde in copias:
             if simple and origen.lower() == clave:
-                columnas.extend(columnas_usadas(texto, destino))
+                columnas.extend(_columnas_copia(texto, destino, desde))
         unicas = list({c.lower(): c for c in reversed(columnas)}.values())[::-1]
         if not unicas:
             omitidas.append((fuente, "el programa no usa columnas identificables"))
@@ -81,33 +127,39 @@ def esquemas_desde_programa(
         if op.kind == "read_file"
         for salida in op.params.get("outputs") or []
     }
+    numericas = _numericas_por_lectura(plan)
     for tabla, columnas in list(esquemas.items()):
         esquemas[tabla] = [
             Column(
                 c.name,
-                c.type,
+                (
+                    "String"
+                    if c.type == "Double"
+                    and c.name.lower() not in numericas.get(tabla, set())
+                    and c.name.lower() not in tipos_input.get(tabla, set())
+                    else c.type
+                ),
                 c.length,
                 "unknown"
-                if c.type == "String" and c.name.lower() not in tipos_input.get(tabla, set())
+                if c.name.lower() not in tipos_input.get(tabla, set())
+                and (c.type == "String" or c.name.lower() not in numericas.get(tabla, set()))
                 else c.source,
             )
             for c in columnas
         ]
     bases, omitidas = _detalle_fuentes(texto, archivo, True)
-    lecturas = [op for op in plan.graph.operators() if op.kind in {"read", "read_file"}]
-    numericas = _columnas_numericas(plan) if len(lecturas) == 1 else set()
     for tabla, columnas in bases.items():
         esquemas.setdefault(
             tabla,
             [
                 Column(c, "Double", None, "derived")
-                if c.lower() in numericas
+                if c.lower() in numericas.get(tabla, set())
                 else Column(c, "String", None, "unknown")
                 for c in columnas
             ],
         )
-    for destino, origen, simple, linea in _copias(texto):
-        if not simple and _nombre_literal(origen) and columnas_usadas(texto, destino):
+    for destino, origen, simple, linea, desde in _copias(texto):
+        if not simple and _nombre_literal(origen) and _columnas_copia(texto, destino, desde):
             pendientes.append(
                 PendienteMigracion(
                     "P-COLUMNAS-NO-ATRIBUIDAS",

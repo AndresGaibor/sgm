@@ -33,13 +33,16 @@ def esquemas_command(
             fichas[ficha["tabla"].lower()] = [
                 Column(name, tipo, None, "fixture") for name, tipo in ficha["columnas"].items()
             ]
-    schemas, _ = esquemas_desde_programa(
+    schemas, pendientes = esquemas_desde_programa(
         desde_programa.read_text(encoding="utf-8", errors="replace"), desde_programa.stem, fichas
     )
     salida.mkdir(parents=True, exist_ok=True)
     for tabla, columnas in schemas.items():
         sin_tipo = sum(c.source == "unknown" or c.type is None for c in columnas)
         typer.echo(f"{tabla}: {len(columnas)} columnas, {sin_tipo} sin tipo demostrado")
+    for pendiente in pendientes:
+        linea = f" (línea {pendiente.linea})" if pendiente.linea is not None else ""
+        typer.echo(f"{pendiente.codigo}{linea}: {pendiente.mensaje}")
     for biblioteca, datos in a_json(schemas, desde_programa.name).items():
         (salida / f"{biblioteca}.json").write_text(
             json.dumps(datos, ensure_ascii=False, indent=2), encoding="utf-8"
