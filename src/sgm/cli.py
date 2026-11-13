@@ -17,7 +17,6 @@ from sgm import lineage as lineage_mod
 from sgm import metrics as metrics_mod
 from sgm import rules_validate as rules_validate_mod
 from sgm.batch import compile_batch
-from sgm.catalog import describe as describe_mod
 from sgm.cli_util import _collect, _env
 from sgm.cli_version import VersionOpcion
 from sgm.emit.guide_md import render_guide
@@ -35,6 +34,7 @@ app = typer.Typer(
 from sgm.cli_conformidad import conformidad_command  # noqa: E402
 from sgm.cli_decisiones import decisions_app, gaps_app  # noqa: E402
 from sgm.cli_diseno import diseno_command  # noqa: E402
+from sgm.cli_env import env_app  # noqa: E402
 from sgm.cli_flow import flujo_command  # noqa: E402
 from sgm.cli_migrar_comando import migrar_command  # noqa: E402
 from sgm.cli_proceso import proceso_command  # noqa: E402
@@ -198,24 +198,7 @@ def lineage(
         typer.echo(f"Oleada {number}: " + ", ".join(wave))
 
 
-env_app = typer.Typer(help="Entorno: esquemas de las bases.", no_args_is_help=True)
 app.add_typer(env_app, name="env")
-
-
-@env_app.command("import-describe")
-def env_import_describe(
-    archivo: Annotated[Path, typer.Argument(help="Salida de texto de DESCRIBE de Impala.")],
-    schema: Annotated[str, typer.Option("--schema", help="Nombre del esquema, en minúsculas.")],
-) -> None:
-    """Escribe env/schemas/<esquema>.json con las tablas de la salida de DESCRIBE."""
-    try:
-        ruta, tablas = describe_mod.importar(archivo, schema)
-    except (ValueError, FileNotFoundError) as error:
-        raise typer.BadParameter(str(error)) from error
-    typer.echo(f"Esquema escrito: {ruta} ({len(tablas)} tablas)")
-    for tabla, columnas in sorted(tablas.items()):
-        sin_tipo = sum(1 for c in columnas if c.type is None)
-        typer.echo(f"  {tabla}: {len(columnas)} columnas, {sin_tipo} sin tipo traducible")
 
 
 @app.command()
