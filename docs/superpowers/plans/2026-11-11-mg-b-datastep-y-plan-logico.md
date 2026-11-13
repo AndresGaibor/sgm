@@ -368,9 +368,11 @@ Semántica: `ARRAY a{3} x1-x3;` define un alias de variables, no almacenamiento 
 - Create: casos `tests\corpus\L6\l6_32_array_do_constante`, `l6_33_do_while`, `l6_34_array_indice_fuera_de_rango`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_array.py`
 
-- [ ] **Step 1: Write the failing test.** (a) `DO i=1 TO 3; a{i} = a{i} * 2; END;` con límites constantes se **desenrolla** a tres asignaciones (`calcular`) sin `tJavaRow`, y el intérprete coincide incluyendo `i = 4` si el programa la conserva; (b) límites no constantes o `DO WHILE`/`UNTIL`: `tJavaRow` con un bucle; si el cuerpo contiene `OUTPUT` dentro del bucle, `P-DO-OUTPUT-EN-BUCLE` (varias filas por iteración, fuera de alcance); (c) `l6_34`: índice 4 en un arreglo de 3 es `P-ARRAY-FUERA-DE-RANGO`, no un `null` silencioso; (d) `l0_13` (hoy `xfail` por `DO/END`) cambia de estado según (a).
+**Estado (hito 226m):** parcial. `ARRAY` con lista explícita y `DO` con límites constantes se desenrollan, con pruebas en `test_lower_data_arreglos.py`. Faltan el código `P-ARRAY-FUERA-DE-RANGO`, `DO WHILE`/`UNTIL`, los casos `l6_30` a `l6_34` (no existen en el corpus) y el caso `l0_13`.
+
+- [x] **Step 1: Write the failing test.** (a) `DO i=1 TO 3; a{i} = a{i} * 2; END;` con límites constantes se **desenrolla** a tres asignaciones (`calcular`) sin `tJavaRow`, y el intérprete coincide incluyendo `i = 4` si el programa la conserva; (b) límites no constantes o `DO WHILE`/`UNTIL`: `tJavaRow` con un bucle; si el cuerpo contiene `OUTPUT` dentro del bucle, `P-DO-OUTPUT-EN-BUCLE` (varias filas por iteración, fuera de alcance); (c) `l6_34`: índice 4 en un arreglo de 3 es `P-ARRAY-FUERA-DE-RANGO`, no un `null` silencioso; (d) `l0_13` (hoy `xfail` por `DO/END`) cambia de estado según (a).
 - [ ] **Step 2: Run test to verify it fails.**
-- [ ] **Step 3: Implement.** Registrar los arreglos en una tabla del paso (nombre, límites, miembros); `a{i}` con `i` constante se resuelve a la columna; no constante, a `tJavaRow`.
+- [x] **Step 3: Implement.** Registrar los arreglos en una tabla del paso (nombre, límites, miembros); `a{i}` con `i` constante se resuelve a la columna; no constante, a `tJavaRow`.
 - [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_lower_data_array.py tests/unit/test_lower_data_do_else.py -q`.
 - [ ] **Step 5: Commit.** `hito N m: ARRAY y DO con desenrollado estatico`.
 

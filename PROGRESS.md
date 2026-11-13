@@ -7053,3 +7053,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   El corpus L4 a L6 no tiene `SELECT (WHEN)` ni `DELETE` condicional; por eso las pruebas usan programas propios.
 - Bloqueos registrados en `docs/BLOQUEOS.md`: B-9 y B-18/B-Gate (Studio), B-10 y B-12 y B-14 (dependen de B-9 o de
   B-11/B-13), y B-11, B-13 y B-19 (dueño de `src/sgm/migrar/interprete.py`, punto 1 de la sección 8.3).
+
+## Hito 226m. B-16: `ARRAY` con lista explícita y `DO` con límites constantes se desenrollan en el DATA step (parcial)
+
+- Qué se hizo: `ir/lower_data_arreglos.py` lee las `ARRAY a{n} x1 ... xn` con lista explícita (si la cuenta no
+  coincide con `n`, no se declara). Un `DO i = a TO b;` con límites constantes, sin `DO` anidado y con solo
+  asignaciones dentro, se desenrolla: cada vuelta es el cuerpo con `i` y `a{i}` sustituidos (fuera de literales de
+  texto). Al terminar se emite `i = b + 1`, que es lo que deja SAS. `lower_data_recorrido.py` llama a esto antes
+  de la asignación condicional (36 líneas nuevas en total con B-15 y B-16).
+- Pruebas: `tests/unit/test_lower_data_arreglos.py` corre el intérprete: `DO` de tres vueltas sobre tres
+  columnas da los valores esperados y `i = 4`; índice fuera de rango, límite no constante y `OUTPUT` dentro del
+  bucle quedan sin desenrollar (nota `do no traducido`).
+- Pendiente de B-16: (1) el código `P-ARRAY-FUERA-DE-RANGO` no sale todavía (hoy es `do no traducido`);
+  (2) `DO WHILE`/`DO UNTIL` y `DO` anidado no se tratan (quedan sin traducir); (3) `ARRAY` con rango de
+  nombres (`x1-x3`) y `a{*}` no se declaran; (4) los casos `l6_30` a `l6_34` que cita el plan no existen en el
+  corpus: hay que escribirlos con su `razonamiento` y páginas antes de cerrar la tarea; (5) `l0_13` no se revisó.

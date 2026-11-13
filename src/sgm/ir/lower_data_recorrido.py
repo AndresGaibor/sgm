@@ -13,6 +13,8 @@ from dataclasses import replace
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
+from sgm.ir.lower_data_arreglos import _ARRAY as _ARRAY_DECLARA
+from sgm.ir.lower_data_arreglos import arreglos_declarados, bucle_desenrollado
 from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_op
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_salidas import _conditional_output_chain, _note, _output_sequence
@@ -66,6 +68,8 @@ class _Recorrido:
             if self._salida_condicional(index, statement_ev):
                 continue
             if self._borrado_condicional(index, statement_ev):
+                continue
+            if self._arreglo_o_bucle(index, statement_ev):
                 continue
             if self._asignacion_condicional(index, statement_ev):
                 continue
@@ -126,6 +130,27 @@ class _Recorrido:
         self._enlazar(salida_condicional)
         self.omit.update(range(index + 1, siguiente + 1))
         self.prev = self.stmts[siguiente]
+        return True
+
+    def _arreglo_o_bucle(self, index: int, statement_ev: Evidence) -> bool:
+        """`ARRAY` con lista explícita (sin operador) y `DO` con límites constantes (B-16)."""
+        s = self.stmts[index]
+        arreglos = arreglos_declarados(self.stmts)
+        if s.kind == "array":
+            declara = _ARRAY_DECLARA.fullmatch(s.text.strip())
+            return declara is not None and declara.group(1).lower() in arreglos
+        if s.kind != "do":
+            return False
+        desenrollado = bucle_desenrollado(self.stmts, index, arreglos)
+        if desenrollado is None:
+            return False
+        asignaciones, fin = desenrollado
+        for destino, expresion in asignaciones:
+            texto = f"{destino} = {expresion}"
+            campos = {"target": destino, "expression": expresion}
+            self._asignacion(DsStatement("assign", texto, s.line, campos), statement_ev)
+        self.omit.update(range(index + 1, fin + 1))
+        self.prev = self.stmts[fin]
         return True
 
     def _borrado_condicional(self, index: int, statement_ev: Evidence) -> bool:
