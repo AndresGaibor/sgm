@@ -59,7 +59,7 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   dueño antes de B-10.
 
 ## B-11 a B-14 y B-19: intérprete de referencia (`src/sgm/migrar/interprete.py`) con dueño sin decidir
-- **Decidido (13 nov, punto 1):** se parte `interprete.py` sin cambio de comportamiento. Primer corte en 241m; el resto va en iteraciones aparte.
+- **Decidido (13 nov, punto 1):** `interprete.py` partido sin cambio de comportamiento. Hecho en 241m y 242m: todos los módulos quedan bajo 300 líneas. Falta solo el defecto `Z`/`z`, en commit aparte.
 
 - **Tareas:** B-11 (`MERGE` con la semántica real en el intérprete), B-12 (emisión de `MERGE`), B-13 (estado
   por fila en el intérprete), B-14 (estado por fila emitido), B-19 (`UPDATE` y `MODIFY`).

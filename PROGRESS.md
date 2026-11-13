@@ -7325,3 +7325,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   332 omitidas, 142 xfail (igual que antes del corte). `ruff check` limpio.
 - Pendiente: `interprete.py` sigue por encima de 300 líneas. Los siguientes cortes (relaciones y pasos) van en
   iteraciones separadas.
+
+## Hito 242m. interprete.py partido por completo; todos los módulos bajo 300 líneas (decisión 1 del dueño)
+
+- Qué se hizo: el intérprete queda en 10 módulos, todos bajo 300 líneas. `interprete.py` (212): `_apilar`, `_base`,
+  `_ejecutar` y `ejecutar_plan`. `interprete_base.py`: `NoSoportadoEnInterprete`, `_numero`, `_clave`,
+  `_nombre_de_columna`. `interprete_valores.py`: valores de expresiones. `interprete_funciones.py`: funciones SAS
+  (`input`, `substr`, `compress`, `scan`). `interprete_filas.py`: filtrar, proyectar, seleccionar, renombrar, unir,
+  mezclar. `interprete_orden.py`: ordenar, quitar duplicados y llaves. `interprete_agrupado.py`: agregados por grupo.
+  `interprete_pasos.py`: pasos, entradas y ramas.
+- Sin cambio de comportamiento. Los nombres privados que las pruebas importaban siguen importables desde el módulo
+  original (reexportados con `# noqa: F401`).
+- Cambio de forma: un import circular entre `interprete_filas` y `interprete_orden` se rompió moviendo `_clave` y
+  `_nombre_de_columna` a `interprete_base`.
+- Pruebas: suite completa 4090 pasan, 332 omitidas, 142 xfail (igual que antes del corte). `ruff check` limpio.
+- Estado de la decisión 1: el corte está hecho. Falta el defecto de mayúsculas `Z`/`z`, en un commit aparte.
