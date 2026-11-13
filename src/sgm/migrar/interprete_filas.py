@@ -140,14 +140,20 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
                 condicional,
             )
         )
+    # `_N_` (lrcon, p. 79): el número de iteración es la posición de la fila en la lista que recibe
+    # esta asignación. Va como clave auxiliar solo para evaluar; no sale como columna.
+    contexto = [{**fila, _CLAVE_N: i + 1} for i, fila in enumerate(filas)]
     if aditivo:
         # SAS no distingue mayúsculas en los nombres de variable (`lrcon`, p. 49): una asignación
         # a `VALOR` sobre una columna `valor` la sustituye, no añade una segunda.
         return [
-            {**fila, **_con_clave_existente(fila, _fila_de(pares, fila, secuencial=True))}
-            for fila in filas
+            {**fila, **_con_clave_existente(fila, _fila_de(pares, ctx, secuencial=True))}
+            for fila, ctx in zip(filas, contexto, strict=True)
         ]
-    return [_fila_de(pares, fila) for fila in filas]
+    return [_fila_de(pares, ctx) for ctx in contexto]
+
+
+_CLAVE_N = "_n_"
 
 
 def _seleccionar(filas: list[dict], params: dict) -> list[dict]:

@@ -7353,3 +7353,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Suite completa: 4092 pasan, 332 omitidas, 142 xfail. `ruff check` limpio.
 - Efecto en otras tareas: la captura del PDV (B-17) ya no está bloqueada por el intérprete. Queda su validación en
   Studio (B-18). El caso `l4_23` conserva su entrada sin `Z`; no hace falta cambiarla.
+
+## Hito 244m. B-20 (a): `_N_` en el intérprete cuenta iteraciones, no filas escritas (parcial)
+
+- Regla de SAS: `_N_` es una variable automática que cuenta las iteraciones del DATA step, incluidas las filas que
+  luego descarta un filtro (`lrcon`, p. 79, «Automatic Variables»; el orden de ejecución, p. 500).
+- Qué se hizo: `_proyectar` (`interprete_filas.py`) da a cada fila su posición en la lista que recibe la asignación
+  como clave auxiliar `_n_`, solo para evaluar. La clave no sale como columna. Con cuatro filas y un `IF valor > 0`
+  después, las dos que quedan tienen `_N_` 2 y 4, como pide B-20 (a).
+- Lo que no hay: la emisión en Talend. El traductor sigue dejando `_N_` como hueco `P-VARIABLE-AUTOMATICA`. El
+  contador en Talend (un `tJavaRow` antes del `tFilterRow`, o un `Numeric.sequence`) necesita Studio para validarse.
+  Queda pendiente en BLOQUEOS.
+- Pruebas: `test_interprete_n_automatica.py` (2, nuevos). Suite completa: 4094 pasan, 332 omitidas, 142 xfail;
+  `ruff check` limpio.

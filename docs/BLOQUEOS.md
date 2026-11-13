@@ -105,6 +105,8 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Motivo:** el contador exige tocar `src/sgm/migrar/interprete.py` (decisión del dueño, ver la entrada de B-11
   a B-14 y B-19), y la emisión en Talend (`tJavaRow` sobre `globalMap`, `tSetGlobalVar`) necesita Studio para
   validarse.
+- **Hecho en 244m (intérprete):** `_N_` cuenta iteraciones y no filas escritas (`lrcon`, p. 79). Falta solo la emisión
+  en Talend (`tFilterRow` precedido de una secuencia), que necesita Studio para validarse.
 - **Lo que ya queda seguro (hito 228m):** `_N_` y `_ERROR_` no se traducen como columnas: salen hueco con su código.
 - **Desbloqueo:** decisión sobre `interprete.py` y Studio disponible.
 
