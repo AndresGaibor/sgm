@@ -7451,3 +7451,25 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   4591 pasan, 442 omitidas, 142 xfail. `ruff check .` limpio.
 - Pendiente (parcial, B-13): `RETAIN` con valor (`lestmtsref`, p. 331), `LAG` y `DIF` (`lefunctionsref`, pp. 1163 y 663). La
   emisión de la suma en Talend necesita Studio.
+
+## Hito 250m. B-13: RETAIN sin BY y estado por grupo como hueco; un stateful_row sin emisor bloquea el Job (decisión 5)
+
+- Regla: `RETAIN x valor;` inicializa `x` una sola vez y `x` conserva su valor de una observación a la siguiente
+  (`lestmtsref`, p. 331). Sin BY, todo el conjunto es un solo grupo (`lrcon`, p. 498: el DATA step procesa las observaciones en
+  orden). `FIRST.`/`LAST.` no existen sin BY.
+- Qué se hizo:
+  - `lower_data_grupos.py`: un paso sin BY con `RETAIN` o suma entra en el programa por grupo (un solo grupo). Con
+    `FIRST.`/`LAST.` y sin BY se rechaza.
+  - `talend_item/jobs_parciales.py`: un `stateful_row` cuenta como hueco. Antes el Job salía sin la lógica de estado.
+    Es la decisión 5 aplicada a los operadores de estado.
+  - `talend_item/desde_plan.py`: un operador sin emisor lleva su `codigo` al pendiente
+    (`P-POR-GRUPO-SIN-EMISOR`), en vez del genérico `P-OPERADOR-SIN-SOPORTE`.
+  - `migrar_pendientes.yaml`: seis casos cambian de código (l6_05, l6_06, l6_07, l6_10, l6_11, l6_39). Son el mismo
+    problema, más preciso.
+- Pruebas: `test_retain_valor_inicial.py` (2, nuevos; el valor 10 da 11, 12, 13 con p. 331), `test_interprete_suma.py`
+  (los dos casos ahora van por la migración completa: sin Job y con el código). Un caso declarativo de `tests/cases/04`
+  (RETAIN, `tJavaRow`) sigue pasando: el `stateful_row` conserva su componente.
+- Prueba de robustez `test_robustez_sobre_todo_el_repositorio`: falló una vez con carga alta (límite de 60 s por programa);
+  pasó aislada en 37 s. Se anota como inestable por tiempo, no por lógica.
+- Pendiente (parcial, B-13): `LAG` y `DIF` (`lefunctionsref`, pp. 1163 y 663). La emisión del estado por grupo en Talend
+  necesita Studio.

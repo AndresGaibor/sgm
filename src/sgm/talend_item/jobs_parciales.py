@@ -33,7 +33,9 @@ def tiene_hueco(plan: Plan, job) -> bool:
             continue
         visitados.add(actual)
         op = plan.graph.operator(actual)
-        if op.status == "hueco" or op.kind == "unsupported":
+        # Un `stateful_row` (RETAIN, suma, FIRST./LAST.) no tiene emisor todavía: sin él el Job
+        # salía sin la lógica de estado. Cuenta como hueco (decisión 5; B-13).
+        if op.status == "hueco" or op.kind in ("unsupported", "stateful_row"):
             return True
         pila.extend(vecinos.get(actual, ()))
     return False

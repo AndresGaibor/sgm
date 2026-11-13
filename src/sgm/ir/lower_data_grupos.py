@@ -46,7 +46,9 @@ def _retain(texto: str) -> dict | None:
 def programa_por_grupo(stmts: list[DsStatement]) -> dict | None:
     """Parámetros del `stateful_row` de un DATA step con `BY`, o `None` si no es de esta clase."""
     por = next((s for s in stmts if s.kind == "by"), None)
-    if por is None:
+    # Sin BY todo el conjunto es un solo grupo (lestmtsref, p. 331, RETAIN).
+    # FIRST./LAST. sin BY no existen.
+    if por is None and any(s.fields.get("first_last") for s in stmts):
         return None
     programa: list[dict] = []
     estado = False  # hay algo que necesita estado entre filas o saber el límite del grupo
@@ -94,8 +96,10 @@ def programa_por_grupo(stmts: list[DsStatement]) -> dict | None:
         return None
     return {
         "reason": "by_group",
-        "by": [n.lower() for n in por.fields["names"]],
+        "by": [n.lower() for n in por.fields["names"]] if por is not None else [],
         "programa": programa,
+        # Sin emisor en Talend todavía: el paso es un hueco y el Job no se escribe (decisión 5).
+        "codigo": "P-POR-GRUPO-SIN-EMISOR",
     }
 
 

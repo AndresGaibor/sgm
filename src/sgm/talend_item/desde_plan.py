@@ -826,9 +826,10 @@ class _Job:
         elif componente == "none":
             self._sin_soporte(op)
         else:
+            # `codigo`: el operador sin emisor declara su pendiente (P-POR-GRUPO-SIN-EMISOR, ...).
             self.pendientes.append(
                 PendienteMigracion(
-                    SIN_SOPORTE,
+                    str(op.params.get("codigo") or SIN_SOPORTE),
                     f"el operador '{op.kind}' todavía no tiene emisor para {componente}",
                     _linea(op),
                 )
