@@ -297,7 +297,9 @@ def test_retain_lag_y_first_last_son_estado_por_fila():
     ops = _ops("data t; set s; by g; retain acc 0; prev = lag(x); if first.g then acc = 0; run;")
     stateful = _by_kind(ops, "stateful_row")
     assert len(stateful) == 3
-    assert all(o.status == "parcial" for o in stateful)
+    # LAG es hueco sin emisor (decisión 5, B-13); RETAIN y FIRST. siguen parciales.
+    assert [o.status for o in stateful if o.params.get("reason") == "lag"] == ["hueco"]
+    assert all(o.status == "parcial" for o in stateful if o.params.get("reason") != "lag")
 
 
 def test_proc_sort_nodupkey_es_sort_y_dedup():

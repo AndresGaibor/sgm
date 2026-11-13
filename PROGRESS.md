@@ -7473,3 +7473,26 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   pasó aislada en 37 s. Se anota como inestable por tiempo, no por lógica.
 - Pendiente (parcial, B-13): `LAG` y `DIF` (`lefunctionsref`, pp. 1163 y 663). La emisión del estado por grupo en Talend
   necesita Studio.
+
+## Hito 251m. B-13: LAG y DIF como estado entre filas en el intérprete; hueco `P-LAG-SIN-EMISOR` (parcial)
+
+- Regla: `LAGn(x)` devuelve el valor de hace `n` ejecuciones de esa misma aparición. Cada aparición tiene
+  su cola, inicializada con `n` faltantes, y la cola avanza solo cuando la función se ejecuta
+  (`lefunctionsref`, pp. 1163–1164). `DIFn(x) = x - LAGn(x)` (`lefunctionsref`, p. 663), así que el primer
+  valor falta.
+- Qué se hizo:
+  - `src/sgm/migrar/interprete_pasos.py`: `_retardar(filas, params)` con la cola; con `IF cond THEN`, las
+    filas que no cumplen la condición no tocan la cola ni reciben valor. Forma reconocida:
+    `LAG`/`DIF` (con `n`) como expresión exacta; `LAG(x) + 1` y `LAG(x) + DIF(x)` se detienen con
+    `NoSoportadoEnInterprete`.
+  - `src/sgm/ir/lower_data_lag.py` (nuevo): `estado_de_lag(texto)` reconoce `x = LAG/DIF(e);` y
+    `IF c THEN x = LAG/DIF(e);`. `src/sgm/ir/lower_data_recorrido.py`: el operador de estado entra como
+    `stateful_row` hueco con `P-LAG-SIN-EMISOR` (decisión 5: el Job no se escribe).
+  - Casos corpus pendientes, sin `esperado/`: `l6_40_lag_dentro_de_if` (trampa de la cola con `IF`) y
+    `l6_41_dif_primer_valor_faltante`. Se numeran después de `l6_39` porque `l6_30` a `l6_34` ya son otros
+    casos. Se registran en `tests/corpus/migrar_pendientes.yaml`.
+- Pruebas: `tests/unit/test_interprete_lag.py` (7: LAG simple, LAG dentro de `IF`, DIF, DIF2, no sale
+  como Job, expresiones compuestas se detienen). Tablero: `test_tablero.py` pasa a 250 casos y L6 a 140.
+- Decisión registrada: el número de la cola usa la sección 1163 del índice y la regla en la página 1164.
+- Pendiente (parcial, B-13): la emisión de `LAG` y `DIF` en Talend necesita Studio. Sin Studio no se
+  valida el Job. `UPDATE` (B-19) queda como siguiente paso del carril.

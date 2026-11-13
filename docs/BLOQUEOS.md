@@ -70,7 +70,7 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Decisión que falta (dueño):** elegir a, b o c. Con (c) la separación sin cambio de comportamiento es un
   paso propio, y se puede hacer sin Byron; con (a) o (b) hay que coordinar con Byron.
 - **Hecho en 247m (intérprete, B-11):** `IN=` por iteración (`lrcon`, p. 75) y rechazo de entrada desordenada (`lrcon`, p. 584). Lo que queda, B-12 y B-13/B-14, necesita Studio.
-- **Hecho en 248m (B-13, parte):** el intérprete se detiene ante sentencias sin traducción y asignaciones condicionales sin partes (`lrcon`, p. 500). Hecho en 249m: la suma (intérprete y hueco `P-SUMA-SIN-EMISOR`). `RETAIN` con valor y sin BY queda en 250m (estado por grupo, hueco `P-POR-GRUPO-SIN-EMISOR`). Quedan `LAG` y `DIF`; la emisión del estado necesita Studio.
+- **Hecho en 248m (B-13, parte):** el intérprete se detiene ante sentencias sin traducción y asignaciones condicionales sin partes (`lrcon`, p. 500). Hecho en 249m: la suma (intérprete y hueco `P-SUMA-SIN-EMISOR`). `RETAIN` con valor y sin BY queda en 250m (estado por grupo, hueco `P-POR-GRUPO-SIN-EMISOR`). Hecho en 251m: `LAG` y `DIF` en el intérprete (`lefunctionsref`, pp. 1163–1164 y 663); su emisión necesita Studio.
 - **Bloquea también:** B-18 (lote de Studio de `OUTPUT`, depende de B-17 y de Studio) y B-Gate (Studio y lote C).
 
 ## B-17: captura del PDV entre dos OUTPUT y `--escribir` (dueño e `interprete.py`)

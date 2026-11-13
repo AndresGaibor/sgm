@@ -26,6 +26,7 @@ from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_o
 from sgm.ir.lower_data_automaticas import automaticas_en, motivo
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_hash import pendientes_hash
+from sgm.ir.lower_data_lag import estado_de_lag
 from sgm.ir.lower_data_salidas import _conditional_output_chain, _note, _output_sequence
 from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado, select_sin_otherwise
 from sgm.ir.models import Evidence, Operator
@@ -288,7 +289,32 @@ class _Recorrido:
         self.prev = self.stmts[index]
         return True
 
+    def _estado_lag(self, index: int, statement_ev: Evidence) -> bool:
+        """`LAG`/`DIF` como estado entre filas: hueco con su cola (lefunctionsref, p. 1164)."""
+        s = self.stmts[index]
+        params = estado_de_lag(s.text)
+        if params is None:
+            return False
+        # Un `ELSE` detrás asignaría la variable sin pasar por la cola: se deja como antes.
+        if index + 1 < len(self.stmts) and self.stmts[index + 1].text.strip().lower().startswith(
+            "else"
+        ):
+            return False
+        operador = self.b.op(
+            "stateful_row",
+            params,
+            statement_ev,
+            status="hueco",
+            notes=["LAG/DIF sin emisor en Talend todavía (lefunctionsref, p. 1164; B-13)"],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
+        self.prev = s
+        return True
+
     def _asignacion_condicional(self, index: int, statement_ev: Evidence) -> bool:
+        if self._estado_lag(index, statement_ev):
+            return True
         conditional = _conditional_assignment(self.stmts, index)
         if conditional is not None:
             conditional = ([conditional[0]], conditional[1])

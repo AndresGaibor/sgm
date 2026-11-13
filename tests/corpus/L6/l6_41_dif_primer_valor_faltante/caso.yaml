@@ -1,0 +1,26 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- DIF
+capa: C
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- DIF_L6_41
+razonamiento: 'DIFn(x) = x - LAGn(x) (lefunctionsref, p. 663). El primer valor falta porque la cola de LAG empieza con faltantes (p. 1164). El intérprete da faltante, 1 y 2.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en
+invariantes: []
+motivo: DIF no tiene emisor en Talend todavía (B-13, Studio). Sin esperado/ hasta que el emisor exista; el resultado se fija en tests/unit/test_interprete_lag.py.
+esquemas:
+  WORK.VALORES_L6_41:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    X:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+

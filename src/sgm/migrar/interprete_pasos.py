@@ -29,6 +29,7 @@ from sgm.migrar.interprete_valores import (
     _primero,
     _tabla,
     _valor,
+    _verdad,
 )
 
 # Pasos que el plan también deja sueltos, sin el `map` que los envuelve.
@@ -136,6 +137,8 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
             actual = _por_grupo(actual, params)
         elif clase == "stateful_row" and params.get("reason") == "suma":
             actual = _sumar(actual, params)
+        elif clase == "stateful_row" and params.get("reason") == "lag":
+            actual = _retardar(actual, params)
         else:
             raise NoSoportadoEnInterprete(clase or "paso", "el intérprete no lo ejecuta")
     return actual
@@ -219,4 +222,39 @@ def _sumar(filas: list[dict], params: dict) -> list[dict]:
         valor = _numero(_valor(arbol, fila))
         total += valor if valor is not None else 0.0
         salida.append({**fila, nombre: total})
+    return salida
+
+
+_LLAMADA_LAG = re.compile(r"(?is)^(lag|dif)(\d*)\s*\((.+)\)$")
+
+
+def _retardar(filas: list[dict], params: dict) -> list[dict]:
+    """`x = LAGn(e);` y `x = DIFn(e);`, con su cola (lefunctionsref, p. 1164; p. 663 para DIF).
+
+    La cola empieza con n faltantes y avanza solo cuando la función se ejecuta: con
+    `IF cond THEN`, las filas que no cumplen la condición no tocan la cola ni reciben valor.
+    `DIFn(e) = e - LAGn(e)`, y falta si alguno de los dos falta.
+    """
+    llamada = _LLAMADA_LAG.match(str(params.get("expression") or "").strip())
+    if llamada is None:
+        raise NoSoportadoEnInterprete("stateful_row", "LAG/DIF fuera de la forma soportada")
+    funcion, n = llamada.group(1).lower(), int(llamada.group(2) or 1)
+    arbol = _arbol(llamada.group(3))
+    condicion = params.get("condition")
+    arbol_condicion = _arbol(str(condicion)) if condicion else None
+    nombre = str(params.get("target") or "").lower()
+    cola: list[float | None] = [None] * n
+    salida: list[dict] = []
+    for fila in filas:
+        if arbol_condicion is not None and not _verdad(_valor(arbol_condicion, fila)):
+            salida.append({**fila, nombre: None})
+            continue
+        actual = _numero(_valor(arbol, fila))
+        previo = cola.pop(0)
+        cola.append(actual)
+        if funcion == "lag":
+            valor = previo
+        else:
+            valor = None if previo is None or actual is None else actual - previo
+        salida.append({**fila, nombre: valor})
     return salida

@@ -2,7 +2,8 @@
 partes detiene la ejecución; antes salían filas sin la columna y la prueba pasaba sin probar nada.
 
 `lrcon`, p. 500: el DATA step ejecuta cada sentencia en orden, así que ninguna se puede saltar.
-La suma (`lestmtsref`, p. 360) y `LAG` (`lefunctionsref`, p. 1163) todavía no tienen estado por fila.
+La suma (`lestmtsref`, p. 360) y `LAG` (`lefunctionsref`, p. 1163) tienen su estado por fila en
+`test_interprete_suma.py` y `test_interprete_lag.py`.
 """
 
 from __future__ import annotations
@@ -29,6 +30,3 @@ def test_select_sin_otherwise_no_sale_como_si_no_existiera():
         _correr("  SELECT (x);\n    WHEN (1) y = 'a';\n  END;\n")
 
 
-def test_lag_dentro_de_if_no_se_ignora():
-    with pytest.raises(NoSoportadoEnInterprete, match="asignación condicional sin partes"):
-        _correr("  IF x > 0 THEN prev = LAG(x);\n")
