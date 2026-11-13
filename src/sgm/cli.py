@@ -35,6 +35,7 @@ from sgm.cli_conformidad import conformidad_command  # noqa: E402
 from sgm.cli_decisiones import decisions_app, gaps_app  # noqa: E402
 from sgm.cli_diseno import diseno_command  # noqa: E402
 from sgm.cli_env import env_app  # noqa: E402
+from sgm.cli_esquemas import esquemas_command  # noqa: E402
 from sgm.cli_flow import flujo_command  # noqa: E402
 from sgm.cli_migrar_comando import migrar_command  # noqa: E402
 from sgm.cli_proceso import proceso_command  # noqa: E402
@@ -49,6 +50,7 @@ app.add_typer(gaps_app, name="gaps")
 app.add_typer(rules_app, name="rules")
 app.add_typer(case_app, name="case")
 app.add_typer(studio_app, name="studio")
+app.command("esquemas")(esquemas_command)
 app.command("facts")(facts_command)
 app.command("mapa")(mapa_command)
 app.command("comparar")(comparar_command)

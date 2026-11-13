@@ -43,6 +43,8 @@ def load_schemas(directory: Path) -> dict[str, list[Column]]:
         if path.name.startswith("_"):
             continue
         raw = json.loads(path.read_text(encoding="utf-8"))
+        if raw.get("_inferido") is True:
+            continue
         esquema = path.stem.lower()
         for tabla, items in raw.get("tables", {}).items():
             if not tabla.startswith("_"):
