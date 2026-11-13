@@ -284,3 +284,27 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Comprobación del bucle:** memoria libre 1,63 GB (< 4 GB). Sin suite, sin commit, sin intento de Studio. Hito 255m en staging.
 - **Comprobación del bucle:** memoria libre 1,7 GB (< 4 GB). Sin suite, sin commit, sin intento de Studio. Hito 255m en staging.
 - **Comprobación del bucle:** memoria libre 1,7 GB (< 4 GB), sin cambio desde la anterior. Sin suite, sin commit, sin intento de Studio.
+
+## Studio sin puente tras 255m (dos intentos de recuperación agotados)
+
+- **Qué se vio:** `sgm studio salud` → `BRIDGE_UNAVAILABLE` (`BRIDGE_DEAD`). Talend Studio se había cerrado.
+  `talend-mcp` (3927) respondía a `healthz` (263 herramientas).
+- **Intento 1:** se lanzó Talend Studio con el workspace de PRJ_BANCOLOMBIA. El puente 3930 no escuchó en 8 min.
+- **Intento 2:** se intentó cerrar el proceso lanzado en el intento 1 (PID 19632) y relanzar Studio. `taskkill` no lo
+  cerró: quedan **dos instancias de Talend Studio** en ejecución (PID 19632 y la del segundo arranque). Ninguna expone el
+  puente 3930 hasta ahora. La guía (sección 7) apunta a un diálogo modal o a una compilación en curso, que no puedo ver.
+- **Límite:** agotados los dos intentos de esta iteración. Sin resultados de Studio. `l6_40` y `l6_41` siguen sin
+  validar; `out/studio-pendientes.json` lo registra como pendiente.
+- **Qué hace falta:** que la persona usuaria cierre las ventanas de Talend Studio (las dos instancias), guarde si lo pide,
+  y avise. Después se arranca Studio una sola vez, se espera el puerto 3930 y se reinicia `talend-mcp` (3927).
+- **Iteración posterior:** `sgm studio salud --recuperar` (un intento) sigue en `MODAL_BLOCKING` con el diálogo `Confirm`. El puerto 3930 ya escucha (una sola instancia de Studio, PID 19632). No se reinició Studio: la guía (sección 7) prohíbe matar un proceso con diálogo modal, por el trabajo sin guardar. Hace falta que cierres el diálogo `Confirm` en Talend Studio y avises.
+
+## Decisiones tomadas por el agente (256m), a revisar por el dueño
+
+- **B-12, `MERGE` muchos-a-muchos: opción (a).** Solo se emite el `MERGE` con llave única demostrada (ver la tarea
+  B-12 del plan). Todo lo demás queda como pendiente de unión (`P-UNION-TIPO-SIN-SOPORTE`, ya en el código). No hay
+  cambio de código: el `MERGE` con `IF` ya queda pendiente y no sale como `tMap`.
+- **B-14, `LAST.`: queda como pendiente sin emisor (`P-POR-GRUPO-SIN-EMISOR`).** Un `tAggregateRow` para el último por
+  grupo requiere un diseño que no he verificado, así que no lo invento. `RETAIN`, la suma, `LAG`/`DIF` y `FIRST.` se
+  emiten donde ya se emiten; el resto sigue como está.
+- Estas decisiones no necesitan Studio. Se validarán cuando Studio esté disponible.
