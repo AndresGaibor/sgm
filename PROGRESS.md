@@ -7068,3 +7068,24 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   (2) `DO WHILE`/`DO UNTIL` y `DO` anidado no se tratan (quedan sin traducir); (3) `ARRAY` con rango de
   nombres (`x1-x3`) y `a{*}` no se declaran; (4) los casos `l6_30` a `l6_34` que cita el plan no existen en el
   corpus: hay que escribirlos con su `razonamiento` y páginas antes de cerrar la tarea; (5) `l0_13` no se revisó.
+
+## Hito 227m. B-17: espacio de combinaciones de `OUTPUT` y oráculo independiente (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: 51 combinaciones (ramas `incondicional`, `IF`, `IF/ELSE`, `IF/ELSE IF`,
+    `IF/ELSE IF/ELSE`; cada `OUTPUT` nombra 0, 1 o 2 de tres datasets). Las ramas independientes con destino
+    repetido no se generan (caso negativo, aparte).
+  - `tools/corpus_output/oraculo.py`: simula el PDV sin importar `sgm.ir` ni `sgm.migrar`. Regla de SAS: si el paso
+    tiene algún `OUTPUT` explícito, no hay escritura implícita al final de la iteración en ninguna vuelta
+    (`lrcon`, p. 498). Un faltante cumple «menor que» y no cumple «mayor o igual».
+  - `tools/generar_combinaciones_output.py --listar`: migra las 51 con `sgm migrar` y una muestra CSV. Resultado:
+    51 se migran sin pendiente de traducción.
+- Pruebas (`tests/unit/test_combinaciones_output.py`, 54 pasan): el espacio tiene 51 combinaciones; el oráculo
+  coincide con el intérprete del plan en cada una (cinco filas: valor < 0, = 0, 3, 5 y faltante); mutar un
+  esperado a mano rompe la comparación; cada combinación da Jobs que pasan `validar_job`.
+- Corrección de diseño: la primera versión del oráculo aplicaba la escritura implícita por iteración y el
+  intérprete no coincidía. La regla de SAS es por paso, no por vuelta; el oráculo se corrigió a eso.
+- Pendiente de B-17: (1) `OUTPUT` seguido de una continuación del paso y captura del PDV entre dos `OUTPUT`, que
+  están fuera del espacio; (2) no se comprobó que el espacio cubra cada uno de `l6_13` a `l6_24` (paso 1a); (3) la
+  escritura de casos nuevos en `tests/corpus/L6/` con `--escribir` (paso 4); (4) los casos negativos de
+  `OUTPUT_DESTINO_REPETIDO`.
