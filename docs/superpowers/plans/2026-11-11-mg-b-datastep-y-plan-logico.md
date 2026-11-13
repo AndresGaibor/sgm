@@ -248,7 +248,7 @@ Hoy las entradas con columnas distintas dan `P-UNION-ESQUEMAS-DISTINTOS` y no se
 
 ### Task B-11: `MERGE ... BY ... IN=` con la semántica real en el intérprete (MG-P4-04, parte 1)
 
-**Bloqueada (decisión del dueño sobre `interprete.py`):** ver `docs/BLOQUEOS.md`, B-11 a B-14.
+**Estado (hito 247m):** parcial. `interprete.py` ya está partido (241m a 243m). En 247m el intérprete tiene `IN=` por iteración (`lrcon`, p. 75) y rechaza entradas desordenadas (`lrcon`, p. 584); pruebas en `test_interprete_merge.py`. `l6_11` queda `pendiente` (sentencia suma sin estado por fila, B-13 y B-14). Lo que sigue (B-12 emisión, B-13/B-14) necesita Studio.
 
 Semántica (`lestmtsref`, `MERGE Statement`, p. 243; `lrcon`, «Match-Merging», p. 597 a 601; «One-to-One Merging», p. 592 a 596): las entradas deben estar ordenadas por `BY`; por cada valor de `BY` se leen las observaciones de cada entrada en paralelo, una por iteración; cuando una entrada se agota en el grupo conserva los valores de su última observación y la iteración sigue mientras alguna entrada tenga observaciones en el grupo. Con grupos de tamaños `m` y `n` salen `max(m, n)` filas, no `m*n`. `IN=` vale 1 si la entrada contribuyó con una observación a **esa iteración** (`lrcon`, «Using the IN= Data Set Option», p. 75). Sin `BY`, `MERGE` es una unión fila a fila por posición (`lrcon`, «One-to-One Merging», p. 592). Si dos entradas traen una columna con el mismo nombre, gana la de la última entrada de la lista que contribuyó (`lestmtsref`, p. 243).
 

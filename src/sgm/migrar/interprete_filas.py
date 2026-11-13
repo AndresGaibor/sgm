@@ -221,6 +221,11 @@ def _mezclar(entradas: list[list[dict]], banderas: list[str | None], params: dic
     tabla aportó una fila a esa salida. Salida ordenada por la llave, como exige el `BY`.
     """
     llaves = [str(n).split(".")[-1].lower() for n in params.get("by") or []]
+    # El MERGE exige entradas ordenadas o agrupadas por BY (lrcon, p. 584): no se ordenan solas.
+    for filas in entradas:
+        claves = [tuple(_clave(_columna(f, k)) for k in llaves) for f in filas]
+        if any(antes > despues for antes, despues in zip(claves, claves[1:], strict=False)):
+            raise NoSoportadoEnInterprete("merge", "entrada no ordenada por BY (lrcon, p. 584)")
     grupos: list[dict[tuple, list[dict]]] = []
     for filas in entradas:
         por_llave: dict[tuple, list[dict]] = {}
@@ -237,19 +242,20 @@ def _mezclar(entradas: list[list[dict]], banderas: list[str | None], params: dic
         miembros = [g.get(llave, []) for g in grupos]
         for posicion in range(max(len(m) for m in miembros)):
             fila = dict.fromkeys(columnas)
-            presentes = []
+            presentes = []  # la tabla tiene observaciones en el grupo: decide qué filas salen
+            aportes = []  # aporta una observación en ESTA iteración: es el `IN=` (lrcon, p. 75)
             for filas in miembros:
                 if filas:
                     fila.update(filas[min(posicion, len(filas) - 1)])
-                # La bandera `IN=` sigue en 1 mientras la tabla tiene valores retenidos en el grupo.
                 presentes.append(bool(filas))
+                aportes.append(posicion < len(filas))
             if tipo == "inner" and not all(presentes):
                 continue
             if tipo == "left" and not presentes[0]:
                 continue
             if tipo == "right" and not presentes[1]:
                 continue
-            for nombre, aporto in zip(banderas, presentes, strict=True):
+            for nombre, aporto in zip(banderas, aportes, strict=True):
                 if nombre:
                     fila[nombre.lower()] = 1 if aporto else 0
             resultado.append(fila)

@@ -7396,3 +7396,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   fuera de la comparación deja pendiente sin Job. Suite completa: 4582 pasan, 440 omitidas, 142 xfail; `ruff check .` limpio.
 - Pendiente (parcial): la emisión del `unir` izquierdo y del `deduplicar` en Talend (tMap de lookup) necesita validarse en
   Studio (B-18 y B-Gate). `rc` usado de otra forma sigue pendiente.
+
+## Hito 247m. B-11 (intérprete): MERGE con IN= por iteración y rechazo de entradas desordenadas (parcial)
+
+- Qué se hizo, en `interprete_filas.py` (`_mezclar`), zona de Byron (se avisa): (a) `IN=` vale 1 solo en la observación que
+  la entrada aporta (`lrcon`, p. 75), no en todo el grupo; (b) una entrada no ordenada por BY se rechaza con
+  `NoSoportadoEnInterprete` (`lrcon`, p. 584), sin ordenarla sola. El resto del MERGE ya cumplía `lrcon` pp. 593, 594, 600
+  y 601, y `lestmtsref` p. 243 (gana la última entrada).
+- Prueba nueva: `test_interprete_merge.py` (7 casos, con su página). Antes de cambiar `_mezclar`, dos fallaban (IN= y orden).
+- Corrección de una prueba existente: `test_merge_y_all.py::test_merge_con_if_de_la_bandera...` esperaba `eb=1` en la segunda
+  fila de `id=2`. Con `lrcon` p. 75, en esa iteración B ya no tiene observaciones: `eb=0`. Se cambió la expectativa y la razón
+  quedó en el comentario.
+- `l6_11` (paso 4 de B-11): la regla de la sentencia suma está verificada (`lestmtsref`, p. 360; `lrcon`, p. 598). El
+  intérprete da 10, 25 y 7 (suma 42), y eso lo fija `test_l6_11_merge_acumulado.py`. El caso pasa de `pendiente_revision` a
+  `pendiente`: la sentencia suma no tiene estado por fila en el traductor (B-13 y B-14), así que no puede ser `traducible`.
+  Un caso `pendiente` no lleva `esperado/`: el generador ya no lo escribe para L6 pendientes (igual que para L4), y se quitó
+  el de `l6_11`. Sus invariantes pasan a su test.
+- Límite del generador: `generar_todo` no escribe el bloque `esquemas`; regenerar el corpus entero lo borra. Pasó en este
+  hito y se revirtió con `git checkout`. Desde ahora se regenera un caso a la vez y se reinserta su bloque.
+- Pruebas: suite completa 4587 pasan, 442 omitidas, 142 xfail. `ruff check .` limpio.
+- Pendiente (parcial): B-12 (emisión de MERGE en Talend) y B-13/B-14 (estado por fila) necesitan Studio.

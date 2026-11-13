@@ -69,6 +69,7 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   el archivo antes de que ninguno lo toque. El plan recomienda (c).
 - **Decisión que falta (dueño):** elegir a, b o c. Con (c) la separación sin cambio de comportamiento es un
   paso propio, y se puede hacer sin Byron; con (a) o (b) hay que coordinar con Byron.
+- **Hecho en 247m (intérprete, B-11):** `IN=` por iteración (`lrcon`, p. 75) y rechazo de entrada desordenada (`lrcon`, p. 584). Lo que queda, B-12 y B-13/B-14, necesita Studio.
 - **Bloquea también:** B-18 (lote de Studio de `OUTPUT`, depende de B-17 y de Studio) y B-Gate (Studio y lote C).
 
 ## B-17: captura del PDV entre dos OUTPUT y `--escribir` (dueño e `interprete.py`)

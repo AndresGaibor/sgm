@@ -49,10 +49,12 @@ def test_merge_con_if_de_la_bandera_se_queda_con_las_filas_de_la_primera():
 
     filas = ejecutar_plan(plan, {"a": A, "b": B})["t"]
 
+    # IN= vale 1 solo en la observación que la entrada aporta (lrcon, p. 75). En la segunda
+    # iteración del grupo `id=2`, B ya no tiene observaciones: eb vale 0 (antes 1, corregido en 247m).
     assert [(f["id"], f["ea"], f["eb"]) for f in filas] == [
         ("1", 1, 0),
         ("2", 1, 1),
-        ("2", 1, 1),
+        ("2", 1, 0),
         ("4", 1, 1),
     ]
 
