@@ -20,6 +20,32 @@ def _identificador(nombre: str) -> str:
     return "`" + nombre.replace("`", "") + "`"
 
 
+_RESERVADAS = frozenset(
+    """
+ADD ALL ALTER ANALYTIC AND ANTI ANY ARRAY AS ASC AUTHORIZATION BETWEEN BIGINT BINARY BOOLEAN
+BOTH BY CASE CAST CHANGE CHAR CHARACTER CHECK COLUMN COMMENT COMPUTE CONSTRAINT CREATE CROSS
+CUBE CURRENT CURRENT_DATE CURRENT_TIMESTAMP CURRENT_USER DATABASE DATABASES DATE DATETIME DAY
+DECIMAL DEFAULT DELETE DESC DESCRIBE DISTINCT DIV DOUBLE DROP ELSE END ESCAPE EXCEPT EXISTS
+EXPLAIN EXTERNAL FALSE FETCH FIRST FLOAT FOLLOWING FOR FOREIGN FROM FULL FUNCTION GRANT GROUP
+GROUPING HAVING IF ILIKE IN INNER INSERT INT INTEGER INTERSECT INTERVAL INTO INVALIDATE IS
+JOIN LATERAL LEFT LIKE LIMIT LOCATION MAP METADATA MODIFY NOT NULL NULLS NUMERIC OFFSET ON OR
+ORDER OUTER OVER OVERWRITE PARTITION PRECEDING PRIMARY RANGE REAL REFERENCES REGEXP RENAME REVOKE
+RIGHT RLIKE ROLE ROLLUP ROW ROWS SCHEMA SELECT SEMI SET SHOW SMALLINT TABLE TABLES THEN TINYINT
+TO TRANSFORM TRUE TRUNCATE UNBOUNDED UNION UNIQUE UPDATE UPSERT USE USER USING VALUES VARCHAR
+VIEW WHEN WHERE WINDOW WITH
+AGGREGATE APPX_COUNT_DISTINCT AVRO CACHED CLASS COLUMNS DATA DELIMITED DISTRIBUTE FIELDS
+FILEFORMAT FORMAT FORMATTED FUNCTIONS IGNORE INCREMENTAL INPATH INTERMEDIATE KEY LAST LINES
+LOAD MERGE PARTITIONED PARTITIONS REFRESH REPLACE ROLES SORT STATS STRAIGHT_JOIN STRING
+TBLPROPERTIES TERMINATED TIMESTAMP
+""".split()
+)
+
+
+def _parte_tabla(nombre: str) -> str:
+    """Cita palabras reservadas sin cambiar la salida de nombres ordinarios."""
+    return _identificador(nombre) if nombre.upper() in _RESERVADAS else nombre
+
+
 def _literal(valor: str) -> str:
     return "'" + valor.replace("\\", "\\\\").replace("'", "''") + "'"
 
@@ -31,9 +57,9 @@ def _cabecera(biblioteca: str, tabla: str, columnas: tuple[str, ...]) -> list[st
         _nombre_seguro(columna)
     definicion = ",\n  ".join(f"{_identificador(c)} STRING" for c in columnas)
     return [
-        f"CREATE DATABASE IF NOT EXISTS {biblioteca};",
-        f"DROP TABLE IF EXISTS {biblioteca}.{tabla};",
-        f"CREATE TABLE {biblioteca}.{tabla} (\n  {definicion}\n);",
+        f"CREATE DATABASE IF NOT EXISTS {_parte_tabla(biblioteca)};",
+        f"DROP TABLE IF EXISTS {_parte_tabla(biblioteca)}.{_parte_tabla(tabla)};",
+        f"CREATE TABLE {_parte_tabla(biblioteca)}.{_parte_tabla(tabla)} (\n  {definicion}\n);",
     ]
 
 
@@ -48,26 +74,33 @@ def sentencias_ficticias(tabla: TablaBase, filas: int = 3) -> list[str]:
         valores.append("(" + ", ".join(celdas) + ")")
     if valores:
         sentencias.append(
-            f"INSERT INTO {tabla.biblioteca}.{tabla.tabla} VALUES\n  " + ",\n  ".join(valores) + ";"
-        )
-    return sentencias
-
-
-def sentencias_desde_csv(biblioteca: str, tabla: str, ruta_csv: Path) -> list[str]:
-    """Crea la tabla con las columnas de la cabecera del CSV y carga sus filas."""
-    with ruta_csv.open(encoding="utf-8", newline="") as archivo:
-        lector = csv.reader(archivo)
-        columnas = tuple(next(lector))
-        filas = [tuple(fila) for fila in lector if fila]
-    sentencias = _cabecera(biblioteca.lower(), tabla.lower(), columnas)
-    if filas:
-        valores = ["(" + ", ".join(_literal(c) for c in fila) + ")" for fila in filas]
-        sentencias.append(
-            f"INSERT INTO {biblioteca.lower()}.{tabla.lower()} VALUES\n  "
+            f"INSERT INTO {_parte_tabla(tabla.biblioteca)}.{_parte_tabla(tabla.tabla)} VALUES\n  "
             + ",\n  ".join(valores)
             + ";"
         )
     return sentencias
+
+
+def sentencias_desde_csv_con_conteo(
+    biblioteca: str, tabla: str, ruta_csv: Path
+) -> tuple[list[str], int]:
+    """Crea SQL desde el CSV y devuelve el número exacto de filas emitidas."""
+    with ruta_csv.open(encoding="utf-8", newline="") as archivo:
+        lector = csv.reader(archivo)
+        columnas = tuple(next(lector))
+        filas = [tuple(fila) for fila in lector if fila]
+    biblioteca, tabla = biblioteca.lower(), tabla.lower()
+    sentencias = _cabecera(biblioteca, tabla, columnas)
+    if filas:
+        valores = ["(" + ", ".join(_literal(c) for c in fila) + ")" for fila in filas]
+        destino = f"{_parte_tabla(biblioteca)}.{_parte_tabla(tabla)}"
+        sentencias.append(f"INSERT INTO {destino} VALUES\n  " + ",\n  ".join(valores) + ";")
+    return sentencias, len(filas)
+
+
+def sentencias_desde_csv(biblioteca: str, tabla: str, ruta_csv: Path) -> list[str]:
+    """Crea la tabla y carga las filas del CSV, conservando la interfaz anterior."""
+    return sentencias_desde_csv_con_conteo(biblioteca, tabla, ruta_csv)[0]
 
 
 def sql_completo(bloques: list[list[str]]) -> str:
@@ -101,9 +134,9 @@ def sentencias_tipadas(
         f"{_identificador(c.name)} {_TIPOS.get(c.type, 'STRING')}" for c in columnas
     )
     sentencias = [
-        f"CREATE DATABASE IF NOT EXISTS {biblioteca};",
-        f"DROP TABLE IF EXISTS {biblioteca}.{tabla};",
-        f"CREATE TABLE {biblioteca}.{tabla} (\n  {definicion}\n);",
+        f"CREATE DATABASE IF NOT EXISTS {_parte_tabla(biblioteca)};",
+        f"DROP TABLE IF EXISTS {_parte_tabla(biblioteca)}.{_parte_tabla(tabla)};",
+        f"CREATE TABLE {_parte_tabla(biblioteca)}.{_parte_tabla(tabla)} (\n  {definicion}\n);",
     ]
     valores = []
     for fila in filas:
@@ -116,7 +149,9 @@ def sentencias_tipadas(
         )
     if valores:
         sentencias.append(
-            f"INSERT INTO {biblioteca}.{tabla} VALUES\n  " + ",\n  ".join(valores) + ";"
+            f"INSERT INTO {_parte_tabla(biblioteca)}.{_parte_tabla(tabla)} VALUES\n  "
+            + ",\n  ".join(valores)
+            + ";"
         )
     return sentencias
 
@@ -128,5 +163,8 @@ def sql_conteos(tablas: Sequence[tuple[str, str]]) -> str:
         _nombre_seguro(biblioteca)
         _nombre_seguro(tabla)
         nombre = f"{biblioteca}.{tabla}"
-        sentencias.append(f"select {_literal(nombre)} as tabla, count(*) as filas from {nombre}")
+        sentencias.append(
+            f"select {_literal(nombre)} as tabla, count(*) as filas from "
+            f"{_parte_tabla(biblioteca)}.{_parte_tabla(tabla)}"
+        )
     return " union all\n".join(sentencias) + (";" if sentencias else "")

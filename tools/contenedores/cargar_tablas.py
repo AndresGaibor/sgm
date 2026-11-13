@@ -19,9 +19,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from esquemas_datos import cargar_esquemas_datos  # noqa: E402
-from fuentes_sas import tablas_base  # noqa: E402
+from fuentes_sas import TablaBase, tablas_base  # noqa: E402
 from sql_carga import (  # noqa: E402
-    sentencias_desde_csv,
+    sentencias_desde_csv_con_conteo,
     sentencias_ficticias,
     sentencias_tipadas,
     sql_completo,
@@ -29,6 +29,7 @@ from sql_carga import (  # noqa: E402
 )
 
 from sgm.ir.models import Column  # noqa: E402
+from sgm.migrar.esquemas_programa import tablas_base_del_programa  # noqa: E402
 from tools.datos_sinteticos.por_esquema import generar_filas  # noqa: E402
 
 RED = "sgmtest_impala_red"
@@ -50,17 +51,28 @@ def ejecutar_sql(sql: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(orden, capture_output=True, text=True, check=False)
 
 
-def construir_sql(args: argparse.Namespace) -> tuple[str, list[str]]:
-    """SQL del programa o de los CSV, y los avisos de lo omitido."""
+def _construir(args: argparse.Namespace) -> tuple[str, list[str], dict[str, int]]:
+    """Prepara SQL, avisos y conteos esperados a partir de los mismos datos."""
     bloques: list[list[str]] = []
     avisos: list[str] = []
+    esperados: dict[str, int] = {}
     if args.sas:
         tablas, omitidas = tablas_base(Path(args.sas))
+        if getattr(args, "esquemas", None):
+            ruta_sas = Path(args.sas)
+            texto = ruta_sas.read_text(encoding="utf-8", errors="replace")
+            inferidas = tablas_base_del_programa(texto, str(ruta_sas))
+            tablas = [
+                TablaBase(*nombre.split("."), tuple(columnas))
+                for nombre, columnas in inferidas.items()
+            ]
+            omitidas = [o for o in omitidas if o.nombre.lower() not in inferidas]
         schemas = (
             cargar_esquemas_datos(Path(args.esquemas)) if getattr(args, "esquemas", None) else {}
         )
         for tabla in tablas:
             nombre = f"{tabla.biblioteca}.{tabla.tabla}"
+            esperados[nombre] = args.filas
             if nombre not in schemas:
                 bloques.append(sentencias_ficticias(tabla, args.filas))
                 continue
@@ -77,10 +89,18 @@ def construir_sql(args: argparse.Namespace) -> tuple[str, list[str]]:
             raise SystemExit("Cada --csv necesita su --tabla biblioteca.tabla")
         for ruta, destino in zip(args.csv, args.tabla, strict=True):
             biblioteca, tabla = destino.split(".")
-            bloques.append(sentencias_desde_csv(biblioteca, tabla, Path(ruta)))
+            bloque, filas_csv = sentencias_desde_csv_con_conteo(biblioteca, tabla, Path(ruta))
+            bloques.append(bloque)
+            esperados[f"{biblioteca.lower()}.{tabla.lower()}"] = filas_csv
     if not bloques:
         raise SystemExit("Indica --sas o --csv con --tabla")
-    return sql_completo(bloques), avisos
+    return sql_completo(bloques), avisos, esperados
+
+
+def construir_sql(args: argparse.Namespace) -> tuple[str, list[str]]:
+    """SQL del programa o de los CSV, y los avisos de lo omitido."""
+    sql, avisos, _ = _construir(args)
+    return sql, avisos
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -100,10 +120,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.filas < 0:
         parser.error("--filas no puede ser negativo")
-    sql, avisos = construir_sql(args)
-    tablas = re.findall(
-        r"(?m)^CREATE TABLE ([A-Za-z_][A-Za-z_0-9]*)\.([A-Za-z_][A-Za-z_0-9]*) \(", sql
-    )
+    sql, avisos, esperados = _construir(args)
+    tablas = [tuple(nombre.split(".")) for nombre in esperados]
     conteos = sql_conteos(tablas) if args.verificar else ""
     for aviso in avisos:
         print(aviso)
@@ -134,13 +152,14 @@ def main(argv: list[str] | None = None) -> int:
         )
         for biblioteca, tabla in tablas:
             nombre = f"{biblioteca}.{tabla}"
-            if encontrados.get(nombre) != str(args.filas):
+            if encontrados.get(nombre) != str(esperados[nombre]):
+                actual = encontrados.get(nombre, "sin resultado")
                 print(
-                    f"Conteo no coincide para {nombre}: {encontrados.get(nombre, 'sin resultado')}",
+                    f"Conteo no coincide para {nombre}: {actual}; se esperaban {esperados[nombre]}",
                     file=sys.stderr,
                 )
                 return 1
-        print(f"Conteos verificados: {len(tablas)} tablas, {args.filas} filas cada una")
+        print(f"Conteos verificados: {len(tablas)} tablas")
     return 0
 
 

@@ -21,15 +21,18 @@ def cargar_esquemas_datos(carpeta: Path) -> dict[str, list[Column]]:
                 continue
             key = f"{ruta.stem.lower()}.{tabla.lower()}"
             if raw.get("_inferido") is True:
-                schemas[key] = [
-                    Column(
-                        str(c["name"]),
-                        c.get("type"),
-                        c.get("length"),
-                        str(c.get("source") or "unknown"),
-                    )
-                    for c in columnas
-                ]
+                schemas.setdefault(
+                    key,
+                    [
+                        Column(
+                            str(c["name"]),
+                            c.get("type"),
+                            c.get("length"),
+                            str(c.get("source") or "unknown"),
+                        )
+                        for c in columnas
+                    ],
+                )
             elif key in schemas:
                 for columna, original in zip(schemas[key], columnas, strict=True):
                     if original.get("type") is not None and columna.type is None:
