@@ -240,7 +240,7 @@ def migrar(
         # Las plantillas se escriben en línea: los esquemas y las rutas salen del plan desplegado.
         original = {op.id for op in plan.graph.operators()}
         plan, desplegados = plan_desplegado(plan)
-        plan, previos = preparar_plan(plan, locales)
+        plan, previos = preparar_plan(plan, locales, texto=texto)
         resultado.pendientes += previos
         contextos = contextos_de_plan(plan, dev=dev)
         if not len(plan.graph):

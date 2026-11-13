@@ -7082,3 +7082,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - TDD: primero fallaron los módulos ausentes; después las pruebas enfocadas detectaron el hallazgo de seguridad y la suite completa detectó un doble de `plan_a_jobs` con la firma antigua. Se preservó la llamada antigua si no se usa contexto. Enfocadas: 68 aprobadas; la regresión de compatibilidad y el flujo DEV: 7 aprobadas. `uv run ruff check .` verde.
 - Cierre integral: `uv run python tools/ci.py` pasó con 4024 aprobadas, 349 omitidas y 142 `xfail`; Ruff, cruces del corpus, oráculo y tablero en verde. La validación integral se ejecutó sobre el árbol final antes del commit.
 - Paso 5 de K-4 pendiente: el intento de K-3 registró que el daemon/pipe de Docker no estaba disponible; además, la instrucción vigente prohíbe conexiones a Impala y otras bases. No se usaron Studio, Docker ni `consultar` contra una base. Sin dependencias nuevas, datos reales ni push.
+
+## Hito 232n. Copias remotas SAS/CONNECT como alias de ruta
+
+- Fecha: 2026-11-13. Base: `bebc748` (Hito 231n), K-5 del plan de datos sintéticos.
+- `copias_remotas` reconoce `PROC DOWNLOAD` y `PROC UPLOAD` con `INFILE=`/`OUTFILE=` literales. `DOWNLOAD` redirige la lectura local al origen remoto; `UPLOAD` redirige la escritura local al destino remoto. No crea operadores ni simula la copia física.
+- Rutas dinámicas quedan `P-COPIA-REMOTA-DINAMICA`; copias de datasets, `P-COPIA-REMOTA-DATASET`; opciones incompletas o sin efecto conservan pendientes específicos. Los mensajes no incorporan valores de `SIGNON` ni credenciales.
+- TDD con trozos redactados de `client_large.sas`, cobertura de rutas normalizadas, integración del contexto `Default.yaml`, pendientes y compatibilidad golden. Pruebas enfocadas: 69 aprobadas, 3 omitidas por restricciones de symlink en Windows. `sgm secretos tests/fixtures/sas/client`: cero hallazgos; Ruff global verde.
+- Fuentes verificadas en `connref.pdf`: `UPLOAD` y opciones de archivo, pp. 247–248; `DOWNLOAD` y opciones, pp. 287–288; límites CONNECT en pp. 151, 185 y 206. `procs-usados.yaml` reconoce únicamente el alcance de alias de archivos; las demás formas siguen pendientes.
+- La primera suite con concurrencia automática falló únicamente porque `test_robustez_sobre_todo_el_repositorio` midió 64 s en `client_large.sas` frente al límite de 60 s; 4031 pruebas pasaron. El mismo test aislado pasó en 32,97 s. La compuerta integral repetida con `PYTEST_ADDOPTS=-n 8` pasó: 4032 aprobadas, 349 omitidas, 142 `xfail`; Ruff, cruces del corpus, oráculo y tablero en verde. La corrida final sobre este registro queda antes del commit.
+- Sin Studio, Docker, red, datos reales ni conexiones a bases. Siguiente tarea: K-6.

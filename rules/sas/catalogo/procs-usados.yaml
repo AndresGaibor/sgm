@@ -27,8 +27,8 @@ entries:
 - id: upload
   nombre: PROC UPLOAD
   fuente: connref.pdf, p. 247
-  estado: no_verificada
-  nota: '22 usos; envía un dataset al servidor remoto de SAS/CONNECT. Es entorno'
+  estado: reconocida
+  nota: '22 usos; archivos literales se resuelven como alias de ruta (ir/pase_copias_remotas.py); la copia no se materializa; DATA=/OUT=, bibliotecas y catálogos quedan pendientes'
 - id: export
   nombre: PROC EXPORT
   fuente: proc.pdf, p. 901
@@ -42,8 +42,8 @@ entries:
 - id: download
   nombre: PROC DOWNLOAD
   fuente: connref.pdf, p. 287
-  estado: no_verificada
-  nota: '4 usos; trae un dataset del servidor remoto. Es entorno'
+  estado: reconocida
+  nota: '4 usos; archivos literales se resuelven como alias de ruta (ir/pase_copias_remotas.py); la copia no se materializa; DATA=/OUT=, bibliotecas y catálogos quedan pendientes'
 - id: pwencode
   nombre: PROC PWENCODE
   fuente: proc.pdf, p. 1997

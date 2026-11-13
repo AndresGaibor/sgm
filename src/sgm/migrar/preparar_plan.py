@@ -3,16 +3,20 @@
 from pathlib import Path
 
 from sgm.ir.models import Column, Plan
+from sgm.ir.pase_copias_remotas import aplicar_copias, copias_remotas
 from sgm.ir.pase_tablas_locales import tablas_locales_a_archivos
 from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
 from sgm.migrar.tablas_locales import TablaLocal
 
 
 def preparar_plan(
-    plan: Plan, locales: dict[str, TablaLocal] | None = None
+    plan: Plan, locales: dict[str, TablaLocal] | None = None, texto: str = ""
 ) -> tuple[Plan, list[PendienteMigracion]]:
-    """Convierte las fuentes locales si se suministró su configuración."""
-    return tablas_locales_a_archivos(plan, locales or {})
+    """Convierte fuentes locales y resuelve alias de copias remotas declaradas en el SAS."""
+    plan, pendientes = tablas_locales_a_archivos(plan, locales or {})
+    copias, pendientes_copia = copias_remotas(texto)
+    plan, sin_efecto = aplicar_copias(plan, copias)
+    return plan, [*pendientes, *pendientes_copia, *sin_efecto]
 
 
 def esquemas_con_locales(
