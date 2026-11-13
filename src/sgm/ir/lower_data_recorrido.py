@@ -25,6 +25,7 @@ from sgm.ir.lower_data_arreglos import (
 from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_op
 from sgm.ir.lower_data_automaticas import automaticas_en, motivo
 from sgm.ir.lower_data_bloques import bloque_condicional
+from sgm.ir.lower_data_hash import pendientes_hash
 from sgm.ir.lower_data_salidas import _conditional_output_chain, _note, _output_sequence
 from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado, select_sin_otherwise
 from sgm.ir.models import Evidence, Operator
@@ -64,11 +65,16 @@ class _Recorrido:
         self.prev = prev
 
     def ejecutar(self) -> None:
+        # Objetos hash e iteradores: cada sentencia que los usa es un hueco con su código (B-21).
+        hash_pendientes = {p.indice: p for p in pendientes_hash(self.stmts)}
         for index, s in enumerate(self.stmts):
             if index in self.omit:
                 continue
             statement_ev = Evidence(self.ev.file, s.line, s.line, self.ev.label, self.ev.call)
             before, self.prev = self.prev, s
+            if index in hash_pendientes:
+                self._hueco_hash(index, statement_ev, hash_pendientes[index])
+                continue
             if s.kind in _HEAD_KINDS:
                 continue
             if self._automatica_sin_traduccion(index, statement_ev):
@@ -221,6 +227,22 @@ class _Recorrido:
         self.omit.update(range(index + 1, fin + 1))
         self.prev = self.stmts[fin]
         return True
+
+    def _hueco_hash(self, index: int, statement_ev: Evidence, pendiente) -> None:
+        """Hueco con el código del objeto hash o iterador (`lrcon`, pp. 628 a 642)."""
+        operador = self.b.op(
+            "unsupported",
+            {
+                "statement": self.stmts[index].text,
+                "reason": "HASH_SIN_EQUIVALENCIA",
+                "codigo": pendiente.codigo,
+            },
+            statement_ev,
+            status="hueco",
+            notes=[pendiente.motivo],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
 
     def _hueco_de_bucle(
         self, index: int, statement_ev: Evidence, motivo: str, reason: str, codigo: str, fin: int

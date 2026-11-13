@@ -117,6 +117,22 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
   impide emitir el Job.
 - **Desbloqueo:** esas decisiones, y Studio en `READY` para validar el `tJavaRow`.
 
+## B-21: el lookup `FIND` con tMap y su valor de `rc` (decisión del dueño)
+
+- **Tarea:** B-21, paso (a) (`FIND` como `unir` izquierdo con `rc` como columna) y paso (b) (llave duplicada).
+- **Hecho en 238m:** todo objeto hash e iterador es un hueco con su código (`P-HASH-LOOKUP-SIN-SOPORTE`,
+  `P-HASH-MUTABLE`, `P-HASH-OUTPUT`, `P-HASH-ITERADOR`). No sale Job con ellos.
+- **Motivo:** `lrcon` (p. 633 y 634) solo dice que `FIND` devuelve 0 si encuentra la llave y distinto de 0 si no.
+  El valor exacto que devuelve cuando no encuentra no está en la guía. El plan dice `-1`, pero eso sería inventarlo
+  (regla 6 de `AGENTS.md`). El tMap que el paso (a) describe necesita ese valor para la columna `rc`.
+- **Duplicados (paso b):** `lrcon` p. 632 dice que, al cargar un dataset, por omisión se queda la primera
+  observación y las siguientes se ignoran (`DUPLICATE` guarda la última; `MULTIDATA` guarda todas). Eso sí está
+  demostrado. Falta el operador que descarte duplicados quedándose con el primero para el lado de la búsqueda.
+- **Decisión que falta (dueño):** (1) ¿la columna `rc` se traduce solo cuando el programa compara `rc = 0` o `rc ne 0`
+  (sin inventar el valor no encontrado), o no se traduce nunca? (2) ¿el lado de búsqueda se deduplica con el
+  primero (regla de `lrcon` p. 632) en un operador nuevo, o el paso queda pendiente?
+- **Desbloqueo:** esa decisión. La validación del tMap en Studio va en B-18/B-Gate.
+
 ## B-22: catálogo y plan maestro al día (depende de Studio)
 
 - **Tarea:** B-22, pasos 1 y 2. El paso 2 corrige la tabla 5.2 (`tUnite` con conexiones `MERGE`, según B-9), reemplaza

@@ -27,9 +27,9 @@ def _operadores(texto: str):
 
 
 def test_find_no_es_un_paso_soportado():
+    # B-21: el objeto hash es un hueco con su código; el `rc = h.find()` no sale como derive.
     ops = _operadores(PROGRAMA)
-    derivados = [op for op in ops if op.kind == "derive"]
-    assert derivados, "el paso con h.find() debe existir como derive"
-    assert all(op.status != "soportado" for op in derivados)
-    notas = [n for op in derivados for n in op.notes]
-    assert any("h.find()" in n for n in notas)
+    assert not any(op.kind == "derive" and "find" in str(op.params) for op in ops)
+    huecos = [op for op in ops if op.status == "hueco"]
+    assert any(op.params.get("codigo") == "P-HASH-LOOKUP-SIN-SOPORTE" for op in huecos)
+    assert all(op.status != "soportado" for op in ops if "find" in str(op.params).lower())

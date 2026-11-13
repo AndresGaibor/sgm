@@ -488,7 +488,7 @@ Semántica (`lrcon`, «Using the Hash Object», p. 628 a 641): `DECLARE HASH h(D
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\` (entrada `hash` con `fuente: lrcon.pdf, p. 628` y `estado: reconocida` solo para el patrón de búsqueda; el resto `no_reconocida` con nota)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_hash.py`
 
-**Estado (hito 229m):** parcial. Guardia de que un método hash no sale como paso soportado (`test_hash_sin_equivalencia_silenciosa.py`). El lookup con `rc` (paso a) y la regla de duplicados (paso b) quedan pendientes; `h.ADD()` (paso c) ya es pendiente por sentencia sin traducción.
+**Estado (hito 238m):** parcial. Hecho en 238m: todo objeto hash o iterador es un hueco con su código y su página de `lrcon` (`src/sgm/ir/lower_data_hash.py`: `P-HASH-LOOKUP-SIN-SOPORTE` p. 628 a 634, `P-HASH-MUTABLE` p. 633 y 638, `P-HASH-OUTPUT` p. 639, `P-HASH-ITERADOR` p. 642); ningún Job sale con ellos (`test_lower_data_hash.py`). Antes, `DECLARE HASH` se ignoraba y `rc = h.find()` salía como columna sin traducir dentro de un Job que se escribía. Faltan, bloqueados en `docs/BLOQUEOS.md` (B-21): el lookup `FIND` con tMap y su columna `rc` (la guía no da el valor distinto de 0) y la regla de llave duplicada (`lrcon`, p. 632) en un operador de búsqueda.
 
 - [ ] **Step 1: Write the failing test.** (a) El patrón de búsqueda baja a un operador `unir` tipo `left` con `rc` como columna calculada (`0` si hubo coincidencia, `-1` si no; el valor exacto de `rc` se lee de la guía); (b) llave duplicada: el esperado sigue la regla leída de las páginas 630 a 638; (c) `h.ADD()` da `P-HASH-MUTABLE` y no se emite Job parcial.
 - [ ] **Step 2: Run test to verify it fails.**

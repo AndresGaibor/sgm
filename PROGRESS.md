@@ -7253,3 +7253,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `test_macros.py`, `test_frontend.py`, `test_plumbing_categorias.py`: 86 pasan; suite completa: 3745 pasan,
   332 omitidas, 142 xfail; `ruff check .` limpio.
 - Pendiente (parcial): `_N_` (intérprete) y la emisión de `CALL SYMPUT` (BLOQUEOS, B-20).
+
+## Hito 238m. B-21: objetos hash como huecos con su código; sin Job con hash (parcial)
+
+- Qué se hizo:
+  - `src/sgm/ir/lower_data_hash.py` (nuevo): detecta los objetos `DECLARE HASH` / `DECLARE HITER` del paso y cada
+    sentencia que llama a uno de sus métodos. Cada método tiene código y página de `lrcon`: `FIND`/`CHECK`
+    `P-HASH-LOOKUP-SIN-SOPORTE` (p. 634), `ADD`/`REF`/`REMOVE`/`REPLACE` `P-HASH-MUTABLE` (p. 633, 638), `OUTPUT`
+    `P-HASH-OUTPUT` (p. 639), iterador `P-HASH-ITERADOR` (p. 642). `DEFINEKEY`/`DEFINEDATA`/`DEFINEDONE` forman la
+    declaración y no llevan código.
+  - `lower_data_recorrido.py`: cada sentencia de hash es un `unsupported` con `codigo`, en vez de un `derive` que
+    contenía `h.find()` o una sentencia `declare` ignorada. Sin Job: `tiene_hueco` lo bloquea (regla de 235m).
+- Antes, un programa con `DECLARE HASH` y `rc = h.find()` migraba a un Job con un `tMap` que no hacía el lookup,
+  con solo un pendiente de columna (`P-ASIGNACION-SIN-TRADUCIR`). Eso era un Job parcial que se escribía.
+- Pruebas: `test_lower_data_hash.py` (4, nuevo), `test_hash_sin_equivalencia_silenciosa.py` (la guardia pasa a
+  comprobar el hueco en vez de un `derive`); suite completa: 3749 pasan, 332 omitidas, 142 xfail; ruff limpio.
+- Citas: todas de `lrcon` (pp. 628, 629, 632, 633, 634, 638, 639, 642), comprobadas contra `lrcon.INDEX.md`.
+- Pendiente (parcial): el lookup `FIND` con tMap y su `rc`, y la llave duplicada con el primero (BLOQUEOS, B-21).
+  Deuda: `lower_data_recorrido.py` ya pasaba de 300 líneas; el cambio se añade sin extraer antes (regla de MG-B).
