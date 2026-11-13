@@ -97,6 +97,12 @@ def _fila_de(
     return resultado
 
 
+def _con_clave_existente(fila: dict, nuevos: dict) -> dict:
+    """Cambia el nombre de cada columna nueva por el de la fila si ya existe con otra mayúscula."""
+    existentes = {k.lower(): k for k in fila}
+    return {existentes.get(k.lower(), k): v for k, v in nuevos.items()}
+
+
 def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> list[dict]:
     """Cada asignación es una columna de la salida.
 
@@ -135,7 +141,12 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
             )
         )
     if aditivo:
-        return [{**fila, **_fila_de(pares, fila, secuencial=True)} for fila in filas]
+        # SAS no distingue mayúsculas en los nombres de variable (`lrcon`, p. 49): una asignación
+        # a `VALOR` sobre una columna `valor` la sustituye, no añade una segunda.
+        return [
+            {**fila, **_con_clave_existente(fila, _fila_de(pares, fila, secuencial=True))}
+            for fila in filas
+        ]
     return [_fila_de(pares, fila) for fila in filas]
 
 

@@ -75,7 +75,7 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Decidido (13 nov, punto 3):** `--escribir` añade un caso por clase de equivalencia y los de coincidencia estructural, no los 386.
 
 - **Tarea:** B-17, paso 1 (patrón de captura PDV) y paso 4 (`--escribir N`, casos en `tests/corpus/L6/`).
-- **Motivo (captura):** el intérprete trata `VALOR` (asignada) y `valor` (de la entrada) como dos columnas. SAS no
+- **Motivo (captura) — resuelto en 243m para el intérprete:** el intérprete trataba `VALOR` y `valor` como dos columnas (ver el punto siguiente). SAS no
   distingue mayúsculas en nombres de variables; con `OUTPUT S1; VALOR = VALOR + 10; OUTPUT S2;` el dataset `S2`
   queda con dos columnas de valor y la comparación con el oráculo falla. La corrección está en `interprete.py`
   (1 103 líneas, zona de Byron, con la decisión (a/b/c) pendiente, ver B-11 a B-14 y B-19). El traductor
@@ -86,9 +86,9 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Decisiones que faltan (dueño):** (1) la de `interprete.py` (B-11 a B-14, B-19); (2) cuántas combinaciones
   de `OUTPUT` entran al corpus L6.
 - **Desbloqueo:** esas dos decisiones. La captura además necesita Studio para validarse en B-18.
-- **Mismo defecto, otro caso:** el intérprete, al asignar una columna que ya existe en la entrada con otra
-  mayúscula (`Z` contra `z`), escribe una columna nueva en vez de sustituir la existente. El caso `l4_23` evita el
-  choque con su entrada, y `test_casos_b15_select.py` compara en minúsculas. La corrección también va en `interprete.py`.
+- **Mismo defecto, otro caso (resuelto en 243m):** el intérprete escribía una columna nueva al asignar con otra mayúscula
+  (`Z` contra `z`). Corregido en `interprete_filas.py` (`lrcon`, p. 49). La captura del PDV ya no depende de esto; queda su
+  validación en Studio (B-18).
 
 ## B-18 y B-Gate: Studio
 

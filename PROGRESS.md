@@ -7340,3 +7340,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `_nombre_de_columna` a `interprete_base`.
 - Pruebas: suite completa 4090 pasan, 332 omitidas, 142 xfail (igual que antes del corte). `ruff check` limpio.
 - Estado de la decisión 1: el corte está hecho. Falta el defecto de mayúsculas `Z`/`z`, en un commit aparte.
+
+## Hito 243m. Defecto de mayúsculas Z/z corregido en el intérprete (decisión 1 del dueño, commit aparte)
+
+- Defecto: una asignación con otra mayúscula que una columna existente (`VALOR = VALOR + 10` sobre la columna `valor`)
+  creaba una segunda columna. El intérprete dejaba `valor` y `VALOR` en la misma fila.
+- Regla de SAS: los nombres de variable no distinguen mayúsculas; se guarda la forma de la primera referencia
+  (`lrcon`, p. 49: `cat`, `Cat` y `CAT` son la misma variable).
+- Corrección: `_proyectar` (`interprete_filas.py`) cambia el nombre de cada columna nueva por el de la fila si ya existe
+  con otra mayúscula (`_con_clave_existente`).
+- Pruebas: `test_interprete_mayusculas.py` (2, nuevos). Antes: la primera fallaba con `['id', 'valor', 'VALOR']`.
+  Suite completa: 4092 pasan, 332 omitidas, 142 xfail. `ruff check` limpio.
+- Efecto en otras tareas: la captura del PDV (B-17) ya no está bloqueada por el intérprete. Queda su validación en
+  Studio (B-18). El caso `l4_23` conserva su entrada sin `Z`; no hace falta cambiarla.
