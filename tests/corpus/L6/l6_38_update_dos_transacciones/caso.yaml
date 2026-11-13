@@ -1,0 +1,39 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- UPDATE
+capa: C
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- UPDATE_L6_38
+razonamiento: 'Dos transacciones con la misma llave se aplican en orden y la ultima gana; el duplicado del maestro conserva su valor (lrcon, pp. 608 y 609, Output 23.15).'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes: []
+motivo: UPDATE sin emisor en Talend todavía (B-19, Studio). Sin esperado/ hasta que el emisor exista; el resultado se fija en tests/unit/test_interprete_update.py.
+esquemas:
+  WORK.MASTER:
+    COMMON:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    ANIMAL1:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    PLANT1:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.TRANS:
+    COMMON:
+      tipo: String
+      linea: 8
+      fuente: muestra
+    PLANT1:
+      tipo: String
+      linea: 8
+      fuente: muestra
+

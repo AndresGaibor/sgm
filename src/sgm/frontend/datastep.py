@@ -128,6 +128,8 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
         return DsStatement("set", body, line, {"sources": _dataset_refs(body[3:])})
     if head == "merge":
         return DsStatement("merge", body, line, {"sources": _dataset_refs(body[5:])})
+    if head in ("update", "modify"):
+        return DsStatement(head, body, line, {"sources": _dataset_refs(body[len(head):])})
     if head == "by":
         return DsStatement(
             "by", body, line, {"names": [n.strip() for n in body[2:].split() if n.strip()]}

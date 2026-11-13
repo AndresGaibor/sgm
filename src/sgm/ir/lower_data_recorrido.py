@@ -32,7 +32,9 @@ from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado, select
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.pasos import op_validado
 
-_HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
+_HEAD_KINDS = frozenset(
+    {"set", "merge", "update", "modify", "by", "infile", "input", "datalines"}
+)
 
 
 def _statement_evidence(stmt: DsStatement, ev: Evidence) -> Evidence:

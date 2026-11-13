@@ -24,7 +24,7 @@ import re
 
 from sgm.frontend.datastep import DsStatement
 
-_CABECERA = frozenset({"set", "merge", "by", "declare"})
+_CABECERA = frozenset({"set", "merge", "update", "modify", "by", "declare"})
 _SUMA = re.compile(r"(?is)^(\w+)\s*\+\s*(.+)$")
 _SI = re.compile(r"(?is)^if\s+(.*?)\s+then\s+(\w+)\s*=\s*(.+)$")
 _FILTRA = re.compile(r"(?is)^if\s+(.+)$")

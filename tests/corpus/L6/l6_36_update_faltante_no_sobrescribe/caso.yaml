@@ -1,0 +1,43 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- UPDATE
+capa: C
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- UPDATE_L6_36
+razonamiento: 'Un faltante en la transaccion no sobrescribe el maestro (lrcon, p. 604); la llave que solo esta en la transaccion se agrega y la variable nueva queda faltante donde no hay valor (Output 23.16, p. 610).'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes: []
+motivo: UPDATE sin emisor en Talend todavía (B-19, Studio). Sin esperado/ hasta que el emisor exista; el resultado se fija en tests/unit/test_interprete_update.py.
+esquemas:
+  WORK.MASTER:
+    COMMON:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    ANIMAL2:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    PLANT2:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.TRANS:
+    COMMON:
+      tipo: String
+      linea: 8
+      fuente: muestra
+    PLANT2:
+      tipo: String
+      linea: 8
+      fuente: muestra
+    MINERAL:
+      tipo: String
+      linea: 8
+      fuente: muestra
+

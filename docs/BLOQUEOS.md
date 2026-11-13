@@ -170,3 +170,33 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   página) sí puede hacerse, pero cada estado hay que contrastarlo con la guía antes de cambiarlo, y se hará con el
   resto del cierre.
 - **Desbloqueo:** Studio en `READY` y el lote de B-18 y B-Gate ejecutados.
+
+## Bloqueo 252m: memoria libre por debajo de 4 GB (ralph-loop, B-19)
+
+- **Qué pasó:** al cerrar B-19 (`UPDATE` en el intérprete, hueco sin emisor, casos l6_35 a l6_38) la memoria libre
+  era de 2,77 GB (`Get-CimInstance Win32_OperatingSystem`, `FreePhysicalMemory`). El bucle exige 4 GB antes de
+  `tools/ci.py`, así que no se corrió el gate y no hay commit de 252m.
+- **Estado en disco, sin commit:** `src/sgm/migrar/interprete_update.py` (nuevo), `src/sgm/ir/lower_data_update.py`
+  (nuevo), `tests/unit/test_interprete_update.py` (nuevo, 9 tests), casos `tests/corpus/L6/l6_35` a `l6_38` (pendientes,
+  sin `esperado/`), `src/sgm/frontend/datastep.py` (`update` y `modify`), `src/sgm/ir/lower_data.py` y
+  `lower_data_recorrido.py` y `lower_data_grupos.py` (cabeceras), `src/sgm/migrar/interprete_pasos.py` (una rama de
+  despacho y el import), y ajustes de tests: `test_ir_rules.py` (LAG es hueco), `test_interprete_sin_traducir.py` (se
+  quitó el caso LAG en IF, cubierto en `test_interprete_lag.py`), `test_catalogo_sas.py` (`update`/`modify` son
+  sentencias propias con hueco), `test_tablero.py` (254 casos, L6 144), `migrar_pendientes.yaml`.
+- **Por revisar al commitear:** `interprete_pasos.py` figura como de Byron en `reparto-andres-byron.md`; se tocó solo
+  para el despacho del `join` con `modo="update"`. `lower_data.py` queda en 304 líneas (sobre el límite de 300).
+- **Qué falta:** `tools/ci.py` con memoria libre (o por tandas), y el commit `hito 252m: ...` con la nota anterior.
+  Emisión de `UPDATE` en `desde_plan_merge.py` (tJavaRow) y validación en Studio: pendientes hasta que el puente
+  responda. `operadores.combinar` con `modo="update"` no se añadió: el hueco se construye con `b.op`.
+- **Segunda comprobación (iteración siguiente del bucle):** memoria libre 2,76 GB. Los mayores consumidores son
+  procesos de Chrome y de Claude (no hay ejecuciones de `tools/ci.py` ni de pytest del repo). No se cerraron
+  procesos ajenos. Sin commit de 252m hasta que haya 4 GB libres.
+- **Tercera comprobación (tras reiniciar):** memoria libre 1,07 GB de 13,35 GB. Consumen Chrome (6,6 GB) y
+  Talend Studio (1,97 GB, abierto por el usuario, no por este bucle). No se corrió `tools/ci.py` ni se commiteó.
+- **Cambios hechos sin gate:** `lower_data.py` pasó de 304 a 277 líneas: `_join_type` (MERGE) se movió a
+  `src/sgm/ir/lower_data_union.py` como `tipo_de_union`, sin cambio de lógica; `import re` huérfano quitado.
+  El despacho de `UPDATE` sigue en `lower_data_update.py`. Finales de línea restaurados con
+  `.cache/restaura_eol.py` en `datastep.py` e `interprete_pasos.py` (sin churn: diff igual con y sin ignorar CR).
+  `interprete_pasos.py` (Byron): el diff contra HEAD son solo el import de `_actualizar` y la rama `elif` del
+  despacho de `UPDATE` (8 líneas).
+- **Prueba dirigida (un proceso):** `test_interprete_update.py` y `test_interprete_lag.py`, 16 pasan. Ruff limpio.

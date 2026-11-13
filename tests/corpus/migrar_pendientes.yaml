@@ -35,4 +35,8 @@ l6_34_array_indice_fuera_de_rango: P-ARRAY-FUERA-DE-RANGO
 l6_39_suma_con_faltante: P-POR-GRUPO-SIN-EMISOR
 l6_40_lag_dentro_de_if: P-LAG-SIN-EMISOR
 l6_41_dif_primer_valor_faltante: P-LAG-SIN-EMISOR
+l6_35_update_basico: P-UPDATE-SIN-EMISOR
+l6_36_update_faltante_no_sobrescribe: P-UPDATE-SIN-EMISOR
+l6_37_update_llave_nueva: P-UPDATE-SIN-EMISOR
+l6_38_update_dos_transacciones: P-UPDATE-SIN-EMISOR
 l2_16_sql_en_misma_base: P-OPERADOR-SIN-SOPORTE

@@ -22,6 +22,7 @@ from sgm.migrar.interprete_filas import (
     _unir,
     _validar_subconsulta_de_union,
 )
+from sgm.migrar.interprete_update import _actualizar
 from sgm.migrar.interprete_valores import (
     NoSoportadoEnInterprete,
     _arbol,
@@ -88,7 +89,12 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
     for paso in pasos:
         clase = str(paso.get("kind") or "")
         params = paso.get("params") or {}
-        if clase == "join" and not params.get("keys") and params.get("by"):
+        if clase == "join" and params.get("modo") == "update":
+            fuentes = [_tabla(s) for s in params.get("sources") or []]
+            if len(fuentes) < 2 or any(f not in por_tabla for f in fuentes):
+                raise NoSoportadoEnInterprete("update", "UPDATE sin las tablas de sus fuentes")
+            actual = _actualizar([por_tabla[f] for f in fuentes], params)
+        elif clase == "join" and not params.get("keys") and params.get("by"):
             fuentes = [_tabla(s) for s in params.get("sources") or []]
             if len(fuentes) < 2 or any(f not in por_tabla for f in fuentes):
                 raise NoSoportadoEnInterprete("join", "MERGE sin las tablas de sus fuentes")
