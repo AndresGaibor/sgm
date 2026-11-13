@@ -7431,3 +7431,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   y el acumulado por grupo ya coinciden en `l6_05`, `l6_06`, `l6_07` y `l6_10`.
 - Conflicto de numeración: el plan B-13 pide `l6_27` a `l6_31`, pero esos números ya son casos (`l6_27` a `l6_29`
   pendientes de otra tarea, `l6_30` y `l6_31` del caso DO). Los casos nuevos de B-13 van a `l6_39` en adelante.
+
+## Hito 249m. B-13: sentencia suma `x + expr;` (lestmtsref, p. 360): intérprete y hueco sin emisor (parcial)
+
+- Regla: la suma equivale a `RETAIN x 0; x = SUM(x, expr);`. `x` empieza en 0, se retiene entre filas, y un faltante en `expr`
+  cuenta como cero, así que `x` nunca queda faltante (`lestmtsref`, p. 360).
+- Qué se hizo: `datastep.py` reconoce `x + expr;` como `sum` (con una lista de palabras de sentencia que no son variable).
+  `lower_data_asignaciones.py` la lowera a `stateful_row` `suma` en HUECO con `codigo` `P-SUMA-SIN-EMISOR`: sin emisor en
+  Talend el Job no se escribe (decisión 5). `interprete_pasos.py` (`_sumar`) la calcula para probar la regla.
+  `lower_data_grupos.py` acepta el nuevo kind en la rama de grupos BY, que ya tenía la suma.
+- Defecto que se corrige: antes, `acum + x;` quedaba como sentencia sin traducción y el intérprete la ignoraba (la salida no
+  tenía `acum`). Ahora calcula 2, 2 y 7 para x = 2, faltante, 5 (`test_interprete_suma.py`). La prueba de la guardia pasa a
+  `SELECT` sin `OTHERWISE` (`lestmtsref`, p. 340), que sigue sin traducir.
+- Golden `p1_merge_first_last.plan.json`: cambia de forma estructural (la suma pasa de sentencia sin traducción a hueco). Se
+  regeneró solo ese archivo y su huella se fija en `CAMBIOS_ESTRUCTURALES_DOCUMENTADOS` con el motivo. `p0` y `client_poc`
+  se restauraron: su única diferencia era el orden de las claves al serializar, no el contenido.
+- Caso nuevo `tests/corpus/L6/l6_39_suma_con_faltante` (pendiente, sin `esperado/`). Tablero: 248 casos, L6 138.
+- Pruebas: `test_interprete_suma.py` (2), `test_golden*`, `test_migrar_corpus_aceptacion`, `test_tablero`. Suite completa:
+  4591 pasan, 442 omitidas, 142 xfail. `ruff check .` limpio.
+- Pendiente (parcial, B-13): `RETAIN` con valor (`lestmtsref`, p. 331), `LAG` y `DIF` (`lefunctionsref`, pp. 1163 y 663). La
+  emisión de la suma en Talend necesita Studio.

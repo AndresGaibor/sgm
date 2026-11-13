@@ -9,6 +9,7 @@ import re
 
 from sgm.ir.models import Operator, Plan
 from sgm.migrar.interprete_agrupado import _agregar, _por_grupo
+from sgm.migrar.interprete_base import _numero
 from sgm.migrar.interprete_filas import (
     _derecha,
     _filtrar,
@@ -21,7 +22,14 @@ from sgm.migrar.interprete_filas import (
     _unir,
     _validar_subconsulta_de_union,
 )
-from sgm.migrar.interprete_valores import NoSoportadoEnInterprete, _columna, _primero, _tabla
+from sgm.migrar.interprete_valores import (
+    NoSoportadoEnInterprete,
+    _arbol,
+    _columna,
+    _primero,
+    _tabla,
+    _valor,
+)
 
 # Pasos que el plan también deja sueltos, sin el `map` que los envuelve.
 _PASOS_SUELTOS = (
@@ -126,6 +134,8 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
             actual = _agregar(actual, params)
         elif clase == "stateful_row" and params.get("reason") == "by_group":
             actual = _por_grupo(actual, params)
+        elif clase == "stateful_row" and params.get("reason") == "suma":
+            actual = _sumar(actual, params)
         else:
             raise NoSoportadoEnInterprete(clase or "paso", "el intérprete no lo ejecuta")
     return actual
@@ -196,3 +206,17 @@ def _expandir_estrellas(asignaciones: list[dict], por_tabla: dict[str, list[dict
     return resultado
 
 
+
+
+def _sumar(filas: list[dict], params: dict) -> list[dict]:
+    """Sentencia suma `x + expr;` (lestmtsref, p. 360): `x` empieza en 0 y se retiene entre
+    filas. Un faltante en `expr` cuenta como 0, así que `x` nunca queda faltante."""
+    nombre = str(params.get("target") or "").lower()
+    arbol = _arbol(str(params.get("expression") or ""))
+    total = 0.0
+    salida: list[dict] = []
+    for fila in filas:
+        valor = _numero(_valor(arbol, fila))
+        total += valor if valor is not None else 0.0
+        salida.append({**fila, nombre: total})
+    return salida

@@ -106,6 +106,10 @@ CAMBIOS_DOCUMENTADOS = {
 # revisado por su hash canónico; `test_golden.py` conserva además la comparación exacta.
 CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
     "client__client_poc.plan.json": "4d30d95add60ceb55efe98897f7cfca640c1731c6305b18a66a6688385c4e98e",
+    # Hito 249m: la suma `acumulado + coalesce(...)` deja de ser una sentencia sin traducción (que el
+    # intérprete ignoraba) y pasa a `stateful_row` `suma` en hueco (lestmtsref, p. 360). Cambia la lista
+    # de pendientes y los identificadores de operador; no se repite el cambio campo por campo.
+    "p1_merge_first_last.plan.json": "d2c8522a00bf5aa424998ec58f190d298a76f6db0ca0847c72b034e09c35460b",
 }
 
 CASES = [

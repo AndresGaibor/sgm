@@ -68,13 +68,13 @@ def test_pendientes_del_modelo_tienen_motivo(pendientes):
 
 
 def test_corpus_por_nivel_y_estado(datos_corpus):
-    # 247 casos: 139 anteriores (hitos 232m a 239m) y 108 generados por clase de equivalencia (hito 245m,
-    # con `esperado/` del oráculo).
-    assert datos_corpus["casos"] == 247
-    assert datos_corpus["por_nivel"]["L6"] == 137
+    # 248 casos: 139 anteriores (hitos 232m a 239m), 108 generados por clase de equivalencia (hito 245m,
+    # con `esperado/` del oráculo) y l6_39 (hito 249m, pendiente, sin `esperado/`).
+    assert datos_corpus["casos"] == 248
+    assert datos_corpus["por_nivel"]["L6"] == 138
     assert datos_corpus["por_nivel"]["L8"] == 16
-    assert sum(datos_corpus["por_nivel"].values()) == 247
-    assert sum(datos_corpus["por_estado"].values()) == 247
+    assert sum(datos_corpus["por_nivel"].values()) == 248
+    assert sum(datos_corpus["por_estado"].values()) == 248
     # 240 con `esperado/`: l6_11 pasó a `pendiente` en 247m (sin esperado hasta que el traductor lo emita).
     assert datos_corpus["con_esperado"] == 240
     assert datos_corpus["construcciones"] > datos_corpus["construcciones_traducibles"] > 0

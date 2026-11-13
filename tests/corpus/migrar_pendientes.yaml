@@ -32,4 +32,5 @@ l6_30_do_until: P-DO-WHILE-UNTIL
 l6_33_do_while: P-DO-WHILE-UNTIL
 l6_31_do_limite_no_constante: P-DO-LIMITE-NO-CONSTANTE
 l6_34_array_indice_fuera_de_rango: P-ARRAY-FUERA-DE-RANGO
+l6_39_suma_con_faltante: P-SUMA-SIN-EMISOR
 l2_16_sql_en_misma_base: P-OPERADOR-SIN-SOPORTE

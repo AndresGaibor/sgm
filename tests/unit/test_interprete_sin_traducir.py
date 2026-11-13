@@ -23,9 +23,10 @@ def _correr(cuerpo: str):
     return ejecutar_plan(plan, {"t": FILAS})
 
 
-def test_la_suma_sin_estado_no_sale_como_si_no_existiera():
+def test_select_sin_otherwise_no_sale_como_si_no_existiera():
+    # lestmtsref, p. 340: si ningún WHEN coincide y no hay OTHERWISE, SAS da error; no se inventa rama.
     with pytest.raises(NoSoportadoEnInterprete, match="sentencia sin traducción"):
-        _correr("  acum + x;\n")
+        _correr("  SELECT (x);\n    WHEN (1) y = 'a';\n  END;\n")
 
 
 def test_lag_dentro_de_if_no_se_ignora():

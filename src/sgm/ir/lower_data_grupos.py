@@ -84,7 +84,7 @@ def programa_por_grupo(stmts: list[DsStatement]) -> dict | None:
             else:
                 programa.append({"op": "filtra", "cond": _FILTRA.fullmatch(texto).group(1).strip()})
             estado = estado or bool(s.fields.get("first_last"))
-        elif s.kind == "other" and _SUMA.fullmatch(texto):
+        elif s.kind in ("other", "sum") and _SUMA.fullmatch(texto):  # `sum`: lestmtsref, p. 360
             suma = _SUMA.fullmatch(texto)
             programa.append({"op": "suma", "target": suma.group(1).lower(), "expr": suma.group(2)})
             estado = True

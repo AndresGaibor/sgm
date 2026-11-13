@@ -149,6 +149,22 @@ def _statement_op(
                 else ["OUTPUT sin destino explícito requiere semántica de salida por defecto"]
             ),
         )
+    if kind == "sum":
+        # Sentencia suma (lestmtsref, p. 360): estado entre filas. Sin emisor en Talend todavía
+        # es un hueco: el Job no se escribe, y el intérprete la calcula para probarla.
+        return b.op(
+            "stateful_row",
+            {
+                "reason": "suma",
+                "target": s.fields["target"],
+                "expression": s.fields["expression"],
+                "text": s.text,
+                "codigo": "P-SUMA-SIN-EMISOR",
+            },
+            ev,
+            status="hueco",
+            notes=["suma sin emisor en Talend todavía (lestmtsref, p. 360; B-13)"],
+        )
     if kind in ("retain", "lag", "call_symput"):
         notes = ["estado entre filas: en Talend requiere tJavaRow o tMap con variables"]
         return b.op(
