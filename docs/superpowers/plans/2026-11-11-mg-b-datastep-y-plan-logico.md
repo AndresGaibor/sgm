@@ -464,7 +464,7 @@ Semántica: `_N_` es una variable automática que cuenta **las iteraciones del D
 - Create: casos `tests\corpus\L5\l5_10_n_cuenta_iteraciones`, `l5_11_n_con_filtro`, `l5_12_symput_ultimo_valor`, `l5_13_symputx_recorta`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_automaticas.py`
 
-**Estado (hito 228m):** parcial. `_N_` y `_ERROR_` ya no se traducen como columnas (salen `hueco` con `P-VARIABLE-AUTOMATICA`/`P-ERROR-AUTOMATICA`). Faltan el contador de `_N_` (intérprete, ver `docs/BLOQUEOS.md`) y la emisión de `CALL SYMPUT` (Studio).
+**Estado (hito 237m):** parcial. `_N_` y `_ERROR_` ya no se traducen como columnas (salen `hueco` con `P-VARIABLE-AUTOMATICA`/`P-ERROR-AUTOMATICA`). Hecho en 237m: el motivo de `CALL SYMPUT`/`SYMPUTX` dice si el valor se recorta (`SYMPUTX` quita blancos, `mcrolref`, p. 322; la rutina `SYMPUT`, p. 315, no lo indica). Faltan, bloqueados en `docs/BLOQUEOS.md`: el contador de `_N_` (intérprete) y la emisión de `CALL SYMPUT` (decisión: fontanería o `tJavaRow`, y Studio); la macro dinámica no llega hoy a los pendientes de `sgm migrar`.
 
 - [x] **Step 1: Write the failing test.** (a) `_N_` bajo `IF x > 0;` con 4 entradas y 2 filtradas da `_N_` en las 2 filas que quedan con los números originales (por ejemplo 2 y 4, no 1 y 2); (b) `_ERROR_` usado en la lógica: `P-ERROR-AUTOMATICA` con motivo (el Job no sabe qué errores de datos habría tenido SAS) salvo que solo se **lea** como constante 0 en un `KEEP`/`DROP`; (c) `CALL SYMPUT('v', x)` en cada fila deja el valor de la **última** iteración en `v`, y un paso posterior que usa `&v` lo recibe (la resolución del `&v` es de MG-P7; aquí solo se emite la escritura); (d) `SYMPUTX` recorta blancos, `SYMPUT` no.
 - [ ] **Step 2: Run test to verify it fails.**

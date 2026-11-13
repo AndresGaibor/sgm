@@ -7235,3 +7235,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   distingue `VALOR` de `valor` (SAS no), y su arreglo toca `interprete.py`.
 - Pendiente sin bloqueo: la cobertura explícita de `l6_13` a `l6_24` como combinaciones del espacio.
 - Test repuntado: `test_metadatos_salidas_tmap.py` usaba `l6_18` para comprobar el `row2` de un `tMap`; ese `row2` era el sumidero muerto. Ahora usa `l6_15`, cuyo `row2` es una salida viva. El sumidero quitado queda en `Informe.absorbidos` apuntando a su predecesor, para que `test_ningun_operador_se_pierde` siga cuadrando.
+
+## Hito 237m. B-20: motivo de recorte en `CALL SYMPUT`/`SYMPUTX` y decisión de diseño pendiente (parcial)
+
+- Qué se hizo: `src/sgm/frontend/macros.py` (`_detalle_symput`): el motivo de cada `CALL SYMPUT`/`SYMPUTX` dinámico
+  dice si el valor se recorta. `SYMPUTX` quita los blancos (`mcrolref`, p. 322); la rutina `SYMPUT` (p. 315) no lo
+  indica, y su ejemplo (p. 317) usa `trim(left(...))` a mano. Prueba: `test_call_symputx_declara_que_recorta_blancos_y_symput_no_lo_declara`.
+- Cita: la regla pedía `lrcon`, pero el índice de `lrcon` no tiene ninguna entrada para `CALL SYMPUT`/`SYMPUTX`
+  (ni el texto las menciona). Se cita `mcrolref`, la guía de macros que sí las documenta.
+- Hallazgos que no se corrigen en este hito (decisiones en BLOQUEOS, B-20):
+  1. `plumbing.yaml` clasifica `call symputx` como fontanería (no migrar); el plan B-20 quiere `tJavaRow`.
+  2. La macro dinámica de `CALL SYMPUT` no llega a los pendientes de `sgm migrar`: la pérdida no se informa.
+  3. Un paso que escribe sin columnas demostradas sale como Job con solo la lectura. Cambiarlo rompe tests que
+     fijan que un pendiente no impide el Job; es decisión de diseño.
+- Verificado y descartado en este hito: un `DATA` sin `PROC EXPORT` produce un Job solo con la lectura (la salida
+  queda en `WORK`, sin archivo). Es el mismo caso del punto 3 y no es un defecto nuevo: ya ocurría en 4b72fad.
+- Pruebas: `test_macros.py`, `test_frontend.py`, `test_plumbing_categorias.py`: 86 pasan; suite completa: 3745 pasan,
+  332 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): `_N_` (intérprete) y la emisión de `CALL SYMPUT` (BLOQUEOS, B-20).

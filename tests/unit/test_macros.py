@@ -160,3 +160,17 @@ def test_cada_paso_lleva_la_etiqueta_de_su_nodo():
     text = "/* Etiqueta: Carga */\ndata a; set s; run;\n/* Etiqueta: Fin */\ndata b; set a; run;\n"
     labels = [i.label for i in analyze_program({"p.sas": text}).items]
     assert labels == ["Carga", "Fin"]
+
+
+def test_call_symputx_declara_que_recorta_blancos_y_symput_no_lo_declara():
+    """B-20 (d): `SYMPUTX` quita los blancos (mcrolref, p. 322); la rutina `SYMPUT` (p. 315) no lo dice.
+    El motivo de la macro dinámica lo recoge para que el informe no lo presente como igual."""
+    texto = (
+        "data a; set s; call symputx('n', x); run;\n"
+        "data b; set s; call symput('m', x); run;\n"
+    )
+    result = analyze_program({"p.sas": texto})
+    detalles = [i.item.detail for i in result.items if isinstance(i.item, MacroDynamic)]
+    assert len(detalles) == 2
+    assert "recorta blancos (mcrolref, p. 322)" in detalles[0]
+    assert "no quita blancos" in detalles[1] and "mcrolref, p. 315" in detalles[1]

@@ -100,6 +100,23 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Decisión que falta (dueño):** la de B-11 a B-14 sobre `interprete.py`.
 - **Desbloqueo:** esa decisión y Studio en `READY` para validar `l6_30`, `l6_31` y `l6_33` (los tres quedan pendientes con su código).
 
+## B-20 (parte CALL SYMPUT): ¿fontanería o migrar? (decisión del dueño, y Studio)
+
+- **Tarea:** B-20, paso 3 (`CALL SYMPUT` como `tJavaRow` sobre `globalMap` o `tSetGlobalVar`) y la parte
+  de `SYMPUTX` que recorta blancos (ya hecha en 237m como motivo de la macro dinámica).
+- **Conflicto de diseño:** `rules/sas/plumbing.yaml` clasifica `call symputx` como `variables_control`:
+  «no transforma filas», con equivalente «variable de contexto del Job». El plan B-20 dice que se emita como
+  `tJavaRow`. Son dos decisiones distintas y el dueño tiene que elegir cuál vale.
+- **Hallazgo que hay que decidir:** el expansor de macros saca `CALL SYMPUT(X)` del programa y lo guarda como
+  macro dinámica. Esa macro dinámica nunca llega a los pendientes de `sgm migrar`, así que la migración no
+  informa que el paso perdió esa sentencia.
+- **Otro hallazgo:** un paso que escribe un dataset sin columnas demostradas (`P-ESCRITURA-SIN-COLUMNAS`) sale
+  como Job con solo la lectura. Los tests actuales esperan que un pendiente no impida el Job (operador que
+  falla, `MERGE` con `IF`), así que cambiarlo es una decisión de diseño. Ver también `tests/unit/test_desde_plan.py`.
+- **Decisiones que faltan (dueño):** (1) fontanería o migrar `CALL SYMPUT`; (2) si un pendiente de escritura
+  impide emitir el Job.
+- **Desbloqueo:** esas decisiones, y Studio en `READY` para validar el `tJavaRow`.
+
 ## B-22: catálogo y plan maestro al día (depende de Studio)
 
 - **Tarea:** B-22, pasos 1 y 2. El paso 2 corrige la tabla 5.2 (`tUnite` con conexiones `MERGE`, según B-9), reemplaza
