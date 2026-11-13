@@ -7089,3 +7089,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   están fuera del espacio; (2) no se comprobó que el espacio cubra cada uno de `l6_13` a `l6_24` (paso 1a); (3) la
   escritura de casos nuevos en `tests/corpus/L6/` con `--escribir` (paso 4); (4) los casos negativos de
   `OUTPUT_DESTINO_REPETIDO`.
+
+## Hito 228m. B-20: `_N_` y `_ERROR_` salen como operador hueco con su motivo, no como columnas (parcial)
+
+- Qué se hizo: `ir/lower_data_automaticas.py` detecta `_n_` y `_error_` fuera de literales de texto. Una sentencia
+  que los lee (asignación, condición, `IF ... THEN`) sale como operador `unsupported` en estado `hueco`, con el
+  código `P-VARIABLE-AUTOMATICA` o `P-ERROR-AUTOMATICA` en la nota. Antes salía como `n = _n_`: una columna que el
+  Job no tiene, sin ningún aviso. `lower_data_recorrido.py` llama a esto antes del resto de ramas.
+- Verificado: `tests/unit/test_lower_data_automaticas.py` (4 pruebas: asignación, condición, texto entre
+  comillas y un nombre que solo contiene `n` no cuentan). Los golden, de DATA step y del corpus L4 a L6 pasan.
+- Pendiente de B-20 (no hecho, y con motivo en `docs/BLOQUEOS.md`): `_N_` como contador antes del filtro (requiere
+  tocar el intérprete, decisión pendiente sobre `interprete.py`); `CALL SYMPUTX` con recorte de blancos y la emisión
+  del `globalMap` (requiere Studio para validar); el `_ERROR_` leído como constante en `KEEP`/`DROP` no se separó
+  todavía del caso general (hoy sale hueco también ahí).

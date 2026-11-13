@@ -63,3 +63,13 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Motivo:** necesitan `sgm studio salud` en `READY`. Si no conecta, no se reinstala nada (ver
   `docs/guia-validacion-studio.md`, sección 7).
 - **Desbloqueo:** Studio arriba; B-18 además necesita B-17 y B-Gate necesita B-11 a B-14.
+
+## B-20: `_N_` como contador y emisión de `CALL SYMPUT` (MG-P4-08)
+
+- **Tarea:** B-20, paso 3 (`_N_` como `Numeric.sequence` o contador antes del `tFilterRow`) y el paso 1 (a) del
+  intérprete (`_N_` bajo `IF x > 0;` con cuatro entradas y dos filtradas da 2 y 4).
+- **Motivo:** el contador exige tocar `src/sgm/migrar/interprete.py` (decisión del dueño, ver la entrada de B-11
+  a B-14 y B-19), y la emisión en Talend (`tJavaRow` sobre `globalMap`, `tSetGlobalVar`) necesita Studio para
+  validarse.
+- **Lo que ya queda seguro (hito 228m):** `_N_` y `_ERROR_` no se traducen como columnas: salen hueco con su código.
+- **Desbloqueo:** decisión sobre `interprete.py` y Studio disponible.

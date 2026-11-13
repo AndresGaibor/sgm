@@ -16,6 +16,7 @@ from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_arreglos import _ARRAY as _ARRAY_DECLARA
 from sgm.ir.lower_data_arreglos import arreglos_declarados, bucle_desenrollado
 from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_op
+from sgm.ir.lower_data_automaticas import automaticas_en, motivo
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_salidas import _conditional_output_chain, _note, _output_sequence
 from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado
@@ -62,6 +63,8 @@ class _Recorrido:
             statement_ev = Evidence(self.ev.file, s.line, s.line, self.ev.label, self.ev.call)
             before, self.prev = self.prev, s
             if s.kind in _HEAD_KINDS:
+                continue
+            if self._automatica_sin_traduccion(index, statement_ev):
                 continue
             if self._secuencia_output(index, statement_ev):
                 continue
@@ -130,6 +133,24 @@ class _Recorrido:
         self._enlazar(salida_condicional)
         self.omit.update(range(index + 1, siguiente + 1))
         self.prev = self.stmts[siguiente]
+        return True
+
+    def _automatica_sin_traduccion(self, index: int, statement_ev: Evidence) -> bool:
+        """Una sentencia que lee `_N_` o `_ERROR_` sale como operador `hueco` (B-20)."""
+        s = self.stmts[index]
+        variables = automaticas_en(s.text)
+        if not variables:
+            return False
+        operador = self.b.op(
+            "unsupported",
+            {"statement": s.text, "reason": "VARIABLE_AUTOMATICA"},
+            statement_ev,
+            status="hueco",
+            notes=[motivo(variables[0])],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
+        self.prev = s
         return True
 
     def _arreglo_o_bucle(self, index: int, statement_ev: Evidence) -> bool:
