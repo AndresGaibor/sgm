@@ -4,6 +4,19 @@ Tareas del plan `docs/superpowers/plans/2026-11-11-ruta-al-100.md` (sección 8.3
 porque necesitan Studio, una decisión del dueño o algo de Byron. Cada entrada dice qué falta y qué
 desbloquea. Se quita la entrada cuando la tarea se cierra.
 
+## Decisiones tomadas (13 de noviembre de 2026)
+
+Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afectada lleva una línea «Decidido».
+
+1. **`interprete.py` se parte sin cambiar comportamiento**, con la suite como red. El defecto de mayúsculas `Z`/`z` va en
+   un commit aparte. Primer corte hecho en 241m (`interprete_valores.py`).
+2. **FREQ y MEANS pasan a pendiente** hasta tener página verificada en `proc.INDEX.md`. Sin equivalencia no se emite.
+3. **`--escribir` añade un caso por clase de equivalencia y los de coincidencia estructural**, no los 386 combinaciones.
+4. **`CALL SYMPUT` se emite como `tJavaRow`** (sobre `globalMap`), y deja de ser fontanería en `plumbing.yaml`.
+5. **Un pendiente de escritura impide emitir el Job.** Se actualizan los tests que fijaban lo contrario.
+6. **`rc` de `FIND` solo se traduce en comparaciones con 0.** El resto queda pendiente. Las llaves duplicadas siguen
+   `lrcon` p. 632: se queda la primera observación.
+
 ## B-7: `l2_16_sql_en_misma_base` (plan de SQL, MG-P1-04)
 
 - **Tarea:** B-7, paso 3 (`l2_16`: cerrar el `read` con `sql` literal).
@@ -21,6 +34,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
   `l2_16` de `migrar_pendientes.yaml` si la prueba lo exige.
 
 ## B-8: `PROC FREQ` y `PROC MEANS` sin página verificada (MG-P1-06)
+- **Decidido (13 nov, punto 2):** FREQ y MEANS pasan a pendiente hasta tener página verificada.
 
 - **Tarea:** B-8, paso 1 (c) (`PROC FREQ` simple → `agregar` con `count` y `percent`) y la parte de `MEANS`
   del paso 3.
@@ -45,6 +59,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
   dueño antes de B-10.
 
 ## B-11 a B-14 y B-19: intérprete de referencia (`src/sgm/migrar/interprete.py`) con dueño sin decidir
+- **Decidido (13 nov, punto 1):** se parte `interprete.py` sin cambio de comportamiento. Primer corte en 241m; el resto va en iteraciones aparte.
 
 - **Tareas:** B-11 (`MERGE` con la semántica real en el intérprete), B-12 (emisión de `MERGE`), B-13 (estado
   por fila en el intérprete), B-14 (estado por fila emitido), B-19 (`UPDATE` y `MODIFY`).
@@ -57,6 +72,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Bloquea también:** B-18 (lote de Studio de `OUTPUT`, depende de B-17 y de Studio) y B-Gate (Studio y lote C).
 
 ## B-17: captura del PDV entre dos OUTPUT y `--escribir` (dueño e `interprete.py`)
+- **Decidido (13 nov, punto 3):** `--escribir` añade un caso por clase de equivalencia y los de coincidencia estructural, no los 386.
 
 - **Tarea:** B-17, paso 1 (patrón de captura PDV) y paso 4 (`--escribir N`, casos en `tests/corpus/L6/`).
 - **Motivo (captura):** el intérprete trata `VALOR` (asignada) y `valor` (de la entrada) como dos columnas. SAS no
@@ -104,6 +120,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Desbloqueo:** esa decisión y Studio en `READY` para validar `l6_30`, `l6_31` y `l6_33` (los tres quedan pendientes con su código).
 
 ## B-20 (parte CALL SYMPUT): ¿fontanería o migrar? (decisión del dueño, y Studio)
+- **Decidido (13 nov, puntos 4 y 5):** `CALL SYMPUT` se emite como `tJavaRow`; un pendiente de escritura impide emitir el Job.
 
 - **Tarea:** B-20, paso 3 (`CALL SYMPUT` como `tJavaRow` sobre `globalMap` o `tSetGlobalVar`) y la parte
   de `SYMPUTX` que recorta blancos (ya hecha en 237m como motivo de la macro dinámica).
@@ -121,6 +138,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Desbloqueo:** esas decisiones, y Studio en `READY` para validar el `tJavaRow`.
 
 ## B-21: el lookup `FIND` con tMap y su valor de `rc` (decisión del dueño)
+- **Decidido (13 nov, punto 6):** `rc` de `FIND` solo se traduce en comparaciones con 0; el resto queda pendiente. Llaves duplicadas: se queda la primera (`lrcon` p. 632).
 
 - **Tarea:** B-21, paso (a) (`FIND` como `unir` izquierdo con `rc` como columna) y paso (b) (llave duplicada).
 - **Hecho en 238m:** todo objeto hash e iterador es un hueco con su código (`P-HASH-LOOKUP-SIN-SOPORTE`,
