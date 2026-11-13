@@ -11,11 +11,14 @@ from __future__ import annotations
 from dataclasses import replace
 
 from sgm.frontend.datastep import DataStep, DsStatement
+from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_op
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_salidas import _conditional_output_chain, _note, _output_sequence
+from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 
 _HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
 
@@ -61,6 +64,8 @@ class _Recorrido:
             if self._secuencia_output(index, statement_ev):
                 continue
             if self._salida_condicional(index, statement_ev):
+                continue
+            if self._borrado_condicional(index, statement_ev):
                 continue
             if self._asignacion_condicional(index, statement_ev):
                 continue
@@ -123,12 +128,41 @@ class _Recorrido:
         self.prev = self.stmts[siguiente]
         return True
 
+    def _borrado_condicional(self, index: int, statement_ev: Evidence) -> bool:
+        """`IF cond THEN DELETE;` como `filter` con la condición negada (B-15). Con `OUTPUT` antes
+        no se traduce: queda como sentencia sin traducción."""
+        condicion = condicion_de_borrado(self.stmts, index)
+        if condicion is None:
+            return False
+        if any(s.kind == "output" for s in self.stmts[:index]):
+            _note(
+                self.current,
+                "P-DELETE-CON-OUTPUT: DELETE condicional tras un OUTPUT; una fila puede "
+                "salir varias veces y el filtro no lo representa",
+                status="parcial",
+            )
+            return False
+        expresion = f"not ({condicion})"
+        filtro = op_validado(
+            self.b,
+            lambda: operadores.filtrar("_", expresion),
+            "filter",
+            {"expression": expresion},
+            statement_ev,
+        )
+        self._enlazar(filtro)
+        self.pending_derive = None
+        self.prev = self.stmts[index]
+        return True
+
     def _asignacion_condicional(self, index: int, statement_ev: Evidence) -> bool:
         conditional = _conditional_assignment(self.stmts, index)
         if conditional is not None:
             conditional = ([conditional[0]], conditional[1])
         else:
-            conditional = bloque_condicional(self.stmts, index)
+            conditional = bloque_condicional(self.stmts, index) or bloque_select(
+                self.stmts, index
+            )
         if conditional is None:
             return False
         asignaciones, siguiente = conditional

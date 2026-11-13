@@ -207,6 +207,8 @@ Semántica común (leerla una vez antes de B-9): el DATA step compila y ejecuta 
 
 ### Task B-9: Investigar `SET a b;` en Studio: ¿`tUnite` compila y ejecuta con el orden de SAS? (MG-P4-03, parte 1)
 
+**Bloqueada (Studio):** ver `docs/BLOQUEOS.md`, B-9.
+
 El plan maestro (sección 2 y MG-P4-03) dice que `tUnite` no compila; está desactualizado. El hito 97d lo vio fallar con `preMetadata is null` y el hito 125m (`PROGRESS.md`, «Segunda pasada completa») lo arregló escribiendo las entradas como conexión `MERGE` con `lineStyle` 10: `l0_09` **compiló**, pero **nunca se ejecutó** ni se comparó su salida, y el orden de entrada del `tUnite` quedó sin verificar. SAS concatena en el orden de la lista: todas las observaciones de `a`, luego todas las de `b` (`lestmtsref`, `SET Statement`, p. 343; `lrcon`, «Concatenating», p. 571 y 579).
 
 **Files:**
@@ -227,6 +229,8 @@ El plan maestro (sección 2 y MG-P4-03) dice que `tUnite` no compila; está desa
 
 ### Task B-10: `SET a b;` concatena por nombre con faltante (MG-P4-03, parte 2)
 
+**Bloqueada:** depende de B-9 (ver `docs/BLOQUEOS.md`).
+
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_union.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete.py` (`_apilar`, línea 776)
@@ -243,6 +247,8 @@ Hoy las entradas con columnas distintas dan `P-UNION-ESQUEMAS-DISTINTOS` y no se
 ---
 
 ### Task B-11: `MERGE ... BY ... IN=` con la semántica real en el intérprete (MG-P4-04, parte 1)
+
+**Bloqueada (decisión del dueño sobre `interprete.py`):** ver `docs/BLOQUEOS.md`, B-11 a B-14.
 
 Semántica (`lestmtsref`, `MERGE Statement`, p. 243; `lrcon`, «Match-Merging», p. 597 a 601; «One-to-One Merging», p. 592 a 596): las entradas deben estar ordenadas por `BY`; por cada valor de `BY` se leen las observaciones de cada entrada en paralelo, una por iteración; cuando una entrada se agota en el grupo conserva los valores de su última observación y la iteración sigue mientras alguna entrada tenga observaciones en el grupo. Con grupos de tamaños `m` y `n` salen `max(m, n)` filas, no `m*n`. `IN=` vale 1 si la entrada contribuyó con una observación a **esa iteración** (`lrcon`, «Using the IN= Data Set Option», p. 75). Sin `BY`, `MERGE` es una unión fila a fila por posición (`lrcon`, «One-to-One Merging», p. 592). Si dos entradas traen una columna con el mismo nombre, gana la de la última entrada de la lista que contribuyó (`lestmtsref`, p. 243).
 
@@ -269,6 +275,8 @@ Semántica (`lestmtsref`, `MERGE Statement`, p. 243; `lrcon`, «Match-Merging»,
 
 ### Task B-12: `MERGE` emitido como `tSortRow` + `tJavaRow`, no como JOIN (MG-P4-04, parte 2)
 
+**Bloqueada:** depende de B-11 (ver `docs/BLOQUEOS.md`).
+
 Hoy `l6_01` a `l6_04` y `l6_12` están en `tests/corpus/migrar_pendientes.yaml` con `P-UNION-TIPO-SIN-SOPORTE` (`talend_item/desde_plan_map.py`, línea 240) y `l6_11` con `P-OPERADOR-SIN-SOPORTE`. `lower_data.py` (`_join_type`, línea 21) deduce un tipo de JOIN de la primera condición `if` y marca «revisar» si no puede: esa deducción es el origen del error conceptual y se reemplaza por el operador `combinar` de B-8.
 
 **Files:**
@@ -288,6 +296,8 @@ Hoy `l6_01` a `l6_04` y `l6_12` están en `tests/corpus/migrar_pendientes.yaml` 
 ---
 
 ### Task B-13: `RETAIN`, sentencia suma, `FIRST.`/`LAST.`, `LAG`, `DIF` en el intérprete (MG-P4-05, parte 1)
+
+**Bloqueada (decisión del dueño sobre `interprete.py`):** ver `docs/BLOQUEOS.md`.
 
 Semántica con página:
 - `RETAIN` (`lestmtsref`, p. 331): la variable conserva su valor entre iteraciones; sin valor inicial arranca en faltante; con valor, se inicializa una sola vez.
@@ -310,6 +320,8 @@ Semántica con página:
 ---
 
 ### Task B-14: Estado por fila emitido con `tSortRow` + `tJavaRow` (MG-P4-05, parte 2)
+
+**Bloqueada:** depende de B-13 (ver `docs/BLOQUEOS.md`).
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_estado.py`
@@ -414,6 +426,8 @@ Hoy `l6_13` a `l6_17` y `l6_19` a `l6_21` no tienen validación en Studio regist
 ---
 
 ### Task B-19: `UPDATE` y `MODIFY` (MG-P4-07)
+
+**Bloqueada (decisión del dueño sobre `interprete.py`):** ver `docs/BLOQUEOS.md`.
 
 Semántica de `UPDATE` (`lestmtsref`, `UPDATE Statement`, p. 362; `lrcon`, «Updating with the UPDATE and the MODIFY Statements», p. 602 a 611): un maestro y una o más transacciones, ambos ordenados por `BY`; por cada llave se aplica cada transacción sobre el maestro y se escribe **una sola observación por grupo `BY`** al terminar el grupo; los valores **faltantes de la transacción no sobrescriben** al maestro (a menos que `UPDATEMODE=NOMISSINGCHECK`); una llave nueva en la transacción se agrega (`lrcon`, «Updating with Nonmatched Observations, Missing Values, and New Variables», p. 604 y ejemplo 3, p. 609); con varias transacciones de la misma llave se aplican en orden (ejemplo 2, p. 608). `MODIFY` (`lestmtsref`, p. 252; `lrcon`, p. 605 y 606) **modifica el dataset en el sitio** sin crear uno nuevo: no tiene equivalente en un Job que lee y escribe archivos o tablas salvo `tDBOutput` con acción `UPDATE`.
 

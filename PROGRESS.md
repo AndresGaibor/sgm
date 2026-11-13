@@ -7037,3 +7037,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   índice, y sus reglas YAML emiten `aggregate` sin `aggregations`. Espera decisión del dueño.
 - `PROC APPEND` ya era `union` por `rules/sas/procs/proc-append.yaml` (p. 161): no se cambia.
 - Verificado: `ruff` limpio; 167 pruebas de reglas PROC, golden, aceptación y TRANSPOSE; constructores pasan.
+
+## Hito 225m. B-15: `SELECT/WHEN/OTHERWISE` y `IF ... THEN DELETE` en el DATA step; bloqueos de Studio y del intérprete
+
+- Qué se hizo:
+  - `ir/lower_data_select.py`: `SELECT (expr)` con `WHEN` y `OTHERWISE` se reduce a la cadena `IF / ELSE IF / ELSE`
+    que ya existe (`_como_asignaciones`). Sin `OTHERWISE` no se traduce: la sentencia queda sin traducción.
+  - `IF cond THEN DELETE;` sin `OUTPUT` antes del paso es un `filter` con `not (cond)`. Con `OUTPUT` antes queda
+    como sentencia sin traducción con la nota `P-DELETE-CON-OUTPUT`.
+  - `lower_data_recorrido.py` llama a los dos casos (36 líneas nuevas).
+- Pruebas: `tests/unit/test_lower_data_select.py` corre el intérprete: el `SELECT` coincide con la cadena de `IF`
+  (incluido el faltante, que cae en `OTHERWISE`); sin `OTHERWISE` queda sin traducir; el `DELETE` deja las filas
+  con `k <= 2` y el `z` calculado antes; con `OUTPUT` antes no hay `filter` y hay nota.
+- Límite: el código `P-SELECT-SIN-OTHERWISE` todavía no sale: hoy es una sentencia sin traducción. Pendiente de B-15.
+  El corpus L4 a L6 no tiene `SELECT (WHEN)` ni `DELETE` condicional; por eso las pruebas usan programas propios.
+- Bloqueos registrados en `docs/BLOQUEOS.md`: B-9 y B-18/B-Gate (Studio), B-10 y B-12 y B-14 (dependen de B-9 o de
+  B-11/B-13), y B-11, B-13 y B-19 (dueño de `src/sgm/migrar/interprete.py`, punto 1 de la sección 8.3).
