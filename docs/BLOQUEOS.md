@@ -155,7 +155,9 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Decisión que falta (dueño):** (1) ¿la columna `rc` se traduce solo cuando el programa compara `rc = 0` o `rc ne 0`
   (sin inventar el valor no encontrado), o no se traduce nunca? (2) ¿el lado de búsqueda se deduplica con el
   primero (regla de `lrcon` p. 632) en un operador nuevo, o el paso queda pendiente?
-- **Desbloqueo:** esa decisión. La validación del tMap en Studio va en B-18/B-Gate.
+- **Decidido (13 nov, punto 6) y hecho en 246m:** el `FIND` con `rc` en comparaciones con 0 y `DROP rc` se traduce como
+  `unir` izquierdo con la tabla de búsqueda sin llaves repetidas (`lrcon`, p. 632). Falta solo la validación en Studio
+  (B-18/B-Gate). El resto de usos de `rc` queda pendiente (`P-HASH-RC-SIN-SOPORTE`).
 
 ## B-22: catálogo y plan maestro al día (depende de Studio)
 

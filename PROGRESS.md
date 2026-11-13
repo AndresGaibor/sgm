@@ -7381,3 +7381,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   241. `ruff check .` limpio.
 - Pendiente: los casos de la clase de los negativos (dos `IF` que repiten dataset) no se escriben: no son migrables y
   quedan como `P-OUTPUT-DESTINO-REPETIDO` (244m y antes).
+
+## Hito 246m. B-21: FIND como unir izquierdo con la tabla de búsqueda (decisión 6 del dueño; parcial)
+
+- Regla de decisión 6: `rc` solo se traduce en comparaciones con 0 y con `DROP rc`. Un `rc` que sobrevive a la salida o se
+  usa de otra forma queda pendiente (`P-HASH-RC-SIN-SOPORTE`, `lrcon`, p. 634).
+- Qué se hizo: `src/sgm/ir/lower_data_lookup.py` (nuevo) detecta el patrón: un `DECLARE HASH` con `DATASET:`, un
+  `DEFINEKEY` de una llave, `DEFINEDATA`, `DEFINEDONE`, un `rc = h.FIND()`, `IF rc = 0` / `IF rc ne 0` y `DROP rc`, sobre un
+  único `SET` sin `WHERE`. Lo traduce a: tabla de búsqueda con una marca `_hit_ = 1`, `deduplicar` por la llave conservando la
+  primera observación (`lrcon`, p. 632), y `unir` izquierdo por la llave. `rc = 0` pasa a `_hit_ = 1`, y `DROP rc` a
+  `DROP _hit_`. El resto de hash sigue como hueco (`lower_data_hash.py`).
+- `lower_data.py`: cuatro líneas que llaman al detector. El archivo ya pasaba de 300 líneas (deuda previa).
+- Pruebas: `test_lookup_hash.py` (2, nuevos): llave repetida con la primera (`a`), coincidencia y sin coincidencia, y `rc`
+  fuera de la comparación deja pendiente sin Job. Suite completa: 4582 pasan, 440 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): la emisión del `unir` izquierdo y del `deduplicar` en Talend (tMap de lookup) necesita validarse en
+  Studio (B-18 y B-Gate). `rc` usado de otra forma sigue pendiente.

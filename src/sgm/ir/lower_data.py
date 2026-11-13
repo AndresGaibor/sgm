@@ -8,6 +8,7 @@ from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_grupos import programa_por_grupo
+from sgm.ir.lower_data_lookup import detectar_busqueda
 from sgm.ir.lower_data_recorrido import _Recorrido, _statement_evidence
 from sgm.ir.lower_data_salidas import (
     _conditional_output,
@@ -185,6 +186,9 @@ def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
 
 
 def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
+    busqueda = detectar_busqueda(step.statements)  # FIND de un hash como unir izquierdo (B-21)
+    if busqueda is not None:
+        step = busqueda.paso(step)
     stmts = step.statements
     reads, current = _lower_sources(stmts, ev, b)
     file_read = _read_file(stmts, ev, b)
@@ -199,6 +203,8 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         current = file_read
     elif current is None:
         current = file_read or (reads[0] if reads else None)
+    if busqueda is not None and current is not None:
+        current = busqueda.unir(current, ev, b)
     pending_derive: Operator | None = None
     loose: list[str] = []
     prev: DsStatement | None = None
