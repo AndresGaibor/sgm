@@ -1,0 +1,7 @@
+{
+  "_nota": "Bibliotecas locales sin base: el fixture es un CSV con ficha.",
+  "sashelp.cars": {
+    "archivo": "tests/fixtures/datos/sashelp/cars.csv",
+    "delimitador": ","
+  }
+}

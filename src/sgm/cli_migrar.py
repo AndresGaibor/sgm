@@ -37,7 +37,9 @@ from sgm.frontend.program import analyze_program
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Plan
 from sgm.migrar import informes
-from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
+from sgm.migrar.esquemas import PendienteMigracion
+from sgm.migrar.preparar_plan import esquemas_con_locales, preparar_plan
+from sgm.migrar.tablas_locales import cargar_tablas_locales, raiz_repositorio
 from sgm.seguridad.compuerta_migracion import publicar_con_revision
 from sgm.seguridad.escaner_secretos import Hallazgo
 from sgm.talend_item.desde_plan import plan_a_jobs
@@ -223,8 +225,10 @@ def migrar(
     esquemas: Path | None = None,
     muestra: Path | None = None,
     backend: str = "archivos",
+    tablas_locales: Path | None = None,
 ) -> ResultadoMigrar:
     """Migra un programa a `<out>/<programa>/`. No lanza: lo que falla queda en los informes."""
+    locales = cargar_tablas_locales(tablas_locales, raiz_repositorio()) if tablas_locales else {}
     resultado = ResultadoMigrar(out / _nombre(source))
     texto = _leer(source, resultado)
     plan = _plan(texto, resultado.carpeta.name, resultado) if texto is not None else None
@@ -233,6 +237,8 @@ def migrar(
         # Las plantillas se escriben en línea: los esquemas y las rutas salen del plan desplegado.
         original = {op.id for op in plan.graph.operators()}
         plan, desplegados = plan_desplegado(plan)
+        plan, previos = preparar_plan(plan, locales)
+        resultado.pendientes += previos
         contextos = contextos_de_plan(plan)
         if not len(plan.graph):
             resultado.pendientes.append(
@@ -244,7 +250,7 @@ def migrar(
                     None,
                 )
             )
-        tablas, de_esquema = esquemas_de_entrada(plan, _catalogo(esquemas), muestra)
+        tablas, de_esquema = esquemas_con_locales(plan, _catalogo(esquemas), muestra, locales)
         resultado.pendientes += de_esquema
         migracion = plan_a_jobs(plan, tablas)
         resultado.jobs = migracion.jobs

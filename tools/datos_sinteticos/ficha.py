@@ -3,29 +3,14 @@
 from __future__ import annotations
 
 import csv as csv_module
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from pathlib import Path
 
 import yaml
 
-
-@dataclass(frozen=True)
-class Ficha:
-    """Origen y tipos declarados por el fixture; no se infieren de los valores."""
-
-    tabla: str
-    origen: str
-    filas: int
-    columnas: dict[str, str]
-    semilla: int | None = None
-    generador: str | None = None
-    procedencia: str | None = None
-    nota: str = ""
-
-
-def leer_ficha(ruta: Path) -> Ficha:
-    """Lee una ficha YAML conservando el orden declarado de las columnas."""
-    return Ficha(**yaml.safe_load(ruta.read_text(encoding="utf-8")))
+from sgm.migrar.ficha import Ficha as Ficha
+from sgm.migrar.ficha import leer_ficha as leer_ficha
+from sgm.migrar.ficha import validar_procedencia
 
 
 def escribir_ficha(ficha: Ficha, ruta: Path) -> None:
@@ -36,16 +21,7 @@ def escribir_ficha(ficha: Ficha, ruta: Path) -> None:
 
 def validar_ficha(ficha: Ficha, csv: Path) -> list[str]:
     """Comprueba procedencia, cabecera en orden y cantidad de filas del CSV."""
-    errors = []
-    if ficha.origen not in {"sintetico", "real"}:
-        errors.append(f"origen no permitido: {ficha.origen}")
-    if ficha.origen == "sintetico":
-        if ficha.semilla is None:
-            errors.append("origen sintetico sin semilla")
-        if not ficha.generador:
-            errors.append("origen sintetico sin generador")
-    if ficha.origen == "real" and not ficha.procedencia:
-        errors.append("origen real sin procedencia")
+    errors = validar_procedencia(ficha)
     with csv.open(encoding="utf-8", newline="") as stream:
         reader = csv_module.reader(stream)
         header = next(reader, [])

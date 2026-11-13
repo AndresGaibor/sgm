@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from sgm.cli_migrar import migrar, validate_backend
+from sgm.migrar.tablas_locales import cargar_tablas_locales, raiz_repositorio
 
 
 def _seguridad_fallida(resultado) -> bool:
@@ -61,6 +62,9 @@ def migrar_command(
         Path | None,
         typer.Option("--muestra", help="Carpeta con archivos de muestra de las entradas."),
     ] = None,
+    tablas_locales: Annotated[
+        Path | None, typer.Option("--tablas-locales", help="Configuración de tablas locales.")
+    ] = None,
     backend: Annotated[
         str, typer.Option("--backend", help="'archivos' (por omisión) o 'talend'.")
     ] = "archivos",
@@ -73,9 +77,21 @@ def migrar_command(
     if muestra is not None and not muestra.is_dir():
         raise typer.BadParameter(f"no existe la carpeta de muestra: {muestra}")
     validate_backend(backend)
+    if tablas_locales is not None:
+        try:
+            cargar_tablas_locales(tablas_locales, raiz_repositorio())
+        except (ValueError, OSError) as error:
+            raise typer.BadParameter(str(error), param_hint="--tablas-locales") from error
 
     if source.is_file():
-        resultado = migrar(source, out, esquemas=esquemas, muestra=muestra, backend=backend)
+        resultado = migrar(
+            source,
+            out,
+            esquemas=esquemas,
+            muestra=muestra,
+            backend=backend,
+            tablas_locales=tablas_locales,
+        )
         salida = (
             "paquete no publicado por seguridad"
             if _seguridad_fallida(resultado)
@@ -105,6 +121,7 @@ def migrar_command(
             esquemas=esquemas,
             muestra=muestra,
             backend=backend,
+            tablas_locales=tablas_locales,
         )
         for program in programs
     ]
