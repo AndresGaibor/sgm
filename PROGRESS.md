@@ -7102,3 +7102,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   tocar el intérprete, decisión pendiente sobre `interprete.py`); `CALL SYMPUTX` con recorte de blancos y la emisión
   del `globalMap` (requiere Studio para validar); el `_ERROR_` leído como constante en `KEEP`/`DROP` no se separó
   todavía del caso general (hoy sale hueco también ahí).
+
+## Hito 229m. B-21: guardia de los objetos hash (parcial; el lookup queda pendiente)
+
+- Qué se hizo: `tests/unit/test_hash_sin_equivalencia_silenciosa.py`. Un `h.find()` sale como `derive` no soportado
+  con la nota de expresión sin equivalente, y el `declare hash` queda como sentencia sin traducción. Así un objeto hash
+  no pasa como si fuera un paso soportado.
+- Lectura de la guía (`lrcon`, pp. 628-638) para B-21: la clave duplicada por defecto conserva la **primera** fila; con
+  `DUPLICATE` gana la última y se escribe un error en el log; con `MULTIDATA` hay una lista por clave. Un lookup tipo
+  `tMap` solo es equivalente con clave única demostrada.
+- Pendiente de B-21: (a) el patrón `find` como `unir` por la izquierda con `rc` (no hecho: requiere el constructor y la
+  emisión del tMap, y la clave única demostrada); (b) la regla de duplicados según las páginas; (c) `h.ADD()` con
+  `P-HASH-MUTABLE` (hoy sale como sentencia sin traducción, que ya es pendiente).

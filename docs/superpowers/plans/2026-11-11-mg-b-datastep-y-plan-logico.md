@@ -488,6 +488,8 @@ Semántica (`lrcon`, «Using the Hash Object», p. 628 a 641): `DECLARE HASH h(D
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\` (entrada `hash` con `fuente: lrcon.pdf, p. 628` y `estado: reconocida` solo para el patrón de búsqueda; el resto `no_reconocida` con nota)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_hash.py`
 
+**Estado (hito 229m):** parcial. Guardia de que un método hash no sale como paso soportado (`test_hash_sin_equivalencia_silenciosa.py`). El lookup con `rc` (paso a) y la regla de duplicados (paso b) quedan pendientes; `h.ADD()` (paso c) ya es pendiente por sentencia sin traducción.
+
 - [ ] **Step 1: Write the failing test.** (a) El patrón de búsqueda baja a un operador `unir` tipo `left` con `rc` como columna calculada (`0` si hubo coincidencia, `-1` si no; el valor exacto de `rc` se lee de la guía); (b) llave duplicada: el esperado sigue la regla leída de las páginas 630 a 638; (c) `h.ADD()` da `P-HASH-MUTABLE` y no se emite Job parcial.
 - [ ] **Step 2: Run test to verify it fails.**
 - [ ] **Step 3: Implement.** Si la lectura de las páginas muestra que el patrón de búsqueda no es equivalente a un lookup de `tMap` para el caso de duplicados, el soporte queda en «solo llave única demostrada» y el resto en pendiente.
