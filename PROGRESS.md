@@ -7519,3 +7519,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   (`update` y `modify` son sentencias propias con hueco, sin convertirse), `test_tablero` (254 casos, L6 144).
 - Pruebas: `tools/ci.py` en verde (ruff, suite, cruces, oráculo, tablero).
 - Pendiente (parcial, B-19): emisión de `UPDATE` en `desde_plan_merge.py` (tJavaRow), que necesita Studio.
+
+## Hito 253m. B-9: `SET a b;` con `tUnite` y conexiones `MERGE` conserva el orden de SAS en Studio (decisión a)
+
+- Regla: `SET a b;` concatena en el orden de la lista: todas las observaciones de `a` y luego las de `b`
+  (`lrcon`, p. 579, «Concatenating»; `lestmtsref`, `SET Statement`, p. 343). Las variables del resultado son
+  las de todos los datasets, y las filas quedan faltantes en las que no tienen (`lrcon`, p. 579).
+- Investigación (B-9): `tools/validar_caso_studio.py l6_25_set_dos_datasets_orden l6_09_nodup_registros_identicos`,
+  una sola vez, con Studio en `READY` (`sgm studio salud`). Resultado devuelto por el puente:
+  - `l6_25_set_dos_datasets_orden`: `coincide`, 0 diferencias. El Job tiene `tUnite_1` con dos conexiones
+    `MERGE` (`lineStyle` 10), `in1` = A e `in2` = B, en ese orden.
+  - `l6_09_nodup_registros_identicos` (testigo): `coincide`, 0 diferencias.
+- Decisión: se usa la opción (a). `tUnite` con conexiones `MERGE` compila y conserva el orden. `APPEND`
+  secuencial queda como alternativa, no como requisito. Se corrigieron tres frases obsoletas del plan maestro
+  (`docs/plan-reescritura/plan-migrador-general.md`, líneas 137, 276 y 561) que decían que `tUnite` no compila.
+- Casos: `l6_25_set_dos_datasets_orden` pasa a `traducible` (esperado de lrcon p. 579, validado en Studio).
+  `l6_26_set_columnas_distintas` queda `pendiente`, sin `esperado/`, y su Job emite
+  `P-UNION-ESQUEMAS-DISTINTOS`; lo cierra B-10.
+- Pendiente: B-10 (`SET` con columnas distintas y faltante, `l6_26`).

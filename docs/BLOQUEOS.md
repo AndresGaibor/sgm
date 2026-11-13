@@ -200,3 +200,7 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   `interprete_pasos.py` (Byron): el diff contra HEAD son solo el import de `_actualizar` y la rama `elif` del
   despacho de `UPDATE` (8 líneas).
 - **Prueba dirigida (un proceso):** `test_interprete_update.py` y `test_interprete_lag.py`, 16 pasan. Ruff limpio.
+
+- **Resuelto en 253m (B-9):** `tUnite` con conexiones `MERGE` compila y conserva el orden de SAS
+  (`l6_25_set_dos_datasets_orden` coincide en Studio, 0 diferencias; testigo `l6_09` también coincide). Decisión (a).
+  Queda B-10 para `l6_26` (columnas distintas, `P-UNION-ESQUEMAS-DISTINTOS`).

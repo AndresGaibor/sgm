@@ -207,7 +207,7 @@ Semántica común (leerla una vez antes de B-9): el DATA step compila y ejecuta 
 
 ### Task B-9: Investigar `SET a b;` en Studio: ¿`tUnite` compila y ejecuta con el orden de SAS? (MG-P4-03, parte 1)
 
-**Bloqueada (Studio):** ver `docs/BLOQUEOS.md`, B-9.
+**Estado (hito 253m):** hecho. `tUnite` con conexiones `MERGE` coincide con SAS en Studio (`l6_25`; testigo `l6_09`), opción (a). Antes, **Bloqueada (Studio):** ver `docs/BLOQUEOS.md`, B-9.
 
 El plan maestro (sección 2 y MG-P4-03) dice que `tUnite` no compila; está desactualizado. El hito 97d lo vio fallar con `preMetadata is null` y el hito 125m (`PROGRESS.md`, «Segunda pasada completa») lo arregló escribiendo las entradas como conexión `MERGE` con `lineStyle` 10: `l0_09` **compiló**, pero **nunca se ejecutó** ni se comparó su salida, y el orden de entrada del `tUnite` quedó sin verificar. SAS concatena en el orden de la lista: todas las observaciones de `a`, luego todas las de `b` (`lestmtsref`, `SET Statement`, p. 343; `lrcon`, «Concatenating», p. 571 y 579).
 

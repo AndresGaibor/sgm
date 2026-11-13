@@ -134,7 +134,7 @@ estadísticos, código generado en tiempo de ejecución). Lo que sí se puede ex
 | Cobertura del corpus | 206 construcciones distintas, 93 en casos `traducible`, 0 traducidas por un traductor automático | `tools/tablero.py` |
 | Producción | No iniciada | F9 |
 
-Hallazgos de Studio 8.0.1 que condicionan el diseño (todos ejecutados): `tUnite` no compila (usar `APPEND`
+Hallazgos de Studio 8.0.1 que condicionan el diseño (todos ejecutados): `tUnite` con conexiones `MERGE` compila y conserva el orden de SAS (B-9, Studio: coincide, 253m); `APPEND`
 secuencial u otra unión); `tHashOutput` no se comparte entre Jobs; `DIE_ON_ERROR` vale `false` por omisión en
 los lectores; un `tAggregateRow` con dos salidas principales entrega vacío a la segunda; `tUniqRow` exige el
 esquema también en el bloque FLOW; `tFileInputExcel` exige PASSWORD no vacío en formato 2007; `tDie` en un
@@ -273,7 +273,7 @@ Es el contrato funcional. Cada fila es una tarea de traducción o está cubierta
 | SAS | Talend | Trampa | Nivel |
 |---|---|---|---|
 | `SET a;` | Entrada del flujo | `OBS=`, `FIRSTOBS=`, `WHERE=` como opciones | L1 |
-| `SET a b;` (concatenar) | Unión de flujos; `tUnite` no compila en 8.0.1, usar la alternativa validada | Columnas con distinto tipo o longitud | L1 |
+| `SET a b;` (concatenar) | Unión de flujos; `tUnite` con conexiones `MERGE` compila y conserva el orden (B-9, Studio) | Columnas con distinto tipo o longitud | L1 |
 | `MERGE a b; BY k;` | **No es un `JOIN`.** Con claves repetidas en ambos lados, el resultado es el máximo de filas por grupo. Implementar con `tSortRow` y `tJavaRow` o `tMap` más reglas, y validar con `L6/l6_02` | `IN=`, orden previo, columnas sobrescritas | L6 |
 | `UPDATE` | `tMap` con lookup y reglas | Faltantes no sobrescriben | L6 |
 | `IF c THEN ...; ELSE ...;`, `SELECT/WHEN` | Expresión ternaria en `tMap` | **En SAS el faltante numérico es menor que cualquier número**; en Java una comparación con `null` lanza o es falsa | L4 |
@@ -558,7 +558,7 @@ ampliada no se ejecutó: el bridge de Studio no estaba disponible (`ECONNREFUSED
 |---|---|---|---|---|
 | MG-P4-01 | `SET`, `KEEP`, `DROP`, `RENAME`, `WHERE`, `IF/THEN/ELSE`, `SELECT/WHEN`, asignaciones, `DELETE`, subsetting IF, a `tMap` | S | `L0`, `L4` | 14 |
 | MG-P4-02 | Múltiples `OUTPUT` y salidas | S | `L6` | 8 |
-| MG-P4-03 | `SET` de varios datasets (concatenar) con el mecanismo validado, dado que `tUnite` no compila | S | primero una prueba de investigación en Studio y luego la implementación | 10 |
+| MG-P4-03 | `SET` de varios datasets (concatenar) con el mecanismo validado, con `tUnite` y conexiones `MERGE`, validado en Studio (B-9) | S | primero una prueba de investigación en Studio y luego la implementación | 10 |
 | MG-P4-04 | `MERGE ... BY ... IN=` con la semántica real (máximo de filas por grupo; no es `JOIN`) | S | `L6/l6_02` y los casos de la guía | 16 |
 | MG-P4-05 | `RETAIN`, sentencia suma, `FIRST.`/`LAST.`, `LAG`, `DIF` | S | `L6` | 14 |
 | MG-P4-06 | `ARRAY` y `DO` (desenrollado estático o `tJavaRow`) | S | casos nuevos | 10 |
