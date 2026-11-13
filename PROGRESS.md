@@ -7159,3 +7159,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendiente (parcial): `l6_32` (traducible, con `esperado/` a mano) no existe; `l6_30` y `l6_31` no los define el plan
   (queda decidir su contenido); el bucle `DO WHILE` en `tJavaRow` está bloqueado por la decisión sobre `interprete.py`
   y por Studio (ver `docs/BLOQUEOS.md`, B-16).
+
+## Hito 233m. B-16: caso `l6_32` (ARRAY y DO con límites constantes, traducible) (parcial)
+
+- Qué se hizo: `tests/corpus/L6/l6_32_array_do_constante`, traducible. `ARRAY a{3} x1 x2 x3` y `DO I = 1 TO 3; a{I} = a{I} * 2`
+  se desenrollan (B-16 paso 3). Al salir, `I` vale 4: `lestmtsref`, DO Statement: Iterative, p. 84 (la regla no
+  aparece en el índice de `lrcon`, así que se cita la guía de sentencias; ver la decisión de 231m). `esperado/`
+  se escribió a mano desde la regla, no con el traductor: 2 filas, `X1` = 2 y 8, `I` = 4.
+- Hallazgo: `tests/unit/test_corpus_l4l6.py` solo comprueba invariantes de los casos en `ESPECIFICACIONES`, así que
+  `l6_32` no tenía ninguna. Se añadió `tests/unit/test_invariantes_l6_todos.py`, que recorre todo L6 (25 pasan, 2
+  sin invariantes). Al escribir `l6_32` la invariante `suma(X1) == 12` falló contra el cálculo a mano (10): se
+  corrigió a 10 (el error era de la invariante, no del traductor).
+- Conteo del tablero: 134 casos, L6 27, con `esperado` 130 (`tests/unit/test_tablero.py`).
+- Pendiente (parcial): `l6_30` y `l6_31` no los define el plan; el bucle `DO WHILE` en `tJavaRow` está en BLOQUEOS (B-16).
