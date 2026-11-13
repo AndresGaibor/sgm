@@ -1,0 +1,28 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- DELETE
+- IF
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- FILTRA_L4_23
+razonamiento: 'IF cond THEN DELETE; descarta la observación cuando la condición es verdadera; las demás se escriben (lestmtsref, p. 77). Sin OUTPUT antes, es un filter con la condición negada.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(FILTRA_L4_23) == 2
+- suma(FILTRA_L4_23.Z) == 30
+esquemas:
+  WORK.VALORES_L4_23:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    K:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+

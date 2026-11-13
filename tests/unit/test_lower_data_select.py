@@ -37,6 +37,16 @@ def test_select_con_otherwise_coincide_con_la_cadena_de_if():
     assert [f["y"] for f in salida] == ["a", "b", "a", "c", "c"]
 
 
+def test_select_sin_expresion_evalua_cada_when_como_condicion():
+    # lestmtsref, p. 340: sin select-expression, cada WHEN es una condición y gana la primera verdadera.
+    cuerpo = (
+        "  SELECT;\n    WHEN (x > 2) y = 'alto';\n    WHEN (x <= 2) y = 'bajo';\n"
+        "    OTHERWISE y = 'nulo';\n  END;\n"
+    )
+    salida = _correr(cuerpo, [{"x": "3"}, {"x": "1"}, {"x": "2"}])
+    assert [f["y"] for f in salida] == ["alto", "bajo", "bajo"]
+
+
 def test_select_sin_otherwise_queda_sin_traducir():
     cuerpo = "  SELECT (x);\n    WHEN (1) y = 'a';\n  END;\n"
     assert any("SELECT" in t for t in _sin_traducir(_plan(cuerpo)))

@@ -7271,3 +7271,24 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Citas: todas de `lrcon` (pp. 628, 629, 632, 633, 634, 638, 639, 642), comprobadas contra `lrcon.INDEX.md`.
 - Pendiente (parcial): el lookup `FIND` con tMap y su `rc`, y la llave duplicada con el primero (BLOQUEOS, B-21).
   Deuda: `lower_data_recorrido.py` ya pasaba de 300 líneas; el cambio se añade sin extraer antes (regla de MG-B).
+
+## Hito 239m. B-15: SELECT sin expresión y casos l4_21 a l4_23 (parcial en Studio)
+
+- Qué se hizo:
+  - `src/sgm/ir/lower_data_select.py`: `SELECT;` (sin select-expression) se reduce a la cadena `IF`, con cada `WHEN`
+    como condición booleana. Cita: `lestmtsref`, p. 340 (sin select-expression, cada `WHEN` se evalúa como
+    condición y gana la primera verdadera). Prueba: `test_select_sin_expresion_evalua_cada_when_como_condicion`.
+  - Casos nuevos en `tests/corpus/L4/`: `l4_21_select_when_con_otherwise` (SELECT con lista y OTHERWISE),
+    `l4_22_select_sin_expresion` y `l4_23_delete_condicional` (IF ... THEN DELETE, `lestmtsref`, p. 77). Cada uno con
+    `esperado/` escrito a mano desde la regla y su bloque `esquemas` de `proponer_esquemas_caso.py`.
+  - `tests/unit/test_casos_b15_select.py` (nuevo): invariantes de los tres casos y comparación del intérprete con
+    `esperado/`. Pasan 6 pruebas.
+- Decisión de diseño de `l4_23`: la entrada no lleva la columna `Z` que el caso calcula. Con `Z` en la entrada el
+  intérprete escribe la columna nueva con otra mayúscula y el caso falla por un defecto de `interprete.py` (ver
+  BLOQUEOS, B-17). El caso prueba `DELETE`, no esa mayúscula.
+- Citas: el índice de `lrcon` no tiene entrada para `SELECT` ni para `DELETE`; las citas van a `lestmtsref`. Es la
+  misma desviación de 231m.
+- Conteo: 139 casos, 133 con `esperado/` (`tests/unit/test_tablero.py`).
+- Pruebas: `test_lower_data_select.py` (7), `test_casos_b15_select.py` (6), `test_tablero.py`; suite completa:
+  3777 pasan, 332 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): el lote de Studio de estos casos es parte de B-Gate (BLOQUEOS).

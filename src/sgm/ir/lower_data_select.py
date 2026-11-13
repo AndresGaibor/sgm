@@ -18,7 +18,8 @@ import re
 from sgm.frontend.datastep import DsStatement
 from sgm.ir.lower_data_bloques import Rama, _como_asignaciones, _rama
 
-_SELECT = re.compile(r"(?is)^select\s*\((.+)\)$")
+# `SELECT (expr);` o `SELECT;` (sin expresión: cada WHEN es una condición, `lestmtsref`, p. 340).
+_SELECT = re.compile(r"(?is)^select\s*(?:\((.+)\))?$")
 _WHEN = re.compile(r"(?is)^when\s*\(([^()]*)\)\s*(.+)$")
 _OTHERWISE = re.compile(r"(?is)^otherwise\s+(.+)$")
 _BORRADO = re.compile(r"(?is)^if\s+(.*?)\s+then\s+delete$")
@@ -34,7 +35,8 @@ def bloque_select(stmts: list[DsStatement], index: int) -> tuple[list[dict], int
     cabecera = _SELECT.fullmatch(stmts[index].text.strip())
     if cabecera is None:
         return None
-    selector = cabecera.group(1).strip()
+    selector = cabecera.group(1)  # None en `SELECT;`: los WHEN son condiciones booleanas
+    selector = selector.strip() if selector is not None else None
     ramas: list[Rama] = []
     cursor = index + 1
     while cursor < len(stmts):
@@ -46,7 +48,12 @@ def bloque_select(stmts: list[DsStatement], index: int) -> tuple[list[dict], int
         if resultado is None:
             return None
         asignaciones, cursor = resultado
-        ramas.append((_valores_en_condicion(selector, when.group(1)), asignaciones))
+        condicion = (
+            _valores_en_condicion(selector, when.group(1))
+            if selector is not None
+            else " or ".join(f"({v.strip()})" for v in when.group(1).split(","))
+        )
+        ramas.append((condicion, asignaciones))
     if cursor >= len(stmts):
         return None
     otherwise = _OTHERWISE.fullmatch(stmts[cursor].text.strip())

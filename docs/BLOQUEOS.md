@@ -70,6 +70,9 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Decisiones que faltan (dueño):** (1) la de `interprete.py` (B-11 a B-14, B-19); (2) cuántas combinaciones
   de `OUTPUT` entran al corpus L6.
 - **Desbloqueo:** esas dos decisiones. La captura además necesita Studio para validarse en B-18.
+- **Mismo defecto, otro caso:** el intérprete, al asignar una columna que ya existe en la entrada con otra
+  mayúscula (`Z` contra `z`), escribe una columna nueva en vez de sustituir la existente. El caso `l4_23` evita el
+  choque con su entrada, y `test_casos_b15_select.py` compara en minúsculas. La corrección también va en `interprete.py`.
 
 ## B-18 y B-Gate: Studio
 

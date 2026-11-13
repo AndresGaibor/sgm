@@ -1,0 +1,32 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SELECT
+- WHEN
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CLASIFICA_L4_22
+razonamiento: 'SELECT sin select-expression: cada WHEN es una condición booleana y la primera verdadera gana (lestmtsref, p. 340).'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(CLASIFICA_L4_22) == 4
+- filas(CLASIFICA_L4_22) == filas(VALORES_L4_22)
+esquemas:
+  WORK.VALORES_L4_22:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    X:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+  WORK.CLASIFICA_L4_22:
+    y:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+
