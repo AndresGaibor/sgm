@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- Sin `git push` ni `--amend`. Un commit local por tarea con el mensaje `hito N n: <resumen>` (letra `n`, serie de Byron en este plan) y, al final del mensaje, la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Antes de escribir, buscar el último `## Hito` de `PROGRESS.md` (al redactar este plan era el 198) y sumar uno; si otra sesión ya tomó el número, tomar el siguiente. No renumerar entradas publicadas. `PROGRESS.md` se actualiza al cerrar cada tarea que sea un hito (fecha, qué se hizo, pruebas, métricas, bloqueos, decisiones).
+- Sin `git push` ni `--amend`. Un commit local por tarea con el mensaje `hito Nn: <resumen>` (sufijo `n`, serie de Byron en este plan). No agregar coautorías sin participación real y verificable. Antes de escribir, buscar el último `## Hito` de `PROGRESS.md` y sumar uno; si otra sesión ya tomó el número, tomar el siguiente. No renumerar entradas publicadas. `PROGRESS.md` se actualiza al cerrar cada tarea que sea un hito (fecha, qué se hizo, pruebas, métricas, bloqueos, decisiones).
 - No tocar `tools/ci.py`, `tools/validacion.py`, `tools/instalar_ganchos.py`, `README.md`, `.githooks/` ni `.claude/` (son del Plan A y están sin commitear). Los archivos de `src/sgm/ir/` y `src/sgm/migrar/` que modifica el Plan B (`lower_procs.py`, `lower_data*.py`, `operadores.py`, `interprete.py`, `esquemas.py`, `esquemas_tipos.py`) **no se editan aquí**: todo lo de este plan va en módulos nuevos, con una sola línea de enganche en `cli_migrar.py`. Si una tarea necesita cambiar uno de ellos, se anota como dependencia y se pide al dueño.
 - **Datos sintéticos, nunca reales.** Cada archivo de datos que genera este plan lleva una ficha `<tabla>.ficha.yaml` con `origen: sintetico`, `semilla`, `generador`, columnas con su tipo declarado y `filas`. Sin datos personales: nombres ficticios evidentes, sin correos, sin números de documento de 7 o más dígitos, sin teléfonos. El mismo `semilla` produce los mismos bytes en dos corridas. Lo vigila K-11.
 - **No leer ni citar `Cod2.txt` de Descargas** (tiene una contraseña en claro en la línea 77 de su copia). Los programas reales entran solo por las copias redactadas del repositorio: `tests/fixtures/sas/client/client_poc.sas` y `tests/fixtures/sas/client/client_large.sas`. Toda salida, rebanada, ficha y `out/` pasa por `sgm secretos` (`uv run python -m sgm.cli secretos <ruta>`) y sale limpia.
@@ -97,7 +97,7 @@ El programa pequeño hace `set sashelp.cars;` y consulta cuatro marcas (`Acura`,
 - [x] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_datos_cars.py -q -p no:cacheprovider`; esperado: `ModuleNotFoundError: datos_sinteticos`.
 - [x] **Step 3: Implement.** `ficha.py` con `yaml.safe_dump(sort_keys=False)`; `cars.py` con `random.Random(f"{semilla}:sashelp.cars")` (misma convención que `datos_ficticios.generar_tabla`) y `escribir_entrada` para el CSV. Generar con `uv run python -c "import sys; sys.path.insert(0,'tools'); from datos_sinteticos.cars import escribir_cars; from pathlib import Path; escribir_cars(Path('tests/fixtures/datos/sashelp'))"`. La ficha lleva `nota: "Conjunto sintetico con las 15 columnas de sashelp.cars; los valores son inventados. Reemplazar por la exportacion real cuando el usuario la aporte."` y `columnas` con `String` para `Make, Model, Type, Origin, DriveTrain` y `Double` para las diez restantes; el tipo lo declara el fixture, no el SAS (anotarlo en `nota`).
 - [x] **Step 4: Run test to verify it passes**, luego `uv run python -m sgm.cli secretos tests/fixtures/datos` (esperado: 0 hallazgos) y `uv run ruff check src tests tools`.
-- [x] **Step 5: Commit.** `hito N n: fixture sintetico de sashelp.cars con ficha y semilla`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [x] **Step 5: Commit.** `hito Nn: fixture sintetico de sashelp.cars con ficha y semilla`.
 
 ---
 
@@ -153,7 +153,7 @@ Los dos programas reales no se migran enteros: cada rebanada es un fragmento lit
 - [x] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_rebanar_programa.py -q -p no:cacheprovider`; esperado: módulo no existe.
 - [x] **Step 3: Implement** las funciones. `calcular` usa la ruta de `tests/unit/test_migrar_corpus_anillo_b.py` (analizar, compilar a plan, `ejecutar_plan`) y convierte `Tabla` a `list[dict]` con `dict(zip(columnas, fila, strict=True))`. No escribe en el repositorio por sí solo: `escribir` lo hace quien lo llama.
 - [x] **Step 4: Run test to verify it passes** y `uv run ruff check src tests tools`.
-- [x] **Step 5: Commit.** `hito N n: rebanador de programas reales y esperado del interprete`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [x] **Step 5: Commit.** `hito Nn: rebanador de programas reales y esperado del interprete`.
 
 ---
 
@@ -207,12 +207,12 @@ Hoy `esquemas_de_entrada` (`src/sgm/migrar/esquemas.py`) deduce columnas solo de
   ```
   El comando imprime, por tabla, `tabla: N columnas, M sin tipo demostrado` y escribe `<salida>/<esquema>.json`. Sale con 0 aunque haya pendientes; con 2 si el programa no existe.
 
-- [x] **Step 1: Extraer `env_app` sin cambiar comportamiento.** Mover `env_app` y `env_import_describe` de `cli.py` (líneas 201 a 217) a `cli_env.py` (`env_app = typer.Typer(help="Entorno: esquemas de las bases.", no_args_is_help=True)` y el comando tal cual); en `cli.py` importar `from sgm.cli_env import env_app` junto a las otras importaciones de `sgm.cli_*` y dejar `app.add_typer(env_app, name="env")`. Quitar de `cli.py` el import de `describe_mod` si ya no se usa. Correr `uv run python -m pytest tests/unit -q -k "env or describe or cli" -p no:cacheprovider`; debe seguir igual. Commit propio: `hito N n: sgm env sale de cli.py a cli_env.py`.
+- [x] **Step 1: Extraer `env_app` sin cambiar comportamiento.** Mover `env_app` y `env_import_describe` de `cli.py` (líneas 201 a 217) a `cli_env.py` (`env_app = typer.Typer(help="Entorno: esquemas de las bases.", no_args_is_help=True)` y el comando tal cual); en `cli.py` importar `from sgm.cli_env import env_app` junto a las otras importaciones de `sgm.cli_*` y dejar `app.add_typer(env_app, name="env")`. Quitar de `cli.py` el import de `describe_mod` si ya no se usa. Correr `uv run python -m pytest tests/unit -q -k "env or describe or cli" -p no:cacheprovider`; debe seguir igual. Commit propio: `hito Nn: sgm env sale de cli.py a cli_env.py`.
 - [x] **Step 2: Write the failing test.** `test_esquemas_programa.py`: (a) con el programa pequeño (`client_poc.sas`), `tablas_base_del_programa(texto)["sashelp.cars"]` es exactamente las 15 columnas que lista el `SELECT` de la primera consulta por marca (`Make, Model, Type, Origin, DriveTrain, MSRP, Invoice, EngineSize, Cylinders, Horsepower, MPG_City, MPG_Highway, Weight, Wheelbase, Length`, línea 45 al redactar este plan). El `SELECT` nombra `WORK.CARS_POC`, no `sashelp.cars`: las columnas se atribuyen a la tabla de origen porque `data WORK.cars_poc; set sashelp.cars; run;` es una copia sin `KEEP`, `DROP`, `RENAME` ni asignaciones, y el `PROC APPEND base=WORK.cars_poc data=WORK.cars_poc` no cambia las columnas; una copia con `KEEP`/`DROP`/`RENAME` o con asignaciones **no** se atribuye y deja `P-COLUMNAS-NO-ATRIBUIDAS` con la tabla de origen; (b) `esquemas_desde_programa(texto)` sin `fixtures`: todas las columnas de `sashelp.cars` salen `String` (o `Double` si la aritmética lo demuestra) y hay un `P-TIPO-DESCONOCIDO` con el nombre de la tabla; **ninguna columna sale con tipo que no esté demostrado**; (c) con `fixtures={"sashelp.cars": [Column("MSRP", "Double", None, "fixture"), ...]}` esas columnas salen `Double` con `source == "fixture"` y no hay `P-TIPO-DESCONOCIDO` para ellas; (d) un programa mínimo `proc import datafile='x.csv' out=WORK.t dbms=dlm replace; getnames=yes; run; data WORK.u; set WORK.t; y = a * 2; run;` da `a` `Double` y `P-TIPO-DESCONOCIDO` para el resto; (e) `select a from &lib..t` da el pendiente `P-TABLA-DINAMICA`; (f) `a_json(...)` escribe `type: None` para lo no demostrado y `"_inferido": True`; (g) con `CliRunner`, `sgm esquemas --desde-programa <programa pequeño> --salida <tmp>` escribe `<tmp>/sashelp.json`; el archivo **no** lo carga `load_schemas` como catálogo con tipos inventados (su `source` es `inferido`); (h) `tools/contenedores/fuentes_sas.tablas_base(Path(client_large.sas))` devuelve las mismas tablas que antes (`tests/unit/test_contenedores.py` sigue en verde).
 - [x] **Step 3: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_esquemas_programa.py -q -p no:cacheprovider`.
 - [x] **Step 4: Implement.** `tablas_base_del_programa` mueve el cuerpo de `tablas_base` (`fuentes_sas.py`) a `src/` devolviendo el mapa; `fuentes_sas.tablas_base` pasa a construir sus `TablaBase`/`Omitida` desde `tablas_base_del_programa(..., atribuir_copias=False)` y de una segunda función `_omitidas` (las dinámicas y las sin columnas), manteniendo la firma y el resultado. Atribución por copia: una pasada previa recorre los `DATA` con un único `SET` y sin sentencias que cambien columnas, y suma las columnas usadas de la tabla copiada a la tabla de origen (con el mismo nombre en mayúsculas o minúsculas); es una regla de lectura del programa, no semántica de SAS, y por eso no cita página. `esquemas_desde_programa` une: columnas de `tablas_base_del_programa`, el plan (`analyze_program` + `compile_file(...).plan`, como `cli_migrar._plan`) y `esquemas_de_entrada(plan, {}, None)` para los `PROC IMPORT` y los `INPUT`; el tipo numérico sale de `esquemas_de_entrada`; lo no demostrado, `String` con `P-TIPO-DESCONOCIDO` por tabla. Registrar en `cli.py`: `from sgm.cli_esquemas import esquemas_command` y `app.command("esquemas")(esquemas_command)`.
 - [x] **Step 5: Run test to verify it passes**, luego `uv run python -m sgm.cli esquemas --desde-programa tests/fixtures/sas/client/client_large.sas --salida out/esquemas` y pegar en `PROGRESS.md` cuántas tablas y cuántas columnas quedan sin tipo (línea base de K-3), y `uv run ruff check src tests tools`.
-- [x] **Step 6: Commit.** `hito N n: sgm esquemas --desde-programa infiere tablas y columnas sin inventar tipos`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [x] **Step 6: Commit.** `hito Nn: sgm esquemas --desde-programa infiere tablas y columnas sin inventar tipos`.
 
 ---
 
@@ -265,12 +265,12 @@ Hoy `data WORK.cars_poc; set sashelp.cars; run;` migra con `P-OPERADOR-SIN-SOPOR
   ```
   `env/tablas_locales.json`: `{"_nota": "Bibliotecas locales sin base: el fixture es un CSV con ficha.", "sashelp.cars": {"archivo": "tests/fixtures/datos/sashelp/cars.csv", "delimitador": ","}}`.
 
-- [x] **Step 1: Extraer sin cambio de comportamiento.** Mover `_SECRETO` y `_contexto_yaml` de `cli_migrar.py` a `cli_migrar_contexto.py` (sin tocar el texto que escriben) e importarlos en `cli_migrar.py`. `uv run python -m pytest tests/unit/test_cli_migrar.py tests/unit/test_talend_contextos.py -q -p no:cacheprovider` debe seguir igual. Commit propio: `hito N n: contexto yaml de migrar sale a cli_migrar_contexto.py`.
+- [x] **Step 1: Extraer sin cambio de comportamiento.** Mover `_SECRETO` y `_contexto_yaml` de `cli_migrar.py` a `cli_migrar_contexto.py` (sin tocar el texto que escriben) e importarlos en `cli_migrar.py`. `uv run python -m pytest tests/unit/test_cli_migrar.py tests/unit/test_talend_contextos.py -q -p no:cacheprovider` debe seguir igual. Commit propio: `hito Nn: contexto yaml de migrar sale a cli_migrar_contexto.py`.
 - [x] **Step 2: Write the failing test.** `test_tablas_locales.py`: (a) con el programa `data WORK.c; set sashelp.cars; run; proc sql; create table WORK.a as select Make, MSRP from WORK.c where Make = 'Acura'; quit;`, `migrar(programa, out, ...)` **sin** tablas locales deja `P-OPERADOR-SIN-SOPORTE` en la línea 1 (conducta de hoy, no cambia) y **con** `--tablas-locales env/tablas_locales.json` ese pendiente desaparece, existe `contextos/Default.yaml` con una variable `ruta_cars` cuyo valor es `tests/fixtures/datos/sashelp/cars.csv`, y el Job tiene un `tFileInputDelimited`; (b) `pendientes.md` lista `P-DATOS-SINTETICOS` con la ruta del CSV; (c) `tablas_locales_a_archivos` no toca un `read` de `WORK.otra` ni un `read_file` existente; (d) `cargar_tablas_locales` con una tabla sin `.ficha.yaml` lanza `ValueError` que nombra la tabla; (e) el intérprete: `ejecutar_plan(plan_con_pase, {"sashelp.cars": filas_del_csv})` devuelve `a` con las filas cuya `Make` es `Acura` (4 con la semilla de K-1).
 - [x] **Step 3: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_tablas_locales.py -q -p no:cacheprovider`.
 - [x] **Step 4: Implement** los tres módulos y el enganche: en `migrar()` (`cli_migrar.py`), después de `plan, desplegados = plan_desplegado(plan)` y antes de `contextos_de_plan(plan)`, `plan, previos = preparar_plan(plan, locales)` y sumar `previos` a `resultado.pendientes`; `migrar(..., tablas_locales: Path | None = None)` carga con `cargar_tablas_locales(tablas_locales, raiz=Path.cwd())`. En `cli_migrar_comando.py`, `--tablas-locales` (`Path | None`, valida que exista). `informes.py` ya imprime los pendientes: `P-DATOS-SINTETICOS` aparece en `pendientes.md` con el motivo «tabla local `sashelp.cars` leída del fixture `<ruta>`, datos sintéticos; no son datos reales».
 - [x] **Step 5: Run** `uv run python -m pytest tests/unit/test_tablas_locales.py tests/unit/test_cli_migrar.py tests/unit/test_golden*.py -q -p no:cacheprovider`. Sin `--tablas-locales` los golden no cambian. Luego `uv run ruff check src tests tools`.
-- [x] **Step 6: Commit.** `hito N n: las tablas de biblioteca local se leen como archivo de fixture`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [x] **Step 6: Commit.** `hito Nn: las tablas de biblioteca local se leen como archivo de fixture`.
 
 ---
 
@@ -324,7 +324,7 @@ Hoy `data WORK.cars_poc; set sashelp.cars; run;` migra con `P-OPERADOR-SIN-SOPOR
 - [x] **Step 3: Implement.** `por_esquema.py` construye la `Entrada` y llama a `generar_tabla(f"{semilla}:{tabla}", entrada)`; para `exigidos`, sobrescribe después de generar las primeras filas de esa columna (la generación del resto no cambia). `sql_carga.sentencias_tipadas` reutiliza `_literal` y `_identificador`. En `pyproject.toml`: `addopts = "-n auto -m 'not studio and not contenedores'"` y `markers = ["studio: ...", "contenedores: necesita Docker con los contenedores sgmtest_ arriba; no corre por omisión"]` (dejar el texto de `studio` como está; si el Plan A ya cambió esa línea, sumar la marca sobre su versión).
 - [x] **Step 4: Run test to verify it passes**; `uv run ruff check src tests tools`.
 - [ ] **Step 5: Contenedor (si Docker está arriba).** `powershell -File tools\contenedores\impala\arrancar.ps1`; `uv run python -m sgm.cli esquemas --desde-programa tests/fixtures/sas/client/client_large.sas --salida out/esquemas`; `uv run python tools/contenedores/cargar_tablas.py --sas tests/fixtures/sas/client/client_large.sas --esquemas out/esquemas --filas 20 --ejecutar --verificar`. Esperado: cada tabla de `resultados_vspc_clientes`, `proceso_vspc_finanzas` y `s_canales` con 20 filas. `tests/contenedores/test_carga_impala.py` (marca `contenedores`; se salta si `docker ps` no lista `sgmtest_impalad`) crea una tabla tipada de 3 filas y comprueba `select sum(saldo)` contra la suma en Python con tolerancia 0. Si Docker no está arriba: «contenedor pendiente» con el motivo, y se cierra el resto.
-- [x] **Step 6: Commit.** `hito N n: generador de datos por esquema y carga tipada a Impala`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [x] **Step 6: Commit.** `hito Nn: generador de datos por esquema y carga tipada a Impala`.
 
 ---
 
@@ -557,8 +557,8 @@ Une K-10 y K-3: dado un caso con `programa.sas` y `datos.yaml`, escribe `entrada
 El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`, 31 `PROC SORT`, 30 `PROC CONTENTS`, 22 `PROC UPLOAD`, 22 `PROC EXPORT`, 9 `PROC IMPORT`, 4 `PROC DOWNLOAD` y unos 125 `CONNECT TO impala`. **30 de los 31 `PROC SORT` y los 30 `PROC CONTENTS` son una introspección de `WORK`** (`proc contents data=work._all_ noprint out=contents; proc sort data=contents out=members nodupkey; by memname;`, dentro de macros de partición): dependen de la sesión de SAS, no de datos, y no entran en ninguna rebanada; quedan `Pendiente: P-WORK-INTROSPECCION` (motivo: el contenido de `WORK` es estado de la sesión, no un dato que un fixture pueda aportar). Esta tarea fija las cinco rebanadas con líneas verificadas contra la copia redactada del repositorio y la compuerta de secretos.
 
 **Files:**
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\decisiones\client_large.rebanadas.yaml`
-- Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_k7_rebanadas.py`
+- Create: `decisiones/client_large.rebanadas.yaml`
+- Test: `tests/unit/test_k7_rebanadas.py`
 
 **Interfaces:**
 - Consumes: `Rebanada`, `rebanar`, `huella`, `verificar` (K-8); `escanear_ruta(ruta: Path) -> Escaneo` con `Escaneo.hallazgos` (`sgm.seguridad.escaner_secretos`); `region_de_linea(regiones, linea)` y `dividir_regiones(texto, marcador)` (`sgm.flow.regiones`); `cargar_declaracion(ruta).marcador` (`sgm.agrupacion`).
@@ -572,12 +572,12 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
   | `k7d_upload_download` | UPLOAD/DOWNLOAD | `[146, 164]`, `[24263, 24278]` | `signon`/`RSUBMIT`/`PROC DOWNLOAD`/`endrsubmit`/`signoff` y el `proc import` que lee la copia; `proc export` y `PROC UPLOAD` que la envía |
   | `k7e_totales` | totales | `[24615, 24653]` | los dos `CREATE TABLE ... AS SELECT SUM(...) FORMAT=BEST20. AS ...` (12 sumas cada uno) sobre `WORK.RESULTADO_AHO_EXT` y `WORK.RESULTADO_AHO_NAL` |
 
-- [ ] **Step 1: Verificar las líneas hoy.** Con `Grep`/`sed -n` sobre `tests/fixtures/sas/client/client_large.sas` confirmar cada rango de la tabla (primera y última línea de cada uno); si el archivo cambió, corregir la tabla y este plan. Medir la región de cada rango: `uv run python tools/medir_regiones.py --sas tests/fixtures/sas/client/client_large.sas --agrupacion decisiones/client_large.agrupacion.yaml` y anotar en `PROGRESS.md` en qué región del linaje cae cada rebanada (las cinco están fuera de `%macro ambiente`, en el cuerpo principal).
-- [ ] **Step 2: Write the failing test.** `test_k7_rebanadas.py`: (a) `decisiones/client_large.rebanadas.yaml` tiene exactamente cinco entradas con los `id` de la tabla; (b) para cada una `verificar(rebanada, REPO) == []`; (c) el texto de cada rebanada no contiene `pass='` seguido de algo distinto de `***'`, ni `pwencode in='` con algo distinto de `'***'`; (d) `escanear_ruta(tests/fixtures/sas/client).hallazgos == []`; (e) ninguna rebanada incluye una línea con `proc contents data=work._all_` (la introspección queda fuera); (f) el texto de `k7d_upload_download` contiene `RSUBMIT server;` y `PROC UPLOAD INFILE="/work_sasstudio/pcfiles/FA_NO_VIGENTES_AHO.csv"`.
-- [ ] **Step 3: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_k7_rebanadas.py -q -p no:cacheprovider`.
-- [ ] **Step 4: Implement.** Escribir el YAML con las huellas que calcula `huella(rebanar(texto, rangos))` (no copiarlas a mano) y `depende_de` por rebanada: a: K-1/K-8/K-10; b: K-3/K-4/K-13 y Plan D (MG-P2-05); c: Plan B (B-3, B-8); d: K-5; e: K-10.
-- [ ] **Step 5: Run test to verify it passes**; `uv run ruff check src tests tools`.
-- [ ] **Step 6: Commit.** `hito N n: mapa de cinco rebanadas verticales del programa grande`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [x] **Step 1: Verificar las líneas hoy.** Los rangos se confirmaron en `tests/fixtures/sas/client/client_large.sas`; `uv run python tools/medir_regiones.py --sas tests/fixtures/sas/client/client_large.sas --agrupacion decisiones/client_large.agrupacion.yaml` midió 30 regiones. La rebanada K-7c incluye el `PROC SORT` de las líneas 15816–15819 dentro de la región 17 de `%macro ambiente`; es un recorte literal parcial y no se presenta como programa autónomo ni como tramo del cuerpo principal. Las demás ubicaciones y regiones se registran en `PROGRESS.md`.
+- [x] **Step 2: Write the failing test.** `tests/unit/test_k7_rebanadas.py` comprueba las cinco entradas y dependencias, SHA-256/verificación, región de cada rango, exclusión de introspección, que `PASS`/`PWENCODE` solo acepten el marcador exacto `***`, escaneo de la fixture y las señales de UPLOAD/RSUBMIT.
+- [x] **Step 3: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_k7_rebanadas.py -q -p no:cacheprovider` falló con las seis pruebas esperando el manifiesto ausente; el test no tuvo errores de importación o sintaxis.
+- [x] **Step 4: Implement.** `decisiones/client_large.rebanadas.yaml` declara las cinco rebanadas y las dependencias: a: K-1/K-8/K-10; b: K-3/K-4/K-13/MG-P2-05; c: B-3/B-8; d: K-5; e: K-10. Las cinco huellas se calcularon desde los fragmentos UTF-8 originales mediante `huella(rebanar(...))`.
+- [x] **Step 5: Run test to verify it passes.** `uv run python -m pytest tests/unit/test_k7_rebanadas.py -q -p no:cacheprovider`: 8 aprobadas, incluyendo la regresión del sufijo `***`; `uv run ruff check src tests tools`: limpio.
+- [x] **Step 6: Commit.** `hito 235n: mapa de cinco rebanadas verticales del programa grande`; sin coautoría no verificable.
 
 ---
 
@@ -595,7 +595,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_k7a_import_export.py -q -p no:cacheprovider`.
 - [ ] **Step 3: Implement el caso** con `escribir_rebanada`, `preparar` y `esperado_interprete.escribir`; el `PROC EXPORT` con `PUTNAMES` por omisión (cabecera) se confirma en `proc.INDEX.md` («EXPORT Procedure», p. 901 según el catálogo) antes de escribir `esperado/FA_NO_VIGENTES_AHO.csv`; si la página no lo demuestra, `Pendiente: P-EXPORT-CABECERA` y el esperado no incluye la cabecera como hecho.
 - [ ] **Step 4: Run test to verify it passes**; anillo C: `uv run python tools/validar_caso_studio.py k7a_import_export` (con el `--corpus` de K-6). Sin Studio: «lote C pendiente».
-- [ ] **Step 5: Commit.** `hito N n: rebanada de IMPORT y EXPORT del programa grande`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 5: Commit.** `hito Nn: rebanada de IMPORT y EXPORT del programa grande`.
 
 ---
 
@@ -616,7 +616,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 3: Implement el caso**; `preparar(caso, cargar=True)` con el contenedor arriba crea `resultados_vspc_clientes.master_customer_data` (12 filas) y `consultar("select max(ingestion_day) from resultados_vspc_clientes.master_customer_data where year = 2026 and month = 9")` debe dar `2026-09-28`.
 - [ ] **Step 4: Contenedor y Studio.** `tests/contenedores/test_k7b_sql_impala.py` (marca `contenedores`) migra con `--contexto-dev`, ejecuta el Job en Studio con `--grupo-contexto DEV` y compara `consultar("select count(*) from proceso_vspc_finanzas.mcdq")` con 4. «contenedor pendiente» o «lote C pendiente» si falta Docker, Studio o el lector de Plan D.
 - [ ] **Step 5: Run test to verify it passes**, `sgm secretos` sobre el caso y sobre `out/k7b`; `uv run ruff check src tests tools`.
-- [ ] **Step 6: Commit.** `hito N n: rebanada de SQL a Impala del programa grande con contenedor`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 6: Commit.** `hito Nn: rebanada de SQL a Impala del programa grande con contenedor`.
 
 ---
 
@@ -635,7 +635,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_k7c_sort_delete.py -q -p no:cacheprovider`.
 - [ ] **Step 3: Implement el caso** y medir qué hace hoy el intérprete con el `DATA` de `COMPRESS(input(...))`; pegar el resultado en `PROGRESS.md`.
 - [ ] **Step 4: Run test to verify it passes**; anillo C: `uv run python tools/validar_caso_studio.py k7c_sort_delete` (compara `SABANA_DIR_UNICA_NEQUI`, y es el caso que decide si `tSortRow` con `NODUPKEY` conserva la primera fila). Sin Studio: «lote C pendiente».
-- [ ] **Step 5: Commit.** `hito N n: rebanada de SORT y DELETE del programa grande`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 5: Commit.** `hito Nn: rebanada de SORT y DELETE del programa grande`.
 
 ---
 
@@ -653,7 +653,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_k7d_upload_download.py -q -p no:cacheprovider`.
 - [ ] **Step 3: Implement el caso** con `caso/mapa.yaml` y la corrida de Studio (`corpus_studio.py validar ... --mapa caso/mapa.yaml --grupo-contexto DEV`).
 - [ ] **Step 4: Run test to verify it passes**; anillo C: el Job escribe la «ruta de red» de `DEV` en `salida/` y el resultado coincide con `esperado/`; sin Studio: «lote C pendiente».
-- [ ] **Step 5: Commit.** `hito N n: rebanada de UPLOAD y DOWNLOAD del programa grande`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 5: Commit.** `hito Nn: rebanada de UPLOAD y DOWNLOAD del programa grande`.
 
 ---
 
@@ -671,7 +671,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_k7e_totales.py -q -p no:cacheprovider`.
 - [ ] **Step 3: Implement el caso.**
 - [ ] **Step 4: Run test to verify it passes**; anillo C: `uv run python tools/validar_caso_studio.py k7e_totales` con la tolerancia del caso. Sin Studio: «lote C pendiente».
-- [ ] **Step 5: Commit.** `hito N n: rebanada de totales del programa grande`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 5: Commit.** `hito Nn: rebanada de totales del programa grande`.
 
 ---
 
@@ -706,7 +706,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_datos_auditoria.py -q -p no:cacheprovider`.
 - [ ] **Step 3: Implement** `auditar` (una función por regla, para que un error diga cuál) y escribir `catalogo.yaml` con lo que haya hasta este punto (K-1 y los casos que ya existan); se actualiza cada vez que una tarea agrega una ficha.
 - [ ] **Step 4: Run test to verify it passes**; `uv run ruff check src tests tools`. Si se agrega al CI del Plan A, hacerlo en una tarea suya, no aquí (`tools/ci.py` no se toca).
-- [ ] **Step 5: Commit.** `hito N n: catalogo de fixtures y auditoria de que lo sintetico no se presenta como real`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 5: Commit.** `hito Nn: catalogo de fixtures y auditoria de que lo sintetico no se presenta como real`.
 
 ---
 
@@ -733,7 +733,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_datos_regenerar.py -q -p no:cacheprovider`.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run test to verify it passes**; `uv run ruff check src tests tools`.
-- [ ] **Step 5: Commit.** `hito N n: regeneracion y deteccion de deriva de los fixtures`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 5: Commit.** `hito Nn: regeneracion y deteccion de deriva de los fixtures`.
 
 ---
 
@@ -750,7 +750,7 @@ El programa grande tiene unas 24.800 líneas, 521 `PROC SQL`, 216 `PROC DELETE`,
 - [ ] **Step 2: Run** `uv run python tools/datos_sinteticos/regenerar.py --verificar` y `uv run python -c "import sys; sys.path.insert(0,'tools'); from datos_sinteticos.auditar import auditar; from pathlib import Path; print(auditar(Path('.')))"`; esperado `[]`.
 - [ ] **Step 3: Run** el lote C con los seis casos (`k6_cars_ciclo_append`, `k7a_import_export`, `k7b_sql_impala`, `k7c_sort_delete`, `k7d_upload_download`, `k7e_totales`): `uv run python tools/validar_caso_studio.py k6_cars_ciclo_append k7a_import_export k7b_sql_impala k7c_sort_delete k7d_upload_download k7e_totales`. Si Studio no conecta, `sgm studio salud` y `docs/guia-validacion-studio.md`, sección 7; no se reinstala nada. La compuerta **no** se declara cerrada con «lote C pendiente».
 - [ ] **Step 4: Registrar** en `PROGRESS.md` el hito de cierre: casos por anillo (A, B, C) de los seis, pendientes por código (`P-TIPO-DESCONOCIDO`, `P-APPEND-MISMA-TABLA`, `P-SQL-DINAMICO`, `P-REPETICIONES-ESTATICAS`, `P-WORK-INTROSPECCION`, `P-CONVERSION-NUM-TEXTO`, `P-DATOS-SINTETICOS` informativo), horas reales frente a las 30 estimadas y qué quedó fuera con su motivo. En `ruta-al-100.md`, la tabla del Plan K pasa a «hecho» solo para las tareas cuyos tres anillos pasaron.
-- [ ] **Step 5: Commit.** `hito N n: compuerta del plan K, dos programas reales con esperado reproducible`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [ ] **Step 5: Commit.** `hito Nn: compuerta del plan K, dos programas reales con esperado reproducible`.
 
 ---
 

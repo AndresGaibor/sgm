@@ -1,0 +1,61 @@
+- id: k7a_import_export
+  tipo: IMPORT/EXPORT
+  fuente: tests/fixtures/sas/client/client_large.sas
+  rangos:
+  - - 5
+    - 13
+  - - 160
+    - 164
+  - - 24263
+    - 24267
+  sha256: a135e2c0c191c7fe3a21f926d2131b4ce9761eaa48efb636007ac3a971578d51
+  depende_de:
+  - K-1
+  - K-8
+  - K-10
+- id: k7b_sql_impala
+  tipo: SQL a Impala
+  fuente: tests/fixtures/sas/client/client_large.sas
+  rangos:
+  - - 166
+    - 181
+  - - 183
+    - 212
+  sha256: d42b87081fb2d9f254c3238ec7b8dc538e39cc9e6a699ebaf4e80862a529e20a
+  depende_de:
+  - K-3
+  - K-4
+  - K-13
+  - MG-P2-05
+- id: k7c_sort_delete
+  tipo: SORT/DELETE
+  fuente: tests/fixtures/sas/client/client_large.sas
+  rangos:
+  - - 45
+    - 57
+  - - 15816
+    - 15819
+  sha256: 8b9003d6090cd3b3c757f048a9923b4ea3a613329ce955e0f68ba7872c1d8513
+  depende_de:
+  - B-3
+  - B-8
+- id: k7d_upload_download
+  tipo: UPLOAD/DOWNLOAD
+  fuente: tests/fixtures/sas/client/client_large.sas
+  rangos:
+  - - 146
+    - 164
+  - - 24263
+    - 24278
+  sha256: 141abf27230fab124461a1efeca66d608e8b5037fcf49f97caace952e323fc09
+  depende_de:
+  - K-5
+- id: k7e_totales
+  tipo: totales
+  fuente: tests/fixtures/sas/client/client_large.sas
+  rangos:
+  - - 24615
+    - 24653
+  sha256: 7eb096b49fc673e702149b5168e2f21103f5bd802ac80b1908dd1efe32a51999
+  depende_de:
+  - K-10
