@@ -347,10 +347,12 @@ Semántica: `SELECT (expr); WHEN (v1, v2) ...; OTHERWISE ...; END;` evalúa `exp
 - Create: casos `tests\corpus\L4\l4_21_select_when_con_otherwise`, `l4_22_select_sin_expresion`, `l4_23_delete_condicional`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_select.py`
 
-- [ ] **Step 1: Write the failing test.** (a) `SELECT (x); WHEN (1,2) y='a'; WHEN (3) y='b'; OTHERWISE y='c'; END;` baja a la cadena `IF/ELSE IF/ELSE` que ya existe (`_conditional_assignment`, `lower_data.py` línea 461) con `x in (1,2)` y `x = 3`, y tres filas de prueba coinciden en B; (b) sin `OTHERWISE` y sin coincidencia: pendiente `P-SELECT-SIN-OTHERWISE` (SAS aborta; no se inventa un valor por omisión); (c) `DELETE` condicional produce un `filter` con la condición negada cuando solo hay asignaciones antes; si hay `OUTPUT` antes, queda el pendiente `P-DELETE-CON-OUTPUT`; (d) `WHEN` con faltante: el faltante numérico solo iguala a otro faltante.
+**Estado (hito 225m):** parcial. Se implementó `SELECT/WHEN/OTHERWISE` y `IF ... THEN DELETE` con pruebas (`test_lower_data_select.py`). Falta el código `P-SELECT-SIN-OTHERWISE` (hoy sale como sentencia sin traducción) y el lote de Studio de B-Gate.
+
+- [x] **Step 1: Write the failing test.** (a) `SELECT (x); WHEN (1,2) y='a'; WHEN (3) y='b'; OTHERWISE y='c'; END;` baja a la cadena `IF/ELSE IF/ELSE` que ya existe (`_conditional_assignment`, `lower_data.py` línea 461) con `x in (1,2)` y `x = 3`, y tres filas de prueba coinciden en B; (b) sin `OTHERWISE` y sin coincidencia: pendiente `P-SELECT-SIN-OTHERWISE` (SAS aborta; no se inventa un valor por omisión); (c) `DELETE` condicional produce un `filter` con la condición negada cuando solo hay asignaciones antes; si hay `OUTPUT` antes, queda el pendiente `P-DELETE-CON-OUTPUT`; (d) `WHEN` con faltante: el faltante numérico solo iguala a otro faltante.
 - [ ] **Step 2: Run test to verify it fails.**
-- [ ] **Step 3: Implement** por reducción a `IF` encadenado, sin operador nuevo.
-- [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_lower_data_select.py tests/unit/test_corpus_l4l6.py -q`.
+- [x] **Step 3: Implement** por reducción a `IF` encadenado, sin operador nuevo.
+- [x] **Step 4: Run** `uv run python -m pytest tests/unit/test_lower_data_select.py tests/unit/test_corpus_l4l6.py -q`.
 - [ ] **Step 5: Commit.** `hito N m: SELECT/WHEN y DELETE`.
 
 ---
