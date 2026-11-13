@@ -10,7 +10,7 @@ Lo que no se desenrolla queda como antes (sentencia sin traducción):
 
 * límites no constantes, `DO WHILE`, `DO UNTIL` o `DO` anidado;
 * un índice constante fuera de rango (`a{4}` con tres elementos): SAS no lo calla y no se
-  inventa valor (`P-ARRAY-FUERA-DE-RANGO`, aún sin código emitido);
+  inventa valor (`P-ARRAY-FUERA-DE-RANGO`, `lrcon`, p. 192; ver `indice_fuera_de_rango`);
 * un cuerpo con algo que no es una asignación (`OUTPUT`, `IF`, `PUT`...).
 """
 
@@ -67,10 +67,32 @@ def _sustituir(texto: str, variable: str, valor: int, arreglos: dict[str, list[s
     return "".join(partes)
 
 
-def bucle_desenrollado(
-    stmts: list[DsStatement], index: int, arreglos: dict[str, list[str]]
-) -> tuple[list[tuple[str, str]], int] | None:
-    """Asignaciones (destino, expresión) del `DO` en `index`, y el índice de su `END`."""
+_DO_CONDICIONAL = re.compile(r"(?i)^do\s+(while|until)\b")
+_ABRE_BLOQUE = re.compile(r"(?i)^(do|select)\b|\b(then|else)\s+do$")
+
+
+def es_do_condicional(texto: str) -> bool:
+    """`DO WHILE (...)` o `DO UNTIL (...)`: la forma que no se desenrolla (`lrcon`, p. 675)."""
+    return _DO_CONDICIONAL.match(texto.strip()) is not None
+
+
+def fin_de_bloque(stmts: list[DsStatement], index: int) -> int | None:
+    """Índice del `END` que cierra el `DO` (o `SELECT`) en `index`, contando los anidados."""
+    profundidad = 0
+    for cursor in range(index, len(stmts)):
+        texto = stmts[cursor].text.strip()
+        if stmts[cursor].kind == "end":
+            profundidad -= 1
+            if profundidad == 0:
+                return cursor
+        elif _ABRE_BLOQUE.search(texto):
+            profundidad += 1
+    return None
+
+
+def _partes_del_bucle(stmts: list[DsStatement], index: int):
+    """Variable, límites, asignaciones del cuerpo y el índice del `END` del `DO` en `index`;
+    None si no es un bucle con límites constantes y solo asignaciones."""
     cabecera = _DO_TO.fullmatch(stmts[index].text.strip())
     if cabecera is None:
         return None
@@ -87,17 +109,56 @@ def bucle_desenrollado(
         cursor += 1
     if cursor >= len(stmts) or not cuerpo or hasta < desde:
         return None
-    try:
-        salida: list[tuple[str, str]] = []
-        for valor in range(desde, hasta + 1):
-            for destino, expresion in cuerpo:
-                salida.append(
-                    (
-                        _sustituir(destino, variable, valor, arreglos).lower(),
-                        _sustituir(expresion, variable, valor, arreglos),
-                    )
+    return variable, desde, hasta, cuerpo, cursor
+
+
+def _expandir(
+    variable: str,
+    desde: int,
+    hasta: int,
+    cuerpo: list[tuple[str, str]],
+    arreglos: dict[str, list[str]],
+) -> list[tuple[str, str]]:
+    """Copias del cuerpo, una por valor de `variable`. Lanza `_Fuera` si un índice se sale."""
+    salida: list[tuple[str, str]] = []
+    for valor in range(desde, hasta + 1):
+        for destino, expresion in cuerpo:
+            salida.append(
+                (
+                    _sustituir(destino, variable, valor, arreglos).lower(),
+                    _sustituir(expresion, variable, valor, arreglos),
                 )
+            )
+    return salida
+
+
+def bucle_desenrollado(
+    stmts: list[DsStatement], index: int, arreglos: dict[str, list[str]]
+) -> tuple[list[tuple[str, str]], int] | None:
+    """Asignaciones (destino, expresión) del `DO` en `index`, y el índice de su `END`."""
+    partes = _partes_del_bucle(stmts, index)
+    if partes is None:
+        return None
+    variable, desde, hasta, cuerpo, cursor = partes
+    try:
+        salida = _expandir(variable, desde, hasta, cuerpo, arreglos)
     except _Fuera:
         return None
     salida.append((variable, str(hasta + 1)))  # tras el bucle, la variable vale el límite más uno
     return salida, cursor
+
+
+def indice_fuera_de_rango(
+    stmts: list[DsStatement], index: int, arreglos: dict[str, list[str]]
+) -> tuple[str, int] | None:
+    """El elemento que el `DO` en `index` referencia fuera del arreglo (`a{4}`) y el índice de su
+    `END`; None si no hay tal índice."""
+    partes = _partes_del_bucle(stmts, index)
+    if partes is None:
+        return None
+    variable, desde, hasta, cuerpo, fin = partes
+    try:
+        _expandir(variable, desde, hasta, cuerpo, arreglos)
+    except _Fuera as error:
+        return str(error), fin
+    return None

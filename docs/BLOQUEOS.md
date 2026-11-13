@@ -74,6 +74,17 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 - **Lo que ya queda seguro (hito 228m):** `_N_` y `_ERROR_` no se traducen como columnas: salen hueco con su código.
 - **Desbloqueo:** decisión sobre `interprete.py` y Studio disponible.
 
+## B-16: bucle `DO WHILE`/`DO UNTIL` en `tJavaRow` (MG-P4-06, parte pendiente)
+
+- **Tarea:** B-16, paso 1 (b) y paso 3 para `DO WHILE`/`UNTIL`: emitir el bucle en `tJavaRow` y, con `OUTPUT`
+  dentro del bucle, `P-DO-OUTPUT-EN-BUCLE`.
+- **Estado:** el `DO WHILE`/`UNTIL` sale hoy como hueco con `P-DO-WHILE-UNTIL` (caso `l6_33`, pendiente). No se emite
+  el bucle.
+- **Motivo:** el paso 3 toca `src/sgm/migrar/interprete.py` (1 103 líneas, zona de Byron). La decisión (a, b o c) sobre
+  ese archivo está pendiente (ver B-11 a B-14 y B-19). La emisión en `tJavaRow` necesita Studio para validarse.
+- **Decisión que falta (dueño):** la de B-11 a B-14 sobre `interprete.py`.
+- **Desbloqueo:** esa decisión y Studio en `READY` para validar `l6_33`.
+
 ## B-22: catálogo y plan maestro al día (depende de Studio)
 
 - **Tarea:** B-22, pasos 1 y 2. El paso 2 corrige la tabla 5.2 (`tUnite` con conexiones `MERGE`, según B-9), reemplaza

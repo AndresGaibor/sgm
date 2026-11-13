@@ -8,7 +8,7 @@ entries:
   what: sondeo de procesos con sleep/until del shell
   reason: Espera a que terminen procesos del sistema; no transforma datos.
   talend: Talend continúa con OnSubjobOk cuando el paso anterior termina.
-  pattern: \b(sleep|until|wait|ps\s+-|while)\b|\bsleep\s*\(
+  pattern: \b(sleep|wait|ps\s+-)\b|\bsleep\s*\(|\b(until|while)\b(?!\s*\()
   flags:
   - i
 - id: shell_auxiliar

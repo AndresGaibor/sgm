@@ -7135,3 +7135,27 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `tests/unit/test_lower_data_select.py` y `tests/unit/test_corpus_l4l6.py` (156 pasan, 37 omitidas);
   suite completa `uv run python -m pytest -q`: 3624 pasan, 316 omitidas, 142 xfail; `ruff check .` limpio.
 - Pendiente (parcial): los casos `l4_21`, `l4_22` y `l4_23` del plan no existen en `tests/corpus/L4/`; el lote de Studio es de B-Gate.
+
+## Hito 232m. B-16: `P-ARRAY-FUERA-DE-RANGO` y `P-DO-WHILE-UNTIL` como hueco; corrige el patrón `espera` (parcial)
+
+- Qué se hizo:
+  - `P-ARRAY-FUERA-DE-RANGO`: un `DO` cuyo índice constante sale del arreglo (`a{4}` con tres elementos) pasa a hueco con
+    su código en vez de quedar como sentencia sin traducir. Cita: `lrcon`, p. 192 («Execution-Time Errors», ejemplo de
+    «Subscript Out of Range»: SAS imprime el error y detiene el proceso). Funciones: `indice_fuera_de_rango` y
+    `_partes_del_bucle`/`_expandir` en `lower_data_arreglos.py`.
+  - `P-DO-WHILE-UNTIL`: `DO WHILE`/`DO UNTIL` pasa a hueco con su código y su cuerpo no genera operadores. Cita:
+    `lrcon`, p. 675 («DO WHILE and DO UNTIL Expressions»). El bucle en `tJavaRow` queda en `docs/BLOQUEOS.md` (B-16).
+  - `desde_plan.py` (`_sin_soporte`): un hueco puede declarar su código en `params["codigo"]`; sin él, sigue
+    `P-OPERADOR-SIN-SOPORTE`. Antes, el código de un hueco no llegaba a `pendientes`.
+  - Corrección de un defecto: el patrón `espera` de `rules/sas/plumbing.yaml` tomaba cualquier `while`/`until` por
+    sondeo de procesos. Un `DO WHILE` de datos se quitaba del plan sin aviso (el Job salía sin el bucle). Ahora el
+    patrón exige que `until`/`while` no vayan seguidos de `(`; los `while`/`until` del shell siguen cubiertos.
+- Casos nuevos (pendientes, sin `esperado/`): `tests/corpus/L6/l6_33_do_while` (P-DO-WHILE-UNTIL) y
+  `tests/corpus/L6/l6_34_array_indice_fuera_de_rango` (P-ARRAY-FUERA-DE-RANGO). Se listan en
+  `tests/corpus/migrar_pendientes.yaml`. El conteo del corpus pasa de 131 a 133 casos y L6 de 24 a 26 en
+  `tests/unit/test_tablero.py`: es crecimiento del corpus, no un test relajado. `con_esperado` sigue en 129.
+- Pruebas: `test_lower_data_arreglos.py` (6 y luego 9 con los nuevos), `test_plumbing_do_while.py` (nuevo),
+  `test_migrar_corpus_aceptacion.py`, `test_tablero.py`, `test_corpus_l4l6.py`: 285 pasan, 37 omitidas; `ruff check .` limpio.
+- Pendiente (parcial): `l6_32` (traducible, con `esperado/` a mano) no existe; `l6_30` y `l6_31` no los define el plan
+  (queda decidir su contenido); el bucle `DO WHILE` en `tJavaRow` está bloqueado por la decisión sobre `interprete.py`
+  y por Studio (ver `docs/BLOQUEOS.md`, B-16).

@@ -14,7 +14,13 @@ from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_arreglos import _ARRAY as _ARRAY_DECLARA
-from sgm.ir.lower_data_arreglos import arreglos_declarados, bucle_desenrollado
+from sgm.ir.lower_data_arreglos import (
+    arreglos_declarados,
+    bucle_desenrollado,
+    es_do_condicional,
+    fin_de_bloque,
+    indice_fuera_de_rango,
+)
 from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_op
 from sgm.ir.lower_data_automaticas import automaticas_en, motivo
 from sgm.ir.lower_data_bloques import bloque_condicional
@@ -162,9 +168,36 @@ class _Recorrido:
             return declara is not None and declara.group(1).lower() in arreglos
         if s.kind != "do":
             return False
+        if es_do_condicional(s.text):
+            fin = fin_de_bloque(self.stmts, index)
+            if fin is None:
+                return False
+            self._hueco_de_bucle(
+                index,
+                statement_ev,
+                "P-DO-WHILE-UNTIL: DO WHILE/UNTIL no se desenrolla y aún no tiene su bucle en "
+                "tJavaRow (lrcon, p. 675)",
+                "DO_WHILE_UNTIL",
+                "P-DO-WHILE-UNTIL",
+                fin,
+            )
+            return True
         desenrollado = bucle_desenrollado(self.stmts, index, arreglos)
         if desenrollado is None:
-            return False
+            fuera = indice_fuera_de_rango(self.stmts, index, arreglos)
+            if fuera is None:
+                return False
+            elemento, fin = fuera
+            self._hueco_de_bucle(
+                index,
+                statement_ev,
+                f"P-ARRAY-FUERA-DE-RANGO: {elemento} está fuera del arreglo; SAS detiene el paso "
+                "(lrcon, p. 192)",
+                "ARRAY_FUERA_DE_RANGO",
+                "P-ARRAY-FUERA-DE-RANGO",
+                fin,
+            )
+            return True
         asignaciones, fin = desenrollado
         for destino, expresion in asignaciones:
             texto = f"{destino} = {expresion}"
@@ -173,6 +206,23 @@ class _Recorrido:
         self.omit.update(range(index + 1, fin + 1))
         self.prev = self.stmts[fin]
         return True
+
+    def _hueco_de_bucle(
+        self, index: int, statement_ev: Evidence, motivo: str, reason: str, codigo: str, fin: int
+    ) -> None:
+        """Hueco con su pendiente para un `DO` que no se traduce. El Job no se emite, y el cuerpo
+        del bucle (hasta su `END`, en `fin`) no genera operadores aparte."""
+        operador = self.b.op(
+            "unsupported",
+            {"statement": self.stmts[index].text, "reason": reason, "codigo": codigo},
+            statement_ev,
+            status="hueco",
+            notes=[motivo],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
+        self.omit.update(range(index + 1, fin + 1))
+        self.prev = self.stmts[fin]
 
     def _borrado_condicional(self, index: int, statement_ev: Evidence) -> bool:
         """`IF cond THEN DELETE;` como `filter` con la condición negada (B-15). Con `OUTPUT` antes

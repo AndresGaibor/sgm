@@ -251,7 +251,8 @@ class _Job:
             self.pendientes.append(PendienteMigracion(CONFIG_RESUELTA, motivo, _linea(op)))
             return
         motivo = op.notes[0] if op.notes else f"el operador '{op.kind}' no tiene componente"
-        codigo = PIVOTAR if op.kind == "pivot" else SIN_SOPORTE
+        # `codigo`: un hueco que ya sabe su pendiente (p. ej. P-ARRAY-FUERA-DE-RANGO) lo declara.
+        codigo = op.params.get("codigo") or (PIVOTAR if op.kind == "pivot" else SIN_SOPORTE)
         self.pendientes.append(PendienteMigracion(codigo, motivo, _linea(op)))
 
     def _lectura(self, op: Operator, x: int) -> None:
