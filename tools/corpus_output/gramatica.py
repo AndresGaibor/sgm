@@ -20,7 +20,9 @@ DATASETS = ("S1", "S2", "S3")
 # Condición de cada bloque: (variable, operador, constante). `None` es el ELSE.
 CONDICION_1 = ("VALOR", "<=", 2)
 CONDICION_2 = ("VALOR", ">=", 4)
-DESTINOS = ((), ("S1",), ("S1", "S2"))  # omitido (todos), uno, dos
+# Omitido (todos), un dataset (cualquiera de los tres) y dos. Con estos cinco destinos se cubren
+# `l6_13` y `l6_23` (B-17); `l6_21` necesita (S2, S3) y queda fuera del espacio.
+DESTINOS = ((), ("S1",), ("S2",), ("S3",), ("S1", "S2"))
 
 # Ramas: por bloque, la condición (o None para el ELSE final), y si la rama es cadena (excluyente).
 ESTRUCTURAS: dict[str, tuple[tuple[tuple | None, ...], bool]] = {
@@ -29,8 +31,8 @@ ESTRUCTURAS: dict[str, tuple[tuple[tuple | None, ...], bool]] = {
     "if_else": ((CONDICION_1, None), True),
     "if_elseif": ((CONDICION_1, CONDICION_2), True),
     "if_elseif_else": ((CONDICION_1, CONDICION_2, None), True),
-    # Dos IF sin cadena: un OUTPUT por cada uno. Con DESTINOS no hay ninguna combinación sin repetir
-    # dataset, así que todas son negativos (`negativos()`).
+    # Dos IF sin cadena: un OUTPUT por cada uno. Si los dos escriben al mismo dataset son negativos
+    # (`negativos()`); si no, son combinaciones positivas.
     "dos_if_independientes": ((CONDICION_1, CONDICION_2), False),
 }
 

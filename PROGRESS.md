@@ -7292,3 +7292,22 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `test_lower_data_select.py` (7), `test_casos_b15_select.py` (6), `test_tablero.py`; suite completa:
   3777 pasan, 332 omitidas, 142 xfail; `ruff check .` limpio.
 - Pendiente (parcial): el lote de Studio de estos casos es parte de B-Gate (BLOQUEOS).
+
+## Hito 240m. B-17: destinos de un dataset y cobertura explícita de l6_13 a l6_24 (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: `DESTINOS` pasa de tres valores a cinco: omitido, `S1`, `S2`, `S3` y `S1,S2`.
+    El espacio pasa de 102 a 386 combinaciones positivas (las 386 migran a Jobs válidos y sin pendiente) y los
+    negativos de 18 a 34. Con dos `IF` sin cadena y destinos disjuntos ahora hay combinaciones positivas, y el
+    comentario de `dos_if_independientes` se corrige.
+  - `tests/unit/test_cobertura_l6_13_24.py` (nuevo): tabla explícita. Nueve casos cubiertos de forma (`l6_13`,
+    `l6_16` a `l6_20`, `l6_22` a `l6_24`); `l6_14` y `l6_15` quedan fuera por captura del PDV, `l6_21` por el par
+    `S2,S3`. Cita de cada caso: la regla de `OUTPUT` de `lestmtsref`, p. 273-274, y la escritura del PDV de `lrcon`,
+    p. 498, con las mismas citas que el oráculo.
+  - `tests/unit/test_combinaciones_output.py`: los conteos pasan a 386 y 34.
+- Límite declarado: la cobertura es de forma, no de valores. El espacio fija sus condiciones (`VALOR <= 2`,
+  `VALOR >= 4`) y los casos usan otras (`valor = 1`, ...), y el número de datasets del encabezado puede diferir. El
+  `esperado/` de los casos no se compara aquí.
+- Pruebas: `test_cobertura_l6_13_24.py` (13), `test_combinaciones_output.py` (con el oráculo y el Anillo A), suite
+  completa: 4090 pasan, 332 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): la captura del PDV y `--escribir` (BLOQUEOS, B-17).

@@ -64,9 +64,9 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
   queda con dos columnas de valor y la comparación con el oráculo falla. La corrección está en `interprete.py`
   (1 103 líneas, zona de Byron, con la decisión (a/b/c) pendiente, ver B-11 a B-14 y B-19). El traductor
   (`talend_item`) no se puede validar sin Studio.
-- **Motivo (`--escribir`):** de las 102 combinaciones, 84 migran sin pendiente. Escribirlas todas en
-  `tests/corpus/L6/` cambia los conteos del tablero y del corpus (134 casos hoy). Cuántas entran (todas, o un
-  subconjunto con las que cubren `l6_13` a `l6_24`) es una decisión del dueño.
+- **Motivo (`--escribir`):** de las 386 combinaciones positivas, las 386 migran sin pendiente (hito 240m). Escribirlas
+  todas en `tests/corpus/L6/` añadiría 386 casos y cambiaría los conteos del tablero y del corpus (139 casos hoy). Cuántas
+  entran (todas, o un subconjunto con las que cubren `l6_13` a `l6_24`) es una decisión del dueño.
 - **Decisiones que faltan (dueño):** (1) la de `interprete.py` (B-11 a B-14, B-19); (2) cuántas combinaciones
   de `OUTPUT` entran al corpus L6.
 - **Desbloqueo:** esas dos decisiones. La captura además necesita Studio para validarse en B-18.

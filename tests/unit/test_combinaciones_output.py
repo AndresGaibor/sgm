@@ -57,9 +57,10 @@ def _interprete(programa: str) -> dict[str, list[dict]]:
     return {d: resultado.get(d.lower(), []) for d in DATASETS}
 
 
-def test_el_espacio_tiene_102_combinaciones_y_ninguna_repite_destino_en_ramas_independientes():
+def test_el_espacio_tiene_386_combinaciones_positivas():
     cs = list(combinaciones())
-    assert len(cs) == 102  # 51 sin continuación y las mismas 51 con ella (B-17, hito 236m)
+    # Destinos de un dataset cualquiera y pares (hito 240m): cubre l6_13 y l6_23 (B-17).
+    assert len(cs) == 386
     assert all(c.rama != "incondicional" or len(c.destinos) == 1 for c in cs)
 
 
@@ -111,7 +112,7 @@ def test_los_negativos_de_destino_repetido_son_las_dos_ramas_independientes():
     """El espacio positivo no tiene dos `IF` independientes: con S1 y S2 como destinos, dos
     `OUTPUT` sin cadena siempre repiten dataset. Esas combinaciones son los casos negativos (B-17)."""
     negs = list(negativos())
-    assert len(negs) == 18  # 9 sin continuación y 9 con ella
+    assert len(negs) == 34  # los dos IF sin cadena que repiten dataset, con y sin continuación
     assert all(c.rama == "dos_if_independientes" for c in negs)
 
 
