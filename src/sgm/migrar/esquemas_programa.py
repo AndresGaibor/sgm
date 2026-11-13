@@ -59,8 +59,8 @@ def _columnas_copia(texto: str, destino: str, desde: int) -> list[str]:
     return columnas_usadas(restante, buscado)
 
 
-def _numericas_por_lectura(plan: Plan) -> dict[str, set[str]]:
-    """Demuestra tipos solo en expresiones conectadas directamente a una lectura única."""
+def numeric_columns_by_input(plan: Plan) -> dict[str, set[str]]:
+    """Relaciona columnas numéricas demostradas con su tabla de entrada directa."""
     resultado: dict[str, set[str]] = {}
     for op in plan.graph.operators():
         previos = plan.graph.predecessors(op.id)
@@ -130,7 +130,7 @@ def esquemas_desde_programa(
         if op.kind == "read_file"
         for salida in op.params.get("outputs") or []
     }
-    numericas = _numericas_por_lectura(plan)
+    numericas = numeric_columns_by_input(plan)
     for tabla, columnas in list(esquemas.items()):
         esquemas[tabla] = [
             Column(

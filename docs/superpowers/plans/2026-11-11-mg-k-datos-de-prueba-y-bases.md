@@ -542,11 +542,11 @@ Une K-10 y K-3: dado un caso con `programa.sas` y `datos.yaml`, escribe `entrada
       """`uv run python tools/contenedores/preparar_rebanada.py <caso> [--cargar]`."""
   ```
 
-- [ ] **Step 1: Write the failing test.** `test_preparar_rebanada.py` con un caso en `tmp_path` (`programa.sas`: `proc sql; create table WORK.t as select k, sum(v) as s from WORK.z group by k; quit;`; `datos.yaml`: `semilla: 7`, `tablas: {work.z: {filas: 4, columnas: [k, v], fijos: {k: "a"}}}`): (a) `preparar(caso)` escribe `entradas/work.z.csv` con cabecera `k,v` y cuatro filas con `k == "a"`, y `work.z.ficha.yaml` con `origen: sintetico` y `semilla: 7`; (b) dos corridas dan los mismos bytes; (c) `v` sale `Double` porque `SUM` lo demuestra (valores con dos decimales), `k` queda `String`; (d) con una tabla de base (`proceso.t` leída con `connect to impala`) y `cargar=False`, el SQL de carga se puede obtener con `sql_de_carga(caso)` (función pública) y contiene `CREATE TABLE proceso.t (` con `DOUBLE` solo para columnas demostradas numéricas; (e) `cargar=True` sin contenedor arriba lanza `RuntimeError` que menciona `sgmtest_impalad`.
-- [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_preparar_rebanada.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** `preparar`, `sql_de_carga(caso: Path) -> str` y `main`, sobre `TablaDeDatos.columnas` de K-10 (si el programa no demuestra las columnas de una tabla y el manifiesto tampoco las declara, `generar_entradas` ya lanza `ValueError`).
-- [ ] **Step 4: Run test to verify it passes**; `uv run ruff check src tests tools`.
-- [ ] **Step 5: Commit.** `hito N n: preparar los datos de una rebanada desde su manifiesto`, con la línea `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- [x] **Step 1: Write the failing test.** `test_preparar_rebanada.py` con un caso en `tmp_path` (`programa.sas`: `proc sql; create table WORK.t as select k, sum(v) as s from WORK.z group by k; quit;`; `datos.yaml`: `semilla: 7`, `tablas: {work.z: {filas: 4, columnas: [k, v], fijos: {k: "a"}}}`): (a) `preparar(caso)` escribe `entradas/WORK.z.csv` con cabecera `k,v` y cuatro filas con `k == "a"`, y `WORK.z.ficha.yaml` con `origen: sintetico` y `semilla: 7`; (b) dos corridas dan los mismos bytes; (c) `v` sale `Double` porque `SUM` lo demuestra (valores con dos decimales), `k` queda `String`; (d) con una tabla de base (`proceso.t` leída con `connect to impala`) y `cargar=False`, el SQL de carga se puede obtener con `sql_de_carga(caso)` (función pública) y contiene `CREATE TABLE proceso.t (` con `DOUBLE` solo para columnas demostradas numéricas; (e) `cargar=True` sin contenedor arriba lanza `RuntimeError` que menciona `sgmtest_impalad`.
+- [x] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_preparar_rebanada.py -q -p no:cacheprovider`.
+- [x] **Step 3: Implement** `preparar`, `sql_de_carga(caso: Path) -> str` y `main`, sobre `TablaDeDatos.columnas` de K-10 (si el programa no demuestra las columnas de una tabla y el manifiesto tampoco las declara, `generar_entradas` ya lanza `ValueError`).
+- [x] **Step 4: Run test to verify it passes**; `uv run ruff check src tests tools`.
+- [x] **Step 5: Commit.** `hito 234n: preparar los datos de una rebanada desde su manifiesto`. No añadir coautoría no verificada, según el ruling de hito 209n.
 
 ---
 
