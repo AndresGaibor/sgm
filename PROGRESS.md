@@ -7311,3 +7311,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `test_cobertura_l6_13_24.py` (13), `test_combinaciones_output.py` (con el oráculo y el Anillo A), suite
   completa: 4090 pasan, 332 omitidas, 142 xfail; `ruff check .` limpio.
 - Pendiente (parcial): la captura del PDV y `--escribir` (BLOQUEOS, B-17).
+
+## Hito 241m. interprete.py: primer corte sin cambio de comportamiento (decisión del dueño)
+
+- Decisión tomada por el dueño: `interprete.py` se parte sin cambiar comportamiento, con la suite como red; el defecto de
+  mayúsculas `Z`/`z` va en un commit aparte.
+- Qué se hizo: el bloque de valores de las expresiones (`NoSoportadoEnInterprete`, `_arbol`, `_numero`, `_funcion`,
+  `_compress`, `_scan`, `_aritmetica`, `_columna`, `_valor`, y la constante `_FUNCIONES_SAS`) pasa a
+  `src/sgm/migrar/interprete_valores.py`. `interprete.py` los importa, y `NoSoportadoEnInterprete` sigue
+  importable desde `sgm.migrar.interprete`. Movido tal cual: 310 líneas.
+- Pruebas: `test_migrar_interprete.py`, `test_lower_data_select.py`, `test_casos_b15_select.py`,
+  `test_combinaciones_output.py`, `test_migrar_corpus_anillo_b.py`: 608 pasan, 5 xfail. Suite completa: 4090 pasan,
+  332 omitidas, 142 xfail (igual que antes del corte). `ruff check` limpio.
+- Pendiente: `interprete.py` sigue por encima de 300 líneas. Los siguientes cortes (relaciones y pasos) van en
+  iteraciones separadas.
