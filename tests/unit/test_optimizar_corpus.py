@@ -9,6 +9,8 @@ paso siguiente (`aceptadas` en `l2_15`, `base_lealtad` en `l5_11`): el Job no la
 
 from __future__ import annotations
 
+import copy
+
 import pytest
 
 from sgm.compile import compile_file, project_base
@@ -29,14 +31,28 @@ from tests.unit.test_migrar_corpus_anillo_b import (
 CONOCIDOS: dict[str, str] = {}
 
 
+_DESPLEGADOS: dict = {}
+
+
+def _desplegado(caso):
+    """Plan desplegado del caso, compilado una sola vez por proceso.
+
+    El mismo caso se usa dos veces: al recolectar (para saber si el optimizador cambia el diseño) y
+    en su prueba. Compilar otra vez costaba lo mismo las dos veces.
+    """
+    if caso.programa not in _DESPLEGADOS:
+        plan = compile_file(
+            analyze_program({"p.sas": caso.programa.read_text(encoding="utf-8")}),
+            "p.sas",
+            project_base(),
+        ).plan
+        _DESPLEGADOS[caso.programa] = plan_desplegado(plan)[0]
+    return _DESPLEGADOS[caso.programa]
+
+
 def _optimizado(caso):
-    plan = compile_file(
-        analyze_program({"p.sas": caso.programa.read_text(encoding="utf-8")}),
-        "p.sas",
-        project_base(),
-    ).plan
-    plan, _ = plan_desplegado(plan)
-    return optimizar(plan)
+    # `optimizar` modifica el plan que recibe: cada llamada trabaja sobre una copia.
+    return optimizar(copy.deepcopy(_desplegado(caso)))
 
 
 def _casos():

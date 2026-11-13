@@ -112,9 +112,13 @@ núcleo de `sgm` no importa el MCP ni la CLI fuera de `src/sgm/backend_talend/`,
 - Lee antes de escribir. Los archivos grandes (`client_large.sas`, unos 800 KB) no se leen enteros: usa búsqueda y lecturas por rango de líneas.
 - Archivos pequeños, una responsabilidad. Si un archivo pasa de 300 líneas, divídelo.
 - Código e identificadores en inglés. Comentarios, docstrings, mensajes de usuario y documentación en español.
-- Después de cada cambio corre `uv run pytest -q` y `uv run ruff check .` (o `--testmon` para iterar).
+- Mientras trabajas corre solo lo que tocaste: `uv run python -m pytest -q tests/unit/test_x.py`
+  (`tests/conftest.py` lo pasa a serie solo, que es cuatro veces más rápido que `-n auto` para pocos
+  módulos). La suite completa cuesta minutos y es cosa del cierre, no de cada cambio; `--testmon`
+  está instalado pero no selecciona nada, no lo uses. `uv run ruff check .` en cada cambio.
   Un hito termina solo con `uv run python tools/ci.py` en verde: ese comando corre `ruff`, la suite
-  completa, los cruces y el oráculo, y deja el estado que exige el gancho `pre-commit`.
+  completa, los cruces y el oráculo, y deja el estado que exige el gancho `pre-commit`. Cada paso
+  del cierre tiene su límite de tiempo: un test colgado se corta y el informe lo dice.
 - **El commit está bloqueado sin cierre verde.** `.githooks/pre-commit` compara la huella del árbol
   con la que se validó y rechaza el commit si falta la suite completa, `ruff`, los cruces o el
   oráculo, o si se editó algo después del cierre. Se instala una vez por copia con

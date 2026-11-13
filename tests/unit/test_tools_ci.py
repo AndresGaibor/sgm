@@ -39,6 +39,16 @@ def test_un_paso_que_falla_marca_falla_y_rompe_el_cierre():
     assert (resultado.codigo, resultado.marca, resultado.ok) == (3, "FALLA", False)
 
 
+def test_un_paso_que_se_cuelga_se_corta_y_falla():
+    """Un test colgado costaba horas: el paso se corta a su límite y el cierre lo informa."""
+    paso = ci.Paso(
+        "colgado", (sys.executable, "-c", "import time; time.sleep(30)"), limite=0.5
+    )
+    resultado = ci.ejecutar(paso)
+    assert (resultado.codigo, resultado.marca, resultado.ok) == (1, "FALLA", False)
+    assert "cortado a los" in resultado.salida
+
+
 def test_un_paso_informativo_que_falla_solo_avisa():
     paso = ci.Paso("aviso", (sys.executable, "-c", "import sys; sys.exit(1)"), obligatorio=False)
     resultado = ci.ejecutar(paso)

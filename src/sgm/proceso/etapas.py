@@ -12,7 +12,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
+from sgm.yaml_io import cargar_yaml
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class Cobertura:
 
 def cargar_etapas(path: Path) -> list[EtapaDeclarada]:
     """Lee la clave `etapas` del YAML. Un archivo mal formado falla con su nombre y el motivo."""
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    data = cargar_yaml(path) or {}
     etapas: list[EtapaDeclarada] = []
     nombres: set[str] = set()
     for item in data.get("etapas") or []:

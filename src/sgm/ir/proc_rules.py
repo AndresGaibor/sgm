@@ -17,10 +17,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence
+from sgm.yaml_io import cargar_yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 PROCS_DIR = ROOT / "rules" / "sas" / "procs"
@@ -38,7 +37,7 @@ def load(directory: Path = PROCS_DIR) -> dict[str, dict[str, Any]]:
     """Especificaciones de tipo `proc`, por nombre de PROC."""
     specs: dict[str, dict[str, Any]] = {}
     for path in sorted(directory.glob("*.yaml")):
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = cargar_yaml(path)
         if data.get("kind") == "proc":
             specs[str(data["proc"])] = data
     return specs

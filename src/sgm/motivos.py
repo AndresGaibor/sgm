@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
+from sgm.yaml_io import cargar_yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 ROUTING = ROOT / "rules" / "routing.yaml"
@@ -30,7 +30,7 @@ class Motivo:
 
 def _cargar(path: Path = ROUTING) -> tuple[Motivo, ...]:
     """Motivos de `routing.yaml`, en el orden del archivo."""
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data = cargar_yaml(path)
     pendientes = set(data.get("contrato_pendiente", []))
     fix_with = data.get("fix_with", {})
     tipos = data.get("tipo_regla", {})

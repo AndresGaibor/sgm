@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from sgm.ir.models import Operator
+from sgm.yaml_io import cargar_yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 RULES_DIR = ROOT / "rules" / "mapping"
@@ -51,11 +51,16 @@ class Rule:
         return (100 - self.prioridad) // 10
 
 
+@lru_cache(maxsize=None)
 def load_rules(directory: Path = RULES_DIR) -> list[Rule]:
-    """Reglas de la escalera, por peldaño y por id. Falla si una regla no tiene la forma."""
+    """Reglas de la escalera, por peldaño y por id. Falla si una regla no tiene la forma.
+
+    Se leen del disco una sola vez por proceso: la pasada 10 la llama una vez por compilación y sin
+    caché eran 26 archivos YAML por programa. Las reglas son configuración: no cambian en caliente.
+    """
     rules: list[Rule] = []
     for path in sorted(directory.glob("*.yaml")):
-        raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+        raw = cargar_yaml(path)
         missing = [key for key in _REQUIRED if key not in raw]
         if missing:
             raise ValueError(f"{path.name}: faltan campos {missing}")
@@ -77,6 +82,7 @@ def load_rules(directory: Path = RULES_DIR) -> list[Rule]:
     return sorted(rules, key=lambda r: (-r.prioridad, r.id))
 
 
+@lru_cache(maxsize=None)
 def load_engines(path: Path = ENGINES_PATH) -> dict[str, dict[str, str]]:
     data = json.loads(path.read_text(encoding="utf-8"))
     return data["engines"]

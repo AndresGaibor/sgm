@@ -7580,3 +7580,92 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Tests que fijaban el comportamiento anterior: `test_interprete_lag.py::test_lag_no_sale_como_job` afirmaba que LAG nunca sale como Job. Se reescribió como `test_lag_simple_queda_bloqueado_por_la_escritura` (el `tJavaRow` existe, pero el pendiente de escritura impide el Job) y se añadió `test_lag_no_verificado_sigue_sin_job` (la forma compuesta sigue sin Job). `migrar_pendientes.yaml` pierde `l6_40` y `l6_41`, que ya no tienen pendiente.
 - Studio: `l6_41` no se pudo validar. `sgm studio salud` devolvió `MODAL_BLOCKING` (diálogo `Confirm` abierto); no se reinició Studio para no perder trabajo sin guardar. Queda en `out/studio-pendientes.json` y en BLOQUEOS (B-Studio, 255m). Ningún resultado de Studio de este hito cuenta como validado.
 - Pendiente (parcial, B-13): validación en Studio de `l6_40` y `l6_41` (lote B-Gate). Estado por fila de `RETAIN`, la suma y `FIRST.` (B-14) y `LAST.` (bloqueado, ver BLOQUEOS B-14).
+
+## Hito 258m (2026-11-13). Rendimiento: la suite completa baja de 326 s a 194 s, la colecta de 54 s a 11 s y el gancho de 1,4 s a 0,7 s
+
+- De dónde sale el número: de los registros de las sesiones de Claude Code en este repositorio. 3 576
+  comandos de Bash y unas 20,6 h de tiempo real de comando; `pytest` se llevó 745 min en 663
+  ejecuciones (114 de suite completa, ~200 s cada una; 549 dirigidas, ~32 s cada una), `tools/ci.py`
+  410 min en 93 ejecuciones, Studio 167 min, herramientas del corpus 90 min y `ruff` 46 min.
+  El objetivo del hito era ese: que la misma validación cueste menos, no cambiar lo que valida.
+- Lo que se midió primero, con perfil, no a ojo:
+  - La colecta sola costaba 53 s, y 6 839 llamadas a `yaml.safe_load` (72,7 s perfiladas) venían de
+    `load_rules()` (5 798) y de `cargar_caso` (992): las mismas reglas y el mismo `caso.yaml` leídos
+    cientos de veces.
+  - `addopts` trae `-n auto`: en este equipo son 16 procesos, y montarlos cuesta 14 s. Una prueba
+    dirigida de un archivo tardaba 19,4 s con 16 workers y 5,4 s en serie. Una ruta mal escrita
+    costaba 67 s con `-n auto` y 0,05 s en serie.
+  - El gancho `PreToolUse` (valida el commit) arrancaba Python en cada comando de Bash: 1 437 ms por
+    comando, aunque el comando fuera un `ls`.
+  - `tools/ci.py` no ponía límite de tiempo a ningún paso: dos cuelgues de dos horas quedaron
+    registrados sin que nada los cortara.
+- Qué se hizo:
+  - `src/sgm/yaml_io.py` (nuevo): un solo cargador para todo el proyecto,
+    `cargar_yaml`/`cargar_texto`, con `CSafeLoader` (libyaml está disponible:
+    `yaml.__with_libyaml__` es `True`). Se migraron los 13 puntos que llamaban a `yaml.safe_load`
+    (`motivos`, `agrupacion`, `conformidad.referencia`, `expressions_base`, `ir.proc_rules`,
+    `ir.types_code`, `passes.plumbing_patterns`, `passes.reglas_mapeo`, `proceso.etapas`,
+    `proceso.secciones_decisiones`, `proceso.secciones_entrada`, `talend_item.arquitectura` y
+    `tools/corpus_lib/caso.py`).
+  - `@lru_cache` sobre lo que es configuración y no cambia en caliente: `load_rules` y `load_engines`
+    (`src/sgm/passes/reglas_mapeo.py`), `cargar_secciones`
+    (`src/sgm/conformidad/referencia.py`) y una caché con `mtime_ns` y tamaño en la clave para
+    `cargar_caso` (`tools/corpus_lib/caso.py`), de modo que editar un `caso.yaml` lo vuelve a leer.
+  - `Graph.edges()` memoriza la lista de aristas (`src/sgm/ir/models.py`) y la invalida en cada
+    mutador (`add_edge`, `remove_operator`, `set_edge_materialize`, `bypass`, `replace`, `expand`,
+    `rewire_inputs`, `split_edge`, `merge`). Se devuelve una copia de la lista, así que quien la
+    reciba no puede ensuciar la caché, y una copia profunda del grafo (`__deepcopy__`) nace sin
+    caché para no arrastrar aristas de otro grafo.
+  - `_protected_ranges` (`src/sgm/frontend/sql_normalize.py`) pasa a `lru_cache(maxsize=2048)` y
+    devuelve una tupla, no una lista: el mismo texto se analizaba cuatro veces por compilación.
+  - `tests/conftest.py`: cuando la selección es de ocho módulos o menos, la prueba se corre en serie
+    aunque `addopts` pida `-n auto`. No basta con `numprocesses = 0`: xdist sigue levantando un
+    `DSession` si `dist` y `tx` quedan puestos, así que se apagan los tres. Si el usuario escribe
+    `-n` en la línea de comandos, se respeta.
+  - `tools/ci.py`: cada paso lleva su límite de segundos (`Paso.limite`) y se corta al llegar; el
+    informe dice que se cortó y el cierre falla. La suite va con `-n 8`, no con `-n auto`: medido, 16
+    workers sobre 8 núcleos tardan lo mismo porque el muro son las pruebas largas.
+  - `.claude/hooks/validar-commit.sh`: se descarta con `case` el evento que no menciona `commit`
+    antes de arrancar Python; el filtro es grueso a propósito y `validacion.py guardia` vuelve a
+    comprobar el comando de verdad. `.claude/` no se versiona: el cambio vale en la copia de trabajo.
+  - `tests/unit/test_optimizar_corpus.py`: el plan desplegado de cada caso se compila una vez por
+    proceso y se copia antes de optimizar, porque `optimizar` modifica el plan. El caso se usaba dos
+    veces (al recolectar y en su prueba) y se compilaba las dos.
+- Métricas, antes y después, en este equipo:
+  - Suite completa: 326 s, 194 s con `-n auto` y 214 s con `-n 8` (el cierre). 40 % menos.
+  - Colecta (`--collect-only`): 53,8 s, 10,7 s. Los módulos que más tardan ahora son
+    `test_optimizar_corpus.py` y `test_corpus_esquemas_migrar.py`, con menos de 1 s cada uno.
+  - Un archivo de pruebas dirigido: 19,4 s, 7,0 s. Tres archivos: 4,1 s.
+  - `compile_project` de `client_large.sas`: 26,8 s, y ahora 7 a 12 s según la carga del equipo
+    (mediana cerca de 8 s; el equipo mete ruido de varios segundos en la misma medición).
+  - `yaml.safe_load`: 6 839 llamadas por colecta, 0.
+  - Gancho de cada comando de Bash: 1 437 ms, 734 ms (el resto es el arranque del shell del gancho,
+    que no depende del repositorio).
+- Pruebas: suite completa `4584 passed, 538 skipped, 142 xfailed` en 194 s con `-n auto`; `ruff check .`
+  limpio. `tests/unit/test_tools_ci.py::test_un_paso_que_se_cuelga_se_corta_y_falla` es nueva y cubre
+  el corte por límite. No se borró ni se debilitó ninguna prueba: las que fallaban por las cachés
+  nuevas se arreglaron en el código (el `_tocar()` de `models.py` había quedado delante del docstring
+  de cinco métodos; ahora va después y solo en los caminos que mutan).
+- Decisiones:
+  - Un solo cargador de YAML (`sgm.yaml_io`) en vez de `yaml.safe_load` repartido: con `CSafeLoader`
+    se paga una vez y se puede auditar en un archivo. No es una dependencia nueva, libyaml ya venía
+    con `pyyaml`.
+  - Se memoriza lo que es configuración (reglas, motores, referencia, `caso.yaml`, aristas del grafo)
+    y no lo que depende del programa que se compila. Nada de caché en disco de planes compilados: un
+    resultado viejo en la traducción es peor que unos segundos de más, y la clave tendría que incluir
+    la versión del código.
+  - No se añade `pytest-timeout`: el corte por paso en `ci.py` cubre el cuelgue que se quiere evitar
+    sin otra dependencia.
+  - `--testmon` está instalado pero no selecciona nada (con `-n auto` imprime «no tests ran»; con
+    `-n0` corre todo). No se usa y `AGENTS.md` lo dice.
+  - Los 108 `programa.sas` de `tests/corpus/L6/` con bloques `PROC EXPORT` añadidos, y
+    `tools/validar_caso_studio.py`, estaban modificados sin commitear cuando empezó el hito (16:41;
+    no son de este trabajo). No se tocaron ni se commitearon: se apartaron en un `git stash` mientras
+    corría el cierre y se repusieron después. Con ellos puestos, 64 pruebas del intérprete fallan con
+    `write_file: sin operador de origen`; es un asunto de esos casos, no del rendimiento.
+- Bloqueos: ninguno de rendimiento. Queda pendiente, fuera de este hito, decidir qué se hace con esos
+  casos de L6 y su `PROC EXPORT`.
+- Lo que no se hizo, y por qué: la prueba más larga (`test_robustez_sobre_todo_el_repositorio`, 69 s)
+  migra los más de 190 programas de referencia uno tras otro, y ese es su trabajo; paralelizarla por
+  dentro con `-n 8` encima serían 64 procesos. Tampoco se cachean los planes compilados entre
+  procesos: el ahorro no paga el riesgo de traducir con un plan viejo.

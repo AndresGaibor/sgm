@@ -7,12 +7,15 @@ Uso:
 
 Pasos, en orden:
 1. `ruff check .`
-2. `pytest -q` — suite completa; es lo que corre el cierre de un hito de `AGENTS.md`.
+2. `pytest -q -n 8` — suite completa; es lo que corre el cierre de un hito de `AGENTS.md`.
 3. Cruces del corpus: `pytest -q -n0 tests/unit/test_corpus_totales_cruce.py
    tests/unit/test_corpus_validaciones.py`. Van aparte de la suite para que un cruce roto se nombre
    en el informe y no se pierda entre 1 500 pruebas.
 4. `tools/corpus.py oraculo todos --verificar`, que regenera el esperado de cada caso y lo compara.
 5. Tablero (`tools/tablero.py`): informativo, no puede hacer fallar el cierre.
+
+Cada paso tiene su límite de segundos (`Paso.limite`) y se corta al llegar: un test colgado deja de
+costar horas.
 
 Al terminar deja el resultado en `.cache/validacion/` (`tools/validacion.py`): el gancho
 `pre-commit` rechaza un commit si el árbol cambió desde este cierre o si algún paso obligatorio
@@ -46,11 +49,16 @@ COLA = 25
 
 @dataclass(frozen=True)
 class Paso:
-    """Un paso del cierre: nombre para el informe y comando que se ejecuta."""
+    """Un paso del cierre: nombre para el informe y comando que se ejecuta.
+
+    `limite` son los segundos que se le dan antes de cortarlo. Un cuelgue de la suite costaba horas
+    porque nada la cortaba: el cierre lo dice y sigue.
+    """
 
     nombre: str
     comando: tuple[str, ...]
     obligatorio: bool = True
+    limite: float = 900.0
 
 
 @dataclass(frozen=True)
@@ -77,14 +85,26 @@ def pasos(con_suite: bool, con_tablero: bool) -> list[Paso]:
     """Los pasos del cierre, en el orden en que se ejecutan."""
     python = sys.executable
     lista = [
-        Paso("ruff", ("ruff", "check", ".")),
-        Paso("cruces del corpus", (python, "-m", "pytest", "-q", "-n0", *CRUCES)),
-        Paso("oráculo del corpus", (python, "tools/corpus.py", "oraculo", "todos", "--verificar")),
+        Paso("ruff", ("ruff", "check", "."), limite=300),
+        Paso(
+            "cruces del corpus",
+            (python, "-m", "pytest", "-q", "-n0", *CRUCES),
+            limite=600,
+        ),
+        Paso(
+            "oráculo del corpus",
+            (python, "tools/corpus.py", "oraculo", "todos", "--verificar"),
+            limite=900,
+        ),
     ]
     if con_suite:
-        lista.insert(1, Paso("suite", (python, "-m", "pytest", "-q")))
+        # 16 workers sobre 8 núcleos tardan lo mismo que 8: el muro son las pruebas largas, no el
+        # reparto. Se dejan 8 para que el equipo quede usable mientras corre; se corta a los 30 min.
+        lista.insert(
+            1, Paso("suite", (python, "-m", "pytest", "-q", "-n", "8"), limite=1800)
+        )
     if con_tablero:
-        lista.append(Paso("tablero", (python, "tools/tablero.py", "--markdown"), obligatorio=False))
+        lista.append(Paso("tablero", (python, "tools/tablero.py", "--markdown"), False, 600))
     return lista
 
 
@@ -98,17 +118,31 @@ def _comando(partes: tuple[str, ...]) -> list[str]:
 def ejecutar(paso: Paso) -> Resultado:
     """Corre el paso en la raíz del repositorio y guarda la cola de la salida combinada."""
     inicio = time.perf_counter()
-    proceso = subprocess.run(
-        _comando(paso.comando),
-        cwd=REPO,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    try:
+        proceso = subprocess.run(
+            _comando(paso.comando),
+            cwd=REPO,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=paso.limite,
+        )
+    except subprocess.TimeoutExpired as corte:
+        segundos = time.perf_counter() - inicio
+        cola = [linea for linea in _texto(corte.stdout).splitlines() if linea.strip()][-COLA:]
+        cola.append(f"cortado a los {paso.limite:.0f} s: el paso no terminó")
+        return Resultado(paso, 1, segundos, "\n".join(cola))
     segundos = time.perf_counter() - inicio
     lineas = [linea for linea in (proceso.stdout + proceso.stderr).splitlines() if linea.strip()]
     return Resultado(paso, proceso.returncode, segundos, "\n".join(lineas[-COLA:]))
+
+
+def _texto(salida: str | bytes | None) -> str:
+    """Lo que alcanzó a imprimir un paso cortado, venga como texto o como bytes."""
+    if salida is None:
+        return ""
+    return salida.decode("utf-8", "replace") if isinstance(salida, bytes) else salida
 
 
 def informe(resultados: list[Resultado]) -> str:

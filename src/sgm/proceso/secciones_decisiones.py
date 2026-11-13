@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import yaml
+from sgm.yaml_io import cargar_yaml
 
 Fila = dict[str, str]
 Seccion = dict[str, Fila]
@@ -28,7 +28,7 @@ def cargar_decisiones(path: Path) -> list[dict[str, str]]:
     """Decisiones del YAML, en su orden. Sin archivo, la lista está vacía."""
     if not path.is_file():
         return []
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    data = cargar_yaml(path) or {}
     decisiones: list[dict[str, str]] = []
     vistas: set[str] = set()
     for item in data.get("decisiones") or []:

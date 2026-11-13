@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
+from sgm.yaml_io import cargar_yaml
 
 FUNCTIONS_DIR = Path(__file__).resolve().parents[3] / "rules" / "sas" / "functions"
 
@@ -14,7 +14,7 @@ def _plantillas() -> tuple[dict[str, str], dict[str, str]]:
     plantillas: dict[str, str] = {}
     avisos: dict[str, str] = {}
     for path in sorted(FUNCTIONS_DIR.glob("*.yaml")):
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = cargar_yaml(path)
         if "java" in data:
             plantillas[data["sas"]] = data["java"]
             avisos[data["sas"]] = data.get("warning", "")

@@ -9,9 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
-
 from sgm.java_identificadores import require_context_identifier
+from sgm.yaml_io import cargar_yaml
 
 JOBS_REQUERIDOS = ("padre", "producto", "totales", "conciliacion")
 
@@ -103,7 +102,7 @@ def _periodo(path: Path, item: dict | None) -> PeriodoDecl | None:
 
 def cargar_arquitectura(path: Path) -> Arquitectura:
     """Lee la arquitectura. Un archivo mal formado falla con su nombre y el motivo."""
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    data = cargar_yaml(path) or {}
     proyecto = str(data.get("proyecto") or "").strip()
     if not proyecto:
         raise ValueError(f"{path}: falta proyecto")

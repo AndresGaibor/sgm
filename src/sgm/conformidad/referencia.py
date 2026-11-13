@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 
-import yaml
-
 from sgm.compile import ROOT_DIR
+from sgm.yaml_io import cargar_yaml
 
 REFERENCIA = ROOT_DIR / "tests" / "fixtures" / "referencia" / "diseno_manual.yaml"
 CLASIFICACIONES = ("derivable", "declarada", "humana")
@@ -34,9 +34,10 @@ class Seccion:
     filas: list[Fila]
 
 
+@lru_cache(maxsize=None)
 def cargar_secciones(ruta: Path = REFERENCIA) -> dict[str, Seccion]:
-    """Lee el YAML y devuelve las secciones en el orden del documento."""
-    crudo = yaml.safe_load(ruta.read_text(encoding="utf-8"))
+    """Lee el YAML y devuelve las secciones en el orden del documento (una lectura por proceso)."""
+    crudo = cargar_yaml(ruta)
     secciones: dict[str, Seccion] = {}
     for codigo, datos in crudo["secciones"].items():
         codigo = str(codigo)

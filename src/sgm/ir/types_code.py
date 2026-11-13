@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
+from sgm.yaml_io import cargar_yaml
 
 # Los nombres de fecha, la marca de carácter y los umbrales numéricos viven en
 # `rules/sas/informats.yaml` (F1.4). Aquí solo se interpretan.
@@ -30,7 +30,7 @@ INFORMATS_YAML = Path(__file__).resolve().parents[3] / "rules" / "sas" / "inform
 
 
 def _entrada(id_: str) -> dict:
-    entries = yaml.safe_load(INFORMATS_YAML.read_text(encoding="utf-8"))["entries"]
+    entries = cargar_yaml(INFORMATS_YAML)["entries"]
     return next(e for e in entries if e["id"] == id_)
 
 
