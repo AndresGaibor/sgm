@@ -55,6 +55,25 @@ def test_sgm_ref_de_tfileinputexcel_no_da_hallazgo() -> None:
     assert escanear_texto(texto) == []
 
 
+def test_null_tipado_de_timpalarow_no_es_una_credencial() -> None:
+    texto = (
+        '<node componentName="tImpalaRow" componentVersion="0.102">\n'
+        '  <elementParameter field="PASSWORD" name="PASS" value="((String)null)"/>\n'
+        "</node>\n"
+    )
+    assert escanear_texto(texto) == []
+
+
+def test_null_tipado_de_otro_componente_sigue_siendo_hallazgo() -> None:
+    texto = (
+        '<node componentName="tJava" componentVersion="0.102">\n'
+        '  <elementParameter field="PASSWORD" name="PASS" value="((String)null)"/>\n'
+        "</node>\n"
+    )
+    (hallazgo,) = escanear_texto(texto)
+    assert hallazgo.tipo == "password_en_item"
+
+
 def test_sgm_ref_en_otro_componente_si_da_hallazgo() -> None:
     """La lista blanca es por componente: el mismo valor en un tJava no está permitido."""
     texto = (

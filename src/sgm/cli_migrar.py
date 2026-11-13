@@ -43,6 +43,7 @@ from sgm.migrar.tablas_locales import cargar_tablas_locales, raiz_repositorio
 from sgm.seguridad.compuerta_migracion import publicar_con_revision
 from sgm.seguridad.escaner_secretos import Hallazgo
 from sgm.talend_item.desde_plan import plan_a_jobs
+from sgm.talend_item.desde_plan_conexion import cargar_contexto_dev
 from sgm.talend_item.desde_plan_contextos import GRUPOS, contextos_de_plan
 from sgm.talend_item.modelo import Job, ParametroContexto
 from sgm.talend_item.validador import validar_job
@@ -226,9 +227,11 @@ def migrar(
     muestra: Path | None = None,
     backend: str = "archivos",
     tablas_locales: Path | None = None,
+    contexto_dev: Path | None = None,
 ) -> ResultadoMigrar:
     """Migra un programa a `<out>/<programa>/`. No lanza: lo que falla queda en los informes."""
     locales = cargar_tablas_locales(tablas_locales, raiz_repositorio()) if tablas_locales else {}
+    dev = cargar_contexto_dev(contexto_dev) if contexto_dev is not None else None
     resultado = ResultadoMigrar(out / _nombre(source))
     texto = _leer(source, resultado)
     plan = _plan(texto, resultado.carpeta.name, resultado) if texto is not None else None
@@ -239,7 +242,7 @@ def migrar(
         plan, desplegados = plan_desplegado(plan)
         plan, previos = preparar_plan(plan, locales)
         resultado.pendientes += previos
-        contextos = contextos_de_plan(plan)
+        contextos = contextos_de_plan(plan, dev=dev)
         if not len(plan.graph):
             resultado.pendientes.append(
                 PendienteMigracion(
@@ -252,7 +255,11 @@ def migrar(
             )
         tablas, de_esquema = esquemas_con_locales(plan, _catalogo(esquemas), muestra, locales)
         resultado.pendientes += de_esquema
-        migracion = plan_a_jobs(plan, tablas)
+        migracion = (
+            plan_a_jobs(plan, tablas)
+            if dev is None
+            else plan_a_jobs(plan, tablas, conexion_en_contexto=True)
+        )
         resultado.jobs = migracion.jobs
         resultado.pendientes += migracion.pendientes
         resultado.traza = migracion.traza

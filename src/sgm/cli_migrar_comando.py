@@ -9,6 +9,7 @@ import typer
 
 from sgm.cli_migrar import migrar, validate_backend
 from sgm.migrar.tablas_locales import cargar_tablas_locales, raiz_repositorio
+from sgm.talend_item.desde_plan_conexion import cargar_contexto_dev
 
 
 def _seguridad_fallida(resultado) -> bool:
@@ -68,6 +69,10 @@ def migrar_command(
     backend: Annotated[
         str, typer.Option("--backend", help="'archivos' (por omisión) o 'talend'.")
     ] = "archivos",
+    contexto_dev: Annotated[
+        Path | None,
+        typer.Option("--contexto-dev", help="JSON de conexión local de Impala para el grupo DEV."),
+    ] = None,
 ) -> None:
     """Migra un SAS o cada `.sas` de una carpeta, con un paquete separado por programa."""
     if not source.is_file() and not source.is_dir():
@@ -82,6 +87,11 @@ def migrar_command(
             cargar_tablas_locales(tablas_locales, raiz_repositorio())
         except (ValueError, OSError) as error:
             raise typer.BadParameter(str(error), param_hint="--tablas-locales") from error
+    if contexto_dev is not None:
+        try:
+            cargar_contexto_dev(contexto_dev)
+        except (ValueError, OSError) as error:
+            raise typer.BadParameter(str(error), param_hint="--contexto-dev") from error
 
     if source.is_file():
         resultado = migrar(
@@ -91,6 +101,7 @@ def migrar_command(
             muestra=muestra,
             backend=backend,
             tablas_locales=tablas_locales,
+            contexto_dev=contexto_dev,
         )
         salida = (
             "paquete no publicado por seguridad"
@@ -122,6 +133,7 @@ def migrar_command(
             muestra=muestra,
             backend=backend,
             tablas_locales=tablas_locales,
+            contexto_dev=contexto_dev,
         )
         for program in programs
     ]

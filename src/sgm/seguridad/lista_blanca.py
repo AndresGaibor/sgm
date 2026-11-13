@@ -31,6 +31,16 @@ LISTA_BLANCA: tuple[Excepcion, ...] = (
             "totalizadores. No es una contraseña."
         ),
     ),
+    Excepcion(
+        campo="PASSWORD",
+        componente="tImpalaRow",
+        valor="((String)null)",
+        motivo=(
+            "Expresión Java tipada para representar una contraseña nula en tImpalaRow; no contiene "
+            "ni referencia una credencial. La excepción está limitada al componente y al valor "
+            "exactos."
+        ),
+    ),
 )
 
 

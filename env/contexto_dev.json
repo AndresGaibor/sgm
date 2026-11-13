@@ -1,0 +1,7 @@
+{
+  "_nota": "Contenedor sgmtest_ desechable; sin credenciales.",
+  "impala_host": "localhost",
+  "impala_puerto": "21050",
+  "impala_base": "default",
+  "impala_jdbc_extra": ";auth=noSasl"
+}

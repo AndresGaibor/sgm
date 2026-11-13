@@ -28,6 +28,7 @@ from sgm.optimizar import Decision, optimizar
 from sgm.talend_item.componentes import log_row
 from sgm.talend_item.conexiones import lookup
 from sgm.talend_item.desde_plan_agregado import nodo_agregado
+from sgm.talend_item.desde_plan_conexion import parametros_conexion
 from sgm.talend_item.desde_plan_contextos import (
     contextos_de_plan,
     reemplazar_rutas,
@@ -114,11 +115,16 @@ class _Job:
     """Armado de un Job: un recorrido hacia adelante sobre los operadores de sus subjobs."""
 
     def __init__(
-        self, plan: Plan, esquemas: dict[str, list[Column]], ruta_java: str | None
+        self,
+        plan: Plan,
+        esquemas: dict[str, list[Column]],
+        ruta_java: str | None,
+        conexion_en_contexto: bool,
     ) -> None:
         self.plan = plan
         self.esquemas = esquemas
         self.ruta_java = ruta_java
+        self._conexion_en_contexto = conexion_en_contexto
         self.nodos: list[Nodo] = []
         self.conexiones: list[Conexion] = []
         self.pendientes: list[PendienteMigracion] = []
@@ -477,7 +483,7 @@ class _Job:
         self._uniones[op.id] = [f.origen for f in fuentes]
 
     def _sql_impala(self, op: Operator, x: int) -> None:
-        """`exec_sql` como `tImpalaRow`; la conexión queda pendiente, nunca se inventa."""
+        """`exec_sql` como `tImpalaRow`; la conexión solo sale del contexto DEV explícito."""
         sql = str(op.params.get("sql") or "").strip()
         if not sql:
             self.pendientes.append(
@@ -496,12 +502,7 @@ class _Job:
                 # esa referencia permite abrir/compilar el componente; los parámetros concretos
                 # del servidor siguen a cargo del usuario en Studio.
                 "USE_EXISTING_CONNECTION": "false",
-                # La plantilla guardó estos campos vacíos; Talend los inserta en expresiones Java,
-                # donde vacío sin comillas deja el Job sin compilar. Las cadenas vacías son valores
-                # sintácticamente válidos, pero no configuran una conexión ejecutable.
-                "HOST": java(""),
-                "PORT": java(""),
-                "DBNAME": java(""),
+                **parametros_conexion(self._conexion_en_contexto),
                 # PASS vacío hace que el Javajet genere una condición inválida.
                 # Null tipado mantiene Java válido sin guardar credenciales.
                 # Se conserva HIVE2, el driver predeterminado de la plantilla extraída de Studio.
@@ -513,8 +514,13 @@ class _Job:
         self.pendientes.append(
             PendienteMigracion(
                 "P-CONEXION-BASE",
-                f"{unico}: configure en Studio el host, puerto, base y autenticación de Impala; "
-                "no se infieren del SAS",
+                (
+                    f"{unico}: el Job lee host, puerto y base de context.impala_*; DEV apunta al "
+                    "contenedor, QA y PROD quedan vacíos hasta que se configuren"
+                    if self._conexion_en_contexto
+                    else f"{unico}: configure en Studio el host, puerto, base y autenticación de "
+                    "Impala; no se infieren del SAS"
+                ),
                 _linea(op),
             )
         )
@@ -784,7 +790,7 @@ class _Job:
             job.name,
             nodos=self.nodos,
             conexiones=self.conexiones,
-            contextos=contextos_de_plan(self.plan),
+            contextos=contextos_de_plan(self.plan, dev={} if self._conexion_en_contexto else None),
         )
 
     def _traducir(self, op: Operator, x: int) -> None:
@@ -834,6 +840,7 @@ def plan_a_jobs(
     plan: Plan,
     esquemas: dict[str, list[Column]],
     ruta_java: str | None = None,
+    conexion_en_contexto: bool = False,
 ) -> ResultadoMigracion:
     """Un Job de Talend por cada Job del plan, con sus nodos, conexiones y pendientes."""
     resultado = ResultadoMigracion()
@@ -847,7 +854,7 @@ def plan_a_jobs(
     resultado.visitados |= set(informe.absorbidos)
     resultado.plegados |= set(informe.absorbidos)
     for job in plan.jobs:
-        armado = _Job(plan, esquemas, ruta_java)
+        armado = _Job(plan, esquemas, ruta_java, conexion_en_contexto)
         resultado.jobs.append(armado.armar(job))
         resultado.pendientes += armado.pendientes
         resultado.traza.update(armado.traza)

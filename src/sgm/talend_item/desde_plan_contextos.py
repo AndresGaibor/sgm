@@ -9,14 +9,16 @@ que es lo que Studio necesita para que el selector de contexto funcione. El lite
 al grupo `Default`; los demás quedan vacíos y se llenan en cada entorno, porque el valor de
 producción no está en el programa.
 
-Ninguna credencial: aquí solo se crean variables de ruta, y el nombre de la variable sale del nombre
-de la tabla. Si algún día se añade una, `test_sin_secretos` la rechaza.
+Ninguna credencial: además de las rutas, el contexto puede declarar las cuatro variables no
+sensibles `impala_*` cuando el programa incluye `exec_sql` y se solicitó `contexto_dev`. Una clave
+con aspecto de credencial queda rechazada por el cargador y por `test_sin_secretos`.
 """
 
 from __future__ import annotations
 
 from sgm.ir.models import Plan
 from sgm.java_literals import literal_java
+from sgm.talend_item.desde_plan_conexion import VARIABLES_BASE
 from sgm.talend_item.desde_plan_nodos import ruta
 from sgm.talend_item.modelo import Nodo, ParametroContexto
 
@@ -64,8 +66,10 @@ def rutas_de_plan(plan: Plan) -> dict[str, str]:
     return rutas
 
 
-def contextos_de_plan(plan: Plan) -> dict[str, list[ParametroContexto]]:
-    """Los cuatro grupos con las mismas claves; el literal del SAS solo en `Default`."""
+def contextos_de_plan(
+    plan: Plan, dev: dict[str, str] | None = None
+) -> dict[str, list[ParametroContexto]]:
+    """Los grupos comparten claves; el SAS y el contexto DEV solo llenan su grupo respectivo."""
     rutas = rutas_de_plan(plan)
     por_ruta: dict[str, str] = {}
     for camino, nombre in rutas.items():
@@ -80,6 +84,16 @@ def contextos_de_plan(plan: Plan) -> dict[str, list[ParametroContexto]]:
             )
             for nombre, camino in por_ruta.items()
         ]
+    if dev is not None and any(op.kind == "exec_sql" for op in plan.graph.operators()):
+        for grupo in GRUPOS:
+            grupos[grupo].extend(
+                ParametroContexto(
+                    nombre,
+                    valor=dev.get(nombre, "") if grupo == "DEV" else "",
+                    comentario=f"conexión local de Impala: {nombre.removeprefix('impala_')}",
+                )
+                for nombre in VARIABLES_BASE
+            )
     return grupos
 
 
