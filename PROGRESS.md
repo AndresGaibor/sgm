@@ -7416,3 +7416,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   hito y se revirtió con `git checkout`. Desde ahora se regenera un caso a la vez y se reinserta su bloque.
 - Pruebas: suite completa 4587 pasan, 442 omitidas, 142 xfail. `ruff check .` limpio.
 - Pendiente (parcial): B-12 (emisión de MERGE en Talend) y B-13/B-14 (estado por fila) necesitan Studio.
+
+## Hito 248m. B-13 (intérprete): el intérprete se detiene ante lo que no traduce (parcial)
+
+- Defecto que se corrige: el intérprete ignoraba las sentencias sin traducción (`untranslated`) y las asignaciones
+  condicionales sin partes (`derive` con `conditional` y sin `assignments`). El resultado salía sin la columna y la
+  prueba pasaba. Con la suma `acum + x` la salida no tenía `acum`; con `IF x > 0 THEN prev = LAG(x)` no tenía `prev`.
+- Corrección: `interprete.py` (`_ejecutar`) y `interprete_pasos.py` (derive de un `map`) detienen la ejecución con
+  `NoSoportadoEnInterprete`. La regla es `lrcon`, p. 500: el DATA step ejecuta cada sentencia en orden.
+- Pruebas: `test_interprete_sin_traducir.py` (2, nuevos). Suite completa: 4587 pasan (las pruebas existentes del intérprete
+  no dependían del defecto), `ruff check .` limpio.
+- Pendiente (parcial, B-13): la suma `x + expr` (`lestmtsref`, p. 360), `RETAIN x valor` (`lestmtsref`, p. 331), `LAG` y
+  `DIF` (`lefunctionsref`, pp. 1163 y 663). Esto necesita la representación en el lowering y el estado por fila. `FIRST.`/`LAST.`
+  y el acumulado por grupo ya coinciden en `l6_05`, `l6_06`, `l6_07` y `l6_10`.
+- Conflicto de numeración: el plan B-13 pide `l6_27` a `l6_31`, pero esos números ya son casos (`l6_27` a `l6_29`
+  pendientes de otra tarea, `l6_30` y `l6_31` del caso DO). Los casos nuevos de B-13 van a `l6_39` en adelante.

@@ -297,7 +297,7 @@ Hoy `l6_01` a `l6_04` y `l6_12` están en `tests/corpus/migrar_pendientes.yaml` 
 
 ### Task B-13: `RETAIN`, sentencia suma, `FIRST.`/`LAST.`, `LAG`, `DIF` en el intérprete (MG-P4-05, parte 1)
 
-**Bloqueada (decisión del dueño sobre `interprete.py`):** ver `docs/BLOQUEOS.md`.
+**Estado (hito 248m):** parcial. El intérprete se detiene ante sentencias sin traducción y asignaciones condicionales sin partes (`lrcon`, p. 500; `test_interprete_sin_traducir.py`). Queda el estado por fila: suma (`lestmtsref`, p. 360), `RETAIN` con valor (p. 331), `LAG` y `DIF` (`lefunctionsref`). Los casos de B-13 van a `l6_39` en adelante: `l6_27` a `l6_31` ya son otros casos.
 
 Semántica con página:
 - `RETAIN` (`lestmtsref`, p. 331): la variable conserva su valor entre iteraciones; sin valor inicial arranca en faltante; con valor, se inicializa una sola vez.

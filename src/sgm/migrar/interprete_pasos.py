@@ -104,6 +104,12 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
         elif clase == "filter":
             actual = _filtrar(actual, str(params.get("expression") or ""), por_tabla)
         elif clase == "derive":
+            if params.get("conditional") and not params.get("assignments"):
+                # Asignación condicional sin partes: sin efecto daría filas sin la columna (lrcon,
+                # p. 500). Se detiene en vez de ignorarla.
+                raise NoSoportadoEnInterprete(
+                    "derive", f"asignación condicional sin partes: {params['conditional']}"
+                )
             asignaciones = _expandir_estrellas(params.get("assignments") or [], por_tabla)
             actual = _proyectar(
                 actual, asignaciones, aditivo=params.get("modo") == "agrega"

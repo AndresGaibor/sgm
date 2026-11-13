@@ -82,6 +82,14 @@ def _ejecutar(
     tiene tabla propia: sus filas solo se pueden encontrar por su id, y el `map` de detrás las pide
     así.
     """
+    # Una sentencia sin traducción ignorada daría un resultado falso sin avisar: se detiene. El
+    # DATA step ejecuta cada sentencia en orden (lrcon, p. 500); no se puede saltar ninguna.
+    sin_traducir = op.params.get("untranslated") or []
+    if sin_traducir:
+        raise NoSoportadoEnInterprete(op.kind, f"sentencia sin traducción: {sin_traducir[0]}")
+    condicional = op.params.get("conditional")
+    if op.kind == "derive" and condicional and not op.params.get("assignments"):
+        raise NoSoportadoEnInterprete(op.kind, f"asignación condicional sin partes: {condicional}")
     if op.kind == "unsupported" and op.params.get("reason") == "CONFIGURACION":
         return [], {}  # `%LET`, `OPTIONS`: ya sustituidos en el programa, no producen filas
     if op.kind in ("read", "read_file"):
