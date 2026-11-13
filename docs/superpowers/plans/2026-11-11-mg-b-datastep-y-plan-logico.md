@@ -229,7 +229,7 @@ El plan maestro (sección 2 y MG-P4-03) dice que `tUnite` no compila; está desa
 
 ### Task B-10: `SET a b;` concatena por nombre con faltante (MG-P4-03, parte 2)
 
-**Bloqueada:** depende de B-9 (ver `docs/BLOQUEOS.md`).
+**Estado (hito 254m):** parcial. Columnas distintas se alinean con un `tMap` por entrada (`l6_26` coincide en Studio). Falta (c), `SET ... BY` intercalado (`P-SET-INTERCALADO`), y las entradas repartidas. Antes, **Bloqueada:** depende de B-9 (ver `docs/BLOQUEOS.md`).
 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_union.py`

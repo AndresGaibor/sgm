@@ -7537,3 +7537,27 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `l6_26_set_columnas_distintas` queda `pendiente`, sin `esperado/`, y su Job emite
   `P-UNION-ESQUEMAS-DISTINTOS`; lo cierra B-10.
 - Pendiente: B-10 (`SET` con columnas distintas y faltante, `l6_26`).
+
+## Hito 254m. B-10: `SET` con columnas distintas se alinea por nombre con un `tMap` por entrada (lestmtsref, p. 343; lrcon, p. 579) (parcial)
+
+- Regla: `SET a b;` junta por nombre: el esquema de salida es la unión de columnas, en el orden de la primera
+  aparición; cada entrada que no trae una columna sale con faltante en ella (`lrcon`, p. 579). El tipo y la
+  longitud los fija la primera aparición (`lestmtsref`, p. 343). Un tipo distinto para la misma columna sigue
+  en `P-UNION-TIPO-CONFLICTO` (detectado antes, en `esquemas_propagacion`).
+- Qué se hizo:
+  - `src/sgm/talend_item/desde_plan_union.py`: si las entradas no tienen el mismo esquema, cada una desalineada
+    pasa por un `tMap` (`row1` a la salida `tUnite_1_inN`) que emite el esquema de la unión, con `null` donde la
+    entrada no trae la columna. Con el mismo esquema, `tUnite` directo, como antes.
+  - `src/sgm/talend_item/desde_plan_orden.py`: `ResultadoOrden` lleva `alineados` y `columnas`.
+  - `src/sgm/talend_item/desde_plan.py`: crea los `tMap`, sus conexiones `MERGE` a `tUnite` y redirige la arista
+    origen a `tMap` en `_conectar`. Las entradas repartidas (`tReplicate`) no están cableadas: caen al camino de
+    antes (ver BLOQUEOS, B-10).
+  - `intérprete` (`_apilar` en `interprete.py`): ya concatena por nombre con faltante; no se tocó (archivo de Byron).
+- Studio (puente `READY`): `l6_26_set_columnas_distintas` coincide, 0 diferencias. La primera ejecución no tenía
+  `esperado/` y el arnés la marcó como «archivo de más»; se restauró el esperado de lrcon p. 579 y se validó de nuevo
+  el mismo caso. El Job tiene dos `tMap`, un `tUnite` y la salida `ID,X,Y`.
+- Casos: `l6_26` pasa a `traducible` con esperado; sale de `migrar_pendientes.yaml`.
+- Pruebas: `test_desde_plan_union.py` (3 nuevos). `test_emisor_union.py::test_columnas_distintas_...` fijaba el
+  comportamiento anterior (la unión queda pendiente); se reescribió para exigir la alineación, no se debilitó.
+- Pendiente (parcial, B-10): (c) `SET a b; BY k;` intercalado (`lrcon`, p. 583) debe quedar como pendiente
+  `P-SET-INTERCALADO`; no se verificó en esta iteración. Entradas repartidas (`tReplicate`) con alineación.

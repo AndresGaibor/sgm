@@ -204,3 +204,6 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Resuelto en 253m (B-9):** `tUnite` con conexiones `MERGE` compila y conserva el orden de SAS
   (`l6_25_set_dos_datasets_orden` coincide en Studio, 0 diferencias; testigo `l6_09` también coincide). Decisión (a).
   Queda B-10 para `l6_26` (columnas distintas, `P-UNION-ESQUEMAS-DISTINTOS`).
+
+- **B-10 (254m, parcial):** `l6_26` coincide en Studio. Quedan (c), `SET a b; BY k;` intercalado con su pendiente
+  `P-SET-INTERCALADO` (no verificado) y las entradas repartidas por `tReplicate` con alineación, que caen al camino anterior.

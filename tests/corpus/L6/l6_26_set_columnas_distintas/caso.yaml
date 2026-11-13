@@ -5,11 +5,11 @@ construcciones:
 capa: B
 tolerancia: 1.0e-06
 orden_relevante: true
-estado: pendiente
+estado: traducible
 salidas:
 - TODO_COLS
-razonamiento: 'Con columnas distintas, el resultado tiene las columnas de todos los datasets y cada fila queda faltante en las que no trae (lrcon, p. 579).'
+razonamiento: 'Con columnas distintas, el resultado tiene las columnas de todos los datasets y cada fila queda faltante en las que no trae (lrcon, p. 579). Studio (B-10): tMap de alineacion por entrada y tUnite, coincide con esperado.'
 fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
-invariantes: []
-motivo: 'Orden de tUnite resuelto en B-9 (coincide). El caso de columnas distintas no se ha validado en Studio y el Job emite P-UNION-ESQUEMAS-DISTINTOS; lo cierra B-10.'
+invariantes:
+- filas(TODO_COLS) == 5

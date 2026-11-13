@@ -136,6 +136,7 @@ class _Job:
         self._salidas_map: dict[str, str] = {}  # id de operador -> nombre de su salida
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
         self._uniones: dict[str, list[str]] = {}  # `union` -> sus entradas, en orden
+        self._alineados: dict[str, dict[int, str]] = {}  # `union` -> tMap por entrada desalineada
         self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
         self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
         self._ramas: dict[str, dict[str, str]] = {}  # `map` con ramas -> consumidor -> salida
@@ -470,16 +471,23 @@ class _Job:
         fuentes = self._fuentes(op)
         unico = self._unico("tUnite")
         resultado = nodo_union(
-            op, [f.columnas for f in fuentes], unico, x, _linea(op), self.ruta_java
+            op, [f.columnas for f in fuentes], unico, x, _linea(op), self.ruta_java,
+            lambda: self._unico("tMap"),
         )
         self.pendientes += resultado.pendientes
         self._salida[op.id] = []
         if resultado.nodo is None:
             return
         tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
-        self._registrar(op, resultado.nodo, fuentes[0].columnas, tabla)
+        self._registrar(op, resultado.nodo, resultado.columnas, tabla)
         self._pasos.add(op.id)
         self._uniones[op.id] = [f.origen for f in fuentes]
+        # Entrada desalineada: sale de su `tMap`, cuya salida se llama como su entrada del tUnite.
+        for i, alineado in resultado.alineados.items():
+            self.nodos.append(alineado)
+            self._alineados.setdefault(op.id, {})[i] = alineado.unico
+            nombre_salida = f"{unico}_in{i + 1}"
+            self.conexiones.append(Conexion(alineado.unico, unico, nombre_salida, "MERGE", 10))
 
     def _sql_impala(self, op: Operator, x: int) -> None:
         """`exec_sql` como `tImpalaRow`; la conexión queda pendiente, nunca se inventa."""
@@ -672,6 +680,16 @@ class _Job:
             if nodo_origen is None or nodo_destino is None:
                 continue
             origen, destino = nodo_origen.unico, nodo_destino.unico
+            entradas_union = self._uniones.get(hasta, [])
+            indice = entradas_union.index(desde) if desde in entradas_union else -1
+            if not repartido and indice in self._alineados.get(hasta, {}):
+                # Entrada desalineada: entra por la `row1` de su `tMap`, no directo al tUnite.
+                destino = self._alineados[hasta][indice]
+                if (origen, destino, "row1") not in vistas:
+                    vistas.add((origen, destino, "row1"))
+                    conector = self._conector_de.get(origen, "FLOW")
+                    self.conexiones.append(Conexion(origen, destino, "row1", conector=conector))
+                continue
             clave = (origen, destino, nombre)
             if clave in vistas:
                 continue

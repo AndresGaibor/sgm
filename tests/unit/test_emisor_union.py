@@ -50,13 +50,17 @@ def test_set_de_dos_tablas_con_las_mismas_columnas_es_un_tunite(tmp_path):
     assert validar_job(job) == []
 
 
-def test_columnas_distintas_dejan_la_union_pendiente(tmp_path):
+def test_columnas_distintas_se_alinean_con_un_tmap_por_entrada(tmp_path):
+    # lestmtsref, p. 343: SET junta por nombre; la entrada sin `w` sale con `w` faltante.
     resultado = _programa(
         tmp_path, "DATA WORK.t;\n  SET WORK.a WORK.b;\nRUN;\n", "id,v\n1,x\n", "id,w\n2,y\n"
     )
 
-    assert not any(n.componente == "tUnite" for j in resultado.jobs for n in j.nodos)
-    assert "P-UNION-ESQUEMAS-DISTINTOS" in {p.codigo for p in resultado.pendientes}
+    job = resultado.jobs[0]
+    assert _reales(resultado) == []
+    assert sum(n.componente == "tMap" for n in job.nodos) == 2
+    assert sum(n.componente == "tUnite" for n in job.nodos) == 1
+    assert validar_job(job) == []
 
 
 def test_union_sin_all_queda_pendiente(tmp_path):

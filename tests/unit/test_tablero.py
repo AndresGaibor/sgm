@@ -77,7 +77,7 @@ def test_corpus_por_nivel_y_estado(datos_corpus):
     assert sum(datos_corpus["por_nivel"].values()) == 256
     assert sum(datos_corpus["por_estado"].values()) == 256
     # 240 con `esperado/`: l6_11 pasó a `pendiente` en 247m (sin esperado hasta que el traductor lo emita).
-    assert datos_corpus["con_esperado"] == 241
+    assert datos_corpus["con_esperado"] == 242
     assert datos_corpus["construcciones"] > datos_corpus["construcciones_traducibles"] > 0
 
 
