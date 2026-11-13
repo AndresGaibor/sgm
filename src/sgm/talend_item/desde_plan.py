@@ -33,6 +33,7 @@ from sgm.talend_item.desde_plan_contextos import (
     reemplazar_rutas,
     rutas_de_plan,
 )
+from sgm.talend_item.desde_plan_lag import nodo_lag
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
@@ -81,7 +82,7 @@ def _tabla(dataset: str) -> str:
 
 
 def _produce(op: Operator) -> list[str]:
-    producen = ("read_file", "map", "filter", "derive", "select", "rename", "join")
+    producen = ("read_file", "map", "filter", "derive", "select", "rename", "join", "stateful_row")
     if op.kind in (*producen, "sort", "dedup", "aggregate", "union"):
         return [str(d).lower() for d in op.params.get("outputs", [])]
     if op.kind == "split":
@@ -137,6 +138,8 @@ class _Job:
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
         self._uniones: dict[str, list[str]] = {}  # `union` -> sus entradas, en orden
         self._alineados: dict[str, dict[int, str]] = {}  # `union` -> tMap por entrada desalineada
+        self.emitidos: set[str] = set()  # operadores de estado con componente (LAG como tJavaRow)
+        self.escritura_sin_columnas = False
         self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
         self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
         self._ramas: dict[str, dict[str, str]] = {}  # `map` con ramas -> consumidor -> salida
@@ -295,6 +298,8 @@ class _Job:
             representante = self._resolver(productor)
             columnas = self._salida.get(representante or productor, [])
         if not columnas:
+            # Decisión 5: sin columnas no hay archivo; un pendiente de escritura impide el Job.
+            self.escritura_sin_columnas = True
             self.pendientes.append(
                 PendienteMigracion(
                     "P-ESCRITURA-SIN-COLUMNAS",
@@ -810,7 +815,23 @@ class _Job:
             contextos=contextos_de_plan(self.plan),
         )
 
+    def _lag(self, op: Operator, x: int) -> bool:
+        """`LAG`/`DIF` como `tJavaRow` si la forma es la que se sabe emitir (desde_plan_lag)."""
+        fuentes = self._fuentes(op)
+        if len(fuentes) != 1:
+            return False
+        unico = self._unico("tJavaRow")
+        resultado = nodo_lag(op, fuentes[0].columnas, unico, x, _linea(op), self.ruta_java)
+        if resultado is None or resultado.nodo is None:
+            return False
+        self._registrar(op, resultado.nodo, resultado.columnas, "")
+        self._pasos.add(op.id)
+        self.emitidos.add(op.id)
+        return True
+
     def _traducir(self, op: Operator, x: int) -> None:
+        if op.kind == "stateful_row" and self._lag(op, x):
+            return
         if op.status == "hueco" or op.kind == "unsupported":
             self._sin_soporte(op)
             return
@@ -874,7 +895,7 @@ def plan_a_jobs(
         armado = _Job(plan, esquemas, ruta_java)
         construido = armado.armar(job)
         # Un Job con un hueco es parcial: sus pendientes se informan, pero el Job no se escribe.
-        if not tiene_hueco(plan, job):
+        if not tiene_hueco(plan, job, armado.emitidos) and not armado.escritura_sin_columnas:
             resultado.jobs.append(construido)
         resultado.pendientes += armado.pendientes
         resultado.traza.update(armado.traza)

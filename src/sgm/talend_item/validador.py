@@ -53,8 +53,9 @@ CONSUMEN = frozenset(
 
 
 # Componentes cuyo esquema de entrada lo da la conexión que llega y no el suyo: lo que ellos
-# declaran es el de su salida (el `tMap` y el `tAggregateRow` cambian las columnas).
-ENTRADA_PROPIA = frozenset({"tMap", "tAggregateRow"})
+# declaran es el de su salida (el `tMap` y el `tAggregateRow` cambian las columnas; el `tJavaRow`
+# de LAG añade una columna, y su código lee la entrada con el esquema de la conexión).
+ENTRADA_PROPIA = frozenset({"tMap", "tAggregateRow", "tJavaRow"})
 
 
 def _columnas(nodo: Nodo, nombre: str) -> list[Columna]:

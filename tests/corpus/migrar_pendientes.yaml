@@ -33,8 +33,8 @@ l6_33_do_while: P-DO-WHILE-UNTIL
 l6_31_do_limite_no_constante: P-DO-LIMITE-NO-CONSTANTE
 l6_34_array_indice_fuera_de_rango: P-ARRAY-FUERA-DE-RANGO
 l6_39_suma_con_faltante: P-POR-GRUPO-SIN-EMISOR
-l6_40_lag_dentro_de_if: P-LAG-SIN-EMISOR
-l6_41_dif_primer_valor_faltante: P-LAG-SIN-EMISOR
+l6_40_lag_dentro_de_if: P-ESCRITURA-SIN-COLUMNAS
+l6_41_dif_primer_valor_faltante: P-ESCRITURA-SIN-COLUMNAS
 l6_35_update_basico: P-UPDATE-SIN-EMISOR
 l6_36_update_faltante_no_sobrescribe: P-UPDATE-SIN-EMISOR
 l6_37_update_llave_nueva: P-UPDATE-SIN-EMISOR

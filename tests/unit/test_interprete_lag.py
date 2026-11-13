@@ -54,12 +54,15 @@ def test_dif2_usa_la_cola_de_dos():  # lefunctionsref, p. 663 (DIFn = x - LAGn(x
     assert _numeros(filas, "d") == [None, None, 3.0, 6.0]
 
 
-def test_lag_no_sale_como_job(tmp_path):  # decisión 5 (B-13)
+def test_lag_simple_queda_bloqueado_por_la_escritura(tmp_path):  # decisión 5 (B-13, orden de escritura)
+    # El `tJavaRow` de LAG existe (desde_plan_lag.py), pero la escritura de WORK.r se emite antes que el
+    # LAG y no ve sus columnas: P-ESCRITURA-SIN-COLUMNAS, y ese pendiente impide escribir el Job (decisión 5).
+    # Se deja así hasta resolver el orden sin cambiar la posición de los componentes de los Jobs existentes.
     programa = tmp_path / "p.sas"
     programa.write_text(
         ENTRADA
         + "DATA WORK.r;\n  SET WORK.t;\n  prev = LAG(x);\nRUN;\n"
-        + "PROC EXPORT DATA=WORK.r OUTFILE='r.csv' DBMS=CSV REPLACE;\nRUN;\n",
+        + "PROC EXPORT DATA=WORK.r OUTFILE=\'r.csv\' DBMS=CSV REPLACE;\nRUN;\n",
         encoding="utf-8",
     )
     muestra = tmp_path / "m"
@@ -67,10 +70,24 @@ def test_lag_no_sale_como_job(tmp_path):  # decisión 5 (B-13)
     (muestra / "t.csv").write_text("id,x\n1,2\n2,3\n", encoding="utf-8")
     resultado = migrar(programa, tmp_path / "salida", muestra=muestra)
     assert resultado.jobs == []
-    assert "P-LAG-SIN-EMISOR" in {p.codigo for p in resultado.pendientes}
+    assert "P-ESCRITURA-SIN-COLUMNAS" in {p.codigo for p in resultado.pendientes}
 
 
 @pytest.mark.parametrize("sentencia", ["  prev = LAG(x) + 1;\n", "  prev = LAG(x) + DIF(x);\n"])
 def test_lag_anidado_no_se_ignora(sentencia):  # no se traduce: la expresión mezcla LAG con otra cosa
     with pytest.raises(NoSoportadoEnInterprete):
         _correr(sentencia, [{"x": "2"}, {"x": "3"}])
+
+
+def test_lag_no_verificado_sigue_sin_job(tmp_path):  # decisión 5: la forma compuesta no tiene emisor
+    programa = tmp_path / "p.sas"
+    programa.write_text(
+        ENTRADA
+        + "DATA WORK.r;\n  SET WORK.t;\n  prev = LAG(x) + 1;\nRUN;\n"
+        + "PROC EXPORT DATA=WORK.r OUTFILE='r.csv' DBMS=CSV REPLACE;\nRUN;\n",
+        encoding="utf-8",
+    )
+    muestra = tmp_path / "m"
+    muestra.mkdir()
+    (muestra / "t.csv").write_text("id,x\n1,2\n2,3\n", encoding="utf-8")
+    assert migrar(programa, tmp_path / "salida", muestra=muestra).jobs == []

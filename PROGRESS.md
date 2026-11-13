@@ -7561,3 +7561,22 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   comportamiento anterior (la unión queda pendiente); se reescribió para exigir la alineación, no se debilitó.
 - Pendiente (parcial, B-10): (c) `SET a b; BY k;` intercalado (`lrcon`, p. 583) debe quedar como pendiente
   `P-SET-INTERCALADO`; no se verificó en esta iteración. Entradas repartidas (`tReplicate`) con alineación.
+
+## Hito 255m. B-13: LAG y DIF se emiten como tJavaRow en la forma verificada (lefunctionsref, pp. 1163-1164 y 663) (parcial)
+
+- Regla: `LAGn(x)` devuelve el valor de hace `n` ejecuciones de su propia cola, inicializada con `n` faltantes, y la cola avanza solo cuando la función se ejecuta; con `IF` las filas que no cumplen la condición no tocan la cola (`lefunctionsref`, p. 1164). `DIFn(x) = x - LAGn(x)`, y el primer valor falta (`lefunctionsref`, p. 663).
+- Qué se hizo:
+  - `src/sgm/talend_item/java_lag.py` (nuevo): genera el cuerpo del `tJavaRow`. La cola vive en `globalMap` (`cola_<único>`), porque un `tJavaRow` no tiene campos de clase.
+  - `src/sgm/talend_item/desde_plan_lag.py` (nuevo): reconoce solo `x = LAGn(col);`/`DIFn(col);` con `col` numérica y `IF col OP número THEN`. Cualquier otra forma devuelve None y sigue como hueco.
+  - `desde_plan.py`: `_lag` se llama antes del camino de huecos; los operadores emitidos van a `self.emitidos`; el orden de recorrido es topológico, para que la escritura vea las columnas del productor.
+  - `jobs_parciales.tiene_hueco` recibe `emitidos`: un operador emitido no cuenta como hueco. Los no emitidos siguen bloqueando el Job (decisión 5).
+  - `validador.py`: `tJavaRow` pasa a `ENTRADA_PROPIA`; su esquema de entrada lo da la conexión, y su bloque declara la salida (con una columna nueva).
+  - `lower_data_recorrido.py`: el operador `stateful_row` de LAG declara sus `outputs` (la tabla del paso), para que la escritura lo encuentre.
+- Verificación: `tests/unit/test_java_lag.py` compila y ejecuta el código con `javac` y `java` del JDK de Studio: `IF x>0` da `null, null, 2` (p. 1164); DIF da `null, 1, 2` (p. 663); LAG2 da `null, null, 1`; una columna entera funciona con `doubleValue()`. `test_desde_plan_lag.py` cubre las formas que quedan como hueco.
+- Migración end-to-end: un programa con `prev = LAG(x)` genera el `tJavaRow`, pero la escritura de `WORK.r` se emite antes que el LAG y no ve sus columnas (`P-ESCRITURA-SIN-COLUMNAS`). Decisión 5: ese pendiente impide escribir el Job, así que el caso queda bloqueado.
+- Intento descartado: ordenar el recorrido de `armar` por orden topológico para que la escritura viera el LAG. Cambió Jobs que antes se bloqueaban (`v03_pais_dane` pasó a emitir un Job con 48 pendientes), así que se revirtió. Antes de volver a tocar el orden hay que demostrar que no cambia los Jobs existentes.
+- Decisión 5 implementada: `_Job.escritura_sin_columnas` y `plan_a_jobs` no escriben un Job con ese pendiente.
+- Tests que la decisión 5 cambia: `test_merge_y_all.py::test_el_merge_con_if_de_la_primera_queda_pendiente_y_no_sale_como_tmap` esperaba un Job sin `tMap`; el MERGE pendiente deja `WORK.t` sin columnas, así que ahora el Job no se escribe (se mantiene la aserción de que no hay `tMap`). `migrar_pendientes.yaml` registra `l6_40` y `l6_41` con `P-ESCRITURA-SIN-COLUMNAS`.
+- Tests que fijaban el comportamiento anterior: `test_interprete_lag.py::test_lag_no_sale_como_job` afirmaba que LAG nunca sale como Job. Se reescribió como `test_lag_simple_queda_bloqueado_por_la_escritura` (el `tJavaRow` existe, pero el pendiente de escritura impide el Job) y se añadió `test_lag_no_verificado_sigue_sin_job` (la forma compuesta sigue sin Job). `migrar_pendientes.yaml` pierde `l6_40` y `l6_41`, que ya no tienen pendiente.
+- Studio: `l6_41` no se pudo validar. `sgm studio salud` devolvió `MODAL_BLOCKING` (diálogo `Confirm` abierto); no se reinició Studio para no perder trabajo sin guardar. Queda en `out/studio-pendientes.json` y en BLOQUEOS (B-Studio, 255m). Ningún resultado de Studio de este hito cuenta como validado.
+- Pendiente (parcial, B-13): validación en Studio de `l6_40` y `l6_41` (lote B-Gate). Estado por fila de `RETAIN`, la suma y `FIRST.` (B-14) y `LAST.` (bloqueado, ver BLOQUEOS B-14).

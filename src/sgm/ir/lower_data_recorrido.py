@@ -302,9 +302,10 @@ class _Recorrido:
             "else"
         ):
             return False
+        salidas = [qualify(n) for n in self.step.outputs if n.lower() != "_null_"]
         operador = self.b.op(
             "stateful_row",
-            params,
+            {**params, "outputs": salidas},
             statement_ev,
             status="hueco",
             notes=["LAG/DIF sin emisor en Talend todavía (lefunctionsref, p. 1164; B-13)"],

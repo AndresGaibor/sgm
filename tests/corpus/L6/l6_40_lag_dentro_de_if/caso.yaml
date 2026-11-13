@@ -13,7 +13,7 @@ razonamiento: 'LAG tiene su propia cola, inicializada con un faltante. La cola a
 fuentes_url:
 - https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en
 invariantes: []
-motivo: LAG no tiene emisor en Talend todavía (B-13, Studio). Sin esperado/ hasta que el emisor exista; el resultado se fija en tests/unit/test_interprete_lag.py.
+motivo: LAG tiene tJavaRow (desde_plan_lag.py, verificado con javac en test_java_lag.py); sin esperado/ hasta validarlo en Studio (lote B-Gate).
 esquemas:
   WORK.VALORES_L6_40:
     ID:

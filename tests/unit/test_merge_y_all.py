@@ -79,8 +79,9 @@ def test_el_merge_con_if_de_la_primera_queda_pendiente_y_no_sale_como_tmap(tmp_p
     # fila de SAS cuando la llave se repite. Queda como pendiente con motivo.
     codigos = {p.codigo for p in resultado.pendientes}
     assert "P-UNION-TIPO-SIN-SOPORTE" in codigos
-    job = resultado.jobs[0]
-    assert not any(n.componente == "tMap" for n in job.nodos)
+    # Decisión 5: el MERGE pendiente deja WORK.t sin columnas; ese pendiente de escritura impide el Job.
+    assert resultado.jobs == []
+    assert "P-ESCRITURA-SIN-COLUMNAS" in codigos
 
 
 def test_el_merge_completo_queda_pendiente_porque_un_tmap_no_hace_full_outer(tmp_path: Path):

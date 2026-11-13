@@ -15,11 +15,12 @@ CODIGO_DETALLE = {
 }
 
 
-def tiene_hueco(plan: Plan, job) -> bool:
+def tiene_hueco(plan: Plan, job, emitidos: frozenset[str] | set[str] = frozenset()) -> bool:
     """Si el Job está unido a un hueco sin traducción por el grafo: el Job queda parcial (B-17).
 
     La partición del plan no siempre pone el hueco dentro del Job (queda entre la lectura y la
-    escritura), así que se sigue la componente conexa de sus operadores.
+    escritura), así que se sigue la componente conexa de sus operadores. Un operador de `emitidos`
+    ya tiene su componente (p. ej. un `tJavaRow` de LAG), y no cuenta como hueco.
     """
     vecinos: dict[str, set[str]] = {}
     for arista in plan.graph.edges():
@@ -33,9 +34,9 @@ def tiene_hueco(plan: Plan, job) -> bool:
             continue
         visitados.add(actual)
         op = plan.graph.operator(actual)
-        # Un `stateful_row` (RETAIN, suma, FIRST./LAST.) no tiene emisor todavía: sin él el Job
-        # salía sin la lógica de estado. Cuenta como hueco (decisión 5; B-13).
-        if op.status == "hueco" or op.kind in ("unsupported", "stateful_row"):
-            return True
+        if actual not in emitidos:
+            # Un `stateful_row` (RETAIN, suma, FIRST./LAST.) sin emisor es hueco (decisión 5; B-13).
+            if op.status == "hueco" or op.kind in ("unsupported", "stateful_row"):
+                return True
         pila.extend(vecinos.get(actual, ()))
     return False

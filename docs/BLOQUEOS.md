@@ -207,3 +207,80 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 
 - **B-10 (254m, parcial):** `l6_26` coincide en Studio. Quedan (c), `SET a b; BY k;` intercalado con su pendiente
   `P-SET-INTERCALADO` (no verificado) y las entradas repartidas por `tReplicate` con alineación, que caen al camino anterior.
+
+## B-12: `MERGE` muchos-a-muchos no cabe en un solo `tJavaRow` (decisión del dueño, diseño del plan)
+
+- **Qué dice el plan:** `MERGE` de tres o más entradas, o con llave repetida, va como `tUnite` + `tSortRow` por
+  `(k, orden de entrada, secuencia)` + un `tJavaRow` con la lógica de `mezclar` (`l6_02`, `l6_03`, `l6_04`, `l6_11`).
+- **Por qué no se puede así:** según la referencia de `tJavaRow` (`docs/referencia/talend/tjavarow.md`), el código se
+  aplica a cada fila del flujo: entra una fila y sale una. Un `MERGE` muchos-a-muchos puede dar más filas que entradas
+  (dos filas `a` por dos filas `b` dan cuatro salidas). Un solo `tJavaRow` no emite varias filas por entrada. Esto es
+  un supuesto de la referencia; Studio tiene que confirmarlo antes de cerrar la decisión.
+- **Opciones (decide el dueño):**
+  - (a) Emitir solo el caso de una fila por llave en cada lado (clave demostrada única con `NODUPKEY` o `PROC SORT`
+    previo, `l6_01`) como `tMap` con lookup, y dejar el resto como `P-MERGE-MUCHOS-A-MUCHOS` con motivo.
+  - (b) Un `tJavaRow` que acumula cada grupo y escribe el resultado en un archivo intermedio, y un segundo Job que lo
+    lee. Más piezas, y el Job ya no es un solo flujo.
+  - (c) Un `tJava` que lee las entradas ordenadas y produce la salida con código Java completo, sin flujo de filas.
+- **Recomendación:** (a) para la fase actual, y que `l6_02` a `l6_04` y `l6_11` queden pendientes con `P-MERGE-MUCHOS-A-MUCHOS`.
+  Así no se inventa un componente que no existe.
+- **Lo que no bloquea:** B-14 (estado por fila, un valor por fila), y la emisión de LAG/DIF, CALL SYMPUT y DO WHILE,
+  que también son una fila de salida por fila de entrada. Siguen en esta fase.
+
+## B-14: `LAST.` necesita ver la fila siguiente (misma restricción que B-12)
+
+- `RETAIN`, la sentencia suma, `LAG`/`DIF` y `FIRST.` (con el reinicio de acumulado) dependen solo de la fila actual y de
+  su estado anterior: se emiten como `tSortRow` + `tJavaRow` con variables de clase, una fila de salida por fila de entrada.
+- `LAST.v` vale 1 en la última fila de cada grupo, y para saberlo hace falta la fila siguiente. Un `tJavaRow` solo ve la
+  fila actual. Opciones: un `tJavaRow` con retardo de una fila (emite la fila anterior al llegar la siguiente, y la
+  última en `tJavaFlex` final, que no se ha verificado), o un `tAggregateRow` que calcule el último por grupo y una unión
+  posterior. Decisión del dueño, junto con la de B-12.
+- Casos afectados: `l6_07` (LAST. con acumulado) y `l6_29` (LAST. con dos variables BY). `l6_05` ya usa `tUniqRow` y no
+  depende de esto.
+
+## B-Studio (255m): Studio con diálogo modal abierto (`MODAL_BLOCKING`)
+
+- **Qué pasó:** al validar `l6_41_dif_primer_valor_faltante` (DIF como `tJavaRow`), `sgm studio salud` devolvió
+  `MODAL_BLOCKING`: hay un diálogo `Confirm` abierto en Talend Studio. Dos intentos de salud, ambos con el mismo
+  resultado. El caso quedó en `out/studio-pendientes.json` (motivo `MODAL_BLOCKING`, `intentos: 1`).
+- **Por qué no se reinició:** la guía (docs/guia-validacion-studio.md, sección 7) dice que, con un diálogo modal, no se
+  mate el proceso de Studio, porque se pierde el trabajo sin guardar. El reinicio autorizado cubre el caso de bridge
+  caído, no este. Tampoco hay acceso a la ventana para cerrar el diálogo con seguridad.
+- **Qué hace falta:** que el usuario mire Talend Studio, cierre el diálogo `Confirm` (guardando si lo pide) y avise.
+  Después se reintenta `sgm studio salud` y se valida `l6_41`. Su esperado (lefunctionsref p. 663, DIFn(x) = x - LAGn(x), primer valor faltante) es `ID,X,D` con las filas `1,2,` `2,3,1` `3,5,2`; se escribe en `esperado/DIF_L6_41.csv` al validar, no antes (el caso queda pendiente sin esperado).
+- **Resultado:** ninguna validación de Studio de esta iteración cuenta. No hay ningún resultado inventado.
+
+## Bloqueo 255m: memoria libre por debajo de 4 GB; hito 255m sin commit
+
+- **Qué pasó:** la comprobación de memoria dio 1,56 GB libres al lanzar `tools/ci.py`. Ese arranque fue un error: se
+  inició el gate con la memoria por debajo del mínimo. Se detuvo a los pocos segundos (TaskStop) y se comprobó que no
+  quedó ningún proceso de pytest ni de `ci.py`. La memoria después estaba en 2,5 GB.
+- **Estado en disco, con staging y sin commit:** LAG y DIF como `tJavaRow` (`java_lag.py`, `desde_plan_lag.py`), el
+  cableado en `desde_plan.py`, `tiene_hueco` con `emitidos`, `tJavaRow` en `ENTRADA_PROPIA` y las pruebas nuevas.
+  Pruebas verificadas en un solo proceso antes del incidente: `test_java_lag.py` y `test_desde_plan_lag.py`
+  (9 pasan) y los tests de LAG, unión, emisor y golden (367 pasan).
+- **Qué falta:** correr `tools/ci.py` con 4 GB libres o más (o por tandas) y comitear `hito 255m`. Antes, subir el
+  Job de LAG a validar en Studio (`l6_41`, bloqueado por `MODAL_BLOCKING`, ver la sección anterior).
+- **Comprobación siguiente (iteración del bucle):** memoria libre 2,41 GB. Por la regla no se corrió la suite, no se
+  comprobó Studio y no se commiteó. El hito 255m sigue en staging, sin commit, y el diálogo `Confirm` de Studio también
+  sigue pendiente de cierre por el usuario.
+- **Comprobación del bucle:** memoria libre 2,48 GB (< 4 GB). Sin suite, sin commit, sin consulta a Studio. Hito 255m en staging.
+
+## B-Studio (iteración con puente caído): recuperación en dos intentos, sin READY
+
+- **Qué se vio:** `sgm studio salud` dio `BRIDGE_DEAD` (`BRIDGE_UNAVAILABLE`). Talend Studio no estaba en ejecución: se
+  había cerrado. `talend-mcp` (3927) sí respondía a `healthz`.
+- **Intento 1:** se lanzó Talend Studio con el workspace de PRJ_BANCOLOMBIA. El puente 3930 no empezó a escuchar en 8 min.
+- **Intento 2:** se cerró solo el proceso de Studio lanzado en este intento (PID 25916) y se relanzó. El puente 3930 escucha
+  ahora, pero `sgm studio salud` da `timed out` al contactar al MCP (3927), y `healthz` responde. La guía (sección 7) apunta
+  a un diálogo modal abierto o a una compilación en curso. No hay acceso a la ventana.
+- **Límite:** se agotaron los dos intentos de esta iteración. No se reinició de nuevo ni se cerraron procesos ajenos.
+  Ninguna validación de Studio de esta iteración cuenta. Nada se marcó como validado.
+- **Siguiente paso (la persona usuaria):** mirar la ventana de Talend Studio, cerrar cualquier diálogo (`Confirm` u otro) y
+  avisar. Después, en la siguiente iteración, reiniciar solo `talend-mcp` (3927) y comprobar `sgm studio salud`. Ese reinicio
+  cuenta como un intento de recuperación.
+- **Lo que sigue bloqueado por Studio:** validar `l6_41` y `l6_40` (255m); B-9 ya está validado; B-10 validado en 254m.
+  El commit de 255m necesita gate (4 GB libres) y no depende de Studio.
+- **Comprobación del bucle:** memoria libre 1,63 GB (< 4 GB). Sin suite, sin commit, sin intento de Studio. Hito 255m en staging.
+- **Comprobación del bucle:** memoria libre 1,7 GB (< 4 GB). Sin suite, sin commit, sin intento de Studio. Hito 255m en staging.
+- **Comprobación del bucle:** memoria libre 1,7 GB (< 4 GB), sin cambio desde la anterior. Sin suite, sin commit, sin intento de Studio.
