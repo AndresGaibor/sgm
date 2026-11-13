@@ -100,12 +100,13 @@ CAMBIOS_DOCUMENTADOS = {
     },
 }
 
-# El plan del cliente contiene un cambio de topología deliberado, no una ampliación de campos:
-# MG-P10 añade el orden de proyección de agregados y MG-P13 reconoce cargas Impala antes modeladas
-# como pendientes. El cambio desplaza IDs y aristas del grafo completo, por lo que se fija el plan
-# revisado por su hash canónico; `test_golden.py` conserva además la comparación exacta.
+# El plan del cliente contiene cambios de topología deliberados, no una ampliación de campos:
+# MG-P10 añade el orden de proyección de agregados; MG-P13 reconoce cargas Impala; hito 233n deja
+# `%web_drop_table` como hueco porque borra tablas y no es una acción del visor. El cambio desplaza
+# IDs y aristas del grafo completo, por lo que se fija el plan revisado por su hash canónico;
+# `test_golden.py` conserva además la comparación exacta.
 CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
-    "client__client_poc.plan.json": "4d30d95add60ceb55efe98897f7cfca640c1731c6305b18a66a6688385c4e98e",
+    "client__client_poc.plan.json": "c75c5b61fb3d466b39108f0a7539c066643637c3be4fdd12292aa6c972a23133",
 }
 
 CASES = [

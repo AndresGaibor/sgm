@@ -887,6 +887,31 @@
       }
     },
     {
+      "id": "op00022",
+      "kind": "unsupported",
+      "status": "hueco",
+      "placement": "flow",
+      "signature": "61f70d4b14ecc883",
+      "params": {
+        "statement": "%web_drop_table(WORK.ACURA)",
+        "reason": "MACRO_NO_EXPANDIDA"
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 38,
+          "line_end": 38,
+          "label": "ACURA",
+          "call": null
+        }
+      ],
+      "notes": [
+        "llamada a %web_drop_table que no se pudo expandir"
+      ],
+      "component": null,
+      "valor_componente": null
+    },
+    {
       "id": "op00023",
       "kind": "read",
       "status": "soportado",
@@ -914,6 +939,31 @@
       "valor_componente": null
     },
     {
+      "id": "op00027",
+      "kind": "unsupported",
+      "status": "hueco",
+      "placement": "flow",
+      "signature": "61f70d4b14ecc883",
+      "params": {
+        "statement": "%web_drop_table(WORK.JAGUAR)",
+        "reason": "MACRO_NO_EXPANDIDA"
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 54,
+          "line_end": 54,
+          "label": "JAGUAR",
+          "call": null
+        }
+      ],
+      "notes": [
+        "llamada a %web_drop_table que no se pudo expandir"
+      ],
+      "component": null,
+      "valor_componente": null
+    },
+    {
       "id": "op00028",
       "kind": "read",
       "status": "soportado",
@@ -938,6 +988,31 @@
         "rule": "02-flow-read",
         "status": "candidato"
       },
+      "valor_componente": null
+    },
+    {
+      "id": "op00032",
+      "kind": "unsupported",
+      "status": "hueco",
+      "placement": "flow",
+      "signature": "61f70d4b14ecc883",
+      "params": {
+        "statement": "%web_drop_table(WORK.BMW)",
+        "reason": "MACRO_NO_EXPANDIDA"
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 70,
+          "line_end": 70,
+          "label": "BMW",
+          "call": null
+        }
+      ],
+      "notes": [
+        "llamada a %web_drop_table que no se pudo expandir"
+      ],
+      "component": null,
       "valor_componente": null
     },
     {
@@ -1132,6 +1207,31 @@
         "confianza": "media",
         "hechos": null
       }
+    },
+    {
+      "id": "op00041",
+      "kind": "unsupported",
+      "status": "hueco",
+      "placement": "flow",
+      "signature": "61f70d4b14ecc883",
+      "params": {
+        "statement": "%web_drop_table(WORK.CHEVROLET)",
+        "reason": "MACRO_NO_EXPANDIDA"
+      },
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 96,
+          "line_end": 96,
+          "label": "CHEVROLET",
+          "call": null
+        }
+      ],
+      "notes": [
+        "llamada a %web_drop_table que no se pudo expandir"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00042",
@@ -14760,22 +14860,8 @@
       ]
     },
     {
-      "op": "op00022",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
-      "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 38,
-          "line_end": 38,
-          "label": "ACURA",
-          "call": null
-        }
-      ]
-    },
-    {
       "op": "op00026",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
+      "what": "macro que abre una tabla en el visor de SAS Studio",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
         {
@@ -14788,22 +14874,8 @@
       ]
     },
     {
-      "op": "op00027",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
-      "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 54,
-          "line_end": 54,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
       "op": "op00031",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
+      "what": "macro que abre una tabla en el visor de SAS Studio",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
         {
@@ -14816,22 +14888,8 @@
       ]
     },
     {
-      "op": "op00032",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
-      "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 70,
-          "line_end": 70,
-          "label": "BMW",
-          "call": null
-        }
-      ]
-    },
-    {
       "op": "op00036",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
+      "what": "macro que abre una tabla en el visor de SAS Studio",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
         {
@@ -14844,22 +14902,8 @@
       ]
     },
     {
-      "op": "op00041",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
-      "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 96,
-          "line_end": 96,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ]
-    },
-    {
       "op": "op00045",
-      "what": "macro auxiliar del visor de SAS Studio (prefijo web_)",
+      "what": "macro que abre una tabla en el visor de SAS Studio",
       "talend": "No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.",
       "evidence": [
         {
@@ -15848,6 +15892,40 @@
           "line_start": 8,
           "line_end": 10,
           "label": "Programa",
+          "call": null
+        }
+      ]
+    },
+    {
+      "signature": "61f70d4b14ecc883",
+      "reason": "MACRO_NO_EXPANDIDA",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 38,
+          "line_end": 38,
+          "label": "ACURA",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 54,
+          "line_end": 54,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 70,
+          "line_end": 70,
+          "label": "BMW",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 96,
+          "line_end": 96,
+          "label": "CHEVROLET",
           "call": null
         }
       ]
@@ -20862,6 +20940,46 @@
           "line_start": 8,
           "line_end": 10,
           "label": "Programa",
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "MACRO_NO_EXPANDIDA",
+        "dueno": "joseph",
+        "se_cierra_con": "mejora del expansor (pendiente de contrato)",
+        "nota": "%web_drop_table(WORK.ACURA)"
+      },
+      "signature": "61f70d4b14ecc883",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 38,
+          "line_end": 38,
+          "label": "ACURA",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 54,
+          "line_end": 54,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 70,
+          "line_end": 70,
+          "label": "BMW",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 96,
+          "line_end": 96,
+          "label": "CHEVROLET",
           "call": null
         }
       ]

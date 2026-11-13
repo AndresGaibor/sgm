@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Operator
+from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.modelo import Columna, Nodo
 from sgm.talend_item.plantillas import nodo_desde_plantilla
@@ -164,6 +165,13 @@ def _agregado(
         )
         return PendienteMigracion(AGREGADO_SIN_TRADUCIR, motivo, linea)
     destino = alias or f"{funcion}_{entrada.nombre}"
+    if not is_java_identifier(destino):
+        return PendienteMigracion(
+            AGREGADO_SIN_TRADUCIR,
+            f"'{texto}': el nombre de salida implícito '{destino}' no es portable para Java; "
+            "se requiere un alias explícito",
+            linea,
+        )
     celdas = [
         ("OUTPUT_COLUMN", destino),
         ("FUNCTION", "distinct" if distinto else _FUNCION[funcion]),

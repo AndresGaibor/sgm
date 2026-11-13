@@ -14,7 +14,7 @@ import pytest
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
 from sgm.ir.models import Edge, Graph, Operator, Plan
-from sgm.migrar.interprete import NoSoportadoEnInterprete, ejecutar_plan
+from sgm.migrar.interprete import NoSoportadoEnInterprete, _agregar, ejecutar_plan
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus" / "L2"
 
@@ -431,6 +431,15 @@ def test_agregados_globales_sin_filas_devuelven_una_fila_resumen():
     filas = ejecutar_plan(plan, {"entrada": []})["resumen"]
 
     assert filas == [{"filas": "0"}]
+
+
+def test_count_sin_alias_conserva_el_nombre_de_expresion_en_interprete():
+    plan = _plan("PROC SQL; SELECT COUNT(*) FROM WORK.entrada; QUIT;")
+    agregado = next(op for op in plan.graph.operators() if op.kind == "aggregate")
+
+    assert _agregar([{"x": "1"}, {"x": "2"}], agregado.params) == [
+        {"count(*)": "2"}
+    ]
 
 
 def test_agregado_como_paso_de_map_se_ejecuta_y_publica_su_salida():

@@ -72,10 +72,22 @@ def agregar(
         expresion = str(agregacion.get("expression") or "").strip()
         alias = str(agregacion.get("alias") or "").strip()
         coincidencia = _AGREGADO.fullmatch(expresion)
-        if coincidencia is None or not _ALIAS_SIMPLE.fullmatch(alias):
+        if coincidencia is None:
             raise AgregadoNoSoportado(f"agregado o alias no soportado: {expresion}")
         funcion = coincidencia.group(1).lower()
         argumento = coincidencia.group(2).strip()
+        if _ALIAS_SIMPLE.fullmatch(alias):
+            destino = alias.lower()
+        elif (
+            funcion == "count"
+            and argumento == "*"
+            and alias.casefold() == expresion.casefold()
+        ):
+            # PROC SQL puede exponer COUNT(*) como etiqueta sin alias. Se mantiene esa etiqueta
+            # en el intérprete; el emisor de Jobs sigue pendiente porque no es identificador Java.
+            destino = "count(*)"
+        else:
+            raise AgregadoNoSoportado(f"agregado o alias no soportado: {expresion}")
         distinto = False
         if funcion == "count" and argumento == "*":
             arbol = None
@@ -91,7 +103,6 @@ def agregar(
                     raise AgregadoNoSoportado(f"forma no soportada: {expresion}")
                 distinto = True
             arbol = parsear(argumento)
-        destino = alias.lower()
         if destino in nombres_salida:
             raise AgregadoNoSoportado(f"alias de salida repetido: {destino}")
         nombres_salida.append(destino)

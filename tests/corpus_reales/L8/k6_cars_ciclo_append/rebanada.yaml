@@ -1,0 +1,9 @@
+fuente: tests/fixtures/sas/client/client_poc.sas
+rangos:
+- - 12
+  - 120
+sha256: 74521de6e0d29dc0a0f5f948e51cc2760dc6ad2acf7e30d8aa6d922cd4545db2
+prologo: '%let repeticiones = 15;'
+sustituciones:
+- - '%do i=1 %to 15;'
+  - '%do i=1 %to &repeticiones.;'

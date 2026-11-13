@@ -1,0 +1,42 @@
+id: k6_cars_ciclo_append
+nivel: L8
+tema: ciclo de APPEND y consultas por marca sobre sashelp.cars
+construcciones:
+  - DATA step SET
+  - PROC APPEND BASE= DATA=
+  - PROC SQL CREATE TABLE AS SELECT WHERE
+  - macro %DO estático
+capa: C
+estado: parcial
+motivo: >-
+  Esperados directos desde la fixture sintética con repeticiones = 3 para mantener el lote
+  pequeño. El intérprete aún no reproduce APPEND sobre la misma tabla; el alias CARS_POC deja
+  consultas con columnas no demostradas y los conteos SQL no se traducen a un Job. La macro
+  %web_drop_table queda como hueco explícito. No se validó en SAS; la autocopia de APPEND sigue
+  pendiente.
+salidas:
+  - ACURA
+  - JAGUAR
+  - BMW
+  - CHEVROLET
+tolerancia: 0
+orden_relevante: false
+supuestos:
+  - >-
+    Datos sintéticos: entradas/cars.csv sustituye sashelp.cars; procede de
+    tests/fixtures/datos/sashelp/cars.ficha.yaml, semilla 20261111.
+  - >-
+    Pendiente: P-APPEND-MISMA-TABLA. proc.pdf, pp. 161–162 no demuestra que BASE= y DATA= puedan
+    nombrar la misma tabla; el comentario del SAS reporta 14.024.704 filas (= 428 × 2^15), sin
+    corrida de SAS que confirme esa operación.
+  - >-
+    %web_drop_table no tiene definición en el programa y conserva un hueco
+    MACRO_NO_EXPANDIDA: su efecto sobre las tablas no se omite. %web_open_table se clasifica por
+    nombre exacto como una acción del visor de Studio.
+  - >-
+    El esperado se deriva de las filas de la fixture y de 2^3 repeticiones, no del intérprete.
+    Anillo B pendiente de MG-P6-04; anillo C pendiente de la disponibilidad de Studio y de que
+    el Job represente las operaciones.
+fuentes_url:
+  - >-
+    https://go.documentation.sas.com/api/collections/webeditorcdc/3.8/docsets/webeditordg/content/webeditordg.pdf?locale=en

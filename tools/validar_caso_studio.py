@@ -51,9 +51,18 @@ def mapa_de_contexto(
 
 
 def _caso(nombre: str) -> Path:
-    encontrados = sorted((RAIZ / "tests" / "corpus").glob(f"*/{nombre}"))
+    corpus_roots = [RAIZ / "tests" / name for name in ("corpus", "corpus_reales")]
+    encontrados = sorted(
+        caso
+        for corpus in corpus_roots
+        for caso in corpus.glob(f"*/{nombre}")
+        if caso.is_dir()
+    )
     if not encontrados:
         raise SystemExit(f"no existe el caso {nombre}")
+    if len(encontrados) > 1:
+        rutas = ", ".join(str(caso) for caso in encontrados)
+        raise SystemExit(f"el caso {nombre} es ambiguo: {rutas}")
     return encontrados[0]
 
 
@@ -84,7 +93,8 @@ def validar(nombre: str, sufijo: str) -> bool:
     resultado = _correr(
         ["tools/corpus_studio.py", "validar", nombre, "--jobs", str(paquete / "process"),
          "--padre", "job_programa", "--proyecto", os.environ.get("TALEND_PROJECT", str(_PROYECTO)),
-         "--mapa", str(ruta_mapa), "--java-bin", os.environ.get("TALEND_JAVA_BIN", str(_JAVA)),
+         "--corpus", str(carpeta.parent.parent), "--mapa", str(ruta_mapa),
+         "--java-bin", os.environ.get("TALEND_JAVA_BIN", str(_JAVA)),
          "--m2", os.environ.get("TALEND_M2", str(_M2)), "--sufijo", sufijo]
     )
     print(f"--- {nombre} ---\n{resultado.stdout.strip()}\n{resultado.stderr.strip()}".rstrip())

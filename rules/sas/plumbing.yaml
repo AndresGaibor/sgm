@@ -68,10 +68,10 @@ entries:
   flags:
   - i
 - id: visor_studio
-  what: macro auxiliar del visor de SAS Studio (prefijo web_)
-  reason: Dibuja o consulta tablas en el visor de resultados de Studio; no transforma datos.
+  what: macro que abre una tabla en el visor de SAS Studio
+  reason: Solicita mostrar una tabla en la interfaz de Studio; no es una transformación de filas.
   talend: 'No hace falta: el resultado se revisa en el Job o en el repositorio de Talend.'
-  pattern: ^\s*%web_\w+
+  pattern: ^\s*%web_open_table\b
   flags:
   - i
 - id: presentacion

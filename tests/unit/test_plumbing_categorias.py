@@ -19,7 +19,7 @@ CASOS = [
     ("variables_control", "call symput('a', x);", "call execute('x');"),
     ("medicion", "t = datetime();", "t = datetime;"),
     ("troceado_lotes", "set a(firstobs=&ini obs=&fin);", "set a(firstobs=10);"),
-    ("visor_studio", "%web_drop_table(x);", "%web = 1;"),
+    ("visor_studio", "%web_open_table(x);", "%web_drop_table(x);"),
     ("presentacion", 'title "Reporte";', "my title = 1;"),
     ("configuracion_macro", "%global x;", "%globals = 1;"),
     ("remoto", "rsubmit;", "rsubmitted = 1;"),
@@ -50,3 +50,7 @@ def test_el_paso_cae_en_su_categoria(categoria, paso, _cercano):
 @pytest.mark.parametrize(("categoria", "_paso", "cercano"), CASOS)
 def test_el_paso_cercano_no_cae_en_la_categoria(categoria, _paso, cercano):
     assert _categoria(cercano) != categoria
+
+
+def test_macro_de_borrado_no_se_confunde_con_el_visor():
+    assert _categoria("%web_drop_table(WORK.resultado);") is None
