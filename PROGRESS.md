@@ -7496,3 +7496,26 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión registrada: el número de la cola usa la sección 1163 del índice y la regla en la página 1164.
 - Pendiente (parcial, B-13): la emisión de `LAG` y `DIF` en Talend necesita Studio. Sin Studio no se
   valida el Job. `UPDATE` (B-19) queda como siguiente paso del carril.
+
+## Hito 252m. B-19: UPDATE en el intérprete (lrcon, pp. 604 a 609) y hueco P-UPDATE-SIN-EMISOR; MODIFY y UPDATEMODE como pendientes (parcial)
+
+- Regla: `UPDATE` deja una observación por llave BY. La transacción se aplica a la primera observación del
+  maestro con esa llave; los faltantes de la transacción no sobrescriben (lrcon, p. 604); una llave que
+  solo está en la transacción se agrega (p. 604); con llave repetida en el maestro, solo se actualiza la
+  primera (ejemplo 2, p. 608). `MODIFY` modifica el dataset en el sitio (lestmtsref, p. 252).
+- Qué se hizo:
+  - `src/sgm/migrar/interprete_update.py` (nuevo): `_actualizar`, con la semántica anterior.
+  - `src/sgm/ir/lower_data_update.py` (nuevo): `UPDATE` como `join` con `modo="update"` en hueco
+    `P-UPDATE-SIN-EMISOR`; con `UPDATEMODE=` el código es `P-UPDATEMODE`; `MODIFY` como `P-MODIFY-EN-SITIO`.
+  - `src/sgm/ir/lower_data_union.py` (nuevo): `_join_type` de `lower_data.py` movido sin cambio de lógica
+    (`tipo_de_union`) para que `lower_data.py` quede en 277 líneas.
+  - `frontend/datastep.py`, `lower_data_recorrido.py`, `lower_data_grupos.py`: sentencias `update` y `modify`.
+  - `src/sgm/migrar/interprete_pasos.py` (Byron): solo la rama de despacho del `UPDATE` y su import.
+- Casos: `l6_35_update_basico`, `l6_36_update_faltante_no_sobrescribe`, `l6_37_update_llave_nueva`,
+  `l6_38_update_dos_transacciones`, pendientes y sin `esperado/`; los valores de lrcon pp. 607 a 610 se
+  fijan en `tests/unit/test_interprete_update.py` (9 tests).
+- Ajustes de tests que fijaban el comportamiento anterior: `test_ir_rules` (LAG es hueco),
+  `test_interprete_sin_traducir` (el caso LAG en IF pasa a `test_interprete_lag`), `test_catalogo_sas`
+  (`update` y `modify` son sentencias propias con hueco, sin convertirse), `test_tablero` (254 casos, L6 144).
+- Pruebas: `tools/ci.py` en verde (ruff, suite, cruces, oráculo, tablero).
+- Pendiente (parcial, B-19): emisión de `UPDATE` en `desde_plan_merge.py` (tJavaRow), que necesita Studio.
