@@ -38,6 +38,7 @@ from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
 from sgm.talend_item.desde_plan_union import nodo_union
 from sgm.talend_item.jobs_diseno import java
+from sgm.talend_item.jobs_parciales import CODIGO_DETALLE, tiene_hueco
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 from sgm.talend_item.plantillas import nodo_desde_plantilla
 
@@ -252,7 +253,8 @@ class _Job:
             return
         motivo = op.notes[0] if op.notes else f"el operador '{op.kind}' no tiene componente"
         # `codigo`: un hueco que ya sabe su pendiente (p. ej. P-ARRAY-FUERA-DE-RANGO) lo declara.
-        codigo = op.params.get("codigo") or (PIVOTAR if op.kind == "pivot" else SIN_SOPORTE)
+        codigo = op.params.get("codigo") or CODIGO_DETALLE.get(op.params.get("reason_detail"))
+        codigo = codigo or (PIVOTAR if op.kind == "pivot" else SIN_SOPORTE)
         self.pendientes.append(PendienteMigracion(codigo, motivo, _linea(op)))
 
     def _lectura(self, op: Operator, x: int) -> None:
@@ -851,7 +853,10 @@ def plan_a_jobs(
     resultado.plegados |= set(informe.absorbidos)
     for job in plan.jobs:
         armado = _Job(plan, esquemas, ruta_java)
-        resultado.jobs.append(armado.armar(job))
+        construido = armado.armar(job)
+        # Un Job con un hueco es parcial: sus pendientes se informan, pero el Job no se escribe.
+        if not tiene_hueco(plan, job):
+            resultado.jobs.append(construido)
         resultado.pendientes += armado.pendientes
         resultado.traza.update(armado.traza)
         resultado.visitados |= armado.visitados

@@ -29,6 +29,9 @@ ESTRUCTURAS: dict[str, tuple[tuple[tuple | None, ...], bool]] = {
     "if_else": ((CONDICION_1, None), True),
     "if_elseif": ((CONDICION_1, CONDICION_2), True),
     "if_elseif_else": ((CONDICION_1, CONDICION_2, None), True),
+    # Dos IF sin cadena: un OUTPUT por cada uno. Con DESTINOS no hay ninguna combinación sin repetir
+    # dataset, así que todas son negativos (`negativos()`).
+    "dos_if_independientes": ((CONDICION_1, CONDICION_2), False),
 }
 
 
@@ -91,6 +94,18 @@ def combinaciones() -> Iterator[Combinacion]:
             if not cadena and _repite_destino(destinos):
                 continue  # ramas independientes: un destino repetido es un caso negativo
             yield Combinacion(rama, tuple(destinos))
+
+
+def negativos() -> Iterator[Combinacion]:
+    """Combinaciones que el traductor no emite: ramas independientes que repiten destino. SAS las
+    acepta (cada `OUTPUT` escribe el PDV como una observación, `lrcon` p. 498); el traductor no
+    tiene operador de unión para ellas, así que quedan como pendiente y no como Job."""
+    for rama, (condiciones, cadena) in ESTRUCTURAS.items():
+        if cadena or len(condiciones) < 2:
+            continue
+        for destinos in product(DESTINOS, repeat=len(condiciones)):
+            if _repite_destino(destinos):
+                yield Combinacion(rama, tuple(destinos))
 
 
 def _repite_destino(destinos: tuple[tuple[str, ...], ...]) -> bool:

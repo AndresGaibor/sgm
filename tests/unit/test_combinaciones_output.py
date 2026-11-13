@@ -17,9 +17,10 @@ sys.path.insert(0, str(REPO / "tools"))
 
 import tempfile  # noqa: E402
 
-from corpus_output.gramatica import DATASETS, Combinacion, combinaciones  # noqa: E402
+from corpus_output.gramatica import DATASETS, Combinacion, combinaciones, negativos  # noqa: E402
 from corpus_output.oraculo import esperado  # noqa: E402
 
+from sgm.cli_migrar import migrar  # noqa: E402
 from sgm.compile import compile_file, project_base  # noqa: E402
 from sgm.frontend.program import analyze_program  # noqa: E402
 from sgm.ir.desplegar import plan_desplegado  # noqa: E402
@@ -104,3 +105,25 @@ def jobs_validos_de(c: Combinacion) -> dict[str, object]:
         if validar_job(job):
             errores[job.nombre] = validar_job(job)
     return errores
+
+
+def test_los_negativos_de_destino_repetido_son_las_dos_ramas_independientes():
+    """El espacio positivo no tiene dos `IF` independientes: con S1 y S2 como destinos, dos
+    `OUTPUT` sin cadena siempre repiten dataset. Esas combinaciones son los casos negativos (B-17)."""
+    negs = list(negativos())
+    assert len(negs) == 9
+    assert all(c.rama == "dos_if_independientes" for c in negs)
+
+
+@pytest.mark.parametrize("c", list(negativos()), ids=lambda c: c.nombre)
+def test_negativo_de_destino_repetido_deja_pendiente_y_ningun_job(c, tmp_path):
+    """Anillo A: el destino repetido queda como pendiente con su código estable y no sale ningún
+    Job, ni parcial ni completo."""
+    programa = tmp_path / "negativo.sas"
+    programa.write_text(c.programa_sas(), encoding="utf-8")
+    muestra = tmp_path / "muestra"
+    muestra.mkdir()
+    (muestra / "REGISTROS.csv").write_text(MUESTRA, encoding="utf-8")
+    resultado = migrar(programa, tmp_path / "salida", muestra=muestra)
+    assert resultado.jobs == []
+    assert "P-OUTPUT-DESTINO-REPETIDO" in {p.codigo for p in resultado.pendientes}

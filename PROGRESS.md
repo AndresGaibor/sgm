@@ -7188,3 +7188,29 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `test_esquemas_sincronizados.py`, `test_corpus_esquemas.py`, `test_tablero.py`: pasan; `ruff check .` limpio.
 - Pendiente (parcial): el bucle `DO WHILE`/`UNTIL` y el `DO` con límite variable en `tJavaRow` (paso 1 b y 3) están
   bloqueados por `interprete.py` y Studio: ver `docs/BLOQUEOS.md`, B-16. `P-DO-OUTPUT-EN-BUCLE` tampoco se emite.
+
+## Hito 235m. B-17: casos negativos de destino repetido y regla «un Job parcial nunca se emite» (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: nueva estructura `dos_if_independientes` (dos `IF` sin cadena). Con los
+    destinos S1, S2 no hay ninguna combinación sin destino repetido, así que las 9 son negativos (`negativos()`).
+    El espacio positivo sigue en 51 combinaciones.
+  - `src/sgm/talend_item/desde_plan.py` y `jobs_parciales.py` (nuevo): dos problemas.
+    1. Un hueco de `OUTPUT` (destino repetido o no declarado) salía como `P-OPERADOR-SIN-SOPORTE`. Ahora sale
+       `P-OUTPUT-DESTINO-REPETIDO` o `P-OUTPUT-DESTINO-NO-DECLARADO` (tabla `CODIGO_DETALLE`).
+    2. **Defecto que causé en 232m-234m:** los casos con hueco (`l6_33`, `l6_34`) emitían un Job `job_programa` con
+       solo la lectura. Y el negativo emitía un Job con solo la lectura. `tiene_hueco` sigue la componente conexa
+       del grafo: si alcanza un hueco, el Job no se escribe, pero sus pendientes sí se informan. La partición del
+       plan no siempre pone el hueco dentro del Job (queda entre la lectura y la escritura), por eso no basta con
+       mirar `subjobs`.
+  - Cita: el PDV se escribe como observación en cada `OUTPUT` (`lrcon`, p. 498). SAS acepta dos `OUTPUT` al mismo
+    dataset; el traductor no tiene operador de unión para ello, así que es limitación del traductor, no error de SAS.
+- Pruebas: `test_combinaciones_output.py` (64: negativos 9 + espacio + oráculo + Anillo A); `test_desde_plan.py`
+  (dos aserciones pasan del código genérico al específico); suite completa: 3680 pasan, 332 omitidas, 142 xfail;
+  `ruff check .` limpio.
+- Decisión y deuda: `desde_plan.py` ya pasaba de 300 líneas (MG-B pide extraer antes de tocarlo). La
+  lógica nueva va a `jobs_parciales.py` para no añadir a ese archivo; la extracción del resto queda como deuda
+  de la fase, no se hace aquí. Mientras se editaba, el archivo perdió sus finales de línea mixtos: se reconstruyó
+  desde HEAD con solo las líneas cambiadas (diff de 9 líneas).
+- Pendiente (parcial): la continuación y la captura del PDV entre dos `OUTPUT` (no están en el espacio), `--escribir`
+  para generar casos en `tests/corpus/L6/`, y la cobertura explícita de `l6_13` a `l6_24` como combinaciones.
