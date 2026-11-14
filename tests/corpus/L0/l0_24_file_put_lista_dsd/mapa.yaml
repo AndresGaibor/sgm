@@ -1,0 +1,2 @@
+ruta_ventas: entradas/ventas.csv
+ruta_ventas_2: salida/ventas.txt

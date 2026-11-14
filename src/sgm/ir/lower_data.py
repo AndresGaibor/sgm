@@ -241,6 +241,9 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     omit: set[int] = set()
     destinos_invalidos = _undeclared_output_targets(stmts, step.outputs)
     destinos_repetidos = _repeated_output_targets(stmts, step.outputs)
+    file_statements = [statement for statement in stmts if statement.kind == "file"]
+    put_statements = [statement for statement in stmts if statement.kind == "put"]
+    file_put = _file_put_lista_null(step, file_statements, put_statements)
     paso_output_invalido = destinos_invalidos is not None or destinos_repetidos is not None
     if paso_output_invalido:
         if destinos_invalidos is not None:
@@ -364,6 +367,16 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         pending_derive = None
         if kind == "declare":
             _note(current, f"declaración sin efecto en la lógica: {s.text}")
+            continue
+        if kind == "file" and file_put is not None:
+            continue
+        if kind == "put" and file_put is not None:
+            file_statement, put_statement, params = file_put
+            escritura = b.op("write_file", params, statement_ev)
+            escritura.evidence.insert(0, _statement_evidence(file_statement, ev))
+            if current is not None:
+                b.link(current, escritura)
+            current = escritura
             continue
         if kind in ("array", "do", "end"):
             _note(current, f"{kind} no traducido: revisar el bucle o el arreglo", status="parcial")
@@ -493,6 +506,57 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     else:
         current.params["outputs"] = [qualify(o) for o in outputs if o.lower() != "_null_"]
     b.refresh(current)
+
+
+def _file_put_lista_null(
+    step: DataStep,
+    file_statements: list[DsStatement],
+    put_statements: list[DsStatement],
+) -> tuple[DsStatement, DsStatement, dict] | None:
+    """Contrato acotado para `DATA _NULL_` con SET y una lista `PUT` delimitada."""
+    if [nombre.casefold() for nombre in step.outputs] != ["_null_"]:
+        return None
+    if len(file_statements) != 1 or len(put_statements) != 1:
+        return None
+    if any(statement.kind not in {"set", "file", "put"} for statement in step.statements):
+        return None
+    file_statement, put_statement = file_statements[0], put_statements[0]
+    file_fields = file_statement.fields
+    put_fields = put_statement.fields
+    sources = [
+        fuente
+        for statement in step.statements
+        if statement.kind == "set"
+        for fuente in statement.fields.get("sources", [])
+    ]
+    if (
+        not file_fields.get("es_ruta")
+        or file_fields.get("no_reconocidas")
+        or put_fields.get("modo") != "lista"
+        or not put_fields.get("variables")
+        or len({str(variable).casefold() for variable in put_fields.get("variables", [])})
+        != len(put_fields.get("variables", []))
+        or len(sources) != 1
+        or sources[0].get("options")
+        or any(statement.kind == "merge" for statement in step.statements)
+    ):
+        return None
+    options = file_fields.get("opciones") or {}
+    delimiter = str(options.get("dlm") or "")
+    if len(delimiter) != 1:
+        return None
+    params = {
+        "inputs": [qualify(str(sources[0]["name"]))],
+        "outfile": file_fields["destino"],
+        "dbms": "dlm",
+        "file_format": "delimited",
+        "delimiter": delimiter,
+        "putnames": False,
+        "dsd": bool(options.get("dsd")),
+        "variables": [str(variable).lower() for variable in put_fields["variables"]],
+        "outputs": [],
+    }
+    return file_statement, put_statement, params
 
 
 def _conditional_assignment(

@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from sgm.frontend.datastep_io import infile_fields, input_fields
+from sgm.frontend.datastep_io import file_fields, infile_fields, input_fields, put_fields
 
 _DATA_HEADER = re.compile(r"(?is)^data\s+(.*)$")
 _OUTPUT_NAME = re.compile(r"([A-Za-z_&][\w.&]*)\s*(\([^)]*\))?")
@@ -145,8 +145,10 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
         return DsStatement("infile", body, line, infile_fields(body))
     if head == "input":
         return DsStatement("input", body, line, input_fields(body))
-    if head in ("file", "put"):
-        return DsStatement(head, body, line, {"raw": body})
+    if head == "file":
+        return DsStatement("file", body, line, file_fields(body))
+    if head == "put":
+        return DsStatement("put", body, line, put_fields(body))
     if head == "if" or head == "else":
         flags = [f"{kind}.{name}" for kind, name in _FIRST_LAST.findall(body)]
         return DsStatement("if", body, line, {"first_last": flags})

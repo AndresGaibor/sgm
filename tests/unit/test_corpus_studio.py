@@ -140,6 +140,30 @@ def test_carpetas_emparejan_por_nombre_sin_mayusculas_y_marcan_faltantes_y_de_ma
     }
 
 
+def test_carpetas_comparan_archivos_de_texto_normalizando_solo_fin_de_linea(tmp_path):
+    esperado, salida = tmp_path / "esperado", tmp_path / "salida"
+    esperado.mkdir()
+    salida.mkdir()
+    (esperado / "ventas.txt").write_text('1|"Luis|Jr"|3\n', encoding="utf-8")
+    (salida / "ventas.txt").write_bytes(b'1|"Luis|Jr"|3\r\n')
+
+    (resultado,) = comparar_carpetas(esperado, salida)
+
+    assert resultado.nombre == "ventas.txt"
+    assert resultado.coincide
+
+
+def test_caso_de_archivo_texto_declara_y_compara_su_salida():
+    carpeta = REPO / "tests" / "corpus" / "L0" / "l0_24_file_put_lista_dsd"
+
+    caso = cargar_caso(carpeta)
+    resultado = comparar_caso(caso, carpeta / "esperado")
+
+    assert caso.salidas == ()
+    assert caso.extra["archivos_salida"] == ("ventas.txt",)
+    assert resultado.coincide
+
+
 # --- Modo `comparar` de la CLI ----------------------------------------------------------------
 
 

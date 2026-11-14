@@ -32,6 +32,35 @@ def nodo_escritura(
     dbms = (params.get("dbms") or "").lower()
     resultado = Resultado(columnas=list(columnas))
     archivo = ruta(params.get("outfile"))
+    variables = params.get("variables")
+    if variables:
+        nombres_entrada = [columna.nombre.casefold() for columna in columnas]
+        nombres_put = [str(variable).casefold() for variable in variables]
+        if nombres_entrada != nombres_put:
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-FILE-PUT-PROJECTION-SIN-SOPORTE",
+                    f"{archivo}: PUT lista {nombres_put}, pero el flujo entrega {nombres_entrada}; "
+                    "falta un componente de proyección validado para cambiar el esquema sin "
+                    "romper la conexión Talend.",
+                    _linea(op),
+                )
+            )
+            return resultado
+        if any(
+            columna.tipo
+            in {"id_Double", "id_Float", "id_Integer", "id_Long", "id_BigDecimal"}
+            for columna in columnas
+        ):
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-PUT-NUMERIC-FORMAT",
+                    f"{archivo}: falta fijar el formato numérico por omisión de PUT en lista "
+                    "y comprobar su serialización en Talend.",
+                    _linea(op),
+                )
+            )
+            return resultado
     if any(not is_java_identifier(columna.nombre) for columna in columnas):
         resultado.pendientes.append(
             PendienteMigracion(
@@ -95,17 +124,35 @@ def nodo_escritura(
             )
         )
         return resultado
+    valores = {
+        "FILENAME": java(archivo),
+        "FIELDSEPARATOR": java(separa),
+        "INCLUDEHEADER": "true" if putnames else "false",
+        "APPEND": "false",
+    }
+    if params.get("dsd"):
+        # DSD exige salida CSV: Talend usa comillas dobles y las duplica dentro del campo.
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-FILE-DSD-MISSING",
+                f"{archivo}: SAS advierte que FILE DSD puede suprimir valores faltantes en PUT; "
+                "revisar los registros de ejecución antes de aceptar esta salida.",
+                _linea(op),
+            )
+        )
+        valores.update(
+            {
+                "CSV_OPTION": "true",
+                "ESCAPE_CHAR": java('"'),
+                "TEXT_ENCLOSURE": java('"'),
+            }
+        )
     resultado.nodo = nodo_desde_plantilla(
         "tFileOutputDelimited",
         unico,
         x,
         y,
-        {
-            "FILENAME": java(archivo),
-            "FIELDSEPARATOR": java(separa),
-            "INCLUDEHEADER": "true" if putnames else "false",
-            "APPEND": "false",
-        },
+        valores,
         columnas=list(columnas),
         ruta_java=ruta_java,
     )

@@ -36,7 +36,9 @@ def comparar_caso(
     Si la ejecución falló sin dejar salida, solo queda el error. Si dejó salida, se compara igual
     y el error acompaña al resultado: un Job que termina mal no puede dar "coincide".
     """
-    sin_salida = not salida.is_dir() or not any(salida.glob("*.csv"))
+    sin_salida = not salida.is_dir() or not any(
+        [*salida.glob("*.csv"), *salida.glob("*.txt")]
+    )
     if error and sin_salida:
         return ResultadoCaso(caso.nombre, error=error)
     archivos = comparar_carpetas(

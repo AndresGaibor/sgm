@@ -1,7 +1,8 @@
-"""Comparador de CSV del corpus a nivel de archivo y de carpeta.
+"""Comparador de CSV y archivos de texto del corpus a nivel de archivo y de carpeta.
 
 La comparación de filas y celdas está en `studio_filas.py`; aquí se lee cada archivo con
-`csv_tabla.leer_csv`, se empareja la carpeta `esperado/` con la salida y se clasifica cada CSV.
+`csv_tabla.leer_csv`, se empareja la carpeta `esperado/` con la salida y se comparan también los
+archivos `.txt` por contenido UTF-8 completo, normalizando CRLF/LF al leer.
 """
 
 from __future__ import annotations
@@ -78,6 +79,37 @@ def _csv_por_nombre(carpeta: Path) -> dict[str, Path]:
     return encontrados
 
 
+def _texto_por_nombre(carpeta: Path) -> dict[str, Path]:
+    """Archivos de texto declarados por casos con salida que no es tabla."""
+    if not carpeta.is_dir():
+        return {}
+    return {
+        ruta.name.casefold(): ruta
+        for ruta in sorted(carpeta.iterdir())
+        if ruta.is_file() and ruta.suffix.lower() == ".txt"
+    }
+
+
+def _comparar_texto(esperado: Path, obtenido: Path) -> ResultadoArchivo:
+    """Compara todo el texto y normaliza únicamente CRLF y CR a LF."""
+    try:
+        texto_esperado = esperado.read_text(encoding="utf-8")
+        texto_obtenido = obtenido.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as fallo:
+        return ResultadoArchivo(
+            esperado.name,
+            "ilegible",
+            [Diferencia("archivo", f"no se puede leer como texto UTF-8: {type(fallo).__name__}")],
+        )
+
+    def normalizar(texto: str) -> str:
+        return texto.replace("\r\n", "\n").replace("\r", "\n")
+
+    igual = normalizar(texto_esperado) == normalizar(texto_obtenido)
+    diferencias = [] if igual else [Diferencia("archivo", "el contenido de texto es distinto")]
+    return ResultadoArchivo(esperado.name, "coincide" if igual else "diferente", diferencias)
+
+
 def comparar_carpetas(
     esperado: Path,
     salida: Path,
@@ -113,6 +145,18 @@ def comparar_carpetas(
         )
     for clave, ruta in obtenidos.items():
         if clave not in esperados:
+            diferencia = Diferencia("archivo", f"la salida tiene {ruta.name}, que no se espera")
+            resultados.append(ResultadoArchivo(ruta.name, "de_mas", [diferencia]))
+    esperados_texto = _texto_por_nombre(esperado)
+    obtenidos_texto = _texto_por_nombre(salida)
+    for clave, ruta in esperados_texto.items():
+        if clave not in obtenidos_texto:
+            diferencia = Diferencia("archivo", f"falta {ruta.name} en la salida")
+            resultados.append(ResultadoArchivo(ruta.name, "faltante", [diferencia]))
+            continue
+        resultados.append(_comparar_texto(ruta, obtenidos_texto[clave]))
+    for clave, ruta in obtenidos_texto.items():
+        if clave not in esperados_texto:
             diferencia = Diferencia("archivo", f"la salida tiene {ruta.name}, que no se espera")
             resultados.append(ResultadoArchivo(ruta.name, "de_mas", [diferencia]))
     return sorted(resultados, key=lambda r: r.nombre.lower())

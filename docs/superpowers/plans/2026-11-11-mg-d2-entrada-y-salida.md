@@ -574,19 +574,20 @@ Esperado a mano, `esperado/mov.csv`: `cuenta,sucursal,monto` / `A0001,10,1234.5`
 
 ### Task D2-11: `FILE` y `PUT` en lista con `DSD` y `DLM` a un archivo de salida (MG-P2-02, parte 3; serie `n`)
 
-Hoy `FILE` se reconoce como palabra y la sintaxis queda pendiente (`file-statement`, `lestmtsref`, p. 97). Páginas (`lestmtsref.pdf`): `FILE Statement` (p. 97; `DSD`, `DLM=`) y `PUT Statement` (p. 277; lista). Con `DSD` un valor que contiene el delimitador se escribe entre comillas dobles y un faltante es un campo vacío (verificar ambas frases en p. 97-100 con `grep`; lo que no aparezca queda `Pendiente: P-FILE-DSD-COMILLAS`). `DATA _NULL_` no crea tabla: es una escritura pura.
+`FILE` y `PUT` se reconocen como palabras, pero su sintaxis queda pendiente (`file-statement`/`put-statement`). La referencia (`lestmtsref.INDEX.md`) ubica `FILE Statement` en p. 97, `PUT Statement` en p. 277 y `PUT Statement: List` en p. 308. FILE documenta que `DLM=` usa solo el primer carácter de una cadena literal y que `DSD` entrecomilla valores con delimitadores embebidos, duplicando comillas dobles (texto de p. 91–93). PUT advierte que los faltantes podrían suprimirse con DSD (p. 277); por tanto, el intérprete conserva `P-FILE-DSD-MISSING` y el corpus no fija la forma de un faltante. `DATA _NULL_` no crea tabla: es una escritura pura.
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_file_put.py`
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_file_put.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\frontend\datastep_io.py` (`file_fields` y `put_fields`; hoy 130 líneas)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\frontend\datastep.py` (`classify_statement`: ramas `file` y `put`, junto a `infile` e `input`, líneas 144-147)
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_data_statements.py` (`DATA _NULL_` con `FILE`/`PUT` baja a un `write_file` con `delimiter`, `dsd` y las variables del `PUT`)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_data.py` (`DATA _NULL_` con `FILE`/`PUT` baja a un `write_file` con `delimiter`, `dsd` y las variables del `PUT`)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_nodos_escritura.py` (configura `CSV_OPTION`, comillas y escape para `DSD`)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\caso.py`, `studio_comparar.py` y `studio_informe.py` (declara y compara salidas de texto UTF-8 para revisar archivos fuera del modelo de tablas)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_24_file_put_lista_dsd\{caso.yaml, programa.sas, entradas\ventas.csv, esperado\ventas.txt}`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_file_put_lista.py`
 
 **Interfaces:**
-- Consumes: `infile_fields` (modelo de `file_fields`), `DsStatement(kind, text, line, fields)` (`sgm.frontend.datastep`), `nodo_escritura(...)`, plantilla `tFileOutputDelimited` (existe).
+- Consumes: `DsStatement(kind, text, line, fields)` (`sgm.frontend.datastep`), `nodo_escritura(...)`, plantilla `tFileOutputDelimited` (existe).
 - Produces:
   ```python
   # datastep_io.py
@@ -595,12 +596,12 @@ Hoy `FILE` se reconoce como palabra y la sintaxis queda pendiente (`file-stateme
   # interprete_file_put.py
   def escribir_lista(filas: Sequence[Mapping[str, object]], variables: Sequence[str],
                      dlm: str, dsd: bool) -> list[str]:
-      """Una linea por fila. Faltante (None) con DSD -> campo vacio; sin DSD -> la pagina 97 debe
-      fijar el valor o NoSoportadoEnInterprete. Con DSD, el valor que contiene `dlm` o `"` va
-      entre comillas dobles (`"` interior duplicado)."""
+      """Una línea por fila. Faltante (None) queda como `P-FILE-DSD-MISSING`, pues PUT documenta
+      que DSD puede suprimirlo. Con DSD, un valor que contiene `dlm` se encierra en comillas dobles
+      y las comillas internas se duplican. Delimitador embebido sin DSD queda pendiente."""
   ```
 
-**Caso `L0/l0_24_file_put_lista_dsd` (`capa: C`, `estado: pendiente_revision` hasta verificar las comillas con DSD en p. 97; razonamiento: «lestmtsref, p. 97 (FILE: DSD, DLM) y p. 277 (PUT en lista)»).**
+**Caso `L0/l0_24_file_put_lista_dsd` (`capa: C`, `estado: pendiente_revision` hasta validar el Job en Studio; la serialización de Talend queda sin confirmación de runtime porque el bridge MCP no está disponible. El formato numérico por omisión queda `P-PUT-NUMERIC-FORMAT`; razonamiento: «lestmtsref, pp. 92–93 y 277–308»).**
 ```sas
 PROC IMPORT DATAFILE='.../entradas/ventas.csv' OUT=WORK.ventas DBMS=CSV REPLACE; GETNAMES=YES; RUN;
 DATA _NULL_;
@@ -609,14 +610,14 @@ DATA _NULL_;
   PUT id nombre monto;
 RUN;
 ```
-`ventas.csv` (`id,nombre,monto`): `1,Ana,10.5` / `2,Luis|Jr,3` / `3,Mara,`. Esperado a mano, `esperado/ventas.txt` (sin encabezado, fin de línea `\n`), tres líneas: `1|Ana|10.5`, `2|"Luis|Jr"|3` y `3|Mara|` (el nombre con `|` se comilla por `DSD`; el `monto` faltante es un campo vacío). Invariante: `lineas(ventas.txt) == 3`.
+`ventas.csv` (`id,nombre,monto`): `venta-1,Ana,10.5 USD` / `venta-2,Luis|Jr,3 USD`. Todos los campos que escribe el `PUT` son texto y están en el mismo orden que el flujo; se conserva `P-PUT-NUMERIC-FORMAT` para columnas numéricas hasta fijar la representación SAS y validar la serialización de Talend. Si el flujo trae columnas adicionales o en otro orden, se deja `P-FILE-PUT-PROJECTION-SIN-SOPORTE` para evitar un enlace Talend con esquemas incompatibles. Esperado a mano, `esperado/ventas.txt` (sin encabezado): `venta-1|Ana|10.5 USD` y `venta-2|"Luis|Jr"|3 USD`. Se excluyen valores faltantes, cuya representación no queda fijada por la referencia. Invariante: `lineas(ventas.txt) == 2`.
 
-- [ ] **Step 1: Write the failing tests.** (a) `file_fields("file '/s/v.txt' dsd dlm='|'")` da `opciones == {"dsd": True, "dlm": "|"}`; (b) `put_fields("put id nombre monto")` da `modo == "lista"` y tres variables, y `put_fields("put @1 id 5.")` da `modo == "formateado"`; (c) `escribir_lista([{"id":2,"nombre":"Luis|Jr","monto":3}], ["id","nombre","monto"], "|", True) == ['2|"Luis|Jr"|3']` y con `monto` `None` termina en `|`; (d) el caso coincide en el anillo B comparando el texto; (e) el `.item` migrado tiene `tFileOutputDelimited` con `FIELDSEPARATOR == '"|"'` e `INCLUDEHEADER == "false"`; el dataset `_NULL_` no aparece en el esquema ni en `rutas_de_plan`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_file_put_lista.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement.** Catálogo: `file-statement` (p. 97) pasa a `reconocida` con la nota «lista y DSD; columna y formateado: D2-14»; entrada `put-statement` (p. 277) si no existe.
-- [ ] **Step 4: Run** los tests, `tests/unit/test_frontend.py`, el golden y `uv run ruff check src tests tools`.
-- [ ] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_24_file_put_lista_dsd`; anotar si `tFileOutputDelimited` comilla `Luis|Jr` como el esperado (ver `docs/referencia/talend/tfileoutputdelimited.md`). Sin Studio, «lote C pendiente».
-- [ ] **Step 6: Commit.** `hito N n: FILE y PUT en lista con DSD y DLM`.
+- [x] **Step 1: Write the failing tests.** El parser captura ruta, DSD, primer carácter de DLM y lista de variables; formatos y destinos ambiguos quedan pendientes; la escritura comprueba comillas, faltantes, números sin formato y esquemas discordantes; el caso compara su archivo esperado y el emisor configura `tFileOutputDelimited` sin cabecera; `_NULL_` no se convierte en dataset.
+- [x] **Step 2: Run tests to verify they fail.** La primera ejecución falló al importar `file_fields`, que aún no existía.
+- [x] **Step 3: Implement.** El catálogo actualiza las notas de cobertura. El descenso a `write_file` se limita a `DATA _NULL_`, un `SET`, una ruta literal, `FILE DSD/DLM` y un `PUT` simple en lista; el emisor bloquea variables numéricas sin formato y proyecciones que darían esquemas Talend incompatibles.
+- [x] **Step 4: Run** pruebas focales de FILE/PUT, DATA step I/O, frontend, linaje y comparación de archivos del corpus: 168 aprobadas; Ruff y `git diff --check` verdes. Cierre integral staged: `uv run python tools/ci.py`, 4.286 aprobadas, 354 omitidas y 145 `xfail`; Ruff (0,3 s), suite (125,6 s), cruces (5,4 s), oráculo (2,9 s) y tablero (13,9 s), todo verde. Tablero: 174 casos, 24 L0 y 172 con esperado.
+- [x] **Step 5: Studio.** Se ejecutó `uv run python tools/validar_caso_studio.py l0_24_file_put_lista_dsd`; la migración generó Job, pero Studio respondió `BRIDGE_DEAD` en `127.0.0.1:3927`. `sgm studio salud --recuperar` confirmó que el bridge sigue abajo; el caso quedó en `out/studio-pendientes.json`. No cuenta como validación y el lote C queda pendiente.
+- [x] **Step 6: Commit.** `hito 258n: FILE y PUT en lista con DSD y DLM`.
 
 ---
 

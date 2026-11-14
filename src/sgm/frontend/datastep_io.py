@@ -163,6 +163,61 @@ def input_fields(text: str) -> dict:
     return resultado
 
 
+def file_fields(text: str) -> dict:
+    """Reconoce una ruta literal de `FILE` con `DSD` y un delimitador de un carácter."""
+    body = re.sub(r"(?is)^file\s+", "", text.strip(), count=1)
+    source, rest = _source(body)
+    options: dict[str, object] = {}
+    unknown: list[str] = []
+    for match in _OPTIONS.finditer(rest):
+        name = match.group(1).lower()
+        raw_value = match.group(2)
+        if name not in {"dsd", "dlm", "delimiter"}:
+            unknown.append(name)
+            continue
+        if name == "delimiter":
+            name = "dlm"
+        if raw_value is None:
+            if name == "dsd":
+                options[name] = True
+            else:
+                unknown.append(name)
+            continue
+        value = _unquote(raw_value)
+        if name == "dsd" or not value or not _quoted(raw_value):
+            unknown.append(name)
+            continue
+        # FILE DLM= acepta una cadena, pero SAS utiliza solo su primer carácter (p. 91).
+        options[name] = value[0]
+    source_is_path = _quoted(source) and "&" not in source
+    if options.get("dsd") and "dlm" not in options:
+        options["dlm"] = ","
+    elif "dlm" not in options:
+        options["dlm"] = " "
+    return {
+        "destino": source,
+        "es_ruta": source_is_path,
+        "opciones": options,
+        "no_reconocidas": sorted(set(unknown)),
+    }
+
+
+def put_fields(text: str) -> dict:
+    """Reconoce solo `PUT` simple en lista; otros modos se clasifican para dejarlos pendientes."""
+    body = re.sub(r"(?is)^put\s*", "", text.strip(), count=1)
+    if not body:
+        return {"modo": "unknown", "variables": [], "raw": text}
+    tokens = body.split()
+    if all(re.fullmatch(r"[A-Za-z_][\w]*", token) for token in tokens):
+        return {"modo": "lista", "variables": tokens, "raw": text}
+    mode = (
+        "formateado"
+        if re.search(r"[@#+:]|\d+\.|\$|~|\b(?:comma|date|dollar|best)\w*", body, re.I)
+        else "unknown"
+    )
+    return {"modo": mode, "variables": [], "raw": text}
+
+
 def _informat(tokens: list[str], index: int) -> tuple[str | None, int]:
     """Devuelve un informat literal y cuántos tokens consume desde `index`."""
     if index >= len(tokens):

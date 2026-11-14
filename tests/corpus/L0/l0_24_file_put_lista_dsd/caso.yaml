@@ -1,0 +1,22 @@
+nivel: L0
+tema: FILE y PUT en lista delimitada con DSD
+construcciones:
+  - DATA _NULL_
+  - FILE DSD DLM
+  - PUT en lista
+capa: C
+estado: pendiente_revision
+motivo: >-
+  La salida en el anillo B verifica comillas con delimitador embebido. Los faltantes se excluyen
+  porque la referencia advierte que DSD puede suprimirlos; el Job requiere validar en Studio que
+  tFileOutputDelimited conserva el escape de comillas y el separador.
+salidas: []
+archivos_salida:
+  - ventas.txt
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  lestmtsref.pdf, sección FILE Statement (p. 97): DLM usa el primer carácter y DSD entrecomilla
+  valores que contienen el delimitador y duplica comillas dobles; sección PUT Statement: List
+  (p. 308): escribe valores de variables en la línea de salida. Para PUT con DSD, p. 277 advierte
+  que valores faltantes podrían suprimirse, por lo que no se fija su representación.

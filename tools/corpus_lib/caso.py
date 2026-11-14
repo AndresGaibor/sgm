@@ -30,7 +30,7 @@ CAMPOS = frozenset(
     {
         "nivel", "construcciones", "capa", "tolerancia", "orden_relevante", "estado", "motivo",
         "salidas", "delimitadores_salida", "razonamiento", "revisor",
-        "observacion_revision", "preparacion",
+        "observacion_revision", "preparacion", "archivos_salida",
         "invariantes", "esquemas", "contenedor",
     }
 ) | METADATOS
@@ -133,6 +133,22 @@ def cargar_caso(directorio: Path) -> Caso:
         isinstance(item, str) and _IDENTIFICADOR.match(item) for item in salidas
     ):
         raise error("'salidas' debe ser una lista de nombres de tabla")
+    archivos_salida = datos.get("archivos_salida", [])
+    if not isinstance(archivos_salida, list) or not all(
+        isinstance(nombre, str)
+        and nombre not in {"", ".", ".."}
+        and Path(nombre).name == nombre
+        and Path(nombre).suffix.casefold() == ".txt"
+        for nombre in archivos_salida
+    ):
+        raise error("'archivos_salida' debe ser una lista de nombres de archivo .txt sin rutas")
+    if len({nombre.casefold() for nombre in archivos_salida}) != len(archivos_salida):
+        raise error("'archivos_salida' no puede repetir nombres")
+    faltantes = [
+        nombre for nombre in archivos_salida if not (directorio / "esperado" / nombre).is_file()
+    ]
+    if faltantes:
+        raise error(f"no existen en esperado los archivos declarados: {faltantes}")
     salida_por_clave = {salida.casefold(): salida for salida in salidas}
     delimitadores_raw = datos.get("delimitadores_salida", {})
     if not isinstance(delimitadores_raw, dict):
@@ -150,8 +166,8 @@ def cargar_caso(directorio: Path) -> Caso:
         ):
             raise error(f"'delimitadores_salida.{salida}' debe ser un carácter imprimible")
         delimitadores_salida[salida_por_clave[clave]] = delimitador
-    if capa in ("A", "C") and not salidas:
-        raise error(f"la capa {capa} necesita 'salidas' (tablas WORK que se comparan)")
+    if capa in ("A", "C") and not salidas and not archivos_salida:
+        raise error(f"la capa {capa} necesita 'salidas' o 'archivos_salida'")
     razonamiento = datos.get("razonamiento")
     if razonamiento is not None and not isinstance(razonamiento, str):
         raise error("'razonamiento' debe ser texto")
@@ -178,6 +194,8 @@ def cargar_caso(directorio: Path) -> Caso:
         except ValueError as fallo:
             raise error(str(fallo)) from None
     extra = {clave: datos[clave] for clave in METADATOS if clave in datos}
+    if archivos_salida:
+        extra["archivos_salida"] = tuple(archivos_salida)
     if esquemas is not None:
         extra["esquemas"] = esquemas
     return Caso(
