@@ -7295,3 +7295,11 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Las rutas de archivo existentes mantienen sus nombres salvo colisión con una biblioteca; entonces reciben un sufijo estable para evitar que dos valores distintos compartan una variable. `CLEAR` quita la variable de la biblioteca. La ruta de una biblioteca prepara el contexto, pero la lectura/escritura de datasets permanentes sigue reservada a D2-18.
 - TDD: la primera prueba falló porque faltaba `bibliotecas_de_programa`. Tras implementar, la suite focal de bibliotecas, contextos, push a BD, LIBNAME, golden/equivalencia, catálogo y aceptación del corpus: 237 aprobadas; Ruff y `git diff --check` verdes.
 - Decisiones y límites: la ruta dinámica solo queda pendiente cuando un paso la consume; una declaración sin uso no produce datos ni necesita variable. No se abre ninguna base ni se ejecuta Studio/Docker. Sin dependencias nuevas ni push.
+
+## Hito 252n. Separa la traducción de archivos y la rama Excel
+
+- Fecha: 2026-11-14. Base: `d5f1340` (hito 251n), rama `codex/integrar-main-preflight`. MG-P2-01 / D2-6, paso 1.
+- `PROC IMPORT` y `PROC EXPORT` conservan su comportamiento y ahora viven en `lower_procs_archivos.py`; la construcción de `tFileInputExcel` y sus pendientes vive en `desde_plan_excel.py`. `lower_procs.py` bajó de 194 a 132 líneas; `desde_plan_nodos.py`, de 299 a 277. El helper recibe la cabecera Talend ya serializada para conservar el caso existente de `GETNAMES` entero.
+- Antes y después de la extracción: `tests/unit/test_mg_p2_excel.py`, golden, golden de equivalencia y anillo B: 160 aprobadas y 5 `xfail` en ambas corridas. Ruff y `git diff --check` quedaron limpios.
+- Cierre integral staged: `uv run python tools/ci.py` pasó con 4.195 aprobadas, 354 omitidas y 145 `xfail`; Ruff (0,2 s), suite (95,2 s), cruces (2,7 s), oráculo (3,3 s) y tablero (11,8 s), todo verde. Se repite sobre el árbol con este registro antes del commit.
+- Decisiones y límites: se movió la lógica sin cambiar su semántica; la lectura XLSX, la plantilla Talend y la validación Studio pertenecen al siguiente paso D2-6. Sin dependencias nuevas, conexiones a bases ni push.

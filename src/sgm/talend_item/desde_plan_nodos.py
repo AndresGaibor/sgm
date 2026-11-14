@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from sgm.ir.models import Column, Operator
 from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion
+from sgm.talend_item.desde_plan_excel import nodo_lectura_excel
 from sgm.talend_item.desde_plan_nodos_escritura import nodo_escritura
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Nodo
@@ -160,41 +161,18 @@ def nodo_lectura(
         )
         return resultado
     if dbms in EXCEL:
-        guessingrows = params.get("guessingrows")
-        if guessingrows is not None:
-            resultado.pendientes.append(
-                PendienteMigracion(
-                    "P-GUESSINGROWS",
-                    f"{archivo}: GUESSINGROWS={guessingrows} se limita a archivos delimitados "
-                    "según la referencia SAS; no se aplica a este Excel.",
-                    _linea(op),
-                )
-            )
-        if params.get("sheet") is None:
-            resultado.pendientes.append(
-                PendienteMigracion(
-                    "P-HOJA",
-                    f"{archivo}: DBMS={dbms} sin SHEET; el SAS lee la primera hoja por omisión",
-                    _linea(op),
-                )
-            )
-        celdas: tuple[tuple[str, str], ...] = (("USE_REGEX", "false"),)
-        if params.get("sheet") is not None:
-            celdas = (("SHEETNAME", java(str(params["sheet"]))), *celdas)
-        resultado.nodo = nodo_desde_plantilla(
-            "tFileInputExcel",
+        resultado.nodo, pendientes_excel = nodo_lectura_excel(
+            op,
+            columnas,
+            archivo,
+            dbms,
+            _cabecera(params.get("getnames")),
             unico,
             x,
             y,
-            {
-                "FILENAME": java(archivo),
-                "VERSION_2007": "true" if dbms == "xlsx" else "false",
-                "HEADER": _cabecera(params.get("getnames")),
-            },
-            {"SHEETLIST": celdas},
-            columnas,
             ruta_java,
         )
+        resultado.pendientes.extend(pendientes_excel)
         return resultado
     guessingrows = params.get("guessingrows")
     if guessingrows is not None:
