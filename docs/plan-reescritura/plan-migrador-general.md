@@ -555,6 +555,15 @@ L4 revisado (suite completa: 2361 passed, 27 skipped, 149 xfailed; Ruff limpio).
 ampliada no se ejecutó: el bridge de Studio no estaba disponible (`ECONNREFUSED` en
 `127.0.0.1:3930`). No se declara C validado para estos cambios; queda por reintentar con Studio abierto.
 
+**Actualización (hito 261n, 14 de noviembre de 2026).** D1-7 agrega vectores y cobertura A/B para
+`PROPCASE`, `REVERSE`, `REPEAT`, `RIGHT`, `TRIMN` y el arreglo de `LENGTH`; se añaden seis casos L4
+con IDs estables (`l4_132`–`l4_137`). El intérprete y oráculo limitan `LENGTH` a ASCII mientras no se
+conozca `ENCODING`, `PROPCASE` a ASCII mientras no se conozcan `TRANTAB`/`LOCALE`, y `REVERSE` a
+SBCS. Talend deja `PROPCASE` pendiente, así como `REPEAT` con conteo no literal entero no negativo;
+los esquemas de retorno no demostrados siguen pendientes. El puente de Studio devolvió
+`BRIDGE_DEAD`, por lo que D1-7 no completa su aceptación C ni aumenta el crédito de fase. El crédito
+parcial de MG-P3 se mantiene en 14,5 h; el soporte actual se precisa en la tabla de avance.
+
 ### MG-P4. DATA step (90 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -888,7 +897,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
 | MG-P1 Modelo y plan lógico | 70 | 37,5 | 54 % | Pendientes, propiedad y tabla de símbolos hechos; tipos de `LENGTH` demostrados en 3 casos (bloque `esquemas` en L0 a L2); 14 operadores con constructor validado y pruebas de forma en L1 a L3, sin que ningún pase los use; `PROC TRANSPOSE` como hueco |
 | MG-P2 Entrada y salida | 50 | 12,0 | 24 % | CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT` |
-| MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia; sin fechas, PRX ni `PROC FORMAT` |
+| MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | Funciones puntuales con evidencia, incluido D1-7 en A/B; catálogo de texto incompleto; lote C pendiente por Studio BRIDGE_DEAD; PRX y `PROC FORMAT` pendientes |
 | MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
 | MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos), `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
 | MG-P6 Procedimientos | 50 | 4,0 | 8 % | `PROC SORT` con `NODUP`/`NODUPKEY` y `BY _ALL_`; sin `FREQ`, `MEANS`, `TRANSPOSE` |

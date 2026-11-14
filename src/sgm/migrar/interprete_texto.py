@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Callable
 
@@ -41,7 +42,53 @@ def _lowcase(argumentos: list) -> str:
 
 
 def _length(argumentos: list) -> int:
-    return len(semantica.como_texto(argumentos[0] if argumentos else None))
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
+    if not texto.isascii():
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-LENGTH-CODIFICACION")
+    return max(1, len(texto.rstrip(" ")))
+
+
+def _propcase(argumentos: list) -> str:
+    texto = _texto_funcion(argumentos[0] if argumentos else None).lower()
+    delimitadores = (
+        " /-.(\t"
+        if len(argumentos) < 2 or semantica.es_faltante(argumentos[1])
+        else _texto_funcion(argumentos[1]).lower()
+    )
+    if not texto.isascii() or not delimitadores.isascii():
+        raise NoSoportadoEnInterprete(
+            "funcion", "Pendiente: P-PROPCASE-TRANTAB-LOCALE; no se conoce la codificación SAS"
+        )
+    resultado: list[str] = []
+    mayuscula = True
+    for caracter in texto:
+        resultado.append(caracter.upper() if mayuscula else caracter)
+        mayuscula = caracter in delimitadores
+    return "".join(resultado)
+
+
+def _reverse(argumentos: list) -> str:
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
+    if not texto.isascii():
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-REVERSE-CODIFICACION-SBCS")
+    return texto[::-1]
+
+
+def _repeat(argumentos: list) -> str:
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
+    veces = semantica.como_numero(argumentos[1]) if len(argumentos) > 1 else None
+    if veces is None or not math.isfinite(veces) or not veces.is_integer() or veces < 0:
+        raise NoSoportadoEnInterprete("funcion", "REPEAT requiere n entero no negativo")
+    return texto * (int(veces) + 1)
+
+
+def _right(argumentos: list) -> str:
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
+    return texto.rstrip(" ").rjust(len(texto), " ")
+
+
+def _trimn(argumentos: list) -> str:
+    return _texto_funcion(argumentos[0] if argumentos else None).rstrip(" ")
 
 
 def _left(argumentos: list) -> str:
@@ -134,6 +181,11 @@ FUNCIONES: dict[str, Callable[[list], object]] = {
     "upcase": _upcase,
     "lowcase": _lowcase,
     "length": _length,
+    "propcase": _propcase,
+    "reverse": _reverse,
+    "repeat": _repeat,
+    "right": _right,
+    "trimn": _trimn,
     "left": _left,
     "substr": _substr,
     "substrn": _substrn,

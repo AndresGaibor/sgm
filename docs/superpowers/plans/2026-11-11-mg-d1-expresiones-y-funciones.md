@@ -292,25 +292,25 @@ El segundo aceptable de MG-P3-01 es «en lote C». Un vector no es un Job: esta 
 
 | id | funcion | entrada | esperado | página |
 |---|---|---|---|---|
-| `propcase-01` | `propcase` | `["hELLO wORLD"]` | `"Hello World"` | `lefunctionsref`, p. 1395 |
-| `propcase-02` | `propcase` | `["mc-donald"]` | `"Mc-Donald"` (el guion es delimitador por omisión; deducido) | p. 1395 |
-| `reverse-01` | `reverse` | `["abc"]` | `"cba"` | p. 1480 |
-| `reverse-02` | `reverse` | `["ab  "]` | `"  ba"` (los blancos finales pasan al inicio; deducido) | p. 1480 |
-| `repeat-01` | `repeat` | `["ab", 2]` | `"ababab"` (n copias más la original) | p. 1478 |
-| `repeat-02` | `repeat` | `["ab", 0]` | `"ab"` | p. 1478 |
-| `right-01` | `right` | `["ab  "]` | `"  ab"` | p. 1483 |
+| `propcase-01` | `propcase` | `["hELLO wORLD"]` | `"Hello World"` | `lefunctionsref`, pp. 1395–1396 |
+| `propcase-02` | `propcase` | `["mc-donald"]` | `"Mc-Donald"` (el guion es delimitador por omisión; deducido) | pp. 1395–1396 |
+| `reverse-01` | `reverse` | `["abc"]` | `"cba"` | pp. 1480–1481 |
+| `reverse-02` | `reverse` | `["ab  "]` | `"  ba"` (los blancos finales pasan al inicio) | p. 1481 |
+| `repeat-01` | `repeat` | `["ab", 2]` | `"ababab"` (n copias más la original) | pp. 1478–1479 |
+| `repeat-02` | `repeat` | `["ab", 0]` | `"ab"` | p. 1479 |
+| `right-01` | `right` | `["ab  "]` | `"  ab"` | p. 1484 |
 | `trim-02` | `trim` | `[" "]` | `" "` (un blanco; deducido) | p. 1624 |
 | `trimn-01` | `trimn` | `[" "]` | `""` | p. 1627 |
 | `length-01` | `length` | `["abc   "]` | `3` | p. 1180 |
-| `length-02` | `length` | `[" "]` | `1` (un valor en blanco tiene longitud 1; deducido) | p. 1180 |
+| `length-02` | `length` | `[" "]` | `1` | p. 1180 |
 
-`length-02` revela un error del intérprete: `length` devuelve 0 para un blanco (`len(como_texto(...))`); la corrección va en `interprete_texto.length`. Java: `repeat` = `(new String(new char[n + 1]).replace("\0", s))` y `right` = `StringHandling.LPAD(StringHandling.TRIM(s), StringHandling.LEN(s), " ")`. `Pendiente: P-JAVA-PROPCASE`: Talend no trae una rutina de mayúscula inicial por palabra y una expresión de una línea no puede recorrer delimitadores; la función queda `Unsupported` con ese código. `Pendiente: P-LONGITUD-VARIABLE` para `RIGHT` y `REVERSE` con blancos finales sobre una columna: el resultado depende del `LENGTH` declarado, que el CSV no trae; no se genera caso `L4` de esos dos con blancos.
+`length-01` detecta que el intérprete contaba los blancos finales; `length-02` verifica el resultado mínimo de uno para un campo en blanco. El ajuste usa el texto sin blancos finales y conserva ese mínimo. Java aplica `Math.max(StringHandling.LEN(StringHandling.RTRIM(s)), 1)`. `LENGTH` mide bytes y se deja pendiente fuera de ASCII mientras no se conozca la codificación SAS; `REVERSE` solo se aplica a SBCS según la guía, así que el oráculo/intérprete lo dejan pendiente para texto no ASCII. `PROPCASE` depende de `TRANTAB`, `ENCODING` y `LOCALE`; el oráculo/intérprete solo cubren ASCII. `repeat` para literales enteros no negativos = `(new String(new char[n + 1]).replace("\0", s))`; otros conteos quedan pendientes `P-REPEAT-N-ENTERO`, porque la salida Java no debe usar tamaños de arreglo no enteros ni aceptar negativos. `right` = `StringHandling.LPAD(StringHandling.TRIM(s), StringHandling.LEN(s), " ")`. `Pendiente: P-JAVA-PROPCASE`: Talend no trae una rutina de mayúscula inicial por palabra y una expresión de una línea no puede recorrer delimitadores; la función queda `Unsupported` con ese código. `Pendiente: P-LONGITUD-VARIABLE` para `RIGHT` y `REVERSE` con blancos finales sobre una columna: la longitud declarada del campo no se conoce; el generador L4 excluye las entradas con blancos finales de `REVERSE`, y `RIGHT` queda sin L4 en esta tarea.
 
-- [ ] **Step 1: Write the failing tests.** Un test por vector de la tabla en `test_interprete_funciones.py` (llama a `llamar(...)`); `verificar()` y `verificar(motor="interprete")` en cero fallos; `translate_to_talend("repeat(a, 2)").java` contiene `new String(new char[2 + 1])`; `translate_to_talend("propcase(a)")` lanza `Unsupported` con `P-JAVA-PROPCASE` en el mensaje.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_funciones.py tests/unit/test_corpus_semantica.py tests/unit/test_talend_expresiones.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** las cinco funciones en el intérprete y en el oráculo (de 3 a 10 líneas cada una), corregir `length`, agregar los vectores y los traductores de Java de `repeat` y `right`. Agregar a `FUNCIONES_CON_CASO` (D1-5) `propcase`, `reverse`, `repeat`, `trimn` y `length` (sin blancos finales en la columna) y regenerar los casos `L4`.
-- [ ] **Step 4: Catálogo.** En `funciones-guia.yaml`, una entrada por función con `fuente: lefunctionsref.pdf, p. N` y `estado: reconocida` para `repeat` y `right` (están en `_FUNCTIONS`), `no_verificada` para `propcase` y `reverse`/`trimn` hasta que estén en Java (`nota`: «intérprete y oráculo sí; Java no»). `uv run python -m pytest tests/unit/test_catalogo_sas.py -q -p no:cacheprovider`.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py -q -p no:cacheprovider -k L4`, la tanda del golden y `uv run ruff check src tests tools`. Lote C de los casos `l4_1xx` nuevos si Studio responde (como en D1-5, paso 5). **Commit** `hito N n: texto A (PROPCASE, REVERSE, REPEAT, RIGHT, TRIMN) y LENGTH de un blanco`.
+- [x] **Step 1: Write the failing tests.** Un test por vector de la tabla en `test_interprete_funciones.py` (llama a `llamar(...)`); `verificar()` y `verificar(motor="interprete")` en cero fallos; `test_talend_translator.py` comprueba `repeat`, `right`, `length` para blanco y el pendiente `P-JAVA-PROPCASE`. TDD confirmó primero los fallos esperados.
+- [x] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_funciones.py tests/unit/test_corpus_semantica.py tests/unit/test_talend_translator.py -q -p no:cacheprovider`; las funciones y límites ausentes fallaron antes de la implementación.
+- [x] **Step 3: Implement** las cinco funciones en el intérprete y en el oráculo, corregir `length`, agregar los vectores y los traductores Java de `repeat` y `right`. `reverse` ya tenía Java. Agregar a `FUNCIONES_CON_CASO` (D1-5) `propcase`, `reverse`, `repeat`, `trimn` y `length`; excluir `REVERSE` con blancos finales porque requiere la longitud declarada; regenerar los casos `L4`. Se preservaron los IDs anteriores y se añadieron `l4_132` a `l4_137`.
+- [x] **Step 4: Catálogo.** En `funciones-guia.yaml`, agregar las páginas oficiales; marcar `length`, `repeat`, `reverse` y `right` como `reconocida`; `propcase` y `trimn` quedan `no_verificada` con sus límites documentados. `tests/unit/test_catalogo_sas.py` pasa.
+- [x] **Step 5: Run** `tests/unit/test_migrar_corpus_anillo_b.py -k L4`, golden, Ruff y `uv run python tools/ci.py`. Anillo B: 57 pruebas; golden: 11; suite integral, cruces, oráculo y tablero verdes en el árbol final. Los seis casos L4 nuevos se anotan en `migrar_pendientes.yaml` porque el lector de su fixture hereda `P-INFILE-TRUNCOVER-LISTA` y no publica Job A; el lote C queda pendiente (`BRIDGE_DEAD`). Commit local: `hito 261n: funciones de texto A y LENGTH`.
 
 ---
 

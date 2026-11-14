@@ -19,9 +19,9 @@ FUNCTION_NAMES = (
     "compress", "count", "date", "datepart", "datetime", "day", "exp", "floor", "ifc",
     "ifn", "index", "input", "inputc", "inputn", "int", "intck", "intnx", "left",
     "length", "lengthc", "lengthn", "log", "lowcase", "max", "mdy", "mean", "min",
-    "missing", "mod", "month", "n", "nmiss", "put", "putc", "putn", "reverse",
-    "round", "scan", "sqrt", "strip", "substr", "substrn", "sum", "today", "tranwrd",
-    "trim", "upcase", "weekday", "year",
+    "missing", "mod", "month", "n", "nmiss", "propcase", "put", "putc", "putn", "repeat",
+    "reverse", "right", "round", "scan", "sqrt", "strip", "substr", "substrn", "sum",
+    "today", "tranwrd", "trim", "upcase", "weekday", "year",
 )
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import importlib
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools"))
 
 import proponer_esquemas_caso as propuesta  # noqa: E402
+from corpus_lib.csv_tabla import Tabla, escribir_csv  # noqa: E402
 from corpus_lib.generar_entradas_l4l6 import calcular_l4, generar_caso  # noqa: E402
 from corpus_semantica import cargar_vectores  # noqa: E402
 
@@ -104,6 +106,22 @@ def test_coalescec_separa_llamadas_de_distinta_aridad() -> None:
     assert len(tres["entrada"][2]) == 1
 
 
+def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas() -> None:
+    api = _api()
+    specs = api.especificaciones_de_vectores(cargar_vectores())
+
+    assert "l4_100_vec_input_6_2" in specs
+    assert "l4_131_vec_round_sin_literales" in specs
+    assert "l4_132_vec_propcase_sin_literales" in specs
+    assert "l4_133_vec_reverse_sin_literales" in specs
+    assert specs["l4_133_vec_reverse_sin_literales"]["entrada"][2] == [("abc",)]
+    assert "l4_134_vec_repeat_2" in specs
+    assert "l4_135_vec_repeat_0" in specs
+    assert "l4_136_vec_trimn_sin_literales" in specs
+    assert "l4_137_vec_length_sin_literales" in specs
+    assert not any("right" in nombre for nombre in specs)
+
+
 def test_solo_incluye_vectores_con_oraculo_y_confianza_verificable() -> None:
     api = _api()
     vectores = cargar_vectores()
@@ -123,3 +141,14 @@ def test_generar_caso_escribe_el_programa_sas_de_la_especificacion(tmp_path: Pat
     assert programa in escritos
     assert programa.is_file()
     assert spec["asignaciones"][0][3] in programa.read_text(encoding="utf-8")
+
+
+def test_escribir_csv_cita_espacios_de_borde_y_preserva_los_valores(tmp_path: Path) -> None:
+    ruta = tmp_path / "entrada.csv"
+
+    escribir_csv(ruta, Tabla(["TEXTO"], [("abc   ",), (" ",)]), citar_espacios_borde=True)
+
+    lineas = ruta.read_text(encoding="utf-8").splitlines()
+    assert lineas == ["TEXTO", '"abc   "', '" "']
+    with ruta.open(encoding="utf-8", newline="") as archivo:
+        assert list(csv.reader(archivo)) == [["TEXTO"], ["abc   "], [" "]]

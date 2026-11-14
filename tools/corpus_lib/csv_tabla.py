@@ -105,14 +105,30 @@ def celda_texto(valor: object) -> str:
     return str(valor)
 
 
-def escribir_csv(ruta: Path, tabla: Tabla, *, delimitador: str = ",") -> None:
+def escribir_csv(
+    ruta: Path,
+    tabla: Tabla,
+    *,
+    delimitador: str = ",",
+    citar_espacios_borde: bool = False,
+) -> None:
     """Escribe la tabla como CSV con encabezado, creando la carpeta si falta."""
     ruta.parent.mkdir(parents=True, exist_ok=True)
     with ruta.open("w", encoding="utf-8", newline="") as archivo:
         escritor = csv.writer(archivo, delimiter=delimitador, lineterminator="\n")
         escritor.writerow(tabla.columnas)
         for fila in tabla.filas:
-            escritor.writerow([celda_texto(valor) for valor in fila])
+            valores = [celda_texto(valor) for valor in fila]
+            if citar_espacios_borde and any(valor != valor.strip() for valor in valores):
+                escritor_con_bordes = csv.writer(
+                    archivo,
+                    delimiter=delimitador,
+                    lineterminator="\n",
+                    quoting=csv.QUOTE_ALL,
+                )
+                escritor_con_bordes.writerow(valores)
+            else:
+                escritor.writerow(valores)
 
 
 def _clave_valor(valor: object) -> tuple:

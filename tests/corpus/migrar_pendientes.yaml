@@ -42,6 +42,12 @@ l4_123_vec_scan_3_s2c: P-INFILE-TRUNCOVER-LISTA
 l4_124_vec_scan_2_s2c: P-INFILE-TRUNCOVER-LISTA
 l4_125_vec_coalescec_sin_literales_a2_TT: P-INFILE-TRUNCOVER-LISTA
 l4_126_vec_coalescec_sin_literales_a3_TTT: P-INFILE-TRUNCOVER-LISTA
+l4_132_vec_propcase_sin_literales: P-INFILE-TRUNCOVER-LISTA
+l4_133_vec_reverse_sin_literales: P-INFILE-TRUNCOVER-LISTA
+l4_134_vec_repeat_2: P-INFILE-TRUNCOVER-LISTA
+l4_135_vec_repeat_0: P-INFILE-TRUNCOVER-LISTA
+l4_136_vec_trimn_sin_literales: P-INFILE-TRUNCOVER-LISTA
+l4_137_vec_length_sin_literales: P-INFILE-TRUNCOVER-LISTA
 l5_09_into_primer_fila: P-ESQUEMA-NO-PORTABLE
 l0_16_paso_directo_impala: P-CONEXION-BASE
 l0_17_paso_directo_postgres: P-COMPONENTE-SIN-PLANTILLA

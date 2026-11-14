@@ -21,6 +21,11 @@ def test_funciones_reune_las_familias_actuales():
         "upcase",
         "lowcase",
         "length",
+        "propcase",
+        "reverse",
+        "repeat",
+        "right",
+        "trimn",
         "left",
         "substr",
         "substrn",
@@ -53,6 +58,16 @@ def test_funciones_reune_las_familias_actuales():
         ("upcase", ["Ab"], "AB"),
         ("lowcase", ["Ab"], "ab"),
         ("length", ["abc"], 3),
+        ("length", ["abc   "], 3),
+        ("length", [" "], 1),
+        ("propcase", ["hELLO wORLD"], "Hello World"),
+        ("propcase", ["mc-donald"], "Mc-Donald"),
+        ("reverse", ["abc"], "cba"),
+        ("reverse", ["ab  "], "  ba"),
+        ("repeat", ["ab", 2], "ababab"),
+        ("repeat", ["ab", 0], "ab"),
+        ("right", ["ab  "], "  ab"),
+        ("trimn", [" "], ""),
         ("left", ["  ab"], "ab  "),
         ("substr", ["abcdef", 2, 3], "bcd"),
         ("substrn", ["abcdef", 2, 3], "bcd"),
@@ -100,3 +115,16 @@ def test_catx_omite_elementos_en_blanco_y_recorta_los_extremos():
 def test_left_y_trim_conservan_la_semantica_de_un_campo_en_blanco():
     assert llamar("left", ["   "]) == "   "
     assert llamar("trim", ["   "]) == " "
+
+
+@pytest.mark.parametrize(
+    ("nombre", "codigo"),
+    [
+        ("length", "P-LENGTH-CODIFICACION"),
+        ("propcase", "P-PROPCASE-TRANTAB-LOCALE"),
+        ("reverse", "P-REVERSE-CODIFICACION-SBCS"),
+    ],
+)
+def test_funciones_dependientes_de_codificacion_quedan_pendientes(nombre, codigo):
+    with pytest.raises(NoSoportadoEnInterprete, match=codigo):
+        llamar(nombre, ["niño"])

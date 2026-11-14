@@ -85,6 +85,39 @@ FUNCIONES_CON_CASO: dict[str, dict] = {
         "salida_numerica": True,
         "sas": "round({argumentos})",
     },
+    "propcase": {
+        "literales": (),
+        "columnas": ("TEXTO",),
+        "salida_numerica": False,
+        "sas": "propcase({argumentos})",
+    },
+    "reverse": {
+        "literales": (),
+        "columnas": ("TEXTO",),
+        "salida_numerica": False,
+        "sas": "reverse({argumentos})",
+        "ignorar_argumentos_con_blancos_finales": True,
+    },
+    "repeat": {
+        "literales": (1,),
+        "columnas": ("TEXTO",),
+        "salida_numerica": False,
+        "sas": "repeat({argumentos})",
+    },
+    "trimn": {
+        "literales": (),
+        "columnas": ("TEXTO",),
+        "salida_numerica": False,
+        "citar_espacios_borde": True,
+        "sas": "trimn({argumentos})",
+    },
+    "length": {
+        "literales": (),
+        "columnas": ("TEXTO",),
+        "salida_numerica": True,
+        "citar_espacios_borde": True,
+        "sas": "length({argumentos})",
+    },
 }
 
 
@@ -194,6 +227,11 @@ def especificaciones_de_vectores(vectores: list[dict]) -> dict[str, dict]:
         for vector in vectores:
             if vector.get("funcion") != funcion:
                 continue
+            if descriptor.get("ignorar_argumentos_con_blancos_finales") and any(
+                isinstance(argumento, str) and argumento.endswith(" ")
+                for argumento in vector.get("entrada", [])
+            ):
+                continue
             confianza = vector.get("confianza")
             if confianza == "incierto":
                 continue
@@ -276,6 +314,7 @@ def especificaciones_de_vectores(vectores: list[dict]) -> dict[str, dict]:
                 "fuentes": fuente_urls,
                 "invariantes": [f"filas({nombre_salida}) == {len(filas)}"],
                 "razonamiento": razonamiento,
+                "citar_espacios_borde": descriptor.get("citar_espacios_borde", False),
                 "programa": generar_programa(
                     nombre, nombre_tabla, nombre_salida, texto_sas, columnas, filas, numericas
                 ),

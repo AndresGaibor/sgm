@@ -3,6 +3,36 @@ kind: catalogo
 version: 1
 description: Funciones de la guía de SAS que este repo implementa o planea, con su página; las del programa grande están en funciones-usadas.yaml.
 entries:
+  - id: length-function
+    nombre: LENGTH Function
+    fuente: lefunctionsref.pdf, p. 1180
+    estado: reconocida
+    nota: 'excluye blancos finales y conserva longitud 1 para blanco; LENGTH mide bytes y fuera de ASCII queda pendiente hasta conocer la codificación SAS'
+  - id: propcase-function
+    nombre: PROPCASE Function
+    fuente: lefunctionsref.pdf, p. 1395
+    estado: no_verificada
+    nota: 'ASCII: oráculo e intérprete; Java pendiente P-JAVA-PROPCASE; otros caracteres requieren TRANTAB, ENCODING y LOCALE conocidos'
+  - id: repeat-function
+    nombre: REPEAT Function
+    fuente: lefunctionsref.pdf, p. 1478
+    estado: reconocida
+    nota: 'oráculo e intérprete admiten enteros no negativos; Java traduce literales enteros no negativos; otros conteos quedan P-REPEAT-N-ENTERO'
+  - id: reverse-function
+    nombre: REVERSE Function
+    fuente: lefunctionsref.pdf, p. 1480
+    estado: reconocida
+    nota: 'Java e intérprete disponibles para SBCS; L4 omite blancos finales por longitud declarada; codificación del campo aún no se configura'
+  - id: right-function
+    nombre: RIGHT Function
+    fuente: lefunctionsref.pdf, p. 1483
+    estado: reconocida
+    nota: 'oráculo, intérprete y Java; pendiente L4 por longitud declarada del campo'
+  - id: trimn-function
+    nombre: TRIMN Function
+    fuente: lefunctionsref.pdf, p. 1627
+    estado: no_verificada
+    nota: 'oráculo e intérprete implementados; Java pendiente'
   - id: compbl-function
     nombre: COMPBL Function
     fuente: lefunctionsref.pdf, p. 572

@@ -67,6 +67,21 @@ def test_round_empate_va_al_de_mayor_valor_absoluto() -> None:
     assert cs.evaluar("round", -0.5) == -1
 
 
+@pytest.mark.parametrize(
+    ("funcion", "argumentos", "codigo"),
+    [
+        ("length", ["niño"], "P-LENGTH-CODIFICACION"),
+        ("propcase", ["niño"], "P-PROPCASE-TRANTAB-LOCALE"),
+        ("reverse", ["niño"], "P-REVERSE-CODIFICACION-SBCS"),
+    ],
+)
+def test_oraculo_deja_pendiente_la_codificacion_no_demostrada(
+    funcion: str, argumentos: list, codigo: str
+) -> None:
+    with pytest.raises(ValueError, match=codigo):
+        cs.evaluar(funcion, *argumentos)
+
+
 def test_input_con_punto_decimal_ignora_d() -> None:
     assert cs.evaluar("input", "1.5", 8, 3) == 1.5
 

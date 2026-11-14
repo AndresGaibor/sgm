@@ -141,8 +141,14 @@ def _valores_into(spec: dict, entradas: dict[str, tuple[list[str], list[tuple]]]
     return valores
 
 
-def _escribir(directorio: Path, nombre: str, columnas: list[str], filas: list[tuple]) -> None:
-    escribir_csv(directorio / "entradas" / f"{nombre}.csv", Tabla(columnas, filas))
+def _escribir(
+    directorio: Path, nombre: str, columnas: list[str], filas: list[tuple], *, citar_bordes: bool
+) -> None:
+    escribir_csv(
+        directorio / "entradas" / f"{nombre}.csv",
+        Tabla(columnas, filas),
+        citar_espacios_borde=citar_bordes,
+    )
 
 
 def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> list[Path]:
@@ -151,7 +157,13 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
     escritos: list[Path] = []
     entradas = _entradas(nivel, spec)
     for tabla, (columnas, filas) in entradas.items():
-        _escribir(directorio, tabla, columnas, filas)
+        _escribir(
+            directorio,
+            tabla,
+            columnas,
+            filas,
+            citar_bordes=spec.get("citar_espacios_borde", False),
+        )
         escritos.append(directorio / "entradas" / f"{tabla}.csv")
     ruta_yaml = directorio / "caso.yaml"
     ruta_yaml.write_text(

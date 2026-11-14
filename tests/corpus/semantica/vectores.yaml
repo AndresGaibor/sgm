@@ -225,6 +225,77 @@ vectores:
     fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0rrwqm16uiv4vn1t0jj0jvidgao.htm"
     cita: "x='INTRODUCTION'; y=lowcase(x); put y; -> introduction"
     confianza: documentado
+  # PROPCASE, REVERSE, REPEAT, RIGHT, TRIMN y LENGTH
+  - id: propcase-01
+    funcion: propcase
+    entrada: ["hELLO wORLD"]
+    esperado: "Hello World"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n169kj2of5nur0n1bl1hubv55q63.htm"
+    cita: "converts to uppercase the first character of a word"
+    confianza: documentado
+  - id: propcase-02
+    funcion: propcase
+    entrada: ["mc-donald"]
+    esperado: "Mc-Donald"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n169kj2of5nur0n1bl1hubv55q63.htm"
+    cita: "default delimiters are blank, forward slash, hyphen, open parenthesis, period, and tab"
+    confianza: deducido
+  - id: reverse-01
+    funcion: reverse
+    entrada: ["abc"]
+    esperado: "cba"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0r87nwd0lt2rzn1h348larywe0r.htm"
+    cita: "The last character in the argument becomes the first character in the result"
+    confianza: documentado
+  - id: reverse-02
+    funcion: reverse
+    entrada: ["ab  "]
+    esperado: "  ba"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0r87nwd0lt2rzn1h348larywe0r.htm"
+    cita: "Trailing blanks in the argument become leading blanks in the result"
+    confianza: documentado
+  - id: repeat-01
+    funcion: repeat
+    entrada: ["ab", 2]
+    esperado: "ababab"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a000245939.htm"
+    cita: "the first argument appears n+1 times in the result"
+    confianza: documentado
+  - id: repeat-02
+    funcion: repeat
+    entrada: ["ab", 0]
+    esperado: "ab"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a000245939.htm"
+    cita: "n must be greater than or equal to 0"
+    confianza: documentado
+  - id: right-01
+    funcion: right
+    entrada: ["ab  "]
+    esperado: "  ab"
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/PDF/default/lefunctionsref.pdf"
+    cita: "The RIGHT function returns an argument with trailing blanks moved to the start of the value"
+    confianza: documentado
+  - id: trimn-01
+    funcion: trimn
+    entrada: [" "]
+    esperado: ""
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/a000212475.htm"
+    cita: "If the argument is blank, TRIMN returns a string with a length of zero"
+    confianza: documentado
+  - id: length-01
+    funcion: length
+    entrada: ["abc   "]
+    esperado: 3
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0f6jve4kdxnh1n1m7c82fhosgih.htm"
+    cita: "The LENGTH function returns an integer that represents the position of the rightmost non-blank character"
+    confianza: documentado
+  - id: length-02
+    funcion: length
+    entrada: [" "]
+    esperado: 1
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/n0f6jve4kdxnh1n1m7c82fhosgih.htm"
+    cita: "If the value of string is blank, LENGTH returns a value of 1"
+    confianza: documentado
   # SUBSTR y SUBSTRN
   - id: substr-01
     funcion: substr

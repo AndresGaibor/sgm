@@ -15,6 +15,8 @@ import re
 import string
 from decimal import ROUND_HALF_UP, Decimal
 
+from corpus_semantica_texto import length, propcase, repeat, reverse, right, trimn
+
 
 class Faltante:
     """Valor faltante de SAS. Se usa la instancia única `FALTANTE`."""
@@ -279,6 +281,12 @@ def is_missing(valor: object) -> bool:
 FUNCIONES = {
     "input": input_wd,
     "left": left,
+    "length": length,
+    "propcase": propcase,
+    "reverse": reverse,
+    "repeat": repeat,
+    "right": right,
+    "trimn": trimn,
     "compress": compress,
     "strip": strip,
     "trim": trim,

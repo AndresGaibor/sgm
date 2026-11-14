@@ -42,9 +42,28 @@ def test_limpieza_conserva_espacios_dentro_de_literales(sas, expected):
 
 def test_longitud_y_conteo_de_caracteres():
     assert java("length(x)") == (
-        "(input_row.x == null ? null : StringHandling.LEN(StringHandling.RTRIM(input_row.x)))"
+        "(input_row.x == null ? null : Math.max(StringHandling.LEN(StringHandling.RTRIM(input_row.x)), 1))"
     )
     assert java("lengthc(x)") == "(input_row.x == null ? null : StringHandling.LEN(input_row.x))"
+
+
+def test_repeat_y_right_usan_traducciones_con_semantica_documentada():
+    assert "new String(new char[2 + 1])" in java("repeat(x,2)")
+    assert java("right(x)") == (
+        '(input_row.x == null ? null : StringHandling.LPAD(StringHandling.TRIM(input_row.x), '
+        'StringHandling.LEN(input_row.x), " "))'
+    )
+
+
+def test_propcase_queda_pendiente_con_codigo_explicito():
+    with pytest.raises(Unsupported, match="P-JAVA-PROPCASE"):
+        translate_to_talend("propcase(x)")
+
+
+@pytest.mark.parametrize("sas", ["repeat(x,n)", "repeat(x,-1)", "repeat(x,2.5)"])
+def test_repeat_rechaza_conteos_no_demostrados(sas):
+    with pytest.raises(Unsupported, match="P-REPEAT-N-ENTERO"):
+        translate_to_talend(sas)
 
 
 def test_concatenacion_respeta_el_perdido():

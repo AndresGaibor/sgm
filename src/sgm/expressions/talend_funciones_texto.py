@@ -23,6 +23,22 @@ def _strfn(template: str, arity: int = 1):
     return build
 
 
+def _propcase(_p: _P, args: list[E]) -> E:
+    _need(args, 1, 2, "propcase")
+    raise Unsupported(
+        "Pendiente: P-JAVA-PROPCASE; Talend no ofrece una rutina equivalente con delimitadores SAS"
+    )
+
+
+def _repeat(p: _P, args: list[E]) -> E:
+    _need(args, 2, 2, "repeat")
+    if args[1].kind != "num" or not re.fullmatch(r"\d+", args[1].java):
+        raise Unsupported(
+            "Pendiente: P-REPEAT-N-ENTERO; solo se traduce un literal entero no negativo"
+        )
+    return _strfn('(new String(new char[{1} + 1]).replace("\\0", {0}))', 2)(p, args)
+
+
 def _cat(trim: bool, sep: bool = False):
     def build(_p: _P, args: list[E]) -> E:
         if sep:
