@@ -16,6 +16,7 @@ from sgm.frontend.datastep import DataStep
 from sgm.frontend.macros_modelo import MacroDynamic
 from sgm.frontend.program import ProgramAnalysis, ProgramItem, analyze_program
 from sgm.frontend.steps_tipos import (
+    Filename,
     Global,
     Include,
     Let,
@@ -37,7 +38,7 @@ ENTRADA_EXTERNA = "Entrada externa"
 MOTIVO_DINAMICO = (
     "depende de valores que solo se conocen al ejecutar: no se puede seguir su flujo sin correrlo"
 )
-_CONFIG_TYPES = (Libname, Let, Options, Include, Global, MacroDef, MacroCall, XCommand)
+_CONFIG_TYPES = (Filename, Libname, Let, Options, Include, Global, MacroDef, MacroCall, XCommand)
 
 
 @dataclass
@@ -175,6 +176,7 @@ def _config_line(item: ProgramItem) -> ConfigLine | None:
     if not isinstance(obj, _CONFIG_TYPES):
         return None
     kinds = {
+        Filename: "filename",
         Libname: "libname",
         Let: "%let",
         Options: "options",

@@ -87,6 +87,12 @@ def test_macro_y_let_se_observan() -> None:
     assert any(h.tipo == "macro_llamada" and h.valor == "m" for h in hechos)
 
 
+def test_filename_se_conserva_como_sentencia_global() -> None:
+    hechos = _hechos("filename entrada '/datos/entrada.csv';\n")
+
+    assert any(h.tipo == "sentencia_global" and h.valor == "filename" for h in hechos)
+
+
 def _lineas_con_estructura(texto: str) -> set[int]:
     """Líneas cubiertas por algún paso o sentencia del texto (incluido el cuerpo de macros)."""
     from sgm.frontend.lexer import split_statements

@@ -12,6 +12,7 @@ from collections.abc import Iterator
 from sgm.facts.model import MASK, alcance_de
 from sgm.frontend.macros import MacroDynamic
 from sgm.frontend.steps import (
+    Filename,
     Global,
     Include,
     Let,
@@ -107,6 +108,8 @@ def textual_facts(item: object, libref_externo: set[str]) -> Iterator[dict]:
     elif isinstance(item, Libname):
         alcance = alcance_de(f"{item.name}.x", libref_externos([item]))
         yield _raw("biblioteca", item.name, alcance, base, end, destino=item.value[:120])
+    elif isinstance(item, Filename):
+        yield _raw("sentencia_global", "filename", "no_aplica", base, end)
     elif isinstance(item, Options):
         yield _raw("sentencia_global", "options", "no_aplica", base, end)
     elif isinstance(item, Global):

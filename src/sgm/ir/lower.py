@@ -10,6 +10,7 @@ from sgm.frontend.datastep import DataStep
 from sgm.frontend.libnames import info_libname
 from sgm.frontend.macros import MacroDynamic
 from sgm.frontend.steps import (
+    Filename,
     Global,
     Include,
     Let,
@@ -26,6 +27,7 @@ from sgm.ir.lower_data import lower_data
 from sgm.ir.lower_procs import lower_proc
 from sgm.ir.lower_sql import lower_proc_sql
 from sgm.ir.models import Evidence, Graph
+from sgm.redaction import redact
 
 
 def _evidence(item) -> Evidence:
@@ -60,6 +62,7 @@ def origin_of(step) -> str:
     names = {
         MacroDynamic: "macro_dinamica",
         Unparsed: "no_analizado",
+        Filename: "sentencia_global",
         MacroCall: "llamada_macro",
         Include: "include",
         XCommand: "comando_sistema",
@@ -158,6 +161,14 @@ def _lower_step(item, b: Builder, externals: dict[str, External]) -> None:
     elif isinstance(step, Libname):
         b.registrar_libname(info_libname(step))
         _config(step, ev, b, step.text)
+    elif isinstance(step, Filename):
+        b.op(
+            "unsupported",
+            {"statement": redact(step.text, ""), "reason": "CONFIGURACION"},
+            ev,
+            status="reemplazado",
+            notes=["la asociación FILENAME se resuelve antes de emitir el Job"],
+        )
     elif isinstance(step, (Let, Options)):
         _config(step, ev, b, getattr(step, "text", "options"))
     elif isinstance(step, Global):

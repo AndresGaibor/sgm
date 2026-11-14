@@ -52,8 +52,9 @@ def _putnames(valor: str) -> bool | None:
 def _read_file(step: Proc, ev: Evidence, b: Builder, out: str | None) -> None:
     """`PROC IMPORT`: archivo de entrada con su formato, separador, cabecera y hoja."""
     opciones = _opciones(step)
+    datafile = step.options.get("datafile")
     params = {
-        "datafile": step.options.get("datafile"),
+        "datafile": datafile,
         "outputs": [qualify(out)] if out else [],
         "dbms": _dbms(opciones),
         "delimiter": _sin_comillas(opciones["delimiter"]) if "delimiter" in opciones else None,
@@ -61,6 +62,9 @@ def _read_file(step: Proc, ev: Evidence, b: Builder, out: str | None) -> None:
         "sheet": _sin_comillas(opciones["sheet"]) if "sheet" in opciones else None,
         "guessingrows": _entero(opciones.get("guessingrows")),
     }
+    if datafile and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", datafile.strip()):
+        params["fileref"] = datafile.strip()
+        params["datafile"] = None
     if "datarow" in opciones:
         params["datarow"] = _entero(opciones["datarow"])
     b.op("read_file", params, ev)

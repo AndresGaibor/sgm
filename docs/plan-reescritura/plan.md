@@ -60,7 +60,7 @@ Lo que depende del nombre del cliente va a `decisiones/<programa>.*.yaml`, nunca
 
 ### Pendientes de la fase 1
 
-- `infile`/`file` con fileref sin comillas (resolver `FILENAME`).
+- `FILENAME` local con fileref ya se resuelve para `INFILE`, `FILE` y `PROC IMPORT DATAFILE=` (hito 267n); `PIPE`, FTP y `RSUBMIT` siguen pendientes.
 - 3 WORK que se leen antes de crearse (`SABANA_SIN_*`) y nombres con macrovariable (`&tabla_origen.`).
 - `sql_tree` falla con subconsultas en `FROM` (código viejo que se tirará).
 - Las 4 CSV de entrada no coinciden con las 3 tablas Impala del diseño; no se afirma que lo sean.

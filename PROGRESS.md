@@ -7455,3 +7455,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Verificación integral `uv run python tools/ci.py`: 4.943 pasaron, 372 omitidas y 145 `xfail`; Ruff, 78 cruces, oráculo de corpus y tablero en verde. Tandas focales: 401 pruebas de semántica, fechas, traductor, catálogo, L4 y emisión; 11 casos L4 pasan en anillo A; 102 pasan en anillo B.
 - Studio C: `uv run python -m sgm.cli studio salud` devolvió `BRIDGE_DEAD`, conexión rechazada al MCP `127.0.0.1:3927`. No se reinstaló Studio; los 11 casos nuevos no cuentan como compilados o ejecutados allí.
 - Decisiones y límites: el nombre del módulo descriptor real es `tools/corpus_lib/especificaciones_l4_funciones.py`; `especificaciones_l4_vectores.py` lo consume. Se mantienen pendientes `P-YEARCUTOFF-EXPLICITO`, `P-MDY-ANIO-3-CIFRAS`, la equivalencia de `DATETIME` y `TIMEZONE` distinta entre SAS y Job. Sin dependencias nuevas, conexión a bases ni push. Siguiente tarea: D1-13.
+
+## Hito 267n. Resuelve filerefs locales de `FILENAME` en el plan
+
+- Fecha: 2026-11-14. Base: `d2501a9` (hito 266n), rama `codex/integrar-main-preflight`. MG-P2-06 / D2-15.
+- El frontend reconoce `FILENAME`; el pase de filerefs procesa declaraciones y `CLEAR`, protege contraseñas y conecta rutas locales con `INFILE`, `FILE` y `PROC IMPORT DATAFILE=ref`. `PIPE` no ejecuta comandos: produce `P-FILENAME-PIPE`; métodos no cubiertos y filerefs sin declarar conservan sus pendientes. La declaración queda visible como configuración en IR, hechos y flujo.
+- Se agrega `L0/l0_28_filename_archivo`. Su entrada y salida cruda `.csv` se comparan íntegramente, normalizando solo saltos de línea. El anillo B coincide; el corpus queda en 228 casos (27 L0) y 226 con esperado. El arnés de Studio asigna rutas de archivos de salida declarados.
+- Se corrigió el plan: SAS documenta `PROC IMPORT DATAFILE=fileref` (`proc.pdf`, p. 1394), no `FILEREF=`. El caso usa texto y delimitador explícito para aislar `FILENAME`; no presume el `DSD` de salida ni el formato numérico implícito de `PUT`, ya pendientes de D2-11.
+- Verificación focal y golden: 235 aprobadas, 5 `xfail`; `ruff check .`, `avance_creditos.py --verificar` y `git diff --check` pasan. Cierre integral requerido: `uv run python tools/ci.py` sobre el árbol staged.
+- Studio C: el Job se generó, pero el MCP local devolvió `BRIDGE_DEAD` en `127.0.0.1:3927`; `l0_28_filename_archivo` quedó en `out/studio-pendientes.json`. No cuenta como compilado ni ejecutado en Studio.
+- Crédito MG-P2 suma 3,0 h parciales (0,5 de MG-P2-06, que vale 6 h); faltan `PIPE`, FTP y el bloque `RSUBMIT/UPLOAD/DOWNLOAD`. Sin dependencias nuevas, conexiones a bases ni push. Siguiente tarea de Byron: D1-13.

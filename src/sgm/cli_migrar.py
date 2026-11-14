@@ -116,10 +116,13 @@ def _plan(
     nombre: str,
     resultado: ResultadoMigrar,
     decisiones_libnames: dict[str, dict] | None = None,
+    analysis_items: list | None = None,
 ) -> Plan | None:
     """Plan del programa. Una excepción del análisis no tumba la migración: queda anotada."""
     try:
         analysis = analyze_program({f"{nombre}.sas": texto})
+        if analysis_items is not None:
+            analysis_items.extend(analysis.items)
         return compile_file(
             analysis,
             f"{nombre}.sas",
@@ -262,8 +265,9 @@ def migrar(
                 None,
             )
         )
+    analysis_items: list = []
     plan = (
-        _plan(texto, resultado.carpeta.name, resultado, decisiones_libnames)
+        _plan(texto, resultado.carpeta.name, resultado, decisiones_libnames, analysis_items)
         if texto is not None
         else None
     )
@@ -272,7 +276,7 @@ def migrar(
         # Las plantillas se escriben en línea: los esquemas y las rutas salen del plan desplegado.
         original = {op.id for op in plan.graph.operators()}
         plan, desplegados = plan_desplegado(plan)
-        plan, previos = preparar_plan(plan, locales, texto=texto)
+        plan, previos = preparar_plan(plan, locales, texto=texto, items=analysis_items)
         resultado.pendientes += previos
         contextos = contextos_de_plan(plan, dev=dev)
         if not len(plan.graph):

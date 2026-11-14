@@ -132,11 +132,12 @@ CAMBIOS_DOCUMENTADOS = {
 # MG-P10 añade el orden de proyección de agregados; MG-P13 reconoce cargas Impala; hito 233n deja
 # `%web_drop_table` como hueco porque borra tablas; hito 243n deja pendientes las autocopias de
 # `PROC APPEND`; hito 245n aporta un pendiente específico para `PROC DATASETS` persistente; hito
-# 263n baja `SUBSTR` como pseudovariable en 182 asignaciones del fixture. Estos cambios alteran
-# operadores/firmas; se fija el plan revisado por hash canónico y `test_golden.py` conserva igualdad
-# exacta.
+# 263n baja `SUBSTR` como pseudovariable en 182 asignaciones del fixture; hito 267n conserva
+# `FILENAME` como configuración redactada y resuelve sus rutas en la preparación del plan. Estos
+# cambios alteran operadores/firmas; se fija el plan revisado por hash canónico y `test_golden.py`
+# conserva igualdad exacta.
 CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
-    "client__client_poc.plan.json": "14fb8a61bcf42315bc99f5981897e11b480e7191eed741ffa3b9436958a7aadd",
+    "client__client_poc.plan.json": "cc490021d4ec1fdd8baa7e284bd464a71c754740bdcfbaea6976064774bf3ac3",
 }
 
 CASES = [

@@ -303,6 +303,11 @@ class _Job:
             # cubierta como configuración aplicada al registro estático, aunque no sea un nodo Job.
             self.plegados.add(op.id)
             return
+        if op.params.get("reason") == "CONFIGURACION" and sentencia.lower().startswith("filename"):
+            # La asociación se resuelve en preparar_plan; el operador conserva la declaración para
+            # trazabilidad, pero no se convierte en un nodo Talend por sí solo.
+            self.plegados.add(op.id)
+            return
         if op.params.get("reason") == "CONFIGURACION" and sentencia.lower().startswith("%let"):
             # La macro variable ya está sustituida en el resto del programa: no se pierde nada, pero
             # tampoco queda una variable de contexto que el Job pueda cambiar sin recompilar.

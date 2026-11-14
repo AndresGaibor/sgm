@@ -190,6 +190,7 @@ def file_fields(text: str) -> dict:
         # FILE DLM= acepta una cadena, pero SAS utiliza solo su primer carácter (p. 91).
         options[name] = value[0]
     source_is_path = _quoted(source) and "&" not in source
+    source_is_fileref = bool(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", source))
     if options.get("dsd") and "dlm" not in options:
         options["dlm"] = ","
     elif "dlm" not in options:
@@ -197,6 +198,8 @@ def file_fields(text: str) -> dict:
     return {
         "destino": source,
         "es_ruta": source_is_path,
+        "fileref": source if source_is_fileref else None,
+        "es_fileref": source_is_fileref,
         "opciones": options,
         "no_reconocidas": sorted(set(unknown)),
     }

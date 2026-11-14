@@ -38,6 +38,20 @@ def test_mapea_entradas_xlsx_por_nombre_base() -> None:
     assert mapa == {"ruta_ventas": "entradas/ventas.xlsx"}
 
 
+def test_mapea_archivo_crudo_de_salida_cuando_es_la_unica_ruta_sin_resolver() -> None:
+    mapa = mapa_de_contexto(
+        ["ruta_lista", "ruta_lista_2"],
+        entradas=["lista.csv"],
+        salidas=[],
+        archivos_salida=["copia.csv"],
+    )
+
+    assert mapa == {
+        "ruta_lista": "entradas/lista.csv",
+        "ruta_lista_2": "salida/copia.csv",
+    }
+
+
 def test_mapa_explicito_del_caso_cubre_todas_las_variables(tmp_path):
     (tmp_path / "mapa.yaml").write_text(
         "ruta_base_clientes_nequi: entradas/Base_datos_Nequi.csv\n"

@@ -68,6 +68,13 @@ def test_configuracion_se_separa_de_los_pasos():
     assert all(s.kind != "config" for s in flujo.steps)
 
 
+def test_filename_aparece_en_configuracion_sin_exponer_credenciales():
+    flujo = _flow("filename remoto pipe 'echo --password Secreto123';\n")
+
+    assert [linea.kind for linea in flujo.config] == ["filename"]
+    assert "Secreto123" not in flujo.config[0].text
+
+
 def test_credenciales_no_llegan_al_html():
     texto = (
         "proc pwencode in='Secreto123' out=salida; run;\n"

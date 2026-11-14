@@ -73,6 +73,15 @@ class Libname:
 
 
 @dataclass
+class Filename:
+    name: str
+    value: str
+    line: int
+    end_line: int
+    text: str
+
+
+@dataclass
 class Options:
     text: str
     line: int

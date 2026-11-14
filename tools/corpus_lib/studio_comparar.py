@@ -68,25 +68,30 @@ def comparar_archivos(
     return ResultadoArchivo(nombre, "diferente" if diferencias else "coincide", diferencias)
 
 
-def _csv_por_nombre(carpeta: Path) -> dict[str, Path]:
+def _csv_por_nombre(carpeta: Path, crudos: set[str] | None = None) -> dict[str, Path]:
     """Archivos `.csv` de la carpeta indexados por nombre en minúsculas, sin extensión."""
     if not carpeta.is_dir():
         return {}
     encontrados: dict[str, Path] = {}
     for ruta in sorted(carpeta.iterdir()):
-        if ruta.is_file() and ruta.suffix.lower() == ".csv":
+        if (
+            ruta.is_file()
+            and ruta.suffix.lower() == ".csv"
+            and ruta.name.casefold() not in (crudos or set())
+        ):
             encontrados.setdefault(ruta.stem.lower(), ruta)
     return encontrados
 
 
-def _texto_por_nombre(carpeta: Path) -> dict[str, Path]:
-    """Archivos de texto declarados por casos con salida que no es tabla."""
+def _texto_por_nombre(carpeta: Path, declarados: set[str] | None = None) -> dict[str, Path]:
+    """Archivos de texto y archivos declarados cuya salida debe compararse cruda."""
     if not carpeta.is_dir():
         return {}
     return {
         ruta.name.casefold(): ruta
         for ruta in sorted(carpeta.iterdir())
-        if ruta.is_file() and ruta.suffix.lower() == ".txt"
+        if ruta.is_file()
+        and (ruta.suffix.lower() == ".txt" or ruta.name.casefold() in (declarados or set()))
     }
 
 
@@ -118,13 +123,15 @@ def comparar_carpetas(
     orden_relevante: bool = False,
     ignorar_orden_columnas: bool = False,
     delimitadores: dict[str, str] | None = None,
+    archivos_salida: tuple[str, ...] | list[str] = (),
 ) -> list[ResultadoArchivo]:
     """Empareja cada CSV de `esperado/` con el de la salida con el mismo nombre (sin mayúsculas).
 
     Un archivo esperado sin par es `faltante`; un archivo de la salida sin esperado es `de_mas`.
     """
-    esperados = _csv_por_nombre(esperado)
-    obtenidos = _csv_por_nombre(salida)
+    crudos = {nombre.casefold() for nombre in archivos_salida}
+    esperados = _csv_por_nombre(esperado, crudos)
+    obtenidos = _csv_por_nombre(salida, crudos)
     formatos = {nombre.casefold(): valor for nombre, valor in (delimitadores or {}).items()}
     resultados: list[ResultadoArchivo] = []
     for clave, ruta in esperados.items():
@@ -147,8 +154,8 @@ def comparar_carpetas(
         if clave not in esperados:
             diferencia = Diferencia("archivo", f"la salida tiene {ruta.name}, que no se espera")
             resultados.append(ResultadoArchivo(ruta.name, "de_mas", [diferencia]))
-    esperados_texto = _texto_por_nombre(esperado)
-    obtenidos_texto = _texto_por_nombre(salida)
+    esperados_texto = _texto_por_nombre(esperado, crudos)
+    obtenidos_texto = _texto_por_nombre(salida, crudos)
     for clave, ruta in esperados_texto.items():
         if clave not in obtenidos_texto:
             diferencia = Diferencia("archivo", f"falta {ruta.name} en la salida")

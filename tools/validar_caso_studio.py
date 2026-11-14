@@ -34,12 +34,22 @@ _M2 = _TALEND / "studio/configuration/.m2/repository"
 
 
 def mapa_de_contexto(
-    variables: list[str], entradas: list[str], salidas: list[str]
+    variables: list[str],
+    entradas: list[str],
+    salidas: list[str],
+    archivos_salida: list[str] | None = None,
 ) -> dict[str, str]:
-    """Variable `ruta_<x>` a archivo del caso: entrada con el mismo nombre o salida esperada."""
+    """Variable `ruta_<x>` a archivo del caso: entrada, tabla o archivo de salida declarado."""
     por_nombre = {Path(e).stem.lower(): e for e in entradas}
     por_salida = {s.lower(): s for s in salidas}
+    archivos = archivos_salida or []
+    if any(
+        Path(nombre).name != nombre or Path(nombre).suffix.casefold() not in {".csv", ".txt"}
+        for nombre in archivos
+    ):
+        raise ValueError("los archivos de salida deben ser nombres .csv o .txt sin rutas")
     mapa: dict[str, str] = {}
+    sin_resolver = []
     for variable in variables:
         nombre = variable.removeprefix("ruta_").lower()
         if nombre in por_nombre:
@@ -47,17 +57,26 @@ def mapa_de_contexto(
         elif nombre in por_salida:
             mapa[variable] = f"salida/{por_salida[nombre]}.csv"
         else:
-            raise ValueError(f"sin entrada ni salida conocida para la variable {variable}")
+            sin_resolver.append(variable)
+    if sin_resolver and len(sin_resolver) == len(archivos) == 1:
+        mapa[sin_resolver[0]] = f"salida/{archivos[0]}"
+        sin_resolver.clear()
+    if sin_resolver:
+        raise ValueError(f"sin entrada ni salida conocida para la variable {sin_resolver[0]}")
     return mapa
 
 
 def _mapa_del_caso(
-    carpeta: Path, variables: list[str], entradas: list[str], salidas: list[str]
+    carpeta: Path,
+    variables: list[str],
+    entradas: list[str],
+    salidas: list[str],
+    archivos_salida: list[str] | None = None,
 ) -> dict[str, str]:
     """Usa el mapa explícito del caso o deduce uno solo si los nombres coinciden."""
     archivo = carpeta / "mapa.yaml"
     if not archivo.is_file():
-        return mapa_de_contexto(variables, entradas, salidas)
+        return mapa_de_contexto(variables, entradas, salidas, archivos_salida)
     mapa = leer_mapa(archivo)
     faltan = sorted(set(variables) - set(mapa))
     sobran = sorted(set(mapa) - set(variables))
@@ -103,7 +122,13 @@ def validar(nombre: str, sufijo: str) -> bool:
     variables = [v["nombre"] for v in contexto["variables"]]
     caso = yaml.safe_load((carpeta / "caso.yaml").read_text(encoding="utf-8"))
     entradas = sorted(p.name for p in (carpeta / "entradas").iterdir() if p.is_file())
-    mapa = _mapa_del_caso(carpeta, variables, entradas, caso.get("salidas", []))
+    mapa = _mapa_del_caso(
+        carpeta,
+        variables,
+        entradas,
+        caso.get("salidas", []),
+        caso.get("archivos_salida", []),
+    )
     ruta_mapa = trabajo / "mapa.yaml"
     ruta_mapa.write_text(yaml.safe_dump(mapa), encoding="utf-8")
     resultado = _correr(

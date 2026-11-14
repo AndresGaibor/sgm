@@ -39,6 +39,8 @@ def test_file_y_put_lista_reconocen_delimitador_y_variables():
     assert file == {
         "destino": "'/salida/ventas.txt'",
         "es_ruta": True,
+        "fileref": None,
+        "es_fileref": False,
         "opciones": {"dsd": True, "dlm": "|"},
         "no_reconocidas": [],
     }

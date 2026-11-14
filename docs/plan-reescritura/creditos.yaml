@@ -19,8 +19,11 @@ fases:
   nombre: Entrada y salida
   horas: 50.0
   credito_sin_desglosar: 12.0
-  tareas: []
-  sostiene: CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT`
+  tareas:
+  - id: MG-P2-06
+    horas: 6.0
+    fraccion: 0.5
+  sostiene: CSV, DLM, XLSX y rutas locales `FILENAME` para `INFILE`, `FILE` y `PROC IMPORT DATAFILE=`; PIPE queda pendiente con motivo, al igual que FTP, bases y RSUBMIT
 - id: MG-P3
   nombre: Expresiones y funciones
   horas: 80.0

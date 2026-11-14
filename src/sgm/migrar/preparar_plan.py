@@ -1,9 +1,11 @@
 """Pases previos a la emisión de un plan de migración."""
 
+from collections.abc import Iterable
 from pathlib import Path
 
 from sgm.ir.models import Column, Plan
 from sgm.ir.pase_copias_remotas import aplicar_copias, copias_remotas
+from sgm.ir.pase_filerefs import aplicar_filerefs, filerefs_de_programa
 from sgm.ir.pase_tablas_locales import tablas_locales_a_archivos
 from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
 from sgm.migrar.esquemas_paso_directo import esquemas_paso_directo
@@ -11,13 +13,17 @@ from sgm.migrar.tablas_locales import TablaLocal
 
 
 def preparar_plan(
-    plan: Plan, locales: dict[str, TablaLocal] | None = None, texto: str = ""
+    plan: Plan,
+    locales: dict[str, TablaLocal] | None = None,
+    texto: str = "",
+    items: Iterable[object] = (),
 ) -> tuple[Plan, list[PendienteMigracion]]:
-    """Convierte fuentes locales y resuelve alias de copias remotas declaradas en el SAS."""
+    """Resuelve fuentes locales, filerefs y alias de copias declaradas en el SAS."""
     plan, pendientes = tablas_locales_a_archivos(plan, locales or {})
+    plan, pendientes_filerefs = aplicar_filerefs(plan, filerefs_de_programa(items))
     copias, pendientes_copia = copias_remotas(texto)
     plan, sin_efecto = aplicar_copias(plan, copias)
-    return plan, [*pendientes, *pendientes_copia, *sin_efecto]
+    return plan, [*pendientes, *pendientes_filerefs, *pendientes_copia, *sin_efecto]
 
 
 def esquemas_con_locales(

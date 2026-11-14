@@ -15,6 +15,7 @@ from sgm.frontend.lexer import MACRO_KEYWORDS, Stmt, split_statements
 from sgm.frontend.splitter import Node
 from sgm.frontend.sql import SqlStatement, parse_sql_statement
 from sgm.frontend.steps_tipos import (  # noqa: F401  (reexport para los importadores)
+    Filename,
     Global,
     Include,
     Let,
@@ -161,6 +162,8 @@ def _parse_single(stmt: Stmt) -> object:
     if m := re.match(r"(?is)^%(\w+)\s*(?:\((.*)\))?\s*$", text):
         if m.group(1).lower() not in MACRO_KEYWORDS:
             return MacroCall(m.group(1), (m.group(2) or "").strip(), stmt.line, stmt.end_line, text)
+    if m := re.match(r"(?is)^filename\s+(\w+)\s*(.*)$", text):
+        return Filename(m.group(1), m.group(2).strip(), stmt.line, stmt.end_line, text)
     if m := re.match(r"(?is)^libname\s+(\w+)\s*(.*)$", text):
         return Libname(m.group(1), m.group(2).strip(), stmt.line, stmt.end_line, text)
     if low.startswith("options"):

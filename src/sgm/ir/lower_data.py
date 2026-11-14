@@ -559,7 +559,7 @@ def _file_put_lista_null(
         for fuente in statement.fields.get("sources", [])
     ]
     if (
-        not file_fields.get("es_ruta")
+        not (file_fields.get("es_ruta") or file_fields.get("es_fileref"))
         or file_fields.get("no_reconocidas")
         or put_fields.get("modo") != "lista"
         or not put_fields.get("variables")
@@ -585,6 +585,8 @@ def _file_put_lista_null(
         "variables": [str(variable).lower() for variable in put_fields["variables"]],
         "outputs": [],
     }
+    if file_fields.get("es_fileref"):
+        params["fileref"] = str(file_fields["fileref"])
     return file_statement, put_statement, params
 
 

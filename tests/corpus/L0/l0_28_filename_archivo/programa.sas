@@ -1,0 +1,11 @@
+FILENAME entrada '.../entradas/lista.csv';
+FILENAME salida '.../salida/copia.csv';
+DATA WORK.lista;
+  INFILE entrada DLM=',' DSD FIRSTOBS=2 MISSOVER;
+  INPUT codigo :$4. cantidad :$5.;
+RUN;
+DATA _NULL_;
+  SET WORK.lista;
+  FILE salida DLM=',';
+  PUT codigo cantidad;
+RUN;

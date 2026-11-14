@@ -20,6 +20,8 @@ import pytest
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
 from sgm.migrar.interprete import ejecutar_plan
+from sgm.migrar.interprete_file_put import escribir_archivos_plan
+from sgm.migrar.preparar_plan import preparar_plan
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools"))
@@ -118,14 +120,37 @@ def _esperado(caso, tabla: str, filas: list[dict]) -> list[str]:
 
 @pytest.mark.parametrize("caso", list(_casos()))
 def test_el_interprete_da_lo_que_el_sas(caso):
+    analisis = analyze_program({"p.sas": caso.programa.read_text(encoding="utf-8")})
     plan = compile_file(
-        analyze_program({"p.sas": caso.programa.read_text(encoding="utf-8")}),
+        analisis,
         "p.sas",
         project_base(),
     ).plan
 
     entradas = _entradas(caso)
-    if any(
+    archivos_salida = caso.extra.get("archivos_salida", ())
+    if archivos_salida:
+        plan, pendientes = preparar_plan(
+            plan,
+            texto=caso.programa.read_text(encoding="utf-8"),
+            items=analisis.items,
+        )
+        assert pendientes == []
+        origenes = tuple(
+            nombre
+            for operador in plan.graph.operators()
+            if operador.kind == "write_file"
+            for nombre in (operador.params.get("inputs") or [])
+        )
+        origenes_normalizados = {str(nombre).split(".")[-1].casefold() for nombre in origenes}
+        entradas = {
+            nombre: filas
+            for nombre, filas in entradas.items()
+            if str(nombre).split(".")[-1].casefold() not in origenes_normalizados
+        }
+        imports, _ = entradas_de_archivos(plan, caso, salidas=(*caso.salidas, *origenes))
+        entradas.update(imports)
+    elif any(
         operador.kind == "read_file"
         and (
             operador.params.get("dbms") == "xlsx"
@@ -143,6 +168,23 @@ def test_el_interprete_da_lo_que_el_sas(caso):
         for tabla in caso.salidas
         for problema in _esperado(caso, tabla, salidas.get(tabla.lower(), []))
     ]
+    if archivos_salida:
+        escritos = escribir_archivos_plan(plan, salidas)
+        por_nombre = {Path(ruta).name.casefold(): lineas for ruta, lineas in escritos.items()}
+        declarados = {Path(nombre).name.casefold() for nombre in archivos_salida}
+        if por_nombre.keys() != declarados:
+            problemas.append(
+                f"archivos generados {sorted(por_nombre)} distintos de declarados {sorted(declarados)}"
+            )
+        for nombre in archivos_salida:
+            lineas = por_nombre.get(Path(nombre).name.casefold())
+            if lineas is None:
+                continue
+            esperado = (caso.esperado / nombre).read_text(encoding="utf-8")
+            obtenido = "\n".join(lineas) + ("\n" if lineas else "")
+            esperado_normalizado = esperado.replace("\r\n", "\n").replace("\r", "\n")
+            if esperado_normalizado != obtenido:
+                problemas.append(f"{nombre}: el contenido de archivo difiere del esperado")
     assert problemas == []
 
 

@@ -164,6 +164,19 @@ def test_caso_de_archivo_texto_declara_y_compara_su_salida():
     assert resultado.coincide
 
 
+def test_caso_declara_csv_crudo_y_compara_tambien_su_primera_linea(tmp_path):
+    carpeta = REPO / "tests" / "corpus" / "L0" / "l0_28_filename_archivo"
+    caso = cargar_caso(carpeta)
+    salida = tmp_path / "salida"
+    salida.mkdir()
+    (salida / "copia.csv").write_text('"K001",cinco\nK002,doce\n', encoding="utf-8")
+
+    (resultado,) = comparar_caso(caso, salida).archivos
+
+    assert resultado.nombre == "copia.csv"
+    assert resultado.estado == "diferente"
+
+
 # --- Modo `comparar` de la CLI ----------------------------------------------------------------
 
 

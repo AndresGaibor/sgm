@@ -128,8 +128,9 @@ entries:
   nota: se traduce FILE con ruta literal, DSD y DLM de un carácter; otros destinos u opciones quedan pendientes
 - id: filename-statement
   nombre: FILENAME Statement
-  fuente: lestmtsref.pdf, p. 120
-  estado: no_reconocida
+  fuente: lestmtsref.pdf, p. 120; proc.pdf, p. 1394
+  estado: reconocida
+  nota: rutas de archivo literales se resuelven por fileref en INFILE, FILE y PROC IMPORT DATAFILE=; PIPE y métodos u opciones fuera del alcance quedan pendientes con motivo
 - id: footnote-statement
   nombre: FOOTNOTE Statement
   fuente: lestmtsref.pdf, p. 123

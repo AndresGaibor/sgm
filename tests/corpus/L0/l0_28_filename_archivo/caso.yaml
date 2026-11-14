@@ -1,0 +1,21 @@
+nivel: L0
+tema: FILENAME a archivo con INFILE y FILE por fileref
+construcciones:
+  - FILENAME con ruta literal
+  - INFILE con fileref
+  - FILE con fileref
+  - INPUT en lista
+  - PUT en lista con DSD
+capa: C
+estado: revisado
+motivo: >-
+  Revisión independiente del anillo B: el archivo completo se contrasta contra el esperado. La
+  validación C queda pendiente hasta ejecutar el Job en Studio.
+salidas: []
+archivos_salida:
+  - copia.csv
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  lestmtsref.pdf, p. 120, asocia y desasocia un fileref con un archivo externo; lestmtsref.pdf,
+  p. 134, permite usar el fileref en INFILE; lestmtsref.pdf, p. 97, permite usarlo en FILE.

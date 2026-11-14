@@ -896,7 +896,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 |---|---|---|---|---|
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
 | MG-P1 Modelo y plan lógico | 70 | 37,5 | 54 % | Pendientes, propiedad y tabla de símbolos hechos; tipos de `LENGTH` demostrados en 3 casos (bloque `esquemas` en L0 a L2); 14 operadores con constructor validado y pruebas de forma en L1 a L3, sin que ningún pase los use; `PROC TRANSPOSE` como hueco |
-| MG-P2 Entrada y salida | 50 | 12,0 | 24 % | CSV y DLM; sin XLSX, bases, `FILENAME` ni `RSUBMIT` |
+| MG-P2 Entrada y salida | 50 | 15,0 | 30 % | CSV, DLM, XLSX y rutas locales `FILENAME` para `INFILE`, `FILE` y `PROC IMPORT DATAFILE=`; PIPE queda pendiente con motivo, al igual que FTP, bases y RSUBMIT |
 | MG-P3 Expresiones y funciones | 80 | 14,5 | 18 % | D1-7 y D1-8 aportan evidencia en el anillo B para subconjuntos documentados; se amplía el catálogo de texto; lote C pendiente por Studio BRIDGE_DEAD; PRX y `PROC FORMAT` pendientes |
 | MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
 | MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos), `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
@@ -909,7 +909,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | La compuerta de liberación quedó verde en el hito 126m, pero no se acredita: su aceptación incluye el lote de Studio sobre toda la salida y eso sigue pendiente; la parte de personas tampoco cuenta aquí |
-| **Total** | **895** | **237,25** | **26,5 %** | |
+| **Total** | **895** | **240,25** | **26,8 %** | |
 <!-- avance:fin -->
 
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`

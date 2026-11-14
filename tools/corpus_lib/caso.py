@@ -138,10 +138,10 @@ def cargar_caso(directorio: Path) -> Caso:
         isinstance(nombre, str)
         and nombre not in {"", ".", ".."}
         and Path(nombre).name == nombre
-        and Path(nombre).suffix.casefold() == ".txt"
+        and Path(nombre).suffix.casefold() in {".txt", ".csv"}
         for nombre in archivos_salida
     ):
-        raise error("'archivos_salida' debe ser una lista de nombres de archivo .txt sin rutas")
+        raise error("'archivos_salida' debe ser una lista de nombres .txt o .csv sin rutas")
     if len({nombre.casefold() for nombre in archivos_salida}) != len(archivos_salida):
         raise error("'archivos_salida' no puede repetir nombres")
     faltantes = [

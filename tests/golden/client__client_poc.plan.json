@@ -1115,12 +1115,12 @@
     {
       "id": "op00053",
       "kind": "unsupported",
-      "status": "hueco",
+      "status": "reemplazado",
       "placement": "flow",
       "signature": "182a39a32afa607d",
       "params": {
         "statement": "filename _all_ clear",
-        "reason": "SENTENCIA_NO_SOPORTADA"
+        "reason": "CONFIGURACION"
       },
       "evidence": [
         {
@@ -1132,7 +1132,7 @@
         }
       ],
       "notes": [
-        "sentencia global sin regla de migración"
+        "la asociación FILENAME se resuelve antes de emitir el Job"
       ],
       "component": null,
       "valor_componente": null
@@ -2435,12 +2435,12 @@
     {
       "id": "op00293",
       "kind": "unsupported",
-      "status": "hueco",
+      "status": "reemplazado",
       "placement": "flow",
       "signature": "182a39a32afa607d",
       "params": {
         "statement": "filename _all_ clear",
-        "reason": "SENTENCIA_NO_SOPORTADA"
+        "reason": "CONFIGURACION"
       },
       "evidence": [
         {
@@ -2452,7 +2452,7 @@
         }
       ],
       "notes": [
-        "sentencia global sin regla de migración"
+        "la asociación FILENAME se resuelve antes de emitir el Job"
       ],
       "component": null,
       "valor_componente": null
@@ -2873,12 +2873,12 @@
     {
       "id": "op00497",
       "kind": "unsupported",
-      "status": "hueco",
+      "status": "reemplazado",
       "placement": "flow",
       "signature": "182a39a32afa607d",
       "params": {
         "statement": "filename _all_ clear",
-        "reason": "SENTENCIA_NO_SOPORTADA"
+        "reason": "CONFIGURACION"
       },
       "evidence": [
         {
@@ -2890,7 +2890,7 @@
         }
       ],
       "notes": [
-        "sentencia global sin regla de migración"
+        "la asociación FILENAME se resuelve antes de emitir el Job"
       ],
       "component": null,
       "valor_componente": null
@@ -3082,56 +3082,6 @@
         "confianza": "media",
         "hechos": null
       }
-    },
-    {
-      "id": "op00680",
-      "kind": "unsupported",
-      "status": "hueco",
-      "placement": "flow",
-      "signature": "182a39a32afa607d",
-      "params": {
-        "statement": "filename _all_ clear",
-        "reason": "SENTENCIA_NO_SOPORTADA"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2266,
-          "line_end": 2266,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ],
-      "notes": [
-        "sentencia global sin regla de migración"
-      ],
-      "component": null,
-      "valor_componente": null
-    },
-    {
-      "id": "op00685",
-      "kind": "unsupported",
-      "status": "reemplazado",
-      "placement": "flow",
-      "signature": "40a3600e81b673ed",
-      "params": {
-        "statement": "nosymbolgen nomlogic nomprint nosource nosource2 nonotes",
-        "reason": "CONFIGURACION"
-      },
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2271,
-          "line_end": 2271,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ],
-      "notes": [
-        "configuración de sesión o de macro: se resuelve en el contexto del Job"
-      ],
-      "component": null,
-      "valor_componente": null
     },
     {
       "id": "op00686",
@@ -7635,14 +7585,14 @@
       "kind": "external_load",
       "status": "soportado",
       "placement": "db:impala",
-      "signature": "ba0e3a8c168c780c",
+      "signature": "e03f342d10b4b89b",
       "params": {
         "input": "",
         "destination": "param_err_lz",
         "launch": "comandos de sistema en segundo plano (&)",
         "wait": "bucle de espera por procesos (until, ps, wc -l)",
         "verify_count": false,
-        "absorbed": 172
+        "absorbed": 178
       },
       "evidence": [
         {
@@ -8720,6 +8670,48 @@
           "file": "client/client_poc.sas",
           "line_start": 2265,
           "line_end": 2265,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2266,
+          "line_end": 2266,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2267,
+          "line_end": 2267,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2268,
+          "line_end": 2268,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2269,
+          "line_end": 2269,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2270,
+          "line_end": 2270,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2271,
+          "line_end": 2271,
           "label": "JAGUAR",
           "call": null
         }
@@ -9815,6 +9807,48 @@
             "file": "client/client_poc.sas",
             "line_start": 2265,
             "line_end": 2265,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2266,
+            "line_end": 2266,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2267,
+            "line_end": 2267,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2268,
+            "line_end": 2268,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2269,
+            "line_end": 2269,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2270,
+            "line_end": 2270,
+            "label": "JAGUAR",
+            "call": null
+          },
+          {
+            "file": "client/client_poc.sas",
+            "line_start": 2271,
+            "line_end": 2271,
             "label": "JAGUAR",
             "call": null
           }
@@ -15136,62 +15170,6 @@
       ]
     },
     {
-      "op": "op00681",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2267,
-          "line_end": 2267,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "op": "op00682",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2268,
-          "line_end": 2268,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "op": "op00683",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2269,
-          "line_end": 2269,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "op": "op00684",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2270,
-          "line_end": 2270,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
       "op": "op00688",
       "what": "variable o retorno de macro de sesión (%GLOBAL, %LOCAL, %RETURN, %SYSLPUT)",
       "talend": "Variables de contexto del Job.",
@@ -15445,40 +15423,6 @@
           "line_start": 96,
           "line_end": 96,
           "label": "CHEVROLET",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "182a39a32afa607d",
-      "reason": "SENTENCIA_NO_SOPORTADA",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 140,
-          "line_end": 140,
-          "label": "ACURA",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 903,
-          "line_end": 903,
-          "label": "BMW",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1616,
-          "line_end": 1616,
-          "label": "CHEVROLET",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2266,
-          "line_end": 2266,
-          "label": "JAGUAR",
           "call": null
         }
       ]
@@ -17917,7 +17861,7 @@
       ]
     },
     {
-      "signature": "ba0e3a8c168c780c",
+      "signature": "e03f342d10b4b89b",
       "reason": "TIPO_DESCONOCIDO",
       "evidence": [
         {
@@ -18995,6 +18939,48 @@
           "file": "client/client_poc.sas",
           "line_start": 2265,
           "line_end": 2265,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2266,
+          "line_end": 2266,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2267,
+          "line_end": 2267,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2268,
+          "line_end": 2268,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2269,
+          "line_end": 2269,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2270,
+          "line_end": 2270,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2271,
+          "line_end": 2271,
           "label": "JAGUAR",
           "call": null
         }
@@ -20397,46 +20383,6 @@
           "line_start": 96,
           "line_end": 96,
           "label": "CHEVROLET",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "SENTENCIA_NO_SOPORTADA",
-        "dueno": "joseph",
-        "se_cierra_con": "rules/sas/statements/",
-        "nota": "filename _all_ clear"
-      },
-      "signature": "182a39a32afa607d",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 140,
-          "line_end": 140,
-          "label": "ACURA",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 903,
-          "line_end": 903,
-          "label": "BMW",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1616,
-          "line_end": 1616,
-          "label": "CHEVROLET",
-          "call": null
-        },
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2266,
-          "line_end": 2266,
-          "label": "JAGUAR",
           "call": null
         }
       ]
@@ -22984,7 +22930,7 @@
         "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
         "nota": ""
       },
-      "signature": "ba0e3a8c168c780c",
+      "signature": "e03f342d10b4b89b",
       "fuente": [
         {
           "file": "client/client_poc.sas",
@@ -24061,6 +24007,48 @@
           "file": "client/client_poc.sas",
           "line_start": 2265,
           "line_end": 2265,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2266,
+          "line_end": 2266,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2267,
+          "line_end": 2267,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2268,
+          "line_end": 2268,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2269,
+          "line_end": 2269,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2270,
+          "line_end": 2270,
+          "label": "JAGUAR",
+          "call": null
+        },
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 2271,
+          "line_end": 2271,
           "label": "JAGUAR",
           "call": null
         }

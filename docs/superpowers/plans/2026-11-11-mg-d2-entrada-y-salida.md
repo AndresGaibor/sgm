@@ -759,7 +759,7 @@ RUN;
 
 ### Task D2-15: `FILENAME` a archivo y a pipe (MG-P2-06, parte 1; serie `n`)
 
-Páginas: `lestmtsref.pdf`, `FILENAME Statement` (p. 120); `hostunx.pdf`, `Reading from and Writing to UNIX Commands (PIPE)` (p. 132). `FILENAME ref 'ruta';` asocia un nombre a un archivo: `INFILE ref`, `FILE ref` y `PROC IMPORT FILEREF=` lo usan en vez de la ruta. El operador `read_file` ya conserva `fileref` (`desde_plan_nodos.py:129`) pero no lo resuelve. **Decisión (anotar en `PROGRESS.md`):** el `fileref` se resuelve a su ruta literal en un pase de plan (`ir/pase_filerefs.py`) antes de emitir, y la ruta pasa a la variable de contexto `ruta_<tabla>` como cualquier otra. `FILENAME ref PIPE 'comando'` **no se traduce**: ejecutar un comando del sistema es un efecto fuera del Job (el frontend ya lo trata como `COMANDO_SISTEMA`); queda `Pendiente: P-FILENAME-PIPE` con el comando (sin secretos) y la página 132 de `hostunx`. *Alternativa:* `tSystem` más `tFileInputDelimited` sobre un archivo temporal. Qué cambia: el Job ejecutaría comandos arbitrarios del programa SAS en el servidor de Talend, sin que la guía demuestre que el entorno es el mismo; requiere decisión del usuario por programa.
+Páginas: `lestmtsref.pdf`, `FILENAME Statement` (p. 120); `proc.pdf`, ejemplo de `PROC IMPORT` con fileref (p. 1394); `hostunx.pdf`, `Reading from and Writing to UNIX Commands (PIPE)` (p. 132). `FILENAME ref 'ruta';` asocia un nombre a un archivo: `INFILE ref`, `FILE ref` y `PROC IMPORT DATAFILE=ref` lo usan en vez de la ruta. La sintaxis de IMPORT es `DATAFILE=ref`, no `FILEREF=ref`. El operador `read_file` ya conserva `fileref` (`desde_plan_nodos.py:129`) pero no lo resuelve. **Decisión (anotar en `PROGRESS.md`):** el `fileref` se resuelve a su ruta literal en un pase de plan (`ir/pase_filerefs.py`) antes de emitir, y la ruta pasa a la variable de contexto `ruta_<tabla>` como cualquier otra. `FILENAME ref PIPE 'comando'` **no se traduce**: ejecutar un comando del sistema es un efecto fuera del Job (el frontend ya lo trata como `COMANDO_SISTEMA`); queda `Pendiente: P-FILENAME-PIPE` con el comando (sin secretos) y la página 132 de `hostunx`. *Alternativa:* `tSystem` más `tFileInputDelimited` sobre un archivo temporal. Qué cambia: el Job ejecutaría comandos arbitrarios del programa SAS en el servidor de Talend, sin que la guía demuestre que el entorno es el mismo; requiere decisión del usuario por programa.
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\pase_filerefs.py`
@@ -781,28 +781,28 @@ Páginas: `lestmtsref.pdf`, `FILENAME Statement` (p. 120); `hostunx.pdf`, `Readi
       `P-FILEREF-SIN-DEFINIR`."""
   ```
 
-**Caso `L0/l0_28_filename_archivo` (`capa: C`, `estado: revisado`, razonamiento: «lestmtsref, p. 120 (FILENAME), 134 (INFILE fileref) y 97 (FILE fileref)»).**
+**Caso `L0/l0_28_filename_archivo` (`capa: C`, `estado: revisado`, razonamiento: «lestmtsref, p. 120 (FILENAME), 134 (INFILE fileref), 97 (FILE fileref), y proc.pdf, p. 1394 (PROC IMPORT DATAFILE=fileref)»).**
 ```sas
 FILENAME entrada '.../entradas/lista.csv';
 FILENAME salida '.../salida/copia.csv';
 DATA WORK.lista;
-  INFILE entrada DLM=',' DSD FIRSTOBS=2;
-  INPUT codigo :$4. cantidad :8.;
+  INFILE entrada DLM=',' DSD FIRSTOBS=2 MISSOVER;
+  INPUT codigo :$4. cantidad :$5.;
 RUN;
 DATA _NULL_;
   SET WORK.lista;
-  FILE salida DSD;
+  FILE salida DLM=',';
   PUT codigo cantidad;
 RUN;
 ```
-`lista.csv`: `codigo,cantidad` / `K001,5` / `K002,12`. Esperado a mano, `esperado/copia.csv` (sin encabezado: `PUT` no lo escribe): `K001,5` / `K002,12`. Invariante: `lineas(copia) == filas(lista) == 2`.
+`lista.csv`: `codigo,cantidad` / `K001,cinco` / `K002,doce`. Esperado a mano, `esperado/copia.csv` (sin encabezado: `PUT` no lo escribe): `K001,cinco` / `K002,doce`. Invariante: `lineas(copia) == filas(lista) == 2`. Se usan valores de texto y un delimitador explícito para aislar `FILENAME`: `DSD` en la salida y el formato numérico implícito de `PUT` pertenecen a D2-11 y no se vuelven a asumir aquí.
 
-- [ ] **Step 1: Write the failing tests.** `filerefs_de_programa` de `FILENAME a 'x.csv'; FILENAME b PIPE 'ls'; FILENAME a CLEAR;` da solo `b` con `metodo == "pipe"`; `aplicar_filerefs` deja el `read_file` del caso con `datafile == "'.../entradas/lista.csv'"` y el `write_file` con `outfile` la ruta de `salida`; `FILENAME p PIPE 'ls /x'` da `P-FILENAME-PIPE` sin Job parcial; `INFILE zz;` sin `FILENAME` da `P-FILEREF-SIN-DEFINIR`; `contextos_de_plan` da `ruta_lista` y `ruta_lista_2` con las dos rutas; el caso coincide en el anillo B.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_filerefs.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** y correr `tests/unit/test_plumbing_categorias.py` (el `plumbing.yaml` no debe volver a tratar `FILENAME` de archivo como infraestructura descartada).
-- [ ] **Step 4: Run** los tests, el golden, `tests/unit/test_catalogo_sas.py` y `uv run ruff check src tests tools`.
-- [ ] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_28_filename_archivo`; sin Studio, «lote C pendiente».
-- [ ] **Step 6: Commit.** `hito N n: FILENAME a archivo resuelto por pase de plan; PIPE pendiente con motivo`.
+- [x] **Step 1: Write the failing tests.** Se cubren declaraciones/CLEAR, secretos, `INFILE`, `FILE`, `PROC IMPORT DATAFILE=fileref`, fileref faltante, PIPE sin Job parcial, comparación exacta del archivo y mapa de contexto.
+- [x] **Step 2: Run tests to verify they fail.** Los tests primero fallaron por falta del parser/modelo y por el comparador/arnés sin soporte de archivos `.csv` crudos; se implementaron esas capacidades generales antes del caso.
+- [x] **Step 3: Implement** el pase de filerefs y su integración al análisis, plan, migración, contexto, flujo y hechos; el catálogo documenta el alcance y los bloqueos restantes.
+- [x] **Step 4: Run** regresiones focales y golden; `tests/unit/test_validar_caso_studio.py`, `tests/unit/test_filerefs.py` y `tests/unit/test_migrar_corpus_anillo_b.py`: 212 aprobadas y 5 `xfail`; Ruff focal verde.
+- [x] **Step 5: Studio.** Se intentó `uv run python tools/validar_caso_studio.py l0_28_filename_archivo`; el Job se generó, pero el MCP local respondió `BRIDGE_DEAD` en `127.0.0.1:3927`. El caso quedó en `out/studio-pendientes.json`; no cuenta como validación C.
+- [x] **Step 6: Commit.** `hito 267n: FILENAME local resuelto por fileref; PIPE pendiente con motivo`.
 
 ---
 
