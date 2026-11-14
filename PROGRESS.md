@@ -7202,3 +7202,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - La migración completa del programa grande redactado encontró 30 nodos `PROC CONTENTS`; los 30 ya quedan absorbidos por la región de carga externa de `p03_intrinsics`, por eso el caso completo emite 0 `P-WORK-INTROSPECCION`. Esta tarea no cambia esos bloques ni contabiliza como su cierre. La corrida no tuvo hallazgos de secretos ni fallo de seguridad.
 - TDD: la prueba de introspección falló primero con el código genérico. Después, `tests/unit/test_cli_migrar.py` + `tests/unit/test_catalogo_sas.py`: 62 aprobadas; `uv run ruff check src tests tools` y `git diff --check` verdes. La compuerta integral se ejecuta sobre el árbol staged de este hito.
 - Decisión y límite: solo el patrón explícito `WORK._ALL_` recibe este código; la introspección fuera de WORK o con opciones distintas queda sin clasificar hasta estudiarla. Sin Studio, conexión a base ni dependencia nueva.
+
+## Hito 243n. Evita traducir PROC APPEND sobre sí mismo
+
+- Fecha: 2026-11-14. Base: `702e3fd` (hito 242n), rama `codex/integrar-main-preflight`. MG-P6-04 / K-6.
+- `PROC APPEND` compara `BASE=` y `DATA=` tras completar `WORK` implícito y normalizar mayúsculas. Si ambos identifican la misma tabla, genera `P-APPEND-MISMA-TABLA` con línea y motivo, en lugar de emitir una unión que no reproduce la semántica no verificada.
+- Las 15 iteraciones estáticas del caso K-6 siguen expandiéndose, pero ahora quedan como 15 pendientes explícitos y ninguna unión falsa. El append ordinario con tablas distintas mantiene la regla `union` existente.
+- Fuentes y límite: `proc.pdf`, pp. 161–162 no demuestra la autocopia; no se afirma cuántas filas debería producir ni se retira el `xfail` del intérprete. K-6 sigue parcial.
+- TDD: la prueba nueva reprodujo primero una `union` para `BASE=DATA=`. Después, `test_ir_rules.py`, `test_k6_programa_pequeno.py` y la prueba CLI del pendiente: 48 aprobadas y 2 `xfail`; `uv run ruff check src tests tools` y `git diff --check` verdes. La compuerta integral se ejecuta sobre el árbol staged de este hito.
+- Decisión: conservar el hueco hasta contar con ejecución SAS verificable; los pendientes de alias SQL y ejecución en Studio siguen fuera de este hito.
+- Golden: la primera compuerta identificó la referencia anterior que fijaba 15 uniones de autocopia. Se reemplazó por el plan con 15 pendientes y se actualizó su hash canónico; siguen activas la igualdad exacta y la detección de diferencias estructurales. Las dos pruebas focales del golden pasan.

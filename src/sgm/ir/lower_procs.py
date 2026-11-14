@@ -13,6 +13,7 @@ _names = names_of
 
 REPORT_PROCS = frozenset({"print", "report", "tabulate", "contents"})
 P_WORK_INTROSPECCION = "P-WORK-INTROSPECCION"
+P_APPEND_MISMA_TABLA = "P-APPEND-MISMA-TABLA"
 
 # Opciones que el PROC IMPORT y el PROC EXPORT escriben como sentencia del cuerpo (`GETNAMES=YES;`)
 # o en la cabecera. Se leen del texto y no se suponen: el valor que falta queda en `None`.
@@ -82,6 +83,11 @@ def _work_all(data: str | None) -> bool:
     return bool(data and re.fullmatch(r"\s*work\s*\.\s*_all_\s*", data, re.IGNORECASE))
 
 
+def _same_dataset(left: str | None, right: str | None) -> bool:
+    """Compara referencias SAS con biblioteca implícita y sin distinguir mayúsculas."""
+    return bool(left and right and qualify(left).casefold() == qualify(right).casefold())
+
+
 def _report(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
     """Reporte impreso de un dataset. Su destino lo decide la política `reports` (pasada 2)."""
     statement = "; ".join([step.text, *step.body])
@@ -114,6 +120,15 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
             "Pendiente: P-WORK-INTROSPECCION; la salida enumera los miembros actuales de WORK, "
             "que dependen del estado de la sesión SAS y no de datos aportados al migrador",
             pending_code=P_WORK_INTROSPECCION,
+        )
+    elif name == "append" and _same_dataset(step.options.get("base"), data):
+        _unsupported(
+            step,
+            ev,
+            b,
+            "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= "
+            "identifican la misma tabla no está demostrada por la referencia SAS disponible",
+            pending_code=P_APPEND_MISMA_TABLA,
         )
     elif name == "sort":
         _sort(step, ev, b, data, out)

@@ -85,15 +85,15 @@
     },
     {
       "id": "op00005",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -104,44 +104,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00006",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -152,44 +131,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00007",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -200,44 +158,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00008",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -248,44 +185,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00009",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -296,44 +212,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00010",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -344,44 +239,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00011",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -392,44 +266,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00012",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -440,44 +293,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00013",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -488,44 +320,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00014",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -536,44 +347,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00015",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -584,44 +374,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00016",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -632,44 +401,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00017",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -680,44 +428,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00018",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -728,44 +455,23 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00019",
-      "kind": "union",
-      "status": "soportado",
+      "kind": "unsupported",
+      "status": "hueco",
       "placement": "flow",
-      "signature": "81458f63dc5a3795",
+      "signature": "8450a8ebd01b1605",
       "params": {
-        "sources": [
-          "WORK.cars_poc",
-          "WORK.cars_poc"
-        ]
+        "statement": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc",
+        "procedure": "append",
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-APPEND-MISMA-TABLA"
       },
       "evidence": [
         {
@@ -776,32 +482,11 @@
           "call": "30:append_all"
         }
       ],
-      "notes": [],
-      "component": {
-        "name": "tUnite",
-        "rung": 2,
-        "rule": "02-union",
-        "version": 1,
-        "confidence": "alta",
-        "status": "candidato",
-        "needs_review": false,
-        "alternatives": []
-      },
-      "valor_componente": {
-        "valor": "tUnite",
-        "fuente": [
-          {
-            "file": "client/client_poc.sas",
-            "line_start": 22,
-            "line_end": 25,
-            "label": "Ciclo_Append",
-            "call": "30:append_all"
-          }
-        ],
-        "regla": "02-union@1",
-        "confianza": "alta",
-        "hechos": null
-      }
+      "notes": [
+        "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= identifican la misma tabla no está demostrada por la referencia SAS disponible"
+      ],
+      "component": null,
+      "valor_componente": null
     },
     {
       "id": "op00020",
@@ -14411,186 +14096,6 @@
   "edges": [
     {
       "src": "op00004",
-      "dst": "op00005",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00005",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00006",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00006",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00007",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00007",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00008",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00008",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00009",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00009",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00010",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00010",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00011",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00011",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00012",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00012",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00013",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00013",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00014",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00014",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00015",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00015",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00016",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00016",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00017",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00017",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00018",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00018",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00019",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
-      "dst": "op00019",
-      "dataset": "WORK.cars_poc",
-      "materialize": null
-    },
-    {
-      "src": "op00004",
       "dst": "op00020",
       "dataset": "WORK.cars_poc",
       "materialize": null
@@ -15893,6 +15398,19 @@
           "line_end": 10,
           "label": "Programa",
           "call": null
+        }
+      ]
+    },
+    {
+      "signature": "8450a8ebd01b1605",
+      "reason": "PROC_NO_SOPORTADO",
+      "evidence": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 22,
+          "line_end": 25,
+          "label": "Ciclo_Append",
+          "call": "30:append_all"
         }
       ]
     },
@@ -20849,23 +20367,6 @@
           "op00690"
         ],
         [
-          "op00005",
-          "op00006",
-          "op00007",
-          "op00008",
-          "op00009",
-          "op00010",
-          "op00011",
-          "op00012",
-          "op00013",
-          "op00014",
-          "op00015",
-          "op00016",
-          "op00017",
-          "op00018",
-          "op00019"
-        ],
-        [
           "op00021"
         ],
         [
@@ -20941,6 +20442,25 @@
           "line_end": 10,
           "label": "Programa",
           "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "PROC_NO_SOPORTADO",
+        "dueno": "joseph",
+        "se_cierra_con": "rules/sas/procs/",
+        "nota": "proc append\nbase=WORK.cars_poc\ndata=WORK.cars_poc"
+      },
+      "signature": "8450a8ebd01b1605",
+      "fuente": [
+        {
+          "file": "client/client_poc.sas",
+          "line_start": 22,
+          "line_end": 25,
+          "label": "Ciclo_Append",
+          "call": "30:append_all"
         }
       ]
     },

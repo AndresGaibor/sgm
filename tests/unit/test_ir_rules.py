@@ -323,6 +323,15 @@ def test_proc_append_es_union_proc_import_read_file_y_export_write_file():
     assert _kinds(ops) == ["union", "read_file", "write_file"]
 
 
+def test_proc_append_sobre_la_misma_tabla_queda_pendiente():
+    for base, data in (("x", "x"), ("x", "work.x"), ("Work.Ventas", "work.ventas")):
+        (op,) = _ops(f"proc append base={base} data={data}; run;")
+        assert op.kind == "unsupported", (base, data)
+        assert op.status == "hueco"
+        assert op.params["pending_code"] == "P-APPEND-MISMA-TABLA"
+        assert "no está demostrada" in op.notes[0]
+
+
 def test_proc_means_es_aggregate():
     ops = _ops("proc means data=x; class g; var v; run;")
     assert _kinds(ops) == ["aggregate"]

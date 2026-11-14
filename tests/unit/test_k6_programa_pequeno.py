@@ -124,12 +124,18 @@ def test_anillo_a_deja_pendiente_el_borrado_de_tablas_de_sas_studio():
     assert sorted(evidencias) == [28, 44, 60, 86]
 
 
-def test_expansion_estatica_genera_quince_operaciones_append():
+def test_expansion_estatica_deja_quince_append_sobre_si_mismo_pendientes():
     texto = (CASO / "programa.sas").read_text(encoding="utf-8")
     analisis = analyze_program({"programa.sas": texto})
     plan = compile_file(analisis, "programa.sas", project_base()).plan
 
-    assert sum(operador.kind == "union" for operador in plan.graph.operators()) == 15
+    pendientes = [
+        operador
+        for operador in plan.graph.operators()
+        if operador.params.get("pending_code") == "P-APPEND-MISMA-TABLA"
+    ]
+    assert len(pendientes) == 15
+    assert not any(operador.kind == "union" for operador in plan.graph.operators())
 
 
 def test_anillo_b_sin_repeticiones_conserva_las_filas_base(tmp_path):

@@ -160,6 +160,20 @@ def test_contents_de_una_tabla_concreta_no_usa_pendiente_de_introspeccion(tmp_pa
     assert "P-OPERADOR-SIN-SOPORTE" in pendientes
 
 
+def test_append_de_misma_tabla_sale_como_pendiente_con_linea(tmp_path):
+    programa = tmp_path / "append_propio.sas"
+    programa.write_text("proc append base=work.datos data=datos; run;\n", encoding="utf-8")
+
+    resultado = _correr(tmp_path, programa)
+
+    assert resultado.exit_code == 0, resultado.output
+    pendientes = _leer(tmp_path / "salida" / "append_propio", "pendientes.md")
+    assert "P-APPEND-MISMA-TABLA" in pendientes
+    assert "no está demostrada" in pendientes
+    assert "| 1 |" in pendientes
+    assert "P-OPERADOR-SIN-SOPORTE" not in pendientes
+
+
 def test_migrar_carpeta_conserva_rutas_y_nombres_repetidos(tmp_path):
     fuente = tmp_path / "programas"
     anidada = fuente / "subcarpeta"
