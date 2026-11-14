@@ -12,6 +12,7 @@ from sgm.ir.proc_rules import declared, lower_declared, names_of
 _names = names_of
 
 REPORT_PROCS = frozenset({"print", "report", "tabulate", "contents"})
+P_WORK_INTROSPECCION = "P-WORK-INTROSPECCION"
 
 # Opciones que el PROC IMPORT y el PROC EXPORT escriben como sentencia del cuerpo (`GETNAMES=YES;`)
 # o en la cabecera. Se leen del texto y no se suponen: el valor que falta queda en `None`.
@@ -76,6 +77,11 @@ def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
     b.op("write_file", params, ev)
 
 
+def _work_all(data: str | None) -> bool:
+    """`WORK._ALL_` depende del estado de la sesión y no de una tabla de entrada fija."""
+    return bool(data and re.fullmatch(r"\s*work\s*\.\s*_all_\s*", data, re.IGNORECASE))
+
+
 def _report(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
     """Reporte impreso de un dataset. Su destino lo decide la política `reports` (pasada 2)."""
     statement = "; ".join([step.text, *step.body])
@@ -100,6 +106,15 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
     out = step.options.get("out")
     if name in REPORT_PROCS and not out:  # con OUT= produce un dataset que otros pasos leen
         _report(step, ev, b, data)
+    elif name == "contents" and out and _work_all(data):
+        _unsupported(
+            step,
+            ev,
+            b,
+            "Pendiente: P-WORK-INTROSPECCION; la salida enumera los miembros actuales de WORK, "
+            "que dependen del estado de la sesión SAS y no de datos aportados al migrador",
+            pending_code=P_WORK_INTROSPECCION,
+        )
     elif name == "sort":
         _sort(step, ev, b, data, out)
     elif (spec := declared(name)) is not None:  # append, means, summary, freq: en YAML (F1.4)
@@ -255,11 +270,16 @@ def _sort_keys(clause: str | None) -> tuple[list[str], list[bool], str | None]:
     return nombres, descendentes, None
 
 
-def _unsupported(step: Proc, ev: Evidence, b: Builder, note: str) -> None:
+def _unsupported(
+    step: Proc, ev: Evidence, b: Builder, note: str, *, pending_code: str | None = None
+) -> None:
     statement = "; ".join([step.text, *step.body])
+    params = {"statement": statement, "procedure": step.name, "reason": "PROC_NO_SOPORTADO"}
+    if pending_code:
+        params["pending_code"] = pending_code
     b.op(
         "unsupported",
-        {"statement": statement, "procedure": step.name, "reason": "PROC_NO_SOPORTADO"},
+        params,
         ev,
         status="hueco",
         notes=[note],

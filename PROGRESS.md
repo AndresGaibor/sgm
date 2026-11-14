@@ -7193,3 +7193,12 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - `docs/conventions.md`, `docs/ronda2.md` y la tabla de equivalencias del plan maestro ahora reflejan la política y su límite.
 - TDD: las pruebas nuevas fallaron primero en `TABULATE` desconocido y en `REPORT` convertido a filas crudas. Después, `tests/unit/test_reportes.py`: 10 aprobadas; `uv run ruff check src tests tools` y `git diff --check` verdes. Suite completa: 4.105 aprobadas, 350 omitidas y 145 `xfail`; el cierre integral `uv run python tools/ci.py` se ejecuta sobre el árbol staged de este hito.
 - Decisiones y límites: no se inventa la salida de `REPORT`, `TABULATE` o `CONTENTS`; para esos casos se conserva el pendiente identificable. Este ajuste no requiere Studio, base de datos, fixture real ni dependencia nueva.
+
+## Hito 242n. Pendiente específico para introspección dinámica de WORK
+
+- Fecha: 2026-11-13. Base: `b4e8481` (hito 241n), rama `codex/integrar-main-preflight`. MG-P6-04, alineado con el pendiente previsto en el Plan K.
+- `PROC CONTENTS DATA=WORK._ALL_ ... OUT=` ahora emite `P-WORK-INTROSPECCION` con la línea y la causa: enumera miembros de la biblioteca de la sesión, no una entrada estática. La forma se apoya en `proc.pdf, p. 547`. El código no se activa para `DATA=WORK.<tabla>`; esa forma conserva `P-OPERADOR-SIN-SOPORTE`.
+- El emisor toma el código específico si la IR lo declara. El catálogo marca `PROC CONTENTS` como `no_reconocida` y delimita la forma cubierta. `PROC CONTENTS OUT=` de tabla concreta sigue pendiente; no se inventa su dataset de metadatos.
+- La migración completa del programa grande redactado encontró 30 nodos `PROC CONTENTS`; los 30 ya quedan absorbidos por la región de carga externa de `p03_intrinsics`, por eso el caso completo emite 0 `P-WORK-INTROSPECCION`. Esta tarea no cambia esos bloques ni contabiliza como su cierre. La corrida no tuvo hallazgos de secretos ni fallo de seguridad.
+- TDD: la prueba de introspección falló primero con el código genérico. Después, `tests/unit/test_cli_migrar.py` + `tests/unit/test_catalogo_sas.py`: 62 aprobadas; `uv run ruff check src tests tools` y `git diff --check` verdes. La compuerta integral se ejecuta sobre el árbol staged de este hito.
+- Decisión y límite: solo el patrón explícito `WORK._ALL_` recibe este código; la introspección fuera de WORK o con opciones distintas queda sin clasificar hasta estudiarla. Sin Studio, conexión a base ni dependencia nueva.

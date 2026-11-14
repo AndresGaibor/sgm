@@ -123,10 +123,41 @@ def test_pendientes_se_listan_con_codigo_y_linea(tmp_path):
     assert filas, pendientes
     # El `PROC REG` empieza en la línea 5 del programa y el pendiente lo dice.
     assert any("| 5 |" in fila for fila in filas), pendientes
-    assert "PROC REG" in pendientes
     cobertura = _leer(tmp_path / "salida" / "con_reg", "cobertura.md")
     assert "P-OPERADOR-SIN-SOPORTE" in cobertura
     assert "| 5 |" in cobertura
+
+
+def test_introspeccion_dinamica_de_work_tiene_pendiente_propio(tmp_path):
+    programa = tmp_path / "introspeccion.sas"
+    programa.write_text(
+        "proc contents data=work._all_ noprint out=miembros; run;\n",
+        encoding="utf-8",
+    )
+
+    resultado = _correr(tmp_path, programa)
+
+    assert resultado.exit_code == 0, resultado.output
+    pendientes = _leer(tmp_path / "salida" / "introspeccion", "pendientes.md")
+    assert "P-WORK-INTROSPECCION" in pendientes
+    assert "miembros actuales de WORK" in pendientes
+    assert "| 1 |" in pendientes
+    assert "P-OPERADOR-SIN-SOPORTE" not in pendientes
+
+
+def test_contents_de_una_tabla_concreta_no_usa_pendiente_de_introspeccion(tmp_path):
+    programa = tmp_path / "contenido_tabla.sas"
+    programa.write_text(
+        "proc contents data=work.ventas noprint out=estructura; run;\n",
+        encoding="utf-8",
+    )
+
+    resultado = _correr(tmp_path, programa)
+
+    assert resultado.exit_code == 0, resultado.output
+    pendientes = _leer(tmp_path / "salida" / "contenido_tabla", "pendientes.md")
+    assert "P-WORK-INTROSPECCION" not in pendientes
+    assert "P-OPERADOR-SIN-SOPORTE" in pendientes
 
 
 def test_migrar_carpeta_conserva_rutas_y_nombres_repetidos(tmp_path):

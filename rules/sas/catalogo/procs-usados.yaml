@@ -22,8 +22,8 @@ entries:
 - id: contents
   nombre: PROC CONTENTS
   fuente: proc.pdf, p. 541
-  estado: no_verificada
-  nota: '30 usos; describe la estructura de un dataset. Es inspección, no transformación'
+  estado: no_reconocida
+  nota: '30 usos; DATA=WORK._ALL_ con OUT= genera metadatos de los miembros de la sesión y queda como P-WORK-INTROSPECCION (proc.pdf, p. 547); las salidas OUT= de una tabla concreta siguen pendientes'
 - id: upload
   nombre: PROC UPLOAD
   fuente: connref.pdf, p. 247

@@ -256,7 +256,8 @@ class _Job:
             self.pendientes.append(PendienteMigracion(CONFIG_RESUELTA, motivo, _linea(op)))
             return
         motivo = op.notes[0] if op.notes else f"el operador '{op.kind}' no tiene componente"
-        self.pendientes.append(PendienteMigracion(SIN_SOPORTE, motivo, _linea(op)))
+        codigo = str(op.params.get("pending_code") or SIN_SOPORTE)
+        self.pendientes.append(PendienteMigracion(codigo, motivo, _linea(op)))
 
     def _lectura(self, op: Operator, x: int) -> None:
         tabla = str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]).lower()
