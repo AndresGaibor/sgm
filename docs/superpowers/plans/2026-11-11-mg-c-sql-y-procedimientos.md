@@ -760,41 +760,42 @@ PROC TRANSPOSE DATA=WORK.largo OUT=WORK.ancho PREFIX=q; BY id; ID mes; VAR monto
 El programa real grande tiene 216 `PROC DELETE`, 30 `PROC CONTENTS` y 31 `PROC SORT`, más un bucle de `PROC APPEND`. Páginas (`proc.pdf`): `DELETE Procedure` (p. 837), `CONTENTS Procedure` (p. 541), `COPY Procedure` (p. 573), `DATASETS Procedure` (p. 613). Hoy `PROC DELETE` y `PROC DATASETS` caen en `PROC_NO_SOPORTADO` y `PROC CONTENTS` en `REPORTE` (política `reports: discard`).
 
 **Decisión (se escribe en `docs/politica-procedimientos.md` y en `PROGRESS.md`, «Decisiones», sin esperar al usuario):**
-- *Opción elegida:* `PROC DELETE`, el `DELETE` de `PROC DATASETS` y `PROC CONTENTS` **sobre `WORK` o sin biblioteca** se omiten con aviso `A-PROC-LIMPIEZA-OMITIDO` (un operador `unsupported` con `reason: LIMPIEZA`, que la pasada 2 trata como el reporte descartado). Razón: las tablas de `WORK` de un programa SAS son intermedias de un solo programa y en un Job de Talend viven en el flujo; borrarlas antes de recrearlas (los 216 usos) no tiene efecto observable. Sobre cualquier otra biblioteca borran datos persistentes: queda `Pendiente: P-DELETE-PERSISTENTE`, sin traducir.
+- *Opción elegida:* `PROC DELETE` se omite con aviso `A-PROC-LIMPIEZA-OMITIDO` solo si `DATA=` demuestra que todos los miembros son de `WORK` (el `WORK` implícito de `PROC DELETE` está documentado). `PROC DATASETS DELETE`/`KILL` requieren `LIBRARY=WORK` explícito; la guía dice que la biblioteca por defecto es «normalmente WORK», por eso el caso sin biblioteca queda como `P-DELETE-BIBLIOTECA-SIN-DEMOSTRAR` (`proc.pdf`, pp. 616, 627). `PROC CONTENTS DATA=WORK.<miembro>` sin `OUT=` se omite como salida diagnóstica con `reports=discard`; con `reports=log/csv` sigue pendiente, y no se omite si la biblioteca no está demostrada como `WORK`. Razón: los temporales de `WORK` viven en el flujo de Talend, y no hay que inferir ni una biblioteca ni un borrado persistente. Los librefs permanentes literales quedan como `P-DELETE-PERSISTENTE`; los dinámicos o ausentes, sin biblioteca demostrada.
 - *Alternativa:* traducir a `tFileDelete` (archivos) o a `DROP TABLE IF EXISTS` (base). Qué cambia: el Job destruiría datos de producción por una sentencia de limpieza cuyo efecto el SAS no demuestra que sea intencional; requiere una decisión del usuario por programa (`decisiones/<programa>.*.yaml`, nunca en `src/`).
-- `PROC COPY IN=a OUT=b` sin `SELECT`: `P-COPY-SIN-LISTA` (copia todos los datasets de la biblioteca: hace falta enumerarla en ejecución); con `SELECT x y`: una lectura y una escritura por tabla, si `b` no es persistente; si lo es, `P-COPY-PERSISTENTE`.
+- `PROC COPY IN=a OUT=b` sin `SELECT`: `P-COPY-SIN-LISTA` (copia todos los datasets de la biblioteca: hace falta enumerarla en ejecución); con `SELECT x y`: una lectura y una escritura por tabla hacia `WORK`; si `b` es persistente, `P-COPY-PERSISTENTE`; si `a` y `b` son la misma biblioteca, `P-COPY-MISMA-BIBLIOTECA`.
 - Esto fija también lo que hace `DROP` y `DELETE FROM` de C-12 y C-13: mismo criterio (`WORK` omite o versiona; otra biblioteca, pendiente).
 
 **Files:**
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\docs\politica-procedimientos.md`
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs_limpieza.py`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs.py` (`lower_proc`: ramas `delete`, `datasets`, `copy`, `contents`)
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\motivos.py` (línea 55, lista de motivos: agregar `LIMPIEZA`)
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\passes\p02_plumbing.py` (`_report`, línea 75: `LIMPIEZA` se descarta igual que `REPORTE` cuando la biblioteca es `WORK`)
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\procs-usados.yaml` (`delete`, `contents`: `estado: reconocida`, nota con la política; `datasets` y `copy`: entradas nuevas con p. 613 y p. 573)
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L6\l6_63_limpieza_work\{caso.yaml, programa.sas, entradas\ventas.csv, esperado\salida.csv}` (generado: especificación en `especificaciones_l6_procs.py`)
-- Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_proc_limpieza.py`
+- Create: `docs/politica-procedimientos.md`
+- Create: `src/sgm/ir/lower_procs_limpieza.py`, `src/sgm/ir/lower_procs_common.py` y `src/sgm/sas_scope.py`
+- Modify: `src/sgm/ir/lower_procs.py` (`lower_proc`: ramas `delete`, `datasets`, `copy`, `contents`; SORT pasa a `lower_procs_sort.py` para mantener módulos acotados)
+- Modify: `src/sgm/motivos.py` (agregar `LIMPIEZA`)
+- Modify: `src/sgm/passes/p02_plumbing.py` (registrar el aviso de WORK y métricas de omisión)
+- Modify: `rules/sas/catalogo/procs-usados.yaml` (`delete`, `contents`: `estado: reconocida`, nota con la política); create `rules/sas/catalogo/procedimientos-migrador.yaml` para `datasets` y `copy`, que no aparecen en `client_large.sas` y por tanto no pertenecen al catálogo de usos de ese programa.
+- Create: `tests/corpus/L6/l6_63_limpieza_work/{caso.yaml, programa.sas, entradas/VENTAS.csv, esperado/SALIDA.csv}` (generado desde `tools/corpus_lib/especificaciones_l6_procs.py`)
+- Test: `tests/unit/test_proc_limpieza.py`, `tests/unit/test_p02_plumbing.py`, `tests/unit/test_plumbing_categorias.py` y `tests/unit/test_proceso_colapso.py`
 
 **Interfaces:**
-- Consumes: `lower_proc(step: Proc, ev: Evidence, b: Builder) -> None`, `_unsupported(step, ev, b, note)` (`lower_procs.py:258`), `qualify(dataset)`.
-- Produces: `def lower_limpieza(step: Proc, ev: Evidence, b: Builder) -> None` y `def es_work(dataset: str | None) -> bool` (`WORK.x` o `x` sin biblioteca; no distingue mayúsculas).
+- Consumes: `lower_proc(step: Proc, ev: Evidence, b: Builder) -> None`, `unsupported(...)`, `qualify(dataset)` y comprobaciones de libref en `sgm.sas_scope`.
+- Produces: `lower_limpieza(step: Proc, ev: Evidence, builder: Builder) -> bool`; `is_work_delete` requiere `WORK` explícito o el default de `PROC DELETE` documentado. `PROC DATASETS` solo se omite con `LIBRARY=WORK` literal.
 
-**Caso `L6/l6_63_limpieza_work` (`capa: B`, `estado: revisado`, razonamiento: «proc, p. 837, 541 y 613: limpieza de WORK sin efecto observable»).**
+**Caso `L6/l6_63_limpieza_work` (`capa: B`, `estado: traducible`, razonamiento: limpieza de `WORK` y salida diagnóstica limitada por fuente SAS).**
 ```sas
 PROC IMPORT DATAFILE='.../entradas/ventas.csv' OUT=WORK.VENTAS DBMS=CSV REPLACE; GETNAMES=YES; RUN;
 DATA WORK.tmp; SET WORK.ventas; RUN;
 PROC CONTENTS DATA=WORK.tmp; RUN;
 PROC DELETE DATA=WORK.tmp; RUN;
+DATA WORK.ventas2; SET WORK.ventas; RUN;
 PROC DATASETS LIBRARY=WORK NOLIST; DELETE ventas2; QUIT;
 DATA WORK.salida; SET WORK.ventas; RUN;
 ```
-`ventas.csv`: `id,monto` / `1,10` / `2,40`. Esperado: `salida.csv` = `id,monto` / `1,10` / `2,40`. El programa migra **sin ningún pendiente** y con tres avisos `A-PROC-LIMPIEZA-OMITIDO` (`CONTENTS`, `DELETE`, `DATASETS DELETE`); `ventas2` no existe en el programa: `PROC DATASETS ... DELETE` de un miembro inexistente es un aviso de SAS, no un error (verificar en p. 613 a 620 con `grep`; si la página dice otra cosa, quitar esa línea del caso y dejar `Pendiente:`).
+`ventas.csv`: `id,monto` / `1,10` / `2,40`. Esperado: `salida.csv` = `id,monto` / `1,10` / `2,40`. El programa migra **sin ningún pendiente** y con tres avisos `A-PROC-LIMPIEZA-OMITIDO` (`CONTENTS`, `DELETE`, `DATASETS DELETE`). `ventas2` se crea antes de borrarse para no depender del comportamiento ante un miembro inexistente.
 
-- [ ] **Step 1: Write the failing tests.** `lower_limpieza` sobre `PROC DELETE DATA=WORK.tmp` da un `unsupported` con `reason == "LIMPIEZA"` y nota `A-PROC-LIMPIEZA-OMITIDO`; sobre `PROC DELETE DATA=LZ.tmp` da `P-DELETE-PERSISTENTE`; `PROC COPY` sin `SELECT` da `P-COPY-SIN-LISTA`; el caso migra sin pendientes (hoy `PROC_NO_SOPORTADO` por `DELETE` y `DATASETS`).
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_proc_limpieza.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** y escribir `docs/politica-procedimientos.md` con las tres decisiones (limpieza, `COPY`, y la de C-22 cuando esté), cada una con su alternativa y lo que cambia.
-- [ ] **Step 4: Run** los tests, los casos de L8 que tienen `PROC DELETE` y `PROC DATASETS` (`tests/unit/test_corpus_totales.py`, `tests/unit/test_corpus_validaciones.py`: sus pendientes bajan o quedan igual), `tests/unit/test_proceso_*` y el golden.
-- [ ] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito N n: politica de limpieza: PROC DELETE, CONTENTS y DATASETS en WORK se omiten con aviso`.
+- [x] **Step 1: Write the failing tests.** Las pruebas distinguen WORK, biblioteca permanente y biblioteca ambigua; `PROC COPY` sin `SELECT`, hacia biblioteca persistente o sobre la misma biblioteca queda pendiente; el caso integral exige tres avisos y cero pendientes.
+- [x] **Step 2: Run tests to verify they fail.** Las pruebas rojas reprodujeron que el patrón genérico clasificaba borrados persistentes como fontanería, además de los PROC sin lowering.
+- [x] **Step 3: Implement** lowering, avisos, política documentada, catálogos y caso reproducible. La política documenta limpieza, `COPY` y reportes (`reports=discard`), con alternativa y efecto.
+- [x] **Step 4: Run** pruebas focales, catálogos, corpus L6, plumbing, procesos y clasificación; la suite integral cubre los casos de L8 y el golden.
+- [x] **Step 5: Run** `uv run ruff check .` y `git diff --check`; compuerta integral `uv run python tools/ci.py`. Commit local: `hito 245n: protege limpiezas y copias por alcance de biblioteca`.
 
 ---
 

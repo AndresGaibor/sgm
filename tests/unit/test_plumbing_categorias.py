@@ -54,3 +54,19 @@ def test_el_paso_cercano_no_cae_en_la_categoria(categoria, _paso, cercano):
 
 def test_macro_de_borrado_no_se_confunde_con_el_visor():
     assert _categoria("%web_drop_table(WORK.resultado);") is None
+
+
+@pytest.mark.parametrize(
+    ("paso", "categoria"),
+    [
+        ("proc delete data=work.x;", "borrado_datasets"),
+        ("proc delete data=x;", "borrado_datasets"),
+        ("proc delete data=clientes.x;", None),
+        ("proc delete library=clientes data=x;", None),
+        ("proc delete data=work.x library=clientes;", None),
+        ("proc delete data=&library..x;", None),
+        ("proc delete;", None),
+    ],
+)
+def test_solo_omiten_borrados_cuya_biblioteca_work_esta_demostrada(paso, categoria):
+    assert _categoria(paso) == categoria

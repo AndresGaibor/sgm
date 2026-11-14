@@ -31,11 +31,12 @@
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
-      "signature": "f3bbf4970b5d8468",
+      "signature": "ff741d71f00c3b86",
       "params": {
         "statement": "proc datasets lib=GCIDLL01 nolist; delete cars_poc",
         "procedure": "datasets",
-        "reason": "PROC_NO_SOPORTADO"
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-DELETE-PERSISTENTE"
       },
       "evidence": [
         {
@@ -47,7 +48,7 @@
         }
       ],
       "notes": [
-        "PROC DATASETS sin regla de migración"
+        "Pendiente: P-DELETE-PERSISTENTE; LIBRARY= nombra explícitamente una biblioteca distinta de WORK; se documenta en proc.pdf, pp. 616, 627"
       ],
       "component": null,
       "valor_componente": null
@@ -15389,7 +15390,7 @@
   ],
   "gaps": [
     {
-      "signature": "f3bbf4970b5d8468",
+      "signature": "ff741d71f00c3b86",
       "reason": "PROC_NO_SOPORTADO",
       "evidence": [
         {
@@ -20434,7 +20435,7 @@
         "se_cierra_con": "rules/sas/procs/",
         "nota": "proc datasets lib=GCIDLL01 nolist; delete cars_poc"
       },
-      "signature": "f3bbf4970b5d8468",
+      "signature": "ff741d71f00c3b86",
       "fuente": [
         {
           "file": "client/client_poc.sas",

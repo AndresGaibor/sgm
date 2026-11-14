@@ -1,0 +1,19 @@
+nivel: L6
+construcciones:
+- PROC IMPORT
+- PROC CONTENTS
+- PROC DELETE
+- PROC DATASETS DELETE
+- WORK EXPLÍCITO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- SALIDA
+razonamiento: PROC DELETE (proc.pdf, pp. 839, 847), PROC CONTENTS (pp. 541, 547) y PROC DATASETS (pp. 613, 627) afectan o describen miembros explícitos de WORK. El miembro ventas2 se crea antes de borrarlo. La salida esperada conserva las dos filas de VENTAS; no se infieren tipos de producción ni una salida de metadatos.
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/proc/content/proc.pdf?locale=en
+invariantes:
+- filas(SALIDA) == 2
+- suma(SALIDA.monto) == 50

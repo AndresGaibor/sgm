@@ -24,6 +24,7 @@ from .especificaciones_l4_vectores import ESPECIFICACIONES_L4V
 from .especificaciones_l4b import ESPECIFICACIONES_L4B
 from .especificaciones_l5 import ESPECIFICACIONES_L5
 from .especificaciones_l6 import ESPECIFICACIONES_L6
+from .especificaciones_l6_procs import ESPECIFICACIONES_L6_PROCS
 from .expansor_macros import expandir
 
 REPO = Path(__file__).resolve().parents[2]
@@ -167,6 +168,10 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
         ruta = directorio / "programa.sas"
         ruta.write_text(spec["programa"], encoding="utf-8", newline="\n")
         escritos.append(ruta)
+    if nivel == "L6" and "programa" in spec:
+        ruta = directorio / "programa.sas"
+        ruta.write_text(spec["programa"], encoding="utf-8", newline="\n")
+        escritos.append(ruta)
     if nivel == "L6":
         if "calculo_salidas" in spec:
             for nombre, tabla in calcular_l6_salidas(spec).items():
@@ -189,7 +194,7 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
 ESPECIFICACIONES = {
     "L4": {**ESPECIFICACIONES_L4, **ESPECIFICACIONES_L4B, **ESPECIFICACIONES_L4V},
     "L5": ESPECIFICACIONES_L5,
-    "L6": ESPECIFICACIONES_L6,
+    "L6": {**ESPECIFICACIONES_L6, **ESPECIFICACIONES_L6_PROCS},
 }
 
 

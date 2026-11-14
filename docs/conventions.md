@@ -83,7 +83,7 @@ Se usa **el componente más específico que existe** (hay más de mil en el cat�
 | `LIBNAME` de base de datos | `tDBConnection` (o el del motor: `tImpalaConnection`, `tOracleConnection`...) | en el prejob |
 | Lectura/escritura en base de datos | `tDBInput`, `tDBOutput` (o el del motor) | conexión compartida; esquema |
 | `PROC SQL` *pass-through* (`execute`, `connect to`) | `tDBRow`, `tDBInput` | SQL literal o variable de contexto |
-| `PROC DELETE`, `PROC DATASETS DELETE` | `tDBRow` con `DROP TABLE IF EXISTS`, o `tFileDelete` | |
+| `PROC DELETE`, `PROC DATASETS DELETE` | Sin componente para limpieza explícita de `WORK`; una biblioteca no demostrada queda pendiente | Solo se omite el borrado literal de `WORK`; no se infiere `DROP TABLE` ni borrado de archivos (`proc.pdf`, pp. 839, 847) |
 | `PROC APPEND` | `tDBOutput` con acción `INSERT` | |
 | `%INCLUDE` estático | `tRunJob` | Job hijo del archivo incluido |
 | `%DO i=1 %TO n` | `tLoop` o `tFlowToIterate` + `tRunJob` | contador como variable |

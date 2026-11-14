@@ -313,7 +313,7 @@ Es el contrato funcional. Cada fila es una tarea de traducción o está cubierta
 | `PROC TRANSPOSE` | `tDenormalize`, `tNormalize` o `tJavaRow` | Nombres de columnas dinámicos | L6 |
 | `PROC APPEND` | Salida en modo append | Solo `BASE=` y `DATA=` distintos y estáticos, sin modificadores; autocopia, referencias dinámicas y opciones adicionales quedan pendientes (`proc.pdf`, pp. 161–162) | L1 |
 | `PROC FORMAT` (formatos propios) | Mapa de búsqueda en `tMap` o expresión | Rangos y `other` | L4 |
-| `PROC DATASETS`, `COPY`, `DELETE`, `CONTENTS` | `tFileCopy`, `tFileDelete`, metadatos | Solo borrado de salidas propias | L8 |
+| `PROC DATASETS`, `COPY`, `DELETE`, `CONTENTS` | `tFileCopy`, `tFileDelete`, metadatos | Solo se omite un `PROC DELETE` que demuestra borrar `WORK`; los borrados permanentes quedan pendientes (`proc.pdf`, pp. 839, 847) | L8 |
 | `PROC PRINT` | `reports=discard` por defecto; `log` (`tLogRow`) o `csv` (`tFileOutputDelimited`) | Otros informes y ODS quedan pendientes si no se demuestra equivalencia | L9 |
 | `PROC REG/GLM/LOGISTIC`, `DS2`, `FedSQL`, `IML` | **Fuera de alcance**, con motivo en el informe | — | — |
 

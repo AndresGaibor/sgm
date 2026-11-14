@@ -1,0 +1,15 @@
+id: procedimientos-migrador
+kind: catalogo
+version: 1
+description: Procedimientos con tratamiento general documentado en el migrador.
+entries:
+  - id: datasets
+    nombre: PROC DATASETS
+    fuente: proc.pdf, p. 613
+    estado: reconocida
+    nota: 'DELETE o KILL solo se omite con LIBRARY=WORK explícito (pp. 616, 627); biblioteca no literal o ausente: P-DELETE-BIBLIOTECA-SIN-DEMOSTRAR; otra biblioteca literal: P-DELETE-PERSISTENTE.'
+  - id: copy
+    nombre: PROC COPY
+    fuente: proc.pdf, p. 573
+    estado: reconocida
+    nota: 'SELECT estático con OUT=WORK distinto de IN= produce lectura y escritura por miembro (pp. 573–575); sin SELECT: P-COPY-SIN-LISTA; destino persistente: P-COPY-PERSISTENTE; mismas bibliotecas: P-COPY-MISMA-BIBLIOTECA.'

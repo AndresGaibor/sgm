@@ -17,11 +17,11 @@ from sgm.ir.models import Graph, NotMigrated, Operator
 from sgm.ir.signature import signature
 from sgm.passes.base import PassContext, PassLog
 from sgm.passes.plumbing_patterns import match_plumbing
+from sgm.sas_scope import is_work_dataset, is_work_delete, is_work_library
 
 NAME = "p02_plumbing"
 _WORK_CLEANUP = re.compile(r"(?is)^\s*proc\s+(delete|datasets)\b")
 _LIBRARY = re.compile(r"(?i)\blib(?:rary)?\s*=\s*(\S+)")
-_DATA = re.compile(r"(?i)\bdata\s*=\s*(\S+)")
 
 
 def primary_text(op: Operator) -> str:
@@ -41,16 +41,15 @@ def op_text(op: Operator) -> str:
 
 
 def _work_cleanup(statement: str) -> bool:
-    """`proc delete` o `proc datasets` que solo tocan WORK (sin biblioteca se asume WORK)."""
+    """`proc delete` o `proc datasets` que demuestran tocar exclusivamente WORK."""
     if not _WORK_CLEANUP.match(statement):
         return False
     if re.match(r"(?is)^\s*proc\s+delete\b", statement):
-        data = _DATA.search(statement)
-        return data is None or data.group(1).lower().startswith("work")
+        return is_work_delete(statement)
     if not re.search(r"(?i)\b(delete|kill)\b", statement):
         return False
     library = _LIBRARY.search(statement)
-    return library is None or library.group(1).lower().startswith("work")
+    return bool(library and is_work_library(library.group(1)))
 
 
 def classify(op: Operator, report_policy: str = "discard") -> tuple[str, str, str] | None:
@@ -78,7 +77,24 @@ def _report(op: Operator, ctx: PassContext) -> bool:
     `csv`: un `write_file` a un fichero cuya ruta es un contexto del Job. Para otros PROCs,
     el contenido tabular no está demostrado y se conserva el hueco.
     """
-    if op.params.get("reason") != "REPORTE":
+    reason = op.params.get("reason")
+    if reason == "LIMPIEZA":
+        op.status = "reemplazado"
+        op.params["plumbing"] = "limpieza_work"
+        notice = next(
+            (note for note in op.notes if "A-PROC-LIMPIEZA-OMITIDO" in note),
+            "A-PROC-LIMPIEZA-OMITIDO: limpieza de un temporal de WORK",
+        )
+        ctx.plan.not_migrated.append(
+            NotMigrated(
+                op.id,
+                notice,
+                "No aplica: las tablas temporales de WORK no se materializan en Talend.",
+                list(op.evidence),
+            )
+        )
+        return True
+    if reason != "REPORTE":
         return False
     policy = ctx.project.reports
     procedure = str(op.params.get("procedure", "")).upper()
@@ -87,12 +103,25 @@ def _report(op: Operator, ctx: PassContext) -> bool:
     inputs = list(op.params.get("inputs", []))
     if policy == "discard":
         op.status = "reemplazado"
-        op.params["plumbing"] = "reporte_diagnostico"
+        contents_work = procedure == "CONTENTS" and any(
+            is_work_dataset(dataset, default_work=False) for dataset in inputs
+        )
+        if contents_work:
+            op.params["plumbing"] = "limpieza_work"
+            what = (
+                "A-PROC-LIMPIEZA-OMITIDO: salida diagnóstica de PROC CONTENTS descartada; "
+                "alcance WORK demostrado"
+            )
+            talend = "No aplica: reports=discard omite la salida diagnóstica del miembro de WORK."
+        else:
+            op.params["plumbing"] = "reporte_diagnostico"
+            what = f"PROC {procedure} de diagnóstico: reporte impreso"
+            talend = "No se migra: reporte de diagnóstico (reports = discard)"
         ctx.plan.not_migrated.append(
             NotMigrated(
                 op.id,
-                f"PROC {procedure} de diagnóstico: reporte impreso",
-                "No se migra: reporte de diagnóstico (reports = discard)",
+                what,
+                talend,
                 list(op.evidence),
             )
         )
@@ -118,7 +147,8 @@ def mark(graph: Graph, ctx: PassContext) -> PassLog:
     log = PassLog(NAME)
     for op in graph.operators():
         if _report(op, ctx):
-            log.metrics["reportes"] = log.metrics.get("reportes", 0) + 1
+            metric = "omisiones_work" if op.params.get("reason") == "LIMPIEZA" else "reportes"
+            log.metrics[metric] = log.metrics.get(metric, 0) + 1
             continue
         found = classify(op, ctx.project.reports)
         if found is None:

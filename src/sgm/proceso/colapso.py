@@ -17,7 +17,7 @@ from sgm.passes.plumbing_patterns import match_plumbing
 
 # Pasos que mueven o borran datos sin transformarlos. Son tipos de SAS, no nombres del cliente.
 TIPOS_SIN_DATOS = frozenset(
-    {"PROC DELETE", "PROC UPLOAD", "PROC DOWNLOAD", "PROC PWENCODE", "PROC DATASETS"}
+    {"PROC UPLOAD", "PROC DOWNLOAD", "PROC PWENCODE", "PROC DATASETS"}
 )
 
 

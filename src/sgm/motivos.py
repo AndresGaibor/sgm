@@ -53,6 +53,7 @@ NO_HUECO: tuple[str, ...] = (
     "CONEXION_SQL",  # conexión a un motor: fontanería
     "INCLUDE_DECLARADO",  # %include declarado: contexto y no migrado
     "REPORTE",  # reporte impreso: lo decide la política `reports`
+    "LIMPIEZA",  # limpieza de temporales de WORK: no tiene efecto persistente
 )
 
 _POR_CODIGO = {m.codigo: m for m in HUECOS}

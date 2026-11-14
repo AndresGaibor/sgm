@@ -110,10 +110,9 @@ entries:
   flags:
   - i
 - id: borrado_datasets
-  what: PROC DELETE de un dataset de trabajo o de una tabla de la base
-  reason: Elimina datasets temporales antes de reescribirlos; Talend no materializa WORK.
-  talend: No aplica para WORK. Para una tabla de la base, la acción de tabla del componente de salida (DROP_CREATE/CLEAR)
-    la reemplaza.
+  what: PROC DELETE sobre datasets de WORK
+  reason: Solo se omite si DATA= y cualquier LIBRARY= demuestran que todos los miembros borrados pertenecen a WORK; los borrados permanentes quedan pendientes.
+  talend: No se materializan tablas temporales de WORK en el flujo; no se genera una acción destructiva para bibliotecas permanentes.
   pattern: ^\s*proc\s+delete\b
   flags:
   - i

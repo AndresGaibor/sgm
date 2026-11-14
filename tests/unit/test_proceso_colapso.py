@@ -37,6 +37,12 @@ def test_los_pasos_de_borrado_son_fontaneria_y_no_cuentan():
     assert colapsar(modelo, {}).pasos_totales == 6
 
 
+def test_el_borrado_de_una_biblioteca_permanente_no_es_fontaneria():
+    modelo = _modelo("proc delete data=clientes.tabla; run;")
+    borrado = modelo.steps[0]
+    assert not es_fontaneria(borrado)
+
+
 def test_los_bloques_se_cuentan_por_etapa_del_primer_paso():
     modelo = _modelo()
     etapa = lambda paso: "carga" if paso.line <= 3 else "salida"  # noqa: E731

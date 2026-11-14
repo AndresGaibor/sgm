@@ -13,7 +13,7 @@ entries:
   nombre: PROC DELETE
   fuente: proc.pdf, p. 837
   estado: reconocida
-  nota: '216 usos; PROC DELETE limitado a WORK se registra como limpieza de flujo y se omite en Talend porque no materializa temporales. Bibliotecas permanentes no se descartan.'
+  nota: '216 usos; solo se omite con aviso cuando DATA= demuestra miembros de WORK (proc.pdf, pp. 839, 847); bibliotecas permanentes o referencias dinámicas quedan pendientes como P-DELETE-PERSISTENTE.'
 - id: sort
   nombre: PROC SORT
   fuente: proc.pdf, p. 2460
@@ -22,8 +22,8 @@ entries:
 - id: contents
   nombre: PROC CONTENTS
   fuente: proc.pdf, p. 541
-  estado: no_reconocida
-  nota: '30 usos; DATA=WORK._ALL_ con OUT= genera metadatos de los miembros de la sesión y queda como P-WORK-INTROSPECCION (proc.pdf, p. 547); las salidas OUT= de una tabla concreta siguen pendientes'
+  estado: reconocida
+  nota: '30 usos; DATA=WORK.<miembro> sin OUT= y con reports=discard omite la salida diagnóstica con aviso; con reports=log/csv sigue pendiente. WORK._ALL_ OUT= queda como P-WORK-INTROSPECCION (p. 547) y las salidas OUT= de una tabla concreta siguen pendientes.'
 - id: upload
   nombre: PROC UPLOAD
   fuente: connref.pdf, p. 247

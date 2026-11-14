@@ -18,6 +18,8 @@ from pathlib import Path
 
 import yaml
 
+from sgm.sas_scope import is_work_delete
+
 ROOT = Path(__file__).resolve().parents[3]
 PLUMBING_YAML = ROOT / "rules" / "sas" / "plumbing.yaml"
 _BANDERAS = {"i": re.IGNORECASE}
@@ -57,4 +59,12 @@ PLUMBING_PATTERNS: tuple[PlumbingPattern, ...] = cargar()
 
 def match_plumbing(statement: str) -> PlumbingPattern | None:
     """Primer patrón de fontanería que coincide con el texto de un paso, o None."""
-    return next((p for p in PLUMBING_PATTERNS if p.pattern.search(statement)), None)
+    return next(
+        (
+            p
+            for p in PLUMBING_PATTERNS
+            if p.pattern.search(statement)
+            and (p.category != "borrado_datasets" or is_work_delete(statement))
+        ),
+        None,
+    )
