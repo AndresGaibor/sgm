@@ -41,7 +41,7 @@ def test_lectura_delimitada_aplica_separador_y_firstobs():
             infile_statement="infile '/datos/entrada.txt' dlm='|' firstobs=2",
             input_statement="input codigo",
             input_mode="list",
-            infile_options={"dlm": "|", "firstobs": 2},
+            infile_options={"dlm": "|", "firstobs": 2, "missover": True},
             delimiter="|",
             firstobs=2,
             input_names=["codigo"],
@@ -61,7 +61,7 @@ def test_lectura_delimitada_aplica_separador_y_firstobs():
 def test_infile_input_delimitado_llega_al_job_con_sus_opciones():
     plan = _plan(
         "data work.entrada;\n"
-        "infile '/datos/entrada.txt' dlm='|' firstobs=3;\n"
+        "infile '/datos/entrada.txt' dlm='|' firstobs=3 missover;\n"
         "input codigo;\n"
         "run;"
     )
@@ -80,11 +80,11 @@ def test_opciones_sas_sin_equivalencia_bloquean_el_nodo():
         _op(
             datafile="'/datos/entrada.txt'",
             file_format="delimited",
-            infile_statement="infile '/datos/entrada.txt' dsd dlm=','",
+            infile_statement="infile '/datos/entrada.txt' dsd dlm=',' lrecl=2048",
             input_statement="input codigo",
             input_mode="list",
             delimiter=",",
-            infile_options={"dsd": True, "dlm": ","},
+            infile_options={"dsd": True, "dlm": ",", "lrecl": 2048},
             outputs=["WORK.entrada"],
         ),
         [Column("codigo", "String")],
@@ -104,7 +104,7 @@ def test_fileref_sin_resolver_no_se_trata_como_ruta():
             file_format="delimited",
             input_mode="list",
             delimiter="|",
-            infile_options={"dlm": "|"},
+            infile_options={"dlm": "|", "missover": True},
             infile_statement="infile entrada dlm='|'",
             input_statement="input codigo",
         ),

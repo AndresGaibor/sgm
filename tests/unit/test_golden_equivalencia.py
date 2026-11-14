@@ -34,7 +34,7 @@ CAMPOS_ADITIVOS = {
     # Hito 104m: el `derive` de un DATA step conserva la fila y le agrega columnas; el de un
     # `SELECT` la reemplaza. La firma cambia con la marca, y por eso la referencia se regeneró.
     "modo": "`agrega` en el derive de un DATA step (hito 104m, DATA step vs SELECT)",
-    # Hito 121: `INFILE/INPUT` conservan opciones, campos, fuente y formato inferidos por sintaxis.
+    # Hito 121/256n: `INFILE/INPUT` conservan opciones, campos, fuente, informats y tipos SAS probados.
     "datafile": "ruta literal de INFILE (hito 121)",
     "file_format": "forma de lectura demostrada por INFILE/INPUT (hito 121)",
     "firstobs": "primera fila de INFILE (hito 121)",
@@ -43,7 +43,10 @@ CAMPOS_ADITIVOS = {
     "infile_statement": "sintaxis original de INFILE (hito 121)",
     "input_line": "línea de INPUT para pendientes de migración (hito 121)",
     "input_mode": "modalidad demostrada por INPUT (hito 121)",
-    "input_names": "nombres declarados por INPUT, sin inferir tipos (hito 121)",
+    "input_names": "nombres declarados por INPUT; tipos se registran por separado (hito 121)",
+    "input_types": "tipo numérico por lista o carácter demostrado por informat (hito 256n)",
+    "input_lengths": "largo carácter explícito en informat de lista (hito 256n)",
+    "input_informats": "informats literales del INPUT en lista (hito 256n)",
     "input_statement": "sintaxis original de INPUT (hito 121)",
     "statement": "sentencias originales de lectura (hito 121)",
     "unsupported_options": "opciones INFILE sin equivalencia identificada (hito 121)",

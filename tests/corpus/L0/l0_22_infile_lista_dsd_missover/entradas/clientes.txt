@@ -1,0 +1,5 @@
+id;nombre;saldo
+1;"Perez; Ana";100.5
+2;Luis;;
+3;"Gomez";7
+4;Mara

@@ -451,9 +451,9 @@ RUN;
 
 ---
 
-### Task D2-9: `INFILE/INPUT` en lista con `DSD`, `MISSOVER` y `TRUNCOVER` a `tFileInputDelimited` (MG-P2-02, parte 1; serie `n`)
+### Task D2-9: `INFILE/INPUT` en lista con `DSD`, `MISSOVER` y `FIRSTOBS` a `tFileInputDelimited` (MG-P2-02, parte 1; serie `n`)
 
-**Estado hoy:** el frontend extrae las opciones de `INFILE` (`infile_fields`, `datastep_io.py:25`) y de `INPUT` (`input_fields`, línea 66); `nodo_lectura` las convierte con `motivo_entrada_data_step`, y todo lo que no es delimitado simple queda `P-FORMATO-SIN-SOPORTE` o `P-INFILE-SIN-EQUIVALENCIA`. Páginas (`lestmtsref.pdf`): `INFILE Statement` (p. 134; `DSD`, `MISSOVER`, `TRUNCOVER`, `FLOWOVER` y `FIRSTOBS=` están dentro de esa entrada: ubicar con `grep -n "^DSD\|^MISSOVER\|^TRUNCOVER" docs/referencia/sas/lestmtsref.txt`) e `INPUT Statement: List` (p. 204, con el modificador `:`). Reglas: con `DSD` el delimitador entre comillas es dato, las comillas se quitan y dos delimitadores seguidos son un faltante; `MISSOVER` deja faltantes los campos que no llegan y no pasa a la línea siguiente; sin `MISSOVER` ni `TRUNCOVER` rige `FLOWOVER` (sigue en la línea siguiente), que `tFileInputDelimited` no reproduce: `Pendiente: P-INFILE-FLOWOVER`.
+**Alcance cerrado:** la forma en lista conserva `DSD`, `MISSOVER`, `FIRSTOBS` y el delimitador documentado por SAS (coma con `DSD` si falta `DLM`). `FLOWOVER` implícito no se traduce porque puede combinar registros. `TRUNCOVER` en lista queda `P-INFILE-TRUNCOVER-LISTA`: la guía distingue `MISSOVER` de `TRUNCOVER` y solo recomienda este último para entrada por columna o formateada. Páginas: entrada `INFILE Statement` (catálogo indexado p. 134; reglas detalladas y ejemplo de lista en pp. 129–137 y 152 del texto) e `INPUT Statement: List` (indexada p. 204; texto impreso p. 192, modificador `:`). Los tipos se derivan solo del `INPUT` literal: lista sin informat numérica; informat `$w.` carácter con largo w.
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_infile.py`
@@ -472,18 +472,19 @@ RUN;
   def leer_lista(
       lineas: Sequence[str], variables: Sequence[tuple[str, str | None]],
       dlm: str, dsd: bool, missover: bool, firstobs: int = 1,
+      truncover: bool = False,
   ) -> list[dict[str, str | None]]:
       """Anillo B: lectura en lista. `variables` = (nombre, informat o None). Sin DSD los
       delimitadores consecutivos cuentan como uno; con DSD cada uno separa un campo y el vacio
-      es None. Linea corta sin MISSOVER ni TRUNCOVER:
-      NoSoportadoEnInterprete('infile', 'P-INFILE-FLOWOVER')."""
+      es None. FLOWOVER implícito produce `P-INFILE-FLOWOVER`; TRUNCOVER en lista produce
+      `P-INFILE-TRUNCOVER-LISTA`."""
   # desde_plan_infile.py
   def nodo_infile_delimitado(op, esquema, unico, x, y, ruta_java=None) -> Resultado:
       """`tFileInputDelimited` con `FIELDSEPARATOR`, `TEXT_ENCLOSURE` `"` si hay DSD y
       `HEADER` = FIRSTOBS-1. Con FLOWOVER implicito: `P-INFILE-FLOWOVER`."""
   ```
 
-**Caso `L0/l0_22_infile_lista_dsd_missover` (`capa: C`, `estado: pendiente_revision` hasta fijar en p. 134 que el último delimitador de `2;Luis;` deja `saldo` faltante; razonamiento: «lestmtsref, p. 134 (DSD, MISSOVER, FIRSTOBS) y p. 204 (lista con modificador `:`)»).**
+**Caso `L0/l0_22_infile_lista_dsd_missover` (`capa: C`, `estado: traducible`).**
 ```sas
 DATA WORK.clientes;
   INFILE '.../entradas/clientes.txt' DLM=';' DSD MISSOVER FIRSTOBS=2;
@@ -494,18 +495,17 @@ RUN;
 ```
 id;nombre;saldo
 1;"Perez; Ana";100.5
-2;Luis;
+2;Luis;;
 3;"Gomez";7
 4;Mara
 ```
-Esperado a mano, `esperado/clientes.csv`: `id,nombre,saldo` / `1,Perez; Ana,100.5` / `2,Luis,` / `3,Gomez,7` / `4,Mara,` (`FIRSTOBS=2` salta el encabezado; `DSD` conserva el `;` del nombre entre comillas y quita las comillas; `2;Luis;` deja `saldo` faltante por el delimitador final; `4;Mara` es una línea corta y `MISSOVER` deja `saldo` faltante en vez de leer la línea siguiente). Invariante: `filas(clientes) == 4`.
+Esperado a mano, `esperado/clientes.csv`: `id,nombre,saldo` / `1,Perez; Ana,100.5` / `2,Luis,` / `3,Gomez,7` / `4,Mara,`. `FIRSTOBS=2` salta el encabezado; `DSD` conserva el `;` entre comillas, quita las comillas y marca el campo entre dos delimitadores consecutivos como faltante; `4;Mara` es una línea corta y `MISSOVER` deja `saldo` faltante en vez de leer la siguiente línea. Se evita usar un delimitador terminal para no atribuirle un resultado que la guía no fija. Invariante: `filas(clientes) == 4`.
 
-- [ ] **Step 1: Write the failing tests.** (a) `leer_lista(['1;"Perez; Ana";100.5'], [("id",None),("nombre","$12."),("saldo",None)], ";", True, True)` da `[{"id":"1","nombre":"Perez; Ana","saldo":"100.5"}]`; (b) `["2;Luis;"]` da `saldo` `None`; (c) `["4;Mara"]` con `missover=True` da `saldo` `None` y con `missover=False` lanza `NoSoportadoEnInterprete` con `P-INFILE-FLOWOVER`; (d) `["a;;c"]` con `dsd=False` da dos campos (`a`, `c`) y con `dsd=True` tres (`a`, `None`, `c`); (e) el caso coincide en el anillo B; (f) `nodo_infile_delimitado` sobre el caso da `HEADER == "1"` y `FIELDSEPARATOR == '";"'`, y con `DSD` el `TEXT_ENCLOSURE`; sin `DSD` no lo hay; (g) la migración del caso no deja `P-INFILE-SIN-EQUIVALENCIA` ni `P-FORMATO-SIN-SOPORTE`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_infile_lista.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement.** `leer_lista` solo trata lo demostrado; `TRUNCOVER` con lista se comporta como `MISSOVER` solo si p. 134-137 lo dice (si no, `Pendiente: P-INFILE-TRUNCOVER-LISTA`). Tipo de cada columna: `INPUT id` sin informat es numérico (p. 204); `:$12.` es carácter de largo 12; lo no demostrado queda `pendiente` como en `l0_15`.
-- [ ] **Step 4: Run** los tests, `tests/unit/test_migrar_corpus_anillo_b.py -k L0`, `tests/unit/test_input_informat.py`, el golden y `uv run ruff check src tests tools`.
-- [ ] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_22_infile_lista_dsd_missover`; anotar si `tFileInputDelimited` deja `saldo` nulo en `4;Mara`. Sin Studio, «lote C pendiente».
-- [ ] **Step 6: Commit.** `hito N n: INFILE en lista con DSD, MISSOVER y FIRSTOBS`.
+- [x] **Step 1: Pruebas RED/GREEN.** Parser, tipos, informats, DSD, `MISSOVER`, `FIRSTOBS`, `FLOWOVER`, `TRUNCOVER` no demostrado, propiedades Talend y anillo B.
+- [x] **Step 2: Implementación.** Lector de anillo B con validación de ruta dentro de `entradas/`, nodo `tFileInputDelimited`, tipos numéricos/caracteres demostrados y pendiente explícito para las variantes no soportadas.
+- [x] **Step 3: Regresión focal y Ruff.** Importación DATA step, golden, informats, catálogo y corpus.
+- [x] **Step 4: Studio.** Se intentó `uv run python tools/validar_caso_studio.py l0_22_infile_lista_dsd_missover`; el puente respondió `BRIDGE_DEAD`, el caso quedó en `out/studio-pendientes.json`, no cuenta como validado y el lote C queda pendiente.
+- [x] **Step 5: Commit.** `hito 256n: INFILE en lista con DSD y MISSOVER`.
 
 ---
 

@@ -18,10 +18,14 @@ from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.desde_plan_cabecera import aviso_guessingrows, lineas_a_saltar
 from sgm.talend_item.desde_plan_excel import nodo_lectura_excel
+from sgm.talend_item.desde_plan_infile import nodo_infile_delimitado
 from sgm.talend_item.desde_plan_nodos_escritura import nodo_escritura
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Nodo
-from sgm.talend_item.motivo_entrada_data_step import motivo_entrada_data_step
+from sgm.talend_item.motivo_entrada_data_step import (
+    codigo_pendiente_entrada_data_step,
+    motivo_entrada_data_step,
+)
 from sgm.talend_item.plantillas import nodo_desde_plantilla
 
 # Tipo de la IR (`Column.type`) al tipo de Talend. Sin tipo demostrado, texto: es el único que no
@@ -55,9 +59,18 @@ def tipo_talend(tipo: str | None) -> str:
     return TIPOS.get(tipo or "", "id_String")
 
 
-def columnas_talend(columnas: list[Column]) -> list[Columna]:
+def columnas_talend(columnas: list[Column], *, conservar_largo: bool = False) -> list[Columna]:
     """Columnas de la IR a columnas de Talend, conservando el orden del archivo."""
-    return [Columna(columna.name, tipo_talend(columna.type)) for columna in columnas]
+    return [
+        Columna(
+            columna.name,
+            tipo_talend(columna.type),
+            longitud=(columna.length if columna.length is not None else -1)
+            if conservar_largo
+            else -1,
+        )
+        for columna in columnas
+    ]
 
 
 def ruta(literal: str | None) -> str:
@@ -111,7 +124,8 @@ def nodo_lectura(
     params = op.params
     dbms = (params.get("dbms") or "").lower()
     file_format = str(params.get("file_format") or "").lower()
-    columnas = columnas_talend(esquema)
+    data_step_input = "infile_statement" in params or "input_statement" in params
+    columnas = columnas_talend(esquema, conservar_largo=data_step_input)
     resultado = Resultado(columnas=columnas)
     archivo = ruta(params.get("datafile"))
     if any(not is_java_identifier(columna.nombre) for columna in columnas):
@@ -186,7 +200,6 @@ def nodo_lectura(
         )
         resultado.pendientes.extend(pendientes_excel)
         return resultado
-    data_step_input = "infile_statement" in params or "input_statement" in params
     datarow = params.get("datarow")
     getnames = params.get("getnames") is not False
     if datarow is not None and (
@@ -242,7 +255,7 @@ def nodo_lectura(
         if pending_reason:
             resultado.pendientes.append(
                 PendienteMigracion(
-                    "P-INFILE-SIN-EQUIVALENCIA",
+                    codigo_pendiente_entrada_data_step(params, pending_reason),
                     f"{archivo or params.get('fileref')}: {pending_reason}",
                     _linea(op),
                 )
@@ -272,7 +285,10 @@ def nodo_lectura(
             )
         )
         return resultado
-    separa, motivo = separador(dbms, params.get("delimiter"))
+    delimiter = params.get("delimiter")
+    if data_step_input and delimiter is None and (params.get("infile_options") or {}).get("dsd"):
+        delimiter = ","
+    separa, motivo = separador(dbms, delimiter)
     if separa is None:
         if data_step_input:
             resultado.pendientes.append(
@@ -283,19 +299,24 @@ def nodo_lectura(
             PendienteMigracion("P-DELIMITADOR", f"{archivo}: {motivo}", _linea(op))
         )
         separa = SEPARADORES["csv"]  # el de la plantilla; queda dicho en el pendiente
-    resultado.nodo = nodo_desde_plantilla(
-        "tFileInputDelimited",
-        unico,
-        x,
-        y,
-        {
-            "FILENAME": java(archivo),
-            "FIELDSEPARATOR": java(separa),
-            "HEADER": header,
-        },
-        columnas=columnas,
-        ruta_java=ruta_java,
-    )
+    if data_step_input:
+        resultado.nodo = nodo_infile_delimitado(
+            op, columnas, unico, x, y, archivo, separa, ruta_java
+        )
+    else:
+        resultado.nodo = nodo_desde_plantilla(
+            "tFileInputDelimited",
+            unico,
+            x,
+            y,
+            {
+                "FILENAME": java(archivo),
+                "FIELDSEPARATOR": java(separa),
+                "HEADER": header,
+            },
+            columnas=columnas,
+            ruta_java=ruta_java,
+        )
     return resultado
 
 

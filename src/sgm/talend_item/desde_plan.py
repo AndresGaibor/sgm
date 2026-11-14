@@ -314,13 +314,15 @@ class _Job:
         resultado = nodo_lectura(op, esquema, unico, x, 0, self.ruta_java)
         self.pendientes += resultado.pendientes
         if resultado.nodo is None:
-            if any(
+            if "infile_statement" in op.params or "input_statement" in op.params or any(
                 pendiente.codigo
                 in {
                     "P-GUESSINGROWS",
                     "P-DATAROW-DINAMICO",
                     "P-DATAROW-INVALIDO",
                     "P-DATAROW-EXCEL-SIN-SOPORTE",
+                    "P-INFILE-FLOWOVER",
+                    "P-INFILE-TRUNCOVER-LISTA",
                 }
                 for pendiente in resultado.pendientes
             ):

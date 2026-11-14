@@ -69,6 +69,13 @@ def _entradas(caso) -> dict[str, list[dict]]:
     }
 
 
+def _infile_no_cargado(operador, entradas: dict[str, list[dict]]) -> bool:
+    if not (operador.params.get("infile_statement") and operador.params.get("input_statement")):
+        return False
+    tabla = str((operador.params.get("outputs") or [""])[0]).casefold().split(".")[-1]
+    return tabla not in {nombre.casefold().split(".")[-1] for nombre in entradas}
+
+
 def _esperado(caso, tabla: str, filas: list[dict]) -> list[str]:
     """Diferencias con `esperado/<tabla>.csv`, con las columnas del archivo esperado."""
     ruta = caso.esperado / f"{tabla}.csv"
@@ -123,6 +130,7 @@ def test_el_interprete_da_lo_que_el_sas(caso):
         and (
             operador.params.get("dbms") == "xlsx"
             or operador.params.get("datarow") is not None
+            or _infile_no_cargado(operador, entradas)
         )
         for operador in plan.graph.operators()
     ):

@@ -114,6 +114,9 @@ def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator |
         options = params["infile_options"]
         if options.get("dlm") is not None:
             params["delimiter"] = options["dlm"]
+        elif options.get("dsd"):
+            # SAS define coma como separador por omisión de DSD (lestmtsref, INFILE).
+            params["delimiter"] = ","
         if isinstance(options.get("firstobs"), int):
             params["firstobs"] = options["firstobs"]
     if input_stmt is not None:
@@ -123,6 +126,10 @@ def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator |
         params["input_line"] = input_stmt.line
         if input_stmt.fields.get("types"):
             params["input_types"] = dict(input_stmt.fields["types"])
+        if input_stmt.fields.get("lengths"):
+            params["input_lengths"] = dict(input_stmt.fields["lengths"])
+        if input_stmt.fields.get("informats"):
+            params["input_informats"] = dict(input_stmt.fields["informats"])
         if input_stmt.fields["mode"] != "list":
             params["file_format"] = "positional"
         elif infile is not None:

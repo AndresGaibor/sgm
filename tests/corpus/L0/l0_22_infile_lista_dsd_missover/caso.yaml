@@ -1,0 +1,29 @@
+nivel: L0
+tema: INFILE e INPUT en lista con DSD y MISSOVER
+construcciones:
+  - DATA
+  - INFILE
+  - DLM
+  - DSD
+  - MISSOVER
+  - FIRSTOBS
+  - INPUT en lista
+  - informat de carácter modificado
+capa: C
+estado: traducible
+motivo: >-
+  El esperado aplica DSD a separadores entre comillas y delimitadores consecutivos, y MISSOVER a
+  registros cortos. FLOWOVER y TRUNCOVER en lista permanecen pendientes cuando el caso no declara
+  MISSOVER.
+salidas: [clientes]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  lestmtsref.pdf, entrada INFILE Statement indexada en p. 134: DSD trata delimitadores entre
+  comillas como datos, quita comillas y considera dos delimitadores consecutivos como faltante;
+  FIRSTOBS=2 salta el encabezado; MISSOVER deja faltantes los campos sin valor en la línea. La
+  entrada INPUT Statement: List p. 204 documenta la lectura de lista y el modificador : con
+  informats. La fila con separadores consecutivos evita inferir el resultado de un delimitador
+  terminal; la fila corta verifica MISSOVER sin continuar en la siguiente línea.
+invariantes:
+  - filas(clientes) == 4

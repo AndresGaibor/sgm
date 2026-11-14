@@ -287,6 +287,11 @@ def esquemas_de_entrada(
             str(nombre).lower(): str(tipo).lower()
             for nombre, tipo in (op.params.get("input_types") or {}).items()
         }
+        largos_input = {
+            str(nombre).lower(): int(largo)
+            for nombre, largo in (op.params.get("input_lengths") or {}).items()
+            if isinstance(largo, int) and not isinstance(largo, bool) and largo > 0
+        }
         esquemas[tabla] = [
             Column(
                 nombre,
@@ -302,7 +307,7 @@ def esquemas_de_entrada(
                     if op.params.get("guessingrows") is not None
                     else _tipo_de(nombre, numericas, demostrados),
                 ),
-                None,
+                largos_input.get(nombre.lower()),
                 origen,
             )
             for nombre in nombres

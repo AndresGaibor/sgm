@@ -128,13 +128,13 @@ def test_compatibilidad_programa_grande():
     )
 
 
-def test_input_sin_tipo_explicito_no_se_declara_demostrado():
+def test_input_en_lista_demuestra_tipo_numerico_y_caracter():
     text = "data work.t; infile 'x'; input a b $; run;"
     schemas, _ = esquemas_desde_programa(text)
     data = a_json(schemas, "p")
     columns = {c["name"].lower(): c for c in data["work"]["tables"]["t"]}
-    assert columns["a"]["type"] is None
-    assert columns["b"]["type"] is None
+    assert columns["a"]["type"] == "Double"
+    assert columns["b"]["type"] == "String"
 
 
 def test_no_escribir_en_catalogo_entorno(tmp_path, monkeypatch):

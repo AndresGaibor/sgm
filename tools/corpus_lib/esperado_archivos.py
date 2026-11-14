@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from sgm.ir.models import Plan
 from sgm.migrar.ficha import leer_ficha
+from sgm.migrar.interprete_infile import leer_lista
 from sgm.migrar.lector_xlsx import leer_xlsx
 from tools.datos_sinteticos.ficha import validar_ficha
 
@@ -153,15 +154,63 @@ def _leer_xlsx(operator: object, caso: Caso) -> tuple[str, list[str], list[dict[
     )
 
 
+def _leer_infile(
+    operator: object, caso: Caso
+) -> tuple[str, list[str], list[dict[str, str | None]]]:
+    """Carga INFILE únicamente desde `entradas/` y ejecuta el INPUT de lista literal."""
+    params = operator.params
+    if params.get("input_mode") != "list":
+        raise ValueError("el esperado del anillo B solo interpreta INPUT en lista")
+    name = _nombre_fuente(params.get("datafile"))
+    case_root = caso.directorio.resolve()
+    root = caso.entradas.resolve()
+    if root == case_root or not root.is_relative_to(case_root):
+        raise ValueError("raíz de entradas fuera de la carpeta del caso")
+    path = (root / name).resolve()
+    if not path.is_relative_to(root) or not path.is_file():
+        raise ValueError(f"no existe el archivo INFILE del caso: {name}")
+    try:
+        with path.open(encoding="utf-8-sig") as stream:
+            lines = stream.read().splitlines()
+    except (OSError, UnicodeError) as error:
+        raise ValueError(f"{name}: no se pudo leer el archivo INFILE") from error
+    options = params.get("infile_options") or {}
+    delimiter = params.get("delimiter")
+    if not isinstance(delimiter, str):
+        raise ValueError(f"{name}: INFILE no tiene DLM literal")
+    names = [str(column) for column in params.get("input_names") or []]
+    informats = {
+        str(column).casefold(): str(informat)
+        for column, informat in (params.get("input_informats") or {}).items()
+    }
+    rows = leer_lista(
+        lines,
+        [(column, informats.get(column.casefold())) for column in names],
+        delimiter,
+        bool(options.get("dsd")),
+        bool(options.get("missover")),
+        firstobs=params.get("firstobs", 1),
+        truncover=bool(options.get("truncover")),
+    )
+    return _tabla((params.get("outputs") or [""])[0]), names, rows
+
+
 def entradas_de_archivos(
     plan: Plan, caso: Caso, salidas: tuple[str, ...] | list[str] | None = None
-) -> tuple[dict[str, list[dict[str, str]]], dict[str, list[str]]]:
+) -> tuple[dict[str, list[dict[str, str | None]]], dict[str, list[str]]]:
     """Carga únicamente imports necesarios para las salidas y soportados por este anillo."""
     relevantes = _relevantes(plan, caso.salidas if salidas is None else tuple(salidas))
     entradas = {}
     columnas = {}
     for operator in plan.graph.operators():
         if operator.kind != "read_file" or operator.id not in relevantes:
+            continue
+        if operator.params.get("infile_statement") and operator.params.get("input_statement"):
+            name, names, rows = _leer_infile(operator, caso)
+            if name in entradas:
+                raise ValueError(f"{name}: más de una lectura produce la misma tabla")
+            entradas[name] = rows
+            columnas[name] = names
             continue
         dbms = str(operator.params.get("dbms") or "").casefold()
         if dbms == "xls":

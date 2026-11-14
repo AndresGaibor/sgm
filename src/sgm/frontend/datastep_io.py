@@ -7,7 +7,9 @@ import re
 _OPTIONS = re.compile(
     r"(?i)([a-z_]\w*)\s*(?:=\s*('[^']*(?:''[^']*)*'|\"[^\"]*(?:\"\"[^\"]*)*\"|[^\s()]+))?"
 )
-_KNOWN_OPTIONS = frozenset({"dsd", "dlm", "delimiter", "firstobs", "lrecl", "missover", "truncover"})
+_KNOWN_OPTIONS = frozenset(
+    {"dsd", "dlm", "delimiter", "firstobs", "flowover", "lrecl", "missover", "truncover"}
+)
 _INTEGER_OPTIONS = frozenset({"firstobs", "lrecl"})
 _INPUT_TOKEN = re.compile(
     r"@@|\$|@|#|\+|/|-|:|\?|\d+\.(?:\d+)?|\d+(?:\.\d+)?|[A-Za-z_&][\w.&]*"
@@ -16,7 +18,7 @@ _INFORMAT = re.compile(
     r"(?i)^\$?[a-z_]\w*\d+\.$"
     r"|^\$?(?:best|comma|date|datetime|dollar|e|f|hex|ib|mmddyy|n|pd|percent|time|w|yymmdd|z)"
     r"\d+\.\d+$"
-    r"|^\d+\.$"
+    r"|^\$?\d+\.$"
     r"|^\d+\.\d+$"
 )
 _COLUMN_RANGE = re.compile(r"^\d+$")
@@ -62,68 +64,108 @@ def infile_fields(text: str) -> dict:
 
 
 def input_fields(text: str) -> dict:
-    """Reconoce nombres y modalidad básica sin traducir informats ni punteros."""
+    """Reconoce variables, modalidad y tipos que declara el `INPUT` literal."""
     body = re.sub(r"(?is)^input\s+", "", text.strip(), count=1)
     if any(marker in body for marker in ("'", '"', "&", "~", "?")):
         return {"mode": "unknown", "names": [], "raw": text}
     tokens = _INPUT_TOKEN.findall(body)
     mode = "list"
     names: list[str] = []
+    types: dict[str, str] = {}
+    lengths: dict[str, int] = {}
+    informats: dict[str, str] = {}
+    current: str | None = None
     index = 0
     while index < len(tokens):
         token = tokens[index]
         if token in {"@", "@@", "+", "#", "/"}:
             mode = "column"
+            current = None
             index += 1
             if token in {"@", "+", "#"} and index < len(tokens) and _COLUMN_RANGE.fullmatch(tokens[index]):
                 index += 1
             continue
-        if token in {":", "?"}:
+        if token == ":":
+            index += 1
+            informat, consumed = _informat(tokens, index)
+            if current is None or informat is None:
+                mode = "unknown"
+                continue
+            types[current], length = _tipo_informat(informat)
+            informats[current] = informat
+            if length is not None:
+                lengths[current] = length
+            index += consumed
+            continue
+        if token == "?":
             mode = "formatted"
             index += 1
             continue
         if token == "$":
+            if current:
+                types[current] = "caracter"
             index += 1
+            if index < len(tokens) and _INFORMAT.fullmatch(tokens[index]):
+                informat = "$" + tokens[index] if not tokens[index].startswith("$") else tokens[index]
+                if current:
+                    types[current], length = _tipo_informat(informat)
+                    informats[current] = informat
+                    if length is not None:
+                        lengths[current] = length
+                index += 1
             continue
         if token.isdigit() and index + 2 < len(tokens) and tokens[index + 1] == "-" and tokens[index + 2].isdigit():
             mode = "column"
             index += 3
             continue
+        if token == "-" or (token.endswith(".") and not _INFORMAT.fullmatch(token)):
+            mode = "unknown"
+            index += 1
+            continue
         if _INFORMAT.fullmatch(token):
             mode = "formatted" if mode == "list" else mode
+            if current:
+                types[current], length = _tipo_informat(token)
+                informats[current] = token
+                if length is not None:
+                    lengths[current] = length
+            current = None
             index += 1
             continue
         if re.fullmatch(r"[A-Za-z_&][\w.&]*", token):
             if token.lower() not in {name.lower() for name in names}:
                 names.append(token)
+            current = token
+            types[current] = "numerico"
         index += 1
     resultado = {"mode": mode, "names": names, "raw": text}
-    tipos = _tipos_caracter(tokens)
-    if tipos:
-        resultado["types"] = tipos
+    if mode == "list" and types:
+        resultado["types"] = types
+        if informats:
+            resultado["informats"] = informats
+        if lengths:
+            resultado["lengths"] = lengths
     return resultado
 
 
-def _tipos_caracter(tokens: list[str]) -> dict[str, str]:
-    """Registra campos que declaran un informat de carácter, como `$CHARw.`."""
-    tipos: dict[str, str] = {}
-    nombre: str | None = None
-    for indice, token in enumerate(tokens):
-        if token == "$":
-            siguiente = tokens[indice + 1] if indice + 1 < len(tokens) else ""
-            if nombre and _INFORMAT.fullmatch(siguiente):
-                tipos[nombre] = "caracter"
-                nombre = None
-            continue
-        if _INFORMAT.fullmatch(token):
-            nombre = None
-            continue
-        if token in {":", "@", "@@", "#", "+", "/", "-", "?"} or token.isdigit():
-            continue
-        if re.fullmatch(r"[A-Za-z_][\w.&]*", token):
-            nombre = token
-    return tipos
+def _informat(tokens: list[str], index: int) -> tuple[str | None, int]:
+    """Devuelve un informat literal y cuántos tokens consume desde `index`."""
+    if index >= len(tokens):
+        return None, 0
+    token = tokens[index]
+    if token == "$" and index + 1 < len(tokens) and _INFORMAT.fullmatch(tokens[index + 1]):
+        return "$" + tokens[index + 1], 2
+    if _INFORMAT.fullmatch(token):
+        return token, 1
+    return None, 0
 
+
+def _tipo_informat(informat: str) -> tuple[str, int | None]:
+    """Tipo y largo demostrados por un informat literal de INPUT en lista."""
+    if not informat.startswith("$"):
+        return "numerico", None
+    ancho = re.search(r"(\d+)\.$", informat)
+    return "caracter", int(ancho.group(1)) if ancho else None
 
 def _source(text: str) -> tuple[str, str]:
     if not text:

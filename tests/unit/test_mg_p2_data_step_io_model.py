@@ -45,7 +45,7 @@ def test_input_reconoce_nombres_y_forma_de_lectura():
         ("input fecha yymmdd10. saldo comma12.2", "formatted", ["fecha", "saldo"]),
         ("input amount 12.", "formatted", ["amount"]),
         ("input amount 12.2", "formatted", ["amount"]),
-        ("input amount :comma12.2", "formatted", ["amount"]),
+        ("input amount :comma12.2", "list", ["amount"]),
         ("input 'nombre extendido'n valor", "unknown", []),
     ]
 
@@ -84,9 +84,9 @@ def test_nombres_de_input_se_conservan_en_el_esquema_sin_inventar_tipos():
     esquemas, pendientes = esquemas_de_entrada(plan, {}, None)
 
     assert [col.name for col in esquemas["work.entrada"]] == ["codigo", "monto"]
-    assert {col.type for col in esquemas["work.entrada"]} == {"String"}
+    assert {col.type for col in esquemas["work.entrada"]} == {"Double"}
     assert esquemas["work.entrada"][0].source == "sas_input"
-    assert any(p.codigo == "P-TIPO-DESCONOCIDO" for p in pendientes)
+    assert not any(p.codigo == "P-TIPO-DESCONOCIDO" for p in pendientes)
 
 
 def test_informat_char_explicito_demuestra_tipo_texto_sin_muestra():
@@ -100,6 +100,7 @@ def test_informat_char_explicito_demuestra_tipo_texto_sin_muestra():
     esquemas, pendientes = esquemas_de_entrada(plan, {}, None)
 
     assert op.params["input_types"] == {"texto": "caracter"}
+    assert op.params["input_lengths"] == {"texto": 7}
     assert [(col.name, col.type) for col in esquemas["work.entrada"]] == [("texto", "String")]
     assert not any(p.codigo == "P-TIPO-DESCONOCIDO" for p in pendientes)
 

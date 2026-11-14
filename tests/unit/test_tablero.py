@@ -68,13 +68,13 @@ def test_pendientes_del_modelo_tienen_motivo(pendientes):
 
 
 def test_corpus_por_nivel_y_estado(datos_corpus):
-    assert datos_corpus["casos"] == 171
-    assert datos_corpus["por_nivel"]["L0"] == 21
+    assert datos_corpus["casos"] == 172
+    assert datos_corpus["por_nivel"]["L0"] == 22
     assert datos_corpus["por_nivel"]["L6"] == 26
     assert datos_corpus["por_nivel"]["L8"] == 16
-    assert sum(datos_corpus["por_nivel"].values()) == 171
-    assert sum(datos_corpus["por_estado"].values()) == 171
-    assert datos_corpus["con_esperado"] == 169
+    assert sum(datos_corpus["por_nivel"].values()) == 172
+    assert sum(datos_corpus["por_estado"].values()) == 172
+    assert datos_corpus["con_esperado"] == 170
     assert datos_corpus["construcciones"] > datos_corpus["construcciones_traducibles"] > 0
 
 

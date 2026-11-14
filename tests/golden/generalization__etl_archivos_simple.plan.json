@@ -56,7 +56,7 @@
       "kind": "read_file",
       "status": "soportado",
       "placement": "flow",
-      "signature": "68fa4f219ba17c13",
+      "signature": "3af4f13ef15f79bd",
       "params": {
         "datafile": "\"C:\\datos\\entrada\\pedidos.csv\"",
         "infile_line": 7,
@@ -66,6 +66,7 @@
           "truncover": true
         },
         "unsupported_options": [],
+        "delimiter": ",",
         "firstobs": 2,
         "input_mode": "list",
         "input_names": [
@@ -78,6 +79,14 @@
         ],
         "input_statement": "input cliente $ producto $ canal $ cantidad precio fecha_txt $",
         "input_line": 9,
+        "input_types": {
+          "cliente": "caracter",
+          "producto": "caracter",
+          "canal": "caracter",
+          "cantidad": "numerico",
+          "precio": "numerico",
+          "fecha_txt": "caracter"
+        },
         "file_format": "delimited",
         "infile_statement": "infile \"C:\\datos\\entrada\\pedidos.csv\" dsd firstobs=2 truncover",
         "statement": "infile \"C:\\datos\\entrada\\pedidos.csv\" dsd firstobs=2 truncover | input cliente $ producto $ canal $ cantidad precio fecha_txt $",
@@ -887,7 +896,7 @@
       "occurrences": 1
     },
     {
-      "signature": "68fa4f219ba17c13",
+      "signature": "3af4f13ef15f79bd",
       "options": [
         {
           "opcion": "tFileInputDelimited",
@@ -1176,7 +1185,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tFileInputDelimited; no aplicado"
       },
-      "signature": "68fa4f219ba17c13",
+      "signature": "3af4f13ef15f79bd",
       "fuente": []
     },
     {

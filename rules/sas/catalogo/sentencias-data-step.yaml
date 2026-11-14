@@ -154,6 +154,7 @@ entries:
   nombre: INFILE Statement
   fuente: lestmtsref.pdf, p. 134
   estado: reconocida
+  nota: 'INFILE delimitado con DLM de un carácter, DSD, FIRSTOBS y MISSOVER; DSD sin DELIMITER usa coma. FLOWOVER por omisión queda P-INFILE-FLOWOVER. TRUNCOVER en INPUT de lista queda P-INFILE-TRUNCOVER-LISTA: lestmtsref, sección INFILE y «Reading Past the End of a Line».'
 - id: informat-statement
   nombre: INFORMAT Statement
   fuente: lestmtsref.pdf, p. 173
@@ -162,6 +163,7 @@ entries:
   nombre: INPUT Statement
   fuente: lestmtsref.pdf, p. 177
   estado: reconocida
+  nota: 'La forma en lista admite el modificador : con informats literales; los nombres sin informat son numéricos y $w. demuestra tipo carácter y largo w. Punteros, informats no reconocidos, entrada formateada y columnas siguen pendientes o usan su lector específico.'
 - id: keep-statement
   nombre: KEEP Statement
   fuente: lestmtsref.pdf, p. 216
