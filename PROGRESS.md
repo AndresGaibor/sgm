@@ -7303,3 +7303,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Antes y después de la extracción: `tests/unit/test_mg_p2_excel.py`, golden, golden de equivalencia y anillo B: 160 aprobadas y 5 `xfail` en ambas corridas. Ruff y `git diff --check` quedaron limpios.
 - Cierre integral staged: `uv run python tools/ci.py` pasó con 4.195 aprobadas, 354 omitidas y 145 `xfail`; Ruff (0,2 s), suite (95,2 s), cruces (2,7 s), oráculo (3,3 s) y tablero (11,8 s), todo verde. Se repite sobre el árbol con este registro antes del commit.
 - Decisiones y límites: se movió la lógica sin cambiar su semántica; la lectura XLSX, la plantilla Talend y la validación Studio pertenecen al siguiente paso D2-6. Sin dependencias nuevas, conexiones a bases ni push.
+
+## Hito 253n. Lee `PROC IMPORT` de XLSX con selección de hoja
+
+- Fecha: 2026-11-14. Base: `e7675f5` (hito 252n), rama `codex/integrar-main-preflight`. MG-P2-01 / D2-6.
+- Se incorporó el docset oficial SAS/ACCESS `acpcref` (PDF ignorado; texto e índice versionados) y se corrigió `tools/referencia/texto.py` para limpiar espacios finales por línea. `AGENTS.md` y los catálogos ahora incluyen la guía número 14.
+- El lector XLSX de la librería usa solo la biblioteca estándar; valida hojas, relaciones dentro del ZIP, celdas y límites sin extraer rutas. El lector del corpus genera XLSX deterministas. `SHEET=` selecciona la hoja y `GETNAMES=NO` produce nombres por columna; el intérprete no simula XLS binario ni inventa tipos Excel.
+- `l0_19_importar_xlsx_hoja` cubre dos hojas, selección explícita y suma reproducible en anillo B. Las columnas cuyo tipo no está demostrado conservan `P-TIPO-EXCEL`; el catálogo distingue esa deuda de una construcción sin traducir. La plantilla incorpora el marcador sintético `PASSWORD` requerido por el componente, no una contraseña del cliente.
+- Se corrigió `validar_caso_studio.py`: ahora incluye archivos no CSV al construir el mapa de contexto, con lo que `ruta_ventas` se asocia a `ventas.xlsx`. Se añadió prueba de integración del mapa.
+- TDD y regresión: pruebas focales del lector/emisor, catálogo, referencias, harness y anillo B: 224 aprobadas y 5 `xfail`; batería posterior de referencias, harness e importación: 32 aprobadas. Ruff y `git diff --cached --check` quedaron limpios. La primera suite integral detectó dos omisiones de registro (`acpcref` en `AGENTS.md` y `P-TIPO-EXCEL` en la clasificación de notas); ambas se corrigieron y sus pruebas focales pasan.
+- Cierre integral staged: `uv run python tools/ci.py` pasó con 4.209 aprobadas, 354 omitidas y 145 `xfail`; Ruff, suite, cruces del corpus, oráculo y tablero quedaron verdes. El tablero registra 169 casos, 19 en L0 y 167 con archivos esperados.
+- Studio: la salud y el intento de validación responden `BRIDGE_DEAD`; el caso quedó en `out/studio-pendientes.json`. No se registra como validado y el lote C queda pendiente.
+- Decisiones y límites: tipos Excel sin demostrar siguen pendientes; XLS 97–2003 no se interpreta. Sin nuevas dependencias, conexiones a bases, ejecución de Talend Studio ni push.

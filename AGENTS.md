@@ -23,7 +23,7 @@ Las equivalencias no se inventan: cada regla del traductor se apoya en una pági
 documentación de SAS. Está en `docs/referencia/`; el estado y la deuda de cada guía, en
 `docs/referencia/README.md` y `docs/referencia/catalogo-sas.md`.
 
-- **13 guías** en `docs/referencia/sas/`, cada una con tres archivos: `<docset>.pdf` (no
+- **14 guías** en `docs/referencia/sas/`, cada una con tres archivos: `<docset>.pdf` (no
   versionado), `<docset>.txt` (texto con marcas `<!-- página N -->`) y `<docset>.INDEX.md`
   (sección → página, sacado de los marcadores del PDF). Las páginas de Talend, por componente, en
   `docs/referencia/talend/`.
@@ -34,7 +34,8 @@ documentación de SAS. Está en `docs/referencia/`; el estado y la deuda de cada
   (el docset es `leforinforref`, con `forinfor`: `leforinfref` no existe y da 404); `sqlproc` =
   `PROC SQL`; `proc` = los demás procedimientos; `lesysoptsref` = opciones de sistema;
   `ledsoptsref` = opciones de data set; `mcrolref` = macros; `lepg` = uso y ejemplos; `gridref`,
-  `hostunx` y `connref` = Grid, UNIX y CONNECT (`SIGNON`, `RSUBMIT`, `PROC UPLOAD`).
+  `hostunx` y `connref` = Grid, UNIX y CONNECT (`SIGNON`, `RSUBMIT`, `PROC UPLOAD`); `acpcref` =
+  interfaces SAS/ACCESS a archivos de PC, incluidos `PROC IMPORT` y `PROC EXPORT` para Excel.
 - `tools/referencia/`: `fuentes.py` es el catálogo de docsets y sus dos formas de URL; `descargar.py`
   baja; `indice.py` y `texto.py` generan el `.INDEX.md` y el `.txt` (necesitan `pypdf`:
   `uv run --with pypdf`); `verificar.py` cruza `rules/talend/components.json` con las páginas.

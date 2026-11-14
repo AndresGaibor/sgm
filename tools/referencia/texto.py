@@ -18,10 +18,15 @@ from pathlib import Path
 MARCA = "<!-- página {pagina} -->"
 
 
+def _limpiar_lineas(texto: str | None) -> str:
+    """Quita espacios finales que algunos extractores PDF conservan dentro de la línea."""
+    return "\n".join(linea.rstrip() for linea in (texto or "").splitlines()).rstrip()
+
+
 def texto_de_paginas(paginas: list[str | None]) -> str:
     """Texto del `.txt`: cada página con su marca delante y una línea en blanco de separación."""
     partes = [
-        f"\n\n{MARCA.format(pagina=numero)}\n{(texto or '').rstrip()}"
+        f"\n\n{MARCA.format(pagina=numero)}\n{_limpiar_lineas(texto)}"
         for numero, texto in enumerate(paginas, 1)
     ]
     return "".join(partes) + "\n"

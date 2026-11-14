@@ -5,7 +5,7 @@ internet. Cada carpeta dice qué se descargó, de dónde y cuándo.
 
 | Carpeta | Contenido | Fuente | Descargado |
 |---|---|---|---|
-| [`sas/`](sas/README.md) | 13 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` y `/api/docsets/` | 2026-11-03, completado el 2026-11-05 |
+| [`sas/`](sas/README.md) | 14 guías en PDF, con texto extraído (`.txt`) e índice por sección (`.INDEX.md`) | documentation.sas.com, colección `pgmsascdc/9.4_3.5` y `/api/docsets/` | 2026-11-03, completado el 2026-11-05 y ampliado el 2026-11-14 |
 | [`catalogo-sas.md`](catalogo-sas.md) | Las guías ordenadas por capa (semántica, transformaciones, entorno, Talend), con lo que falta y por qué | — | 2026-11-05 |
 | [`talend/`](talend/README.md) | Páginas de 41 componentes de Talend Studio 8.0 y la guía de diseño de Jobs y contextos (R2026-09) | help.qlik.com | 2026-11-03 |
 

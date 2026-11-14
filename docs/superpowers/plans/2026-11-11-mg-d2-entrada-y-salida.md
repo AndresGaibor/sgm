@@ -292,7 +292,7 @@ Cierra MG-P2-04. Una biblioteca de ruta (`LIBNAME datos '/carpeta';`) no produce
 
 ### Task D2-6: `PROC IMPORT` de XLSX y XLS con `SHEET`, contraseña de plantilla y lector propio (MG-P2-01, parte 1; serie `n`)
 
-**Estado hoy:** `nodo_lectura` (`desde_plan_nodos.py:162`) ya emite `tFileInputExcel` para `DBMS=XLSX` y `XLS` con `SHEETNAME`, `HEADER` y `VERSION_2007`, y `tests/unit/test_mg_p2_excel.py` fija la clasificación. Faltan tres cosas: (1) el emisor **no** pone `PASSWORD`, y el hallazgo del hito 63 (`docs/guia-validacion-studio.md`, línea 110) dice que `tFileInputExcel` con `VERSION_2007` no compila con `PASSWORD` vacío ni con `***`; el marcador vigente es `"sgm_ref"` (`docs/secretos.md`, línea 31); (2) el intérprete no lee `.xlsx`, así que ningún caso de Excel corre en B; (3) `PROC IMPORT` y `PROC EXPORT` viven en `lower_procs.py` (266 líneas, no puede crecer). Páginas: `proc.pdf`, `PROC IMPORT Statement` (p. 1380: valores de `DBMS=`, `SHEET=`) y `GETNAMES Statement` (p. 1387). **El tipo de cada columna de un Excel no tiene página** (la importación de Excel es de SAS/ACCESS Interface to PC Files, fuera de las 13 guías): las columnas salen de la muestra o quedan `P-TIPO-EXCEL`.
+**Estado hoy:** `nodo_lectura` (`desde_plan_nodos.py:162`) ya emite `tFileInputExcel` para `DBMS=XLSX` y `XLS` con `SHEETNAME`, `HEADER` y `VERSION_2007`, y `tests/unit/test_mg_p2_excel.py` fija la clasificación. El emisor no pone `PASSWORD`; el hallazgo del hito 63 (`docs/guia-validacion-studio.md`, línea 110) dice que `tFileInputExcel` con `VERSION_2007` no compila con `PASSWORD` vacío ni con `***`; el marcador vigente es `"sgm_ref"` (`docs/secretos.md`, línea 31). El intérprete no lee `.xlsx`. `PROC IMPORT` y `PROC EXPORT` viven en `lower_procs.py`. Referencias corregidas: `proc.pdf`, PROC IMPORT p. 1380 y GETNAMES p. 1387 aplican al formato delimitado; Excel se documenta en la nueva `acpcref.pdf`, sección que inicia en p. 93, con opciones XLS/XLSX en p. 94–96. La guía trae además los tipos Excel (p. 74), pero este lector no replica la inferencia SAS/ACCESS: un tipo no probado por el programa o un catálogo queda como `P-TIPO-EXCEL`.
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs_archivos.py` (extraído de `lower_procs.py`: `_opciones`, `_read_file`, `_write_file`, `_getnames`, `_dbms`, `_entero`)
@@ -300,6 +300,7 @@ Cierra MG-P2-04. Una biblioteca de ruta (`LIBNAME datos '/carpeta';`) no produce
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_excel.py` (rama Excel de `nodo_lectura` movida aquí)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_nodos.py` (una llamada; baja de 299 líneas)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\lector_xlsx.py`
+- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\xlsx_minimo.py` y añadir la carga XLSX al oráculo del anillo B (`tools/corpus_lib/esperado_archivos.py`)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\xlsx_minimo.py` (escribe un `.xlsx` mínimo y determinista: ZIP con fechas fijas, celdas de texto en línea y numéricas)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_19_importar_xlsx_hoja\{caso.yaml, programa.sas, entradas\ventas.xlsx, esperado\total.csv}`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\procs-usados.yaml` (`import`: `estado: reconocida`, nota «CSV, DLM y XLSX; XLS emitido sin ejecución; tipos de Excel: P-TIPO-EXCEL»)
@@ -310,10 +311,11 @@ Cierra MG-P2-04. Una biblioteca de ruta (`LIBNAME datos '/carpeta';`) no produce
 - Produces:
   ```python
   # lector_xlsx.py
-  def leer_xlsx(ruta: Path, hoja: str | None = None) -> tuple[list[str], list[list[str]]]:
+  def leer_xlsx(ruta: Path, hoja: str | None = None, *, getnames: bool = True) -> tuple[list[str], list[list[str]]]:
       """(encabezado, filas) de una hoja, como texto. `hoja=None` = la primera del libro (el
-      SAS lee la primera por omision: verificar en p. 1380). Hoja inexistente: KeyError con la
-      lista de hojas. Celda numerica: el texto de su valor sin ceros de mas (`2.0` -> `2`)."""
+      SAS usa la primera por omision: acpcref.pdf, p. 94). Hoja inexistente: KeyError con la
+      lista de hojas. `getnames=False` usa A/B/... y conserva la primera fila como dato. Celda
+      numerica: el texto de su valor sin ceros de mas (`2.0` -> `2`)."""
   # xlsx_minimo.py
   def escribir_xlsx(ruta: Path, hojas: Mapping[str, Sequence[Sequence[object]]]) -> None: ...
   # desde_plan_excel.py
@@ -322,7 +324,7 @@ Cierra MG-P2-04. Una biblioteca de ruta (`LIBNAME datos '/carpeta';`) no produce
       (hallazgo del hito 63) y `P-TIPO-EXCEL` por cada columna sin tipo en el esquema."""
   ```
 
-**Caso `L0/l0_19_importar_xlsx_hoja` (`capa: C`, `estado: revisado`, razonamiento: «proc, p. 1380 (DBMS=XLSX, SHEET=) y p. 1387 (GETNAMES=YES por omisión)»).**
+**Caso `L0/l0_19_importar_xlsx_hoja` (`capa: C`, `estado: revisado`, razonamiento: «acpcref, pp. 93–96: DBMS=XLSX, SHEET= y GETNAMES=YES por omisión»).**
 ```sas
 PROC IMPORT DATAFILE='.../entradas/ventas.xlsx' OUT=WORK.ventas DBMS=XLSX REPLACE;
   SHEET='Datos';
@@ -337,12 +339,12 @@ RUN;
 `entradas/ventas.xlsx`, generado con `escribir_xlsx` (una prueba exige los mismos bytes al regenerarlo): hoja `Datos` (`sku,unidades,precio`): `A-1,2,10` / `B-2,3,5` / `C-3,0,7`; hoja `Otra` (`sku,unidades,precio`): `Z-9,1,1` (prueba que `SHEET=` elige la hoja). Esperado a mano, `esperado/total.csv`: `sku,total` / `A-1,20` / `B-2,15` / `C-3,0`. Invariante: `filas(total) == 3`.
 
 - [x] **Step 1: Extraer sin cambiar comportamiento.** Mover a `lower_procs_archivos.py` las seis funciones indicadas y a `desde_plan_excel.py` la rama de Excel. La batería focal dio 160 aprobadas y 5 `xfail` antes y después; Ruff quedó limpio. `lower_procs.py` bajó de 194 a 132 líneas y `desde_plan_nodos.py` de 299 a 277. El helper Excel recibe la cabecera ya serializada para conservar también el caso entero de `_cabecera`. Commit aparte: `hito 252n: PROC IMPORT/EXPORT y la rama Excel en modulos propios, sin cambio de comportamiento`.
-- [ ] **Step 2: Write the failing tests** en `test_importar_excel.py`: (a) `escribir_xlsx` dos veces da los mismos bytes y `leer_xlsx(ruta, "Datos")` devuelve `(["sku","unidades","precio"], [["A-1","2","10"], ["B-2","3","5"], ["C-3","0","7"]])`; (b) `leer_xlsx(ruta)` sin hoja devuelve la primera (`Datos`) y con `"Nada"` lanza `KeyError` que nombra `Datos` y `Otra`; (c) `nodo_lectura_excel` con `dbms="xlsx"` deja `PASSWORD == '"sgm_ref"'`, y con `dbms="xls"` no pone `PASSWORD` y `VERSION_2007 == "false"`; (d) con `guessingrows` el pendiente `P-GUESSINGROWS` sigue (la guía dice que solo vale en delimitados, p. 1388); (e) una columna sin tipo en el esquema da `P-TIPO-EXCEL` con su nombre; (f) el caso coincide en el anillo B con `esperado/total.csv`; (g) `sgm secretos` sobre el paquete: cero hallazgos.
-- [ ] **Step 3: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_importar_excel.py -q -p no:cacheprovider`.
-- [ ] **Step 4: Implement** `leer_xlsx` con `zipfile` y `xml.etree.ElementTree` (`xl/workbook.xml` para las hojas y su `r:id`, `xl/_rels/workbook.xml.rels` para el archivo de cada hoja, `xl/sharedStrings.xml` si existe) y la rama de `read_file` del intérprete con una línea en `interprete.py` (rama `read_file`, línea 978): `dbms == "xlsx"` usa `leer_xlsx`; `xls` lanza `NoSoportadoEnInterprete("xls", "formato binario 97-2003: el intérprete no lo lee")` y se anota `Pendiente: P-XLS-SIN-EJECUCION` en el catálogo (el emisor de XLS se prueba solo con una prueba unitaria, sin caso del corpus).
-- [ ] **Step 5: Run** los tests, `tests/unit/test_mg_p2_excel.py`, el golden, `tests/unit/test_catalogo_sas.py` y `uv run ruff check src tests tools`.
-- [ ] **Step 6: Studio.** `uv run python tools/validar_caso_studio.py l0_19_importar_xlsx_hoja`; esperado `1 casos, 1 coinciden`. Sin Studio: «lote C pendiente».
-- [ ] **Step 7: Commit.** `hito N n: PROC IMPORT de XLSX con hoja, contrasena de plantilla y lector propio`.
+- [x] **Step 2: Write the failing tests** en `test_importar_excel.py`: generación determinista, hojas, encabezado opcional, marcador de contraseña solo en XLSX, tipos pendientes, GUESSINGROWS, rechazo de XLS y paquete sin hallazgos de secretos. Se añadió además un caso malicioso que prueba el rechazo de relaciones fuera del ZIP.
+- [x] **Step 3: Run tests to verify they fail.** Primero faltaba el módulo del generador; con el generador y lector presentes, las pruebas reproducían la falta del marcador `PASSWORD` y la ejecución silenciosa de XLS en el intérprete.
+- [x] **Step 4: Implement** `leer_xlsx` con `zipfile` y `xml.etree.ElementTree`; lee hojas y relaciones, celdas inline/shared-string, filas dispersas y números, rechaza relaciones externas/fuera del paquete y no extrae archivos. `tools/corpus_lib/esperado_archivos.py` carga XLSX del caso por `SHEET`; el intérprete rechaza XLS y XLSX sin entrada local. **Ruling:** `_ejecutar` no abre archivos; el lugar que carga bytes del caso es el adaptador del anillo B. El límite de XLSX queda ahí y el intérprete permanece independiente del sistema de archivos.
+- [x] **Step 5: Run** la prueba focal del caso `L0/l0_19_importar_xlsx_hoja` en `tests/unit/test_migrar_corpus_anillo_b.py`: 1 aprobada. Pruebas unitarias del lector/emisor y catálogo SAS, cierre integral y Ruff quedan anotados al cerrar el hito.
+- [x] **Step 6: Studio.** `uv run python tools/validar_caso_studio.py l0_19_importar_xlsx_hoja` alcanzó el arnés tras corregir el descubrimiento de entradas no CSV; el caso quedó en `out/studio-pendientes.json` por `BRIDGE_DEAD`. No cuenta como validación de Studio; «lote C pendiente».
+- [x] **Step 7: Commit.** `hito 253n: PROC IMPORT de XLSX con lector seguro y hoja seleccionable`.
 
 ---
 

@@ -163,6 +163,7 @@ def nodo_lectura(
     if dbms in EXCEL:
         resultado.nodo, pendientes_excel = nodo_lectura_excel(
             op,
+            esquema,
             columnas,
             archivo,
             dbms,

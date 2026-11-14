@@ -31,6 +31,7 @@ from sgm.migrar.esquemas_tipos import (
     _textos,
     tipo_de_expresion,
 )
+from sgm.migrar.lector_xlsx import leer_xlsx
 from sgm.migrar.tipos_import import (
     GUESSINGROWS_POR_OMISION,
     TipoDemostrado,
@@ -204,16 +205,41 @@ def esquemas_de_entrada(
         if not salidas:
             continue
         tabla = salidas[0]
+        dbms = str(op.params.get("dbms") or "").casefold()
         demostrado = _de_catalogo(tabla, catalogo)
         if demostrado is not None:
             esquemas[tabla] = demostrado
             continue
         ruta = _ruta_de_muestra(muestra, op.params.get("datafile"))
-        cabecera = (
-            _cabecera(ruta, op.params.get("delimiter"), op.params.get("getnames") is not False)
-            if ruta
-            else []
-        )
+        error_xlsx = None
+        if ruta and dbms == "xlsx":
+            try:
+                cabecera, _ = leer_xlsx(
+                    ruta,
+                    op.params.get("sheet"),
+                    getnames=op.params.get("getnames") is not False,
+                )
+            except (KeyError, ValueError) as error:
+                cabecera = []
+                error_xlsx = error
+        else:
+            cabecera = (
+                _cabecera(
+                    ruta,
+                    op.params.get("delimiter"),
+                    op.params.get("getnames") is not False,
+                )
+                if ruta
+                else []
+            )
+        if error_xlsx is not None:
+            pendientes.append(
+                PendienteMigracion(
+                    "P-XLSX-LECTURA",
+                    f"{tabla}: no se pudo leer la muestra XLSX ({error_xlsx}).",
+                    _linea(op),
+                )
+            )
         if op.params.get("input_names"):
             origen = "sas_input"
             nombres = [str(nombre) for nombre in op.params["input_names"]]
@@ -230,7 +256,7 @@ def esquemas_de_entrada(
                 nombres,
                 getnames=op.params.get("getnames") is not False,
             )
-            if ruta and origen == "file_header"
+            if ruta and origen == "file_header" and dbms != "xlsx"
             else {}
         )
         tipos_input = {
@@ -241,7 +267,12 @@ def esquemas_de_entrada(
             Column(
                 nombre,
                 {"caracter": "String", "numerico": "Double"}.get(
-                    tipos_input.get(nombre.lower()), _tipo_de(nombre, numericas, demostrados)
+                    tipos_input.get(nombre.lower()),
+                    "Double"
+                    if nombre.lower() in numericas
+                    else None
+                    if dbms == "xlsx"
+                    else _tipo_de(nombre, numericas, demostrados),
                 ),
                 None,
                 origen,
@@ -267,6 +298,8 @@ def esquemas_de_entrada(
             and tipos_input.get(nombre.lower()) not in {"caracter", "numerico"}
         ]
         if not sin_tipo:
+            continue
+        if dbms == "xlsx":
             continue
         pendientes.append(
             PendienteMigracion(

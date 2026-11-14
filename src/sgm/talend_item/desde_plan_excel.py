@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sgm.ir.models import Operator
+from sgm.ir.models import Column, Operator
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Nodo
@@ -11,6 +11,7 @@ from sgm.talend_item.plantillas import nodo_desde_plantilla
 
 def nodo_lectura_excel(
     op: Operator,
+    esquema: list[Column],
     columnas: list[Columna],
     archivo: str,
     dbms: str,
@@ -34,27 +35,32 @@ def nodo_lectura_excel(
                 linea,
             )
         )
-    if params.get("sheet") is None:
-        pendientes.append(
-            PendienteMigracion(
-                "P-HOJA",
-                f"{archivo}: DBMS={dbms} sin SHEET; el SAS lee la primera hoja por omisión",
-                linea,
+    for columna in esquema:
+        if columna.type is None:
+            pendientes.append(
+                PendienteMigracion(
+                    "P-TIPO-EXCEL",
+                    f"{archivo}: no se demostró el tipo de la columna Excel '{columna.name}'; "
+                    "se conserva como texto hasta validar el esquema SAS.",
+                    linea,
+                )
             )
-        )
     celdas: tuple[tuple[str, str], ...] = (("USE_REGEX", "false"),)
     if params.get("sheet") is not None:
         celdas = (("SHEETNAME", java(str(params["sheet"]))), *celdas)
+    valores = {
+        "FILENAME": java(archivo),
+        "VERSION_2007": "true" if dbms == "xlsx" else "false",
+        "HEADER": header,
+    }
+    if dbms == "xlsx":
+        valores["PASSWORD"] = '"sgm_ref"'
     nodo = nodo_desde_plantilla(
         "tFileInputExcel",
         unico,
         x,
         y,
-        {
-            "FILENAME": java(archivo),
-            "VERSION_2007": "true" if dbms == "xlsx" else "false",
-            "HEADER": header,
-        },
+        valores,
         {"SHEETLIST": celdas},
         columnas,
         ruta_java,

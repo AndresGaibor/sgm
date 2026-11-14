@@ -26,6 +26,7 @@ sys.path.insert(0, str(REPO / "tools"))
 
 from corpus_lib import caso as casos  # noqa: E402
 from corpus_lib.csv_tabla import Tabla, comparar_con_guardado, leer_entradas  # noqa: E402
+from corpus_lib.esperado_archivos import entradas_de_archivos  # noqa: E402
 
 CORPUS = REPO / "tests" / "corpus"
 NIVELES = ("L0", "L1", "L2", "L3", "L4", "L5", "L6")
@@ -116,7 +117,14 @@ def test_el_interprete_da_lo_que_el_sas(caso):
         project_base(),
     ).plan
 
-    salidas = ejecutar_plan(plan, _entradas(caso))
+    entradas = _entradas(caso)
+    if any(
+        operador.kind == "read_file" and operador.params.get("dbms") == "xlsx"
+        for operador in plan.graph.operators()
+    ):
+        imports, _ = entradas_de_archivos(plan, caso)
+        entradas.update(imports)
+    salidas = ejecutar_plan(plan, entradas)
 
     problemas = [
         problema

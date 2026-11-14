@@ -6,8 +6,9 @@
 # `test_la_lista_no_tiene_casos_resueltos` falla cuando un caso de aquí ya no tiene ninguno, para
 # obligar a quitar su entrada.
 #
-# Los pendientes de tipo (`P-TIPO-DESCONOCIDO`) **no cuentan**: sin catálogo del entorno no hay tipo
-# que demostrar, y una lista que los incluyera mezclaría esa deuda con traducciones incompletas.
+# Los pendientes de tipo (`P-TIPO-DESCONOCIDO`, `P-TIPO-EXCEL`) **no cuentan**: sin catálogo del
+# entorno no hay tipo que demostrar, y una lista que los incluyera mezclaría esa deuda con
+# traducciones incompletas.
 # Lo que cuenta aquí es lo que no se tradujo.
 #
 # Cada caso se migra con su carpeta `entradas/` como muestra (`sgm migrar --muestra`), que es como se

@@ -1,0 +1,25 @@
+nivel: L0
+tema: Importación de hoja XLSX y cálculo numérico simple
+construcciones:
+  - PROC IMPORT
+  - DBMS=XLSX
+  - GETNAMES
+  - SHEET
+  - DATA
+  - SET
+  - KEEP
+capa: C
+estado: revisado
+motivo: >-
+  El esperado del anillo B usa datos sintéticos; el tipo real de cada columna Excel y la ejecución
+  del componente requieren validación posterior con el SAS y Talend Studio del cliente.
+salidas: [total]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  SAS/ACCESS documenta los identificadores XLS y XLSX, la primera hoja por omisión, SHEET= y
+  GETNAMES= en la sección «Import and Export Microsoft Excel Files Using the XLS and XLSX
+  Identifiers» (acpcref.pdf, p. 93; opciones detalladas en las páginas siguientes). El caso usa
+  una hoja nombrada para comprobar que el lector no toma otra hoja del libro.
+invariantes:
+  - filas(total) == 3

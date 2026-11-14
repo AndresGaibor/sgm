@@ -35,10 +35,10 @@ CORPUS = RAIZ / "corpus"
 FIXTURES = RAIZ / "fixtures" / "sas"
 LISTA = CORPUS / "migrar_pendientes.yaml"
 
-# El tipo sin demostrar no es una pérdida de traducción: sin catálogo del entorno no hay tipo que
-# demostrar, y contarlo como una pérdida de traducción mezclaría dos deudas distintas. Lo que cuenta
-# aquí es lo que no se tradujo. El porqué está en el encabezado del YAML.
-NOTAS = frozenset({"P-TIPO-DESCONOCIDO", "P-CONFIGURACION-RESUELTA"})
+# Los tipos sin demostrar no son una pérdida de traducción: sin catálogo del entorno no hay tipo que
+# demostrar, y contarlos como una pérdida de traducción mezclaría dos deudas distintas. Excel tiene
+# su código específico; ambos se excluyen de la lista de construcciones que no se tradujeron.
+NOTAS = frozenset({"P-TIPO-DESCONOCIDO", "P-TIPO-EXCEL", "P-CONFIGURACION-RESUELTA"})
 NIVELES = ("L0", "L1", "L2", "L3", "L4", "L5", "L6")
 
 

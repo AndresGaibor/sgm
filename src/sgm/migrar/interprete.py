@@ -862,6 +862,12 @@ def _ejecutar(
     if op.kind == "unsupported" and op.params.get("reason") == "CONFIGURACION":
         return [], {}  # `%LET`, `OPTIONS`: ya sustituidos en el programa, no producen filas
     if op.kind in ("read", "read_file"):
+        if op.kind == "read_file":
+            dbms = str(op.params.get("dbms") or "").casefold()
+            if dbms == "xls":
+                raise NoSoportadoEnInterprete(
+                    "xls", "formato binario 97-2003: el intérprete no lo lee"
+                )
         if op.kind == "read" and (op.placement or "").startswith("db:"):
             fuentes = entradas_directas if entradas_directas is not None else tablas
             filas = _leer_paso_directo(op, fuentes)
@@ -874,6 +880,14 @@ def _ejecutar(
             if op.kind == "read"
             else _tabla(_primero(op.params, "outputs"))
         )
+        if (
+            op.kind == "read_file"
+            and str(op.params.get("dbms") or "").casefold() == "xlsx"
+            and nombre not in tablas
+        ):
+            raise NoSoportadoEnInterprete(
+                "xlsx", "el archivo no se cargó desde las entradas locales del caso"
+            )
         if nombre in tablas:
             return tablas[nombre], {nombre: tablas[nombre]}
         previos = plan.graph.predecessors(op.id)

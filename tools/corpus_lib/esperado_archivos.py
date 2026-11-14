@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from sgm.ir.models import Plan
 from sgm.migrar.ficha import leer_ficha
+from sgm.migrar.lector_xlsx import leer_xlsx
 from tools.datos_sinteticos.ficha import validar_ficha
 
 if TYPE_CHECKING:
@@ -114,6 +115,30 @@ def _leer_dlm(
     )
 
 
+def _leer_xlsx(operator: object, caso: Caso) -> tuple[str, list[str], list[dict[str, str]]]:
+    """Lee solo la hoja declarada por PROC IMPORT desde entradas del caso."""
+    params = operator.params
+    getnames = params.get("getnames")
+    if not isinstance(getnames, bool):
+        raise ValueError("PROC IMPORT DBMS=XLSX no tiene GETNAMES resuelto")
+    name = _nombre_fuente(params.get("datafile"))
+    case_root = caso.directorio.resolve()
+    root = caso.entradas.resolve()
+    if root == case_root or not root.is_relative_to(case_root):
+        raise ValueError("raíz de entradas fuera de la carpeta del caso")
+    path = (root / name).resolve()
+    if not path.is_relative_to(root) or not path.is_file():
+        raise ValueError(f"no existe el archivo DATAFILE del caso: {name}")
+    columns, rows = leer_xlsx(path, params.get("sheet"), getnames=getnames)
+    if any(not _IDENTIFICADOR.fullmatch(column) for column in columns):
+        raise ValueError(f"{name}: los nombres de columna Excel no son identificadores portables")
+    return (
+        _tabla((params.get("outputs") or [""])[0]),
+        columns,
+        [dict(zip(columns, row, strict=True)) for row in rows],
+    )
+
+
 def entradas_de_archivos(
     plan: Plan, caso: Caso, salidas: tuple[str, ...] | list[str] | None = None
 ) -> tuple[dict[str, list[dict[str, str]]], dict[str, list[str]]]:
@@ -125,12 +150,16 @@ def entradas_de_archivos(
         if operator.kind != "read_file" or operator.id not in relevantes:
             continue
         dbms = str(operator.params.get("dbms") or "").casefold()
-        if dbms != "dlm":
+        if dbms == "xls":
+            raise ValueError("DBMS=XLS no se ejecuta en el intérprete: P-XLS-SIN-EJECUCION")
+        if dbms not in {"dlm", "xlsx"}:
             raise ValueError(
                 f"{_tabla((operator.params.get('outputs') or [''])[0])}: "
                 f"DBMS={dbms or '(sin DBMS)'} no está soportado en el esperado del anillo B"
             )
-        name, names, rows = _leer_dlm(operator, caso)
+        name, names, rows = (
+            _leer_xlsx(operator, caso) if dbms == "xlsx" else _leer_dlm(operator, caso)
+        )
         if name in entradas:
             raise ValueError(f"{name}: más de un PROC IMPORT produce la misma tabla")
         entradas[name] = rows

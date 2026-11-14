@@ -102,7 +102,7 @@ def validar(nombre: str, sufijo: str) -> bool:
     contexto = yaml.safe_load((paquete / "contextos" / "Default.yaml").read_text(encoding="utf-8"))
     variables = [v["nombre"] for v in contexto["variables"]]
     caso = yaml.safe_load((carpeta / "caso.yaml").read_text(encoding="utf-8"))
-    entradas = [p.name for p in (carpeta / "entradas").glob("*.csv")]
+    entradas = sorted(p.name for p in (carpeta / "entradas").iterdir() if p.is_file())
     mapa = _mapa_del_caso(carpeta, variables, entradas, caso.get("salidas", []))
     ruta_mapa = trabajo / "mapa.yaml"
     ruta_mapa.write_text(yaml.safe_dump(mapa), encoding="utf-8")

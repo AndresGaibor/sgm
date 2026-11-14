@@ -33,6 +33,7 @@ GUIA_DE_CITA = {
     "lesysoptsref.pdf": "lesysoptsref.INDEX.md",
     "connref.pdf": "connref.INDEX.md",
     "proc.pdf": "proc.INDEX.md",
+    "acpcref.pdf": "acpcref.INDEX.md",
 }
 
 
@@ -69,9 +70,11 @@ def test_una_entrada_sin_pagina_no_pasa_el_esquema():
 @pytest.mark.parametrize("nombre", sorted(_catalogos()))
 def test_cada_pagina_citada_existe_en_el_indice_de_su_guia(nombre):
     for entrada in _entradas(nombre):
-        guia, pagina = re.fullmatch(r"(.+?), p\. (\d+)", entrada["fuente"]).groups()
-        indice = (REF / GUIA_DE_CITA[guia]).read_text(encoding="utf-8")
-        assert f"(p. {pagina})" in indice, f"{nombre}: {entrada['nombre']} cita p. {pagina}"
+        citas = re.findall(r"([\w-]+\.pdf), p\. (\d+)", entrada["fuente"])
+        assert citas, f"{nombre}: fuente sin páginas válidas: {entrada['fuente']}"
+        for guia, pagina in citas:
+            indice = (REF / GUIA_DE_CITA[guia]).read_text(encoding="utf-8")
+            assert f"(p. {pagina})" in indice, f"{nombre}: {entrada['nombre']} cita p. {pagina}"
 
 
 def test_cada_funcion_reconocida_tiene_su_implementacion():

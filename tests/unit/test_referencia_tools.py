@@ -82,6 +82,13 @@ def test_una_guia_fuera_de_la_coleccion_usa_su_propia_url():
     )
 
 
+def test_la_referencia_pc_files_de_sas_usa_el_docset_oficial():
+    guia = next((g for g in fuentes.SAS_DOCSETS if g.docset == "acpcref"), None)
+    assert guia is not None
+    assert guia.titulo == "SAS/ACCESS 9.4 Interface to PC Files: Reference"
+    assert fuentes.url_guia(guia).endswith("/docsets/acpcref/content/acpcref.pdf?locale=en")
+
+
 def test_las_guias_de_la_coleccion_conservan_la_url_de_siempre():
     for guia in fuentes.SAS_DOCSETS:
         if guia.docset == "lrcon":
@@ -115,6 +122,10 @@ def test_cada_guia_sas_tiene_su_fila_en_la_tabla_del_readme():
 def test_texto_de_paginas_marca_cada_pagina_y_separa_con_una_linea_en_blanco():
     generado = texto.texto_de_paginas(["uno\n", "dos"])
     assert generado == "\n\n<!-- página 1 -->\nuno\n\n<!-- página 2 -->\ndos\n"
+
+
+def test_texto_de_paginas_limpia_espacios_sobrantes_de_cada_linea():
+    assert texto.texto_de_paginas(["uno  \ndos\t"]) == "\n\n<!-- página 1 -->\nuno\ndos\n"
 
 
 def test_una_pagina_sin_texto_deja_solo_su_marca():

@@ -37,6 +37,7 @@ Identifica operaciones, dependencias, orden de ejecución y lo que no se traduce
 | Macro Language: Reference | `mcrolref` | 602 | descargada |
 | SQL Procedure User's Guide | `sqlproc` | 546 | descargada |
 | Procedures Guide | `proc` | 2928 | descargada |
+| SAS/ACCESS Interface to PC Files: Reference | `acpcref` | 412 | descargada para opciones específicas de Excel |
 
 De `proc` solo se consultan los procedimientos que el corpus usa de verdad (`SORT`, `SUMMARY`,
 `MEANS`, `TRANSPOSE`, `FREQ`, `DATASETS`, `IMPORT`, `EXPORT`, `APPEND`, `FORMAT`). El índice
@@ -78,8 +79,10 @@ no aparece en la página descargada, no se inventa, se marca como pendiente.
   El día que aparezca un archivo con encoding declarado, se agrega a `SAS_DOCSETS`.
 - **Logging**: no hay docset con ese nombre en la colección (`logref` da 404). El catálogo lo manda al
   SAS Help Center; si hace falta, se busca ahí y se anota la URL exacta.
-- **SAS/STAT, SAS/ACCESS, ODS, DS2**: solo si el corpus los usa. Hoy `client_large.sas` y los casos
-  de `tests/corpus/` no los tienen; se comprueba con una búsqueda antes de bajarlos, no por si acaso.
+- **SAS/ACCESS para PC Files** (`acpcref`): se agregó el 2026-11-14 para justificar `PROC IMPORT`
+  con Excel, `GETNAMES=` y `SHEET=` del caso L0 de Excel. Las partes no usadas quedan fuera de alcance.
+- **SAS/STAT, ODS y DS2**: solo si el corpus los usa; se comprueba con una búsqueda antes de bajar
+  sus guías.
 - **Language Reference: Dictionary**: es la edición impresa que reúne sentencias, opciones de dataset,
   opciones de sistema y funciones. En docsets son `lestmtsref`, `ledsoptsref`, `lesysoptsref` y
   `lefunctionsref`, que ya están.
@@ -95,6 +98,7 @@ no aparece en la página descargada, no se inventa, se marca como pendiente.
 7. `lesysoptsref` — opciones globales.
 8. `proc` — procedimientos.
 9. `gridref`, `hostunx` y `connref` — entorno Grid, UNIX y sesiones remotas.
-10. Documentación de Talend de los componentes objetivo.
+10. `acpcref` — opciones de Excel de `PROC IMPORT` y `PROC EXPORT`, agregada para D2-6.
+11. Documentación de Talend de los componentes objetivo.
 
-Las nueve primeras están en `sas/`; la décima, en `talend/`.
+Las diez primeras están en `sas/`; la undécima, en `talend/`.

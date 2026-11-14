@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 
@@ -30,6 +31,11 @@ def test_entradas_existentes_y_salidas_del_esperado() -> None:
 def test_la_coincidencia_no_distingue_mayusculas() -> None:
     mapa = mapa_de_contexto(["ruta_clientes"], entradas=["Clientes.csv"], salidas=[])
     assert mapa == {"ruta_clientes": "entradas/Clientes.csv"}
+
+
+def test_mapea_entradas_xlsx_por_nombre_base() -> None:
+    mapa = mapa_de_contexto(["ruta_ventas"], entradas=["ventas.xlsx"], salidas=[])
+    assert mapa == {"ruta_ventas": "entradas/ventas.xlsx"}
 
 
 def test_mapa_explicito_del_caso_cubre_todas_las_variables(tmp_path):
@@ -110,3 +116,32 @@ def test_validar_pasa_la_raiz_del_corpus_real_al_arnes(tmp_path, monkeypatch):
     assert comandos[1][comandos[1].index("--corpus") + 1] == str(
         raiz / "tests/corpus_reales"
     )
+
+
+def test_validar_incluye_entradas_xlsx_en_el_mapa_de_contexto(tmp_path, monkeypatch):
+    raiz = tmp_path
+    caso = raiz / "tests/corpus/L0/ejemplo_xlsx"
+    (caso / "entradas").mkdir(parents=True)
+    (caso / "entradas/ventas.xlsx").write_bytes(b"fixture")
+    (caso / "programa.sas").write_text("proc import; run;", encoding="utf-8")
+    (caso / "caso.yaml").write_text("salidas: []\n", encoding="utf-8")
+    monkeypatch.setattr(validar_caso_studio, "RAIZ", raiz)
+    mapas = []
+
+    def correr(argumentos):
+        if "migrar" in argumentos:
+            destino = Path(argumentos[argumentos.index("--out") + 1]) / "programa"
+            (destino / "process").mkdir(parents=True)
+            (destino / "contextos").mkdir()
+            (destino / "contextos/Default.yaml").write_text(
+                "variables:\n  - nombre: ruta_ventas\n", encoding="utf-8"
+            )
+        else:
+            ruta_mapa = Path(argumentos[argumentos.index("--mapa") + 1])
+            mapas.append(yaml.safe_load(ruta_mapa.read_text(encoding="utf-8")))
+        return subprocess.CompletedProcess(argumentos, 0, "ok", "")
+
+    monkeypatch.setattr(validar_caso_studio, "_correr", correr)
+
+    assert validar_caso_studio.validar("ejemplo_xlsx", "h1a")
+    assert mapas == [{"ruta_ventas": "entradas/ventas.xlsx"}]

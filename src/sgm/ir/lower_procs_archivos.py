@@ -37,7 +37,7 @@ def _entero(valor: str | None) -> int | str | None:
 
 
 def _getnames(opciones: dict[str, str]) -> bool:
-    """`GETNAMES=YES` es el valor por omisión de SAS (`proc`, p. 1387)."""
+    """Valor por omisión: `proc`, p. 1387 para delimitados; `acpcref`, p. 93 para Excel."""
     valor = opciones.get("getnames")
     return True if valor is None else _sin_comillas(valor).upper() != "NO"
 

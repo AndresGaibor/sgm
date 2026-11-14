@@ -1,7 +1,7 @@
 # Referencia SAS 9.4 (documentación oficial)
 
-Descargado el 2026-11-03 desde `documentation.sas.com` (colección `pgmsascdc/9.4_3.5`) y completado
-el 2026-11-05 con las guías que faltaban del catálogo por capas (`../catalogo-sas.md`).
+Descargado desde `documentation.sas.com` (colección `pgmsascdc/9.4_3.5`) entre el 2026-11-03 y el
+2026-11-14; se amplió con la referencia SAS/ACCESS al documentar importación de Excel.
 Son los PDF oficiales de SAS, sin modificar. Cada `.pdf` tiene además un `.txt` con su texto
 extraído (una marca `<!-- página N -->` por página) para buscar con `Grep`.
 
@@ -13,6 +13,7 @@ extraído (una marca `<!-- página N -->` por página) para buscar con `Grep`.
 | `ledsoptsref.pdf` / `.txt` | SAS 9.4 Data Set Options Reference | — | Opciones de dataset (`KEEP=`, `DROP=`, `RENAME=`, `WHERE=`, `FIRSTOBS=`, `OBS=`) |
 | `lefunctionsref.pdf` / `.txt` | SAS 9.4 Functions and CALL Routines Reference | 1764 | Funciones de texto, fecha, numéricas y formatos de fecha |
 | `proc.pdf` / `.txt` | SAS 9.4 Procedures Guide | 2928 | Procedimientos como PROC SORT, PROC IMPORT/EXPORT, PROC CONTENTS, PROC FORMAT |
+| `acpcref.pdf` / `.txt` | SAS/ACCESS 9.4 Interface to PC Files: Reference | 412 | Opciones SAS/ACCESS específicas para Excel, incluidos `GETNAMES=` y `SHEET=` en XLS/XLSX |
 | `lepg.pdf` / `.txt` | SAS 9.4 Programmer's Guide: Essentials | 930 | Cómo funciona el paso DATA por dentro (búfer de entrada, PDV, ciclo compilar/ejecutar), grupos `BY` con `FIRST.`/`LAST.`, combinar conjuntos (`MERGE`, `SET`, `UPDATE`), `RETAIN`, arrays, `OUTPUT`, y el apéndice «Understanding How the DATA Step Works» (p. 887) |
 | `lrcon.pdf` / `.txt` | SAS 9.4 Language Reference: Concepts (Sixth Edition) | 916 | Las reglas del lenguaje, no la sintaxis: valores perdidos (p. 123), expresiones y comparación con blancos finales (p. 133), fechas e intervalos (p. 155), `BY` en programas (p. 229), `WHERE` (p. 231), combinar y modificar conjuntos (p. 563), arrays (p. 667) |
 | `leforinforref.pdf` / `.txt` | SAS 9.4 Formats and Informats: Reference | 766 | Diccionario completo de formats (p. 15) e informats (p. 553): `ANYDTDTE` (p. 617), `B8601DA` (p. 628), `E8601DA` (p. 654), `RMFDUR` (p. 706), `YYMMDD` (p. 755). Es la fuente de `rules/sas/informats.yaml` |

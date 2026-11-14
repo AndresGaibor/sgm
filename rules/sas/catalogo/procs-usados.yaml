@@ -36,9 +36,9 @@ entries:
   nota: '22 usos; escribe CSV u otro formato. Equivale a la salida de archivo del Job'
 - id: import
   nombre: PROC IMPORT
-  fuente: proc.pdf, p. 1373
-  estado: no_verificada
-  nota: '9 usos; lee CSV con DBMS=DLM y GETNAMES=. Equivale a tFileInputDelimited'
+  fuente: proc.pdf, p. 1380; acpcref.pdf, p. 93
+  estado: reconocida
+  nota: '9 usos; CSV y DLM con esquema condicionado por muestra; XLSX con SHEET= y GETNAMES=; XLS se emite como Excel pero no se ejecuta en el intérprete (P-XLS-SIN-EJECUCION); columnas Excel sin tipo probado dejan P-TIPO-EXCEL.'
 - id: download
   nombre: PROC DOWNLOAD
   fuente: connref.pdf, p. 287
