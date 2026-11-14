@@ -1,0 +1,22 @@
+nivel: L0
+tema: informats numéricos en INPUT de INFILE con separadores y decimales
+construcciones:
+  - DATA
+  - INFILE DSD MISSOVER
+  - INPUT en lista
+  - COMMAw.d Informat
+  - DOLLARw.d Informat
+  - w.d Informat
+capa: C
+estado: pendiente_revision
+motivo: >-
+  El anillo B verifica los informats y el emisor conserva las columnas de entrada como texto antes
+  de convertirlas en un tMap. La validación de ejecución en Studio sigue pendiente mientras no
+  responda el bridge MCP.
+salidas: [limpio]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  leforinforref.pdf, p. 646 documenta COMMAw.d, su alias DOLLARw.d, los caracteres que elimina y
+  los paréntesis iniciales como signo negativo; p. 744 documenta w.d y que d se ignora con punto
+  decimal y escala por 10**d sin él. lestmtsref.pdf, p. 204 documenta informats en lista.

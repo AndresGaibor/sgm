@@ -6,6 +6,7 @@ import csv
 import re
 from collections.abc import Sequence
 
+from sgm.formatos.informat_archivo import leer_campo
 from sgm.migrar.interprete_errores import NoSoportadoEnInterprete
 
 
@@ -39,9 +40,12 @@ def leer_lista(
             raise NoSoportadoEnInterprete("infile", "P-INFILE-DSD-COMILLAS-INVALIDAS") from error
 
         values: list[str | None] = []
-        for field in fields[: len(variables)]:
+        for field, (_name, informat) in zip(fields[: len(variables)], variables, strict=False):
             value = field if dsd else field.strip()
-            values.append(None if value == "" else value)
+            value = None if value == "" else value
+            if value is not None and informat:
+                value = leer_campo(value, informat)
+            values.append(value)
         values.extend([None] * (len(variables) - len(values)))
         rows.append(
             {name: value for (name, _informat), value in zip(variables, values, strict=True)}

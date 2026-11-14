@@ -132,10 +132,11 @@ def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator |
             params["input_informats"] = dict(input_stmt.fields["informats"])
         if input_stmt.fields.get("fields"):
             params["input_positions"] = list(input_stmt.fields["fields"])
+        if input_stmt.fields.get("informats"):
             type_codes: dict[str, str] = {}
             input_types = dict(params.get("input_types") or {})
             input_lengths = dict(params.get("input_lengths") or {})
-            for name, informat in (input_stmt.fields.get("informats") or {}).items():
+            for name, informat in input_stmt.fields["informats"].items():
                 declared = informat_type(str(informat))
                 if declared is None:
                     continue

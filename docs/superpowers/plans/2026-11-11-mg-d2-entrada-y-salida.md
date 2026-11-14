@@ -627,18 +627,21 @@ RUN;
 
 ### Task D2-12: Informats numéricos en `INPUT`: `w.d`, `COMMAw.d` y `DOLLARw.d` (MG-P2-03, parte 1; serie `n`)
 
-Páginas (`leforinforref.pdf`): `w.d Informat` (p. 744), `COMMAw.d Informat` (p. 646), `$w. Informat` (p. 616); `DOLLARw.d Informat`: el índice solo trae `DOLLARw.d Format` (p. 198); buscar con `grep -n -i "dollar" docs/referencia/sas/leforinforref.INDEX.md` y, si no hay página de informat, `Pendiente: P-INFORMAT-DOLLAR-SIN-PAGINA` y la columna `b` sale del caso. Regla que prueba el caso: un informat con `d > 0` **divide por `10**d` cuando el dato no trae punto decimal** (p. 744), así que `COMMA12.2` lee `-7` como `-0.07`; con punto decimal en el dato, `d` no cuenta.
+Páginas (`leforinforref.pdf`): `w.d Informat` (p. 744), `COMMAw.d Informat` (p. 646) y `$w. Informat` (p. 616). La página 646 identifica `DOLLARw.d` como alias de `COMMAw.d`; no hace falta inferirlo desde el índice del format. `w.d` divide por `10**d` cuando el dato no trae punto decimal y conserva la escala explícita cuando sí lo trae (p. 744). COMMA elimina comas, espacios, signos `$`, `%`, guiones y paréntesis de cierre; un paréntesis de apertura al comienzo se convierte en signo negativo (p. 646). Por eso `(7)` con `COMMA12.2` da `-0.07`, mientras que `-7` pierde el guion y da `0.07`.
 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\formatos\informat_archivo.py` (creado en D2-10: `comma`, `dollar`)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_infile.py` (D2-9: el informat de `variables` pasa por `leer_campo`)
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\informats-usados.yaml` (entradas `comma` p. 646 y `w-d` p. 744: `reconocida`, con la nota de la división por `10**d`)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_data.py` (conserva los tipos demostrados por los informats)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan.py` (lector String seguido por tMap de conversión)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\informats-usados.yaml` (entradas `comma`, `dollar` —alias de COMMA— y `w-d`, con sus páginas)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_25_informats_numericos_infile\{caso.yaml, programa.sas, entradas\crudo.txt, esperado\limpio.csv}`
+- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_25_informats_numericos_infile\mapa.yaml` (ruta de entrada y ruta de salida para el arnés Studio)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_informats_archivo_num.py`
 
 **Interfaces:**
 - Consumes: `leer_campo(texto: str, informat: str) -> str | None` (D2-10), `leer_lista(...)` (D2-9), `informat_type(spec: str)` (`types_code.py:113`), `Informat` y `parsear_informat` (D1-15).
-- Produces: `leer_campo` con `comma`, `dollar` y `w.d` completos: quita `,` y `$` del texto (p. 646), el signo `-` inicial, y aplica la división por `10**d` solo sin punto decimal; texto en blanco o solo `.`, `None`. Con `*`, `%` o paréntesis: `NoSoportadoEnInterprete('informat', ...)` hasta verificar p. 646.
+- Produces: `leer_campo` con `COMMAw.d`, su alias `DOLLARw.d` y `w.d`: aplica la limpieza documentada en p. 646 y la escala de p. 744; blanco o `.` producen faltante. `*` permanece como valor inválido no interpretado porque p. 646 no define ese carácter.
 
 **Caso `L0/l0_25_informats_numericos_infile` (`capa: C`, `estado: pendiente_revision` hasta fijar p. 646 y 744; razonamiento: «leforinforref, p. 646 y 744: división por 10**d sin punto decimal»).**
 ```sas
@@ -646,15 +649,18 @@ DATA WORK.limpio;
   INFILE '.../entradas/crudo.txt' DLM=';' DSD MISSOVER;
   INPUT a :COMMA12.2 b :DOLLAR10. c :8.2;
 RUN;
+PROC EXPORT DATA=WORK.limpio OUTFILE='.../salida/limpio.csv' DBMS=CSV REPLACE;
+RUN;
 ```
-`entradas/crudo.txt`: `1,234.50;$1500;12345` / `-7;$20;5` / `;;`. Esperado a mano, `esperado/limpio.csv`: `a,b,c` / `1234.5,1500,123.45` / `-0.07,20,0.05` / `,,` (`1,234.50` trae punto decimal y se lee 1234.5; `-7` no lo trae y `d=2` lo divide por 100; `12345` con `8.2` da 123.45 y `5` da 0.05; la tercera línea tiene los tres campos faltantes). Invariante: `filas(limpio) == 3`.
+`entradas/crudo.txt`: `1,234.50;$1500;12345` / `(7);$20;5` / `;;`. Esperado a mano, `esperado/limpio.csv`: `a,b,c` / `1234.5,1500,123.45` / `-0.07,20,0.05` / `,,` (`1,234.50` trae punto decimal y se lee 1234.5; `(7)` se vuelve `-7` y `d=2` lo divide por 100; `12345` con `8.2` da 123.45 y `5` da 0.05; la tercera línea tiene los tres campos faltantes). Invariante: `filas(limpio) == 3`.
+`PROC EXPORT` usa la salida CSV ya cubierta por D2-6 para que el validador Studio compare el resultado del caso; no amplía la equivalencia que se implementa aquí.
 
-- [ ] **Step 1: Write the failing tests.** `leer_campo("1,234.50", "comma12.2") == "1234.5"`, `leer_campo("-7", "comma12.2") == "-0.07"`, `leer_campo("$1500", "dollar10.") == "1500"`, `leer_campo("12345", "8.2") == "123.45"`, `leer_campo("", "comma12.2") is None`, `leer_campo("1.5%", "comma12.2")` lanza `NoSoportadoEnInterprete`; el caso coincide en el anillo B; `informat_type("comma12.2")` da `BigDecimal` y el esquema del caso lo usa.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_informats_archivo_num.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** y ajustar el esperado a lo que digan las páginas (si p. 646 dice otra cosa para el signo, se corrige el caso y se anota en `PROGRESS.md`). `tFileInputDelimited` no aplica informats: el emisor lee la columna como `String` y deja la conversión en un `tMap` con la expresión de D1 (`talend_funciones_formato._input`); sin D1, `P-INFORMAT-SIN-SOPORTE` y el caso va a `migrar_pendientes.yaml`.
-- [ ] **Step 4: Run** los tests, `tests/unit/test_mg_p2_informats.py`, `tests/unit/test_informats_yaml.py`, `tests/unit/test_catalogo_sas.py`, el golden y `uv run ruff check src tests tools`.
-- [ ] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_25_informats_numericos_infile`; sin Studio, «lote C pendiente».
-- [ ] **Step 6: Commit.** `hito N n: informats numericos w.d, COMMA y DOLLAR en INPUT de archivo`.
+- [x] **Step 1: Write the failing tests.** Cobertura de w.d, COMMA/DOLLAR, faltantes, esquema y emisión texto→tMap.
+- [x] **Step 2: Run tests to verify they fail.** La primera ejecución dio 10 fallos y 5 aprobadas por las conversiones, tipos y tMap ausentes; la regresión de paréntesis documentó además la diferencia del traductor D1.
+- [x] **Step 3: Implement.** El intérprete aplica el informat; la IR conserva el tipo; el emisor usa columnas String en el lector y un tMap con la expresión `input()` de D1. Un informat fuera del alcance bloquea el Job hasta tener conversión implementada.
+- [x] **Step 4: Run** 270 pruebas focales del conjunto relacionado y 163 de aceptación del corpus; `uv run ruff check src tests tools` y `git diff --check` verdes. Cierre staged: `uv run python tools/ci.py` pasó con 4.304 aprobadas, 354 omitidas y 145 `xfail`; Ruff (0,3 s), suite (122,9 s), cruces (5,4 s), oráculo (2,9 s) y tablero (13,6 s), todo verde.
+- [x] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_25_informats_numericos_infile` llegó al bridge y obtuvo `BRIDGE_DEAD` en `127.0.0.1:3927`; el caso quedó en `out/studio-pendientes.json`, no cuenta como validado.
+- [x] **Step 6: Commit.** `hito 259n: informats numericos w.d, COMMA y DOLLAR en INPUT de archivo`.
 
 ---
 

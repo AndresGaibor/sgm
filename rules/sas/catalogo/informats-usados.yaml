@@ -94,3 +94,8 @@ entries:
   fuente: leforinforref.pdf, p. 646
   estado: reconocida
   nota: informat numérico que retira separadores, signos monetarios y escala `d` cuando falta punto decimal
+- id: dollar
+  nombre: DOLLARw.d
+  fuente: leforinforref.pdf, p. 646
+  estado: reconocida
+  nota: alias documentado de COMMAw.d; conserva la misma limpieza y escala numérica

@@ -73,9 +73,9 @@ def test_informat_archivo_convierte_decimal_explicito_omitido_y_faltante(texto, 
     assert leer_campo(texto, informat) == esperado
 
 
-def test_informat_no_integrado_no_se_convierte_por_su_nombre():
+def test_informat_no_demostrado_no_se_convierte_por_su_nombre():
     with pytest.raises(NoSoportadoEnInterprete) as error:
-        leer_campo("   123,45", "comma8.2")
+        leer_campo("   123,45", "percent8.2")
 
     assert error.value.detalle == "P-INFORMAT-SIN-SOPORTE"
 

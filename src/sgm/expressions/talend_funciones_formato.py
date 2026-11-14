@@ -46,7 +46,10 @@ def _input(p: _P, args: list[E]) -> E:
         signed = f'({source}.startsWith("(") ? "-" + {clean} : {clean})'
         allowed_pattern = chr(34) + r"[0-9,$%() .-]+" + chr(34)
         allowed = f"{source}.matches({_jstr(allowed_pattern)})"
-        balanced = f'({source}.startsWith("(") == {source}.endsWith(")"))'
+        parentheses = (
+            f'(!{source}.contains("(") || '
+            f'({source}.startsWith("(") && {source}.indexOf("(", 1) == -1))'
+        )
         numeric_pattern = chr(34) + r"(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)" + chr(34)
         numeric = f"{clean}.matches({_jstr(numeric_pattern)})"
         value = (
@@ -54,7 +57,10 @@ def _input(p: _P, args: list[E]) -> E:
             f'{clean}.contains({_jstr(chr(34) + "." + chr(34))}) ? 0 : {decimals})'
         )
         parsed = value if decimals else f"Double.valueOf(({value}).doubleValue())"
-        return E(_guard([args[0]], f"({allowed} && {balanced} && {numeric} ? {parsed} : null)"), "num")
+        return E(
+            _guard([args[0]], f"({allowed} && {parentheses} && {numeric} ? {parsed} : null)"),
+            "num",
+        )
     width_decimal = re.fullmatch(r"\d+\.(\d+)", fmt)
     if width_decimal:
         decimals = int(width_decimal.group(1))

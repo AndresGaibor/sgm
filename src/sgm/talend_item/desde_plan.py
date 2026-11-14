@@ -21,8 +21,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field, replace
 
+from sgm.formatos.informat_archivo import informat_numerico_soportado
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Operator, Plan
+from sgm.ir.types_code import informat_type
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.optimizar import Decision, optimizar
 from sgm.talend_item.componentes import log_row
@@ -321,8 +323,42 @@ class _Job:
                     _linea(op),
                 )
             )
+        informats = {
+            str(nombre).casefold(): str(informat)
+            for nombre, informat in (op.params.get("input_informats") or {}).items()
+        }
+        numericos = {
+            nombre: informat
+            for nombre, informat in informats.items()
+            if informat_numerico_soportado(informat)
+        }
+        no_soportados = [
+            (nombre, informat)
+            for nombre, informat in informats.items()
+            if not (tipo := informat_type(informat))
+            or (tipo.type not in {"String", "Double", "BigDecimal"})
+            or (tipo.type != "String" and not informat_numerico_soportado(informat))
+        ]
+        if no_soportados:
+            self.pendientes.append(
+                PendienteMigracion(
+                    "P-INFORMAT-SIN-SOPORTE",
+                    f"{tabla}: INPUT contiene informats sin conversión verificada: "
+                    + ", ".join(f"{nombre}={informat}" for nombre, informat in no_soportados),
+                    _linea(op),
+                )
+            )
+            self.bloquea_emision = True
+            return
+
+        esquema_lector = [
+            replace(columna, type="String")
+            if columna.name.casefold() in numericos
+            else columna
+            for columna in esquema
+        ]
         unico = self._unico(str((op.component or {}).get("name") or "tFileInputDelimited"))
-        resultado = nodo_lectura(op, esquema, unico, x, 0, self.ruta_java)
+        resultado = nodo_lectura(op, esquema_lector, unico, x, 0, self.ruta_java)
         self.pendientes += resultado.pendientes
         if resultado.nodo is None:
             if "infile_statement" in op.params or "input_statement" in op.params or any(
@@ -343,6 +379,72 @@ class _Job:
             return
         consumidores = self._consumidores(op.id)
         copias = consumidores if self._reconvergen(consumidores) else [None]
+        if numericos:
+            if len(copias or [None]) > 1:
+                self.pendientes.append(
+                    PendienteMigracion(
+                        "P-INFORMAT-REPARTO-SIN-SOPORTE",
+                        f"{tabla}: la lectura con conversiones numéricas tiene ramas que "
+                        "reconvergen; se requiere materializar la salida antes de continuar.",
+                        _linea(op),
+                    )
+                )
+                self.bloquea_emision = True
+                return
+            self._registrar(op, resultado.nodo, resultado.columnas, _tabla(tabla))
+            asignaciones = [
+                {
+                    "target": columna.name,
+                    "expression": f"input({columna.name}, {numericos[columna.name.casefold()]})",
+                }
+                for columna in esquema
+                if columna.name.casefold() in numericos
+            ]
+            op_conversion = replace(
+                op,
+                kind="map",
+                params={
+                    "outputs": [tabla],
+                    "steps": [
+                        {
+                            "kind": "derive",
+                            "params": {"modo": "agrega", "assignments": asignaciones},
+                        }
+                    ],
+                },
+            )
+            unico_conversion = self._unico("tMap")
+            armado = construir(
+                op_conversion,
+                [Fuente(op.id, _tabla(tabla), resultado.columnas)],
+                unico_conversion,
+                x + PASO // 2,
+                0,
+                self.ruta_java,
+                self._filas,
+                self._salidas_n,
+            )
+            self.pendientes += armado.pendientes
+            if armado.nodo is None:
+                self.bloquea_emision = True
+                return
+            self.nodos.append(armado.nodo)
+            self._nodo[op.id] = armado.nodo
+            self._instancias[(op.id, None)] = armado.nodo
+            self._salida[op.id] = list(armado.columnas)
+            self._tabla_de[armado.nodo.unico] = _tabla(tabla)
+            lineas = {n for ev in op.evidence for n in range(ev.line_start, ev.line_end + 1)}
+            if lineas:
+                self.traza[armado.nodo.unico] = sorted(lineas)
+            self._entradas_map[op.id] = armado.entradas
+            self._salidas_map[op.id] = armado.salidas[0]
+            self._principal_de[op.id] = next(iter(armado.entradas.values()))
+            self._filas += 1
+            self._salidas_n += max(1, len(armado.salidas))
+            self.conexiones.append(
+                Conexion(resultado.nodo.unico, armado.nodo.unico, self._principal_de[op.id])
+            )
+            return
         for posicion, consumidor in enumerate(copias or [None]):
             nodo = resultado.nodo
             if posicion:
