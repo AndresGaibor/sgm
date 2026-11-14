@@ -1,9 +1,9 @@
 id: proc-append
 kind: proc
 version: 1
-status: soportado
+status: parcial
 proc: append
-description: "PROC APPEND: une el dataset DATA= al final de BASE=. Sin BASE= o DATA= no se migra."
+description: "Subconjunto de PROC APPEND: solo BASE= y DATA= distintos y estáticos, sin opciones de dataset, opciones PROC ni sentencias adicionales (proc.pdf, pp. 161–162). Las demás formas quedan pendientes."
 when_options: [base, data]
 ops:
   - kind: union

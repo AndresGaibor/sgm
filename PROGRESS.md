@@ -7212,3 +7212,12 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - TDD: la prueba nueva reprodujo primero una `union` para `BASE=DATA=`. Después, `test_ir_rules.py`, `test_k6_programa_pequeno.py` y la prueba CLI del pendiente: 48 aprobadas y 2 `xfail`; `uv run ruff check src tests tools` y `git diff --check` verdes. La compuerta integral se ejecuta sobre el árbol staged de este hito.
 - Decisión: conservar el hueco hasta contar con ejecución SAS verificable; los pendientes de alias SQL y ejecución en Studio siguen fuera de este hito.
 - Golden: la primera compuerta identificó la referencia anterior que fijaba 15 uniones de autocopia. Se reemplazó por el plan con 15 pendientes y se actualizó su hash canónico; siguen activas la igualdad exacta y la detección de diferencias estructurales. Las dos pruebas focales del golden pasan.
+
+## Hito 244n. Protege PROC APPEND de modificadores no modelados
+
+- Fecha: 2026-11-14. Base: `df960c9` (hito 243n), rama `codex/integrar-main-preflight`. MG-P6-04 / K-6.
+- La regla `PROC APPEND` queda parcial: solo emite `union` para `BASE=` y `DATA=` distintos y estáticos, sin modificadores. Opciones PROC (`FORCE`), opciones de dataset, sentencias adicionales y referencias de macro en las tablas generan `P-APPEND-OPCION-NO-SOPORTADA` con causa y línea.
+- La detección se apoya en `proc.pdf`, p. 162, que documenta opciones, opciones de dataset y sentencias de PROC APPEND. Sus efectos no están modelados, por eso no se infiere una equivalencia. La autocopia continúa en `P-APPEND-MISMA-TABLA` desde hito 243n.
+- TDD: la prueba nueva reprodujo primero una `union` incorrecta para `BASE=&library..a`; después cubrió ese caso junto con `FORCE`, `DATA=(...)` y `WHERE`. `test_ir_rules.py -k proc_append`: 3 aprobadas; Ruff focal y `git diff --check` verdes.
+- La tabla de equivalencias del plan maestro y la regla YAML ahora delimitan las variantes estáticas soportadas. Cierre integral staged: `uv run python tools/ci.py` pasó con 4.110 aprobadas, 350 omitidas y 145 `xfail`; Ruff (0,2 s), suite (94,0 s), cruces (2,7 s), oráculo (3,2 s) y tablero (11,5 s), todo verde.
+- Decisión: las referencias de macro se dejan pendientes aunque existan contextos que podrían resolverlas, porque el lowering actual no expande su valor dentro de `PROC APPEND`.

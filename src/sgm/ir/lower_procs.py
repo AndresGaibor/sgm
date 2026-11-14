@@ -14,6 +14,7 @@ _names = names_of
 REPORT_PROCS = frozenset({"print", "report", "tabulate", "contents"})
 P_WORK_INTROSPECCION = "P-WORK-INTROSPECCION"
 P_APPEND_MISMA_TABLA = "P-APPEND-MISMA-TABLA"
+P_APPEND_OPCION_NO_SOPORTADA = "P-APPEND-OPCION-NO-SOPORTADA"
 
 # Opciones que el PROC IMPORT y el PROC EXPORT escriben como sentencia del cuerpo (`GETNAMES=YES;`)
 # o en la cabecera. Se leen del texto y no se suponen: el valor que falta queda en `None`.
@@ -88,6 +89,45 @@ def _same_dataset(left: str | None, right: str | None) -> bool:
     return bool(left and right and qualify(left).casefold() == qualify(right).casefold())
 
 
+def _append_limitation(step: Proc) -> str | None:
+    """Devuelve un motivo si APPEND trae modificadores que la regla no modela."""
+    opciones = sorted(set(step.options) - {"base", "data"})
+    banderas = sorted(set(step.flags))
+    opciones_dataset = sorted(
+        opcion for opcion in ("base", "data") if "(" in str(step.options.get(opcion, ""))
+    )
+    referencias_dinamicas = sorted(
+        opcion
+        for opcion in ("base", "data")
+        if re.search(r"[&%]", str(step.options.get(opcion, "")))
+    )
+    sentencias = sorted(
+        {
+            sentencia.split(None, 1)[0].lower()
+            for sentencia in step.body
+            if sentencia.strip()
+        }
+    )
+    detalle = []
+    if opciones:
+        detalle.append("opciones: " + ", ".join(opciones))
+    if banderas:
+        detalle.append("banderas: " + ", ".join(banderas))
+    if opciones_dataset:
+        detalle.append("opciones de dataset en: " + ", ".join(opciones_dataset))
+    if referencias_dinamicas:
+        detalle.append("referencias dinámicas en: " + ", ".join(referencias_dinamicas))
+    if sentencias:
+        detalle.append("sentencias: " + ", ".join(sentencias))
+    if not detalle:
+        return None
+    return (
+        "Pendiente: P-APPEND-OPCION-NO-SOPORTADA; PROC APPEND contiene "
+        + "; ".join(detalle)
+        + "; la sintaxis se documenta en proc.pdf, p. 162"
+    )
+
+
 def _report(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
     """Reporte impreso de un dataset. Su destino lo decide la política `reports` (pasada 2)."""
     statement = "; ".join([step.text, *step.body])
@@ -129,6 +169,14 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
             "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= "
             "identifican la misma tabla no está demostrada por la referencia SAS disponible",
             pending_code=P_APPEND_MISMA_TABLA,
+        )
+    elif name == "append" and (limite := _append_limitation(step)):
+        _unsupported(
+            step,
+            ev,
+            b,
+            limite,
+            pending_code=P_APPEND_OPCION_NO_SOPORTADA,
         )
     elif name == "sort":
         _sort(step, ev, b, data, out)

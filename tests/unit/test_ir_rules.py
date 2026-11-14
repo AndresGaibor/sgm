@@ -332,6 +332,21 @@ def test_proc_append_sobre_la_misma_tabla_queda_pendiente():
         assert "no está demostrada" in op.notes[0]
 
 
+def test_proc_append_con_opciones_o_sentencias_no_modeladas_queda_pendiente():
+    programas = (
+        "proc append base=a data=b force; run;",
+        "proc append base=a data=b(obs=0); run;",
+        "proc append base=a data=b; where active; run;",
+        "proc append base=&library..a data=work.a; run;",
+    )
+    for programa in programas:
+        (op,) = _ops(programa)
+        assert op.kind == "unsupported", programa
+        assert op.status == "hueco"
+        assert op.params["pending_code"] == "P-APPEND-OPCION-NO-SOPORTADA"
+        assert "proc.pdf, p. 162" in op.notes[0]
+
+
 def test_proc_means_es_aggregate():
     ops = _ops("proc means data=x; class g; var v; run;")
     assert _kinds(ops) == ["aggregate"]

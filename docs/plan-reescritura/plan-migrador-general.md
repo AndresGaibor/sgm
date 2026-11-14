@@ -311,7 +311,7 @@ Es el contrato funcional. Cada fila es una tarea de traducción o está cubierta
 | `PROC SORT` (`BY`, `DESCENDING`, `NODUPKEY`, `NODUPREC`, `DUPOUT=`) | `tSortRow`, `tUniqRow` | Qué fila se conserva: **la primera** (confirmado en Studio, hito 95); `NOEQUALS` | L6 |
 | `PROC FREQ` y `PROC MEANS/SUMMARY` (`OUTPUT OUT=`) | `tAggregateRow` | Estadísticos disponibles, tratamiento de faltantes | L3 |
 | `PROC TRANSPOSE` | `tDenormalize`, `tNormalize` o `tJavaRow` | Nombres de columnas dinámicos | L6 |
-| `PROC APPEND` | Salida en modo append | — | L1 |
+| `PROC APPEND` | Salida en modo append | Solo `BASE=` y `DATA=` distintos y estáticos, sin modificadores; autocopia, referencias dinámicas y opciones adicionales quedan pendientes (`proc.pdf`, pp. 161–162) | L1 |
 | `PROC FORMAT` (formatos propios) | Mapa de búsqueda en `tMap` o expresión | Rangos y `other` | L4 |
 | `PROC DATASETS`, `COPY`, `DELETE`, `CONTENTS` | `tFileCopy`, `tFileDelete`, metadatos | Solo borrado de salidas propias | L8 |
 | `PROC PRINT` | `reports=discard` por defecto; `log` (`tLogRow`) o `csv` (`tFileOutputDelimited`) | Otros informes y ODS quedan pendientes si no se demuestra equivalencia | L9 |
