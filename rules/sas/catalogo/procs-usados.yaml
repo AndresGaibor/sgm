@@ -31,9 +31,9 @@ entries:
   nota: '22 usos; archivos literales se resuelven como alias de ruta (ir/pase_copias_remotas.py); la copia no se materializa; DATA=/OUT=, bibliotecas y catálogos quedan pendientes'
 - id: export
   nombre: PROC EXPORT
-  fuente: proc.pdf, p. 901
-  estado: no_verificada
-  nota: '22 usos; escribe CSV u otro formato. Equivale a la salida de archivo del Job'
+  fuente: proc.pdf, p. 904; acpcref.pdf, p. 93; proc.pdf, p. 910
+  estado: reconocida
+  nota: '22 usos; CSV respeta DELIMITER y PUTNAMES (proc, p. 904 y 910); la sección XLS/XLSX documenta SHEET= para exportación (acpcref, inicia p. 93; detalle pp. 97–98), pero la fila de encabezado no tiene equivalencia documentada y queda pendiente antes de emitir.'
 - id: import
   nombre: PROC IMPORT
   fuente: proc.pdf, p. 1380; acpcref.pdf, p. 93

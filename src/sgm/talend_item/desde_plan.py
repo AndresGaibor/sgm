@@ -177,6 +177,7 @@ class _Job:
         self._salidas_n = 0  # salidas que ya usan los `tMap` del Job
         self._reparto: dict[str, Nodo] = {}  # id de operador -> `tReplicate` de su flujo
         self._turnos: dict[str, list[str]] = {}  # id de operador -> consumidores, en orden
+        self.bloquea_emision = False
         self._productor = self._productores()
         self.rutas = rutas_de_plan(plan)
 
@@ -365,6 +366,9 @@ class _Job:
         resultado = nodo_escritura(op, columnas, unico, x, 0, self.ruta_java)
         self.pendientes += resultado.pendientes
         if resultado.nodo is None:
+            # No publicar el fragmento anterior a una escritura ausente: sería un Job ejecutable
+            # que omite el archivo declarado por el programa SAS.
+            self.bloquea_emision = True
             return
         self._registrar(op, resultado.nodo, columnas, _tabla(consumido))
 
@@ -916,7 +920,9 @@ def plan_a_jobs(
     resultado.plegados |= set(informe.absorbidos)
     for job in plan.jobs:
         armado = _Job(plan, esquemas, ruta_java, conexion_en_contexto)
-        resultado.jobs.append(armado.armar(job))
+        trabajo = armado.armar(job)
+        if not armado.bloquea_emision:
+            resultado.jobs.append(trabajo)
         resultado.pendientes += armado.pendientes
         resultado.traza.update(armado.traza)
         resultado.visitados |= armado.visitados

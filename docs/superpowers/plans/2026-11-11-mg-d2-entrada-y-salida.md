@@ -348,17 +348,18 @@ RUN;
 
 ---
 
-### Task D2-7: `PROC EXPORT` a XLSX con `SHEET` y `tFileOutputExcel` (MG-P2-01, parte 2; serie `n`)
+### Task D2-7: `PROC EXPORT` a XLSX con `SHEET` y salida conservadora (MG-P2-01, parte 2; serie `n`)
 
-`nodo_escritura` (`desde_plan_nodos_escritura.py`, 96 líneas) intenta `tFileOutputExcel` y, si la plantilla no está disponible (línea 45), deja «falta la plantilla de tFileOutputExcel, extraída de un Job real». Verificado al redactar: `src/sgm/talend_item/plantillas/` no tiene `tFileOutputExcel.json`. Páginas (`proc.pdf`): `PROC EXPORT Statement` (p. 904), `PUTNAMES Statement` (p. 910; por omisión `YES`, verificar en esa página), `DELIMITER Statement` (p. 908). Documentación del componente: `docs/referencia/talend/tfileoutputexcel.md`.
+`nodo_escritura` (`desde_plan_nodos_escritura.py`) intenta `tFileOutputExcel` y, si la plantilla no está disponible, deja «falta la plantilla de tFileOutputExcel, extraída de un Job real». Studio respondió `BRIDGE_DEAD`, así que no se reinstala ni se inventa una plantilla. `SHEET=` para XLSX está documentado en `acpcref.pdf`, pp. 93, 97–98. `PUTNAMES` figura en las sentencias de exportación delimitada (`proc.pdf`, pp. 904, 910); el apartado XLSX no lo enumera. **Ruling:** preservar un `PUTNAMES=` explícito en el IR, pero dejarlo como pendiente para Excel; incluso con plantilla Talend, no emitir hasta demostrar el comportamiento de la fila de encabezado para XLSX. `PUTNAMES` sí configura `INCLUDEHEADER` en formatos delimitados. Documentación del componente: `docs/referencia/talend/tfileoutputexcel.md`.
 
 **Files:**
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\plantillas\tFileOutputExcel.json` (extraída de Studio; ver Step 1)
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\escritor_xlsx.py`
+- Optional: `src/sgm/talend_item/plantillas/tFileOutputExcel.json` (solo extraída de Studio; no se crea una plantilla a mano)
+- Create: `src/sgm/migrar/xlsx_minimo.py` (generador determinista movido desde `tools/`)
+- Create: `src/sgm/migrar/escritor_xlsx.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs_archivos.py` (creado en D2-6: `putnames` en el `write_file`)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_nodos_escritura.py`
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_20_exportar_xlsx\{caso.yaml, programa.sas, entradas\ventas.csv, esperado\ventas.Resumen.csv}`
-- Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_exportar_excel.py`
+- Create: `tests/corpus/L0/l0_20_exportar_xlsx/{caso.yaml, programa.sas, entradas/ventas.csv, esperado/ventas.csv}` (`ventas.csv` comprueba la tabla importada; no afirma el contenido XLSX pendiente)
+- Test: `tests/unit/test_exportar_excel.py`
 
 **Interfaces:**
 - Consumes: `nodo_escritura(...)` (`desde_plan_nodos_escritura.py:11`); `disponibles()` (plantillas); `escribir_xlsx(ruta, hojas)` y `leer_xlsx(ruta, hoja)` (D2-6); `_write_file(step, ev, b, data)` (D2-6).
@@ -366,9 +367,9 @@ RUN;
   ```python
   # escritor_xlsx.py
   def escribir_hoja(ruta: Path, hoja: str, encabezado: list[str] | None, filas: list[list[object]]) -> None:
-      """Anillo B: escribe `ruta` con una hoja. `encabezado=None` = PUTNAMES=NO."""
-  # lower_procs_archivos.py: nuevo parametro del write_file
-  #   params["putnames"]: bool   # PUTNAMES=YES por omision
+      """Escribe una hoja determinista; el llamador provee explícitamente el encabezado."""
+  # lower_procs_archivos.py: params["putnames"] conserva solo PUTNAMES=YES/NO literal.
+  # El emisor solo aplica ese parámetro a formatos delimitados.
   ```
   El esperado de un archivo Excel se guarda como `esperado/<archivo>.<hoja>.csv` y el comparador lo lee con `leer_xlsx` (**verificar en `tools/corpus_lib/caso.py` cómo se declaran las salidas de archivo; si solo admite CSV, esta tarea agrega la rama por extensión `.xlsx` con su prueba**).
 
@@ -379,15 +380,15 @@ PROC EXPORT DATA=WORK.ventas OUTFILE='.../salida/ventas.xlsx' DBMS=XLSX REPLACE;
   SHEET='Resumen';
 RUN;
 ```
-`ventas.csv`: `sku,unidades` / `A-1,2` / `B-2,3`. Esperado a mano, `esperado/ventas.Resumen.csv`: `sku,unidades` / `A-1,2` / `B-2,3` (fila 1 con los nombres, dos filas de datos; hoja `Resumen`). Invariante: `filas(Resumen) == 2` sin contar el encabezado.
+`ventas.csv`: `sku,unidades` / `A-1,2` / `B-2,3`. `esperado/ventas.csv` valida únicamente la tabla importada `WORK.ventas`. No se fija un esperado del archivo XLSX ni se afirma que la fila de encabezado sea equivalente; la escritura permanece pendiente hasta obtener evidencia SAS y la plantilla real de Talend.
 
-- [ ] **Step 1: Plantilla (Studio).** Con Studio abierto y un Job de prueba con un `tFileOutputExcel` (Excel 2007, `SHEETNAME`, `INCLUDEHEADER`): `uv run python tools/contenedores/extraer_plantillas_talend.py --help` y extraer la plantilla a `src/sgm/talend_item/plantillas/tFileOutputExcel.json`. Sin Studio: se omite y el emisor sigue devolviendo `P-COMPONENTE-SIN-PLANTILLA`; los pasos 2 a 5 prueban el intérprete y la decisión, y el caso queda en `migrar_pendientes.yaml` con ese código.
-- [ ] **Step 2: Write the failing tests.** (a) `escribir_hoja(ruta, "Resumen", ["sku","unidades"], [["A-1",2],["B-2",3]])` y `leer_xlsx(ruta, "Resumen")` devuelven el encabezado y las dos filas; con `encabezado=None` la fila 1 son datos; (b) `_write_file` de `PROC EXPORT ... DBMS=XLSX; SHEET='Resumen'; PUTNAMES=NO;` da `putnames == False` y `sheet == "Resumen"`; sin `PUTNAMES`, `True`; (c) con la plantilla, `nodo_escritura` da `tFileOutputExcel` con `INCLUDEHEADER == "true"` y `SHEETNAME == '"Resumen"'`; sin plantilla, `P-COMPONENTE-SIN-PLANTILLA` y ningún Job parcial; (d) el caso coincide en el anillo B.
-- [ ] **Step 3: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_exportar_excel.py -q -p no:cacheprovider`.
-- [ ] **Step 4: Implement** `escritor_xlsx.py` (reutiliza `escribir_xlsx`; como `tools/` importa de `src/` y nunca al revés, mover `escribir_xlsx` a `src/sgm/migrar/xlsx_minimo.py` y dejar en `tools/corpus_lib/xlsx_minimo.py` solo el reexport) y la rama del intérprete para `write_file` con `dbms == "xlsx"`.
-- [ ] **Step 5: Run** los tests, `tests/unit/test_mg_p2_excel.py`, el golden, `tests/unit/test_catalogo_sas.py` (`export`, p. 901: `reconocida`) y `uv run ruff check src tests tools`.
-- [ ] **Step 6: Studio.** `uv run python tools/validar_caso_studio.py l0_20_exportar_xlsx`; sin Studio, «lote C pendiente».
-- [ ] **Step 7: Commit.** `hito N n: PROC EXPORT a XLSX con hoja y PUTNAMES`.
+- [x] **Step 1: Plantilla (Studio).** Se omite: el puente devuelve `BRIDGE_DEAD`. No se fabricó una plantilla y el caso queda pendiente de validación.
+- [x] **Step 2: Write the failing tests.** `test_exportar_excel.py` comprueba el round-trip del escritor con y sin encabezado explícito, captura `SHEET` y `PUTNAMES` en el IR, respeta `PUTNAMES=NO` en CSV y bloquea la emisión XLSX cuyo encabezado no está demostrado.
+- [x] **Step 3: Run tests to verify they fail.** La prueba roja no pudo importar `sgm.migrar.escritor_xlsx`; tras implementarlo se corrigió el punto de parche de una prueba del stub de plantilla.
+- [x] **Step 4: Implement.** El generador determinista quedó en `src/` y `tools/` lo reexporta; `escribir_hoja` reutiliza el lector/generador propio. El parser preserva solo `PUTNAMES=YES/NO` literal; CSV lo aplica a `INCLUDEHEADER`, mientras XLSX deja `P-PUTNAMES-EXCEL-SIN-SOPORTE` o `P-EXPORT-EXCEL-CABECERA-SIN-REFERENCIA` y no publica un Job.
+- [x] **Step 5: Run.** `test_exportar_excel.py`, `test_mg_p2_excel.py`, importación Excel, catálogo y tablero: 70 aprobadas; golden, golden de equivalencia y anillo B: 150 aprobadas y 5 `xfail`; `uv run ruff check .` y `git diff --check` verdes.
+- [x] **Step 6: Studio.** No se ejecuta: no hay plantilla ni Job XLSX emitible y el puente de Studio está `BRIDGE_DEAD`; el caso se mantiene en `migrar_pendientes.yaml` como «lote C pendiente».
+- [x] **Step 7: Commit.** `hito 254n: bloquea salidas XLSX no verificadas y evita Jobs parciales`.
 
 ---
 

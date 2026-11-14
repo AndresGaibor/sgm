@@ -11,7 +11,8 @@ from sgm.ir.models import Evidence
 # Opciones que el PROC IMPORT y el PROC EXPORT escriben como sentencia del cuerpo (`GETNAMES=YES;`)
 # o en la cabecera. Se leen del texto y no se suponen: el valor que falta queda en `None`.
 _OPCION = re.compile(
-    r"(?i)\b(dbms|delimiter|getnames|sheet|guessingrows)\s*=\s*('[^']*'|\"[^\"]*\"|[^\s;]+)"
+    r"(?i)\b(dbms|delimiter|getnames|sheet|guessingrows|putnames)\s*=\s*"
+    r"('[^']*'|\"[^\"]*\"|[^\s;]+)"
 )
 
 
@@ -42,6 +43,12 @@ def _getnames(opciones: dict[str, str]) -> bool:
     return True if valor is None else _sin_comillas(valor).upper() != "NO"
 
 
+def _putnames(valor: str) -> bool | None:
+    """Preserva solo los literales YES/NO; una expresión dinámica no se adivina."""
+    texto = _sin_comillas(valor).upper()
+    return {"YES": True, "NO": False}.get(texto)
+
+
 def _read_file(step: Proc, ev: Evidence, b: Builder, out: str | None) -> None:
     """`PROC IMPORT`: archivo de entrada con su formato, separador, cabecera y hoja."""
     opciones = _opciones(step)
@@ -68,4 +75,6 @@ def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
     }
     if "sheet" in opciones:
         params["sheet"] = _sin_comillas(opciones["sheet"])
+    if "putnames" in opciones:
+        params["putnames"] = _putnames(opciones["putnames"])
     b.op("write_file", params, ev)

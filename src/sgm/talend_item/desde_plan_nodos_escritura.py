@@ -42,6 +42,15 @@ def nodo_escritura(
         )
         return resultado
     if dbms in EXCEL:
+        if "putnames" in params:
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-PUTNAMES-EXCEL-SIN-SOPORTE",
+                    f"{archivo}: PUTNAMES no está documentado para DBMS={dbms.upper()}; "
+                    "la referencia de SAS lo limita a exportación delimitada (proc, p. 904 y 910).",
+                    _linea(op),
+                )
+            )
         if "tFileOutputExcel" not in disponibles():
             resultado.pendientes.append(
                 PendienteMigracion(
@@ -51,14 +60,14 @@ def nodo_escritura(
                 )
             )
             return resultado
-        resultado.nodo = nodo_desde_plantilla(
-            "tFileOutputExcel",
-            unico,
-            x,
-            y,
-            {"FILENAME": java(archivo)},
-            columnas=list(columnas),
-            ruta_java=ruta_java,
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-EXPORT-EXCEL-CABECERA-SIN-REFERENCIA",
+                f"{archivo}: SAS/ACCESS documenta SHEET= (acpcref, sección desde p. 93; detalle "
+                "en pp. 97–98), pero no se encontró "
+                "una equivalencia documentada para la fila de encabezado del XLSX.",
+                _linea(op),
+            )
         )
         return resultado
     separa, motivo = separador(dbms, params.get("delimiter"))
@@ -76,6 +85,16 @@ def nodo_escritura(
             PendienteMigracion("P-DELIMITADOR", f"{archivo}: {motivo}", _linea(op))
         )
         separa = ","
+    putnames = params.get("putnames", True)
+    if not isinstance(putnames, bool):
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-PUTNAMES-SIN-LITERAL",
+                f"{archivo}: PUTNAMES no es YES/NO literal y no puede resolverse sin ejecutar SAS.",
+                _linea(op),
+            )
+        )
+        return resultado
     resultado.nodo = nodo_desde_plantilla(
         "tFileOutputDelimited",
         unico,
@@ -84,7 +103,7 @@ def nodo_escritura(
         {
             "FILENAME": java(archivo),
             "FIELDSEPARATOR": java(separa),
-            "INCLUDEHEADER": "true",
+            "INCLUDEHEADER": "true" if putnames else "false",
             "APPEND": "false",
         },
         columnas=list(columnas),

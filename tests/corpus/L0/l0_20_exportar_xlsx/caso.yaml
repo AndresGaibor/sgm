@@ -1,0 +1,19 @@
+nivel: L0
+tema: Exportación XLSX con selección de hoja
+construcciones:
+  - PROC IMPORT
+  - PROC EXPORT
+  - DBMS=XLSX
+  - SHEET
+capa: C
+estado: pendiente_revision
+motivo: >-
+  El componente tFileOutputExcel no tiene plantilla extraída de Studio y la referencia SAS consultada
+  no demuestra el equivalente de la fila de encabezado de XLSX. La salida de archivo no se compara
+  hasta validar ambos puntos; ventas.csv solo registra la tabla importada antes de exportar.
+salidas: [ventas]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  SAS/ACCESS documenta SHEET= para la salida XLSX (acpcref.pdf, pp. 93, 97–98). PUTNAMES=YES/NO
+  figura para exportación delimitada (proc.pdf, pp. 904, 910); no se extrapola esa opción a XLSX.
