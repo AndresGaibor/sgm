@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from decimal import Decimal, InvalidOperation
 
+from sgm.formatos.informat_fecha import informat_fecha_soportado, leer_fecha
 from sgm.migrar.interprete_errores import NoSoportadoEnInterprete
 
 _SIMPLE = re.compile(r"(?i)^(\$?)(\d+)\.(\d*)$")
@@ -17,7 +18,10 @@ def informat_numerico_soportado(informat: str) -> bool:
 
 
 def leer_campo(texto: str, informat: str) -> str | None:
-    """Convierte `$w.`, `w.d`, `COMMAw.d` y su alias `DOLLARw.d` documentados."""
+    """Convierte informats numéricos, de carácter y el subconjunto fechado demostrado."""
+    if informat_fecha_soportado(informat):
+        value = leer_fecha(texto, informat)
+        return None if value is None else str(value)
     match = _SIMPLE.fullmatch(informat.strip())
     numeric = _NUMERICO.fullmatch(informat.strip())
     if match is None and numeric is None:

@@ -14,7 +14,7 @@ catálogo con las entradas es `rules/sas/catalogo/opciones-resultado.yaml`.
 | `MERGENOBY` | 265 | Si un `MERGE` sin `BY` avisa (`WARN`, por omisión), falla (`ERROR`) o calla (`NOWARN`). Con `ERROR` el programa no llega a ejecutarse; con `NOWARN`, un cruce cartesiano pasa inadvertido. |
 | `MISSING=` | 266 | Qué caracteres cuentan como valor perdido, además del blanco y el punto. Afecta toda comparación y todo `SUM`. |
 | `VALIDVARNAME=` | 412 | `V7`, `V6` o `ANY`: qué nombres de columna son válidos y cómo se leen los que traen caracteres raros. |
-| `YEARCUTOFF=` | 432 | El siglo de un año de dos dígitos. Por omisión 1920: `yymmdd6.` con `010120` da 2020, pero con otro corte puede dar 1920. |
+| `YEARCUTOFF=` | 432 | El siglo de un año de dos dígitos. `lesysoptsref`, p. 432, da 1940 como omisión enviada; `lrcon`, p. 162, describe 1926 para SAS 9.4. No se asume ninguno para el entorno del cliente. |
 
 ## Lo que hace el corpus hoy
 
@@ -42,6 +42,11 @@ cada una aparezca de verdad en el programa grande: si una entrada no se usa, sob
 4. **`YEARCUTOFF` tiene una excepción de lectura.** Si aparece un informat de año de dos dígitos
    (`yymmdd6.`, `date7.`, `mmddyy6.`) y el programa no fija `YEARCUTOFF`, la columna queda con
    `Pendiente: fecha de dos dígitos sin YEARCUTOFF` y no se le asigna un siglo.
+
+`lesysoptsref.pdf`, p. 432, indica que el valor enviado por omisión es 1940 y cubre 1940–2039.
+`lrcon.pdf`, p. 162, conserva la explicación de 1926 para SAS 9.4. Como las fuentes no coinciden y la
+instalación del cliente puede modificar la opción, el traductor no usa ninguno de esos valores sin
+una opción explícita en el programa.
 
 ## Estado
 

@@ -666,12 +666,13 @@ RUN;
 
 ### Task D2-13: Informats de fecha `YYMMDD`, `DDMMYY`, `DATE9` y `ANYDTDTE` en `INPUT` (MG-P2-03, parte 2; serie `n`)
 
-Páginas (`leforinforref.pdf`): `YYMMDDw. Informat` (p. 755), `DDMMYYw. Informat` (p. 653), `DATEw. Informat` (p. 649), `ANYDTDTEw. Informat` (p. 617). Un informat de fecha devuelve **días desde el 1 de enero de 1960** (`lrcon`: valores de fecha de SAS; localizar con `grep -n -i "January 1, 1960" docs/referencia/sas/lrcon.txt`). `ANYDTDTE` depende de la opción `DATESTYLE`: solo se traduce con una fecha no ambigua (año primero, `2026-09-28`); una ambigua (`03/04/2026`) queda `Pendiente: P-ANYDTDTE-DATESTYLE` (página de la opción: `lesysoptsref.INDEX.md`, entrada `DATESTYLE`). El año de dos dígitos (`YEARCUTOFF`) es de D1-16 y no entra aquí.
+Páginas (`leforinforref.pdf`): `YYMMDDw. Informat` (p. 755), `DDMMYYw. Informat` (p. 653), `DATEw. Informat` (p. 649), `ANYDTDTEw. Informat` (p. 617). Un informat de fecha devuelve **días desde el 1 de enero de 1960** (`lrcon`, p. 157). El mismo subconjunto se aplica a informats literales de `INPUT/INPUTN`: cuatro dígitos de año se convierten; años de dos dígitos producen una guarda pendiente en Java. `ANYDTDTE` depende de `DATESTYLE`: solo se traduce con ISO año-primero (`2026-09-28`); otras fechas con barras quedan `Pendiente: P-ANYDTDTE-DATESTYLE` (`lesysoptsref`, entrada `DATESTYLE`). D1-16 aún no implementa `YEARCUTOFF`: `lesysoptsref`, p. 432, da 1940 como valor enviado por omisión, mientras `lrcon`, p. 162, describe 1926 para SAS 9.4. El migrador no asume un valor del entorno; años de dos dígitos quedan `Pendiente: P-YEARCUTOFF-EXPLICITO`.
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\formatos\informat_fecha.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\formatos\informat_archivo.py` (delegar los informats de fecha)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\informats-usados.yaml` (`date`: páginas 649, 653, 755 y 617)
+- Create: `mapa.yaml` en el caso L0-26 (rutas locales de entrada y salida para el anillo B y Studio)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_26_informats_fecha_infile\{caso.yaml, programa.sas, entradas\fechas.txt, esperado\fechas.csv}`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_informats_fecha_archivo.py`
 
@@ -683,27 +684,27 @@ Páginas (`leforinforref.pdf`): `YYMMDDw. Informat` (p. 755), `DDMMYYw. Informat
   def dias_sas(anio: int, mes: int, dia: int) -> int:
       """Dias desde 1960-01-01 (2000-01-01 -> 14610; 2026-01-01 -> 24107)."""
   def leer_fecha(texto: str, informat: str) -> int | None:
-      """`yymmdd10.` acepta `2026-09-28`, `2026/09/28` y `20260928`; `ddmmyy10.` `28/09/2026`;
-      `date9.` `28SEP2026` (mes en ingles, sin distinguir mayusculas); `anydtdte10.` solo la forma
-      año-mes-dia sin ambiguedad. Blanco -> None. Fecha invalida (`2026-02-30`) -> None (SAS deja
-      faltante y escribe una nota en el log; verificar en p. 755)."""
+      """`yymmdd10.` acepta `2026-09-28`, `2026/09/28` y `20260928`; `ddmmyy10.` acepta `28/09/2026`;
+      `date9.` acepta `28SEP2026` (mes inglés, sin distinguir mayúsculas); `anydtdte10.` solo ISO
+      año-mes-día. Blanco -> None. Fecha inválida -> missing con `INVALIDDATA=.` enviado por omisión
+      (`lesysoptsref`, p. 244); una configuración externa distinta sigue pendiente."""
   ```
 
-**Caso `L0/l0_26_informats_fecha_infile` (`capa: C`, `estado: pendiente_revision` hasta fijar la fecha inválida en p. 755; razonamiento: «leforinforref, p. 755, 653, 649 y 617; días desde 1960»).**
+**Caso `L0/l0_26_informats_fecha_infile` (`capa: C`, `estado: traducible` tras pasar el anillo B; la ejecución del Job y la serialización de fechas en Studio siguen pendientes). Los valores inválidos siguen `INVALIDDATA=` (`lesysoptsref`, p. 244); este caso no contiene fechas inválidas.**
 ```sas
 DATA WORK.fechas;
   INFILE '.../entradas/fechas.txt' DLM=';' DSD MISSOVER;
-  INPUT id :8. d1 :YYMMDD10. d2 :DDMMYY10. d3 :DATE9. d4 :ANYDTDTE10.;
+  INPUT id :$1. d1 :YYMMDD10. d2 :DDMMYY10. d3 :DATE9. d4 :ANYDTDTE10.;
 RUN;
 ```
 `entradas/fechas.txt`: `1;2026-09-28;28/09/2026;28SEP2026;2026-09-28` / `2;2000-01-01;01/01/2000;01JAN2000;` / `3;1960-01-01;02/01/1960;01FEB1960;` / `4;;;;`. Esperado a mano, `esperado/fechas.csv` (fechas como número de días): `id,d1,d2,d3,d4` / `1,24377,24377,24377,24377` / `2,14610,14610,14610,` / `3,0,1,31,` / `4,,,,`. Cálculo: `01JAN2000` = 14610 y 2000 a 2025 suman 26 años con 7 bisiestos (2000, 2004, 2008, 2012, 2016, 2020, 2024), luego `01JAN2026` = 14610 + 26*365 + 7 = 24107; enero a agosto suman 243 días, `01SEP2026` = 24350 y `28SEP2026` = 24377. `1960-01-01` = 0, `02/01/1960` = 1 y `01FEB1960` = 31. Invariante: `d1 == d2 == d3` en las filas 1 a 3.
 
-- [ ] **Step 1: Write the failing tests.** `dias_sas(2000,1,1) == 14610`, `dias_sas(2026,9,28) == 24377`, `dias_sas(1960,1,1) == 0`; `leer_fecha("2026-09-28","yymmdd10.") == 24377`, `leer_fecha("28/09/2026","ddmmyy10.") == 24377`, `leer_fecha("28SEP2026","date9.") == 24377`, `leer_fecha("2026-09-28","anydtdte10.") == 24377`, `leer_fecha("03/04/2026","anydtdte10.")` lanza `NoSoportadoEnInterprete` con `P-ANYDTDTE-DATESTYLE`; `leer_fecha("","date9.") is None`; el caso coincide en el anillo B.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_informats_fecha_archivo.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** con `datetime.date` (`(date(a,m,d) - date(1960,1,1)).days`). El emisor deja la columna como `String` y la conversión en un `tMap` con la expresión Java de D1-16; sin D1, `P-INFORMAT-SIN-SOPORTE`.
-- [ ] **Step 4: Run** los tests, `tests/unit/test_mg_p2_informats.py`, `tests/unit/test_catalogo_sas.py`, el golden y `uv run ruff check src tests tools`.
-- [ ] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_26_informats_fecha_infile`; sin Studio, «lote C pendiente».
-- [ ] **Step 6: Commit.** `hito N n: informats de fecha YYMMDD, DDMMYY, DATE y ANYDTDTE en INPUT de archivo`.
+- [x] **Step 1: Write the failing tests.** Se comprueban los días SAS desde 1960, las cuatro formas de cuatro dígitos, el año de dos dígitos pendiente y la fecha ANYDTDTE ambigua pendiente.
+- [x] **Step 2: Run tests to verify they fail.** La primera ejecución falló al importar el módulo aún inexistente, como se esperaba.
+- [x] **Step 3: Implement** con `datetime.date` (`(date(a,m,d) - date(1960,1,1)).days`). El lector conserva `String` y convierte a `Date` en un `tMap` con validación de calendario; no asigna siglo ni resuelve `DATESTYLE`.
+- [x] **Step 4: Run** las regresiones focales, `tests/unit/test_mg_p2_informats.py`, `tests/unit/test_catalogo_sas.py`, el caso del anillo B y `uv run ruff check src tests tools`; todas pasaron.
+- [x] **Step 5: Studio.** `validar_caso_studio.py l0_26_informats_fecha_infile` devolvió `BRIDGE_DEAD` y dejó el caso en `out/studio-pendientes.json`; no cuenta como validado. La serialización de `Date` a días SAS en `PROC EXPORT` queda pendiente de Studio.
+- [x] **Step 6: Commit.** `hito 260n: informats de fecha en INPUT de archivo`.
 
 ---
 
@@ -991,7 +992,7 @@ Las horas por tarea son estimaciones del plan; el crédito real se mide con el m
 | Plan K | K-4 (`desde_plan_conexion.py`, `env/contexto_dev.json`, `consultar`, `conexion_en_contexto`) | D2-2 a D2-4: host, puerto y base por contexto; sin K-4 D2-2 deja la conexión vacía como hoy (`P-CONEXION-BASE`) y los pasos de Studio quedan «lote C pendiente» |
 | Plan K | K-3 (carga tipada a los contenedores) y los contenedores `tools/contenedores/impala` y `postgres` | D2-2 Step 6, D2-3 Step 5 y D2-4 Step 5 |
 | Plan K | K-5 (`pase_copias_remotas.py`) y K-9 (`preparar_plan.py`) | D2-17 (no modifica K-5: módulo propio) y D2-15 y D2-18 (una llamada en `preparar_plan.py`; si K-9 no está integrado, la llamada va en `cli_migrar.py`) |
-| Plan D1 | D1-15 a D1-17 (`parsear_informat`, `Informat`, `YEARCUTOFF`, `PUT` con formatos) | D2-10, D2-12, D2-13 y D2-14 (el emisor deja la conversión de informats a las expresiones de D1; antes, `P-INFORMAT-SIN-SOPORTE`) |
+| Plan D1 | D1-15 a D1-17 (`parsear_informat`, `Informat`, `YEARCUTOFF`, `PUT` con formatos) | D2-10, D2-12, D2-13 y D2-14 consumen el catálogo y las opciones; D2-13 implementa el subconjunto documentado y conserva guardas para `YEARCUTOFF` y `DATESTYLE` no especificados |
 | Plan A | compilación y validación en Studio (`tools/validar_caso_studio.py`, `tools/corpus_studio.py lote`, salud con estados) | todos los pasos de Studio y el lote C de D2-Gate |
 | Plan C | C-2 (extrae `interprete.py`) | D2-2, D2-6 y D2-7 agregan una línea cada una en `interprete.py` (rama `read`/`read_file`/`write_file`); quien llegue segundo hace rebase y el golden no cambia |
 | Plan E | MG-P7-04 (macrovariables) | D2-2: un SQL con `&ANIO.` deja `P-PASO-DIRECTO-MACRO` hasta que el expansor lo resuelva (`L8/totales/07` lo necesita) |

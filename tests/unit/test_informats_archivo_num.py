@@ -118,14 +118,20 @@ def test_emisor_lee_informats_como_texto_y_los_convierte_en_tmap():
     assert any(edge.origen == reader.unico and edge.destino == convert.unico for edge in job.conexiones)
 
 
-def test_emisor_bloquea_informat_fecha_hasta_implementar_su_conversion():
+def test_emisor_convierte_informat_fecha_en_tmap():
     plan = _plan(PROGRAMA.replace("COMMA12.2", "DATE9.").replace("DOLLAR10.", "DATE9."))
     schemas, _ = esquemas_de_entrada(plan, {}, None)
 
     result = plan_a_jobs(plan, schemas)
 
-    assert result.jobs == []
-    assert any(pending.codigo == "P-INFORMAT-SIN-SOPORTE" for pending in result.pendientes)
+    assert len(result.jobs) == 1
+    assert result.pendientes == []
+    convert = next(node for node in result.jobs[0].nodos if node.componente == "tMap")
+    assert [column.tipo for column in convert.metadatas[0].columnas] == [
+        "id_Date",
+        "id_Date",
+        "id_BigDecimal",
+    ]
 
 
 def test_caso_l0_25_documenta_alias_y_ejemplo_con_negativo_parentizado():

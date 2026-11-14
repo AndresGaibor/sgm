@@ -22,6 +22,7 @@ import re
 from dataclasses import dataclass, field, replace
 
 from sgm.formatos.informat_archivo import informat_numerico_soportado
+from sgm.formatos.informat_fecha import informat_fecha_soportado
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Operator, Plan
 from sgm.ir.types_code import informat_type
@@ -332,12 +333,18 @@ class _Job:
             for nombre, informat in informats.items()
             if informat_numerico_soportado(informat)
         }
+        fechas = {
+            nombre: informat
+            for nombre, informat in informats.items()
+            if informat_fecha_soportado(informat)
+        }
         no_soportados = [
             (nombre, informat)
             for nombre, informat in informats.items()
             if not (tipo := informat_type(informat))
-            or (tipo.type not in {"String", "Double", "BigDecimal"})
-            or (tipo.type != "String" and not informat_numerico_soportado(informat))
+            or (tipo.type not in {"String", "Double", "BigDecimal", "Date"})
+            or (tipo.type in {"Double", "BigDecimal"} and not informat_numerico_soportado(informat))
+            or (tipo.type == "Date" and not informat_fecha_soportado(informat))
         ]
         if no_soportados:
             self.pendientes.append(
@@ -353,7 +360,7 @@ class _Job:
 
         esquema_lector = [
             replace(columna, type="String")
-            if columna.name.casefold() in numericos
+            if columna.name.casefold() in numericos or columna.name.casefold() in fechas
             else columna
             for columna in esquema
         ]
@@ -379,12 +386,13 @@ class _Job:
             return
         consumidores = self._consumidores(op.id)
         copias = consumidores if self._reconvergen(consumidores) else [None]
-        if numericos:
+        conversiones = numericos | fechas
+        if conversiones:
             if len(copias or [None]) > 1:
                 self.pendientes.append(
                     PendienteMigracion(
                         "P-INFORMAT-REPARTO-SIN-SOPORTE",
-                        f"{tabla}: la lectura con conversiones numéricas tiene ramas que "
+                        f"{tabla}: la lectura con conversiones de informats tiene ramas que "
                         "reconvergen; se requiere materializar la salida antes de continuar.",
                         _linea(op),
                     )
@@ -395,10 +403,10 @@ class _Job:
             asignaciones = [
                 {
                     "target": columna.name,
-                    "expression": f"input({columna.name}, {numericos[columna.name.casefold()]})",
+                    "expression": f"input({columna.name}, {conversiones[columna.name.casefold()]})",
                 }
                 for columna in esquema
-                if columna.name.casefold() in numericos
+                    if columna.name.casefold() in conversiones
             ]
             op_conversion = replace(
                 op,

@@ -40,9 +40,15 @@ def test_tipado_de_informats_conserva_la_semantica_documentada():
 @pytest.mark.parametrize(
     "informat", ["anydtdte10.", "yymmdd8.", "yymmdd10.", "ddmmyy10.", "date9."]
 )
-def test_informats_de_fecha_quedan_pendientes_si_faltan_opciones_sas(informat):
-    with pytest.raises(Unsupported, match="opciones de fecha"):
-        translate_to_talend(f"input(valor, {informat})")
+def test_informats_de_fecha_con_anio_explicito_validan_y_conservan_los_limites(informat):
+    result = translate_to_talend(f"input(valor, {informat})")
+
+    assert "java.time.LocalDate.of" in result.java
+    assert "YearMonth.of" in result.java
+    if informat.startswith("anydtdte"):
+        assert "P-ANYDTDTE-DATESTYLE" in result.java
+    else:
+        assert "P-YEARCUTOFF-EXPLICITO" in result.java
 
 
 def test_fecha_iso_extendida_tiene_una_conversion_determinista():

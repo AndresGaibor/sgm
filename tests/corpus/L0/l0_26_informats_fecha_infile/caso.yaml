@@ -1,0 +1,24 @@
+nivel: L0
+tema: informats de fecha de cuatro dígitos en INPUT de INFILE
+construcciones:
+  - DATA
+  - INFILE DSD MISSOVER
+  - INPUT en lista
+  - YYMMDDw. Informat
+  - DDMMYYw. Informat
+  - DATE9. Informat
+  - ANYDTDTEw. Informat
+capa: C
+estado: traducible
+motivo: >-
+  El caso tiene esperado manual y se valida en el anillo B. La ejecución del Job queda pendiente
+  hasta validar la plantilla y la serialización de fechas en Studio; el bridge MCP no respondió.
+salidas: [fechas]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  leforinforref.pdf, pp. 617, 649, 653 y 755 documentan los cuatro informats; lrcon.pdf, p. 157,
+  define la fecha SAS como días desde 1960-01-01. Se limita la conversión a años explícitos de
+  cuatro dígitos y a ANYDTDTE año-primero; DATESTYLE queda pendiente para otras formas. YEARCUTOFF
+  no se infiere: las fuentes consultadas discrepan sobre su omisión y el entorno del cliente no
+  está disponible. lesysoptsref.pdf, p. 244, documenta INVALIDDATA con omisión de punto.

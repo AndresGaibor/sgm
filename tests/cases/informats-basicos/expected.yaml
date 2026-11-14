@@ -1,6 +1,5 @@
-description: "Tipos de informats demostrados; la conversión de fechas queda pendiente de las opciones SAS del proyecto."
+description: "Tipos de informats numéricos y de fecha con valores explícitos de cuatro dígitos."
 input: input.sas
 env: default
 expect:
-  gaps:
-    - FUNCION_NO_MAPEADA
+  gaps: []

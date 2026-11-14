@@ -11,6 +11,7 @@ import re
 
 from sgm.expressions.talend_base import E, Unsupported, _date_pattern, _guard, _jstr, _need
 from sgm.expressions.talend_lexer import _collapse_whitespace_outside_strings
+from sgm.formatos.informat_fecha import informat_fecha_soportado
 from sgm.ir.types_code import informat_type
 
 
@@ -26,10 +27,9 @@ def _input(p: _P, args: list[E]) -> E:
     base = "e8601da" if fmt.startswith("e8601da") else re.match(r"^\$?([a-z]*)", fmt).group(1)
     if tipo.type == "Date":
         if base != "e8601da":
-            raise Unsupported(
-                "informat de fecha requiere opciones de fecha SAS y formato de entrada confirmado "
-                "(YEARCUTOFF, DATESTYLE o locale)"
-            )
+            if not informat_fecha_soportado(spec):
+                raise Unsupported("informat de fecha fuera del subconjunto documentado")
+            return E(_input_fecha(base, args[0].java), "date")
         pattern = _date_pattern(base)
         return E(
             f"TalendDate.parseDate({_jstr(chr(39) + pattern + chr(39))}, {args[0].java})", "date"
@@ -76,6 +76,69 @@ def _input(p: _P, args: list[E]) -> E:
         "input numérico: el valor se convierte con Mathematical.REAL; comprobar el informato"
     )
     return E(_guard(args[:1], f"Mathematical.REAL(StringHandling.TRIM({args[0].java}))"))
+
+
+def _input_fecha(base: str, expression: str) -> str:
+    """Expresión Java estricta para las formas de fecha de cuatro dígitos documentadas."""
+    source = f"({expression} == null ? null : StringHandling.TRIM({expression}))"
+    compact = f'{source}.replace("-", "").replace("/", "")'
+    pending_year = (
+        'java.util.Objects.requireNonNull((java.sql.Date) null, "P-YEARCUTOFF-EXPLICITO")'
+    )
+    pending_style = (
+        'java.util.Objects.requireNonNull((java.sql.Date) null, "P-ANYDTDTE-DATESTYLE")'
+    )
+
+    def _date_value(year: str, month: str, day: str, valid_month: str) -> str:
+        valid = f"java.time.YearMonth.of({year}, {month}).isValidDay({day})"
+        date = f"java.sql.Date.valueOf(java.time.LocalDate.of({year}, {month}, {day}))"
+        return f"({valid_month} ? ({valid} ? {date} : null) : null)"
+
+    empty = f'({source} == null || {source}.isEmpty() || {source}.equals("."))'
+    if base in {"yymmdd", "anydtdte"}:
+        month_valid = f'{compact}.substring(4, 6).matches("0[1-9]|1[0-2]")'
+        four_year = (
+            f'{source}.matches("[0-9]{{8}}|[0-9]{{4}}[-/][0-9]{{2}}[-/][0-9]{{2}}")'
+        )
+        year = f"Integer.parseInt({compact}.substring(0, 4))"
+        month = f"Integer.parseInt({compact}.substring(4, 6))"
+        day = f"Integer.parseInt({compact}.substring(6, 8))"
+        parsed = _date_value(year, month, day, month_valid)
+        if base == "anydtdte":
+            iso = f'{source}.matches("[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}}")'
+            ambiguous = f'{source}.matches("[0-9]{{1,2}}[-/][0-9]{{1,2}}[-/][0-9]{{4}}")'
+            two_digit = f'{source}.matches("[0-9]{{1,2}}[-/][0-9]{{1,2}}[-/][0-9]{{2}}")'
+            return f"({empty} ? null : ({two_digit} ? {pending_year} : ({ambiguous} ? {pending_style} : ({iso} ? {parsed} : null))))"
+        two_digit = (
+            f'{source}.matches("[0-9]{{6}}|[0-9]{{2}}[-/][0-9]{{2}}[-/][0-9]{{2}}")'
+        )
+        return f"({empty} ? null : ({two_digit} ? {pending_year} : ({four_year} ? {parsed} : null)))"
+    if base == "ddmmyy":
+        two_digit = (
+            f'{source}.matches("[0-9]{{6}}|[0-9]{{2}}[-/][0-9]{{2}}[-/][0-9]{{2}}")'
+        )
+        month_valid = f'{compact}.substring(2, 4).matches("0[1-9]|1[0-2]")'
+        four_year = (
+            f'{source}.matches("[0-9]{{8}}|[0-9]{{2}}[-/][0-9]{{2}}[-/][0-9]{{4}}")'
+        )
+        day = f"Integer.parseInt({compact}.substring(0, 2))"
+        month = f"Integer.parseInt({compact}.substring(2, 4))"
+        year = f"Integer.parseInt({compact}.substring(4, 8))"
+        parsed = _date_value(year, month, day, month_valid)
+        return f"({empty} ? null : ({two_digit} ? {pending_year} : ({four_year} ? {parsed} : null)))"
+    # DATEw. accepts an English three-letter month; a two-digit year needs explicit YEARCUTOFF.
+    two_digit = f'{source}.matches("[0-9]{{2}}[A-Za-z]{{3}}[0-9]{{2}}")'
+    names = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC"
+    four_year = f'{source}.matches("(?i)[0-9]{{2}}({names})[0-9]{{4}}")'
+    months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    month = "(" + " : ".join(
+        f'{source}.substring(2, 5).equalsIgnoreCase("{name}") ? {index}'
+        for index, name in enumerate(months, 1)
+    ) + " : 0)"
+    year = f"Integer.parseInt({source}.substring(5, 9))"
+    day = f"Integer.parseInt({source}.substring(0, 2))"
+    parsed = _date_value(year, month, day, four_year)
+    return f"({empty} ? null : ({two_digit} ? {pending_year} : ({four_year} ? {parsed} : null)))"
 
 
 def _put(p: _P, args: list[E]) -> E:

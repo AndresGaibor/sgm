@@ -743,7 +743,7 @@ Más un vector por cada forma del yaml del paso previo que no esté cubierta (`2
 
 ### Task D1-16: Informats y formats de fecha con `YEARCUTOFF`; cierra `l4_20` (MG-P3-05; serie `n`)
 
-El caso `l4_20_put_fechas_pendiente` (`estado: pendiente`, en `migrar_pendientes.yaml` con `P-ASIGNACION-SIN-TRADUCIR`) dice «no hay vector de `PUT`, `MDY` ni de `yymmdd10.`». Con D1-12 (`MDY`) y esta tarea lo tiene. Un año de dos dígitos se interpreta según `YEARCUTOFF=` (`lesysoptsref`, p. 432); el valor por omisión de SAS 9.4 es 1926 (la guía lo dice al describir el cambio de 1920 a 1926). El intérprete lo toma de una constante `YEARCUTOFF = 1926` con esa cita; una opción `OPTIONS YEARCUTOFF=` del programa la cambia (el reconocimiento de opciones es de `docs/opciones-de-sistema.md`; si no está, `Pendiente: P-YEARCUTOFF-EXPLICITO`).
+El caso `l4_20_put_fechas_pendiente` (`estado: pendiente`, en `migrar_pendientes.yaml` con `P-ASIGNACION-SIN-TRADUCIR`) dice «no hay vector de `PUT`, `MDY` ni de `yymmdd10.`». Con D1-12 (`MDY`) y esta tarea lo tiene. Un año de dos dígitos se interpreta según `YEARCUTOFF=` (`lesysoptsref`, p. 432). La documentación discrepa: `lesysoptsref` da 1940 como valor enviado por omisión; `lrcon`, p. 162, describe 1926 para SAS 9.4. El traductor no fija una constante ni infiere la configuración del cliente; sin `OPTIONS YEARCUTOFF=` explícita, la fecha de dos dígitos queda `Pendiente: P-YEARCUTOFF-EXPLICITO`.
 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_formatos.py` (si pasa de 300 líneas, el formato de salida va a `src\sgm\migrar\interprete_put.py`, módulo nuevo)
@@ -759,7 +759,7 @@ El caso `l4_20_put_fechas_pendiente` (`estado: pendiente`, en `migrar_pendientes
 - Consumes: `parsear_informat(spec: str) -> Informat` (D1-15), `interprete_fechas.dias_a_fecha(dias: int) -> date` y `fecha_a_dias(fecha: date) -> int` (D1-12), `talend_funciones_formato._put(p, args)` y `_input(p, args)`, `talend_base._date_pattern(fmt: str) -> str | None`.
 - Produces:
   ```python
-  YEARCUTOFF = 1926   # lesysoptsref, p. 432
+  YEARCUTOFF: int | None   # solo si el programa fija OPTIONS YEARCUTOFF=
   def leer_fecha(texto: str, informat: Informat) -> int | None: ...    # días SAS o faltante
   def escribir_formato(valor: float | None, formato: str) -> str: ...  # PUT con date, yymmdd, mmddyy, ddmmyy, monyy, year
   ```
@@ -774,8 +774,8 @@ El caso `l4_20_put_fechas_pendiente` (`estado: pendiente`, en `migrar_pendientes
 | `inputd-04` | `input` | `["12/31/1959", "mmddyy10."]` | `-1` | p. 682 |
 | `inputd-05` | `input` | `["31/12/1959", "ddmmyy10."]` | `-1` | p. 653 |
 | `inputd-06` | `input` | `["2023-02-29", "yymmdd10."]` | `faltante` (fecha inexistente) | p. 755 |
-| `inputd-07` | `input` | `["29FEB24", "date7."]` | `23435` (año de dos dígitos con `YEARCUTOFF=1926`: 24 → 2024) | p. 649 y `lesysoptsref`, p. 432 |
-| `inputd-08` | `input` | `["01JAN30", "date7."]` | `25568` (con `YEARCUTOFF=1926`, 30 es 2030: 70 años × 365 + 18 bisiestos de 1960 a 2028; se comprueba con `datetime.date(2030,1,1).toordinal() - datetime.date(1960,1,1).toordinal()`) | p. 649 |
+| `inputd-07` | `input` | `["29FEB24", "date7."]` | `pendiente: P-YEARCUTOFF-EXPLICITO` sin opción en el programa; con corte explícito 1926 sería 23435 | p. 649 y `lesysoptsref`, p. 432 |
+| `inputd-08` | `input` | `["01JAN30", "date7."]` | `pendiente: P-YEARCUTOFF-EXPLICITO` sin opción en el programa; con corte explícito 1926 sería 25568 | p. 649 |
 | `put-01` | `put` | `[0, "date9."]` | `"01JAN1960"` | p. 186 |
 | `put-02` | `put` | `[-1, "date9."]` | `"31DEC1959"` | p. 186 |
 | `put-03` | `put` | `[23435, "yymmdd10."]` | `"2024-02-29"` | p. 525 |

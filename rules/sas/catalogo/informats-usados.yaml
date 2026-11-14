@@ -23,7 +23,7 @@ entries:
   nombre: DATEw.
   fuente: leforinforref.pdf, p. 649
   estado: reconocida
-  nota: regla `fecha`
+  nota: 'regla `fecha`; DATE9. de cuatro dígitos se convierte al leer archivo, YEARCUTOFF pendiente'
 - id: datetime
   nombre: DATETIMEw.
   fuente: leforinforref.pdf, p. 650
@@ -33,7 +33,7 @@ entries:
   nombre: DDMMYYw.
   fuente: leforinforref.pdf, p. 653
   estado: reconocida
-  nota: regla `fecha`
+  nota: 'regla `fecha`; cuatro dígitos con día primero al leer archivo, YEARCUTOFF pendiente'
 - id: julian
   nombre: JULIANw.
   fuente: leforinforref.pdf, p. 678
@@ -58,7 +58,7 @@ entries:
   nombre: YYMMDDw.
   fuente: leforinforref.pdf, p. 755
   estado: reconocida
-  nota: 'regla `fecha`; 1 uso de yymmdd10. en el corpus'
+  nota: 'regla `fecha`; cuatro dígitos al leer archivo, sin inferir YEARCUTOFF'
 - id: yyq
   nombre: YYQw.
   fuente: leforinforref.pdf, p. 759
@@ -68,7 +68,7 @@ entries:
   nombre: ANYDTDTEw.
   fuente: leforinforref.pdf, p. 617
   estado: reconocida
-  nota: tipo Date reconocido; traducción pendiente porque depende de DATESTYLE, YEARCUTOFF y múltiples formas de entrada
+  nota: tipo Date reconocido; en archivos solo se traduce ISO año-primero; DATESTYLE y YEARCUTOFF quedan pendientes
 - id: anydtdtm
   nombre: ANYDTDTMw.
   fuente: leforinforref.pdf, p. 620

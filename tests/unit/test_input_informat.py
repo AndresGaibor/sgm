@@ -42,17 +42,16 @@ def test_dynamic_informat_compiles_as_gap_without_candidate():
     assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
 
 
-def test_macro_informat_resuelto_conserva_literal_y_deja_pendiente_la_fecha():
+def test_macro_informat_resuelto_conserva_literal_y_usa_guardas_de_fecha():
     plan = _plan(
         "%let fmt = yymmdd10.; data target; set source; parsed=input(value, &fmt); run;"
     )
     operator = _derive_for(plan, "parsed")
     expression = operator.params["assignments"][0]["expression"]
     assert expression == "input(value, yymmdd10.)"
-    assert "talend_expression_candidates" not in operator.params
-    assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
-    with pytest.raises(Unsupported, match="opciones de fecha"):
-        translate_to_talend(expression)
+    assert "talend_expression_candidates" in operator.params
+    assert not any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+    assert "P-YEARCUTOFF-EXPLICITO" in translate_to_talend(expression).java
 
 
 def _plan(source):
@@ -77,9 +76,10 @@ def test_dynamic_informat_error_does_not_echo_source(informat):
 
 
 @pytest.mark.parametrize("informat", ["'yymmdd10.'", '"yymmdd10."', "yymmdd10."])
-def test_literal_date_informat_waits_for_project_date_options(informat):
-    with pytest.raises(Unsupported, match="opciones de fecha"):
-        translate_to_talend(f"input(value, {informat})")
+def test_literal_date_informat_uses_four_digit_year_and_guards_cutoff(informat):
+    translated = translate_to_talend(f"input(value, {informat})")
+    assert translated.kind == "date"
+    assert "P-YEARCUTOFF-EXPLICITO" in translated.java
 
 
 def test_numeric_literals_outside_formats_keep_numeric_kind():
@@ -110,14 +110,13 @@ def test_single_quoted_macro_text_is_not_assumed_to_be_an_informat(function):
         translate_to_talend(f"{function}(value, '&private_marker')")
 
 
-def test_expanded_double_quoted_date_macro_stays_pending():
+def test_expanded_double_quoted_date_macro_uses_guarded_date_conversion():
     plan = _plan('%let fmt = yymmdd10.; data target; set source; parsed=input(value, "&fmt"); run;')
     expression = _derive_for(plan, "parsed").params["assignments"][0]["expression"]
     assert expression == 'input(value, "yymmdd10.")'
-    assert "talend_expression_candidates" not in _derive_for(plan, "parsed").params
-    assert any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
-    with pytest.raises(Unsupported, match="opciones de fecha"):
-        translate_to_talend(expression)
+    assert "talend_expression_candidates" in _derive_for(plan, "parsed").params
+    assert not any(g.reason == "FUNCION_NO_MAPEADA" for g in plan.gaps)
+    assert "P-YEARCUTOFF-EXPLICITO" in translate_to_talend(expression).java
 
 
 @pytest.mark.parametrize("informat", ["row.informat", "e8601da. || row.informat"])
@@ -205,8 +204,7 @@ def test_compiled_macro_informat_respects_sas_quotes(literal):
     expected = '"yymmdd10."' if literal == '"&fmt"' else literal
     assert expression == f"inputn(value, {expected})"
     if literal == '"&fmt"':
-        with pytest.raises(Unsupported, match="opciones de fecha"):
-            translate_to_talend(expression)
+        assert "P-YEARCUTOFF-EXPLICITO" in translate_to_talend(expression).java
     else:
         with pytest.raises(Unsupported, match="informat no soportado"):
             translate_to_talend(expression)
