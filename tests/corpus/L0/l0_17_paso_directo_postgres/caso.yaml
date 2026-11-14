@@ -1,0 +1,19 @@
+nivel: L0
+tema: Paso directo SQL a PostgreSQL con conexión declarada por contexto
+construcciones:
+  - PROC SQL
+  - CONNECT TO
+  - SELECT FROM CONNECTION TO
+  - DISCONNECT
+capa: C
+contenedor: postgres
+estado: pendiente_revision
+motivo: >-
+  El resultado sintético se valida localmente; el tipo de saldo y el lector PostgreSQL requieren
+  revisión con el motor y la plantilla verificados en Studio.
+salidas: [activos]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  Tres filas sintéticas producen dos registros activos en orden creciente de id. El password de
+  ejemplo ya está redactado como ***; no se copia ninguna opción ni credencial al Job.

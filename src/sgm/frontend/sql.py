@@ -11,17 +11,26 @@ import re
 from dataclasses import dataclass, field
 
 from sgm.frontend.sql_fuentes import extract_sources
+from sgm.redaction import redact
 
 _CREATE = re.compile(r"(?is)^create\s+table\s+([\w.&]+)\s+as\s+(.+)$")
 _CREATE_LIKE = re.compile(r"(?is)^create\s+table\s+([\w.&]+)\s+like\s+")
 _INSERT = re.compile(r"(?is)^insert\s+into\s+([\w.&]+)")
 _DELETE = re.compile(r"(?is)^delete\s+from\s+([\w.&]+)")
 _DROP = re.compile(r"(?is)^drop\s+table\s+([\w.&]+)")
-_CONNECT = re.compile(r"(?is)^connect\s+to\s+(\w+)")
+_CONNECT = re.compile(r"(?is)^connect\s+to\s+(\w+)(?:\s+as\s+(\w+))?(.*)$")
 _DISCONNECT = re.compile(r"(?is)^disconnect\s+from\s+(\w+)")
 _PASSTHROUGH = re.compile(r"(?is)\bfrom\s+connection\s+to\s+(\w+)\s*\((.*)\)\s*$")
 _EXECUTE = re.compile(r"(?is)^execute\s*\((.*)\)\s*by\s+(\w+)\s*$")
 _EXECUTE_BY = re.compile(r"(?is)^execute\s+by\s+(\w+)\s*\((.*)\)\s*$")
+_MARCADOR_CREDENCIAL = re.compile(
+    r"(?i)\b(password|passwd|pwd|pw|pass|token|secret)\b(\s*=\s*)\*{3}"
+)
+
+
+def _opciones_redactadas(opciones: str) -> str:
+    seguras = redact(opciones, "")
+    return _MARCADOR_CREDENCIAL.sub(r"\1\2'***'", seguras)
 
 
 @dataclass(frozen=True)
@@ -80,7 +89,14 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
     if m := _DROP.match(body):
         return SqlStatement("drop_table", body, line, target=m.group(1))
     if m := _CONNECT.match(body):
-        return SqlStatement("connect", body, line, engine=m.group(1))
+        motor, alias, opciones = m.groups()
+        return SqlStatement(
+            "connect",
+            body,
+            line,
+            engine=motor,
+            fields={"alias": alias or motor, "options": _opciones_redactadas(opciones.strip())},
+        )
     if m := _DISCONNECT.match(body):
         return SqlStatement("disconnect", body, line, engine=m.group(1))
     return SqlStatement("other", body, line)

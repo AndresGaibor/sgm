@@ -27,28 +27,52 @@ def _base_name(engine: str, table: str) -> str:
 
 
 def lower_proc_sql(step: ProcSql, ev: Evidence, b: Builder) -> None:
+    motores_por_alias: dict[str, str] = {}
+    opciones_por_alias: dict[str, str] = {}
     for st in step.statements:
-        _lower_statement(st, ev, b)
+        if st.kind == "connect":
+            alias = str(st.fields.get("alias") or st.engine or "").casefold()
+            motor = str(st.engine or "").casefold()
+            motores_por_alias[alias] = motor
+            opciones_por_alias[alias] = str(st.fields.get("options") or "")
+        _lower_statement(st, ev, b, motores_por_alias, opciones_por_alias)
+        if st.kind == "disconnect":
+            alias = str(st.engine or "").casefold()
+            motores_por_alias.pop(alias, None)
+            opciones_por_alias.pop(alias, None)
 
 
-def _lower_statement(st: SqlStatement, ev: Evidence, b: Builder) -> None:
+def _lower_statement(
+    st: SqlStatement,
+    ev: Evidence,
+    b: Builder,
+    motores_por_alias: dict[str, str] | None = None,
+    opciones_por_alias: dict[str, str] | None = None,
+) -> None:
     kind = st.kind
+    motores_por_alias = motores_por_alias or {}
+    opciones_por_alias = opciones_por_alias or {}
+    alias = str(st.engine or "")
+    motor = motores_por_alias.get(alias.casefold(), alias.casefold())
+    opciones = opciones_por_alias.get(alias.casefold(), "")
     if kind == "select_passthrough":
-        params = {"sql": st.inner_sql, "engine": st.engine}
+        params = {"sql": st.inner_sql, "engine": motor}
+        _anotar_conexion(params, alias, motor, opciones)
         if st.target:
-            params["outputs"] = [_base_name(st.engine or "", st.target)]
-        b.op("read", params, ev, placement=f"db:{(st.engine or '').lower()}")
+            params["outputs"] = [_base_name(motor, st.target)]
+        b.op("read", params, ev, placement=f"db:{motor}")
     elif kind == "execute":
         created = _CREATE_TARGET.match(st.inner_sql or "")
         inner = parse_sql_statement(st.inner_sql or "", ev.line_start)
         params = {
             "sql": st.inner_sql,
-            "engine": st.engine,
-            "inputs": [_base_name(st.engine or "", s) for s in inner.sources],
+            "engine": motor,
+            "inputs": [_base_name(motor, s) for s in inner.sources],
         }
+        _anotar_conexion(params, alias, motor, opciones)
         if created:
-            params["outputs"] = [_base_name(st.engine or "", created.group(1))]
-        b.op("exec_sql", params, ev, placement=f"db:{(st.engine or '').lower()}")
+            params["outputs"] = [_base_name(motor, created.group(1))]
+        b.op("exec_sql", params, ev, placement=f"db:{motor}")
     elif kind in ("create_table", "select"):
         _lower_query(st, ev, b)
     elif kind in ("insert", "delete", "drop_table", "create_like"):
@@ -83,6 +107,14 @@ def _lower_statement(st: SqlStatement, ev: Evidence, b: Builder) -> None:
             status="hueco",
             notes=[f"sentencia SQL no reconocida: {st.text[:60]}"],
         )
+
+
+def _anotar_conexion(params: dict, alias: str, motor: str, opciones: str) -> None:
+    """Conserva alias y opciones seguras solo cuando aportan información al consumidor."""
+    if alias and alias.casefold() != motor.casefold():
+        params["connection_alias"] = alias
+    if motor.casefold() == "postgres" and opciones:
+        params["connection_options"] = opciones
 
 
 def _lower_query(st: SqlStatement, ev: Evidence, b: Builder) -> None:

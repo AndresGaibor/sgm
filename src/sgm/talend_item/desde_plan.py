@@ -29,6 +29,7 @@ from sgm.talend_item.componentes import log_row
 from sgm.talend_item.conexiones import lookup
 from sgm.talend_item.desde_plan_agregado import nodo_agregado
 from sgm.talend_item.desde_plan_conexion import parametros_conexion
+from sgm.talend_item.desde_plan_conexiones import conexiones_de_plan
 from sgm.talend_item.desde_plan_contextos import (
     contextos_de_plan,
     reemplazar_rutas,
@@ -134,6 +135,16 @@ class _Job:
         self.nodos: list[Nodo] = []
         self.conexiones: list[Conexion] = []
         self.pendientes: list[PendienteMigracion] = []
+        for conexion_sql in conexiones_de_plan(plan):
+            if conexion_sql.motor == "postgres" and conexion_sql.opciones:
+                self.pendientes.append(
+                    PendienteMigracion(
+                        "P-CONEXION-OPCIONES",
+                        f"{conexion_sql.alias}: opciones de CONNECT requieren revisión: "
+                        f"{conexion_sql.opciones}",
+                        conexion_sql.linea,
+                    )
+                )
         self.traza: dict[str, list[int]] = {}
         self.visitados: set[str] = set()
         self.plegados: set[str] = set()

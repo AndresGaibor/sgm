@@ -41,6 +41,14 @@ def _body(sql: str) -> str:
     return created.group(2).strip() if created else sql.strip()
 
 
+def _conexion(op: Operator) -> tuple[str, str]:
+    """Identidad lógica de la conexión; dos motores iguales no implican el mismo servidor."""
+    motor = str(op.params.get("engine") or (op.placement or "").removeprefix("db:")).casefold()
+    alias = str(op.params.get("connection_alias") or motor).casefold()
+    opciones = str(op.params.get("connection_options") or "")
+    return alias, opciones
+
+
 def _compose(first: Operator, second: Operator) -> str | None:
     """SQL con CTE que sustituye a los dos operadores; None si no se puede componer con seguridad.
 
@@ -74,6 +82,7 @@ def _candidates(graph: Graph, ctx: PassContext):
             not first.placement
             or not first.placement.startswith("db:")
             or first.placement != second.placement
+            or _conexion(first) != _conexion(second)
         ):
             continue
         if len(graph.successors(first.id)) != 1 or len(graph.predecessors(second.id)) != 1:
@@ -99,6 +108,10 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
                 "outputs": list(second.params.get("outputs", [])),
                 "fused": [first.signature, second.signature],
             }
+            for key in ("connection_alias", "connection_options"):
+                value = second.params.get(key)
+                if value:
+                    params[key] = value
             merged = Operator(
                 id=builder.next_id(),
                 kind="exec_sql",

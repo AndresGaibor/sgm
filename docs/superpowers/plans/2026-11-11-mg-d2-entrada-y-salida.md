@@ -135,8 +135,17 @@ La decisión MG-D05 pone Impala, Postgres y archivos como destinos primero. Esta
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_conexiones.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\frontend\sql.py` (capturar el alias de CONNECT y sanear sus opciones)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_sql.py` (conservar CONNECT como metadato y resolver el alias en sus consumidores)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\passes\p05_sql_fusion.py` (no fusionar SQL de alias u opciones de conexión distintos)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan.py` (omitir metadatos al emitir y resolver motores por alias)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_conexion.py` (admitir variables seguras de Impala y Postgres)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_paso_directo.py` (creado en D2-2: rama `postgres`)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_contextos.py` (108 líneas; K-4 ya le suma `dev`; aquí se generaliza a un motor por conexión)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\cli_migrar_comando.py` (describir variables DEV seguras de ambos motores)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_sql_fuentes.py` (alias de CONNECT y redacción de opciones)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_fusion_partition.py` (evitar fusionar consultas de alias distintos)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_tablero.py` (contadores del corpus L0)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\env\contexto_dev_postgres.json`
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_17_paso_directo_postgres\{caso.yaml, programa.sas, entradas\public.cuentas.csv, esperado\activos.csv}`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_conexiones_compartidas.py`
@@ -171,12 +180,12 @@ QUIT;
 ```
 `entradas/public.cuentas.csv` (`id,saldo,estado`): `1,100.5,A` / `2,0,I` / `3,40,A`. Esperado a mano, `esperado/activos.csv` (`orden_relevante: true`): `id,saldo` / `1,100.5` / `3,40` (el `ORDER BY` del SQL interior fija el orden; la fila inactiva queda fuera).
 
-- [ ] **Step 1: Write the failing tests** en `test_conexiones_compartidas.py`: (a) un programa con un `CONNECT TO impala` seguido de un `execute by impala` y un `select from connection to impala` da **una** `Conexion` y los dos nodos usan las mismas cuatro variables de contexto; (b) con dos `CONNECT` a motores distintos da dos `Conexion` y `contextos_de_plan` suma las siete variables (`impala_*` y `pg_*`) a los cuatro grupos, con valor solo en `DEV`; (c) el `.item` migrado de `l0_17` no contiene `sgmtest`, `localhost` ni `PASSWORD` con valor, y el pendiente nombra `P-CONEXION-OPCIONES` y repite el texto de los argumentos con la contraseña ya como `'***'`; (d) `variables_de_motor("oracle")` lanza `ValueError`; (e) `sgm secretos` sobre el paquete migrado da cero hallazgos.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_conexiones_compartidas.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement.** Plantilla de `tPostgresqlInput`: si `src/sgm/talend_item/plantillas/tPostgresqlInput.json` no existe, extraerla de Studio (`tools/contenedores/extraer_plantillas_talend.py`); sin Studio, `nodo_paso_directo` devuelve `P-COMPONENTE-SIN-PLANTILLA` para el motor `postgres` y los pasos (a) a (d) se prueban con Impala. El host, el puerto y la base van a `context.pg_*`; el usuario y la contraseña no se emiten (`PASS` queda `((String)null)` como en K-4).
-- [ ] **Step 4: Run** los tests, `tests/unit/test_push_db.py`, `tests/unit/test_desde_plan_contextos.py`, `tests/unit/test_contexto_dev.py` (K-4) y el golden. `uv run ruff check src tests tools`.
-- [ ] **Step 5: Contenedor y Studio.** `docker compose -f tools/contenedores/postgres/docker-compose.yml up -d` (verificar el nombre del archivo en esa carpeta), cargar `public.cuentas` (según su README), migrar con `--contexto-dev env/contexto_dev_postgres.json` y ejecutar `uv run python tools/validar_caso_studio.py l0_17_paso_directo_postgres`. Sin Docker o sin Studio: «contenedor pendiente» o «lote C pendiente» con el motivo.
-- [ ] **Step 6: Commit.** `hito N n: paso directo a Postgres y conexion compartida por alias`.
+- [x] **Step 1: Write the failing tests** en `test_conexiones_compartidas.py`: (a) un programa con un `CONNECT TO impala` seguido de un `execute by impala` y un `select from connection to impala` da **una** `Conexion` y los dos nodos usan las mismas cuatro variables de contexto; (b) con dos `CONNECT` a motores distintos da dos `Conexion` y `contextos_de_plan` suma las siete variables (`impala_*` y `pg_*`) a los cuatro grupos, con valor solo en `DEV`; (c) el `.item` migrado de `l0_17` no contiene `sgmtest`, `localhost` ni `PASSWORD` con valor, y el pendiente nombra `P-CONEXION-OPCIONES` y repite el texto de los argumentos con la contraseña ya como `'***'`; (d) `variables_de_motor("oracle")` lanza `ValueError`; (e) `sgm secretos` sobre el paquete migrado da cero hallazgos.
+- [x] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_conexiones_compartidas.py -q -p no:cacheprovider` (3 fallas de comportamiento antes de implementar); una prueba adicional reprodujo que la fusión SQL unía dos alias distintos del mismo motor.
+- [x] **Step 3: Implement.** La plantilla `tPostgresqlInput` no existe; por eso `nodo_paso_directo` devuelve `P-COMPONENTE-SIN-PLANTILLA` para Postgres sin inventar XML. Las conexiones SAS resuelven el alias al motor, y sus lectores y ejecutores comparten las variables no secretas de contexto. El host, el puerto y la base van a `context.pg_*`; el usuario y la contraseña no se emiten. Las opciones PostgreSQL quedan en `P-CONEXION-OPCIONES`, con credenciales redactadas. Este hito conserva la identidad lógica del alias y el endpoint; no afirma reutilizar una misma sesión física de Talend, cuya plantilla y ciclo de conexión requieren validación en Studio.
+- [x] **Step 4: Run** los tests de conexiones, `tests/unit/test_push_db.py`, `tests/unit/test_desde_plan_contextos.py`, `tests/unit/test_contexto_dev.py` (K-4), parser SQL, integración del emisor y `test_fusion_partition.py`; Ruff focal también queda verde. La compuerta integral queda en el cierre del hito.
+- [ ] **Step 5: Contenedor y Studio.** No ejecutado: las reglas del repositorio prohíben conectar a bases de datos y no hay plantilla `tPostgresqlInput` de Studio. Queda pendiente extraer/validar la plantilla y hacer el lote C cuando esos recursos y la autorización de conexión existan; el código conserva `P-COMPONENTE-SIN-PLANTILLA` y `P-CONEXION-OPCIONES`.
+- [x] **Step 6: Commit.** `hito 249n: paso directo a Postgres y conexion compartida por alias`.
 
 ---
 

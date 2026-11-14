@@ -202,3 +202,15 @@ def test_pass_through_expone_las_tablas_del_motor_como_lecturas():
     st = parse_sql_statement(sentencia, 1)
     assert st.kind == "select_passthrough"
     assert st.sources == ("esq.tabla",)
+
+
+def test_connect_conserva_alias_y_opciones_con_password_redactado():
+    st = parse_sql_statement(
+        "connect to postgres as pg1 (server=localhost password='***')", 1
+    )
+
+    assert st.kind == "connect"
+    assert st.engine == "postgres"
+    assert st.fields["alias"] == "pg1"
+    assert "server=localhost" in st.fields["options"].lower()
+    assert "password='***'" in st.fields["options"].lower()

@@ -165,9 +165,9 @@ def nodo_paso_directo(
     valores = {
         "QUERY": java(consulta),
         "USE_EXISTING_CONNECTION": "false",
-        **parametros_conexion(en_contexto),
+        **parametros_conexion(en_contexto, motor),
     }
-    if motor == "impala":
+    if motor == "impala" and "PASS" not in valores:
         valores["PASS"] = "((String)null)"
     nodo = nodo_desde_plantilla(
         componente,

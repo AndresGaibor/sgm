@@ -42,6 +42,26 @@ def test_p05_no_fusiona_si_el_intermedio_es_salida_final():
     assert len(_kind(plan, "exec_sql")) == 2
 
 
+def test_p05_no_fusiona_consultas_de_aliases_de_conexion_distintos():
+    text = (
+        "proc sql;\n"
+        " connect to impala as principal;\n"
+        " execute (create table lz.t1 as select a from src) by principal;\n"
+        " disconnect from principal;\n"
+        " connect to impala as archivo;\n"
+        " execute (create table lz.t2 as select a from lz.t1 where a > 1) by archivo;\n"
+        " disconnect from archivo;\n"
+        "quit;\n"
+    )
+    plan = _plan(text)
+
+    assert len(_kind(plan, "exec_sql")) == 2
+    assert {op.params.get("connection_alias") for op in _kind(plan, "exec_sql")} == {
+        "principal",
+        "archivo",
+    }
+
+
 # --- pasada 6: flujo en un map --------------------------------------------
 
 

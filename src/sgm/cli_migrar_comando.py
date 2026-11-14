@@ -71,7 +71,13 @@ def migrar_command(
     ] = "archivos",
     contexto_dev: Annotated[
         Path | None,
-        typer.Option("--contexto-dev", help="JSON de conexión local de Impala para el grupo DEV."),
+        typer.Option(
+            "--contexto-dev",
+            help=(
+                "JSON con variables de conexión no sensibles para Impala o "
+                "Postgres en el grupo DEV."
+            ),
+        ),
     ] = None,
 ) -> None:
     """Migra un SAS o cada `.sas` de una carpeta, con un paquete separado por programa."""

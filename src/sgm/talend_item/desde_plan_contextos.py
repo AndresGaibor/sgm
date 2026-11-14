@@ -9,16 +9,16 @@ que es lo que Studio necesita para que el selector de contexto funcione. El lite
 al grupo `Default`; los demás quedan vacíos y se llenan en cada entorno, porque el valor de
 producción no está en el programa.
 
-Ninguna credencial: además de las rutas, el contexto puede declarar las cuatro variables no
-sensibles `impala_*` cuando el programa incluye `exec_sql` y se solicitó `contexto_dev`. Una clave
-con aspecto de credencial queda rechazada por el cargador y por `test_sin_secretos`.
+Ninguna credencial: además de las rutas, el contexto puede declarar las variables no sensibles de
+cada motor conectado cuando se solicitó `contexto_dev`. Una clave con aspecto de credencial queda
+rechazada por el cargador y por `test_sin_secretos`.
 """
 
 from __future__ import annotations
 
 from sgm.ir.models import Plan
 from sgm.java_literals import literal_java
-from sgm.talend_item.desde_plan_conexion import VARIABLES_BASE
+from sgm.talend_item.desde_plan_conexiones import conexiones_de_plan
 from sgm.talend_item.desde_plan_nodos import ruta
 from sgm.talend_item.modelo import Nodo, ParametroContexto
 
@@ -70,6 +70,11 @@ def contextos_de_plan(
     plan: Plan, dev: dict[str, str] | None = None
 ) -> dict[str, list[ParametroContexto]]:
     """Los grupos comparten claves; el SAS y el contexto DEV solo llenan su grupo respectivo."""
+    variables_conexion: list[str] = []
+    for conexion in conexiones_de_plan(plan):
+        for nombre in conexion.variables:
+            if nombre not in variables_conexion:
+                variables_conexion.append(nombre)
     rutas = rutas_de_plan(plan)
     por_ruta: dict[str, str] = {}
     for camino, nombre in rutas.items():
@@ -84,15 +89,15 @@ def contextos_de_plan(
             )
             for nombre, camino in por_ruta.items()
         ]
-    if dev is not None and any(op.kind == "exec_sql" for op in plan.graph.operators()):
+    if dev is not None:
         for grupo in GRUPOS:
             grupos[grupo].extend(
                 ParametroContexto(
                     nombre,
                     valor=dev.get(nombre, "") if grupo == "DEV" else "",
-                    comentario=f"conexión local de Impala: {nombre.removeprefix('impala_')}",
+                    comentario=f"conexión local: {nombre}",
                 )
-                for nombre in VARIABLES_BASE
+                for nombre in variables_conexion
             )
     return grupos
 
