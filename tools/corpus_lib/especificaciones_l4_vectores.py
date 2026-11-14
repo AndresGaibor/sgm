@@ -169,6 +169,60 @@ FUNCIONES_CON_CASO: dict[str, dict] = {
         "citar_espacios_borde": True,
         "sas": "lengthn({argumentos})",
     },
+    "int": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "int({argumentos})",
+    },
+    "ceil": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "ceil({argumentos})",
+    },
+    "floor": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "floor({argumentos})",
+    },
+    "mod": {
+        "literales": (),
+        "columnas": ("DIVIDENDO", "DIVISOR"),
+        "salida_numerica": True,
+        "sas": "mod({argumentos})",
+    },
+    "abs": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "abs({argumentos})",
+    },
+    "sqrt": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "sqrt({argumentos})",
+    },
+    "log": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "log({argumentos})",
+    },
+    "exp": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "exp({argumentos})",
+    },
+    "sign": {
+        "literales": (),
+        "columnas": ("VALOR",),
+        "salida_numerica": True,
+        "sas": "sign({argumentos})",
+    },
 }
 
 

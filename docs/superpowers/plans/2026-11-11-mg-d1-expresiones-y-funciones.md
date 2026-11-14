@@ -437,7 +437,11 @@ Los vectores `cat*` prueban faltantes de carácter representados por cadenas vac
 - Consumes: `interprete_numerico.FUNCIONES` (D1-2; ya trae `abs`), `corpus_semantica_funciones.round_sas(valor: float, unidad: float = 1) -> float`, `talend_funciones_numerico._unary_math(fn: str)`, `_int(_p, args)`, `_round(_p, args)`, `talend_tabla._FUNCTIONS` (ya trae `abs`, `ceil`, `floor`, `sqrt`, `exp`, `log`, `mod`, `round`, `int`).
 - Produces: intérprete y oráculo con `int_`, `ceil`, `floor`, `mod`, `sqrt`, `log`, `exp`, `sign` (el nombre SAS `int` se registra como `"int"` en `FUNCIONES`; `int_` es el nombre Python); `talend_tabla._FUNCTIONS` gana `sign`; `mod` cambia su Java.
 
-**Vectores** (el esperado «faltante» de `sqrt(-1)`, `log(0)` y `mod(x, 0)` se confirma leyendo la página: SAS devuelve faltante y escribe una nota en el log; si la página no lo dice, el vector queda `incierto` y la función `Pendiente: P-NUMERICA-DOMINIO`):
+**Dominios inválidos:** las guías de función fijan las restricciones de `SQRT`, `LOG` y `MOD`. `lepg`, p. 124, establece que operaciones inválidas como dividir por cero, calcular `LOG(0)` o desbordar asignan faltante y escriben nota en el log. El intérprete y Java convierten resultados no finitos en faltante; el mensaje del log no se reproduce. Para `SQRT` negativo y `MOD` con divisor cero, esa salida se deriva de la regla general y queda señalada como inferencia en el catálogo; no se usan como vectores conocidos hasta validarlos en Studio.
+
+**Vectores** (casos de dominio inválido no incluidos como `documentado` hasta tener validación en Studio):
+
+Los empates positivos y negativos de `ROUND` ya están cubiertos por `round-05` y `round-06`; no se duplica el vector negativo.
 
 | id | funcion | entrada | esperado | página (`lefunctionsref`) |
 |---|---|---|---|---|
@@ -454,16 +458,15 @@ Los vectores `cat*` prueban faltantes de carácter representados por cadenas vac
 | `log-01` | `log` | `[1]` | `0` | p. 1206 |
 | `exp-01` | `exp` | `[0]` | `1` | p. 712 |
 | `sign-01` | `sign` | `[-5]` | `-1` | p. 1528 |
-| `round-07` | `round` | `[-2.5]` | `-3` (empate: se aleja de cero) | p. 1486 |
 | `round-08` | `round` | `[2.675, 0.01]` | `2.68` (SAS aplica un fuzz a la comparación, `lrcon`, p. 116) | p. 1486 |
 
-Java: `mod` hoy usa `Mathematical.MOD(a, b)`, que opera con enteros y pierde `mod-03`; pasa a `((a) % (b))` con `Double`, que tiene el signo del dividendo como SAS, con la guarda de nulo de `_unary_math`. Los tres casos de dominio (`sqrt` de negativo, `log` de cero, `mod` por cero) en Java dan `NaN`/`Infinity`, no faltante: la plantilla envuelve el resultado con `(Double.isNaN(r) || Double.isInfinite(r) ? null : r)`.
+Java: `MOD` usa `%` sobre `double`, conserva decimales y el signo del dividendo; el fuzz de SAS cerca de múltiplos y la precisión mínima del resto permanecen pendientes (`P-MOD-FUZZ`). `ROUND` usa `BigDecimal.valueOf` y `HALF_UP` para conservar el redondeo decimal demostrado por `round-08`. Las funciones matemáticas ejecutan una sola vez su argumento y convierten resultados no finitos en `null`; Talend no reproduce las notas del log de SAS.
 
-- [ ] **Step 1: Write the failing tests:** un test por vector (intérprete); `verificar()` y `verificar(motor="interprete")` en cero fallos; `translate_to_talend("mod(a, b)").java` contiene `%` y no contiene `Mathematical.MOD`; `translate_to_talend("sign(a)").java` contiene `Math.signum`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_funciones.py tests/unit/test_corpus_semantica.py tests/unit/test_talend_expresiones.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** en los tres motores; agregar a `FUNCIONES_CON_CASO` `int`, `ceil`, `floor`, `mod`, `abs`, `sqrt`, `log`, `exp`, `sign` y `round` (con unidad como literal), y regenerar `L4`.
-- [ ] **Step 4: Catálogo** (`funciones-guia.yaml`: una entrada por función con su página; `sign` y las que estén en `_FUNCTIONS` como `reconocida`) y `tests/unit/test_catalogo_sas.py`.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py -q -p no:cacheprovider -k L4`, la tanda del golden, `uv run ruff check src tests tools` y el lote C de los casos nuevos. **Commit** `hito N n: funciones numericas con faltantes (INT, CEIL, FLOOR, MOD, SQRT, LOG, EXP, SIGN, ROUND)`.
+- [x] **Step 1: Write the failing tests:** un test por vector (intérprete); `verificar()` y `verificar(motor="interprete")` en cero fallos; `%` en `MOD`, `Math.signum` en `SIGN` y ruta pública también probada.
+- [x] **Step 2: Run tests to verify they fail.** La primera corrida RED falló por las funciones aún ausentes en ambos motores; después la tanda focalizada quedó verde.
+- [x] **Step 3: Implement** en intérprete, oráculo y Talend; agregar `FUNCIONES_CON_CASO` y regenerar L4 de manera dirigida. Los casos nuevos son `l4_150` a `l4_158`; se conservan los IDs 100–149 y los esquemas derivados declaran `Double` solo para entradas demostradas, dejando la salida pendiente.
+- [x] **Step 4: Catálogo**: una entrada por función y páginas existentes; los límites de `MOD` y los dominios se anotan sin presentarlos como completamente validados.
+- [x] **Step 5 (A/B):** pruebas focalizadas, anillo B L4 y Ruff; el cierre integral queda registrado en `PROGRESS.md`. **C pendiente:** Studio reporta `BRIDGE_DEAD`; los casos nuevos no cuentan como compilados ni ejecutados allí. Commit: `hito 264n: funciones numericas con faltantes (INT, CEIL, FLOOR, MOD, SQRT, LOG, EXP, SIGN, ROUND)`.
 
 ---
 

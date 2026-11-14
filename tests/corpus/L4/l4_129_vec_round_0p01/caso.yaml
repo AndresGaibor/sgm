@@ -8,11 +8,12 @@ orden_relevante: true
 estado: traducible
 salidas:
 - RESULTADO_L4
-razonamiento: 'Vectores verificables por el oráculo: round-03. Confianza: documentado.'
+razonamiento: 'Vectores verificables por el oráculo: round-03, round-08. Confianza: deducido, documentado.'
 fuentes_url:
 - https://support.sas.com/documentation/cdl/en/lefunctionsref/63354/HTML/default/p0tj6cmga7p8qln1ejh6ebevm0c9.htm
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en
 invariantes:
-- filas(RESULTADO_L4) == 1
+- filas(RESULTADO_L4) == 2
 esquemas:
   WORK.ENTRADA_L4:
     VALOR:

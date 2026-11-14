@@ -100,6 +100,9 @@ CAMBIOS_DOCUMENTADOS = {
         "operators[5].notes[0]": (
             "hito 124: explicar por qué la fila conservada no se considera idéntica"
         ),
+        "operators[12].notes[5]": (
+            "hito 264n: ROUND usa la ruta pública Talend y queda pendiente de compilar en Studio"
+        ),
     },
 }
 

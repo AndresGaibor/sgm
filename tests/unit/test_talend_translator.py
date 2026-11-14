@@ -198,20 +198,23 @@ def test_aritmetica_propaga_el_perdido():
 
 
 def test_redondeo_de_sas_va_fuera_del_cero():
-    assert java("round(a)") == (
-        "(input_row.a == null ? null : Double.valueOf(Math.copySign(Math.floor(Math.abs("
-        "((Number) input_row.a).doubleValue()) + 0.5), ((Number) input_row.a).doubleValue())))"
-    )
+    generado = java("round(a)")
+    assert "java.math.BigDecimal.valueOf(value)" in generado
+    assert "java.math.RoundingMode.HALF_UP" in generado
+    assert "Double.isFinite(value) ? value : null" in generado
+    assert "%" not in generado
 
 
 def test_fachada_emite_round_con_tipo_double_y_empate_alejado_de_cero():
     result = translate("round(MONTO,1)")
 
     assert result.kind == "num"
-    assert result.talend == (
-        "(input_row.MONTO == null ? null : Double.valueOf((double) "
-        "Math.copySign(Math.floor(Math.abs(input_row.MONTO) + 0.5), input_row.MONTO)))"
-    )
+    assert "java.math.BigDecimal.valueOf(value)" in result.talend
+    assert "java.math.RoundingMode.HALF_UP" in result.talend
+    assert "Double.isFinite(value) ? value : null" in result.talend
+    compuesta = translate("MONTO + round(VALOR, 0.01)")
+    assert compuesta.engine == "talend"
+    assert "java.math.RoundingMode.HALF_UP" in compuesta.talend
 
 
 def test_fachada_input_w_d_conserva_bigdecimal_y_rechaza_texto_invalido():
@@ -225,15 +228,15 @@ def test_fachada_input_w_d_conserva_bigdecimal_y_rechaza_texto_invalido():
 
 
 def test_matematicas_usan_la_rutina_matematica():
-    assert java("sqrt(a)") == "Mathematical.SQRT(input_row.a)"
-    assert java("mod(a,2)") == "Mathematical.MOD(input_row.a, 2)"
-    assert java("abs(a)") == (
-        "(input_row.a == null ? null : Double.valueOf(Math.abs(((Number) input_row.a).doubleValue())))"
-    )
-    assert (
-        java("int(a)")
-        == "(input_row.a == null ? null : Long.valueOf(((Number) input_row.a).longValue()))"
-    )
+    assert "Math.sqrt" in java("sqrt(a)")
+    assert "%" in java("mod(a,2)")
+    assert "Mathematical.MOD" not in java("mod(a,2)")
+    assert "Math.signum" in java("sign(a)")
+    assert "Math.ceil(((Number) input_row.a).doubleValue() - 1.0E-12)" in java("ceil(a)")
+    assert "Math.floor(((Number) input_row.a).doubleValue() + 1.0E-12)" in java("floor(a)")
+    assert "Double.isFinite(value) ? value : null" in java("log(a)")
+    assert "Double.isFinite(value) ? value : null" in java("abs(a)")
+    assert "Math.copySign(Math.floor(Math.abs(value) + 1.0E-12), value)" in java("int(a)")
 
 
 def test_agregados_ignoran_perdidos_y_el_maximo_vacio_es_perdido():

@@ -20,7 +20,7 @@ from sgm.ir.models import Column, Plan
 from sgm.migrar.esquemas import esquemas_de_entrada
 from sgm.talend_item import desde_plan_map
 from sgm.talend_item.desde_plan import plan_a_jobs
-from sgm.talend_item.desde_plan_expresiones import expresion
+from sgm.talend_item.desde_plan_expresiones import cubrir_faltante, expresion
 from sgm.talend_item.modelo import Job
 from sgm.talend_item.validador import validar_job
 
@@ -136,6 +136,17 @@ def test_filtro_con_faltante_es_nulo_seguro():
 
     assert "row1.saldo == null" in filtro
     assert filtro.index("row1.saldo == null") < filtro.index("row1.saldo &lt; 500")
+
+
+def test_la_flecha_de_lambda_java_no_se_confunde_con_comparacion_sas():
+    java = "((Double) ((java.util.function.DoubleFunction) " + (
+        "(value -> Double.isFinite(value) ? value : null)).apply(Math.sqrt(row1.valor)))"
+    )
+
+    obtenido, motivo = cubrir_faltante(java, {})
+
+    assert motivo is None
+    assert obtenido == java
 
 
 def test_filtro_sobre_texto_comprueba_que_sea_numero():

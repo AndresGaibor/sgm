@@ -10,7 +10,7 @@ EXPRESSIONS = Path(__file__).resolve().parents[2] / "src" / "sgm" / "expressions
 # Constructores SAS de D1-6; las utilidades del lexer/base/core quedan fuera del alcance.
 SAS_BUILDERS = {
     "_aggregate", "_cat", "_coalesce", "_compress", "_count", "_datepart", "_find", "_ifv", "_index", "_input",
-    "_int", "_intck", "_intnx", "_mdy", "_part", "_put", "_round", "_scan",
+    "_ceil_floor", "_int", "_intck", "_intnx", "_mdy", "_mod", "_part", "_put", "_round", "_scan",
     "_length", "_lengthc", "_lengthn", "_strfn", "_substr", "_tranwrd", "_translate", "_unary_math",
 }
 # Capturada antes de la refactorización: no se calcula con la tabla bajo prueba.
@@ -20,7 +20,7 @@ FUNCTION_NAMES = (
     "ifn", "index", "input", "inputc", "inputn", "int", "intck", "intnx", "left",
     "length", "lengthc", "lengthn", "log", "lowcase", "max", "mdy", "mean", "min",
     "missing", "mod", "month", "n", "nmiss", "propcase", "put", "putc", "putn", "repeat",
-    "reverse", "right", "round", "scan", "sqrt", "strip", "substr", "substrn", "sum",
+    "reverse", "right", "round", "scan", "sign", "sqrt", "strip", "substr", "substrn", "sum",
     "today", "translate", "tranwrd", "trim", "upcase", "weekday", "year",
 )
 

@@ -817,3 +817,101 @@ vectores:
     fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
     cita: "lefunctionsref, p. 508: Blank items do not produce delimiters at the beginning or end of the result."
     confianza: documentado
+  - id: int-01
+    funcion: int
+    entrada: [-2.7]
+    esperado: -2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1087: INT removes the decimal portion."
+    confianza: documentado
+  - id: ceil-01
+    funcion: ceil
+    entrada: [-2.1]
+    esperado: -2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 545: CEIL returns the smallest integer greater than or equal to the argument."
+    confianza: documentado
+  - id: floor-01
+    funcion: floor
+    entrada: [-2.1]
+    esperado: -3
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 841: FLOOR returns the largest integer less than or equal to the argument."
+    confianza: documentado
+  - id: mod-01
+    funcion: mod
+    entrada: [-7, 3]
+    esperado: -1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1240: a nonzero remainder has the sign of the first argument."
+    confianza: documentado
+  - id: mod-02
+    funcion: mod
+    entrada: [7, -3]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1240: the sign of the second argument is ignored."
+    confianza: documentado
+  - id: mod-03
+    funcion: mod
+    entrada: [7.5, 2]
+    esperado: 1.5
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1240: MOD returns the remainder from division."
+    confianza: documentado
+  - id: mod-04
+    funcion: mod
+    entrada: [10, null]
+    esperado: faltante
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1240: MOD requires both numeric arguments."
+    confianza: documentado
+  - id: abs-01
+    funcion: abs
+    entrada: [-3]
+    esperado: 3
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 230: ABS returns a nonnegative value."
+    confianza: documentado
+  - id: abs-02
+    funcion: abs
+    entrada: [null]
+    esperado: faltante
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 230: ABS requires one numeric argument."
+    confianza: deducido
+  - id: sqrt-01
+    funcion: sqrt
+    entrada: [16]
+    esperado: 4
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1555: SQRT returns the square root of the argument."
+    confianza: documentado
+  - id: log-01
+    funcion: log
+    entrada: [1]
+    esperado: 0
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1206: LOG computes the natural logarithm."
+    confianza: documentado
+  - id: exp-01
+    funcion: exp
+    entrada: [0]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 712: EXP raises e to the power of the argument."
+    confianza: documentado
+  - id: sign-01
+    funcion: sign
+    entrada: [-5]
+    esperado: -1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1528: SIGN returns -1, 0, or 1 by sign."
+    confianza: documentado
+  - id: round-08
+    funcion: round
+    entrada: [2.675, 0.01]
+    esperado: 2.68
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1487: SAS rounds using decimal rather than binary arithmetic."
+    confianza: deducido

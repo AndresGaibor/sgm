@@ -37,13 +37,26 @@ def talend_expressions_enabled() -> bool:
     }
 
 
+def _advertencias_talend(result) -> list[str]:
+    advertencias = list(result.warnings)
+    if "round" in result.functions:
+        advertencias.append("round(): redondeo al múltiplo indicado (la mitad sube, como en SAS)")
+    return advertencias
+
+
 def translate(sas: str) -> Translation:
     """Traduce una condición o expresión SAS; `talend=None` si no es seguro.
 
     Primero el traductor en línea (lo que ya traducía no cambia); si se rinde y `SGM_TALEND_EXPRESSIONS` está activo, el de rutinas de Talend, que cubre la
     gramática completa con `StringHandling`, `TalendDate`, `Mathematical` y Java nativo, y conserva la semántica del perdido.
     """
-    if re.match(r"(?is)^\s*(?:intnx|intck|input|inputn|inputc|put|putn|putc)\s*\(", sas) and talend_expressions_enabled():
+    numericas = re.sub(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", "''", sas)
+    usa_talend = re.match(
+        r"(?is)^\s*(?:intnx|intck|input|inputn|inputc|put|putn|putc)\s*\(", sas
+    ) or re.search(
+        r"(?is)\b(?:round|int|ceil|floor|mod|abs|sqrt|log|exp|sign)\s*\(", numericas
+    )
+    if usa_talend and talend_expressions_enabled():
         try:
             result = translate_to_talend(sas)
         except Unsupported as error:
@@ -56,7 +69,7 @@ def translate(sas: str) -> Translation:
             sas=sas,
             talend=result.java,
             columns=result.columns,
-            warnings=result.warnings,
+            warnings=_advertencias_talend(result),
             functions=result.functions,
             kind=result.kind,
             engine="talend",
@@ -76,7 +89,7 @@ def translate(sas: str) -> Translation:
     t.talend, t.columns, t.warnings, t.functions, t.engine = (
         result.java,
         result.columns,
-        result.warnings,
+        _advertencias_talend(result),
         result.functions,
         "talend",
     )

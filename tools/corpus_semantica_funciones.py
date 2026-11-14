@@ -13,8 +13,8 @@ import math
 import operator
 import re
 import string
-from decimal import ROUND_HALF_UP, Decimal
 
+from corpus_semantica_numerico import crear_funciones_numericas
 from corpus_semantica_texto import (
     compbl,
     count,
@@ -49,6 +49,8 @@ class Faltante:
 
 
 FALTANTE = Faltante()
+FUNCIONES_NUMERICAS = crear_funciones_numericas(FALTANTE, lambda valor: isinstance(valor, Faltante))
+round_sas = FUNCIONES_NUMERICAS["round"]
 _NUMERO = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$")
 _CLASES = {
     "a": string.ascii_letters,
@@ -240,19 +242,6 @@ def coalescec(*textos: str) -> str:
     return ""
 
 
-def round_sas(valor: float, unidad: float = 1) -> float:
-    """ROUND: redondea al múltiplo más cercano de `unidad`.
-
-    En el empate va al múltiplo de mayor valor absoluto.
-    """
-    if isinstance(valor, Faltante):
-        return FALTANTE
-    cociente = (Decimal(repr(float(valor))) / Decimal(repr(float(unidad)))).to_integral_value(
-        rounding=ROUND_HALF_UP
-    )
-    return float(cociente * Decimal(repr(float(unidad))))
-
-
 def cmp(izquierda: object, op: str, derecha: object) -> bool:
     """Comparación de SAS. Numéricos: el faltante es menor que cualquier número.
 
@@ -364,7 +353,7 @@ FUNCIONES = {
     ),
     "coalesce": coalesce,
     "coalescec": coalescec,
-    "round": round_sas,
+    **FUNCIONES_NUMERICAS,
     "cmp": cmp,
     "is_missing": is_missing,
     "in": pertenece,

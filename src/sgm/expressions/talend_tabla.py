@@ -13,9 +13,11 @@ from sgm.expressions.talend_funciones_fecha import _intck, _intnx
 from sgm.expressions.talend_funciones_formato import _input, _put
 from sgm.expressions.talend_funciones_numerico import (
     _aggregate,
+    _ceil_floor,
     _coalesce,
     _ifv,
     _int,
+    _mod,
     _round,
     _unary_math,
 )
@@ -54,9 +56,9 @@ _FUNCTIONS = {
     "right": _strfn('StringHandling.LPAD(StringHandling.TRIM({0}), StringHandling.LEN({0}), " ")'),
     "index": _index,
     "find": _find, "translate": _translate,
-    "abs": _unary_math("Math.abs"), "ceil": _unary_math("Math.ceil"), "floor": _unary_math("Math.floor"),
-    "sqrt": _routine("Mathematical", "SQRT", 1), "exp": _routine("Mathematical", "EXP", 1),
-    "log": _routine("Mathematical", "LN", 1), "mod": _routine("Mathematical", "MOD", 2),
+    "abs": _unary_math("Math.abs"), "ceil": _ceil_floor("Math.ceil"), "floor": _ceil_floor("Math.floor"),
+    "sqrt": _unary_math("Math.sqrt"), "exp": _unary_math("Math.exp"),
+    "log": _unary_math("Math.log"), "mod": _mod, "sign": _unary_math("Math.signum"),
     "round": _round, "int": _int,
     "coalesce": _coalesce, "coalescec": _coalesce, "ifn": _ifv, "ifc": _ifv,
     "missing": lambda p, a: E(f"Relational.ISNULL({a[0].java})", "bool"),

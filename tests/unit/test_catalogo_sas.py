@@ -33,6 +33,7 @@ GUIA_DE_CITA = {
     "lesysoptsref.pdf": "lesysoptsref.INDEX.md",
     "connref.pdf": "connref.INDEX.md",
     "proc.pdf": "proc.INDEX.md",
+    "lepg.pdf": "lepg.INDEX.md",
     "acpcref.pdf": "acpcref.INDEX.md",
 }
 

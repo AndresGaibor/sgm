@@ -10,17 +10,30 @@ if TYPE_CHECKING:
 from sgm.expressions.talend_base import E, Unsupported, _guard, _need, _num, _truth
 
 
+def _finite(expression: str) -> str:
+    """Convierte NaN e infinitos a missing sin repetir la expresión de entrada."""
+    return (
+        "((Double) ((java.util.function.DoubleFunction) "
+        "(value -> Double.isFinite(value) ? value : null)).apply(" + expression + "))"
+    )
+
+
 def _round(_p: _P, args: list[E]) -> E:
     """ROUND conserva el tipo numérico y redondea los empates alejándose de cero."""
     _need(args, 1, 2, "round")
     x = args[0]
     unit = args[1] if len(args) == 2 else E("1", "num")
     v, u = _num(x), _num(unit)
-    q = v if len(args) == 1 else f"({v} / {u})"
-    rounded = f"Math.copySign(Math.floor(Math.abs({q}) + 0.5), {q})"
-    result = rounded if len(args) == 1 else f"({rounded} * {u})"
+    rounded = (
+        "((java.util.function.DoubleBinaryOperator) ((value, unitValue) -> unitValue == 0 "
+        "? Double.NaN : java.math.BigDecimal.valueOf(value)"
+        ".divide(java.math.BigDecimal.valueOf(unitValue), 0, java.math.RoundingMode.HALF_UP)"
+        ".multiply(java.math.BigDecimal.valueOf(unitValue)).doubleValue()))"
+        f".applyAsDouble({v}, {u})"
+    )
+    result = _finite(rounded)
     return E(
-        _guard([x, *([unit] if len(args) == 2 else [])], f"Double.valueOf({result})"),
+        _guard([x, *([unit] if len(args) == 2 else [])], result),
         "num",
     )
 
@@ -28,14 +41,37 @@ def _round(_p: _P, args: list[E]) -> E:
 def _unary_math(fn: str):
     def build(_p: _P, args: list[E]) -> E:
         _need(args, 1, 1, fn)
-        return E(_guard(args, f"Double.valueOf({fn}({_num(args[0])}))"), "num")
+        calculo = f"{fn}({_num(args[0])})"
+        return E(_guard(args, _finite(calculo)), "num")
 
     return build
 
 
+def _ceil_floor(fn: str):
+    def build(_p: _P, args: list[E]) -> E:
+        _need(args, 1, 1, fn)
+        desplazamiento = "- 1.0E-12" if fn == "Math.ceil" else "+ 1.0E-12"
+        calculo = f"Double.valueOf({fn}({_num(args[0])} {desplazamiento}))"
+        return E(_guard(args, calculo), "num")
+
+    return build
+
+
+def _mod(_p: _P, args: list[E]) -> E:
+    _need(args, 2, 2, "mod")
+    a, b = (_num(arg) for arg in args)
+    resto = f"({a} % {b})"
+    return E(_guard(args, _finite(resto)), "num")
+
+
 def _int(_p: _P, args: list[E]) -> E:
     _need(args, 1, 1, "int")
-    return E(_guard(args, f"Long.valueOf(((Number) {args[0].java}).longValue())"), "num")
+    cuerpo = "Math.copySign(Math.floor(Math.abs(value) + 1.0E-12), value)"
+    calculo = (
+        "((Double) ((java.util.function.DoubleFunction) "
+        f"(value -> {cuerpo})).apply({_num(args[0])}))"
+    )
+    return E(_guard(args, _finite(calculo)), "num")
 
 
 def _coalesce(_p: _P, args: list[E]) -> E:

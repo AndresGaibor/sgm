@@ -239,7 +239,8 @@ def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str |
     for comparacion in comparaciones_seguras:
         resto = resto.replace(comparacion, " ")
     resto = _LONGITUD_COMPARADA.sub(" ", resto)
-    sobrante = _OPERADOR_ORDEN.search(resto)
+    # El `>` de una lambda Java (`->`) no es una comparación SAS pendiente.
+    sobrante = _OPERADOR_ORDEN.search(resto.replace("->", "  "))
     if sobrante is not None:
         inicio = max(0, sobrante.start() - 40)
         return None, (

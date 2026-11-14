@@ -119,7 +119,7 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
     assert "l4_135_vec_repeat_0" in specs
     assert "l4_136_vec_trimn_sin_literales" in specs
     assert "l4_137_vec_length_sin_literales" in specs
-    assert tuple(specs)[-12:] == (
+    assert tuple(specs)[-21:-9] == (
         "l4_138_vec_compbl_sin_literales",
         "l4_139_vec_tranwrd_sabc_sx",
         "l4_140_vec_tranwrd_sz_sy",
@@ -132,6 +132,17 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
         "l4_147_vec_count_sa_si",
         "l4_148_vec_lengthc_sin_literales",
         "l4_149_vec_lengthn_sin_literales",
+    )
+    assert tuple(specs)[-9:] == (
+        "l4_150_vec_int_sin_literales",
+        "l4_151_vec_ceil_sin_literales",
+        "l4_152_vec_floor_sin_literales",
+        "l4_153_vec_mod_sin_literales",
+        "l4_154_vec_abs_sin_literales",
+        "l4_155_vec_sqrt_sin_literales",
+        "l4_156_vec_log_sin_literales",
+        "l4_157_vec_exp_sin_literales",
+        "l4_158_vec_sign_sin_literales",
     )
     assert not any("right" in nombre for nombre in specs)
 

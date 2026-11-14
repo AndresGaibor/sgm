@@ -1,0 +1,29 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- MOD
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- RESULTADO_L4
+razonamiento: 'Vectores verificables por el oráculo: mod-01, mod-02, mod-03, mod-04. Confianza: documentado.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en
+invariantes:
+- filas(RESULTADO_L4) == 4
+esquemas:
+  WORK.ENTRADA_L4:
+    DIVIDENDO:
+      tipo: Double
+      linea: 2
+      fuente: muestra
+    DIVISOR:
+      tipo: Double
+      linea: 2
+      fuente: muestra
+  WORK.RESULTADO_L4:
+    resultado:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

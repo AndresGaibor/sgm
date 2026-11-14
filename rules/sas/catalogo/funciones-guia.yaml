@@ -78,3 +78,53 @@ entries:
     fuente: lefunctionsref.pdf, p. 1572
     estado: reconocida
     nota: 'el emisor reescribe pseudovariables con variable simple y expresiones posicionales; preserva el ancho mediante SUBSTRN/REPEAT; codificación fuera de SBCS y formas no interpretables quedan pendientes'
+  - id: int-function
+    nombre: INT Function
+    fuente: lefunctionsref.pdf, p. 1087
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java truncan hacia cero y aplican el fuzz documentado de 1E-12; valores no finitos quedan como faltante'
+  - id: ceil-function
+    nombre: CEIL Function
+    fuente: lefunctionsref.pdf, p. 545
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java devuelven el entero superior con el fuzz documentado de 1E-12; dominios no finitos quedan como faltante'
+  - id: floor-function
+    nombre: FLOOR Function
+    fuente: lefunctionsref.pdf, p. 841
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java devuelven el entero inferior con el fuzz documentado de 1E-12; dominios no finitos quedan como faltante'
+  - id: mod-function
+    nombre: MOD Function
+    fuente: lefunctionsref.pdf, p. 1240; lepg.pdf, p. 124
+    estado: reconocida
+    nota: 'signo del resultado igual al dividendo; Java usa % y conserva decimales; divisor cero produce faltante por inferencia de la regla general de operación inválida; fuzz cerca de múltiplos y precisión menor a tres dígitos quedan P-MOD-FUZZ'
+  - id: abs-function
+    nombre: ABS Function
+    fuente: lefunctionsref.pdf, p. 230
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java devuelven el valor absoluto y propagan faltantes'
+  - id: sqrt-function
+    nombre: SQRT Function
+    fuente: lefunctionsref.pdf, p. 1555; lepg.pdf, p. 124
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java calculan raíz para argumentos no negativos; dominio negativo produce faltante por inferencia de la regla general de operación inválida; la nota de log SAS queda pendiente'
+  - id: log-function
+    nombre: LOG Function
+    fuente: lefunctionsref.pdf, p. 1206; lepg.pdf, p. 124
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java calculan logaritmo natural para argumentos positivos; LOG(0) produce faltante por regla general documentada y negativos por inferencia del dominio; la nota de log SAS queda pendiente'
+  - id: exp-function
+    nombre: EXP Function
+    fuente: lefunctionsref.pdf, p. 712; lepg.pdf, p. 124
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java calculan e elevado al argumento; overflow se representa como faltante por la regla general de operación inválida; la nota de log SAS queda pendiente'
+  - id: sign-function
+    nombre: SIGN Function
+    fuente: lefunctionsref.pdf, p. 1528
+    estado: reconocida
+    nota: 'intérprete, oráculo y Java devuelven -1, 0 o 1 según el signo; faltantes se propagan'
+  - id: round-function
+    nombre: ROUND Function
+    fuente: lefunctionsref.pdf, p. 1486
+    estado: reconocida
+    nota: 'oráculo, intérprete y Java usan aritmética decimal y empates alejándose de cero; Java usa BigDecimal/HALF_UP y la unidad de L4 es literal'
