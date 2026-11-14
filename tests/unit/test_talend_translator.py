@@ -240,20 +240,24 @@ def test_matematicas_usan_la_rutina_matematica():
 
 
 def test_agregados_ignoran_perdidos_y_el_maximo_vacio_es_perdido():
-    assert java("sum(a,b,.)") == (
-        "Double.valueOf((input_row.a == null ? 0 : ((Number) input_row.a).doubleValue()) "
-        "+ (input_row.b == null ? 0 : ((Number) input_row.b).doubleValue()))"
-    )
-    assert java("n(a,.)") == "((input_row.a != null ? 1 : 0))"
-    assert java("max(a,b)") == (
-        "(input_row.a == null && input_row.b == null ? null : Double.valueOf("
-        "(input_row.a == null ? ((Number) input_row.b).doubleValue() : Math.max("
-        "((Number) input_row.a).doubleValue(), ((Number) input_row.b).doubleValue()))))"
-    )
+    suma = java("sum(a,b,.)")
+    assert "input_row.a" in suma and "input_row.b" in suma
+    assert ".reduce(Double.NaN" in suma
+    assert "Double.isFinite(value) ? value : null" in suma
+    assert "((input_row.a != null ? 1 : 0) + 0)" == java("n(a,.)")
+    maximo = java("max(a,b)")
+    assert "Arrays.asList(input_row.a, input_row.b).stream()" in maximo
+    assert ".max().orElse(Double.NaN)" in maximo
 
 
 def test_condicionales():
-    assert java("coalesce(a,.)") == "(input_row.a != null ? input_row.a : null)"
+    expresion = java("coalesce(a,.)")
+    assert "java.util.Arrays.asList(input_row.a, null).stream().filter(value -> value != null)" in expresion
+    coalesce_texto = translate_to_talend("coalesce(a, 'SIN_DATO')")
+    assert coalesce_texto.kind == "str"
+    assert "value instanceof String" in coalesce_texto.java
+    with pytest.raises(Unsupported, match="tipo de COALESCE sin demostrar"):
+        translate_to_talend("coalesce(a, b)")
     assert java("ifn(x,1,2)") == (
         "((input_row.x != null && ((Number) input_row.x).doubleValue() != 0) ? 1 : 2)"
     )
@@ -270,10 +274,56 @@ def test_perdido_de_sas_en_comparaciones():
     """En SAS el perdido es el menor: `x < 5` es cierto con x perdido y `x > 5` no."""
     assert java("x = .") == "Relational.ISNULL(input_row.x)"
     assert java("x is missing") == "Relational.ISNULL(input_row.x)"
-    assert java("missing(x)") == "Relational.ISNULL(input_row.x)"
+    assert "value instanceof String" in java("missing(x)")
     assert java("x < 5") == "(input_row.x == null || ((Number) input_row.x).doubleValue() < 5)"
     assert java("x > 5") == "(input_row.x != null && ((Number) input_row.x).doubleValue() > 5)"
     assert java("x is not missing") == "!Relational.ISNULL(input_row.x)"
+
+
+def test_missing_detecta_un_calculo_numerico_que_propaga_el_faltante():
+    generado = java("missing(a + 1)")
+    assert "java.util.Collections.singletonList(" in generado
+    assert "== null" in generado
+
+
+def test_ifn_admite_el_argumento_para_condicion_missing():
+    generado = java("ifn(a, 10, 20, 30)")
+    assert "input_row.a == null ? 30" in generado
+    assert "? 10 : 20" in generado
+
+
+def test_ifn_usa_el_cuarto_argumento_si_la_condicion_calculada_falta():
+    generado = java("ifn(a + 1, 10, 20, 30)")
+    assert "java.util.Collections.singletonList(" in generado
+    assert "? 30" in generado
+
+
+def test_ifn_acepta_comparaciones_y_el_cuarto_argumento_no_cambia_una_condicion_booleana():
+    comparacion = java("ifn(a > 0, 10, 20, 30)")
+    assert "input_row.a != null" in comparacion
+    assert "? 10 : 20" in comparacion
+    assert "? 30" not in comparacion
+    ifc = translate_to_talend("ifc(a, 'sí', 'no', 'sin dato')")
+    assert ifc.kind == "str"
+    assert "input_row.a == null ? \"sin dato\"" in ifc.java
+
+
+@pytest.mark.parametrize("sas", ["sum(a,b)", "ifn(a,1,0)", "missing(texto)"])
+def test_la_fachada_publica_dirige_funciones_de_d1_11_a_talend(sas):
+    assert translate(sas).engine == "talend"
+
+
+def test_cmiss_cuenta_null_y_blancos_de_texto():
+    generado = java("cmiss(texto, numero, .)")
+    assert 'replace(" ", "").isEmpty()' in generado
+    assert "input_row.numero" in generado
+    assert "null" in generado
+
+
+@pytest.mark.parametrize("sas", ["min('a','b')", "max('a','b')"])
+def test_minimo_y_maximo_de_texto_quedan_pendientes(sas):
+    with pytest.raises(Unsupported, match="argumentos numéricos"):
+        translate_to_talend(sas)
 
 
 def test_comparaciones_con_literal():

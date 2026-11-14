@@ -54,7 +54,8 @@ def translate(sas: str) -> Translation:
     usa_talend = re.match(
         r"(?is)^\s*(?:intnx|intck|input|inputn|inputc|put|putn|putc)\s*\(", sas
     ) or re.search(
-        r"(?is)\b(?:round|int|ceil|floor|mod|abs|sqrt|log|exp|sign)\s*\(", numericas
+        r"(?is)\b(?:round|int|ceil|floor|mod|abs|sqrt|log|exp|sign|sum|mean|min|max|n|nmiss|cmiss|coalesce|coalescec|ifn|ifc|missing)\s*\(",
+        numericas,
     )
     if usa_talend and talend_expressions_enabled():
         try:

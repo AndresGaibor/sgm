@@ -32,8 +32,10 @@ from sgm.ir.models import Operator, Plan
 from sgm.migrar import semantica
 from sgm.migrar.interprete_agregados import AgregadoNoSoportado, agregar
 from sgm.migrar.interprete_errores import NoSoportadoEnInterprete
-from sgm.migrar.interprete_funciones import FUNCIONES as FUNCIONES_INTERPRETE
 from sgm.migrar.interprete_funciones import llamar
+from sgm.migrar.interprete_funciones_sql import (
+    normalizar_funciones_sas as _normalizar_funciones_sas,
+)
 from sgm.migrar.interprete_operadores import concatenar, entre, parecido, pertenece
 from sgm.migrar.interprete_paso_directo import leer as _leer_paso_directo
 from sgm.migrar.interprete_subconsultas import (
@@ -52,27 +54,6 @@ _PASOS_SUELTOS = (
     "filter", "derive", "select", "rename", "sort", "dedup", "aggregate", "stateful_row"
 )
 _TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
-_AGREGADOS_SQL = frozenset({"sum", "min", "max", "count", "avg"})
-_NOMBRES_FUNCIONES = sorted(
-    FUNCIONES_INTERPRETE.keys() - _AGREGADOS_SQL, key=lambda nombre: (-len(nombre), nombre)
-)
-_FUNCIONES_SAS = re.compile(
-    r"(?i)\b(" + "|".join(re.escape(nombre) for nombre in _NOMBRES_FUNCIONES) + r")\s*(?=\()"
-)
-_LITERALES_SAS = re.compile(r"('(?:''|[^'])*'|\"(?:\"\"|[^\"])*\")")
-
-
-def _normalizar_funciones_sas(expresion: str) -> str:
-    """Renombra llamadas fuera de literales para no modificar texto del programa."""
-    partes = _LITERALES_SAS.split(expresion)
-    return "".join(
-        parte
-        if indice % 2
-        else _FUNCIONES_SAS.sub(lambda coincidencia: f"sgm_{coincidencia.group(1).lower()}", parte)
-        for indice, parte in enumerate(partes)
-    )
-
-
 # -- valores ------------------------------------------------------------------------------------
 def _tabla(nombre: object) -> str:
     """`WORK.ventas` a `ventas`: el intérprete no distingue bibliotecas."""

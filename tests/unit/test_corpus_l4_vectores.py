@@ -119,7 +119,7 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
     assert "l4_135_vec_repeat_0" in specs
     assert "l4_136_vec_trimn_sin_literales" in specs
     assert "l4_137_vec_length_sin_literales" in specs
-    assert tuple(specs)[-21:-9] == (
+    assert tuple(specs)[-33:-21] == (
         "l4_138_vec_compbl_sin_literales",
         "l4_139_vec_tranwrd_sabc_sx",
         "l4_140_vec_tranwrd_sz_sy",
@@ -133,7 +133,21 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
         "l4_148_vec_lengthc_sin_literales",
         "l4_149_vec_lengthn_sin_literales",
     )
-    assert tuple(specs)[-9:] == (
+    assert tuple(specs)[-12:] == (
+        "l4_159_vec_sum_sin_literales_a2_NN",
+        "l4_160_vec_sum_sin_literales_a3_NNN",
+        "l4_161_vec_mean_sin_literales_a3_NNN",
+        "l4_162_vec_mean_sin_literales_a1_N",
+        "l4_163_vec_min_sin_literales",
+        "l4_164_vec_max_sin_literales",
+        "l4_165_vec_n_sin_literales",
+        "l4_166_vec_nmiss_sin_literales",
+        "l4_167_vec_ifn_sin_literales_a3_NNN",
+        "l4_168_vec_ifn_sin_literales_a4_NNNN",
+        "l4_169_vec_ifc_sin_literales_a3_NTT",
+        "l4_170_vec_ifc_sin_literales_a4_NTTT",
+    )
+    assert tuple(specs)[-21:-12] == (
         "l4_150_vec_int_sin_literales",
         "l4_151_vec_ceil_sin_literales",
         "l4_152_vec_floor_sin_literales",

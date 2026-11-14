@@ -49,6 +49,11 @@ def test_funciones_reune_las_familias_actuales():
         "min",
         "max",
         "sum",
+        "n",
+        "nmiss",
+        "cmiss",
+        "ifn",
+        "ifc",
         "abs",
         "int",
         "ceil",
@@ -72,7 +77,10 @@ def test_funciones_reune_las_familias_actuales():
         ("min", [3, None, 2], 2.0),
         ("max", [3, None, 2], 3.0),
         ("missing", [None], True),
-        ("coalesce", [None, "", "x"], "x"),
+        ("missing", ["\t"], False),
+        ("coalesce", [None, 7, 42], 7),
+        ("coalesce", ["   ", "valor"], "valor"),
+        ("coalesce", ["\t", "valor"], "\t"),
         ("coalescec", [None, "", "x"], "x"),
         ("trim", ["ab  "], "ab"),
         ("strip", ["  ab  "], "ab"),
@@ -129,6 +137,18 @@ def test_funciones_reune_las_familias_actuales():
         ("round", [-2.5], -3),
         ("round", [2.675, 0.01], 2.68),
         ("sum", [1, None, 3], 4.0),
+        ("n", [1, None, 3], 2),
+        ("nmiss", [1, None, 3], 1),
+        ("cmiss", ["", None, "a"], 2),
+        ("cmiss", ["\t", None], 1),
+        ("ifn", [1, 10, 20], 10),
+        ("ifn", [0, 10, 20], 20),
+        ("ifn", [None, 10, 20, 30], 30),
+        ("ifn", [None, 10, 20], 20),
+        ("ifc", [1, "a", "b"], "a"),
+        ("ifc", [1, "\t", "b"], "\t"),
+        ("ifc", [None, "a", "b", "c"], "c"),
+        ("ifc", [None, "a", "b"], "b"),
         ("cat", ["a ", " b"], "a  b"),
         ("cats", [" a ", " b "], "ab"),
         ("catt", ["a  ", " b  "], "a b"),
@@ -153,6 +173,12 @@ def test_funcion_no_registrada_conserva_el_error_del_interprete():
 
     assert error.value.kind == "funcion"
     assert error.value.detalle == "no_existe"
+
+
+def test_minimo_y_maximo_de_texto_quedan_pendientes_en_vez_de_ser_missing():
+    for nombre in ("min", "max"):
+        with pytest.raises(NoSoportadoEnInterprete, match="MIN/MAX de texto"):
+            llamar(nombre, ["a", "b"])
 
 
 def test_el_wrapper_de_interprete_delega_al_mismo_despacho():

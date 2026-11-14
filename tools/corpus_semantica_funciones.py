@@ -299,8 +299,7 @@ def suma_mas(izquierda: object, derecha: object) -> float | Faltante:
 
 def sum_sas(*argumentos: object) -> float | Faltante:
     """SUM omite los argumentos faltantes; si todos faltan, el resultado también falta."""
-    valores = [float(valor) for valor in argumentos if not _omitido(valor)]
-    return sum(valores) if valores else FALTANTE
+    return FUNCIONES_NUMERICAS["sum"](*argumentos)
 
 
 def is_missing(valor: object) -> bool:

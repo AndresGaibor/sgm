@@ -128,3 +128,58 @@ entries:
     fuente: lefunctionsref.pdf, p. 1486
     estado: reconocida
     nota: 'oráculo, intérprete y Java usan aritmética decimal y empates alejándose de cero; Java usa BigDecimal/HALF_UP y la unidad de L4 es literal'
+  - id: sum-row-function
+    nombre: SUM Function (por fila)
+    fuente: lefunctionsref.pdf, p. 1580
+    estado: reconocida
+    nota: 'oráculo, intérprete y Talend omiten argumentos numéricos faltantes; todos faltantes produce faltante; el agregado de grupos SQL es una ruta separada'
+  - id: mean-row-function
+    nombre: MEAN Function (por fila)
+    fuente: lefunctionsref.pdf, p. 1233
+    estado: reconocida
+    nota: 'promedia argumentos numéricos no faltantes; sin valores numéricos devuelve faltante'
+  - id: min-function
+    nombre: MIN Function
+    fuente: lefunctionsref.pdf, p. 1236
+    estado: reconocida
+    nota: 'mínimo de argumentos numéricos no faltantes; texto no numérico se bloquea explícitamente y no se convierte en faltante'
+  - id: max-function
+    nombre: MAX Function
+    fuente: lefunctionsref.pdf, p. 1230
+    estado: reconocida
+    nota: 'máximo de argumentos numéricos no faltantes; texto no numérico se bloquea explícitamente y no se convierte en faltante'
+  - id: n-function
+    nombre: N Function
+    fuente: lefunctionsref.pdf, p. 1264
+    estado: reconocida
+    nota: 'cuenta argumentos numéricos no faltantes; los argumentos con tipo SAS incorrecto no se traducen'
+  - id: nmiss-function
+    nombre: NMISS Function
+    fuente: lefunctionsref.pdf, p. 1269
+    estado: reconocida
+    nota: 'cuenta argumentos numéricos faltantes, incluidos literales de faltante'
+  - id: cmiss-function
+    nombre: CMISS Function
+    fuente: lefunctionsref.pdf, p. 557
+    estado: reconocida
+    nota: 'cuenta faltantes numéricos y cadenas compuestas solo por blancos; tipos especiales SAS quedan pendientes'
+  - id: coalesce-function
+    nombre: COALESCE Function
+    fuente: lefunctionsref.pdf, p. 560
+    estado: reconocida
+    nota: 'usa argumentos numéricos en funciones; PROC SQL admite listas de carácter (sqlproc.pdf, p. 100); si el emisor no demuestra el tipo, deja el caso pendiente; COALESCEC conserva su despacho independiente'
+  - id: ifn-function
+    nombre: IFN Function
+    fuente: lefunctionsref.pdf, p. 1067
+    estado: reconocida
+    nota: 'selecciona valor numérico por condición; cuarto argumento para condición faltante; sin cuarto argumento usa la rama falsa'
+  - id: ifc-function
+    nombre: IFC Function
+    fuente: lefunctionsref.pdf, p. 1065
+    estado: reconocida
+    nota: 'selecciona valor de carácter por condición; cuarto argumento para condición faltante; sin cuarto argumento usa la rama falsa'
+  - id: missing-function
+    nombre: MISSING Function
+    fuente: lefunctionsref.pdf, p. 1238
+    estado: reconocida
+    nota: 'detecta faltantes numéricos y valores de carácter compuestos solo por blancos; valores especiales SAS quedan pendientes'

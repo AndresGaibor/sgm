@@ -915,3 +915,143 @@ vectores:
     fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
     cita: "lefunctionsref, p. 1487: SAS rounds using decimal rather than binary arithmetic."
     confianza: deducido
+  - id: sum-01
+    funcion: sum
+    entrada: [1, null, 3]
+    esperado: 4
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "SUM returns the sum of the nonmissing arguments."
+    confianza: documentado
+  - id: sum-02
+    funcion: sum
+    entrada: [null, null]
+    esperado: faltante
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "SUM returns the sum of the nonmissing arguments."
+    confianza: documentado
+  - id: mean-01
+    funcion: mean
+    entrada: [1, null, 3]
+    esperado: 2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "MEAN returns the arithmetic mean of nonmissing numeric arguments."
+    confianza: documentado
+  - id: mean-02
+    funcion: mean
+    entrada: [null]
+    esperado: faltante
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "MEAN returns the arithmetic mean of nonmissing numeric arguments."
+    confianza: documentado
+  - id: min-01
+    funcion: min
+    entrada: [null, 2, 5]
+    esperado: 2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "MIN returns the smallest value."
+    confianza: documentado
+  - id: max-01
+    funcion: max
+    entrada: [null, null]
+    esperado: faltante
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "MAX returns the largest value."
+    confianza: documentado
+  - id: n-01
+    funcion: n
+    entrada: [1, null, 3]
+    esperado: 2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "N returns the number of nonmissing numeric values."
+    confianza: documentado
+  - id: nmiss-01
+    funcion: nmiss
+    entrada: [1, null, 3]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "NMISS returns the number of missing numeric values."
+    confianza: documentado
+  - id: cmiss-01
+    funcion: cmiss
+    entrada: ["", null, "a"]
+    esperado: 2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "CMISS counts the number of missing arguments."
+    confianza: documentado
+  - id: cmiss-02
+    funcion: cmiss
+    entrada: ["\t", null]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "A character expression is counted as missing if it contains all blanks or has zero length."
+    confianza: deducido
+  - id: ifn-01
+    funcion: ifn
+    entrada: [1, 10, 20]
+    esperado: 10
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "IFN returns the second argument when the logical expression is true."
+    confianza: documentado
+  - id: ifn-02
+    funcion: ifn
+    entrada: [0, 10, 20]
+    esperado: 20
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "IFN returns the third argument when the logical expression is false."
+    confianza: documentado
+  - id: ifn-03
+    funcion: ifn
+    entrada: [null, 10, 20, 30]
+    esperado: 30
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "IFN returns the fourth argument when the logical expression is missing."
+    confianza: documentado
+  - id: ifn-04
+    funcion: ifn
+    entrada: [null, 10, 20]
+    esperado: 20
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "Without a fourth argument, a missing expression follows the false branch."
+    confianza: deducido
+  - id: ifc-01
+    funcion: ifc
+    entrada: [1, "a", "b"]
+    esperado: "a"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "IFC returns a character value based on whether an expression is true."
+    confianza: documentado
+  - id: ifc-02
+    funcion: ifc
+    entrada: [null, "a", "b", "c"]
+    esperado: "c"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "IFC returns the fourth argument when the logical expression is missing."
+    confianza: documentado
+  - id: ifc-03
+    funcion: ifc
+    entrada: [null, "a", "b"]
+    esperado: "b"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "Without a fourth argument, a missing expression follows the false branch."
+    confianza: deducido
+  - id: missing-01
+    funcion: missing
+    entrada: ["  "]
+    esperado: true
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "MISSING returns whether its argument contains a missing value."
+    confianza: documentado
+  - id: missing-02
+    funcion: missing
+    entrada: [0]
+    esperado: false
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "MISSING returns whether its argument contains a missing value."
+    confianza: documentado
+  - id: missing-03
+    funcion: missing
+    entrada: ["\t"]
+    esperado: false
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "A character expression is missing if it contains all blanks or has zero length."
+    confianza: deducido

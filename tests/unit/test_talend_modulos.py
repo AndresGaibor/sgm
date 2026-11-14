@@ -15,7 +15,7 @@ SAS_BUILDERS = {
 }
 # Capturada antes de la refactorización: no se calcula con la tabla bajo prueba.
 FUNCTION_NAMES = (
-    "abs", "cat", "cats", "catt", "catx", "ceil", "coalesce", "coalescec", "compbl",
+    "abs", "cat", "cats", "catt", "catx", "ceil", "cmiss", "coalesce", "coalescec", "compbl",
     "compress", "count", "date", "datepart", "datetime", "day", "exp", "find", "floor", "ifc",
     "ifn", "index", "input", "inputc", "inputn", "int", "intck", "intnx", "left",
     "length", "lengthc", "lengthn", "log", "lowcase", "max", "mdy", "mean", "min",

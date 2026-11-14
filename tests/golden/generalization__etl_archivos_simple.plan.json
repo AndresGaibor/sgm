@@ -625,6 +625,19 @@
         ],
         "talend_expression_candidates": [
           {
+            "source": "cantidad > 0 and not missing(precio)",
+            "java": "((input_row.cantidad != null && ((Number) input_row.cantidad).doubleValue() > 0) && (!((Boolean) ((java.util.function.Function) (value -> value == null || (value instanceof String && ((String) value).replace(\" \", \"\").isEmpty()))).apply(input_row.precio))))",
+            "columns": [
+              "cantidad",
+              "precio"
+            ],
+            "functions": [
+              "missing"
+            ],
+            "warnings": [],
+            "row_context": "input_row es marcador; reemplazar por el enlace real de fila en Talend."
+          },
+          {
             "source": "round(cantidad * precio, 0.01)",
             "java": "(((Double) ((java.util.function.DoubleFunction) (value -> Double.isFinite(value) ? value : null)).apply(((java.util.function.DoubleBinaryOperator) ((value, unitValue) -> unitValue == 0 ? Double.NaN : java.math.BigDecimal.valueOf(value).divide(java.math.BigDecimal.valueOf(unitValue), 0, java.math.RoundingMode.HALF_UP).multiply(java.math.BigDecimal.valueOf(unitValue)).doubleValue())).applyAsDouble((input_row.cantidad == null || input_row.precio == null ? null : Double.valueOf(((Number) input_row.cantidad).doubleValue() * ((Number) input_row.precio).doubleValue())), 0.01))))",
             "columns": [
@@ -666,11 +679,9 @@
       ],
       "notes": [
         "3 operadores de flujo unidos en un tMap (pasada 6)",
-        "missing(): null (y cadena vacía si es texto) en Java",
-        "tipo no confirmado: el tipo numérico se infiere del literal de la comparación; validar que la columna es numérica",
+        "Traducción candidata con rutinas de Talend; falta validar en Studio 8.0.1.",
         "substr(): posición de 1 base convertida a 0; con cadena más corta puede fallar",
-        "round(): redondeo al múltiplo indicado (la mitad sube, como en SAS)",
-        "Traducción candidata con rutinas de Talend; falta validar en Studio 8.0.1."
+        "round(): redondeo al múltiplo indicado (la mitad sube, como en SAS)"
       ],
       "component": {
         "name": "tMap",

@@ -12,32 +12,62 @@ from .interprete_errores import NoSoportadoEnInterprete
 
 
 def _mean(argumentos: list) -> float | None:
-    valores = [semantica.como_numero(valor) for valor in argumentos]
+    valores = _numeros("MEAN", argumentos)
     presentes = [valor for valor in valores if valor is not None]
     return sum(presentes) / len(presentes) if presentes else None
 
 
 def _min(argumentos: list) -> float | None:
-    valores = [semantica.como_numero(valor) for valor in argumentos]
+    valores = _numeros("MIN", argumentos)
     presentes = [valor for valor in valores if valor is not None]
     return min(presentes) if presentes else None
 
 
 def _max(argumentos: list) -> float | None:
-    valores = [semantica.como_numero(valor) for valor in argumentos]
+    valores = _numeros("MAX", argumentos)
     presentes = [valor for valor in valores if valor is not None]
     return max(presentes) if presentes else None
 
 
 def _sum(argumentos: list) -> float | None:
-    valores = [semantica.como_numero(valor) for valor in argumentos]
-    if any(
-        not semantica.es_faltante(valor) and convertido is None
-        for valor, convertido in zip(argumentos, valores, strict=True)
-    ):
-        raise NoSoportadoEnInterprete("funcion", "SUM requiere argumentos numéricos")
+    valores = _numeros("SUM", argumentos)
     presentes = [valor for valor in valores if valor is not None]
     return sum(presentes) if presentes else None
+
+
+def _numeros(nombre: str, argumentos: list) -> list[float | None]:
+    if not argumentos:
+        raise NoSoportadoEnInterprete("funcion", f"{nombre} requiere argumentos")
+    valores = [semantica.como_numero(valor) for valor in argumentos]
+    if any(
+        convertido is None and not semantica.es_faltante(valor)
+        for valor, convertido in zip(argumentos, valores, strict=True)
+    ):
+        if nombre in ("MIN", "MAX"):
+            raise NoSoportadoEnInterprete("funcion", "MIN/MAX de texto")
+        raise NoSoportadoEnInterprete("funcion", f"{nombre} requiere argumentos numéricos")
+    return valores
+
+
+def _n(argumentos: list) -> int:
+    return sum(valor is not None for valor in _numeros("N", argumentos))
+
+
+def _nmiss(argumentos: list) -> int:
+    return sum(valor is None for valor in _numeros("NMISS", argumentos))
+
+
+def _cmiss(argumentos: list) -> int:
+    if not argumentos:
+        raise NoSoportadoEnInterprete("funcion", "CMISS requiere argumentos")
+    return sum(_faltante_funcion(valor) for valor in argumentos)
+
+
+def _faltante_funcion(valor: object) -> bool:
+    """En funciones SAS, solo espacios ASCII hacen missing un valor de carácter."""
+    if isinstance(valor, str):
+        return valor.strip(" ") == ""
+    return semantica.es_faltante(valor)
 
 
 def _abs(argumentos: list) -> float | None:
@@ -122,11 +152,61 @@ def _round(argumentos: list) -> float | None:
 
 
 def _coalesce(argumentos: list) -> object:
-    return next((valor for valor in argumentos if not semantica.es_faltante(valor)), None)
+    if any(isinstance(valor, str) for valor in argumentos):
+        if any(valor is not None and not isinstance(valor, str) for valor in argumentos):
+            raise NoSoportadoEnInterprete("funcion", "COALESCE requiere argumentos del mismo tipo")
+        return next(
+            (valor for valor in argumentos if isinstance(valor, str) and valor.strip(" ")),
+            None,
+        )
+    valores = _numeros("COALESCE", argumentos)
+    return next((valor for original, valor in zip(argumentos, valores, strict=True)
+                 if not semantica.es_faltante(original)), None)
 
 
 def _missing(argumentos: list) -> bool:
-    return semantica.es_faltante(argumentos[0] if argumentos else None)
+    if len(argumentos) != 1:
+        raise NoSoportadoEnInterprete("funcion", "MISSING requiere un argumento")
+    return _faltante_funcion(argumentos[0] if argumentos else None)
+
+
+def _condicion(argumento: object, nombre: str) -> float | None:
+    if isinstance(argumento, bool):
+        return float(argumento)
+    valor = semantica.como_numero(argumento)
+    if valor is None and not semantica.es_faltante(argumento):
+        raise NoSoportadoEnInterprete("funcion", f"{nombre} requiere condición numérica")
+    return valor
+
+
+def _ifn(argumentos: list) -> object:
+    if len(argumentos) not in (3, 4):
+        raise NoSoportadoEnInterprete("funcion", "IFN requiere tres o cuatro argumentos")
+    condicion = _condicion(argumentos[0], "IFN")
+    elegido = argumentos[1] if condicion is not None and condicion != 0 else argumentos[2]
+    if condicion is None and len(argumentos) == 4:
+        elegido = argumentos[3]
+    if elegido is None or semantica.es_faltante(elegido):
+        return None
+    convertido = semantica.como_numero(elegido)
+    if convertido is None:
+        raise NoSoportadoEnInterprete("funcion", "IFN requiere valores numéricos")
+    return convertido
+
+
+def _ifc(argumentos: list) -> object:
+    if len(argumentos) not in (3, 4):
+        raise NoSoportadoEnInterprete("funcion", "IFC requiere tres o cuatro argumentos")
+    condicion = _condicion(argumentos[0], "IFC")
+    indice = 1 if condicion is not None and condicion != 0 else 2
+    if condicion is None and len(argumentos) == 4:
+        indice = 3
+    elegido = argumentos[indice]
+    if _faltante_funcion(elegido):
+        return None
+    if not isinstance(elegido, str):
+        raise NoSoportadoEnInterprete("funcion", "IFC requiere valores de texto")
+    return elegido
 
 
 FUNCIONES: dict[str, Callable[[list], object]] = {
@@ -134,6 +214,9 @@ FUNCIONES: dict[str, Callable[[list], object]] = {
     "min": _min,
     "max": _max,
     "sum": _sum,
+    "n": _n,
+    "nmiss": _nmiss,
+    "cmiss": _cmiss,
     "abs": _abs,
     "int": _int,
     "ceil": _ceil,
@@ -146,4 +229,6 @@ FUNCIONES: dict[str, Callable[[list], object]] = {
     "round": _round,
     "coalesce": _coalesce,
     "missing": _missing,
+    "ifn": _ifn,
+    "ifc": _ifc,
 }

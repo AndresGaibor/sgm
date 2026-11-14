@@ -472,15 +472,20 @@ Java: `MOD` usa `%` sobre `double`, conserva decimales y el signo del dividendo;
 
 ### Task D1-11: Agregación por fila y condicionales: `SUM`, `MEAN`, `MIN`, `MAX`, `N`, `NMISS`, `CMISS`, `COALESCE`, `IFN`, `IFC`, `MISSING` (MG-P3-03; serie `n`)
 
-`SUM(a, b)` ignora faltantes y `a + b` no (`lefunctionsref`, p. 1580 y `lrcon`, p. 128); en SQL, `SUM(x)` con un argumento es el agregado del plan y lo ejecuta `interprete_agregados.agregar`, no esta tabla (por eso D1-4 excluye `sum`, `min`, `max`, `count` y `avg` del renombrado `sgm_`).
+`SUM(a, b)` ignora faltantes y `a + b` no (`lefunctionsref`, p. 1580 y `lrcon`, p. 128); en SQL, `SUM(x)` con un argumento es el agregado del plan y lo ejecuta `interprete_agregados.agregar`. Las llamadas SQL multiargumento de `SUM`, `MIN` y `MAX` se marcan como funciones por fila antes de parsear; no se confunden con esos agregados. `COALESCE` numérico sigue `lefunctionsref`, p. 560; en `PROC SQL` también acepta listas de columnas de carácter según `sqlproc`, p. 100. El emisor selecciona texto cuando lo demuestra un argumento literal; sin indicio de tipo deja la expresión pendiente.
 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_numerico.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete.py`
+- Create: `src\sgm\migrar\interprete_funciones_sql.py` (normalización y distinción de agregados SQL sin ampliar el intérprete principal)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_semantica_numerico.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\semantica\vectores.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_numerico.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_tabla.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4_vectores.py`
+- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4_funciones.py` (módulo de descriptores separado para respetar el límite de tamaño)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\expressions.py` y `src\sgm\expressions\talend_tabla.py` (fachada y registro Talend)
+- Test: `tests\unit\test_migrar_interprete.py`, `tests\unit\test_talend_translator.py` y `tests\unit\test_corpus_l4_vectores.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\funciones-guia.yaml`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_funciones.py` y `tests\unit\test_talend_expresiones.py`
 
@@ -501,22 +506,25 @@ Java: `MOD` usa `%` sobre `double`, conserva decimales y el signo del dividendo;
 | `n-01` | `n` | `[1, null, 3]` | `2` | p. 1264 |
 | `nmiss-01` | `nmiss` | `[1, null, 3]` | `1` | p. 1269 |
 | `cmiss-01` | `cmiss` | `["", null, "a"]` | `2` (cuenta faltantes de texto y numéricos) | p. 557 |
+| `cmiss-02` | `cmiss` | `["\t", null]` | `1` (tabulación no es blanco SAS; deducido) | p. 557 |
 | `ifn-01` | `ifn` | `[1, 10, 20]` | `10` | p. 1067 |
 | `ifn-02` | `ifn` | `[0, 10, 20]` | `20` | p. 1067 |
-| `ifn-03` | `ifn` | `[null, 10, 20, 30]` | `30` (el cuarto argumento es para el faltante; deducido) | p. 1067 |
-| `ifn-04` | `ifn` | `[null, 10, 20]` | `faltante` (sin cuarto argumento; deducido) | p. 1067 |
+| `ifn-03` | `ifn` | `[null, 10, 20, 30]` | `30` (cuarto argumento para condición faltante) | p. 1067 |
+| `ifn-04` | `ifn` | `[null, 10, 20]` | `20` (sin cuarto argumento, rama falsa; deducido) | p. 1067 |
 | `ifc-01` | `ifc` | `[1, "a", "b"]` | `"a"` | p. 1065 |
 | `ifc-02` | `ifc` | `[null, "a", "b", "c"]` | `"c"` | p. 1065 |
+| `ifc-03` | `ifc` | `[null, "a", "b"]` | `"b"` (sin cuarto argumento, rama falsa; deducido) | p. 1065 |
 | `missing-01` | `missing` | `["  "]` | `true` | p. 1238 |
 | `missing-02` | `missing` | `[0]` | `false` | p. 1238 |
+| `missing-03` | `missing` | `["\t"]` | `false` (tabulación no es blanco SAS; deducido) | p. 1238 |
 
-`MIN`/`MAX` de texto con dos o más argumentos de carácter no están demostrados por el vector: el intérprete lanza `NoSoportadoEnInterprete("funcion", "MIN/MAX de texto")` en lugar de devolver un valor (hoy `_numero` los vuelve `None` y devuelve faltante en silencio; ese comportamiento es el error que corrige esta tarea). `Pendiente: P-ESPECIALES-FALTANTE`: los valores especiales `.A` a `.Z` y `._` (`lrcon`, p. 124) no se modelan; si un programa los usa, el paso queda sin traducir con ese código.
+`MIN`/`MAX` de texto con dos o más argumentos de carácter no están demostrados por el vector: el intérprete lanza `NoSoportadoEnInterprete("funcion", "MIN/MAX de texto")` en lugar de devolver un valor (hoy `_numero` los vuelve `None` y devuelve faltante en silencio; ese comportamiento es el error que corrige esta tarea). SAS documenta el cuarto argumento de `IFN`/`IFC` para condición faltante; sin ese cuarto argumento, el plan toma la rama falsa como deducción conservadora de la sintaxis condicional. `ifn-04` e `ifc-03` fijan esa conducta (pp. 1065–1067). Los vectores `cmiss-02` y `missing-03` son deducciones de “all blanks” (p. 557 y p. 1238): solo el espacio SAS cuenta como blanco; una tabulación no se trata como valor faltante. `Pendiente: P-ESPECIALES-FALTANTE`: los valores especiales `.A` a `.Z` y `._` (`lrcon`, p. 124) no se modelan; si un programa los usa, el paso queda sin traducir con ese código.
 
-- [ ] **Step 1: Write the failing tests:** un test por vector (intérprete); `verificar()` y `verificar(motor="interprete")` en cero fallos; `llamar("min", ["a", "b"])` lanza `NoSoportadoEnInterprete`; `translate_to_talend("ifn(a, 10, 20, 30)").java` contiene `30` y la guarda de `null`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_funciones.py tests/unit/test_corpus_semantica.py tests/unit/test_talend_expresiones.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** en los tres motores; agregar a `FUNCIONES_CON_CASO` `sum`, `mean`, `min`, `max`, `n`, `nmiss`, `ifn`, `ifc` (como llamadas por fila con varias columnas) y regenerar `L4`.
-- [ ] **Step 4: Catálogo** y `tests/unit/test_catalogo_sas.py`.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py tests/unit/test_migrar_corpus_l4_a.py -q -p no:cacheprovider -k L4`, la tanda del golden y `uv run ruff check src tests tools`. Lote C. **Commit** `hito N n: SUM, MEAN, MIN, MAX, N, NMISS, CMISS, IFN, IFC con faltantes`.
+- [x] **Step 1: Escribir pruebas** por vector, por error de tipo, por rama condicional y por selección de la fachada pública.
+- [x] **Step 2: Comprobar el fallo inicial** y mantener las regresiones de intérprete, oráculo, catálogo y emisor.
+- [x] **Step 3: Implementar** en los tres motores; agregar a `FUNCIONES_CON_CASO` `sum`, `mean`, `min`, `max`, `n`, `nmiss`, `ifn`, `ifc` (como llamadas por fila con varias columnas) y regenerar `L4`.
+- [x] **Step 4: Actualizar catálogo** con páginas verificadas de `lefunctionsref` y cubrirlo con `tests/unit/test_catalogo_sas.py`.
+- [x] **Step 5: Ejecutar** anillos L4, pruebas focales y Ruff; la suite integral queda registrada en `PROGRESS.md`. Studio C no se valida porque el bridge está `BRIDGE_DEAD`; los casos siguen pendientes de compilación/ejecución y no cuentan como validados. **Commit:** `hito 265n: agregaciones por fila y condicionales SAS`.
 
 ---
 

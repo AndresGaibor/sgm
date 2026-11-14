@@ -1,0 +1,13 @@
+/* Caso l4_160_vec_sum_sin_literales_a3_NNN: vector de semántica SAS verificado por el oráculo. */
+PROC IMPORT DATAFILE='.../entradas/ENTRADA_L4.csv' OUT=WORK.ENTRADA_L4 DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+
+DATA WORK.RESULTADO_L4;
+  SET WORK.ENTRADA_L4;
+  RESULTADO=sum(VALOR_1, VALOR_2, VALOR_3);
+RUN;
+
+PROC EXPORT DATA=WORK.RESULTADO_L4 OUTFILE='.../salida/RESULTADO_L4.csv'
+  DBMS=CSV REPLACE;
+RUN;

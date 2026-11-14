@@ -100,8 +100,22 @@ CAMBIOS_DOCUMENTADOS = {
         "operators[5].notes[0]": (
             "hito 124: explicar por qué la fila conservada no se considera idéntica"
         ),
-        "operators[12].notes[5]": (
-            "hito 264n: ROUND usa la ruta pública Talend y queda pendiente de compilar en Studio"
+        "operators[12].notes[1]": "hito 265n: MISSING añade candidata Talend y desplaza las notas",
+        "operators[12].notes[2]": "hito 265n: orden de notas al agregar la candidata MISSING",
+        "operators[12].notes[3]": "hito 265n: orden de notas al agregar la candidata MISSING",
+        "operators[12].notes[4]": "hito 265n: se reemplaza el pendiente de MISSING por candidata Talend",
+        "operators[12].notes[5]": "hito 265n: ROUND conserva su propia candidata Talend",
+        "operators[12].params.talend_expression_candidates[0].source": (
+            "hito 265n: MISSING ahora se conserva como candidata Talend"
+        ),
+        "operators[12].params.talend_expression_candidates[0].java": (
+            "hito 265n: emitir MISSING con una guarda segura para null y blancos"
+        ),
+        "operators[12].params.talend_expression_candidates[0].functions[0]": (
+            "hito 265n: identificar la función MISSING de la nueva candidata"
+        ),
+        "operators[12].params.talend_expression_candidates[0].warnings[0]": (
+            "hito 265n: la candidata MISSING no agrega advertencias"
         ),
     },
 }
