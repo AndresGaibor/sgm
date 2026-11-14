@@ -163,3 +163,36 @@ def test_inventario_incluye_funciones_planeadas_y_normaliza_motores(tmp_path: Pa
         "prxmatch",
         "put",
     ]
+
+
+def test_inventario_consolida_formas_de_la_misma_funcion_con_paginas_distintas(tmp_path: Path):
+    catalogo = tmp_path / "rules" / "sas" / "catalogo"
+    catalogo.mkdir(parents=True)
+    for nombre, pagina in (("funciones-usadas.yaml", 1574), ("funciones-guia.yaml", 1572)):
+        (catalogo / nombre).write_text(
+            yaml.safe_dump(
+                {
+                    "id": nombre.removesuffix(".yaml"),
+                    "kind": "catalogo",
+                    "version": 1,
+                    "description": "Formas documentadas de SUBSTR",
+                    "entries": [
+                        {
+                            "id": "substr-forma",
+                            "nombre": "SUBSTR Function",
+                            "fuente": f"lefunctionsref.pdf, p. {pagina}",
+                            "estado": "reconocida",
+                        }
+                    ],
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+
+    from tools.funciones_inventario import _catalogo
+
+    assert _catalogo(tmp_path)["substr"] == {
+        "estado": "reconocida",
+        "fuente": "lefunctionsref.pdf, p. 1574; lefunctionsref.pdf, p. 1572",
+    }

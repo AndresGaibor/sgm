@@ -22,6 +22,7 @@ from .csv_tabla import Tabla, escribir_csv
 from .especificaciones_l4 import ESPECIFICACIONES_L4
 from .especificaciones_l4_vectores import ESPECIFICACIONES_L4V
 from .especificaciones_l4b import ESPECIFICACIONES_L4B
+from .especificaciones_l4c import ESPECIFICACIONES_L4C
 from .especificaciones_l5 import ESPECIFICACIONES_L5
 from .especificaciones_l6 import ESPECIFICACIONES_L6
 from .especificaciones_l6_procs import ESPECIFICACIONES_L6_PROCS
@@ -204,7 +205,12 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
 
 
 ESPECIFICACIONES = {
-    "L4": {**ESPECIFICACIONES_L4, **ESPECIFICACIONES_L4B, **ESPECIFICACIONES_L4V},
+    "L4": {
+        **ESPECIFICACIONES_L4,
+        **ESPECIFICACIONES_L4B,
+        **ESPECIFICACIONES_L4V,
+        **ESPECIFICACIONES_L4C,
+    },
     "L5": ESPECIFICACIONES_L5,
     "L6": {**ESPECIFICACIONES_L6, **ESPECIFICACIONES_L6_PROCS},
 }

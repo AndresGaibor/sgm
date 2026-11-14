@@ -368,7 +368,18 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
             )
         )
     if aditivo:
-        return [{**fila, **_fila_de(pares, fila, secuencial=True)} for fila in filas]
+        resultado = []
+        for fila in filas:
+            actualizaciones = _fila_de(pares, fila, secuencial=True)
+            nueva = dict(fila)
+            for nombre, valor in actualizaciones.items():
+                destino = next(
+                    (existente for existente in nueva if existente.casefold() == nombre.casefold()),
+                    nombre,
+                )
+                nueva[destino] = valor
+            resultado.append(nueva)
+        return resultado
     return [_fila_de(pares, fila) for fila in filas]
 
 

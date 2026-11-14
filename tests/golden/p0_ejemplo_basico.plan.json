@@ -66,11 +66,6 @@
         "group_by": [
           "sex"
         ],
-        "output_order": [
-          "sex",
-          "personas",
-          "promedio_estatura_cm"
-        ],
         "aggregations": [
           {
             "expression": "COUNT(*)",
@@ -80,6 +75,11 @@
             "expression": "AVG(estatura_cm)",
             "alias": "promedio_estatura_cm"
           }
+        ],
+        "output_order": [
+          "sex",
+          "personas",
+          "promedio_estatura_cm"
         ],
         "group_outputs": [
           {

@@ -29,6 +29,17 @@ def test_texto_usa_las_rutinas_de_talend():
     )
 
 
+def test_cat_cats_catt_y_catx_respetan_los_blancos_de_cada_funcion():
+    assert java("cat('a ',' b')") == '("a " + " b")'
+    assert java("cats('a ',' b')") == (
+        '(StringHandling.TRIM("a ") + StringHandling.TRIM(" b"))'
+    )
+    assert java("catt('a ',' b')") == (
+        '(StringHandling.RTRIM("a ") + StringHandling.RTRIM(" b"))'
+    )
+    assert java("catx(',', 'a', '', 'b')").startswith('String.join(",",')
+
+
 @pytest.mark.parametrize(
     ("sas", "expected"),
     [

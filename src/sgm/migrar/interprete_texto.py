@@ -276,13 +276,52 @@ def _coalescec(argumentos: list) -> object:
     return next((valor for valor in argumentos if not semantica.es_faltante(valor)), None)
 
 
+def _cat(argumentos: list, modo: str) -> str:
+    if not argumentos:
+        raise NoSoportadoEnInterprete("funcion", f"{modo.upper()} requiere al menos un argumento")
+    textos = [_texto_funcion(valor) for valor in argumentos]
+    if modo == "cats":
+        textos = [texto.strip(" ") for texto in textos]
+    elif modo == "catt":
+        textos = [texto.rstrip(" ") for texto in textos]
+    return "".join(textos)
+
+
 def _catx(argumentos: list) -> str:
-    """CATX recorta cada elemento y omite blancos antes de insertar separadores."""
     if len(argumentos) < 2:
         raise NoSoportadoEnInterprete("funcion", "CATX requiere separador y al menos un elemento")
-    separador = semantica.como_texto(argumentos[0])
-    elementos = [semantica.como_texto(valor).strip(" ") for valor in argumentos[1:]]
+    separador = _texto_funcion(argumentos[0])
+    elementos = [_texto_funcion(valor).strip(" ") for valor in argumentos[1:]]
     return separador.join(valor for valor in elementos if valor)
+
+
+def _substr_asignar(argumentos: list) -> str:
+    if len(argumentos) != 4:
+        raise NoSoportadoEnInterprete("funcion", "SUBSTR a la izquierda requiere cuatro argumentos")
+    texto, posicion_raw, longitud_raw, valor_raw = argumentos
+    if not isinstance(texto, str) or not isinstance(valor_raw, str):
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-SUBSTR-ASIG-TIPO")
+    posicion_num = semantica.como_numero(posicion_raw)
+    longitud_num = (
+        None if semantica.es_faltante(longitud_raw) else semantica.como_numero(longitud_raw)
+    )
+    if (
+        posicion_num is None
+        or not posicion_num.is_integer()
+        or posicion_num < 1
+        or (longitud_num is not None and (not longitud_num.is_integer() or longitud_num < 0))
+    ):
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-SUBSTR-ASIG-POSICION")
+    posicion = int(posicion_num)
+    longitud = len(valor_raw) if longitud_num is None else int(longitud_num)
+    restante = len(texto) - posicion + 1
+    if restante < 0 or longitud > restante:
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-SUBSTR-ASIG-LONGITUD")
+    return (
+        texto[: posicion - 1]
+        + valor_raw[:longitud].ljust(longitud)
+        + texto[posicion - 1 + longitud :]
+    )
 
 
 FUNCIONES: dict[str, Callable[[list], object]] = {
@@ -310,5 +349,9 @@ FUNCIONES: dict[str, Callable[[list], object]] = {
     "compress": _compress,
     "scan": _scan,
     "coalescec": _coalescec,
+    "cat": lambda argumentos: _cat(argumentos, "cat"),
+    "cats": lambda argumentos: _cat(argumentos, "cats"),
+    "catt": lambda argumentos: _cat(argumentos, "catt"),
     "catx": _catx,
+    "substr_asignar": _substr_asignar,
 }

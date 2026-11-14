@@ -106,11 +106,12 @@ CAMBIOS_DOCUMENTADOS = {
 # El plan del cliente contiene cambios de topología deliberados, no una ampliación de campos:
 # MG-P10 añade el orden de proyección de agregados; MG-P13 reconoce cargas Impala; hito 233n deja
 # `%web_drop_table` como hueco porque borra tablas; hito 243n deja pendientes las autocopias de
-# `PROC APPEND`; hito 245n aporta un pendiente específico para `PROC DATASETS` persistente. Estos
-# cambios alteran operadores/firmas; se fija el plan revisado por hash canónico y `test_golden.py`
-# conserva la igualdad exacta.
+# `PROC APPEND`; hito 245n aporta un pendiente específico para `PROC DATASETS` persistente; hito
+# 263n baja `SUBSTR` como pseudovariable en 182 asignaciones del fixture. Estos cambios alteran
+# operadores/firmas; se fija el plan revisado por hash canónico y `test_golden.py` conserva igualdad
+# exacta.
 CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
-    "client__client_poc.plan.json": "af1355e8eb576428a4c5fa9d58d197351c12677e0fb7a9b5ce817f4ada0a8f2d",
+    "client__client_poc.plan.json": "14fb8a61bcf42315bc99f5981897e11b480e7191eed741ffa3b9436958a7aadd",
 }
 
 CASES = [

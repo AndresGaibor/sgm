@@ -139,6 +139,17 @@ def _longitudes_declaradas(op: Operator) -> dict[str, int]:
     return largos
 
 
+def _tipos_declarados(op: Operator) -> dict[str, str]:
+    """Tipos fijados por `LENGTH`, indexados como SAS (sin distinguir mayúsculas)."""
+    tipos: dict[str, str] = {}
+    for paso in _pasos(op, "derive"):
+        for nombre, (tipo, _) in (paso.get("declared") or {}).items():
+            talend = TIPOS.get(str(tipo))
+            if talend is not None:
+                tipos[str(nombre).lower()] = talend
+    return tipos
+
+
 def _principal(fuentes: list[Fuente], join: dict | None) -> int:
     """Índice de la fuente principal: la que el paso `join` declara como origen del `FROM`.
 
@@ -606,6 +617,7 @@ def _salidas(
                         expresiones[columna.nombre] = f"{meseta.fila(indice)}.{columna.nombre}"
     tipos_previos = {c.nombre: c.tipo for c in columnas}
     largos = _longitudes_declaradas(op)
+    declarados = _tipos_declarados(op)
     for asignacion in asignaciones:
         destino = str(asignacion.get("target", "")).strip()
         if not destino or not str(asignacion.get("expression", "")).strip():
@@ -620,12 +632,17 @@ def _salidas(
         demostrado = tipo_de_expresion(str(asignacion.get("expression") or ""))
         if demostrado == "Boolean":
             java = f"Long.valueOf(({java}) ? 1L : 0L)"
-        tipo = _tipo_de_salida(meseta, java, asignacion)
+        tipo = declarados.get(destino.lower()) or _tipo_de_salida(meseta, java, asignacion)
         tipos_previos[destino] = tipo
         longitud = largos.get(destino.lower(), -1)
-        if destino in expresiones:
+        existente = next((c for c in columnas if c.nombre.lower() == destino.lower()), None)
+        if existente is not None:
             columnas = [
-                Columna(destino, tipo, longitud=longitud) if c.nombre == destino else c
+                (
+                    Columna(destino, tipo, longitud=longitud)
+                    if c.nombre.lower() == destino.lower()
+                    else c
+                )
                 for c in columnas
             ]
         else:

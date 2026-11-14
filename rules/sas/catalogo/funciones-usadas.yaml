@@ -8,9 +8,9 @@ entries:
 - id: substr-right-of-function
   nombre: SUBSTR (right of =) Function
   fuente: lefunctionsref.pdf, p. 1574
-  estado: no_verificada
-  nota: 'usos en client_large.sas: 182; el parser la clasifica como asignación y el emisor todavía no
-    escribe el reemplazo de la subcadena; la forma función sí se traduce (talend_tabla: substr)'
+  estado: reconocida
+  nota: 'la llamada como expresión se traduce con talend_tabla.substr; la pseudovariable a la izquierda
+    del igual se registra por separado en funciones-guia.yaml'
 - id: input-function
   nombre: INPUT Function
   fuente: lefunctionsref.pdf, p. 1080

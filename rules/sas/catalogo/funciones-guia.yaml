@@ -73,3 +73,8 @@ entries:
     fuente: lefunctionsref.pdf, p. 1613
     estado: reconocida
     nota: 'oráculo e intérprete aplican sustitución simultánea; Java requiere listas literales SBCS sin solapamiento entre origen y destino'
+  - id: substr-left-of-function
+    nombre: SUBSTR (left of =) Function
+    fuente: lefunctionsref.pdf, p. 1572
+    estado: reconocida
+    nota: 'el emisor reescribe pseudovariables con variable simple y expresiones posicionales; preserva el ancho mediante SUBSTRN/REPEAT; codificación fuera de SBCS y formas no interpretables quedan pendientes'

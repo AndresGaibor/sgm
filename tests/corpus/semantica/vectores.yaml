@@ -740,3 +740,80 @@ vectores:
     fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
     cita: "lefunctionsref, p. 1186: LENGTHN returns zero when the argument is blank."
     confianza: documentado
+  - id: substr-asig-01
+    funcion: substr_asignar
+    entrada: ["abcdef", 2, 3, "XY"]
+    esperado: "aXY ef"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1573: SUBSTR replaces length characters, starting at the character that you specify."
+    confianza: documentado
+  - id: substr-asig-02
+    funcion: substr_asignar
+    entrada: ["abcdef", 2, 3, "XYZW"]
+    esperado: "aXYZef"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1573: characters-to-replace replaces the contents of variable."
+    confianza: deducido
+  - id: substr-asig-03
+    funcion: substr_asignar
+    entrada: ["abcdef", 4, null, "Z"]
+    esperado: "abcZef"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1573: If you omit length, SAS uses all of the characters on the right side."
+    confianza: documentado
+  - id: cat-02
+    funcion: cat
+    entrada: ["a ", " b"]
+    esperado: "a  b"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 495: Does not remove leading or trailing blanks."
+    confianza: documentado
+  - id: cat-03
+    funcion: cat
+    entrada: ["a", "", "b"]
+    esperado: "ab"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 495: Does not remove leading or trailing blanks."
+    confianza: deducido
+  - id: cats-01
+    funcion: cats
+    entrada: ["a ", " b"]
+    esperado: "ab"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 503: Removes leading and trailing blanks."
+    confianza: documentado
+  - id: cats-02
+    funcion: cats
+    entrada: [" a ", "", " b "]
+    esperado: "ab"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 503: Removes leading and trailing blanks."
+    confianza: deducido
+  - id: catt-01
+    funcion: catt
+    entrada: ["a ", " b"]
+    esperado: "a b"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 506: Removes trailing blanks."
+    confianza: documentado
+  - id: catt-02
+    funcion: catt
+    entrada: ["a  ", "", " b"]
+    esperado: "a b"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 506: Removes trailing blanks."
+    confianza: deducido
+  - id: catx-04
+    funcion: catx
+    entrada: [",", "a", "", "b"]
+    esperado: "a,b"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 508: Blank items do not produce delimiters at the beginning or end of the result."
+    confianza: documentado
+  - id: catx-05
+    funcion: catx
+    entrada: [",", "", ""]
+    esperado: ""
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 508: Blank items do not produce delimiters at the beginning or end of the result."
+    confianza: documentado

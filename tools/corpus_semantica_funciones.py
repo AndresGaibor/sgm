@@ -27,6 +27,7 @@ from corpus_semantica_texto import (
     repeat,
     reverse,
     right,
+    substr_asignar,
     translate,
     tranwrd,
     trimn,
@@ -192,8 +193,35 @@ def trim_concat(izquierda: str, derecha: str) -> str:
 
 def catx(separador: str, *elementos: str) -> str:
     """CATX: quita blancos de cada elemento y une los no vacíos con el separador."""
-    partes = [str(e).strip(" ") for e in elementos]
-    return str(separador).join(p for p in partes if p != "")
+    partes = [_texto_cat(e).strip(" ") for e in elementos]
+    return _texto_cat(separador).join(p for p in partes if p != "")
+
+
+def _texto_cat(valor: object) -> str:
+    if isinstance(valor, Faltante):
+        raise ValueError("Pendiente: P-CAT-FALTANTE-NUMERICO; falta demostrar BESTw. para missing")
+    if isinstance(valor, str):
+        return valor
+    if isinstance(valor, bool):
+        raise ValueError("Pendiente: P-CAT-BOOLEANO-SAS")
+    if isinstance(valor, (int, float)):
+        return _texto_de_numero(float(valor), justificado=False).strip(" ")
+    raise ValueError(f"Pendiente: P-CAT-TIPO-{type(valor).__name__.upper()}")
+
+
+def cat(*elementos: object) -> str:
+    """CAT concatena argumentos sin quitar blancos de carácter."""
+    return "".join(_texto_cat(elemento) for elemento in elementos)
+
+
+def cats(*elementos: object) -> str:
+    """CATS quita blancos iniciales y finales de cada argumento."""
+    return "".join(_texto_cat(elemento).strip(" ") for elemento in elementos)
+
+
+def catt(*elementos: object) -> str:
+    """CATT quita los blancos finales de cada argumento."""
+    return "".join(_texto_cat(elemento).rstrip(" ") for elemento in elementos)
 
 
 def coalesce(*numeros: object) -> object:
@@ -327,7 +355,13 @@ FUNCIONES = {
     "scan": scan,
     "concat": concat,
     "trim_concat": trim_concat,
+    "cat": cat,
+    "cats": cats,
+    "catt": catt,
     "catx": catx,
+    "substr_asignar": lambda texto, posicion, longitud, valor: substr_asignar(
+        texto, posicion, None if _omitido(longitud) else longitud, valor
+    ),
     "coalesce": coalesce,
     "coalescec": coalescec,
     "round": round_sas,

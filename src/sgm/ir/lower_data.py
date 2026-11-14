@@ -9,6 +9,10 @@ from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_grupos import programa_por_grupo
+from sgm.ir.lower_data_substr import (
+    es_objetivo_substr_izquierda,
+    reescribir_substr_izquierda,
+)
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.types_code import declared_types, informat_type
 
@@ -348,7 +352,31 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
             prev = stmts[siguiente - 1]
             continue
         if kind == "assign":
-            assignment = {"target": s.fields["target"], "expression": s.fields["expression"]}
+            target = s.fields["target"]
+            expression = s.fields["expression"]
+            rewritten = reescribir_substr_izquierda(target, expression)
+            if rewritten is not None:
+                target, expression = rewritten
+            elif es_objetivo_substr_izquierda(target):
+                nota = "Pendiente: P-DATASTEP-SUBSTR-IZQ; la pseudovariable no se puede reescribir"
+                if pending_derive is None:
+                    pending_derive = b.op(
+                        "derive",
+                        {"assignments": [], "modo": "agrega"},
+                        statement_ev,
+                        status="hueco",
+                        notes=[nota],
+                    )
+                    if current is not None:
+                        b.link(current, pending_derive)
+                    current = pending_derive
+                else:
+                    pending_derive.status = "hueco"
+                    if nota not in pending_derive.notes:
+                        pending_derive.notes.append(nota)
+                    b.refresh(pending_derive)
+                continue
+            assignment = {"target": target, "expression": expression}
             if pending_derive is None:
                 # `modo`: una asignación de DATA step conserva las columnas que ya venían; el
                 # `derive` de un `SELECT` las reemplaza. Sin la marca, el emisor escribiría un

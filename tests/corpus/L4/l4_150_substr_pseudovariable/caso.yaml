@@ -1,0 +1,30 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SUBSTR (left of =)
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- CODIGOS_FIX
+razonamiento: SUBSTR a la izquierda reemplaza tres caracteres, rellena el valor corto con blanco y conserva los caracteres restantes; salida calculada por el oráculo substr_asignar.
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en
+invariantes:
+- filas(CODIGOS_FIX) == 2
+esquemas:
+  WORK.CODIGOS:
+    ID:
+      tipo: Double
+      linea: 2
+      fuente: muestra
+    CODIGO:
+      tipo: String
+      linea: 2
+      fuente: muestra
+  WORK.CODIGOS_FIX:
+    codigo:
+      tipo: String
+      linea: 7
+      longitud: 6

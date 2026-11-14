@@ -28,6 +28,25 @@ def compbl(texto: str) -> str:
     return re.sub(r" {2,}", " ", texto)
 
 
+def substr_asignar(texto: str, posicion: int, longitud: int | None, valor: str) -> str:
+    """SUBSTR a la izquierda reemplaza una porción y conserva el ancho original de la variable."""
+    if not texto.isascii() or not valor.isascii():
+        raise ValueError("Pendiente: P-SUBSTR-ASIG-CODIFICACION-SBCS")
+    if isinstance(posicion, bool) or int(posicion) != float(posicion) or posicion < 1:
+        raise ValueError("Pendiente: P-SUBSTR-ASIG-POSICION")
+    if longitud is not None and (
+        isinstance(longitud, bool) or int(longitud) != float(longitud) or longitud < 0
+    ):
+        raise ValueError("Pendiente: P-SUBSTR-ASIG-LONGITUD")
+    posicion = int(posicion)
+    longitud_real = len(valor) if longitud is None else int(longitud)
+    restante = len(texto) - posicion + 1
+    if restante < 0 or longitud_real > restante:
+        raise ValueError("Pendiente: P-SUBSTR-ASIG-LONGITUD")
+    reemplazo = valor[:longitud_real].ljust(longitud_real, " ")
+    return texto[: posicion - 1] + reemplazo + texto[posicion - 1 + longitud_real :]
+
+
 def tranwrd(texto: str, buscar: str, reemplazo: str) -> str:
     """TRANWRD reemplaza todas las apariciones no solapadas del objetivo."""
     if not buscar:

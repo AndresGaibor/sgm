@@ -43,6 +43,23 @@ def test_las_funciones_de_l4_se_emiten_sin_pendiente_de_asignacion(caso: Path, t
     assert resultado.jobs
 
 
+def test_substr_pseudovariable_conserva_el_tipo_declarado_en_tmap(tmp_path: Path):
+    caso = CORPUS / "l4_150_substr_pseudovariable"
+    resultado = migrar(
+        caso / "programa.sas",
+        tmp_path / caso.name,
+        muestra=caso / "entradas",
+    )
+
+    (job,) = resultado.jobs
+    (tmap,) = [nodo for nodo in job.nodos if nodo.componente == "tMap"]
+    (salida,) = tmap.metadatas
+    columnas = {columna.nombre: columna for columna in salida.columnas}
+
+    assert columnas["CODIGO"].tipo == "id_String"
+    assert columnas["CODIGO"].longitud == 6
+
+
 def test_los_predicados_sas_se_emiten_como_numeros_cero_o_uno(tmp_path: Path):
     caso = CORPUS / "l4_19_cmp_faltantes"
     resultado = migrar(

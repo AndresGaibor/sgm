@@ -47,7 +47,7 @@ _FUNCTIONS = {
     "length": _length, "lengthc": _lengthc,
     "lengthn": _lengthn,
     "compbl": _strfn('StringHandling.EREPLACE({0}, " +", " ")'), "reverse": _strfn("new StringBuilder({0}).reverse().toString()"),
-    "cat": _cat(False), "cats": _cat(True), "catt": _cat(True), "catx": _cat(True, sep=True),
+    "cat": _cat(False), "cats": _cat(True), "catt": _cat(False, trailing_only=True), "catx": _cat(True, sep=True),
     "substr": _substr, "substrn": _substr, "scan": _scan, "compress": _compress,
     "propcase": _propcase,
     "repeat": _repeat,

@@ -37,13 +37,24 @@ _TIPO_TALEND = {"String": "id_String", "Double": "id_Double"}
 def test_la_salida_lleva_el_tipo_y_el_largo_que_el_caso_declara(tmp_path: Path, caso, columna, entrada):
     """El Job que emite `sgm migrar` tiene el tipo demostrado del bloque `esquemas` (B-4)."""
     resultado = migrar(caso.programa, tmp_path / "out", muestra=caso.entradas)
-    columnas = [
+    emitidas = [
         c
         for job in resultado.jobs
         for nodo in job.nodos
         for c in [*nodo.columnas, *[x for m in (nodo.metadatas or []) for x in m.columnas]]
         if c.nombre.lower() == columna.lower()
     ]
+    columnas_salida = [
+        c
+        for job in resultado.jobs
+        for nodo in job.nodos
+        if not nodo.componente.startswith("tFileInput")
+        for c in [*nodo.columnas, *[x for m in (nodo.metadatas or []) for x in m.columnas]]
+        if c.nombre.lower() == columna.lower()
+    ]
+    # El largo declarado se exige en la salida; si la columna solo aparece en el lector, se
+    # conserva el control previo del tipo, pues el ancho de entrada no se deduce de `LENGTH`.
+    columnas = columnas_salida or emitidas
     if not columnas:
         # la tabla no sale en el Job: el caso tiene pendientes de traducción (p. ej. INTO :var).
         # Que una columna no se emita no es un tipo distinto; el tipo se mide donde sí aparece.

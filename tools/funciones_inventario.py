@@ -67,8 +67,11 @@ def _catalogo(repo: Path) -> dict[str, dict[str, str | None]]:
                 "fuente": entrada.get("fuente"),
             }
             anterior = resultado.get(nombre)
-            if anterior is not None and anterior != valor:
-                raise ValueError(f"catálogos de funciones en conflicto para {nombre!r}")
+            if anterior is not None:
+                if anterior["estado"] != valor["estado"]:
+                    raise ValueError(f"catálogos de funciones en conflicto para {nombre!r}")
+                fuentes = [f.strip() for f in (anterior["fuente"], valor["fuente"]) if f]
+                valor["fuente"] = "; ".join(dict.fromkeys(fuentes)) or None
             resultado[nombre] = valor
     return resultado
 

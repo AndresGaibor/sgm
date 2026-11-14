@@ -39,7 +39,7 @@ def _repeat(p: _P, args: list[E]) -> E:
     return _strfn('(new String(new char[{1} + 1]).replace("\\0", {0}))', 2)(p, args)
 
 
-def _cat(trim: bool, sep: bool = False):
+def _cat(trim: bool, sep: bool = False, trailing_only: bool = False):
     def build(_p: _P, args: list[E]) -> E:
         if sep:
             if len(args) < 2:
@@ -47,11 +47,12 @@ def _cat(trim: bool, sep: bool = False):
             glue, items = args[0], args[1:]
         else:
             glue, items = E('""', "str"), args
-        parts = [f"StringHandling.TRIM({_str(i)})" if trim else _str(i) for i in items]
+        trim_fn = "StringHandling.RTRIM" if trailing_only else "StringHandling.TRIM"
+        parts = [f"{trim_fn}({_str(i)})" if trim or trailing_only else _str(i) for i in items]
         if sep:  # catx omite los vacíos
             return E(
                 "String.join("
-                + glue.java
+                + _str(glue)
                 + ", java.util.stream.Stream.of("
                 + ", ".join(parts)
                 + ").filter(s -> !s.isEmpty()).toArray(String[]::new))",

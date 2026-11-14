@@ -39,8 +39,12 @@ def test_funciones_reune_las_familias_actuales():
         "substrn",
         "compress",
         "scan",
+        "cat",
+        "cats",
+        "catt",
         "coalescec",
         "catx",
+        "substr_asignar",
         "mean",
         "min",
         "max",
@@ -98,6 +102,13 @@ def test_funciones_reune_las_familias_actuales():
         ("scan", ["a b c", 2], "b"),
         ("abs", [-2], 2.0),
         ("sum", [1, None, 3], 4.0),
+        ("cat", ["a ", " b"], "a  b"),
+        ("cats", [" a ", " b "], "ab"),
+        ("catt", ["a  ", " b  "], "a b"),
+        ("catx", [",", "a", "", "b"], "a,b"),
+        ("substr_asignar", ["abcdef", 2, 3, "XY"], "aXY ef"),
+        ("substr_asignar", ["abcdef", 2, 3, "XYZW"], "aXYZef"),
+        ("substr_asignar", ["abcdef", 4, None, "Z"], "abcZef"),
     ],
 )
 def test_llamar_conserva_las_funciones_y_sus_resultados(nombre, argumentos, esperado):
@@ -132,6 +143,13 @@ def test_input_en_notacion_cientifica_no_aplica_d():
 
 def test_catx_omite_elementos_en_blanco_y_recorta_los_extremos():
     assert llamar("catx", [",", " a ", "b ", "  ", "c"]) == "a,b,c"
+
+
+def test_cat_conserva_o_quita_blancos_segun_la_funcion_y_trata_blanco_como_faltante():
+    assert llamar("cat", ["a", "", "b"]) == "ab"
+    assert llamar("cats", [" a ", "", " b "]) == "ab"
+    assert llamar("catt", ["a  ", "", " b"]) == "a b"
+    assert llamar("catx", [",", "a", "", "b"]) == "a,b"
 
 
 def test_left_y_trim_conservan_la_semantica_de_un_campo_en_blanco():

@@ -1217,12 +1217,12 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "params": {
         "assignments": [
           {
-            "target": "substr(pidexecution, j)",
-            "expression": "byte(int(65+26*ranuni(0)))"
+            "target": "pidexecution",
+            "expression": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidexecution,j+lengthc(byte(int(65+26*ranuni(0)))))"
           }
         ],
         "modo": "agrega",
@@ -1244,7 +1244,7 @@
       ],
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
-        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+        "expresión sin equivalente Talend: substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte"
       ],
       "component": {
         "name": "tMap",
@@ -2537,12 +2537,12 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "params": {
         "assignments": [
           {
-            "target": "substr(pidexecution, j)",
-            "expression": "byte(int(65+26*ranuni(0)))"
+            "target": "pidexecution",
+            "expression": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidexecution,j+lengthc(byte(int(65+26*ranuni(0)))))"
           }
         ],
         "modo": "agrega",
@@ -2564,7 +2564,7 @@
       ],
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
-        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+        "expresión sin equivalente Talend: substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte"
       ],
       "component": {
         "name": "tMap",
@@ -2975,12 +2975,12 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "params": {
         "assignments": [
           {
-            "target": "substr(pidexecution, j)",
-            "expression": "byte(int(65+26*ranuni(0)))"
+            "target": "pidexecution",
+            "expression": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidexecution,j+lengthc(byte(int(65+26*ranuni(0)))))"
           }
         ],
         "modo": "agrega",
@@ -3002,7 +3002,7 @@
       ],
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
-        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+        "expresión sin equivalente Talend: substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte"
       ],
       "component": {
         "name": "tMap",
@@ -3188,12 +3188,12 @@
       "kind": "derive",
       "status": "parcial",
       "placement": "flow",
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "params": {
         "assignments": [
           {
-            "target": "substr(pidexecution, j)",
-            "expression": "byte(int(65+26*ranuni(0)))"
+            "target": "pidexecution",
+            "expression": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidexecution,j+lengthc(byte(int(65+26*ranuni(0)))))"
           }
         ],
         "modo": "agrega",
@@ -3215,7 +3215,7 @@
       ],
       "notes": [
         "end no traducido: revisar el bucle o el arreglo",
-        "expresión sin equivalente Talend: byte(int(65+26*ranuni(0)))"
+        "expresión sin equivalente Talend: substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte"
       ],
       "component": {
         "name": "tMap",
@@ -15298,7 +15298,7 @@
       "occurrences": 1
     },
     {
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "options": [
         {
           "opcion": "tMap",
@@ -15334,7 +15334,7 @@
       "occurrences": 1
     },
     {
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "options": [
         {
           "opcion": "tMap",
@@ -15352,7 +15352,7 @@
       "occurrences": 1
     },
     {
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "options": [
         {
           "opcion": "tMap",
@@ -15370,7 +15370,7 @@
       "occurrences": 1
     },
     {
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "options": [
         {
           "opcion": "tMap",
@@ -15682,110 +15682,6 @@
           "line_start": 2901,
           "line_end": 2901,
           "label": "Final_Timer",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "03eddcc4cc8f8d51",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 663,
-          "line_end": 663,
-          "label": "ACURA",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "03eddcc4cc8f8d51",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1426,
-          "line_end": 1426,
-          "label": "BMW",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "03eddcc4cc8f8d51",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2139,
-          "line_end": 2139,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "03eddcc4cc8f8d51",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2789,
-          "line_end": 2789,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "2458738709285191",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 665,
-          "line_end": 665,
-          "label": "ACURA",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "2458738709285191",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1428,
-          "line_end": 1428,
-          "label": "BMW",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "2458738709285191",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2141,
-          "line_end": 2141,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ]
-    },
-    {
-      "signature": "2458738709285191",
-      "reason": "TIPO_DESCONOCIDO",
-      "evidence": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2791,
-          "line_end": 2791,
-          "label": "JAGUAR",
           "call": null
         }
       ]
@@ -20279,7 +20175,7 @@
       ]
     },
     {
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -20305,7 +20201,7 @@
       ]
     },
     {
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -20318,7 +20214,7 @@
       ]
     },
     {
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -20331,7 +20227,7 @@
       ]
     },
     {
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "reason": "FUNCION_NO_MAPEADA",
       "evidence": [
         {
@@ -20798,158 +20694,6 @@
         "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
         "nota": ""
       },
-      "signature": "03eddcc4cc8f8d51",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 663,
-          "line_end": 663,
-          "label": "ACURA",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
-      "signature": "03eddcc4cc8f8d51",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1426,
-          "line_end": 1426,
-          "label": "BMW",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
-      "signature": "03eddcc4cc8f8d51",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2139,
-          "line_end": 2139,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
-      "signature": "03eddcc4cc8f8d51",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2789,
-          "line_end": 2789,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
-      "signature": "2458738709285191",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 665,
-          "line_end": 665,
-          "label": "ACURA",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
-      "signature": "2458738709285191",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 1428,
-          "line_end": 1428,
-          "label": "BMW",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
-      "signature": "2458738709285191",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2141,
-          "line_end": 2141,
-          "label": "CHEVROLET",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
-      "signature": "2458738709285191",
-      "fuente": [
-        {
-          "file": "client/client_poc.sas",
-          "line_start": 2791,
-          "line_end": 2791,
-          "label": "JAGUAR",
-          "call": null
-        }
-      ]
-    },
-    {
-      "valor": null,
-      "pendiente": {
-        "motivo": "TIPO_DESCONOCIDO",
-        "dueno": "byron",
-        "se_cierra_con": "env/schemas/ o rules/sas/informats.yaml",
-        "nota": ""
-      },
       "signature": "888af413bb97f23b",
       "fuente": [
         {
@@ -25556,9 +25300,9 @@
         "motivo": "FUNCION_NO_MAPEADA",
         "dueno": "joseph",
         "se_cierra_con": "rules/sas/functions/",
-        "nota": "byte(int(65+26*ranuni(0)))"
+        "nota": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidex"
       },
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "fuente": [
         {
           "file": "client/client_poc.sas",
@@ -25594,9 +25338,9 @@
         "motivo": "FUNCION_NO_MAPEADA",
         "dueno": "joseph",
         "se_cierra_con": "rules/sas/functions/",
-        "nota": "byte(int(65+26*ranuni(0)))"
+        "nota": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidex"
       },
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "fuente": [
         {
           "file": "client/client_poc.sas",
@@ -25613,9 +25357,9 @@
         "motivo": "FUNCION_NO_MAPEADA",
         "dueno": "joseph",
         "se_cierra_con": "rules/sas/functions/",
-        "nota": "byte(int(65+26*ranuni(0)))"
+        "nota": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidex"
       },
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "fuente": [
         {
           "file": "client/client_poc.sas",
@@ -25632,9 +25376,9 @@
         "motivo": "FUNCION_NO_MAPEADA",
         "dueno": "joseph",
         "se_cierra_con": "rules/sas/functions/",
-        "nota": "byte(int(65+26*ranuni(0)))"
+        "nota": "substrn(pidexecution,1,j-1) || substrn(byte(int(65+26*ranuni(0))),1,lengthc(byte(int(65+26*ranuni(0))))) || substr(pidex"
       },
-      "signature": "03eddcc4cc8f8d51/byte",
+      "signature": "55d05b9b34461b69/substrn",
       "fuente": [
         {
           "file": "client/client_poc.sas",
@@ -25708,7 +25452,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tMap; no aplicado"
       },
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "fuente": []
     },
     {
@@ -25730,7 +25474,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tMap; no aplicado"
       },
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "fuente": []
     },
     {
@@ -25741,7 +25485,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tMap; no aplicado"
       },
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "fuente": []
     },
     {
@@ -25752,7 +25496,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tMap; no aplicado"
       },
-      "signature": "03eddcc4cc8f8d51",
+      "signature": "55d05b9b34461b69",
       "fuente": []
     }
   ],

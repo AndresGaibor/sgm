@@ -372,7 +372,7 @@ El catálogo (`funciones-usadas.yaml`, entrada `substr-right-of-function`) dice 
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\semantica\vectores.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\funciones-usadas.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\funciones-guia.yaml`
-- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4c.py` (con el caso `l4_150_substr_pseudovariable`; lo registra `generar_entradas_l4l6.py`, línea 179, y el generador escribe `caso.yaml`, `programa.sas`, `entradas\codigos.csv` y `esperado\codigos_fix.csv` en `tests\corpus\L4\l4_150_substr_pseudovariable\`)
+- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4c.py` (con el caso `l4_150_substr_pseudovariable`; lo registra `generar_entradas_l4l6.py`, línea 179, y el generador escribe `caso.yaml`, `programa.sas`, `entradas\CODIGOS.csv` y `esperado\codigos_fix.csv` en `tests\corpus\L4\l4_150_substr_pseudovariable\`)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\generar_entradas_l4l6.py`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_substr.py`
 
@@ -383,8 +383,9 @@ El catálogo (`funciones-usadas.yaml`, entrada `substr-right-of-function`) dice 
   # lower_data_substr.py
   def reescribir_substr_izquierda(objetivo: str, valor: str) -> tuple[str, str] | None:
       """`substr(x, p, l)` con `valor` a la derecha del `=` se vuelve la asignación `(x, expresion)`
-      con `expresion = substr(x,1,p-1) || substr(valor || <l blancos>, 1, l) || substr(x, p+l)`.
-      Sin `l`, `l` es `lengthc(x) - p + 1`. Devuelve None si `objetivo` no es una llamada a SUBSTR."""
+      con `expresion = substrn(x,1,p-1) || substrn(valor || repeat(' ',l),1,l) || substr(x,p+l)`.
+      Sin `l`, usa `lengthc(valor)` como longitud reemplazada. Devuelve None si `objetivo` no es
+      una llamada a SUBSTR o sus argumentos quedan fuera del subconjunto demostrable."""
   # oráculo e intérprete
   def substr_asignar(texto: str, posicion: int, longitud: int | None, valor: str) -> str
   ```
@@ -395,20 +396,25 @@ El catálogo (`funciones-usadas.yaml`, entrada `substr-right-of-function`) dice 
 |---|---|---|---|---|
 | `substr-asig-01` | `substr_asignar` | `["abcdef", 2, 3, "XY"]` | `"aXY ef"` (relleno con blanco dentro de la longitud) | `lefunctionsref`, p. 1572 |
 | `substr-asig-02` | `substr_asignar` | `["abcdef", 2, 3, "XYZW"]` | `"aXYZef"` (trunca) | p. 1572 |
-| `substr-asig-03` | `substr_asignar` | `["abcdef", 4, null, "Z"]` | `"abcZ  "` (sin longitud: hasta el final de la variable; deducido) | p. 1572 |
+| `substr-asig-03` | `substr_asignar` | `["abcdef", 4, null, "Z"]` | `"abcZef"` (sin longitud, se reemplaza el ancho del valor asignado) | p. 1573 |
 | `cat-02` | `cat` | `["a ", " b"]` | `"a  b"` (no recorta) | p. 495 |
+| `cat-03` | `cat` | `["a", "", "b"]` | `"ab"` (blanco de carácter) | p. 495 |
 | `cats-01` | `cats` | `["a ", " b"]` | `"ab"` | p. 503 |
+| `cats-02` | `cats` | `[" a ", "", " b "]` | `"ab"` (blanco de carácter) | p. 503 |
 | `catt-01` | `catt` | `["a ", " b"]` | `"a b"` (recorta solo los blancos finales) | p. 506 |
+| `catt-02` | `catt` | `["a  ", "", " b"]` | `"a b"` (blanco de carácter) | p. 506 |
 | `catx-04` | `catx` | `[",", "a", "", "b"]` | `"a,b"` (los blancos no ponen separador) | p. 508 |
 | `catx-05` | `catx` | `[",", "", ""]` | `""` | p. 508 |
 
-`Pendiente: P-LONGITUD-VARIABLE`: el relleno final de `substr-asig-03` depende del `LENGTH` de la variable; con una columna de CSV (sin relleno) el caso `L4` fija la longitud en el propio programa con `LENGTH CODIGO $6;` y su esquema la declara. El caso `l4_150_substr_pseudovariable` (`capa: B`, `estado: traducible`): entrada `codigos.csv` = `ID,CODIGO` / `1,ABCDEF` / `2,GHIJKL`; sentencia `SUBSTR(CODIGO, 2, 3) = 'XY';`; el esperado lo calcula el oráculo con `substr_asignar` (`AXY EF` y `GXY KL`), no se escribe a mano.
+La guía oficial (`lefunctionsref`, pp. 1572–1573) aclara que, si se omite `length`, SAS sustituye tantos caracteres como contiene el valor del lado derecho; no sustituye hasta el final de la variable. El caso `l4_150_substr_pseudovariable` (`capa: B`, `estado: traducible`) declara `CODIGO $6` y aplica `SUBSTR(CODIGO, 2, 3) = 'XY'`; el esperado lo calcula el oráculo (`AXY EF` y `GXY KL`). Las variantes que no se puedan bajar quedan como pendientes explícitos.
 
-- [ ] **Step 1: Write the failing tests.** `reescribir_substr_izquierda("substr(a, 2, 3)", "'XY'")` devuelve `("a", "substr(a,1,1) || substr('XY' || '   ', 1, 3) || substr(a, 5)")`; `reescribir_substr_izquierda("a", "1")` devuelve `None`; los tres vectores de `substr_asignar` y los cinco de `cat*` pasan en el oráculo y en el intérprete.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_lower_data_substr.py tests/unit/test_corpus_semantica.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** `reescribir_substr_izquierda` y llamarla desde `lower_data.py` en el punto donde hoy una asignación con destino que no es identificador queda sin traducir (localizarlo con `Grep` de `assign` y `Pendiente` en `src/sgm/ir/lower_data.py`); implementar `substr_asignar` y los vectores; escribir la especificación del caso y regenerar `L4`.
-- [ ] **Step 4: Catálogo.** `substr-right-of-function` de `funciones-usadas.yaml` es la forma de la derecha; la forma de la izquierda se agrega a `funciones-guia.yaml` como `substr-left-of-function` (`lefunctionsref.pdf, p. 1572`) con `estado: reconocida` solo si el paso 3 cierra el emisor (en otro caso `no_verificada` y la nota con el motivo). `uv run python -m pytest tests/unit/test_catalogo_sas.py -q -p no:cacheprovider`.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py tests/unit/test_migrar_corpus_l4_a.py -q -p no:cacheprovider -k L4`, la tanda del golden, `uv run ruff check src tests tools`; lote C del caso nuevo y de los `cat*`. **Commit** `hito N n: SUBSTR a la izquierda del igual y CAT con faltantes`.
+Los vectores `cat*` prueban faltantes de carácter representados por cadenas vacías. Un faltante numérico sin tipo explícito queda pendiente: la página de las funciones remite a `BESTw.`, pero el tipo de un `None` del corpus no se puede deducir como carácter.
+
+- [x] **Step 1: Write the failing tests.** `reescribir_substr_izquierda("substr(a, 2, 3)", "'XY'")` devuelve `("a", "substrn(a,1,2-1) || substrn('XY' || repeat(' ',3),1,3) || substr(a,2+3)")`; `reescribir_substr_izquierda("a", "1")` devuelve `None`; los vectores de `substr_asignar` y de `cat*` pasan en el oráculo y en el intérprete.
+- [x] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_lower_data_substr.py tests/unit/test_corpus_semantica.py -q -p no:cacheprovider`.
+- [x] **Step 3: Implement** `reescribir_substr_izquierda` y llamarla desde `lower_data.py` al bajar una asignación; con longitud explícita rellenar/truncar con `SUBSTRN(valor || REPEAT(' ', longitud),1,longitud)` y sin ella reemplazar solo el ancho de `valor`, según `lefunctionsref`, pp. 1572–1573; implementar `substr_asignar`, escribir la especificación del caso y generar el fixture L4 dirigido.
+- [x] **Step 4: Catálogo.** `substr-right-of-function` de `funciones-usadas.yaml` es la llamada como expresión; la forma izquierda se agrega a `funciones-guia.yaml` como `substr-left-of-function` (`lefunctionsref.pdf, p. 1572`). `reconocida` indica que se reescribe la forma documentada; variantes fuera del subconjunto quedan como pendientes explícitos. `uv run python -m pytest tests/unit/test_catalogo_sas.py -q -p no:cacheprovider`.
+- [x] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py tests/unit/test_migrar_corpus_l4_a.py -q -p no:cacheprovider -k L4`, la tanda del golden, `uv run python -m ruff check .` y el cierre integral `uv run python tools/ci.py`. El fixture L4 pasa en B; el lote C del caso nuevo y de los `cat*` queda pendiente: el último estado de Studio fue `BRIDGE_DEAD`, no se cuenta como validado. Golden del programa grande actualizado por las pseudovariables reconocidas y protegido por huella canónica. **Commit** `hito 263n: SUBSTR a la izquierda y CAT con faltantes`.
 
 ---
 
