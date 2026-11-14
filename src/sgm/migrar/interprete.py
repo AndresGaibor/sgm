@@ -222,6 +222,10 @@ def _valor(nodo, fila: dict) -> object:
         # En sqlglot el primer argumento va en `this`, no en `expressions`.
         argumentos = [nodo.this, *nodo.expressions]
         return _funcion("coalesce", [_valor(arg, fila) for arg in argumentos])
+    if isinstance(nodo, exp.Count) and nodo.expressions:
+        argumentos = [nodo.this, *nodo.expressions]
+        if len(argumentos) >= 2:
+            return _funcion("count", [_valor(arg, fila) for arg in argumentos])
     if isinstance(nodo, exp.Upper):
         return _texto_funcion(_valor(nodo.this, fila)).upper()
     if isinstance(nodo, exp.Lower):

@@ -252,6 +252,7 @@ El segundo aceptable de MG-P3-01 es «en lote C». Un vector no es un Job: esta 
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_tabla.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_texto.py`
+- Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_texto_extra.py` (constructores de longitud, búsqueda y sustitución; se separan para respetar el límite de 300 líneas)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_numerico.py`
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_formato.py`
 - Delete (solo si el `Grep` del paso 2 sigue dando cero referencias externas): `src\sgm\expressions\talend_functions.py`, `talend_functions_dates.py`, `talend_functions_numeric.py`, `talend_functions_strings.py`, `talend_core.py`
@@ -282,7 +283,8 @@ El segundo aceptable de MG-P3-01 es «en lote C». Un vector no es un Job: esta 
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_texto.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4_vectores.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\funciones-guia.yaml`
-- Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_funciones.py` y `tests\unit\test_talend_expresiones.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete.py` (COUNT como función de texto sin alterar los agregados SQL)
+- Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_funciones.py`, `tests\unit\test_interprete_vectores.py`, `tests\unit\test_migrar_corpus_anillo_b.py`, `tests\unit\test_talend_translator.py`, `tests\unit\test_talend_modulos.py`, `tests\unit\test_corpus_l4_vectores.py`, `tests\unit\test_corpus_semantica.py`, `tests\unit\test_catalogo_sas.py`, `tests\unit\test_esquemas_sincronizados.py` y `tests\unit\test_tablero.py`
 
 **Interfaces:**
 - Consumes: `FUNCIONES: dict[str, Funcion]` de `interprete_texto.py` (D1-2), `semantica.como_texto(valor: object) -> str`, `corpus_semantica_funciones.FUNCIONES`, `talend_tabla._FUNCTIONS` y `_strfn(template: str, arity: int = 1)`.
@@ -342,19 +344,19 @@ El segundo aceptable de MG-P3-01 es «en lote C». Un vector no es un Job: esta 
 | `index-01` | `index` | `["abcabc", "c"]` | `3` | p. 1071 |
 | `index-02` | `index` | `["ABC", "b"]` | `0` (distingue mayúsculas) | p. 1071 |
 | `find-01` | `find` | `["ABC", "b", "i"]` | `2` | p. 807 |
-| `find-02` | `find` | `["abcabc", "c", 4]` | `6` (empieza en la posición 4; deducido) | p. 807 |
+| `find-02` | `find` | `["abcabc", "c", null, 4]` | `6` (modificador omitido; busca desde la posición 4; deducido) | p. 807–808 |
 | `count-01` | `count` | `["banana", "an"]` | `2` | p. 608 |
 | `count-02` | `count` | `["aAa", "a", "i"]` | `3` | p. 608 |
 | `lengthc-01` | `lengthc` | `["abc   "]` | `6` | p. 1181 |
 | `lengthn-01` | `lengthn` | `[""]` | `0` | p. 1185 |
 
-Java: hoy `length` es `StringHandling.LEN(StringHandling.RTRIM(x))`, que da 0 para el texto en blanco y `null` para un faltante; SAS da 1 (`length-02`, D1-7): la plantilla pasa a `(x == null ? 1 : Math.max(1, StringHandling.LEN(StringHandling.RTRIM(x))))`. `lengthn` da 0 para blanco y para faltante: `(x == null ? 0 : StringHandling.LEN(StringHandling.RTRIM(x)))`. `translate` solo se emite con listas literales y sin caracteres de `de` dentro de `a` (la traducción es simultánea: encadenar `.replace` cambia el resultado cuando un destino es origen de otro par); si no, `Unsupported` con `P-JAVA-TRANSLATE-SOLAPADO`. `find` solo con el modificador literal `i` o sin modificador; `t` y `k` quedan `Unsupported` con `P-JAVA-FIND-MODIFICADOR` hasta que una página los demuestre con un caso.
+Java: `length` da 1 ante `null` o blanco; `lengthn` da 0 ante ambos. `lengthc` y `lengthn` cuentan puntos de código Unicode, y `lengthc(null)` conserva `null` porque la longitud declarada del campo no se conoce. `translate` solo se emite con listas literales SBCS sin caracteres de `de` entre los destinos efectivos: SAS aplica el mapeo de una vez, mientras encadenar `.replace` cambia el resultado cuando las listas se solapan; en ese caso se emite `P-JAVA-TRANSLATE-SOLAPADO`. El oráculo e intérprete sí aplican sustitución simultánea, también con listas solapadas. `find` admite `i` y `t` literales y los dos órdenes de argumentos que documenta p. 807–808: modificador/inicio o inicio/modificador. El inicio Java debe ser entero constante; `k`, modificadores dinámicos e inicios dinámicos quedan como `Pendiente:`. `count` admite los modificadores documentados `i` y `t`. En `tranwrd`, Java requiere un objetivo literal no vacío para demostrar la precondición documentada.
 
-- [ ] **Step 1: Write the failing tests:** un test por vector (intérprete; `verificar()` y `verificar(motor="interprete")` en cero fallos); `translate_to_talend("length(a)").java` contiene `Math.max(1,`; `translate_to_talend("translate(a, 'ab', 'ba')")` lanza `Unsupported` con `P-JAVA-TRANSLATE-SOLAPADO`; `translate_to_talend("find(a, 'x', 'i')").java` contiene `toLowerCase`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_funciones.py tests/unit/test_corpus_semantica.py tests/unit/test_talend_expresiones.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** las funciones en los tres motores. Agregar a `FUNCIONES_CON_CASO` `compbl`, `tranwrd`, `index`, `find`, `count` y `lengthn`, y regenerar `L4`.
-- [ ] **Step 4: Catálogo:** entradas en `funciones-guia.yaml` (`compbl-function` pasa a `reconocida`: ya está en `_FUNCTIONS`) y correr `tests/unit/test_catalogo_sas.py`.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py -q -p no:cacheprovider -k L4`, la tanda del golden, `uv run ruff check src tests tools` y el lote C de los casos nuevos (si Studio no conecta, «lote C pendiente» con motivo). **Commit** `hito N n: texto B (COMPBL, TRANWRD, TRANSLATE, INDEX, FIND, COUNT) y LENGTH como lo define SAS`.
+- [x] **Step 1: Write the failing tests:** un test por vector (intérprete; `verificar()` y `verificar(motor="interprete")` en cero fallos); longitud ante faltantes; traducción simultánea en el oráculo; `TRANSLATE` solapado pendiente en Java; modificadores `I`/`T` en `FIND` y `COUNT`.
+- [x] **Step 2: Run tests to verify they fail.** Las pruebas nuevas fallaron primero porque faltaban las funciones del intérprete y del traductor, y la plantilla Java de `LENGTH` propagaba `null`.
+- [x] **Step 3: Implement** las funciones en los tres motores. Agregar a `FUNCIONES_CON_CASO` `compbl`, `tranwrd`, `translate`, `index`, `find`, `count`, `lengthc` y `lengthn`, y generar los casos L4 138–149 conservando sus esquemas derivados.
+- [x] **Step 4: Catálogo:** añadir y verificar las ocho entradas de `funciones-guia.yaml`; las funciones con soporte implementado quedan `reconocida`, con límites exactos anotados.
+- [x] **Step 5: Run** anillo B L4 (69 pasadas), pruebas focales (407 pasadas, 7 omitidas), Ruff y la comprobación del catálogo. Studio devuelve `BRIDGE_DEAD`; los 12 casos nuevos quedan anotados como lote C pendiente. El cierre integral y el commit del hito se ejecutan sobre el árbol staged.
 
 ---
 

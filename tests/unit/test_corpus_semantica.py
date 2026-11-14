@@ -42,7 +42,9 @@ def test_cada_vector_tiene_campos_y_fuente() -> None:
         if vector["confianza"] == "incierto":
             assert vector["fuente_url"] == "ninguna"
             continue
-        assert vector["fuente_url"].startswith("https://support.sas.com/"), vector["id"]
+        assert vector["fuente_url"].startswith(
+            ("https://support.sas.com/", "https://documentation.sas.com/")
+        ), vector["id"]
         assert 0 < len(vector["cita"].split()) <= 25, vector["id"]
 
 
@@ -65,6 +67,20 @@ def test_scan_fuera_de_rango_da_un_blanco() -> None:
 def test_round_empate_va_al_de_mayor_valor_absoluto() -> None:
     assert cs.evaluar("round", 0.5) == 1
     assert cs.evaluar("round", -0.5) == -1
+
+
+def test_translate_aplica_mapeos_solapados_de_forma_simultanea() -> None:
+    assert cs.evaluar("translate", "ab", "ba", "ab") == "ba"
+    assert cs.evaluar("lengthc", "😀") == 1
+    assert cs.evaluar("lengthn", "😀  ") == 1
+
+
+def test_find_reconoce_ambos_ordenes_documentados_de_inicio_y_modificador() -> None:
+    assert cs.evaluar("find", "abcabc", "c", 4) == 6
+    assert cs.evaluar("find", "abcabc", "c", -4) == 3
+    assert cs.evaluar("find", "ABC", "b", 1, "i") == 2
+    assert cs.evaluar("find", "abc ", "c ", "t") == 3
+    assert cs.evaluar("tranwrd", "abc", "b", "") == "a c"
 
 
 @pytest.mark.parametrize(

@@ -21,8 +21,12 @@ def test_texto_usa_las_rutinas_de_talend():
     assert java("strip(x)") == "StringHandling.TRIM(input_row.x)"
     assert java("trim(x)") == "StringHandling.RTRIM(input_row.x)"
     assert java("left(x)") == "StringHandling.LTRIM(input_row.x)"
-    assert java("tranwrd(x,'a','b')") == 'StringHandling.CHANGE(input_row.x, "a", "b")'
-    assert java("count(x,'a')") == 'StringHandling.COUNT(input_row.x, "a")'
+    assert java("tranwrd(x,'a','b')") == (
+        '(input_row.x == null ? null : StringHandling.CHANGE(input_row.x, "a", "b"))'
+    )
+    assert java("count(x,'a')") == (
+        '(input_row.x == null ? null : StringHandling.COUNT(input_row.x, "a"))'
+    )
 
 
 @pytest.mark.parametrize(
@@ -42,9 +46,50 @@ def test_limpieza_conserva_espacios_dentro_de_literales(sas, expected):
 
 def test_longitud_y_conteo_de_caracteres():
     assert java("length(x)") == (
-        "(input_row.x == null ? null : Math.max(StringHandling.LEN(StringHandling.RTRIM(input_row.x)), 1))"
+        "(input_row.x == null ? 1 : Math.max(StringHandling.LEN(StringHandling.RTRIM(input_row.x)), 1))"
     )
-    assert java("lengthc(x)") == "(input_row.x == null ? null : StringHandling.LEN(input_row.x))"
+    assert java("lengthc(x)") == (
+        "(input_row.x == null ? null : input_row.x.codePointCount(0, input_row.x.length()))"
+    )
+    assert java("lengthn(x)") == (
+        "(input_row.x == null ? 0 : StringHandling.RTRIM(input_row.x).codePointCount(0, "
+        "StringHandling.RTRIM(input_row.x).length()))"
+    )
+
+
+def test_busqueda_y_sustitucion_de_texto_con_semantica_documentada():
+    assert java("find(x,'b','i')") == (
+        '(input_row.x == null ? null : input_row.x.toLowerCase(java.util.Locale.ROOT).indexOf('
+        '"b".toLowerCase(java.util.Locale.ROOT), 0) + 1)'
+    )
+    assert "indexOf" in java("find(x,'b',2,'i')")
+    assert "lastIndexOf" in java("find(x,'c',,-4)")
+    assert "StringHandling.RTRIM" in java("find(x,'b','t')")
+    assert "toLowerCase" in java("count(x,'a','i')")
+    assert "StringHandling.RTRIM" in java("count(x,'a','t')")
+    assert java("translate(x,'xy','ab')") == (
+        '(input_row.x == null ? null : input_row.x.replace("a", "x").replace("b", "y"))'
+    )
+    assert java("tranwrd(x,'a','')") == (
+        '(input_row.x == null ? null : StringHandling.CHANGE(input_row.x, "a", " "))'
+    )
+    assert '(input_row.reemplazo == null || input_row.reemplazo.isEmpty() ? " " : input_row.reemplazo)' in java(
+        "tranwrd(x,'a',reemplazo)"
+    )
+    assert java("lengthc('😀')") == (
+        r'"\ud83d\ude00".codePointCount(0, "\ud83d\ude00".length())'
+    )
+
+
+def test_translate_solapado_y_modificadores_no_demostrados_quedan_pendientes():
+    with pytest.raises(Unsupported, match="P-JAVA-TRANSLATE-SOLAPADO"):
+        java("translate(x,'ab','ba')")
+    with pytest.raises(Unsupported, match="P-JAVA-FIND-MODIFICADOR"):
+        java("find(x,'a','k')")
+    with pytest.raises(Unsupported, match="P-JAVA-TRANWRD-OBJETIVO-VACIO"):
+        java("tranwrd(x,'','y')")
+    with pytest.raises(Unsupported, match="P-JAVA-TRANWRD-OBJETIVO-DINAMICO"):
+        java("tranwrd(x,objetivo,'y')")
 
 
 def test_repeat_y_right_usan_traducciones_con_semantica_documentada():
@@ -124,7 +169,9 @@ def test_scan_con_delimitador_literal_y_cero_devuelve_blanco():
 
 
 def test_index_es_base_uno():
-    assert java("index(x,'a')") == '(input_row.x.indexOf("a") + 1)'
+    assert java("index(x,'a')") == (
+        '(input_row.x == null ? null : (input_row.x.indexOf("a") + 1))'
+    )
 
 
 def test_aritmetica_propaga_el_perdido():

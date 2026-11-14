@@ -48,6 +48,116 @@ def _length(argumentos: list) -> int:
     return max(1, len(texto.rstrip(" ")))
 
 
+def _lengthc(argumentos: list) -> int:
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
+    return len(texto)
+
+
+def _lengthn(argumentos: list) -> int:
+    texto = _texto_funcion(argumentos[0] if argumentos else None)
+    return len(texto.rstrip(" "))
+
+
+def _compbl(argumentos: list) -> str:
+    return re.sub(r" {2,}", " ", _texto_funcion(argumentos[0] if argumentos else None))
+
+
+def _tranwrd(argumentos: list) -> str:
+    if len(argumentos) != 3:
+        raise NoSoportadoEnInterprete("funcion", "TRANWRD requiere tres argumentos")
+    texto, buscar, reemplazo = (_texto_funcion(valor) for valor in argumentos)
+    if not buscar:
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-TRANWRD-OBJETIVO-VACIO")
+    return texto.replace(buscar, reemplazo or " ")
+
+
+def _translate(argumentos: list) -> str:
+    if len(argumentos) != 3:
+        raise NoSoportadoEnInterprete("funcion", "TRANSLATE requiere tres argumentos")
+    texto, destino, origen = (_texto_funcion(valor) for valor in argumentos)
+    if not all(valor.isascii() for valor in (texto, destino, origen)):
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-TRANSLATE-CODIFICACION-SBCS")
+    if len(set(origen)) != len(origen):
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-TRANSLATE-ORIGEN-DUPLICADO")
+    mapeo = {caracter: destino[i] if i < len(destino) else " " for i, caracter in enumerate(origen)}
+    return texto.translate(str.maketrans(mapeo))
+
+
+def _index(argumentos: list) -> int:
+    if len(argumentos) != 2:
+        raise NoSoportadoEnInterprete("funcion", "INDEX requiere dos argumentos")
+    texto, buscar = (_texto_funcion(valor) for valor in argumentos)
+    if not texto.isascii() or not buscar.isascii():
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-INDEX-CODIFICACION-SBCS")
+    return texto.find(buscar) + 1 if buscar in texto else 0
+
+
+def _modificadores(argumentos: list, indice: int, nombre: str, permitidos: str) -> str:
+    if len(argumentos) <= indice or semantica.es_faltante(argumentos[indice]):
+        return ""
+    valor = argumentos[indice]
+    if not isinstance(valor, str):
+        raise NoSoportadoEnInterprete("funcion", f"Pendiente: P-{nombre}-MODIFICADOR-DINAMICO")
+    modificadores = valor.lower()
+    if set(modificadores) - set(permitidos):
+        raise NoSoportadoEnInterprete("funcion", f"Pendiente: P-{nombre}-MODIFICADOR")
+    return modificadores
+
+
+def _find(argumentos: list) -> int:
+    if not 2 <= len(argumentos) <= 4:
+        raise NoSoportadoEnInterprete("funcion", "FIND requiere dos a cuatro argumentos")
+    texto, buscar = (_texto_funcion(valor) for valor in argumentos[:2])
+    if not texto.isascii() or not buscar.isascii():
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-FIND-CODIFICACION-SBCS")
+    inicio = 1
+    modificador: object = None
+    tercero = argumentos[2] if len(argumentos) >= 3 else None
+    cuarto = argumentos[3] if len(argumentos) == 4 else None
+    if isinstance(tercero, str):
+        modificador = tercero
+        candidato_inicio = cuarto
+    elif not semantica.es_faltante(tercero):
+        candidato_inicio = tercero
+        modificador = cuarto
+    else:
+        candidato_inicio = cuarto if isinstance(cuarto, (int, float)) else None
+        modificador = cuarto if isinstance(cuarto, str) else None
+    modificadores = _modificadores([*argumentos[:2], modificador], 2, "FIND", "it")
+    if not semantica.es_faltante(candidato_inicio):
+        numero = semantica.como_numero(candidato_inicio)
+        if numero is None or not numero.is_integer():
+            raise NoSoportadoEnInterprete("funcion", "Pendiente: P-FIND-INICIO-DINAMICO")
+        inicio = int(numero)
+    if "t" in modificadores:
+        texto, buscar = texto.rstrip(" "), buscar.rstrip(" ")
+    if "i" in modificadores:
+        texto, buscar = texto.lower(), buscar.lower()
+    if inicio == 0:
+        return 0
+    if inicio > 0:
+        posicion = texto.find(buscar, inicio - 1)
+    else:
+        posicion = texto.rfind(buscar, 0, abs(inicio))
+    return posicion + 1 if posicion >= 0 else 0
+
+
+def _count(argumentos: list) -> int:
+    if not 2 <= len(argumentos) <= 3:
+        raise NoSoportadoEnInterprete("funcion", "COUNT requiere dos o tres argumentos")
+    texto, buscar = (_texto_funcion(valor) for valor in argumentos[:2])
+    if not texto.isascii() or not buscar.isascii():
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-COUNT-CODIFICACION-SBCS")
+    if not buscar:
+        raise NoSoportadoEnInterprete("funcion", "Pendiente: P-COUNT-SUBCADENA-VACIA")
+    modificadores = _modificadores(argumentos, 2, "COUNT", "it")
+    if "t" in modificadores:
+        texto, buscar = texto.rstrip(" "), buscar.rstrip(" ")
+    if "i" in modificadores:
+        texto, buscar = texto.lower(), buscar.lower()
+    return texto.count(buscar)
+
+
 def _propcase(argumentos: list) -> str:
     texto = _texto_funcion(argumentos[0] if argumentos else None).lower()
     delimitadores = (
@@ -181,6 +291,14 @@ FUNCIONES: dict[str, Callable[[list], object]] = {
     "upcase": _upcase,
     "lowcase": _lowcase,
     "length": _length,
+    "lengthc": _lengthc,
+    "lengthn": _lengthn,
+    "compbl": _compbl,
+    "tranwrd": _tranwrd,
+    "translate": _translate,
+    "index": _index,
+    "find": _find,
+    "count": _count,
     "propcase": _propcase,
     "reverse": _reverse,
     "repeat": _repeat,

@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from sgm.expressions.talend_base import (
-    E,
-    Unsupported,
-)
+from sgm.expressions.talend_base import E
 from sgm.expressions.talend_funciones import (
     _datepart,
     _mdy,
@@ -31,21 +28,32 @@ from sgm.expressions.talend_funciones_texto import (
     _strfn,
     _substr,
 )
+from sgm.expressions.talend_funciones_texto_extra import (
+    _count,
+    _find,
+    _index,
+    _length,
+    _lengthc,
+    _lengthn,
+    _translate,
+    _tranwrd,
+)
 
 _FUNCTIONS = {
     "upcase": _routine("StringHandling", "UPCASE", 1), "lowcase": _routine("StringHandling", "DOWNCASE", 1),
     "strip": _routine("StringHandling", "TRIM", 1), "trim": _routine("StringHandling", "RTRIM", 1),
-    "left": _routine("StringHandling", "LTRIM", 1), "tranwrd": _routine("StringHandling", "CHANGE", 3),
-    "count": _routine("StringHandling", "COUNT", 2),
-    "length": _strfn("Math.max(StringHandling.LEN(StringHandling.RTRIM({0})), 1)"), "lengthc": _strfn("StringHandling.LEN({0})"),
-    "lengthn": _strfn("StringHandling.LEN(StringHandling.RTRIM({0}))"),
+    "left": _routine("StringHandling", "LTRIM", 1), "tranwrd": _tranwrd,
+    "count": _count,
+    "length": _length, "lengthc": _lengthc,
+    "lengthn": _lengthn,
     "compbl": _strfn('StringHandling.EREPLACE({0}, " +", " ")'), "reverse": _strfn("new StringBuilder({0}).reverse().toString()"),
     "cat": _cat(False), "cats": _cat(True), "catt": _cat(True), "catx": _cat(True, sep=True),
     "substr": _substr, "substrn": _substr, "scan": _scan, "compress": _compress,
     "propcase": _propcase,
     "repeat": _repeat,
     "right": _strfn('StringHandling.LPAD(StringHandling.TRIM({0}), StringHandling.LEN({0}), " ")'),
-    "index": lambda p, a: E(f"({a[0].java}.indexOf({a[1].java}) + 1)") if len(a) == 2 else (_ for _ in ()).throw(Unsupported("index")),
+    "index": _index,
+    "find": _find, "translate": _translate,
     "abs": _unary_math("Math.abs"), "ceil": _unary_math("Math.ceil"), "floor": _unary_math("Math.floor"),
     "sqrt": _routine("Mathematical", "SQRT", 1), "exp": _routine("Mathematical", "EXP", 1),
     "log": _routine("Mathematical", "LN", 1), "mod": _routine("Mathematical", "MOD", 2),

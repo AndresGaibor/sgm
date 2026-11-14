@@ -26,7 +26,7 @@ fases:
   horas: 80.0
   credito_sin_desglosar: 14.5
   tareas: []
-  sostiene: Funciones puntuales con evidencia, incluido D1-7 en A/B; catálogo de texto incompleto; lote C pendiente por Studio BRIDGE_DEAD; PRX y `PROC FORMAT` pendientes
+  sostiene: "D1-7 y D1-8 aportan evidencia en el anillo B para subconjuntos documentados; se amplía el catálogo de texto; lote C pendiente por Studio BRIDGE_DEAD; PRX y `PROC FORMAT` pendientes"
 - id: MG-P4
   nombre: DATA step
   horas: 90.0

@@ -649,3 +649,94 @@ vectores:
     fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
     cita: "lrcon, p. 151: The concatenation operator does not trim leading or trailing blanks."
     confianza: deducido
+  - id: compbl-01
+    funcion: compbl
+    entrada: ["a   b  c"]
+    esperado: "a b c"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 572: COMPBL replaces multiple blanks with one blank."
+    confianza: documentado
+  - id: compbl-02
+    funcion: compbl
+    entrada: ["  a  b"]
+    esperado: " a b"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 572: COMPBL replaces multiple blanks with one blank."
+    confianza: deducido
+  - id: tranwrd-01
+    funcion: tranwrd
+    entrada: ["abc def abc", "abc", "x"]
+    esperado: "x def x"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1620: TRANWRD replaces all occurrences of a target string."
+    confianza: documentado
+  - id: tranwrd-02
+    funcion: tranwrd
+    entrada: ["abc", "z", "y"]
+    esperado: "abc"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1620: TRANWRD replaces all occurrences of a target string."
+    confianza: deducido
+  - id: translate-01
+    funcion: translate
+    entrada: ["abc", "xy", "ab"]
+    esperado: "xyc"
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1614: TRANSLATE maps characters from one list to another."
+    confianza: documentado
+  - id: index-01
+    funcion: index
+    entrada: ["abcabc", "c"]
+    esperado: 3
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1071: INDEX returns the position of the first occurrence."
+    confianza: documentado
+  - id: index-02
+    funcion: index
+    entrada: ["ABC", "b"]
+    esperado: 0
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1071: INDEX returns zero when the excerpt is not found."
+    confianza: documentado
+  - id: find-01
+    funcion: find
+    entrada: ["ABC", "b", "i"]
+    esperado: 2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 808: FIND supports the I modifier for case-insensitive search."
+    confianza: documentado
+  - id: find-02
+    funcion: find
+    entrada: ["abcabc", "c", null, 4]
+    esperado: 6
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 808: a positive start position searches to the right."
+    confianza: deducido
+  - id: count-01
+    funcion: count
+    entrada: ["banana", "an"]
+    esperado: 2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 609: COUNT returns the number of occurrences of a substring."
+    confianza: documentado
+  - id: count-02
+    funcion: count
+    entrada: ["aAa", "a", "i"]
+    esperado: 3
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 609: the I modifier ignores case."
+    confianza: documentado
+  - id: lengthc-01
+    funcion: lengthc
+    entrada: ["abc   "]
+    esperado: 6
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1182: LENGTHC counts both blanks and nonblank characters."
+    confianza: documentado
+  - id: lengthn-01
+    funcion: lengthn
+    entrada: [""]
+    esperado: 0
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1186: LENGTHN returns zero when the argument is blank."
+    confianza: documentado

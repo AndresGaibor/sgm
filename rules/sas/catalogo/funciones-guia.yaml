@@ -36,5 +36,40 @@ entries:
   - id: compbl-function
     nombre: COMPBL Function
     fuente: lefunctionsref.pdf, p. 572
-    estado: no_verificada
-    nota: 'sin oráculo, intérprete ni Java; lo cierra D1-8'
+    estado: reconocida
+    nota: 'oráculo, intérprete y Java comprimen secuencias de espacios; tabuladores y otros blancos quedan fuera del alcance demostrado'
+  - id: count-function
+    nombre: COUNT Function
+    fuente: lefunctionsref.pdf, p. 608
+    estado: reconocida
+    nota: 'oráculo e intérprete admiten I y T; Java usa COUNT de Talend con esos modificadores; modificadores dinámicos y otros quedan pendientes'
+  - id: find-function
+    nombre: FIND Function
+    fuente: lefunctionsref.pdf, p. 807
+    estado: reconocida
+    nota: 'oráculo e intérprete admiten I y T e inicios enteros; Java admite I/T literales e inicios enteros constantes; K y datos fuera de SBCS quedan pendientes'
+  - id: index-function
+    nombre: INDEX Function
+    fuente: lefunctionsref.pdf, p. 1071
+    estado: reconocida
+    nota: 'búsqueda de dos argumentos, sensible a mayúsculas, base uno y cero si no encuentra; fuera de SBCS queda pendiente'
+  - id: lengthc-function
+    nombre: LENGTHC Function
+    fuente: lefunctionsref.pdf, p. 1181
+    estado: reconocida
+    nota: 'cuenta caracteres e incluye blancos finales; Java e intérprete cuentan puntos de código Unicode; longitud de campo faltante depende del esquema'
+  - id: lengthn-function
+    nombre: LENGTHN Function
+    fuente: lefunctionsref.pdf, p. 1185
+    estado: reconocida
+    nota: 'cuenta hasta el último carácter no blanco; blanco da cero; Java conserva cero ante null'
+  - id: tranwrd-function
+    nombre: TRANWRD Function
+    fuente: lefunctionsref.pdf, p. 1619
+    estado: reconocida
+    nota: 'reemplaza apariciones no solapadas; reemplazo vacío produce un blanco; Java requiere objetivo literal no vacío para demostrar la condición SAS'
+  - id: translate-function
+    nombre: TRANSLATE Function
+    fuente: lefunctionsref.pdf, p. 1613
+    estado: reconocida
+    nota: 'oráculo e intérprete aplican sustitución simultánea; Java requiere listas literales SBCS sin solapamiento entre origen y destino'

@@ -119,6 +119,20 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
     assert "l4_135_vec_repeat_0" in specs
     assert "l4_136_vec_trimn_sin_literales" in specs
     assert "l4_137_vec_length_sin_literales" in specs
+    assert tuple(specs)[-12:] == (
+        "l4_138_vec_compbl_sin_literales",
+        "l4_139_vec_tranwrd_sabc_sx",
+        "l4_140_vec_tranwrd_sz_sy",
+        "l4_141_vec_translate_sxy_sab",
+        "l4_142_vec_index_sc",
+        "l4_143_vec_index_sb",
+        "l4_144_vec_find_sb_si",
+        "l4_145_vec_find_sc_omitido_4",
+        "l4_146_vec_count_san",
+        "l4_147_vec_count_sa_si",
+        "l4_148_vec_lengthc_sin_literales",
+        "l4_149_vec_lengthn_sin_literales",
+    )
     assert not any("right" in nombre for nombre in specs)
 
 

@@ -21,11 +21,19 @@ def test_funciones_reune_las_familias_actuales():
         "upcase",
         "lowcase",
         "length",
+        "lengthc",
+        "lengthn",
         "propcase",
         "reverse",
         "repeat",
         "right",
         "trimn",
+        "compbl",
+        "tranwrd",
+        "translate",
+        "index",
+        "find",
+        "count",
         "left",
         "substr",
         "substrn",
@@ -60,6 +68,20 @@ def test_funciones_reune_las_familias_actuales():
         ("length", ["abc"], 3),
         ("length", ["abc   "], 3),
         ("length", [" "], 1),
+        ("compbl", ["a   b  c"], "a b c"),
+        ("compbl", ["  a  b"], " a b"),
+        ("tranwrd", ["abc def abc", "abc", "x"], "x def x"),
+        ("tranwrd", ["abc", "z", "y"], "abc"),
+        ("tranwrd", ["abc", "b", ""], "a c"),
+        ("translate", ["abc", "xy", "ab"], "xyc"),
+        ("index", ["abcabc", "c"], 3),
+        ("index", ["ABC", "b"], 0),
+        ("find", ["ABC", "b", "i"], 2),
+        ("find", ["abcabc", "c", None, 4], 6),
+        ("count", ["banana", "an"], 2),
+        ("count", ["aAa", "a", "i"], 3),
+        ("lengthc", ["abc   "], 6),
+        ("lengthn", [""], 0),
         ("propcase", ["hELLO wORLD"], "Hello World"),
         ("propcase", ["mc-donald"], "Mc-Donald"),
         ("reverse", ["abc"], "cba"),
@@ -115,6 +137,28 @@ def test_catx_omite_elementos_en_blanco_y_recorta_los_extremos():
 def test_left_y_trim_conservan_la_semantica_de_un_campo_en_blanco():
     assert llamar("left", ["   "]) == "   "
     assert llamar("trim", ["   "]) == " "
+
+
+def test_translate_es_simultanea_y_lengthc_cuenta_puntos_unicode():
+    assert llamar("translate", ["abc", "xy", "ab"]) == "xyc"
+    assert llamar("translate", ["ab", "ba", "ab"]) == "ba"
+    with pytest.raises(NoSoportadoEnInterprete, match="P-TRANSLATE-CODIFICACION-SBCS"):
+        llamar("translate", ["áb", "xy", "ab"])
+    assert llamar("lengthc", ["😀"]) == 1
+    assert llamar("lengthn", ["😀  "]) == 1
+
+
+def test_tranwrd_exige_objetivo_no_vacio_y_trata_reemplazo_vacio_como_blanco():
+    with pytest.raises(NoSoportadoEnInterprete, match="P-TRANWRD-OBJETIVO-VACIO"):
+        llamar("tranwrd", ["abc", "", "x"])
+
+
+def test_find_acepta_inicio_positivo_y_negativo_con_modificadores_documentados():
+    assert llamar("find", ["abcabc", "c", 4]) == 6
+    assert llamar("find", ["abcabc", "c", None, 4]) == 6
+    assert llamar("find", ["abcabc", "c", None, -4]) == 3
+    assert llamar("find", ["abc", "z", None, 0]) == 0
+    assert llamar("find", ["abc ", "c ", "t"]) == 3
 
 
 @pytest.mark.parametrize(

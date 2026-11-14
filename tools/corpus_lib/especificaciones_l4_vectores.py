@@ -118,6 +118,57 @@ FUNCIONES_CON_CASO: dict[str, dict] = {
         "citar_espacios_borde": True,
         "sas": "length({argumentos})",
     },
+    "compbl": {
+        "literales": (),
+        "columnas": ("TEXTO",),
+        "salida_numerica": False,
+        "citar_espacios_borde": True,
+        "sas": "compbl({argumentos})",
+    },
+    "tranwrd": {
+        "literales": (1, 2),
+        "columnas": ("TEXTO",),
+        "salida_numerica": False,
+        "sas": "tranwrd({argumentos})",
+    },
+    "translate": {
+        "literales": (1, 2),
+        "columnas": ("TEXTO",),
+        "salida_numerica": False,
+        "sas": "translate({argumentos})",
+    },
+    "index": {
+        "literales": (1,),
+        "columnas": ("TEXTO",),
+        "salida_numerica": True,
+        "sas": "index({argumentos})",
+    },
+    "find": {
+        "literales": (1, 2, 3, 4),
+        "columnas": ("TEXTO",),
+        "salida_numerica": True,
+        "sas": "find({argumentos})",
+    },
+    "count": {
+        "literales": (1, 2),
+        "columnas": ("TEXTO",),
+        "salida_numerica": True,
+        "sas": "count({argumentos})",
+    },
+    "lengthc": {
+        "literales": (),
+        "columnas": ("TEXTO",),
+        "salida_numerica": True,
+        "citar_espacios_borde": True,
+        "sas": "lengthc({argumentos})",
+    },
+    "lengthn": {
+        "literales": (),
+        "columnas": ("TEXTO",),
+        "salida_numerica": True,
+        "citar_espacios_borde": True,
+        "sas": "lengthn({argumentos})",
+    },
 }
 
 

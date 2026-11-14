@@ -15,7 +15,22 @@ import re
 import string
 from decimal import ROUND_HALF_UP, Decimal
 
-from corpus_semantica_texto import length, propcase, repeat, reverse, right, trimn
+from corpus_semantica_texto import (
+    compbl,
+    count,
+    find,
+    index,
+    length,
+    lengthc,
+    lengthn,
+    propcase,
+    repeat,
+    reverse,
+    right,
+    translate,
+    tranwrd,
+    trimn,
+)
 
 
 class Faltante:
@@ -282,6 +297,21 @@ FUNCIONES = {
     "input": input_wd,
     "left": left,
     "length": length,
+    "lengthc": lengthc,
+    "lengthn": lengthn,
+    "compbl": compbl,
+    "tranwrd": tranwrd,
+    "translate": translate,
+    "index": index,
+    "find": lambda texto, buscar, modificadores=None, inicio=None: find(
+        texto,
+        buscar,
+        None if _omitido(modificadores) else modificadores,
+        None if _omitido(inicio) else inicio,
+    ),
+    "count": lambda texto, buscar, modificadores=None: count(
+        texto, buscar, None if _omitido(modificadores) else modificadores
+    ),
     "propcase": propcase,
     "reverse": reverse,
     "repeat": repeat,

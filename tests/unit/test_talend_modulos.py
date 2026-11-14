@@ -9,19 +9,19 @@ from sgm.expressions import talend_tabla
 EXPRESSIONS = Path(__file__).resolve().parents[2] / "src" / "sgm" / "expressions"
 # Constructores SAS de D1-6; las utilidades del lexer/base/core quedan fuera del alcance.
 SAS_BUILDERS = {
-    "_aggregate", "_cat", "_coalesce", "_compress", "_datepart", "_ifv", "_input",
+    "_aggregate", "_cat", "_coalesce", "_compress", "_count", "_datepart", "_find", "_ifv", "_index", "_input",
     "_int", "_intck", "_intnx", "_mdy", "_part", "_put", "_round", "_scan",
-    "_strfn", "_substr", "_unary_math",
+    "_length", "_lengthc", "_lengthn", "_strfn", "_substr", "_tranwrd", "_translate", "_unary_math",
 }
 # Capturada antes de la refactorización: no se calcula con la tabla bajo prueba.
 FUNCTION_NAMES = (
     "abs", "cat", "cats", "catt", "catx", "ceil", "coalesce", "coalescec", "compbl",
-    "compress", "count", "date", "datepart", "datetime", "day", "exp", "floor", "ifc",
+    "compress", "count", "date", "datepart", "datetime", "day", "exp", "find", "floor", "ifc",
     "ifn", "index", "input", "inputc", "inputn", "int", "intck", "intnx", "left",
     "length", "lengthc", "lengthn", "log", "lowcase", "max", "mdy", "mean", "min",
     "missing", "mod", "month", "n", "nmiss", "propcase", "put", "putc", "putn", "repeat",
     "reverse", "right", "round", "scan", "sqrt", "strip", "substr", "substrn", "sum",
-    "today", "tranwrd", "trim", "upcase", "weekday", "year",
+    "today", "translate", "tranwrd", "trim", "upcase", "weekday", "year",
 )
 
 
