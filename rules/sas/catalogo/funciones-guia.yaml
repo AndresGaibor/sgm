@@ -208,6 +208,11 @@ entries:
     fuente: lefunctionsref.pdf, p. 1428
     estado: reconocida
     nota: 'intérprete, oráculo y Talend devuelven el trimestre calendario 1–4 de un serial de fecha SAS'
+  - id: intnx-function
+    nombre: INTNX Function
+    fuente: lefunctionsref.pdf, p. 1131
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend cubren day, week, month, qtr y year con alineaciones B, E y S; fin de mes y años bisiestos; otras alineaciones e intervalos quedan Pendiente'
   - id: today-function
     nombre: TODAY Function
     fuente: lefunctionsref.pdf, p. 1611

@@ -28,8 +28,11 @@ fases:
   nombre: Expresiones y funciones
   horas: 80.0
   credito_sin_desglosar: 14.5
-  tareas: []
-  sostiene: "D1-7 y D1-8 aportan evidencia en el anillo B para subconjuntos documentados; se amplía el catálogo de texto; lote C pendiente por Studio BRIDGE_DEAD; PRX y `PROC FORMAT` pendientes"
+  tareas:
+  - id: MG-P3-04
+    horas: 12.0
+    fraccion: 0.5
+  sostiene: "D1-12 y D1-13 aportan evidencia de fechas e INTNX en el anillo B; C pendiente por Studio BRIDGE_DEAD y faltan INTCK/DATDIF/YRDIF; PRX, PROC FORMAT y otras tareas de MG-P3 siguen pendientes"
 - id: MG-P4
   nombre: DATA step
   horas: 90.0

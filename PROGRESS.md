@@ -7465,3 +7465,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Verificación focal y golden: 235 aprobadas, 5 `xfail`; `ruff check .`, `avance_creditos.py --verificar` y `git diff --check` pasan. Cierre integral requerido: `uv run python tools/ci.py` sobre el árbol staged.
 - Studio C: el Job se generó, pero el MCP local devolvió `BRIDGE_DEAD` en `127.0.0.1:3927`; `l0_28_filename_archivo` quedó en `out/studio-pendientes.json`. No cuenta como compilado ni ejecutado en Studio.
 - Crédito MG-P2 suma 3,0 h parciales (0,5 de MG-P2-06, que vale 6 h); faltan `PIPE`, FTP y el bloque `RSUBMIT/UPLOAD/DOWNLOAD`. Sin dependencias nuevas, conexiones a bases ni push. Siguiente tarea de Byron: D1-13.
+
+## Hito 268n. `INTNX` con alineación, fin de mes y años bisiestos
+
+- Fecha: 2026-11-14. Base: `69603c0` (hito 267n), rama `codex/integrar-main-preflight`. MG-P3-04 / D1-13.
+- Se implementa `INTNX` para `day`, `week` (domingo), `month`, `qtr` y `year`, con alineaciones B/E/S; el intérprete y el oráculo independiente calculan fechas gregorianas desde `1960-01-01`, y Talend conserva la salida numérica SAS al convertir entre serial y `Date`.
+- Se agregan 22 vectores semánticos y 13 casos L4 (`l4_182`–`l4_194`); el generador ahora coloca los literales en sus posiciones SAS aunque estén antes o después de columnas. Fin de mes, alineación SAME y febrero bisiesto tienen pruebas explícitas. Intervalos múltiples/desplazados, `M`, valores no enteros y tipos no demostrados quedan como `Pendiente:`.
+- Se corrigió una integración A: la guarda Java de rango del incremento era confundida por el emisor de faltantes con una comparación SAS. Se añadió una regresión de `tMap`, y la fachada ahora convierte el resultado Talend `Date` de `INTNX` al serial numérico que SAS devuelve.
+- Verificación focal: 296 pruebas de semántica, fechas, generador L4 y catálogo; los 13 nuevos casos pasan A, los 115 casos L4 pasan B, el golden pasa (7) y Ruff queda limpio. **Cierre integral** `uv run python tools/ci.py`: 5.100 pasaron, 385 omitidas y 145 `xfail`; Ruff, cruces del corpus, oráculo y tablero en verde. La primera corrida integral encontró fallos de integración; se corrigieron antes del cierre final.
+- Studio C no se validó: `sgm studio salud` devolvió `BRIDGE_DEAD` por conexión rechazada al MCP en `127.0.0.1:3927`. Los 13 casos nuevos quedaron en `out/studio-pendientes.json`; ninguno cuenta como compilado ni ejecutado.
+- Crédito MG-P3-04: 0,5 (6 de 12 h) por evidencia parcial en B; MG-P3 queda en 20,5 h y el avance global en 246,25 h (27,5 %). Faltan `INTCK`, `DATDIF`, `YRDIF` y la validación C. Sin dependencias nuevas, bases, secretos ni push. Siguiente tarea: D1-14.

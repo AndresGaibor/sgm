@@ -76,6 +76,7 @@ def test_funciones_reune_las_familias_actuales():
         "datepart",
         "today",
         "date",
+        "intnx",
     }
 
 

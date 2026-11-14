@@ -58,6 +58,14 @@ _LONGITUD_COMPARADA = re.compile(r"\.(?:length|size\(\))\s*(?:<=|>=|<|>)\s*\d+")
 _RANGO_DIAS_TALEND = re.compile(
     r"Math\.floor\(.*?\)\s*(?:>= Integer\.MIN_VALUE|<= Integer\.MAX_VALUE)"
 )
+# Guarda interna de `_intnx`: limita un incremento numérico al rango entero que admite addDate.
+# No corresponde a un operador SAS y su efecto solo es devolver null ante un valor no representable.
+_RANGO_INCREMENTO_INTNX = re.compile(
+    r"\(\s*\(\(Number\)\s*([A-Za-z_][\w.]*)\)\.doubleValue\(\)\s*>=\s*"
+    r"\(Integer\.MIN_VALUE\s*/\s*\d+\.0\)\s*&&\s*"
+    r"\(\(Number\)\s*\1\)\.doubleValue\(\)\s*<=\s*"
+    r"\(Integer\.MAX_VALUE\s*/\s*\d+\.0\)\s*\)"
+)
 
 
 def resolver_filas(java: str, filas: dict[str, set[str]]) -> tuple[str | None, str | None]:
@@ -230,6 +238,7 @@ def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str |
     partes.append(java[ultimo:])
     # Lo que quedó fuera de las comparaciones cubiertas: si tiene un orden, no está demostrado.
     resto = _ORDEN_LITERAL.sub(" ", java)
+    resto = _RANGO_INCREMENTO_INTNX.sub(" ", resto)
     for patron, admitidos, descripcion in (
         (_NUMERO_GUARDADO, NUMERICAS, "numérica"),
         (_TEXTO_GUARDADO, {"id_String"}, "de texto"),

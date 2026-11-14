@@ -1,0 +1,13 @@
+/* Caso l4_194_vec_intnx_syear_send: vector de semántica SAS verificado por el oráculo. */
+PROC IMPORT DATAFILE='.../entradas/ENTRADA_L4.csv' OUT=WORK.ENTRADA_L4 DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+
+DATA WORK.RESULTADO_L4;
+  SET WORK.ENTRADA_L4;
+  RESULTADO=intnx('year', FECHA_SAS, INCREMENTO, 'end');
+RUN;
+
+PROC EXPORT DATA=WORK.RESULTADO_L4 OUTFILE='.../salida/RESULTADO_L4.csv'
+  DBMS=CSV REPLACE;
+RUN;

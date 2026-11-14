@@ -60,7 +60,7 @@ def translate(sas: str) -> Translation:
     if usa_talend and talend_expressions_enabled():
         try:
             resultado_numerico_fecha = re.match(
-                r"(?is)^\s*(?:date|today|datepart|mdy)\s*\(", sas
+                r"(?is)^\s*(?:intnx|date|today|datepart|mdy)\s*\(", sas
             ) is not None
             result = translate_to_talend(
                 sas, expected_kind="num" if resultado_numerico_fecha else None
@@ -89,7 +89,7 @@ def translate(sas: str) -> Translation:
         return t
     try:
         resultado_numerico_fecha = re.match(
-            r"(?is)^\s*(?:date|today|datepart|mdy)\s*\(", sas
+            r"(?is)^\s*(?:intnx|date|today|datepart|mdy)\s*\(", sas
         ) is not None
         result = translate_to_talend(
             sas, expected_kind="num" if resultado_numerico_fecha else None

@@ -1146,3 +1146,157 @@ vectores:
     fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
     cita: "lefunctionsref, p. 639: DATEPART extracts the date from a SAS datetime value."
     confianza: deducido
+  - id: intnx-01
+    funcion: intnx
+    entrada: ["month", 23406, 1]
+    esperado: 23407
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134: INTNX defaults to the beginning of the target interval."
+    confianza: documentado
+  - id: intnx-02
+    funcion: intnx
+    entrada: ["month", 23435, 1]
+    esperado: 23436
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134: INTNX returns the SAS date for the start of the target interval."
+    confianza: documentado
+  - id: intnx-03
+    funcion: intnx
+    entrada: ["month", 23406, 1, "same"]
+    esperado: 23435
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1115: SAME adjusts to the closest valid calendar day in the target month."
+    confianza: documentado
+  - id: intnx-04
+    funcion: intnx
+    entrada: ["month", 23406, 1, "end"]
+    esperado: 23435
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1133: END aligns the result with the end of the target interval."
+    confianza: documentado
+  - id: intnx-05
+    funcion: intnx
+    entrada: ["month", 23406, 0]
+    esperado: 23376
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134: increment zero returns the beginning of the current month by default."
+    confianza: deducido
+  - id: intnx-06
+    funcion: intnx
+    entrada: ["month", 23406, -1]
+    esperado: 23345
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1132: increment can be negative, positive, or zero."
+    confianza: documentado
+  - id: intnx-07
+    funcion: intnx
+    entrada: ["year", 23176, 0]
+    esperado: 23011
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134: default alignment returns the beginning of the year interval."
+    confianza: documentado
+  - id: intnx-08
+    funcion: intnx
+    entrada: ["year", 23176, 1]
+    esperado: 23376
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134: default alignment returns the beginning of the target year."
+    confianza: documentado
+  - id: intnx-09
+    funcion: intnx
+    entrada: ["year", 23176, 1, "same"]
+    esperado: 23542
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1115: SAME preserves the calendar date for YEAR intervals."
+    confianza: documentado
+  - id: intnx-10
+    funcion: intnx
+    entrada: ["week", 23435, 0]
+    esperado: 23431
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134, and lrcon, p. 177: WEEK begins on Sunday."
+    confianza: documentado
+  - id: intnx-11
+    funcion: intnx
+    entrada: ["week", 23435, 1]
+    esperado: 23438
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134: the result is the beginning of the week one interval later."
+    confianza: deducido
+  - id: intnx-12
+    funcion: intnx
+    entrada: ["qtr", 23435, 1]
+    esperado: 23467
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1134, and lrcon, p. 177: QTR begins on the first day of each quarter."
+    confianza: documentado
+  - id: intnx-13
+    funcion: intnx
+    entrada: ["day", 23435, 3]
+    esperado: 23438
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1131: INTNX increments a date by the specified number of intervals."
+    confianza: deducido
+  - id: intnx-14
+    funcion: intnx
+    entrada: ["month", null, 1]
+    esperado: faltante
+    fuente_url: "https://support.sas.com/kb/55/062.html"
+    cita: "SAS Problem Note 55062: a missing INTNX argument yields missing; SAS 9.4 also sets _ERROR_ and writes a note."
+    confianza: documentado
+  - id: intnx-15
+    funcion: intnx
+    entrada: ["month", 23375, 2, "same"]
+    esperado: 23435
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1115: SAME adjusts a month-end date to the closest valid day in the target month."
+    confianza: documentado
+  - id: intnx-16
+    funcion: intnx
+    entrada: ["week", 23435, 1, "same"]
+    esperado: 23442
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1115: SAME preserves the calendar date for WEEK intervals."
+    confianza: documentado
+  - id: intnx-17
+    funcion: intnx
+    entrada: ["week", 23435, 0, "end"]
+    esperado: 23437
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1133: END aligns the date to the end of the interval; WEEK ends Saturday."
+    confianza: documentado
+  - id: intnx-18
+    funcion: intnx
+    entrada: ["qtr", 23435, 0, "same"]
+    esperado: 23435
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1115: SAME for QTR aligns by month from the beginning of the quarter."
+    confianza: documentado
+  - id: intnx-19
+    funcion: intnx
+    entrada: ["qtr", 23435, 0, "end"]
+    esperado: 23466
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1133, and lrcon, p. 177: END aligns QTR to the last day of the quarter."
+    confianza: documentado
+  - id: intnx-20
+    funcion: intnx
+    entrada: ["year", 23176, 1, "end"]
+    esperado: 23741
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1133: END aligns the result with the end of the target year."
+    confianza: documentado
+  - id: intnx-21
+    funcion: intnx
+    entrada: ["qtr", 23435, 1, "same"]
+    esperado: 23525
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1115: SAME for QTR preserves the month offset and adjusts the day to the closest valid date."
+    confianza: documentado
+  - id: intnx-22
+    funcion: intnx
+    entrada: ["year", 21974, 2, "same"]
+    esperado: 22704
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1115: INTNX('year', 29FEB2000, 2, 'same') adjusts to 28FEB2002."
+    confianza: documentado

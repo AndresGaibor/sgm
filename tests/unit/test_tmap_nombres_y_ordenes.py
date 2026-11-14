@@ -88,6 +88,19 @@ def test_comparacion_numerica_de_columna_texto_aplica_conversion_automatica_sas(
 
 def test_comparar_por_orden_con_un_numero_demuestra_una_columna_numerica():
     assert _columnas_ordenadas("cantidad BETWEEN 2 AND 5") == {"cantidad"}
+
+
+def test_guarda_de_rango_interna_de_intnx_no_se_confunde_con_comparacion_sas():
+    java, motivo = expresion(
+        "intnx('month', fecha_sas, incremento)",
+        {"row1": {"fecha_sas", "incremento"}},
+        {"row1.fecha_sas": "id_Long", "row1.incremento": "id_Long"},
+    )
+
+    assert motivo is None
+    assert java is not None
+    assert "Integer.MIN_VALUE" in java
+    assert "Integer.MAX_VALUE" in java
     assert _columnas_ordenadas("ventas.monto >= 500") == {"monto"}
     assert _columnas_ordenadas("100 > saldo") == {"saldo"}
 

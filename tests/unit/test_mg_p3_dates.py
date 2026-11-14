@@ -10,45 +10,44 @@ from sgm.talend_item.desde_plan_expresiones import expresion
 def test_intnx_year_begin_returns_calendar_year_boundary():
     result = translate_to_talend("intnx('year', date_value, 1)")
 
-    assert 'TalendDate.formatDate("yyyy", TalendDate.addDate(' in result.java
+    assert 'TalendDate.formatDate("yyyy",' in result.java
     assert '+ "-01-01")' in result.java
-    assert any("SAS Date" in warning for warning in result.warnings)
-    assert any("época SAS" in warning for warning in result.warnings)
+    assert any("fecha SAS desde 1960" in warning for warning in result.warnings)
 
 
 def test_intnx_year_end_returns_calendar_year_boundary():
     result = translate_to_talend("intnx('year', date_value, 1, 'end')")
 
-    assert '+ "-12-31")' in result.java
+    assert 'TalendDate.addDate(TalendDate.addDate(' in result.java
+    assert ', 1, "yyyy"), -1, "dd")' in result.java
 
 
 def test_intnx_year_same_emits_candidate_to_validate_leap_dates():
     java = translate_to_talend("intnx('year', date_value, 2, 'same')").java
 
-    assert 'TalendDate.addDate(input_row.date_value, (int) 2, "yyyy")' in java
+    assert "Math.min(" in java
+    assert 'TalendDate.getLastDayOfMonth(' in java
 
 
 @pytest.mark.parametrize(
-    "expression",
+    ("expression", "motivo"),
     [
-        "intnx('month', date_value, 1, 'middle')",
-        "intnx('year', date_value, 1, 'middle')",
-        "intnx('week', date_value, 1)",
-        "intnx('week', date_value, 1, 'beginning')",
-        "intnx('month', date_value, 1, dynamic_alignment)",
-        "intnx('hour', date_value, 1)",
-        "intnx('hour', date_value, 1, 'same')",
-        "intnx(dynamic_interval, date_value, 1)",
-        "intnx('year2', date_value, 1)",
-        "intnx('month', date_value, increment + 1)",
-        "intnx('month', date_value, 1.5)",
-        "intnx('week', date_value, 400000000, 'same')",
-        "intnx('month', 20000, 1)",
-        "intnx('month', date_value, 'not_a_number')",
+        ("intnx('month', date_value, 1, 'middle')", "P-INTNX-ALINEACION-M"),
+        ("intnx('year', date_value, 1, 'middle')", "P-INTNX-ALINEACION-M"),
+        ("intnx('month', date_value, 1, dynamic_alignment)", "P-INTNX-ALINEACION-DINAMICA"),
+        ("intnx('hour', date_value, 1)", "P-INTNX-INTERVALO"),
+        ("intnx('hour', date_value, 1, 'same')", "P-INTNX-INTERVALO"),
+        ("intnx(dynamic_interval, date_value, 1)", "P-INTNX-INTERVALO"),
+        ("intnx('year2', date_value, 1)", "P-INTNX-MULTIUNIDAD"),
+        ("intnx('month.2', date_value, 1)", "P-INTNX-DESPLAZADO"),
+        ("intnx('month', date_value, increment + 1)", "P-INTNX-INCREMENTO-NO-ENTERO"),
+        ("intnx('month', date_value, 1.5)", "P-INTNX-INCREMENTO-NO-ENTERO"),
+        ("intnx('week', date_value, 400000000, 'same')", "P-INTNX-RANGO-TALEND"),
+        ("intnx('month', date_value, 'not_a_number')", "P-INTNX-INCREMENTO-TIPO"),
     ],
 )
-def test_intnx_deja_pendiente_la_semantica_no_modelada(expression):
-    with pytest.raises(Unsupported, match="pendiente"):
+def test_intnx_deja_pendientes_las_formas_fuera_del_subconjunto(expression, motivo):
+    with pytest.raises(Unsupported, match=motivo):
         translate_to_talend(expression)
 
 
@@ -65,11 +64,11 @@ def test_intnx_propaga_incremento_perdido_antes_de_sumar_intervalos():
 def test_intnx_acepta_incremento_literal_decimal_si_es_entero():
     java = translate_to_talend("intnx('month', date_value, 1.0)").java
 
-    assert '(int) 1.0' in java
+    assert '(int) (1.0)' in java
 
 
 def test_intnx_no_trata_alineacion_vacia_como_beginning():
-    with pytest.raises(Unsupported, match="alineación"):
+    with pytest.raises(Unsupported, match="P-INTNX-ALINEACION"):
         translate_to_talend("intnx('month', date_value, 1, '')")
 
 
@@ -116,19 +115,33 @@ def test_fachada_publica_delega_fechas_al_traductor_activo(expression, monkeypat
     monkeypatch.setenv("SGM_TALEND_EXPRESSIONS", "1")
 
     result = translate(expression)
-    expected = translate_to_talend(expression)
+    expected = translate_to_talend(
+        expression, expected_kind="num" if expression.startswith("intnx") else None
+    )
 
     assert result.talend == expected.java
     assert result.kind == expected.kind
 
 
-def test_fachada_publica_no_emite_intnx_week_default_con_alineacion_incorrecta(monkeypatch):
+def test_fachada_publica_emite_intnx_week_con_inicio_de_domingo(monkeypatch):
     monkeypatch.setenv("SGM_TALEND_EXPRESSIONS", "1")
 
     result = translate("intnx('week', date_value, 1)")
 
-    assert result.talend is None
-    assert any("WEEKSTART" in warning for warning in result.warnings)
+    assert result.talend is not None
+    assert 'TalendDate.getPartOfDate("DAY_OF_WEEK"' in result.talend
+    assert result.kind == "num"
+    assert "TalendDate.diffDate(" in result.talend
+
+
+def test_fachada_publica_devuelve_intnx_como_serial_sas_numerico(monkeypatch):
+    monkeypatch.setenv("SGM_TALEND_EXPRESSIONS", "1")
+
+    result = translate("intnx('month', fecha_sas, 1)")
+
+    assert result.talend is not None
+    assert result.kind == "num"
+    assert "TalendDate.diffDate(" in result.talend
 
 
 @pytest.mark.parametrize("method", ["discrete", "d", "disc"])
@@ -163,14 +176,14 @@ def test_otras_funciones_de_fecha_conservan_las_rutinas_disponibles():
         java = translate_to_talend(f"{funcion}(d)").java
         assert f'TalendDate.getPartOfDate("{parte}",' in java
         assert 'TalendDate.parseDate("yyyy-MM-dd", "1960-01-01")' in java
-    assert translate_to_talend("intnx('month',fecha,1)").java == (
-        "(input_row.fecha == null ? null : TalendDate.getFirstDayOfMonth("
-        'TalendDate.addDate(input_row.fecha, (int) 1, "MM")))'
-    )
-    assert translate_to_talend("intnx('month',d,2,'e')").java == (
-        "(input_row.d == null ? null : TalendDate.getLastDayOfMonth("
-        'TalendDate.addDate(input_row.d, (int) 2, "MM")))'
-    )
+    mes = translate_to_talend("intnx('month',fecha,1)")
+    assert mes.kind == "date"
+    assert "TalendDate.getFirstDayOfMonth(" in mes.java
+    assert 'TalendDate.parseDate("yyyy-MM-dd", "1960-01-01")' in mes.java
+    assert "TalendDate.diffDate(" not in mes.java
+    fin_mes = translate_to_talend("intnx('month',d,2,'e')")
+    assert "TalendDate.getLastDayOfMonth(" in fin_mes.java
+    assert '(int) (2)' in fin_mes.java
     mdy = translate_to_talend("mdy(1,15,2020)").java
     assert 'String.format(java.util.Locale.ROOT, "%04d-%02d-%02d"' in mdy
     assert "Math.rint(2020)" in mdy

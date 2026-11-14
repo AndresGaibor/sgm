@@ -9,6 +9,7 @@ from datetime import date, timedelta
 from sgm.migrar import semantica
 
 from .interprete_errores import NoSoportadoEnInterprete
+from .interprete_intervalos import intnx as _intnx
 
 EPOCA_SAS = date(1960, 1, 1)
 RELOJ: Callable[[], date] = date.today
@@ -116,6 +117,12 @@ def _today(argumentos: list) -> int:
     return fecha_a_dias(actual)
 
 
+def _funcion_intnx(argumentos: list) -> int | None:
+    if len(argumentos) not in {3, 4}:
+        raise NoSoportadoEnInterprete("funcion", "INTNX requiere tres o cuatro argumentos")
+    return _intnx(*argumentos)
+
+
 FUNCIONES = {
     "mdy": _mdy,
     "year": _parte("year"),
@@ -126,4 +133,5 @@ FUNCIONES = {
     "datepart": _datepart,
     "today": _today,
     "date": _today,
+    "intnx": _funcion_intnx,
 }

@@ -56,8 +56,22 @@ def calcular_l4(spec: dict) -> Tabla:
                 if valor_columna is None:
                     valor_columna = FALTANTE if nombre_columna in numericas else ""
                 valores.append(valor_columna)
-            for paso in pasos:
-                valores = [evaluar(paso[0], *valores, *paso[1:])]
+            plantilla = spec.get("argumentos_posicionales")
+            for indice, paso in enumerate(pasos):
+                if plantilla is None or indice > 0:
+                    argumentos = [*valores, *paso[1:]]
+                else:
+                    cantidad = plantilla["cantidad"]
+                    posiciones_literales = set(plantilla["posiciones_literales"])
+                    literales = iter(paso[1:])
+                    columnas_valor = iter(valores)
+                    argumentos = []
+                    for posicion in range(cantidad):
+                        if posicion in posiciones_literales:
+                            argumentos.append(next(literales))
+                        else:
+                            argumentos.append(next(columnas_valor))
+                valores = [evaluar(paso[0], *argumentos)]
             valor = valores[0]
             registro[variable] = _celda(valor)
         if variable not in cols:

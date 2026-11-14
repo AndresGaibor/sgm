@@ -631,10 +631,10 @@ La fecha de SAS es el número de días desde el 1 de enero de 1960 (`lrcon`, p. 
 
 Fin de año bisiesto: `["month", 23375, 2, "same"]` (31-dic-2023 más 2 meses) da `23435`. `Pendiente: P-INTNX-ALINEACION-M` (alineación `M`, mitad del intervalo), `P-INTNX-INTERVALO` (`semimonth`, `tenday`, `hour` y los demás de `lrcon`, p. 173), `P-INTNX-MULTIUNIDAD` (`month2`, `lrcon`, p. 178) y `P-INTNX-DESPLAZADO` (`month.2`, `lrcon`, p. 180): se leen las páginas citadas y, si una da la regla con un ejemplo, se agrega su vector en otra tarea; aquí lanzan `NoSoportadoEnInterprete` con ese código.
 
-- [ ] **Step 1: Write the failing tests:** un test por vector; el caso de fin de año bisiesto; `intnx("month2", 23406, 1)` lanza `NoSoportadoEnInterprete` con `P-INTNX-MULTIUNIDAD`; `verificar()` y `verificar(motor="interprete")` en cero fallos.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_intervalos.py tests/unit/test_corpus_semantica.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** `intnx` en el intérprete y su gemelo en el oráculo (otra implementación: con aritmética de meses `anio*12 + mes - 1`, sin `dateutil`), y revisar que el Java de `_intnx` produce el mismo resultado para los vectores de mes con `S` y `E` (`TalendDate.addDate` con `"MM"` recorta al fin de mes; si no, el Java queda `Unsupported` con `P-JAVA-INTNX-FIN-DE-MES`). Agregar `intnx` a `FUNCIONES_CON_CASO` con el intervalo y la alineación como literales y regenerar `L4`.
-- [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py -q -p no:cacheprovider -k L4`, la tanda del golden, `uv run ruff check src tests tools`, lote C de los casos nuevos. **Commit** `hito N n: INTNX con alineacion, fin de mes y bisiestos`.
+- [x] **Step 1: Write the failing tests:** 22 vectores; fin de mes y año bisiesto; formas fuera del subconjunto pendientes; verificación del oráculo y del intérprete sin diferencias.
+- [x] **Step 2: Run tests to verify they fail.** La primera ejecución dio 29 fallos esperados por `INTNX` aún no implementado y el generador L4 sin soporte de literales antes/después de columnas.
+- [x] **Step 3: Implement** `INTNX` en intérprete, oráculo independiente y Talend; agregar el descriptor L4 y admitir argumentos posicionales con literales intercalados. Se corrigió además el guard interno de rango que el reescritor de faltantes confundía con una comparación SAS.
+- [x] **Step 4: Run** anillo B L4, golden, catálogo y Ruff. El cierre integral se registra en `PROGRESS.md`. C no pudo ejecutarse: `sgm studio salud` devolvió `BRIDGE_DEAD`; los 13 casos nuevos (`l4_182`–`l4_194`) quedaron en `out/studio-pendientes.json` y no cuentan como compilados ni ejecutados. **Commit** `hito 268n: INTNX con alineacion, fin de mes y bisiestos`.
 
 ---
 

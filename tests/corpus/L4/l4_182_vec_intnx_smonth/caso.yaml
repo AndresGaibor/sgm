@@ -1,0 +1,16 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- INTNX
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- RESULTADO_L4
+razonamiento: 'Vectores verificables por el oráculo: intnx-01, intnx-02, intnx-05, intnx-06, intnx-14. Confianza: deducido, documentado.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en
+- https://support.sas.com/kb/55/062.html
+invariantes:
+- filas(RESULTADO_L4) == 5

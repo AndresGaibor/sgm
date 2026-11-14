@@ -1,0 +1,13 @@
+/* Caso l4_188_vec_intnx_sqtr: vector de semántica SAS verificado por el oráculo. */
+PROC IMPORT DATAFILE='.../entradas/ENTRADA_L4.csv' OUT=WORK.ENTRADA_L4 DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+
+DATA WORK.RESULTADO_L4;
+  SET WORK.ENTRADA_L4;
+  RESULTADO=intnx('qtr', FECHA_SAS, INCREMENTO);
+RUN;
+
+PROC EXPORT DATA=WORK.RESULTADO_L4 OUTFILE='.../salida/RESULTADO_L4.csv'
+  DBMS=CSV REPLACE;
+RUN;

@@ -101,10 +101,6 @@ def _preparar_vector(vector: dict, descriptor: dict) -> tuple:
         raise ValueError(f"{identificador}: se esperaba una lista no vacía en entrada")
     posiciones_literales = tuple(i for i in descriptor["literales"] if i < len(argumentos))
     posiciones_columnas = tuple(i for i in range(len(argumentos)) if i not in posiciones_literales)
-    if posiciones_columnas != tuple(range(len(posiciones_columnas))):
-        raise ValueError(
-            f"{identificador}: los argumentos de columna deben preceder a los literales"
-        )
     if len(posiciones_columnas) > len(descriptor["columnas"]):
         raise ValueError(f"{identificador}: faltan nombres para sus columnas de entrada")
     literales = tuple(argumentos[i] for i in posiciones_literales)
@@ -203,6 +199,12 @@ def especificaciones_de_vectores(vectores: list[dict]) -> dict[str, dict]:
                 "construcciones": ["DATA STEP", funcion.upper()],
                 "entrada": (nombre_tabla, columnas, filas, numericas),
                 "asignaciones": [asignacion],
+                "argumentos_posicionales": {
+                    "cantidad": forma[1],
+                    "posiciones_literales": tuple(
+                        indice for indice in descriptor["literales"] if indice < forma[1]
+                    ),
+                },
                 "salida": nombre_salida,
                 "fuentes": fuente_urls,
                 "invariantes": [f"filas({nombre_salida}) == {len(filas)}"],

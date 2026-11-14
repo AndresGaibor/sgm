@@ -301,4 +301,10 @@ FUNCIONES_CON_CASO: dict[str, dict] = {
         "salida_numerica": True,
         "sas": "datepart({argumentos})",
     },
+    "intnx": {
+        "literales": (0, 3),
+        "columnas": ("FECHA_SAS", "INCREMENTO"),
+        "salida_numerica": True,
+        "sas": "intnx({argumentos})",
+    },
 }
