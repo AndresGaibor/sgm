@@ -62,11 +62,11 @@
       ningun programa). Salida JSON en `out/linea_base_es.json` (no versionada)."""
   ```
 
-- [ ] **Step 1: Write the failing test.** Con un corpus mínimo en `tmp_path` (un `L0` con `construcciones: [PROC IMPORT, KEEP]` y otro con `[INFILE, INPUT]`) y un programa de texto `CONNECT TO impala (dsn=x); ... CONNECT TO impala (dsn=x);`, `medir(tmp_path, [programa])["construcciones"]["PROC IMPORT"] == {"casos": 1, "pendientes": {}, "usos_programas": 0}` y `["CONNECT TO"]["usos_programas"] == 2`; un caso listado en un `migrar_pendientes.yaml` mínimo con `P-FORMATO-SIN-SOPORTE` aparece en `pendientes` de su construcción.
-- [ ] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_linea_base_es.py -q -p no:cacheprovider`; esperado: no existe el módulo.
-- [ ] **Step 3: Implement** `medir` leyendo los `caso.yaml` con `corpus_lib.caso`; los programas se leen solo si se pasan por línea de comandos (`uv run python tools/linea_base_es.py tests/corpus --programa tests/fixtures/sas/client/client_large.sas`). Sin dependencias nuevas.
-- [ ] **Step 4: Run test to verify it passes**, correr la herramienta sobre `tests/corpus` y el programa grande, y pegar en `PROGRESS.md` la línea base de este plan: casos de `L0` por construcción de E/S, pendientes por código, y usos en el programa grande (esperado al redactar: unos 125 `CONNECT TO impala`, 116 líneas con `RSUBMIT`, 22 `PROC UPLOAD`, 22 `PROC EXPORT`, 9 `PROC IMPORT`, 4 `PROC DOWNLOAD`; si el conteo difiere, anotar el real).
-- [ ] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito N n: linea base medida de entrada y salida` (con la línea `Co-Authored-By`).
+- [x] **Step 1: Write the failing test.** Con un corpus mínimo en `tmp_path` (un `L0` con `construcciones: [PROC IMPORT, KEEP]` y otro con `[INFILE, INPUT]`) y un programa de texto `CONNECT TO impala (dsn=x); ... CONNECT TO impala (dsn=x);`, `medir(tmp_path, [programa])["construcciones"]["PROC IMPORT"] == {"casos": 1, "pendientes": {}, "usos_programas": 0}` y `["CONNECT TO"]["usos_programas"] == 2`; un caso listado en un `migrar_pendientes.yaml` mínimo con `P-FORMATO-SIN-SOPORTE` aparece en `pendientes` de su construcción.
+- [x] **Step 2: Run test to verify it fails.** `uv run python -m pytest tests/unit/test_linea_base_es.py -q -p no:cacheprovider`; esperado: no existe el módulo.
+- [x] **Step 3: Implement** `medir` leyendo los `caso.yaml` con `corpus_lib.caso`; los programas se leen solo si se pasan por línea de comandos (`uv run python tools/linea_base_es.py tests/corpus --programa tests/fixtures/sas/client/client_large.sas`). Sin dependencias nuevas.
+- [x] **Step 4: Run test to verify it passes**, correr la herramienta sobre `tests/corpus` y el programa grande, y pegar en `PROGRESS.md` la línea base de este plan: casos de `L0` por construcción de E/S, pendientes por código, y usos en el programa grande (esperado al redactar: unos 125 `CONNECT TO impala`, 116 líneas con `RSUBMIT`, 22 `PROC UPLOAD`, 22 `PROC EXPORT`, 9 `PROC IMPORT`, 4 `PROC DOWNLOAD`; si el conteo difiere, anotar el real).
+- [x] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito 247n: linea base medida de entrada y salida`.
 
 ---
 
