@@ -6,6 +6,7 @@ import re
 
 from sgm.frontend.steps import Proc
 from sgm.ir.builder import Builder, qualify
+from sgm.ir.lower_procs_append import lower_append
 from sgm.ir.lower_procs_common import unsupported as _unsupported
 from sgm.ir.lower_procs_limpieza import lower_limpieza
 from sgm.ir.lower_procs_sort import lower_sort
@@ -166,23 +167,20 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
         lower_limpieza(step, ev, b)
     elif name in REPORT_PROCS and not out:  # con OUT= produce un dataset que otros pasos leen
         _report(step, ev, b, data)
-    elif name == "append" and _same_dataset(step.options.get("base"), data):
-        _unsupported(
-            step,
-            ev,
-            b,
-            "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= "
-            "identifican la misma tabla no está demostrada por la referencia SAS disponible",
-            pending_code=P_APPEND_MISMA_TABLA,
-        )
-    elif name == "append" and (limite := _append_limitation(step)):
-        _unsupported(
-            step,
-            ev,
-            b,
-            limite,
-            pending_code=P_APPEND_OPCION_NO_SOPORTADA,
-        )
+    elif name == "append":
+        if _same_dataset(step.options.get("base"), data):
+            _unsupported(
+                step,
+                ev,
+                b,
+                "Pendiente: P-APPEND-MISMA-TABLA; la semántica de APPEND cuando BASE= y DATA= "
+                "identifican la misma tabla no está demostrada por la referencia SAS disponible",
+                pending_code=P_APPEND_MISMA_TABLA,
+            )
+        elif limite := _append_limitation(step):
+            _unsupported(step, ev, b, limite, pending_code=P_APPEND_OPCION_NO_SOPORTADA)
+        elif (spec := declared(name)) is None or not lower_append(step, ev, b, spec):
+            _unsupported(step, ev, b, "PROC APPEND sin BASE= y DATA=")
     elif name == "sort":
         lower_sort(step, ev, b)
     elif (spec := declared(name)) is not None:  # append, means, summary, freq: en YAML (F1.4)

@@ -13,3 +13,8 @@ entries:
     fuente: proc.pdf, p. 573
     estado: reconocida
     nota: 'SELECT estático con OUT=WORK distinto de IN= produce lectura y escritura por miembro (pp. 573–575); sin SELECT: P-COPY-SIN-LISTA; destino persistente: P-COPY-PERSISTENTE; mismas bibliotecas: P-COPY-MISMA-BIBLIOTECA.'
+  - id: append
+    nombre: PROC APPEND
+    fuente: proc.pdf, p. 161
+    estado: reconocida
+    nota: 'BASE y DATA estáticos y distintos escriben sobre BASE; las bases nuevas de WORK se crean desde DATA (p. 639). FORCE se requiere cuando DATA añade variables, cambia el tipo o trae una longitud mayor; esas discrepancias y bases permanentes sin fuente quedan pendientes (p. 640).'

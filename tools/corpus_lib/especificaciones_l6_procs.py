@@ -11,6 +11,17 @@ def _copiar_ventas(entradas: dict[str, list[dict]]) -> list[dict]:
     return [dict(fila) for fila in entradas["VENTAS"]]
 
 
+def _append_repetido(entradas: dict[str, list[dict]]) -> dict[str, list[dict]]:
+    """Añade dos fuentes a la misma base y crea otra base con una fuente distinta."""
+    acumulada = [
+        *entradas["ACUM"],
+        *entradas["N1"],
+        *entradas["N2"],
+    ]
+    nueva = [dict(fila) for fila in entradas["N1"]]
+    return {"ACUM": acumulada, "OTRA": nueva}
+
+
 ESPECIFICACIONES_L6_PROCS: dict[str, dict] = {
     "l6_63_limpieza_work": {
         "construcciones": [
@@ -42,6 +53,36 @@ ESPECIFICACIONES_L6_PROCS: dict[str, dict] = {
             "(pp. 613, 627) afectan o describen miembros explícitos de WORK. El miembro ventas2 "
             "se crea antes de borrarlo. La salida esperada conserva las dos filas de VENTAS; no "
             "se infieren tipos de producción ni una salida de metadatos."
+        ),
+    },
+    "l6_64_append_repetido_y_base_nueva": {
+        "construcciones": ["PROC APPEND", "BASE nueva", "BASE repetida"],
+        "entradas": {
+            "ACUM": (["id", "v"], [(1, "a"), (2, "b")]),
+            "N1": (["id", "v"], [(3, "c")]),
+            "N2": (["id", "v"], [(4, "d"), (5, "e")]),
+        },
+        "calculo_salidas": _append_repetido,
+        "columnas": ["id", "v"],
+        "salidas": ["ACUM", "OTRA"],
+        "programa": (
+            "PROC IMPORT DATAFILE='.../entradas/ACUM.csv' "
+            "OUT=WORK.ACUM DBMS=CSV REPLACE;\nGETNAMES=YES;\nRUN;\n"
+            "PROC IMPORT DATAFILE='.../entradas/N1.csv' "
+            "OUT=WORK.N1 DBMS=CSV REPLACE;\nGETNAMES=YES;\nRUN;\n"
+            "PROC IMPORT DATAFILE='.../entradas/N2.csv' "
+            "OUT=WORK.N2 DBMS=CSV REPLACE;\nGETNAMES=YES;\nRUN;\n"
+            "PROC APPEND BASE=WORK.ACUM DATA=WORK.N1;\nRUN;\n"
+            "PROC APPEND BASE=WORK.ACUM DATA=WORK.N2;\nRUN;\n"
+            "PROC APPEND BASE=WORK.OTRA DATA=WORK.N1;\nRUN;\n"
+        ),
+        "fuentes": [URL_PROC],
+        "invariantes": ["filas(ACUM) == 5", "filas(OTRA) == 1"],
+        "razonamiento": (
+            "PROC APPEND agrega las observaciones de DATA al final de BASE (proc.pdf, p. 161). "
+            "Cuando BASE no existe, SAS crea el conjunto y lo deja como el conjunto actual; el "
+            "argumento DATA contiene las filas añadidas (proc.pdf, p. 639). Las llamadas repetidas "
+            "se encadenan en el orden escrito. No se usan FORCE ni opciones adicionales."
         ),
     },
 }

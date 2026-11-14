@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- PROC APPEND
+- BASE nueva
+- BASE repetida
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- ACUM
+- OTRA
+razonamiento: PROC APPEND agrega las observaciones de DATA al final de BASE (proc.pdf, p. 161). Cuando BASE no existe, SAS crea el conjunto y lo deja como el conjunto actual; el argumento DATA contiene las filas añadidas (proc.pdf, p. 639). Las llamadas repetidas se encadenan en el orden escrito. No se usan FORCE ni opciones adicionales.
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/proc/content/proc.pdf?locale=en
+invariantes:
+- filas(ACUM) == 5
+- filas(OTRA) == 1

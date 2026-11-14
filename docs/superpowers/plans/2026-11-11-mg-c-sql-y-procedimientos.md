@@ -801,7 +801,7 @@ DATA WORK.salida; SET WORK.ventas; RUN;
 
 ### Task C-21: `PROC APPEND` con base nueva, repetido y en bucle (MG-P6-04, parte 2; serie `n`)
 
-Páginas (`proc.pdf`): `APPEND Procedure` (p. 161), `Syntax` (p. 162), `Usage` (p. 163) y `Example 1: Concatenating Two SAS Data Sets` (p. 163). `proc-append.yaml` emite hoy `union` con `sources: [base, data]`, sin decir que el **resultado es la propia base** (cambia el dataset `BASE=`). Verificar en p. 162 y 163: qué pasa si `BASE=` no existe (SAS lo crea como copia de `DATA=`) y si `DATA=` trae una columna que `BASE=` no tiene (sin `FORCE` es un error); lo que no esté en el texto queda `Pendiente: P-APPEND-BASE-NUEVA` o `P-APPEND-COLUMNAS-DISTINTAS`.
+Páginas (`proc.pdf`): `APPEND Procedure` (p. 161), `Syntax` (p. 162), `Usage` (p. 163), `Example 1` (p. 163), `APPEND Statement` (p. 639) y opción `FORCE` (p. 640). `proc-append.yaml` emite hoy `union` con `sources: [base, data]`, sin decir que el **resultado es la propia base** (cambia el dataset `BASE=`). Las pp. 639–640 precisan que una base inexistente se crea y que `FORCE` cubre variables ausentes en BASE, tipos distintos o longitudes mayores. Sin fuente de lectura para una base permanente, queda `Pendiente: P-APPEND-BASE-EXTERNA-SIN-FUENTE`; una columna adicional en DATA queda `P-APPEND-COLUMNAS-DISTINTAS` y diferencias de tipo o longitud, `P-APPEND-ATRIBUTOS-DISTINTOS`.
 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\procs\proc-append.yaml` (`outputs: ["{qualified:base}"]`: la salida es la base, en versión nueva)
@@ -809,24 +809,25 @@ Páginas (`proc.pdf`): `APPEND Procedure` (p. 161), `Syntax` (p. 162), `Usage` (
 - Create (generado): `tests\corpus\L6\l6_64_append_repetido_y_base_nueva`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l6_procs.py`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_proc_append.py`
+- Modify: `docs/politica-procedimientos.md` y `rules/sas/catalogo/procedimientos-migrador.yaml`
 
 **Interfaces:**
-- Consumes: `concatenar(op_id, sources, evidence=None) -> Operator`, `lower_declared(...)`, la versión de tabla de C-13 (`WORK.t#2`).
-- Produces: `def lower_append(step: Proc, ev: Evidence, b: Builder, version: int) -> str`: devuelve el nombre de la nueva versión de `BASE=`. En un bucle (`%DO ... %END` ya expandido por el expansor de macros), cada vuelta es una versión: el Plan E entrega las vueltas expandidas y esta tarea las encadena; si el bucle no está expandido, `P-APPEND-EN-BUCLE-SIN-EXPANDIR`.
+- Consumes: `lower_declared(...)`, `Builder` y las salidas de operadores previos.
+- Produces: `lower_append(step, evidence, builder, spec)`: una base previamente escrita genera `union` con `outputs=[BASE]`; una base nueva de WORK copia el flujo de DATA con un mapa identidad. La pasada `p01_graph` centraliza las versiones y las nombra `@vN`. Una base permanente sin lectura demostrable queda pendiente. Las vueltas estáticas expandidas por el frontend encadenan las escrituras; una macro dinámica conserva el pendiente del frontend, sin atribuirle una ejecución.
 
-**Caso `L6/l6_64_append_repetido_y_base_nueva` (`capa: B`, `estado: revisado`, razonamiento: «proc, p. 162 y 163»).**
+**Caso `L6/l6_64_append_repetido_y_base_nueva` (`capa: B`, `estado: revisado`, razonamiento: «proc.pdf, pp. 161 y 639»).**
 ```sas
 PROC APPEND BASE=WORK.acum DATA=WORK.n1; RUN;
 PROC APPEND BASE=WORK.acum DATA=WORK.n2; RUN;
 PROC APPEND BASE=WORK.otra DATA=WORK.n1; RUN;
 ```
-Entradas: `acum` (`id,v`): `1,a` / `2,b`; `n1`: `3,c`; `n2`: `4,d` / `5,e`. Esperado a mano: `acum` = `1,a` / `2,b` / `3,c` / `4,d` / `5,e` (las dos adiciones se acumulan en orden); `otra` = `3,c` (base nueva: copia de `n1`, si p. 162-163 lo dice; si no, el tercer `PROC APPEND` se quita del caso y queda `P-APPEND-BASE-NUEVA`). Invariante: `filas(acum) == 5`.
+Entradas: `acum` (`id,v`): `1,a` / `2,b`; `n1`: `3,c`; `n2`: `4,d` / `5,e`. Esperado a mano: `acum` = `1,a` / `2,b` / `3,c` / `4,d` / `5,e` (las dos adiciones se acumulan en orden); `otra` = `3,c` (base nueva: SAS crea BASE y añade DATA, proc.pdf, pp. 161 y 639). Invariante: `filas(acum) == 5`.
 
-- [ ] **Step 1: Write the failing tests.** Dos `PROC APPEND` seguidos sobre la misma base dan dos versiones encadenadas (`acum#2`, `acum#3`) y el último es el visible; el caso coincide en el anillo B; `DATA=` con una columna que no está en `BASE=` da `P-APPEND-COLUMNAS-DISTINTAS`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_proc_append.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement.** La escritura final de la base usa el mecanismo `APPEND` secuencial (no `tUnite`).
-- [ ] **Step 4: Run** los tests, `tests/unit/test_proc_rules.py`, `tests/unit/test_corpus_l4l6.py` y el golden. Catálogo: `append`, p. 161.
-- [ ] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito N n: PROC APPEND con versiones de base y base nueva`.
+- [x] **Step 1: Write the failing tests.** Dos `PROC APPEND` seguidos sobre la misma base dan versiones encadenadas (`acum@v2`, `acum@v3`, con la versión inicial en `acum`); una base nueva de WORK contiene las filas de DATA; el caso coincide en el anillo B; `DATA=` con una columna que no está en `BASE=` da `P-APPEND-COLUMNAS-DISTINTAS`.
+- [x] **Step 2: Run tests to verify they fail.** La primera corrida falló porque APPEND no declaraba BASE como salida ni distinguía las columnas que DATA agrega; `test_proc_append.py` ahora cubre seis variantes.
+- [x] **Step 3: Implement.** La base existente usa unión acumulativa con salida sobre BASE. Una base nueva de WORK usa un mapa identidad para no emitir `tUnite` con una sola entrada. La emisión compara las columnas conocidas de BASE y DATA y detiene la traducción si DATA agrega una variable, cambia el tipo o supera la longitud de BASE sin `FORCE`.
+- [x] **Step 4: Run** los tests, `tests/unit/test_proc_rules.py`, `tests/unit/test_corpus_l4l6.py` y el golden. Catálogo: `append`, p. 161. Suite final: 4.150 aprobadas, 354 omitidas y 145 `xfail`; cruces, oráculo y tablero en verde.
+- [x] **Step 5: Run** `uv run ruff check src tests tools` y la compuerta `uv run python tools/ci.py`. Commit local: `hito 246n: encadena PROC APPEND sobre BASE y crea bases nuevas de WORK`.
 
 ---
 

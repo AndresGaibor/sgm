@@ -36,6 +36,23 @@ durante la ejecución; eso requiere acceso al catálogo de origen y podría copi
 alcance esperado, así que no se activa automáticamente. Las opciones, banderas y nombres dinámicos
 no modelados quedan pendientes.
 
+## `PROC APPEND`
+
+Con `BASE=` y `DATA=` estáticos y distintos, el operador escribe el resultado sobre `BASE=`; las
+llamadas sucesivas actualizan versiones encadenadas de esa misma tabla (`proc.pdf`, pp. 161, 639).
+Si una base nueva pertenece a `WORK` y no tiene escritor previo en el programa, se copia el flujo
+de `DATA=` a ese nombre. Una base permanente sin escritor ni lector demostrable queda como
+`P-APPEND-BASE-EXTERNA-SIN-FUENTE`: no se asume que exista ni se omite su contenido inicial.
+
+No se emite la variante con `FORCE`. Si los esquemas conocidos muestran una columna adicional en
+`DATA=`, el migrador deja `P-APPEND-COLUMNAS-DISTINTAS`; si el tipo difiere o la columna de
+`DATA=` supera la longitud de `BASE=`, deja `P-APPEND-ATRIBUTOS-DISTINTOS`. SAS documenta esas
+condiciones para `FORCE` en `proc.pdf`, p. 640. Cuando los nombres existen en ambos lados pero no
+se puede demostrar el orden compatible que requiere el emisor, la unión también queda pendiente.
+Las opciones de dataset, opciones PROC, sentencias adicionales, referencias dinámicas y la
+autocopia de una tabla sobre sí misma conservan sus pendientes existentes; no se convierten a una
+unión genérica.
+
 ## Reportes y `PROC CONTENTS`
 
 El valor predeterminado `reports=discard` omite la salida impresa con un aviso. Solo `PROC PRINT`

@@ -1,7 +1,7 @@
-description: "PROC APPEND con BASE= y DATA=: unión tUnite."
+description: "PROC APPEND actualiza la BASE previamente creada."
 input: input.sas
 env: default
 expect:
   operators:
-    - { kind: union, component: tUnite }
+    - { kind: union, component: tUnite, outputs: [WORK.destino] }
   gaps: []

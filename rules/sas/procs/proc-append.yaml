@@ -3,12 +3,13 @@ kind: proc
 version: 1
 status: parcial
 proc: append
-description: "Subconjunto de PROC APPEND: solo BASE= y DATA= distintos y estáticos, sin opciones de dataset, opciones PROC ni sentencias adicionales (proc.pdf, pp. 161–162). Las demás formas quedan pendientes."
+description: "Subconjunto de PROC APPEND: BASE= y DATA= distintos y estáticos, sin opciones de dataset, opciones PROC ni sentencias adicionales. La salida reemplaza BASE=; FORCE y otras variantes quedan pendientes (proc.pdf, pp. 161–162, 639–640)."
 when_options: [base, data]
 ops:
   - kind: union
     params:
       sources: ["{qualified:base}", "{qualified:data}"]
+      outputs: ["{qualified:base}"]
 fallback:
   reason: PROC_NO_SOPORTADO
   note: "PROC APPEND sin BASE= y DATA="

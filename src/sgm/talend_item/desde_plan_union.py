@@ -21,6 +21,8 @@ from sgm.talend_item.plantillas import nodo_desde_plantilla
 UNION_ESQUEMAS = "P-UNION-ESQUEMAS-DISTINTOS"
 UNION_SIN_TODO = "P-UNION-SIN-ALL"
 UNION_SIN_ESQUEMA = "P-UNION-SIN-ESQUEMA"
+APPEND_COLUMNAS_DISTINTAS = "P-APPEND-COLUMNAS-DISTINTAS"
+APPEND_ATRIBUTOS_DISTINTOS = "P-APPEND-ATRIBUTOS-DISTINTOS"
 
 
 def nodo_union(
@@ -38,6 +40,37 @@ def nodo_union(
     if not op.params.get("all", True):
         motivo = "UNION sin ALL quita duplicados y necesita un tUniqRow detrás: no se escribe"
         return ResultadoOrden(pendientes=[PendienteMigracion(UNION_SIN_TODO, motivo, linea)])
+    if (op.origin or "").casefold() == "proc_append" and len(entradas) == 2:
+        base = {columna.nombre.lower(): columna for columna in entradas[0]}
+        fuente = entradas[1]
+        adicionales = [
+            columna.nombre for columna in fuente if columna.nombre.lower() not in base
+        ]
+        if adicionales:
+            motivo = (
+                f"DATA contiene columnas que BASE no tiene ({', '.join(adicionales)}); "
+                "SAS requiere FORCE para esa forma y FORCE no está soportado "
+                "(proc.pdf, p. 640)"
+            )
+            return ResultadoOrden(
+                pendientes=[PendienteMigracion(APPEND_COLUMNAS_DISTINTAS, motivo, linea)]
+            )
+        for columna in fuente:
+            destino = base[columna.nombre.lower()]
+            tipo_distinto = columna.tipo != destino.tipo
+            longitud_mayor = (
+                destino.longitud >= 0
+                and columna.longitud > destino.longitud
+            )
+            if tipo_distinto or longitud_mayor:
+                motivo = (
+                    f"DATA tiene atributos incompatibles para {columna.nombre}; SAS requiere "
+                    "FORCE cuando el tipo difiere o la variable es más larga "
+                    "(proc.pdf, p. 640)"
+                )
+                return ResultadoOrden(
+                    pendientes=[PendienteMigracion(APPEND_ATRIBUTOS_DISTINTOS, motivo, linea)]
+                )
     primera = [c.nombre.lower() for c in entradas[0]]
     for otra in entradas[1:]:
         if [c.nombre.lower() for c in otra] != primera:

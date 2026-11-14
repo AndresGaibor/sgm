@@ -315,12 +315,15 @@ def test_nodup_sin_clave_es_dedup_parcial():
 
 def test_proc_append_es_union_proc_import_read_file_y_export_write_file():
     text = (
+        "proc import datafile='base.csv' out=work.a dbms=csv; run;\n"
+        "proc import datafile='new.csv' out=work.b dbms=csv; run;\n"
         "proc append base=a data=b; run;\n"
         'proc import datafile="in.csv" out=work.c dbms=csv replace; run;\n'
         'proc export data=work.c outfile="out.csv" dbms=csv; run;\n'
     )
     ops = _ops(text)
-    assert _kinds(ops) == ["union", "read_file", "write_file"]
+    assert _kinds(ops) == ["read_file", "read_file", "union", "read_file", "write_file"]
+    assert ops[2].params["outputs"] == ["WORK.a"]
 
 
 def test_proc_append_sobre_la_misma_tabla_queda_pendiente():
