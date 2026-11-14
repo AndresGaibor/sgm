@@ -18,7 +18,7 @@ entries:
   nombre: w.d
   fuente: leforinforref.pdf, p. 556
   estado: reconocida
-  nota: 'regla `numerico` con decimales (BigDecimal): 8.2 y 6.2 en el corpus; sin punto, d son decimales'
+  nota: 'regla `numerico` con decimales (BigDecimal): el dato con punto conserva sus decimales; si no contiene punto, d es la potencia de diez por la que se divide (p. 744)'
 - id: date
   nombre: DATEw.
   fuente: leforinforref.pdf, p. 649

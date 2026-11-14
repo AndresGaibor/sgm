@@ -292,10 +292,22 @@ def esquemas_de_entrada(
             for nombre, largo in (op.params.get("input_lengths") or {}).items()
             if isinstance(largo, int) and not isinstance(largo, bool) and largo > 0
         }
+        tipos_codigo_input = {
+            str(nombre).lower(): str(tipo)
+            for nombre, tipo in (op.params.get("input_type_codes") or {}).items()
+        }
+        tipos_talend_input = {
+            "bigdecimal": "BigDecimal",
+            "date": "Date",
+            "double": "Double",
+            "long": "Long",
+            "string": "String",
+        }
         esquemas[tabla] = [
             Column(
                 nombre,
-                {"caracter": "String", "numerico": "Double"}.get(
+                tipos_talend_input.get(tipos_codigo_input.get(nombre.lower(), "").lower())
+                or {"caracter": "String", "numerico": "Double"}.get(
                     tipos_input.get(nombre.lower()),
                     "Double"
                     if nombre.lower() in numericas

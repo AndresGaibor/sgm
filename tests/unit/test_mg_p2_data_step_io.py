@@ -163,7 +163,7 @@ def test_lectura_posicional_queda_pendiente_sin_plantilla_de_studio():
     assert any(p.codigo == "P-COMPONENTE-SIN-PLANTILLA" for p in result.pendientes)
 
 
-def test_informat_reconocido_queda_explicito_hasta_la_traduccion_de_p2_03():
+def test_informat_de_fecha_sigue_pendiente_hasta_demostrar_su_conversion():
     result = nodo_lectura(
         _op(
             datafile="'/datos/entrada.txt'",

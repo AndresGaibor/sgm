@@ -7349,3 +7349,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Studio: `uv run python tools/validar_caso_studio.py l0_22_infile_lista_dsd_missover` llegó al arnés, pero el MCP en `127.0.0.1:3927` devolvió `BRIDGE_DEAD`; el caso quedó en `out/studio-pendientes.json`. No se cuenta como validado y el lote C queda pendiente.
 - Cierre integral staged: `uv run python tools/ci.py` verde; 4.256 aprobadas, 354 omitidas y 145 `xfail`. Ruff 0,2 s, suite 104,6 s, cruces 4,9 s, oráculo 2,7 s y tablero 12,3 s. El tablero queda en 172 casos (22 L0) y 170 con esperado.
 - Decisiones y límites: `TRUNCOVER` no se equipara a `MISSOVER`; la guía muestra diferencias y recomienda `TRUNCOVER` para lectura por columna/formateada. Los valores de registro siguen en texto en el intérprete del corpus; el esquema Talend conserva los tipos SAS demostrados. Sin dependencias nuevas, conexiones a bases ni push.
+
+## Hito 257n. Interpreta `INFILE/INPUT` por columna y formateado
+
+- Fecha: 2026-11-14. Base: `00a5afe` (hito 256n), rama `codex/integrar-main-preflight`. MG-P2-02 / D2-10.
+- `INPUT` ahora conserva posiciones y anchos para rangos de columna e informats literales con punteros absolutos `@n`. Controles relativos, de línea, dinámicos y estructuras no reconocidas quedan `unknown`; no se generan posiciones supuestas.
+- El intérprete B procesa registros fijos por separado bajo `TRUNCOVER`. `$w.` conserva el texto; `w.` y `w.d` interpretan números decimales, respetan el punto decimal explícito y aplican `10**d` solo cuando no existe punto. `COMMAw.d` no se convierte hasta que exista la conversión de D1 para archivos.
+- La IR conserva cada campo posicional y `informat_type` declara `String(5)`, `Double` y `BigDecimal` en el ejemplo. Se agregó `L0/l0_23_infile_columna_formateado` con cuatro registros; el anillo B coincide con el esperado, incluso en el registro corto.
+- Se corrigió el plegado de una salida `WORK` que era alias directo de un lector posicional: cuando falta su plantilla, el flujo ya no agrega un pendiente genérico duplicado. El caso conserva solamente `P-COMPONENTE-SIN-PLANTILLA`; las salidas de biblioteca mantienen su diagnóstico.
+- Pruebas focales antes del cierre: 176 aprobadas y 5 `xfail`; tras el ajuste de plegado pasaron además el caso, la aceptación de pendientes y el conteo del tablero. `ruff check .` y `git diff --check` verdes.
+- Studio: `validar_caso_studio.py l0_23_infile_columna_formateado` no produjo Job porque falta la plantilla real `tFileInputPositional`; queda registrado como pendiente y no se cuenta como validado. No se fabricó una plantilla.
+- Decisiones y límites: el intérprete solo traduce `$w.`, `w.` y `w.d`; informats no implementados y controles de puntero adicionales conservan pendientes explícitos. El lote C espera la extracción de plantilla desde Studio. Sin dependencias nuevas, conexiones a bases ni push.
+- Cierre integral previo al commit: `uv run python tools/ci.py`; el resultado verde queda verificado por el gancho local de commit.

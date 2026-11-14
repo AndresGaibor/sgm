@@ -1,0 +1,21 @@
+nivel: L0
+tema: INFILE e INPUT por columnas y formateado con TRUNCOVER
+construcciones:
+  - DATA
+  - INFILE
+  - TRUNCOVER
+  - INPUT por columna
+  - INPUT formateado
+  - informats $w., w. y w.d
+capa: C
+estado: traducible
+motivo: >-
+  La lectura por columnas está calculada en el anillo B con informats simples documentados. La
+  plantilla de tFileInputPositional y su validación en Studio siguen pendientes.
+salidas: [mov]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  lestmtsref.pdf, p. 195 y 199 define las posiciones, anchos e informats del INPUT; p. 137 explica
+  que TRUNCOVER no avanza a la siguiente línea y deja faltantes los campos sin valor. leforinforref.pdf,
+  p. 616 documenta $w. y p. 744 define d como potencia de diez cuando el dato no tiene punto decimal.

@@ -125,7 +125,13 @@ def esquemas_desde_programa(
     esquemas, pendientes = esquemas_de_entrada(plan, {}, None)
     pendientes = [p for p in pendientes if p.codigo != "P-TIPO-DESCONOCIDO"]
     tipos_input = {
-        str(salida).lower(): {str(k).lower() for k in (op.params.get("input_types") or {})}
+        str(salida).lower(): {
+            str(k).lower()
+            for k in {
+                **(op.params.get("input_types") or {}),
+                **(op.params.get("input_type_codes") or {}),
+            }
+        }
         for op in plan.graph.operators()
         if op.kind == "read_file"
         for salida in op.params.get("outputs") or []

@@ -10,7 +10,7 @@ from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_bloques import bloque_condicional
 from sgm.ir.lower_data_grupos import programa_por_grupo
 from sgm.ir.models import Evidence, Operator
-from sgm.ir.types_code import declared_types
+from sgm.ir.types_code import declared_types, informat_type
 
 _HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
 _IF_ASSIGN = re.compile(r"(?is)^if\s+(.*?)\s+then\s+([\w]+)\s*=\s*(.+)$")
@@ -130,6 +130,27 @@ def _read_file(stmts: list[DsStatement], ev: Evidence, b: Builder) -> Operator |
             params["input_lengths"] = dict(input_stmt.fields["lengths"])
         if input_stmt.fields.get("informats"):
             params["input_informats"] = dict(input_stmt.fields["informats"])
+        if input_stmt.fields.get("fields"):
+            params["input_positions"] = list(input_stmt.fields["fields"])
+            type_codes: dict[str, str] = {}
+            input_types = dict(params.get("input_types") or {})
+            input_lengths = dict(params.get("input_lengths") or {})
+            for name, informat in (input_stmt.fields.get("informats") or {}).items():
+                declared = informat_type(str(informat))
+                if declared is None:
+                    continue
+                type_codes[str(name)] = declared.type
+                if declared.type == "String":
+                    input_types[str(name)] = "caracter"
+                elif declared.type != "Date":
+                    input_types[str(name)] = "numerico"
+                if declared.length is not None:
+                    input_lengths[str(name)] = declared.length
+            params["input_type_codes"] = type_codes
+            if input_types:
+                params["input_types"] = input_types
+            if input_lengths:
+                params["input_lengths"] = input_lengths
         if input_stmt.fields["mode"] != "list":
             params["file_format"] = "positional"
         elif infile is not None:

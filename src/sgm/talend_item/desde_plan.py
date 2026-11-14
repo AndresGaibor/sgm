@@ -221,7 +221,18 @@ class _Job:
             previos = self.plan.graph.predecessors(op_id)
             if previos:
                 self._alias[op_id] = previos[0]
-                return self._plegar(op_id, previos[0], visto)
+                resultado = self._plegar(op_id, previos[0], visto)
+                productor = self.plan.graph.operator(previos[0])
+                if (
+                    resultado is None
+                    and op.placement == "flow"
+                    and productor.kind == "read_file"
+                    and productor.params.get("file_format") == "positional"
+                ):
+                    # La salida WORK de esta lectura solo da nombre al flujo: el pendiente de la
+                    # plantilla ya explica por qué no se materializó y no se duplica como genérico.
+                    self.plegados.add(op_id)
+                return resultado
         return None
 
     def _plegar(self, op_id: str, representante: str, visto: set[str]) -> str | None:
@@ -881,7 +892,7 @@ class _Job:
             if op.kind == "read" and (op.placement or "").startswith("db:"):
                 self._paso_directo(op, x)
                 return
-            if self._resolver(op.id) is None:
+            if self._resolver(op.id) is None and op.id not in self.plegados:
                 self._sin_soporte(op)
             return
         componente = str((op.component or {}).get("name") or "none")

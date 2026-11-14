@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from sgm.ir.models import Plan
 from sgm.migrar.ficha import leer_ficha
 from sgm.migrar.interprete_infile import leer_lista
+from sgm.migrar.interprete_posicional import leer_columnas
 from sgm.migrar.lector_xlsx import leer_xlsx
 from tools.datos_sinteticos.ficha import validar_ficha
 
@@ -159,8 +160,9 @@ def _leer_infile(
 ) -> tuple[str, list[str], list[dict[str, str | None]]]:
     """Carga INFILE únicamente desde `entradas/` y ejecuta el INPUT de lista literal."""
     params = operator.params
-    if params.get("input_mode") != "list":
-        raise ValueError("el esperado del anillo B solo interpreta INPUT en lista")
+    input_mode = params.get("input_mode")
+    if input_mode not in {"list", "column"}:
+        raise ValueError("el esperado del anillo B no interpreta esta forma de INPUT")
     name = _nombre_fuente(params.get("datafile"))
     case_root = caso.directorio.resolve()
     root = caso.entradas.resolve()
@@ -175,10 +177,27 @@ def _leer_infile(
     except (OSError, UnicodeError) as error:
         raise ValueError(f"{name}: no se pudo leer el archivo INFILE") from error
     options = params.get("infile_options") or {}
+    names = [str(column) for column in params.get("input_names") or []]
+    if input_mode == "column":
+        positions = params.get("input_positions") or []
+        if not positions:
+            raise ValueError(f"{name}: INPUT posicional no conserva columnas literales")
+        campos = [
+            (
+                str(field["name"]),
+                int(field["start"]),
+                int(field["width"]),
+                str(field["informat"]),
+            )
+            for field in positions
+        ]
+        truncover = bool((params.get("infile_options") or {}).get("truncover"))
+        filas = leer_columnas(lines, campos, truncover)
+        return _tabla((params.get("outputs") or [""])[0]), names, filas
+
     delimiter = params.get("delimiter")
     if not isinstance(delimiter, str):
         raise ValueError(f"{name}: INFILE no tiene DLM literal")
-    names = [str(column) for column in params.get("input_names") or []]
     informats = {
         str(column).casefold(): str(informat)
         for column, informat in (params.get("input_informats") or {}).items()

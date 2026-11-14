@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 
+from sgm.frontend.input_positional import parsear_input_posicional
+
 _OPTIONS = re.compile(
     r"(?i)([a-z_]\w*)\s*(?:=\s*('[^']*(?:''[^']*)*'|\"[^\"]*(?:\"\"[^\"]*)*\"|[^\s()]+))?"
 )
@@ -66,6 +68,19 @@ def infile_fields(text: str) -> dict:
 def input_fields(text: str) -> dict:
     """Reconoce variables, modalidad y tipos que declara el `INPUT` literal."""
     body = re.sub(r"(?is)^input\s+", "", text.strip(), count=1)
+    es_posicional, posicional = parsear_input_posicional(text)
+    if es_posicional:
+        if posicional is None:
+            return {"mode": "unknown", "names": [], "raw": text}
+        return {
+            "mode": "column",
+            "names": posicional["names"],
+            "fields": posicional["fields"],
+            "informats": {
+                str(field["name"]): str(field["informat"]) for field in posicional["fields"]
+            },
+            "raw": text,
+        }
     if any(marker in body for marker in ("'", '"', "&", "~", "?")):
         return {"mode": "unknown", "names": [], "raw": text}
     tokens = _INPUT_TOKEN.findall(body)

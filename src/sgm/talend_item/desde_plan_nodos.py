@@ -11,6 +11,7 @@ apartado de `DELIMITER`). Un `DBMS` fuera de esa tabla no tiene separador demost
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Column, Operator
@@ -138,7 +139,14 @@ def nodo_lectura(
         )
         return resultado
     if file_format == "positional":
-        if params.get("input_mode") == "formatted":
+        informats = params.get("input_informats") or {}
+        simples = re.compile(r"(?i)^\$?\d+\.\d*$")
+        informat_no_soportado = any(
+            not simples.fullmatch(str(informat).strip()) for informat in informats.values()
+        )
+        if informat_no_soportado or (
+            params.get("input_mode") == "formatted" and not informats
+        ):
             resultado.pendientes.append(
                 PendienteMigracion(
                     "P-INFORMAT-SIN-SOPORTE",
