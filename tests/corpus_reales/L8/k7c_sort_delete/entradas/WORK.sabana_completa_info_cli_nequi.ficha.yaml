@@ -1,0 +1,11 @@
+tabla: work.sabana_completa_info_cli_nequi
+origen: sintetico
+filas: 8
+columnas:
+  NRO_DOC: String
+  NRO_CTA: String
+  ORDEN_FILA: String
+semilla: 20261113
+generador: tools/datos_sinteticos/manifiesto.py:generar_entradas
+procedencia: null
+nota: Tipos de fixture generado; un String no implica tipo SAS demostrado.

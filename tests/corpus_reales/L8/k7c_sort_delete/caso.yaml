@@ -1,0 +1,50 @@
+id: k7c_sort_delete
+nivel: L8
+tema: conversion de formato, NODUPKEY con EQUALS y borrado temporal
+construcciones:
+  - DATA SET con informats numéricos
+  - PROC SORT NODUPKEY EQUALS
+  - PROC DELETE
+capa: B
+estado: parcial
+motivo: >-
+  El intérprete se contrasta con fixtures sintéticos y reglas SAS documentadas. La rebanada empieza
+  en un PROC SORT cuya tabla WORK se produce fuera del fragmento; por eso el anillo A no tiene aún
+  un flujo de entrada que pueda conectar. PROC DELETE se conserva en el informe como limpieza lógica
+  de tablas WORK; el anillo C requiere Studio. No se afirma equivalencia completa de Talend.
+salidas:
+  - SABANA_DIR_UNICA_NEQUI
+tolerancia: 0
+orden_relevante: true
+supuestos:
+  - >-
+    Datos sintéticos: WORK.IMPORT_CODIGOS_PAIS contiene cinco textos con números decimales
+    válidos para el informat 10.; sus espacios iniciales sirven para comprobar LEFT y COMPRESS.
+  - >-
+    Las ocho filas de WORK.SABANA_COMPLETA_INFO_CLI_NEQUI y la columna ORDEN_FILA son decisiones
+    de fixture para hacer visibles las tres llaves duplicadas; el SAS solo demuestra BY
+    NRO_DOC NRO_CTA.
+  - >-
+    EQUALS conserva el orden relativo de observaciones empatadas y permite que NODUPKEY retenga
+    la primera observación de cada llave (proc.pdf, pp. 2491, 2494).
+  - >-
+    PROC DELETE elimina WORK.TEMPORAL después de copiarla a WORK.IMPORT_CODIGOS_PAIS
+    (proc.pdf, p. 839); se clasifica como limpieza de flujo porque el Job no materializa ese
+    temporal como salida final.
+  - >-
+    La columna Codigo_Pais de entrada se declara String únicamente en la fixture; el informat 10.
+    demuestra lectura numérica intermedia y el formato $10. demuestra salida de carácter.
+    Pendiente: P-CONVERSION-NUM-TEXTO. La salida reescrita queda pendiente porque el intérprete no
+    aplica aún RENAME= en SET; no se guarda un esperado supuesto. La columna ORDEN_FILA no forma parte
+    del SAS de origen.
+  - >-
+    La entrada sintética de SABANA_COMPLETA_INFO_CLI_NEQUI permite comprobar localmente el
+    intérprete, pero no sustituye el productor SAS que falta en esta rebanada ni habilita una
+    conexión de entrada para el Job Talend; el anillo A conserva P-OPERADOR-SIN-SOPORTE hasta que se
+    integre ese productor.
+razonamiento: >-
+  El esperado local se define directamente desde las filas declaradas y el orden SAS documentado.
+  El anillo A sigue parcial mientras no se integre el productor de la tabla de entrada. La limpieza
+  WORK queda registrada como elemento no migrado sin efecto en el flujo Talend. Además, se debe
+  verificar que tSortRow mantiene estable la fila retenida por NODUPKEY EQUALS antes de afirmar
+  equivalencia completa.

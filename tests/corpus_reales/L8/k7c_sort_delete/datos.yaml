@@ -1,0 +1,23 @@
+semilla: 20261113
+tablas:
+  WORK.IMPORT_CODIGOS_PAIS:
+    filas: 5
+    columnas: [Codigo_Pais]
+    fijos_por_fila:
+      - {Codigo_Pais: "  57"}
+      - {Codigo_Pais: " 169"}
+      - {Codigo_Pais: "  57"}
+      - {Codigo_Pais: " 170"}
+      - {Codigo_Pais: " 170"}
+  WORK.SABANA_COMPLETA_INFO_CLI_NEQUI:
+    filas: 8
+    columnas: [NRO_DOC, NRO_CTA, ORDEN_FILA]
+    fijos_por_fila:
+      - {NRO_DOC: "1001", NRO_CTA: "010", ORDEN_FILA: "1"}
+      - {NRO_DOC: "1002", NRO_CTA: "020", ORDEN_FILA: "2"}
+      - {NRO_DOC: "1001", NRO_CTA: "010", ORDEN_FILA: "3"}
+      - {NRO_DOC: "1003", NRO_CTA: "030", ORDEN_FILA: "4"}
+      - {NRO_DOC: "1002", NRO_CTA: "020", ORDEN_FILA: "5"}
+      - {NRO_DOC: "1004", NRO_CTA: "040", ORDEN_FILA: "6"}
+      - {NRO_DOC: "1005", NRO_CTA: "050", ORDEN_FILA: "7"}
+      - {NRO_DOC: "1004", NRO_CTA: "040", ORDEN_FILA: "8"}

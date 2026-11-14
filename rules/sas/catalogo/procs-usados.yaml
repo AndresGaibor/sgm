@@ -12,8 +12,8 @@ entries:
 - id: delete
   nombre: PROC DELETE
   fuente: proc.pdf, p. 837
-  estado: no_verificada
-  nota: '216 usos; borra datasets de WORK antes de recrearlos. Es limpieza, no transformación'
+  estado: reconocida
+  nota: '216 usos; PROC DELETE limitado a WORK se registra como limpieza de flujo y se omite en Talend porque no materializa temporales. Bibliotecas permanentes no se descartan.'
 - id: sort
   nombre: PROC SORT
   fuente: proc.pdf, p. 2460

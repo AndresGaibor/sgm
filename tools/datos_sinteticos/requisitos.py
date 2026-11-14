@@ -164,12 +164,11 @@ def requisitos_de_rebanada(texto: str, nombre: str = "rebanada") -> Requisitos:
     producidas: set[str] = set()
     lecturas_plan: set[str] = set()
     for op in plan.graph.operators():
+        producidas.update(
+            _nombre_tabla(salida) for salida in op.params.get("outputs") or []
+        )
         if op.kind == "write" and op.params.get("dataset"):
             producidas.add(_nombre_tabla(op.params["dataset"]))
-        elif op.kind in {"read", "read_file"}:
-            producidas.update(
-                _nombre_tabla(salida) for salida in op.params.get("outputs") or []
-            )
         if op.kind == "read" and op.params.get("dataset"):
             lecturas_plan.add(_nombre_tabla(op.params["dataset"]))
 

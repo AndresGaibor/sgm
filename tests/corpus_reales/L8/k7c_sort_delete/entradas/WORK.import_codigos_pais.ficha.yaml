@@ -1,0 +1,9 @@
+tabla: work.import_codigos_pais
+origen: sintetico
+filas: 5
+columnas:
+  Codigo_Pais: String
+semilla: 20261113
+generador: tools/datos_sinteticos/manifiesto.py:generar_entradas
+procedencia: null
+nota: Tipos de fixture generado; un String no implica tipo SAS demostrado.

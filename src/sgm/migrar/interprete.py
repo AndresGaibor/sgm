@@ -729,7 +729,8 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
     actual = _base(plan, op, {d for d in derechos if d}, por_operador, tablas)
     entrada_declarada = _primero(op.params, "inputs")
     if entrada_declarada:
-        actual = por_tabla.get(_tabla(entrada_declarada), actual)
+        nombre_entrada = _tabla(entrada_declarada)
+        actual = por_tabla.get(nombre_entrada, tablas.get(nombre_entrada, actual))
     for paso in pasos:
         clase = str(paso.get("kind") or "")
         params = paso.get("params") or {}

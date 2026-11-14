@@ -1,0 +1,11 @@
+fuente: tests/fixtures/sas/client/client_large.sas
+rangos:
+- - 45
+  - 57
+- - 15816
+  - 15819
+sha256: 8b9003d6090cd3b3c757f048a9923b4ea3a613329ce955e0f68ba7872c1d8513
+prologo: ''
+sustituciones:
+- - 'proc sort data=WORK.SABANA_COMPLETA_INFO_CLI_NEQUI '
+  - proc sort data=WORK.SABANA_COMPLETA_INFO_CLI_NEQUI
