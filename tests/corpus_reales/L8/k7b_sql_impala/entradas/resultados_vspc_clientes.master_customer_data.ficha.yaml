@@ -1,0 +1,23 @@
+tabla: resultados_vspc_clientes.master_customer_data
+origen: sintetico
+filas: 12
+columnas:
+  YEAR: String
+  MONTH: String
+  cod_tipo_doc: String
+  num_doc: String
+  nombre_cli: String
+  long_nombre1: String
+  long_nombre2: String
+  long_apellido1: String
+  long_apellido2: String
+  dir_p: String
+  cod_ciudad_dirp: String
+  cod_pais_dirp: String
+  ingestion_day: String
+  llave_sistema: String
+  cod_tipo_dirp: String
+semilla: 20261113
+generador: tools/datos_sinteticos/manifiesto.py:generar_entradas
+procedencia: null
+nota: Tipos de fixture generado; un String no implica tipo SAS demostrado.

@@ -1,0 +1,38 @@
+id: k7b_sql_impala
+nivel: L8
+tema: SQL pass-through a Impala con selección del último día de ingestión
+construcciones:
+  - PROC SQL CONNECT TO IMPALA
+  - SELECT INTO de macrovariables desde WORK
+  - CREATE TABLE con SELECT pass-through
+  - EXECUTE BY IMPALA con filtro dinámico
+capa: C
+estado: parcial
+motivo: >-
+  El esperado local de MAXDIA se obtiene desde la fixture con SQLite. No se ejecutó el Job
+  contra Impala ni Studio; el CREATE TABLE remoto y la expansión de MDAY siguen pendientes.
+salidas:
+  - MAXDIA
+tolerancia: 0
+orden_relevante: true
+supuestos:
+  - >-
+    Datos sintéticos: la fixture contiene 12 filas para resultados_vspc_clientes.master_customer_data;
+    9 corresponden a septiembre de 2026 y 3 a agosto.
+  - >-
+    Datos sintéticos: las 9 filas de septiembre usan tres días y cuatro de ellas corresponden
+    al máximo 2026-09-28; estos valores son decisiones de la fixture.
+  - >-
+    Las asignaciones de ANIO, MES y MDAY desde WORK son dinámicas; el manifiesto fija valores
+    de prueba, no demuestra el vínculo de negocio con un origen real.
+  - >-
+    Pendiente: el SAS no demuestra los tipos de YEAR y MONTH; las columnas desconocidas se
+    mantienen como String de fixture y no se presentan como tipos Impala confirmados.
+  - >-
+    Pendiente: MDAY se obtiene desde MAXDIA durante la ejecución y no se sustituye por un
+    valor constante en el Job. La migración actual informa P-OPERADOR-SIN-SOPORTE en la lectura,
+    SELECT INTO y SQL remoto; también emite P-CONEXION-BASE para DEV/QA/PROD.
+razonamiento: >-
+  MAXDIA contiene MAX(ingestion_day) para YEAR 2026 y MONTH 9. El valor esperado se calcula
+  mediante SQLite sobre las 12 filas sintéticas. La creación de proceso_vspc_finanzas.mcdq
+  requiere ejecutar la consulta remota y queda fuera de esta validación local.

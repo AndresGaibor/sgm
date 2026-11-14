@@ -1,0 +1,42 @@
+semilla: 20261113
+tablas:
+  work.validacion_fecha:
+    filas: 1
+    columnas: [AÑO, MES, DIA]
+    fijos:
+      AÑO: "2026"
+      MES: "9"
+      DIA: "28"
+  resultados_vspc_clientes.master_customer_data:
+    filas: 12
+    columnas:
+      - cod_tipo_doc
+      - num_doc
+      - nombre_cli
+      - long_nombre1
+      - long_nombre2
+      - long_apellido1
+      - long_apellido2
+      - dir_p
+      - cod_ciudad_dirp
+      - cod_pais_dirp
+      - YEAR
+      - MONTH
+      - ingestion_day
+      - llave_sistema
+      - cod_tipo_dirp
+    fijos:
+      YEAR: "2026"
+    fijos_por_fila:
+      - {MONTH: "9", ingestion_day: "2026-09-26"}
+      - {MONTH: "9", ingestion_day: "2026-09-26"}
+      - {MONTH: "9", ingestion_day: "2026-09-27"}
+      - {MONTH: "9", ingestion_day: "2026-09-27"}
+      - {MONTH: "9", ingestion_day: "2026-09-27"}
+      - {MONTH: "9", ingestion_day: "2026-09-28"}
+      - {MONTH: "9", ingestion_day: "2026-09-28"}
+      - {MONTH: "9", ingestion_day: "2026-09-28"}
+      - {MONTH: "9", ingestion_day: "2026-09-28"}
+      - {MONTH: "8", ingestion_day: "2026-08-31"}
+      - {MONTH: "8", ingestion_day: "2026-08-31"}
+      - {MONTH: "8", ingestion_day: "2026-08-31"}

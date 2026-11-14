@@ -34,6 +34,23 @@ def test_macros_no_se_convierten_en_valores_inventados():
     ]
 
 
+def test_requisitos_incluye_filtro_dinamico_de_execute_passthrough():
+    text = """
+    proc sql;
+      connect to impala (dsn=IMPALAP);
+      execute (
+        create table proceso.mcdq as
+        select i.id from lib.t as i where i.ingestion_day=&MDAY.
+      ) by impala;
+      quit;
+    """
+
+    required, dynamic = valores_exigidos(text)
+
+    assert required == {}
+    assert dynamic == ["lib.t.ingestion_day = &MDAY"]
+
+
 def test_macro_en_comillas_dobles_dinamica_y_comilla_simple_literal():
     quoted, quoted_dynamic = valores_exigidos(
         'proc sql; select t.year from lib.t t where t.year="&ANIO."; quit;'

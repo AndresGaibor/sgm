@@ -29,6 +29,8 @@ def generar_filas(
     filas: int,
     semilla: int = 20261104,
     exigidos: Mapping[str, Sequence[str]] | None = None,
+    *,
+    fijos_por_fila: Sequence[Mapping[str, str]] = (),
 ) -> tuple[list[str], list[list[str]], list[str]]:
     """Genera filas y avisa de tipos no soportados, sin suponer valores externos."""
     nombres, datos = generar_tabla(f"{semilla}:{tabla}", entrada_desde_esquema(columnas, filas))
@@ -41,6 +43,18 @@ def generar_filas(
         for i, valor in enumerate(valores):
             indice = indices[nombre.casefold()]
             datos[i][indice] = validar_valor(valor, columnas[indice].type)
+    por_columna = {columna.name.casefold(): columna for columna in columnas}
+    if len(fijos_por_fila) > filas:
+        raise ValueError(f"{tabla}: fijos_por_fila tiene más filas que el manifiesto")
+    for numero, valores in enumerate(fijos_por_fila):
+        for nombre, valor in valores.items():
+            indice = indices.get(nombre.casefold())
+            if indice is None:
+                raise ValueError(f"{tabla}: columna fija por fila no declarada: {nombre}")
+            try:
+                datos[numero][indice] = validar_valor(valor, por_columna[nombre.casefold()].type)
+            except ValueError as error:
+                raise ValueError(f"{tabla}.{nombre}, fila {numero + 1}: {error}") from error
     avisos = [
         f"P-TIPO-GENERADOR {tabla}.{c.name}: tipo {c.type} sin generador; se usa texto"
         for c in columnas

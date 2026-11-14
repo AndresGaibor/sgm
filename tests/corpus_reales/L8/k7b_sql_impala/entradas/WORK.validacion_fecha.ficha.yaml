@@ -1,0 +1,11 @@
+tabla: work.validacion_fecha
+origen: sintetico
+filas: 1
+columnas:
+  AÑO: String
+  MES: String
+  DIA: String
+semilla: 20261113
+generador: tools/datos_sinteticos/manifiesto.py:generar_entradas
+procedencia: null
+nota: Tipos de fixture generado; un String no implica tipo SAS demostrado.

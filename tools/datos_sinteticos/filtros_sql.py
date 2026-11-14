@@ -91,6 +91,8 @@ def sentencias_sql(texto: str) -> list[str]:
         for sentencia in paso.statements:
             if sentencia.kind == "select_passthrough" and sentencia.inner_sql:
                 resultado.append(sentencia.inner_sql)
+            elif sentencia.kind == "execute" and sentencia.inner_sql:
+                resultado.append(sentencia.inner_sql)
             elif sentencia.kind != "execute":
                 resultado.append(sentencia.text)
     return resultado

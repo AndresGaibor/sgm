@@ -28,6 +28,7 @@ class TablaDeDatos:
     filas: int
     fijos: dict[str, str] = field(default_factory=dict)
     columnas: tuple[str, ...] = ()
+    fijos_por_fila: tuple[dict[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -99,7 +100,26 @@ def leer_manifiesto(ruta: Path) -> Manifiesto:
             raise ValueError(f"{nombre}: columnas duplicadas")
         if len({columna.casefold() for columna in fijos}) != len(fijos):
             raise ValueError(f"{nombre}: valores fijos duplicados")
-        tablas[clave] = TablaDeDatos(filas, dict(fijos), tuple(columnas))
+        fijos_por_fila = datos.get("fijos_por_fila", [])
+        if not isinstance(fijos_por_fila, list) or len(fijos_por_fila) > filas:
+            raise ValueError(f"{nombre}: fijos_por_fila debe ser una lista de hasta {filas} filas")
+        filas_fijas: list[dict[str, str]] = []
+        for numero, fila in enumerate(fijos_por_fila, start=1):
+            if not isinstance(fila, dict) or any(
+                not isinstance(columna, str)
+                or not columna.strip()
+                or not isinstance(valor, str)
+                for columna, valor in fila.items()
+            ):
+                raise ValueError(
+                    f"{nombre}: fijos_por_fila[{numero}] debe mapear columnas a textos"
+                )
+            if len({columna.casefold() for columna in fila}) != len(fila):
+                raise ValueError(f"{nombre}: fijos_por_fila[{numero}] repite columnas")
+            filas_fijas.append(dict(fila))
+        tablas[clave] = TablaDeDatos(
+            filas, dict(fijos), tuple(columnas), tuple(filas_fijas)
+        )
     if set(contenido) - {"semilla", "tablas", "archivos"}:
         raise ValueError("el manifiesto solo admite semilla, tablas y archivos")
     return Manifiesto(semilla, tablas, archivos)
@@ -127,7 +147,10 @@ def _columnas_para(
     por_nombre = {columna.name.casefold(): columna for columna in existentes}
     nombres: list[str] = []
     vistos: set[str] = set()
-    for nombre in [*demostradas, *declaradas.columnas]:
+    filas_fijas = [
+        nombre for fila in declaradas.fijos_por_fila for nombre in fila
+    ]
+    for nombre in [*demostradas, *declaradas.columnas, *filas_fijas]:
         if nombre.casefold() not in vistos:
             vistos.add(nombre.casefold())
             nombres.append(nombre)
@@ -212,7 +235,12 @@ def generar_entradas(
         columnas = _columnas_para(tabla, columnas_demostradas, declarada, esquema_por_tabla)
         exigidos = _valores_exigidos(tabla, columnas, req.exigidos, declarada)
         encabezado, filas, avisos = generar_filas(
-            tabla, columnas, declarada.filas, manifiesto.semilla, exigidos
+            tabla,
+            columnas,
+            declarada.filas,
+            manifiesto.semilla,
+            exigidos,
+            fijos_por_fila=declarada.fijos_por_fila,
         )
         tipos_ficha = {
             columna.name: (
