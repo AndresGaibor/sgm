@@ -64,6 +64,15 @@ def test_null_tipado_de_timpalarow_no_es_una_credencial() -> None:
     assert escanear_texto(texto) == []
 
 
+def test_null_tipado_de_timpalainput_no_es_una_credencial() -> None:
+    texto = (
+        '<node componentName="tImpalaInput" componentVersion="0.102">\n'
+        '  <elementParameter field="PASSWORD" name="PASS" value="((String)null)"/>\n'
+        "</node>\n"
+    )
+    assert escanear_texto(texto) == []
+
+
 def test_null_tipado_de_otro_componente_sigue_siendo_hallazgo() -> None:
     texto = (
         '<node componentName="tJava" componentVersion="0.102">\n'

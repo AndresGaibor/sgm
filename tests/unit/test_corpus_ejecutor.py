@@ -118,6 +118,50 @@ def test_capa_c_se_omite_sin_calcular(tmp_path, capsys):
     assert not (corpus / "L0" / "l0_01_prueba" / "esperado").exists()
 
 
+def test_contenedor_base_se_valida_y_se_guarda(tmp_path):
+    corpus = _caso(
+        tmp_path,
+        nombre="l0_02_paso_directo",
+        nivel="L0",
+        capa="C",
+        extra="estado: pendiente_revision\nmotivo: validación externa pendiente\ncontenedor: impala\n",
+    )
+
+    caso = cargar_caso(corpus / "L0" / "l0_02_paso_directo")
+
+    assert caso.contenedor == "impala"
+
+
+@pytest.mark.parametrize("contenedor", ["mysql", "", "IMPALA"])
+def test_contenedor_base_rechaza_motores_no_admitidos(tmp_path, contenedor):
+    corpus = _caso(
+        tmp_path,
+        nombre="l0_03_paso_directo",
+        nivel="L0",
+        capa="C",
+        extra=(
+            "estado: pendiente_revision\nmotivo: validación externa pendiente\n"
+            f"contenedor: '{contenedor}'\n"
+        ),
+    )
+
+    with pytest.raises(ValueError, match="contenedor"):
+        cargar_caso(corpus / "L0" / "l0_03_paso_directo")
+
+
+def test_contenedor_base_solo_se_acepta_en_capa_c(tmp_path):
+    corpus = _caso(
+        tmp_path,
+        nombre="l0_04_paso_directo",
+        nivel="L0",
+        capa="B",
+        extra="contenedor: postgres\n",
+    )
+
+    with pytest.raises(ValueError, match="capa C"):
+        cargar_caso(corpus / "L0" / "l0_04_paso_directo")
+
+
 def test_construccion_no_soportada_es_falla_con_mensaje(tmp_path, capsys):
     programa = PROGRAMA.replace("saldo >= 100", "calculated saldo >= 100")
     corpus = _caso(tmp_path, programa=programa)

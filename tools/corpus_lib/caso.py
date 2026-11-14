@@ -31,7 +31,7 @@ CAMPOS = frozenset(
         "nivel", "construcciones", "capa", "tolerancia", "orden_relevante", "estado", "motivo",
         "salidas", "delimitadores_salida", "razonamiento", "revisor",
         "observacion_revision", "preparacion",
-        "invariantes", "esquemas",
+        "invariantes", "esquemas", "contenedor",
     }
 ) | METADATOS
 _NIVEL = re.compile(r"L\d+$")
@@ -57,6 +57,7 @@ class Caso:
     preparacion: preparacion.Preparacion | None = None
     extra: dict = field(default_factory=dict)
     delimitadores_salida: dict[str, str] = field(default_factory=dict)
+    contenedor: str | None = None
 
     @property
     def programa(self) -> Path:
@@ -100,6 +101,12 @@ def cargar_caso(directorio: Path) -> Caso:
     capa = datos.get("capa")
     if capa not in CAPAS:
         raise error(f"'capa' debe ser una de {CAPAS}, no '{capa}'")
+    contenedor = datos.get("contenedor")
+    if contenedor is not None:
+        if not isinstance(contenedor, str) or contenedor not in {"impala", "postgres"}:
+            raise error("'contenedor' debe ser 'impala' o 'postgres'")
+        if capa != "C":
+            raise error("'contenedor' solo se puede declarar en capa C")
     tolerancia = datos.get("tolerancia", 0)
     if isinstance(tolerancia, bool) or not isinstance(tolerancia, (int, float)) or tolerancia < 0:
         raise error("'tolerancia' debe ser un número mayor o igual que 0")
@@ -189,6 +196,7 @@ def cargar_caso(directorio: Path) -> Caso:
         invariantes=tuple(lista_invariantes),
         preparacion=prepara,
         extra=extra,
+        contenedor=contenedor,
     )
 
 

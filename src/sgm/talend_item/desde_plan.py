@@ -37,6 +37,10 @@ from sgm.talend_item.desde_plan_contextos import (
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
+from sgm.talend_item.desde_plan_paso_directo import (
+    esquema_paso_directo,
+    nodo_paso_directo,
+)
 from sgm.talend_item.desde_plan_union import nodo_union
 from sgm.talend_item.jobs_diseno import java
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
@@ -82,6 +86,8 @@ def _tabla(dataset: str) -> str:
 def _produce(op: Operator) -> list[str]:
     producen = ("read_file", "map", "filter", "derive", "select", "rename", "join")
     if op.kind in (*producen, "sort", "dedup", "aggregate", "union"):
+        return [str(d).lower() for d in op.params.get("outputs", [])]
+    if op.kind == "read" and (op.placement or "").startswith("db:"):
         return [str(d).lower() for d in op.params.get("outputs", [])]
     if op.kind == "split":
         destinos = op.params.get("targets") or [op.params.get("target")]
@@ -285,6 +291,24 @@ class _Job:
                     nodo, unico=otro, y=96 * posicion, parametros=_renombrar(nodo, otro)
                 )
             self._registrar(op, nodo, resultado.columnas, _tabla(tabla), consumidor)
+
+    def _paso_directo(self, op: Operator, x: int) -> None:
+        esquema = esquema_paso_directo(op, self.esquemas)
+        unico = self._unico(str((op.component or {}).get("name") or "tImpalaInput"))
+        resultado = nodo_paso_directo(
+            op,
+            esquema,
+            unico,
+            x,
+            0,
+            self.ruta_java,
+            self._conexion_en_contexto,
+        )
+        self.pendientes += resultado.pendientes
+        if resultado.nodo is None:
+            return
+        destino = str((op.params.get("outputs") or [""])[0])
+        self._registrar(op, resultado.nodo, resultado.columnas, _tabla(destino))
 
     def _escritura(self, op: Operator, x: int) -> None:
         consumido = str((op.params.get("inputs") or [""])[0]).lower()
@@ -801,6 +825,9 @@ class _Job:
         if op.kind in ("read", "write"):
             # Si se pliega sobre otro nodo, el conjunto ya está en el flujo y no hay nada que hacer.
             if op.kind == "read" and self._plegar_lectura_en_sql(op):
+                return
+            if op.kind == "read" and (op.placement or "").startswith("db:"):
+                self._paso_directo(op, x)
                 return
             if self._resolver(op.id) is None:
                 self._sin_soporte(op)

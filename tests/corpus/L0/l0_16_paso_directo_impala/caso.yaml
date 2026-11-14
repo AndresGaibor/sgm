@@ -1,0 +1,18 @@
+nivel: L0
+tema: Paso directo SQL a Impala con resultado sintético
+construcciones:
+  - PROC SQL
+  - CONNECT TO
+  - SELECT FROM CONNECTION TO
+capa: C
+contenedor: impala
+estado: pendiente_revision
+motivo: >-
+  La salida local se compara contra una fixture sintética; las columnas y tipos de Impala
+  todavía requieren revisión con el motor real.
+salidas: [por_marca]
+tolerancia: 0
+orden_relevante: false
+razonamiento: >-
+  Cinco filas sintéticas producen Acura (2, 40), Audi (1, 20) y BMW (1, 5) después del filtro
+  anio = 2026. El conteo local no sustituye una ejecución de referencia en Impala.

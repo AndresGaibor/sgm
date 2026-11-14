@@ -43,6 +43,7 @@ l4_124_vec_scan_2_s2c: P-COMPONENTE-SIN-PLANTILLA
 l4_125_vec_coalescec_sin_literales_a2_TT: P-COMPONENTE-SIN-PLANTILLA
 l4_126_vec_coalescec_sin_literales_a3_TTT: P-COMPONENTE-SIN-PLANTILLA
 l5_09_into_primer_fila: P-ESQUEMA-NO-PORTABLE
+l0_16_paso_directo_impala: P-CONEXION-BASE
 l6_01_merge_by_uno_a_uno: P-UNION-TIPO-SIN-SOPORTE
 l6_02_merge_muchos_a_muchos: P-UNION-TIPO-SIN-SOPORTE
 l6_03_merge_in_flags: P-UNION-TIPO-SIN-SOPORTE

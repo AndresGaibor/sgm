@@ -6,6 +6,7 @@ from sgm.ir.models import Column, Plan
 from sgm.ir.pase_copias_remotas import aplicar_copias, copias_remotas
 from sgm.ir.pase_tablas_locales import tablas_locales_a_archivos
 from sgm.migrar.esquemas import PendienteMigracion, esquemas_de_entrada
+from sgm.migrar.esquemas_paso_directo import esquemas_paso_directo
 from sgm.migrar.tablas_locales import TablaLocal
 
 
@@ -34,5 +35,6 @@ def esquemas_con_locales(
     catalogo = dict(catalogo)
     catalogo.update({nombre: list(locales[nombre].columnas) for nombre in aplicadas})
     tablas, pendientes = esquemas_de_entrada(plan, catalogo, muestra)
+    tablas.update(esquemas_paso_directo(plan, catalogo, muestra))
     tablas.update({nombre: list(locales[nombre].columnas) for nombre in aplicadas})
     return tablas, pendientes

@@ -31,6 +31,7 @@ entries:
   nombre: CONNECT Statement
   fuente: sqlproc.pdf, p. 287
   estado: reconocida
+  nota: el DSN SAS no se copia al Job; la conexión se configura por contexto
 - id: create-index-statement
   nombre: CREATE INDEX Statement
   fuente: sqlproc.pdf, p. 288
@@ -55,6 +56,12 @@ entries:
   nombre: DISCONNECT Statement
   fuente: sqlproc.pdf, p. 301
   estado: reconocida
+  nota: cierra la conexión SAS; no transforma el SQL interior del paso directo
+- id: connection-to-component
+  nombre: CONNECTION TO Component
+  fuente: sqlproc.pdf, p. 392
+  estado: reconocida
+  nota: el SELECT pass-through se emite como lector y su SQL interior viaja literal
 - id: drop-statement
   nombre: DROP Statement
   fuente: sqlproc.pdf, p. 302

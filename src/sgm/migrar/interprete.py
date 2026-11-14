@@ -35,6 +35,7 @@ from sgm.migrar.interprete_errores import NoSoportadoEnInterprete
 from sgm.migrar.interprete_funciones import FUNCIONES as FUNCIONES_INTERPRETE
 from sgm.migrar.interprete_funciones import llamar
 from sgm.migrar.interprete_operadores import concatenar, entre, parecido, pertenece
+from sgm.migrar.interprete_paso_directo import leer as _leer_paso_directo
 from sgm.migrar.interprete_subconsultas import (
     SubconsultaNoSoportada,
     _fuentes,
@@ -846,7 +847,11 @@ def _expandir_estrellas(asignaciones: list[dict], por_tabla: dict[str, list[dict
 
 
 def _ejecutar(
-    op: Operator, plan: Plan, tablas: dict, por_operador: dict
+    op: Operator,
+    plan: Plan,
+    tablas: dict,
+    por_operador: dict,
+    entradas_directas: dict | None = None,
 ) -> tuple[list[dict], dict[str, list[dict]]]:
     """Filas del operador y las tablas que deja, por nombre sin biblioteca.
 
@@ -857,6 +862,13 @@ def _ejecutar(
     if op.kind == "unsupported" and op.params.get("reason") == "CONFIGURACION":
         return [], {}  # `%LET`, `OPTIONS`: ya sustituidos en el programa, no producen filas
     if op.kind in ("read", "read_file"):
+        if op.kind == "read" and (op.placement or "").startswith("db:"):
+            fuentes = entradas_directas if entradas_directas is not None else tablas
+            filas = _leer_paso_directo(op, fuentes)
+            propias = {
+                _tabla(str(nombre)): filas for nombre in op.params.get("outputs") or []
+            }
+            return filas, propias
         nombre = (
             _tabla(op.params.get("dataset", ""))
             if op.kind == "read"
@@ -980,7 +992,7 @@ def ejecutar_plan(
         raise NoSoportadoEnInterprete("subconsulta", str(error)) from error
     for op_id in orden:
         op = plan.graph.operator(op_id)
-        filas, propias = _ejecutar(op, plan, tablas, por_operador)
+        filas, propias = _ejecutar(op, plan, tablas, por_operador, entradas)
         por_operador[op.id] = filas
         tablas.update(propias)
     return tablas

@@ -41,6 +41,16 @@ LISTA_BLANCA: tuple[Excepcion, ...] = (
             "exactos."
         ),
     ),
+    Excepcion(
+        campo="PASSWORD",
+        componente="tImpalaInput",
+        valor="((String)null)",
+        motivo=(
+            "Expresión Java tipada para representar una contraseña nula en tImpalaInput; no "
+            "contiene ni referencia una credencial. La excepción está limitada al componente y "
+            "al valor exactos."
+        ),
+    ),
 )
 
 
