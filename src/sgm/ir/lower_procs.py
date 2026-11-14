@@ -11,7 +11,7 @@ from sgm.ir.proc_rules import declared, lower_declared, names_of
 
 _names = names_of
 
-REPORT_PROCS = frozenset({"print", "report", "contents"})
+REPORT_PROCS = frozenset({"print", "report", "tabulate", "contents"})
 
 # Opciones que el PROC IMPORT y el PROC EXPORT escriben como sentencia del cuerpo (`GETNAMES=YES;`)
 # o en la cabecera. Se leen del texto y no se suponen: el valor que falta queda en `None`.

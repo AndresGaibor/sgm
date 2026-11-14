@@ -26,6 +26,29 @@ def test_discard_no_migra_el_reporte_y_no_es_hueco():
     assert not any(op.params.get("procedure") == "print" for op in plan.graph.operators())
 
 
+def test_la_politica_por_defecto_descarta_reportes():
+    plan = _plan("proc print data=work.x; run;\n", Project().reports)
+    assert Project().reports == "discard"
+    assert any("PROC PRINT" in nm.what for nm in plan.not_migrated)
+
+
+def test_tabulate_con_discard_es_reporte_explicito_y_no_hueco_generico():
+    plan = _plan("proc tabulate data=work.x; var amount; table amount; run;\n", "discard")
+    assert not [g for g in plan.gaps if g.reason == "PROC_NO_SOPORTADO"]
+    assert any("PROC TABULATE" in nm.what for nm in plan.not_migrated)
+
+
+def test_reportes_no_print_no_se_convierten_en_filas_crudas():
+    for policy in ("log", "csv"):
+        for procedure in ("report", "tabulate", "contents"):
+            plan = _plan(f"proc {procedure} data=work.x; run;\n", policy)
+            assert any(g.reason == "REPORTE" for g in plan.gaps), (policy, procedure)
+            assert not any(op.kind in {"report", "write_file"} for op in plan.graph.operators()), (
+                policy,
+                procedure,
+            )
+
+
 def test_log_usa_tlogrow():
     plan = _plan(PROGRAMA, "log")
     components = [op.component["name"] for op in plan.graph.operators() if op.component]

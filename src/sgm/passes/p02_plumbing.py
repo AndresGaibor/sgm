@@ -72,15 +72,18 @@ def classify(op: Operator, report_policy: str = "discard") -> tuple[str, str, st
 
 
 def _report(op: Operator, ctx: PassContext) -> bool:
-    """Reporte impreso (PROC PRINT, REPORT, CONTENTS sin OUT=) según `reports` del proyecto.
+    """Reporte impreso según `reports`; solo PRINT tiene salida de filas equivalente.
 
     `discard`: no se migra (queda en no migrados). `log`: un `report` que va a `tLogRow`.
-    `csv`: un `write_file` a un fichero cuya ruta es un contexto del Job.
+    `csv`: un `write_file` a un fichero cuya ruta es un contexto del Job. Para otros PROCs,
+    el contenido tabular no está demostrado y se conserva el hueco.
     """
     if op.params.get("reason") != "REPORTE":
         return False
     policy = ctx.project.reports
     procedure = str(op.params.get("procedure", "")).upper()
+    if policy != "discard" and procedure != "PRINT":
+        return False
     inputs = list(op.params.get("inputs", []))
     if policy == "discard":
         op.status = "reemplazado"

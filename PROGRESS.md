@@ -7184,3 +7184,12 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - TDD: las seis pruebas K-7e pasan; verifican hash, requisitos de columnas, despliegue de las plantillas, tipos de fixture, sumas, salidas, pendientes y secretos. Regresión K-7a–K-7e, copias remotas, preparación y catálogo: 96 aprobadas, 1 omitida y 1 `xfail` estricto. `uv run ruff check .`, `git diff --check` y `sgm secretos tests/corpus_reales/L8/k7e_totales` pasan.
 - Cierre integral preliminar: `uv run python tools/ci.py`, con 8 workers, pasó: 4.102 aprobadas, 350 omitidas y 145 `xfail`; Ruff, cruces, oráculo y tablero en verde. La misma compuerta se ejecuta sobre el árbol staged final antes del commit.
 - Sin cambios al emisor, sin dependencias nuevas, Studio, Docker, conexiones a bases, datos reales ni push.
+
+## Hito 241n. Política segura para reportes SAS sin equivalencia demostrada
+
+- Fecha: 2026-11-13. Base: `259601a` (hito 240n), rama `codex/integrar-main-preflight`. MG-P6-05, dentro de la dependencia que impedía cerrar K-6.
+- Se fija `reports=discard` como predeterminado, consistente con `Project` y `docs/ronda2.md`. `PROC TABULATE` ya se reconoce como salida de presentación: con `discard` queda en `not_migrated`, sin hueco genérico. `PROC CONTENTS OUT=` sigue siendo un hueco porque produce datos que otros pasos pueden consumir.
+- Bajo `reports=log` o `csv`, solo `PROC PRINT` se convierte a `tLogRow` o `tFileOutputDelimited`. `REPORT`, `TABULATE` y `CONTENTS` conservan el hueco `REPORTE`: sus resúmenes o metadatos no se reemplazan por filas de entrada sin demostrar equivalencia.
+- `docs/conventions.md`, `docs/ronda2.md` y la tabla de equivalencias del plan maestro ahora reflejan la política y su límite.
+- TDD: las pruebas nuevas fallaron primero en `TABULATE` desconocido y en `REPORT` convertido a filas crudas. Después, `tests/unit/test_reportes.py`: 10 aprobadas; `uv run ruff check src tests tools` y `git diff --check` verdes. Suite completa: 4.105 aprobadas, 350 omitidas y 145 `xfail`; el cierre integral `uv run python tools/ci.py` se ejecuta sobre el árbol staged de este hito.
+- Decisiones y límites: no se inventa la salida de `REPORT`, `TABULATE` o `CONTENTS`; para esos casos se conserva el pendiente identificable. Este ajuste no requiere Studio, base de datos, fixture real ni dependencia nueva.

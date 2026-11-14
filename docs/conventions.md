@@ -106,17 +106,20 @@ Se usa **el componente más específico que existe** (hay más de mil en el cat�
 - **Valor perdido de SAS = `null`.** El traductor lo propaga como SAS (un perdido numérico es menor que cualquier número;
   `a + .` es perdido) con guardas de nulo en el Java del `tMap`, sin bibliotecas propias.
 
-## 6. Reportes (PROC PRINT, REPORT, TABULATE)
+## 6. Reportes (PROC PRINT, REPORT, TABULATE y CONTENTS)
 
-La política es **del proyecto**, no del Job, y tiene un valor por defecto documentado:
+La política pertenece al proyecto (`env/project.json`). El valor predeterminado es `discard`.
+Solo `PROC PRINT` tiene equivalencia de filas implementada para `log` y `csv`; `REPORT`,
+`TABULATE` y `CONTENTS` pueden producir tablas resumidas o metadatos distintos a las filas de
+entrada, por lo que esos modos quedan como pendientes hasta demostrar una equivalencia.
 
 | Política | Componente | Pendiente |
 | -------- | ---------- | --------- |
-| `log` (por defecto) | `tLogRow` con `BASIC_MODE` | ninguno: lo que hay que mostrar ya está en el SAS |
-| `csv` | `tFileOutputDelimited` | la ruta, como variable de contexto `path_<reporte>` |
-| `discard` | ninguno | ninguno; el paso queda `descartado` con la nota de qué se perdió |
+| `discard` (por defecto) | ninguno | ninguno; el informe registra el reporte descartado |
+| `log` | `tLogRow` con `BASIC_MODE`, solo para `PROC PRINT` | otros procedimientos quedan pendientes |
+| `csv` | `tFileOutputDelimited`, solo para `PROC PRINT` | ruta como contexto; otros procedimientos quedan pendientes |
 
-El informe de traducción lista los reportes descartados para que la pérdida sea visible (nunca silenciosa).
+El informe de traducción lista los reportes descartados para que la decisión sea visible (nunca silenciosa).
 
 ## 7. Qué queda siempre como pendiente
 

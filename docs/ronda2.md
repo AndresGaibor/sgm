@@ -140,9 +140,9 @@ Pruebas: fixture con CSV, unión con tabla de la base y exportación: con `push_
 ### R6. Reportes y PROC CONTENTS
 
 1. `PROC CONTENTS` cuyo resultado solo alimenta variables de macro ya quedó absorbido en R3 o es fontanería. Si se imprime, aplica la política de reportes.
-2. `PROC PRINT`, `PROC REPORT` y `PROC CONTENTS` impresos siguen `reports` de `env/project.json`: `discard` (por defecto) los manda a `not_migrated` con la nota "reporte de diagnóstico, no se migra"; `log` usa `tLogRow`; `csv` usa `tFileOutputDelimited` con ruta como contexto.
+2. Los reportes impresos siguen `reports` de `env/project.json`: `discard` (por defecto) registra `PROC PRINT`, `PROC REPORT`, `PROC TABULATE` y `PROC CONTENTS` como no migrados. `log` usa `tLogRow` y `csv` usa `tFileOutputDelimited` solo para `PROC PRINT`; los otros procedimientos quedan como huecos hasta demostrar su salida equivalente.
 
-Criterio: con `discard`, las firmas de `PROC PRINT` y `PROC CONTENTS` desaparecen del top de huecos.
+Criterio: con `discard`, las firmas de reportes impresos sin `OUT=` desaparecen del top de huecos. `PROC CONTENTS OUT=` sigue pendiente porque crea una tabla de metadatos que puede alimentar pasos posteriores.
 
 ### R7. Tipos desde el propio código
 

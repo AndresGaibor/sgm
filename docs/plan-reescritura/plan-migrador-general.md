@@ -314,7 +314,7 @@ Es el contrato funcional. Cada fila es una tarea de traducción o está cubierta
 | `PROC APPEND` | Salida en modo append | — | L1 |
 | `PROC FORMAT` (formatos propios) | Mapa de búsqueda en `tMap` o expresión | Rangos y `other` | L4 |
 | `PROC DATASETS`, `COPY`, `DELETE`, `CONTENTS` | `tFileCopy`, `tFileDelete`, metadatos | Solo borrado de salidas propias | L8 |
-| `PROC PRINT/REPORT/TABULATE`, `ODS` | Sin equivalente de datos: pendiente documentado o `tLogRow` | Salida solo visual | L9 |
+| `PROC PRINT` | `reports=discard` por defecto; `log` (`tLogRow`) o `csv` (`tFileOutputDelimited`) | Otros informes y ODS quedan pendientes si no se demuestra equivalencia | L9 |
 | `PROC REG/GLM/LOGISTIC`, `DS2`, `FedSQL`, `IML` | **Fuera de alcance**, con motivo en el informe | — | — |
 
 ### 5.5 Macros (expansión estática primero)
