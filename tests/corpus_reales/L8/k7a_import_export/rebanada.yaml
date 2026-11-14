@@ -1,0 +1,11 @@
+fuente: tests/fixtures/sas/client/client_large.sas
+rangos:
+- - 5
+  - 13
+- - 160
+  - 164
+- - 24263
+  - 24267
+sha256: a135e2c0c191c7fe3a21f926d2131b4ce9761eaa48efb636007ac3a971578d51
+prologo: ''
+sustituciones: []

@@ -13,6 +13,7 @@ from sgm.ir.models import Plan
 from sgm.migrar.interprete import ejecutar_plan
 
 from .csv_tabla import Tabla, escribir_csv, leer_entradas
+from .esperado_archivos import entradas_de_archivos
 
 if TYPE_CHECKING:
     from .caso import Caso
@@ -70,26 +71,56 @@ def _empty_columns(plan: Plan, name: str) -> list[str]:
     raise ValueError(f"{name}: salida vacía sin cabecera demostrada en el plan")
 
 
-def calcular(caso: Caso, repeticiones: dict[str, int] | None = None) -> dict[str, Tabla]:
+def calcular(
+    caso: Caso,
+    repeticiones: dict[str, int] | None = None,
+    *,
+    salidas: list[str] | None = None,
+) -> dict[str, Tabla]:
     """Analiza, compila y ejecuta sin escribir; devuelve las salidas en su orden declarado."""
     text = _overrides(caso.programa.read_text(encoding="utf-8"), repeticiones or {})
     program = caso.programa.name
     plan = compile_file(analyze_program({program: text}), program, project_base()).plan
+    objetivos = caso.salidas if salidas is None else salidas
+    tablas_entrada = leer_entradas(caso.entradas)
+    columnas_presentacion = {
+        _table_name(name): table.columnas for name, table in tablas_entrada.items()
+    }
     inputs = {
         name: [dict(zip(table.columnas, row, strict=True)) for row in table.filas]
-        for name, table in leer_entradas(caso.entradas).items()
+        for name, table in tablas_entrada.items()
     }
+    importaciones, columnas_importadas = entradas_de_archivos(plan, caso, objetivos)
+    inputs.update(importaciones)
+    columnas_presentacion.update(columnas_importadas)
     outputs = ejecutar_plan(plan, inputs)
     tables = {}
-    for name in caso.salidas:
+    for name in objetivos:
         key = _table_name(name)
         if key not in outputs:
             raise ValueError(f"{name}: la salida declarada no fue producida por el intérprete")
         rows = outputs[key]
-        columns = list(rows[0]) if rows else _empty_columns(plan, key)
-        if any(set(row) != set(columns) for row in rows):
+        columnas_reales = set(rows[0]) if rows else set()
+        declaradas = columnas_presentacion.get(key, [])
+        columns = (
+            declaradas
+            if declaradas
+            and (not rows or {name.casefold() for name in declaradas} == columnas_reales)
+            else list(rows[0]) if rows else _empty_columns(plan, key)
+        )
+        expected_columns = {name.casefold() for name in columns}
+        if any({name.casefold() for name in row} != expected_columns for row in rows):
             raise ValueError(f"{name}: las filas no tienen una cabecera uniforme")
-        tables[name] = Tabla(columns, [tuple(row[column] for column in columns) for row in rows])
+        normalized_rows = [
+            {column.casefold(): value for column, value in row.items()} for row in rows
+        ]
+        tables[name] = Tabla(
+            columns,
+            [
+                tuple(row[column.casefold()] for column in columns)
+                for row in normalized_rows
+            ],
+        )
     return tables
 
 
@@ -111,6 +142,6 @@ def escribir(caso: Caso, tablas: dict[str, Tabla]) -> list[Path]:
             paths.append(path)
     except (OSError, RuntimeError) as error:
         raise ValueError(f"ruta de salida no verificable: {error}") from None
-    for path, table in zip(paths, tablas.values(), strict=True):
-        escribir_csv(path, table)
+    for path, (name, table) in zip(paths, tablas.items(), strict=True):
+        escribir_csv(path, table, delimitador=caso.delimitadores_salida.get(name, ","))
     return paths

@@ -1,0 +1,43 @@
+nivel: L8
+construcciones:
+  - PROC IMPORT DBMS=EXCELCS
+  - PROC IMPORT DBMS=DLM GETNAMES=NO
+  - PROC EXPORT DBMS=DLM
+capa: C
+estado: parcial
+motivo: >-
+  La importación EXCELCS no tiene una equivalencia implementada y queda pendiente; el caso conserva
+  el fragmento DLM verificable con datos sintéticos, sin afirmar tipos SAS para las columnas. La
+  capa C también queda pendiente: Studio informó BRIDGE_DEAD y la entrada ExcelCS no tiene fixture.
+salidas:
+  - FA_NO_VIGENTES_AHO
+delimitadores_salida:
+  FA_NO_VIGENTES_AHO: ";"
+tolerancia: 0
+orden_relevante: true
+supuestos:
+  - >-
+    datos sinteticos: las seis filas de Base_datos_Nequi.csv y WORK.FA_NO_VIGENTES_AHO se generan
+    con semilla fija y tienen ficha de procedencia.
+  - >-
+    Las columnas VAR1..VAR3 y NRO_DOC/NRO_CTA las declara el fixture; el SAS no demuestra el esquema
+    ni sus tipos. Se representan como String de fixture, no como tipos SAS.
+  - >-
+    GETNAMES=NO toma los nombres VAR1, VAR2, ... y no usa la primera fila como cabecera
+    (proc.pdf, pp. 1387–1388).
+  - >-
+    P-FORMATO-SIN-SOPORTE: DBMS=EXCELCS no es un archivo delimitado ni de Excel con la equivalencia
+    disponible; no se inventa un lector Excel.
+  - >-
+    P-ESQUEMA-VACIO y P-OPERADOR-SIN-SOPORTE: la entrada EXCELCS no tiene columnas ni componente
+    demostrados y queda pendiente.
+  - >-
+    P-ESCRITURA-SIN-COLUMNAS: el SAS no demuestra el esquema de WORK.FA_NO_VIGENTES_AHO. Las
+    columnas del fixture alimentan el anillo B y no se usan como prueba de equivalencia Talend.
+  - >-
+    BASE_CLIENTES_NEQUI es una tabla intermedia de PROC IMPORT, no una salida física del programa;
+    el anillo B la comprueba contra el archivo fuente, y el anillo C compara solo el archivo de PROC
+    EXPORT.
+  - >-
+    PUTNAMES=YES es el valor por omisión documentado en proc.pdf, p. 910; por ello la salida
+    esperada estándar incluye nombres de columnas.

@@ -24,6 +24,7 @@ import time
 from pathlib import Path
 
 import yaml
+from corpus_lib.studio_mapa import leer_mapa
 
 RAIZ = Path(__file__).resolve().parents[1]
 _TALEND = Path("C:/Talend/8.0.1")
@@ -47,6 +48,21 @@ def mapa_de_contexto(
             mapa[variable] = f"salida/{por_salida[nombre]}.csv"
         else:
             raise ValueError(f"sin entrada ni salida conocida para la variable {variable}")
+    return mapa
+
+
+def _mapa_del_caso(
+    carpeta: Path, variables: list[str], entradas: list[str], salidas: list[str]
+) -> dict[str, str]:
+    """Usa el mapa explícito del caso o deduce uno solo si los nombres coinciden."""
+    archivo = carpeta / "mapa.yaml"
+    if not archivo.is_file():
+        return mapa_de_contexto(variables, entradas, salidas)
+    mapa = leer_mapa(archivo)
+    faltan = sorted(set(variables) - set(mapa))
+    sobran = sorted(set(mapa) - set(variables))
+    if faltan or sobran:
+        raise ValueError(f"{archivo}: variables sin mapa={faltan}; variables ajenas={sobran}")
     return mapa
 
 
@@ -87,7 +103,7 @@ def validar(nombre: str, sufijo: str) -> bool:
     variables = [v["nombre"] for v in contexto["variables"]]
     caso = yaml.safe_load((carpeta / "caso.yaml").read_text(encoding="utf-8"))
     entradas = [p.name for p in (carpeta / "entradas").glob("*.csv")]
-    mapa = mapa_de_contexto(variables, entradas, caso.get("salidas", []))
+    mapa = _mapa_del_caso(carpeta, variables, entradas, caso.get("salidas", []))
     ruta_mapa = trabajo / "mapa.yaml"
     ruta_mapa.write_text(yaml.safe_dump(mapa), encoding="utf-8")
     resultado = _correr(

@@ -45,6 +45,7 @@ def comparar_caso(
         tolerancia=caso.tolerancia,
         orden_relevante=caso.orden_relevante,
         ignorar_orden_columnas=ignorar_orden_columnas,
+        delimitadores=caso.delimitadores_salida,
     )
     if not archivos:
         return ResultadoCaso(

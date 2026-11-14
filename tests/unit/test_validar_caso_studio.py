@@ -1,4 +1,4 @@
-"""Mapa de contexto que el ayudante `validar_caso_studio` deduce de un caso del corpus."""
+"""Mapa de contexto que el ayudante de Studio deduce o lee desde un caso."""
 
 from __future__ import annotations
 
@@ -30,6 +30,29 @@ def test_entradas_existentes_y_salidas_del_esperado() -> None:
 def test_la_coincidencia_no_distingue_mayusculas() -> None:
     mapa = mapa_de_contexto(["ruta_clientes"], entradas=["Clientes.csv"], salidas=[])
     assert mapa == {"ruta_clientes": "entradas/Clientes.csv"}
+
+
+def test_mapa_explicito_del_caso_cubre_todas_las_variables(tmp_path):
+    (tmp_path / "mapa.yaml").write_text(
+        "ruta_base_clientes_nequi: entradas/Base_datos_Nequi.csv\n"
+        "ruta_fa_no_vigentes_aho: salida/FA_NO_VIGENTES_AHO.csv\n",
+        encoding="utf-8",
+    )
+    assert validar_caso_studio._mapa_del_caso(
+        tmp_path,
+        ["ruta_base_clientes_nequi", "ruta_fa_no_vigentes_aho"],
+        ["Base_datos_Nequi.csv"],
+        ["FA_NO_VIGENTES_AHO"],
+    ) == {
+        "ruta_base_clientes_nequi": "entradas/Base_datos_Nequi.csv",
+        "ruta_fa_no_vigentes_aho": "salida/FA_NO_VIGENTES_AHO.csv",
+    }
+
+
+def test_mapa_explicito_rechaza_variables_sin_ruta(tmp_path):
+    (tmp_path / "mapa.yaml").write_text("ruta_clientes: entradas/clientes.csv\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="variables sin mapa"):
+        validar_caso_studio._mapa_del_caso(tmp_path, ["ruta_clientes", "ruta_final"], [], [])
 
 
 def test_variable_sin_archivo_conocido_se_rechaza() -> None:

@@ -45,13 +45,14 @@ def comparar_archivos(
     tolerancia: float = 0.0,
     orden_relevante: bool = False,
     ignorar_orden_columnas: bool = False,
+    delimitador: str = ",",
     nombre: str | None = None,
 ) -> ResultadoArchivo:
     """Compara dos CSV del disco. Un archivo que no se puede leer queda como `ilegible`."""
     nombre = nombre or esperado.name
     try:
-        tabla_esperada = leer_csv(esperado)
-        tabla_obtenida = leer_csv(obtenido)
+        tabla_esperada = leer_csv(esperado, delimitador=delimitador)
+        tabla_obtenida = leer_csv(obtenido, delimitador=delimitador)
     except ValueError as fallo:
         return ResultadoArchivo(
             nombre, "ilegible", [Diferencia("archivo", f"no se puede leer: {fallo}")]
@@ -84,6 +85,7 @@ def comparar_carpetas(
     tolerancia: float = 0.0,
     orden_relevante: bool = False,
     ignorar_orden_columnas: bool = False,
+    delimitadores: dict[str, str] | None = None,
 ) -> list[ResultadoArchivo]:
     """Empareja cada CSV de `esperado/` con el de la salida con el mismo nombre (sin mayúsculas).
 
@@ -91,6 +93,7 @@ def comparar_carpetas(
     """
     esperados = _csv_por_nombre(esperado)
     obtenidos = _csv_por_nombre(salida)
+    formatos = {nombre.casefold(): valor for nombre, valor in (delimitadores or {}).items()}
     resultados: list[ResultadoArchivo] = []
     for clave, ruta in esperados.items():
         if clave not in obtenidos:
@@ -104,6 +107,7 @@ def comparar_carpetas(
                 tolerancia=tolerancia,
                 orden_relevante=orden_relevante,
                 ignorar_orden_columnas=ignorar_orden_columnas,
+                delimitador=formatos.get(clave, ","),
                 nombre=ruta.name,
             )
         )

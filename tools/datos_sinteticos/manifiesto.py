@@ -10,6 +10,12 @@ import yaml
 
 from sgm.ir.models import Column
 from tools.corpus_lib.datos_ficticios import escribir_entrada
+from tools.datos_sinteticos.archivos import (
+    ArchivoDeDatos,
+    generar_archivos,
+    leer_archivos,
+    nombres_salida,
+)
 from tools.datos_sinteticos.ficha import Ficha, escribir_ficha
 from tools.datos_sinteticos.por_esquema import generar_filas
 from tools.datos_sinteticos.requisitos import Requisitos
@@ -26,10 +32,11 @@ class TablaDeDatos:
 
 @dataclass(frozen=True)
 class Manifiesto:
-    """Semilla común y configuración explícita de cada tabla."""
+    """Semilla y configuración explícita de tablas y archivos."""
 
     semilla: int
     tablas: dict[str, TablaDeDatos]
+    archivos: dict[str, ArchivoDeDatos] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -61,6 +68,7 @@ def leer_manifiesto(ruta: Path) -> Manifiesto:
         raise ValueError("el manifiesto debe ser un objeto")
     semilla = contenido.get("semilla")
     tablas_raw = contenido.get("tablas")
+    archivos = leer_archivos(contenido.get("archivos"))
     if isinstance(semilla, bool) or not isinstance(semilla, int):
         raise ValueError("semilla debe ser un entero")
     if not isinstance(tablas_raw, dict):
@@ -92,9 +100,9 @@ def leer_manifiesto(ruta: Path) -> Manifiesto:
         if len({columna.casefold() for columna in fijos}) != len(fijos):
             raise ValueError(f"{nombre}: valores fijos duplicados")
         tablas[clave] = TablaDeDatos(filas, dict(fijos), tuple(columnas))
-    if set(contenido) - {"semilla", "tablas"}:
-        raise ValueError("el manifiesto solo admite semilla y tablas")
-    return Manifiesto(semilla, tablas)
+    if set(contenido) - {"semilla", "tablas", "archivos"}:
+        raise ValueError("el manifiesto solo admite semilla, tablas y archivos")
+    return Manifiesto(semilla, tablas, archivos)
 
 
 def _esquemas_por_tabla(
@@ -231,14 +239,19 @@ def generar_entradas(
         salidas.append(_Salida(tabla, csv_nombre, ficha_nombre, encabezado, filas, ficha))
 
     raiz = destino.resolve()
-    archivos = [
+    rutas = [
         raiz / nombre
         for salida in salidas
         for nombre in (salida.csv_nombre, salida.ficha_nombre)
     ]
-    for archivo in archivos:
+    rutas_archivos = [raiz / nombre for nombre in nombres_salida(manifiesto.archivos)]
+    for archivo in [*rutas, *rutas_archivos]:
         if not archivo.resolve().is_relative_to(raiz):
             raise ValueError(f"{archivo.name}: ruta de salida fuera del destino")
+    if len({str(ruta.resolve()).casefold() for ruta in [*rutas, *rutas_archivos]}) != len(
+        rutas + rutas_archivos
+    ):
+        raise ValueError("una tabla y un archivo de datos comparten nombre de salida")
 
     escritas: list[Path] = []
     for salida in salidas:
@@ -247,4 +260,5 @@ def generar_entradas(
         ruta_csv = raiz / salida.csv_nombre
         escribir_ficha(salida.ficha, raiz / salida.ficha_nombre)
         escritas.extend((ruta_csv, raiz / salida.ficha_nombre))
+    escritas.extend(generar_archivos(manifiesto.archivos, manifiesto.semilla, raiz))
     return escritas

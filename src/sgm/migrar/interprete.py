@@ -869,6 +869,11 @@ def _ejecutar(
     if op.kind in ("write", "write_file"):
         previos = plan.graph.predecessors(op.id)
         if not previos:
+            if op.kind == "write_file":
+                nombre = _tabla(_primero(op.params, "inputs"))
+                if nombre in tablas:
+                    filas = tablas[nombre]
+                    return filas, {nombre: filas}
             raise NoSoportadoEnInterprete(op.kind, "sin operador de origen")
         filas = por_operador.get(previos[0], [])
         return filas, {nombre: tablas.get(nombre, filas) for nombre in _nombres(op)}

@@ -15,6 +15,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from sgm.migrar.ficha import leer_ficha
+
 _ENTERO = re.compile(r"-?(0|[1-9]\d*)$")
 _REAL = re.compile(r"-?(0|[1-9]\d*)\.\d+$")
 _NUMERO = re.compile(r"-?\d+(\.\d+)?([eE][-+]?\d+)?$")
@@ -30,10 +32,12 @@ class Tabla:
     tipos: list[str] = field(default_factory=list)
 
 
-def leer_csv(ruta: Path) -> tuple[list[str], list[list[str | None]]]:
+def leer_csv(
+    ruta: Path, *, delimitador: str = ","
+) -> tuple[list[str], list[list[str | None]]]:
     """Lee un CSV con encabezado. Las celdas vacías salen como None."""
     with ruta.open(encoding="utf-8-sig", newline="") as archivo:
-        lector = csv.reader(archivo)
+        lector = csv.reader(archivo, delimiter=delimitador)
         try:
             columnas = next(lector)
         except StopIteration:
@@ -69,6 +73,9 @@ def leer_entradas(carpeta: Path) -> dict[str, Tabla]:
         return {}
     tablas: dict[str, Tabla] = {}
     for ruta in sorted(carpeta.glob("*.csv")):
+        ficha_path = ruta.with_suffix(".ficha.yaml")
+        if ficha_path.is_file() and leer_ficha(ficha_path).tabla.startswith("archivo:"):
+            continue
         columnas, crudas = leer_csv(ruta)
         tipos = [tipo_sql([fila[i] for fila in crudas]) for i in range(len(columnas))]
         filas = [
@@ -98,11 +105,11 @@ def celda_texto(valor: object) -> str:
     return str(valor)
 
 
-def escribir_csv(ruta: Path, tabla: Tabla) -> None:
+def escribir_csv(ruta: Path, tabla: Tabla, *, delimitador: str = ",") -> None:
     """Escribe la tabla como CSV con encabezado, creando la carpeta si falta."""
     ruta.parent.mkdir(parents=True, exist_ok=True)
     with ruta.open("w", encoding="utf-8", newline="") as archivo:
-        escritor = csv.writer(archivo, lineterminator="\n")
+        escritor = csv.writer(archivo, delimiter=delimitador, lineterminator="\n")
         escritor.writerow(tabla.columnas)
         for fila in tabla.filas:
             escritor.writerow([celda_texto(valor) for valor in fila])
@@ -138,13 +145,18 @@ def _iguales(esperado: str, obtenido: str, tolerancia: float) -> bool:
 
 
 def comparar_con_guardado(
-    ruta: Path, tabla: Tabla, tolerancia: float, orden_relevante: bool
+    ruta: Path,
+    tabla: Tabla,
+    tolerancia: float,
+    orden_relevante: bool,
+    *,
+    delimitador: str = ",",
 ) -> list[str]:
     """Compara la tabla calculada con el CSV guardado. Devuelve las diferencias en texto legible."""
     if not ruta.exists():
         return [f"falta el archivo {ruta.name}"]
     with ruta.open(encoding="utf-8", newline="") as archivo:
-        guardado = list(csv.reader(archivo))
+        guardado = list(csv.reader(archivo, delimiter=delimitador))
     if not guardado:
         return [f"{ruta.name} está vacío"]
     if guardado[0] != tabla.columnas:

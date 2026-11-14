@@ -21,6 +21,8 @@ class Ficha:
     generador: str | None = None
     procedencia: str | None = None
     nota: str = ""
+    cabecera: bool | None = None
+    delimitador: str | None = None
 
 
 def leer_ficha(ruta: Path) -> Ficha:

@@ -29,7 +29,8 @@ METADATOS = frozenset(
 CAMPOS = frozenset(
     {
         "nivel", "construcciones", "capa", "tolerancia", "orden_relevante", "estado", "motivo",
-        "salidas", "razonamiento", "revisor", "observacion_revision", "preparacion",
+        "salidas", "delimitadores_salida", "razonamiento", "revisor",
+        "observacion_revision", "preparacion",
         "invariantes", "esquemas",
     }
 ) | METADATOS
@@ -55,6 +56,7 @@ class Caso:
     invariantes: tuple[str, ...] = ()
     preparacion: preparacion.Preparacion | None = None
     extra: dict = field(default_factory=dict)
+    delimitadores_salida: dict[str, str] = field(default_factory=dict)
 
     @property
     def programa(self) -> Path:
@@ -124,6 +126,23 @@ def cargar_caso(directorio: Path) -> Caso:
         isinstance(item, str) and _IDENTIFICADOR.match(item) for item in salidas
     ):
         raise error("'salidas' debe ser una lista de nombres de tabla")
+    salida_por_clave = {salida.casefold(): salida for salida in salidas}
+    delimitadores_raw = datos.get("delimitadores_salida", {})
+    if not isinstance(delimitadores_raw, dict):
+        raise error("'delimitadores_salida' debe ser un mapa de tabla a carácter")
+    delimitadores_salida = {}
+    for salida, delimitador in delimitadores_raw.items():
+        clave = salida.casefold() if isinstance(salida, str) else ""
+        if clave not in salida_por_clave:
+            raise error(f"'delimitadores_salida' refiere una salida no declarada: {salida!r}")
+        if (
+            not isinstance(delimitador, str)
+            or len(delimitador) != 1
+            or not delimitador.isprintable()
+            or delimitador in '\r\n"'
+        ):
+            raise error(f"'delimitadores_salida.{salida}' debe ser un carácter imprimible")
+        delimitadores_salida[salida_por_clave[clave]] = delimitador
     if capa in ("A", "C") and not salidas:
         raise error(f"la capa {capa} necesita 'salidas' (tablas WORK que se comparan)")
     razonamiento = datos.get("razonamiento")
@@ -165,6 +184,7 @@ def cargar_caso(directorio: Path) -> Caso:
         estado=estado,
         motivo=motivo,
         salidas=tuple(salidas),
+        delimitadores_salida=delimitadores_salida,
         razonamiento=razonamiento,
         invariantes=tuple(lista_invariantes),
         preparacion=prepara,
