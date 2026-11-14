@@ -91,10 +91,15 @@ def test_contexto_dev_agrega_las_mismas_variables_a_cada_grupo_en_orden():
     assert tuple(contextos) == GRUPOS
     nombres = [[parametro.nombre for parametro in contextos[g]] for g in GRUPOS]
     assert all(grupo == nombres[0] for grupo in nombres)
-    assert nombres[0] == list(VARIABLES_BASE)
-    assert {p.nombre: p.valor for p in contextos["DEV"]} == VALORES_DEV
+    assert nombres[0] == ["ruta_lib_lz", *VARIABLES_BASE]
+    valores_default = {p.nombre: p.valor for p in contextos["Default"]}
+    valores_dev = {p.nombre: p.valor for p in contextos["DEV"]}
+    assert valores_default["ruta_lib_lz"] == "/data/lz"
+    assert valores_dev == {"ruta_lib_lz": "", **VALORES_DEV}
     for grupo in ("Default", "QA", "PROD"):
-        assert {p.valor for p in contextos[grupo]} == {""}
+        valores = {p.nombre: p.valor for p in contextos[grupo]}
+        valores.pop("ruta_lib_lz", None)
+        assert set(valores.values()) == {""}
 
 
 def test_cargar_contexto_dev_rechaza_claves_secretas_y_desconocidas(tmp_path):

@@ -8,7 +8,10 @@ from pathlib import Path
 
 import yaml
 
-from sgm.frontend.libnames import InfoLibname
+from sgm.frontend.libnames import InfoLibname, info_libname
+from sgm.frontend.program import analyze_program
+from sgm.frontend.steps_tipos import Libname
+from sgm.ir.models import Plan
 
 _IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 _MOTORES = frozenset({"impala", "postgres"})
@@ -75,4 +78,51 @@ def cargar_decisiones_libnames(ruta: Path | None) -> dict[str, dict[str, str]]:
     return decisiones
 
 
-__all__ = ["cargar_decisiones_libnames", "resolver_biblioteca"]
+def bibliotecas_de_programa(items) -> dict[str, InfoLibname]:
+    """Devuelve las declaraciones efectivas en orden; `CLEAR` elimina su libref."""
+    bibliotecas: dict[str, InfoLibname] = {}
+    for item in items:
+        paso = getattr(item, "item", item)
+        if not isinstance(paso, Libname):
+            continue
+        info = info_libname(paso)
+        if info.opciones == "clear":
+            if info.nombre == "_all_":
+                bibliotecas.clear()
+            else:
+                bibliotecas.pop(info.nombre, None)
+        elif info.motor is not None or info.ruta is not None or info.ruta_dinamica:
+            bibliotecas[info.nombre] = info
+    return bibliotecas
+
+
+def bibliotecas_de_plan(plan: Plan) -> dict[str, InfoLibname]:
+    """Reconstruye el registro de LIBNAME desde las sentencias que conserva la IR."""
+    sentencias = [
+        str(op.params.get("statement") or "").strip().rstrip(";") + ";"
+        for op in plan.graph.operators()
+        if op.params.get("reason") == "CONFIGURACION"
+        and str(op.params.get("statement") or "").strip().casefold().startswith("libname ")
+    ]
+    if not sentencias:
+        return {}
+    analisis = analyze_program({"_libnames.sas": "\n".join(sentencias)})
+    return bibliotecas_de_programa(analisis.items)
+
+
+def rutas_de_bibliotecas(bibliotecas: Mapping[str, InfoLibname]) -> dict[str, str]:
+    """Mapea cada libref con ruta literal a `ruta_lib_<libref>`."""
+    return {
+        nombre: f"ruta_lib_{nombre}"
+        for nombre, info in bibliotecas.items()
+        if info.ruta is not None
+    }
+
+
+__all__ = [
+    "bibliotecas_de_plan",
+    "bibliotecas_de_programa",
+    "cargar_decisiones_libnames",
+    "resolver_biblioteca",
+    "rutas_de_bibliotecas",
+]

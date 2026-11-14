@@ -53,7 +53,7 @@ class Builder:
             else:
                 self.bibliotecas.pop(info.nombre, None)
             return
-        if info.motor is not None or info.ruta is not None:
+        if info.motor is not None or info.ruta is not None or info.ruta_dinamica:
             self.bibliotecas[info.nombre] = info
 
     def read_dataset(
@@ -71,6 +71,15 @@ class Builder:
             parametros["in"] = in_name
         libref = dataset.split(".", 1)[0].casefold()
         info = self.bibliotecas.get(libref)
+        if info is not None and info.ruta_dinamica:
+            parametros["pending_code"] = "P-LIBNAME-RUTA-DINAMICA"
+            return self.op(
+                "read",
+                parametros,
+                ev,
+                status="hueco",
+                notes=[f"Pendiente: la ruta de la biblioteca {libref} depende de una macro"],
+            )
         if info is None or info.ruta is not None or info.motor is None:
             return self.op("read", parametros, ev)
         if info.motor not in {"impala", "postgres"}:

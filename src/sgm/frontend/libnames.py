@@ -22,6 +22,7 @@ class InfoLibname:
     ruta: str | None
     opciones: str
     linea: int
+    ruta_dinamica: bool = False
 
 
 def _opciones_seguras(texto: str) -> str:
@@ -43,8 +44,11 @@ def info_libname(item: Libname) -> InfoLibname:
         if fin >= 0:
             ruta = valor[1:fin]
             resto = valor[fin + 1 :].strip()
-            literal = ruta if not _MACRO.search(ruta) else None
-            return InfoLibname(nombre, None, literal, _opciones_seguras(resto), item.line)
+            dinamica = bool(_MACRO.search(ruta))
+            literal = None if dinamica else ruta
+            return InfoLibname(
+                nombre, None, literal, _opciones_seguras(resto), item.line, ruta_dinamica=dinamica
+            )
 
     partes = valor.split(None, 1)
     motor = partes[0].casefold()

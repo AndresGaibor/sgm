@@ -251,7 +251,7 @@ LIBNAME lz CLEAR;
 - [x] **Step 3: Implement** `libnames.py` (expresiones regulares sobre el texto; las opciones se conservan solo redactadas) y `bibliotecas.py`. `sgm migrar` acepta `--libnames <archivo>` o busca `decisiones/<programa>.libnames.yaml`; el YAML permite exclusivamente motor y base. La lectura entra por `tImpalaInput`; las variables de conexión aparecen vacías en todos los contextos si no hay configuración DEV. Sin decisión queda `P-LIBNAME-BASE`; opciones no aplicadas quedan `P-CONEXION-OPCIONES`.
 - [x] **Step 4: Run** los tests, `tests/unit/test_migrar_corpus_aceptacion.py`, los casos L0, el catálogo SAS y `uv run ruff check src tests tools`. Bloque focal: 344 pruebas aprobadas y 5 `xfail`; Ruff y `git diff --check` verdes.
 - [ ] **Step 5: Contenedor y Studio.** No ejecutado: el repositorio prohíbe conexiones a bases y el caso no tiene autorización para el contenedor. La validación C queda pendiente; la prueba local solo usa filas sintéticas.
-- [ ] **Step 6: Commit.** `hito 250n: LIBNAME a bases con la base declarada por decision y conexion compartida`.
+- [x] **Step 6: Commit.** `hito 250n: LIBNAME a bases con decision explicita` (`4408b48`).
 
 ---
 
@@ -260,8 +260,12 @@ LIBNAME lz CLEAR;
 Cierra MG-P2-04. Una biblioteca de ruta (`LIBNAME datos '/carpeta';`) no produce datos por sí sola: su efecto aparece cuando un programa lee o escribe `datos.tabla`, que es la decisión MG-D03 de D2-18. Esta tarea deja listo el registro: cada biblioteca de ruta pasa a una **variable de contexto** `ruta_lib_<nombre>` (un solo lugar para cambiarla por ambiente, como `ruta_<tabla>` de `rutas_de_plan`) y el pendiente de una biblioteca sin ruta literal (con `&`) es `P-LIBNAME-RUTA-DINAMICA`. **No suma caso propio** (la biblioteca sola no lee ni escribe nada); su caso ejecutable es `l0_31_biblioteca_permanente` de D2-18, y esta tarea lo declara en su prueba como el consumidor.
 
 **Files:**
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\frontend\libnames.py` (marca rutas con macro sin conservar ni mostrar su expresión)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\bibliotecas.py` (creado en D2-4)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\builder.py` (pendiente específico al leer un libref de ruta dinámica)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan.py` (bibliotecas de ruta literal como configuración registrada)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_contextos.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_push_db.py` (la ruta SAS pasa a contexto, sin pendiente genérico de configuración)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_bibliotecas_ruta.py`
 
 **Interfaces:**
@@ -271,14 +275,16 @@ Cierra MG-P2-04. Una biblioteca de ruta (`LIBNAME datos '/carpeta';`) no produce
   # ir/bibliotecas.py
   def bibliotecas_de_programa(items: Iterable) -> dict[str, InfoLibname]:
       """Todas las `LIBNAME` del programa, la ultima por libref (un `CLEAR` la quita)."""
+  def bibliotecas_de_plan(plan: Plan) -> dict[str, InfoLibname]:
+      """Reconstruye ese registro a partir de las declaraciones que conserva el plan."""
   def rutas_de_bibliotecas(bibliotecas: Mapping[str, InfoLibname]) -> dict[str, str]:
       """libref -> nombre de la variable de contexto (`ruta_lib_<libref>`), solo las de ruta."""
   ```
 
-- [ ] **Step 1: Write the failing tests.** (a) `bibliotecas_de_programa` de `LIBNAME a 'C:\x'; LIBNAME b IMPALA DSN=z; LIBNAME a CLEAR;` devuelve solo `b`; (b) `rutas_de_bibliotecas` de `LIBNAME datos '/d';` da `{"datos": "ruta_lib_datos"}`; (c) `contextos_de_plan` suma `ruta_lib_datos` a los cuatro grupos con el valor literal en `Default` y vacío en los demás (el mismo criterio que `ruta_<tabla>`); (d) `LIBNAME datos "&dir.";` da `P-LIBNAME-RUTA-DINAMICA`; (e) una biblioteca de ruta no cambia el golden de los casos sin `LIBNAME`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_bibliotecas_ruta.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** y conectar a `contextos_de_plan` (una función auxiliar nueva en `desde_plan_contextos.py`; el archivo queda bajo 150 líneas).
-- [ ] **Step 4: Run** los tests, `tests/unit/test_desde_plan_contextos.py`, `tests/unit/test_talend_contextos.py`, el golden, `tests/unit/test_catalogo_sas.py` y `uv run ruff check src tests tools`.
+- [x] **Step 1: Write the failing tests.** (a) `bibliotecas_de_programa` de `LIBNAME a 'C:\x'; LIBNAME b IMPALA DSN=z; LIBNAME a CLEAR;` devuelve solo `b`; (b) `rutas_de_bibliotecas` de `LIBNAME datos '/d';` da `{"datos": "ruta_lib_datos"}`; (c) `contextos_de_plan` suma `ruta_lib_datos` a los cuatro grupos con el valor literal en `Default` y vacío en los demás; (d) al consumir `LIBNAME datos "&dir.";` se deja `P-LIBNAME-RUTA-DINAMICA`; (e) no cambia el golden sin `LIBNAME`; (f) `CLEAR` quita la ruta y una ruta de archivo no colisiona con `ruta_lib_<libref>`.
+- [x] **Step 2: Run tests to verify they fail.** La primera corrida falló al importar `bibliotecas_de_programa`, todavía inexistente.
+- [x] **Step 3: Implement** `bibliotecas_de_programa`, `bibliotecas_de_plan` y `rutas_de_bibliotecas`; se registran las rutas literales en los cuatro contextos, con literal solo en `Default`. El lector de una ruta macro queda con `P-LIBNAME-RUTA-DINAMICA`; una biblioteca literal ocupa `ruta_lib_<libref>` y las rutas de archivo reciben sufijo si hay una colisión.
+- [x] **Step 4: Run** `test_bibliotecas_ruta.py`, contextos, push a BD, LIBNAME, golden/equivalencia, catálogo y aceptación del corpus: 237 aprobadas. Ruff y `git diff --check` verdes.
 - [ ] **Step 5: Commit.** `hito N n: bibliotecas de ruta con variable de contexto`.
 
 ---

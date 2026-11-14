@@ -137,11 +137,9 @@ def test_exec_sql_de_impala_se_emite_en_un_timpalarow_sin_inventar_conexion(tmp_
     assert parametros["HOST"] == parametros["PORT"] == parametros["DBNAME"] == '""'
     assert parametros["IMPALA_DRIVER"] == "HIVE2"
     assert parametros["PASS"] == "((String)null)"
-    assert any(
-        pendiente.codigo == "P-OPERADOR-SIN-SOPORTE"
-        and "configuración de sesión" in pendiente.mensaje
-        for pendiente in resultado.pendientes
-    )
+    assert {
+        parametro.nombre: parametro.valor for parametro in job.contextos["Default"]
+    }["ruta_lib_lz"] == "/data/lz"
     assert any(pendiente.codigo == "P-CONEXION-BASE" for pendiente in resultado.pendientes)
     assert not any(
         "el operador 'read'" in pendiente.mensaje

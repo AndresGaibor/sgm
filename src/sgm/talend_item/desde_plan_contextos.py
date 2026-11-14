@@ -16,6 +16,7 @@ rechazada por el cargador y por `test_sin_secretos`.
 
 from __future__ import annotations
 
+from sgm.ir.bibliotecas import bibliotecas_de_plan, rutas_de_bibliotecas
 from sgm.ir.models import Plan
 from sgm.java_literals import literal_java
 from sgm.talend_item.desde_plan_conexiones import conexiones_de_plan
@@ -45,7 +46,7 @@ def rutas_de_plan(plan: Plan) -> dict[str, str]:
     tabla, y distintos cuando no.
     """
     rutas: dict[str, str] = {}
-    usados: set[str] = set()
+    usados = set(rutas_de_bibliotecas(bibliotecas_de_plan(plan)).values())
     for op in plan.graph.operators():
         if op.kind == "read_file":
             literal, dataset = op.params.get("datafile"), _primero(op.params, "outputs")
@@ -79,13 +80,22 @@ def contextos_de_plan(
     por_ruta: dict[str, str] = {}
     for camino, nombre in rutas.items():
         por_ruta.setdefault(nombre, camino)
+    bibliotecas = bibliotecas_de_plan(plan)
+    for libref, nombre in rutas_de_bibliotecas(bibliotecas).items():
+        camino = bibliotecas[libref].ruta
+        if camino is not None:
+            por_ruta.setdefault(nombre, camino)
     grupos: dict[str, list[ParametroContexto]] = {}
     for grupo in GRUPOS:
         grupos[grupo] = [
             ParametroContexto(
                 nombre,
                 valor=camino if grupo == "Default" else "",
-                comentario=f"ruta del archivo de {nombre.removeprefix('ruta_')}",
+                comentario=(
+                    f"ruta de la biblioteca {nombre.removeprefix('ruta_lib_')}"
+                    if nombre.startswith("ruta_lib_")
+                    else f"ruta del archivo de {nombre.removeprefix('ruta_')}"
+                ),
             )
             for nombre, camino in por_ruta.items()
         ]

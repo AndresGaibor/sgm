@@ -102,7 +102,10 @@ def _libname_registrado(statement: str) -> bool:
     if re.match(r"(?is)^libname\s+(?:_all_\s+)?(?:[A-Za-z_]\w*\s+)?clear$", limpio):
         return True
     declaracion = re.match(r"(?is)^libname\s+[A-Za-z_]\w*\s+(.+)$", limpio)
-    return bool(declaracion and not declaracion.group(1).lstrip().startswith(("'", '"')))
+    if not declaracion:
+        return False
+    valor = declaracion.group(1).lstrip()
+    return valor.startswith(("'", '"')) or bool(re.match(r"[A-Za-z_]\w*(?:\s|$)", valor))
 
 
 def _como_paso(op: Operator) -> Operator:
