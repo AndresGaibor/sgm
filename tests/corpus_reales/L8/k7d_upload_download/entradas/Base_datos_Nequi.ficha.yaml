@@ -1,0 +1,13 @@
+tabla: archivo:Base_datos_Nequi.csv
+origen: sintetico
+filas: 6
+columnas:
+  VAR1: String
+  VAR2: String
+  VAR3: String
+semilla: 20261113
+generador: tools/datos_sinteticos/archivos.py:generar_archivos
+procedencia: null
+nota: Valores de fixture; no demuestran tipos SAS.
+cabecera: false
+delimitador: ;

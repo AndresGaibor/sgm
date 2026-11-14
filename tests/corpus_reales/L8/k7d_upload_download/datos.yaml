@@ -1,0 +1,11 @@
+semilla: 20261113
+tablas:
+  WORK.FA_NO_VIGENTES_AHO:
+    filas: 6
+    columnas: [NRO_DOC, NRO_CTA]
+archivos:
+  Base_datos_Nequi.csv:
+    filas: 6
+    columnas: [VAR1, VAR2, VAR3]
+    delimitador: ";"
+    cabecera: false

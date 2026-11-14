@@ -1,0 +1,10 @@
+tabla: work.fa_no_vigentes_aho
+origen: sintetico
+filas: 6
+columnas:
+  NRO_DOC: String
+  NRO_CTA: String
+semilla: 20261113
+generador: tools/datos_sinteticos/manifiesto.py:generar_entradas
+procedencia: null
+nota: Tipos de fixture generado; un String no implica tipo SAS demostrado.

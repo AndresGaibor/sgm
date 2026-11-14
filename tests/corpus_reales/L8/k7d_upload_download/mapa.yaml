@@ -1,0 +1,2 @@
+ruta_base_clientes_nequi: entradas/Base_datos_Nequi.csv
+ruta_fa_no_vigentes_aho: salida/FA_NO_VIGENTES_AHO.csv

@@ -1,0 +1,23 @@
+fuente: tests/fixtures/sas/client/client_large.sas
+rangos:
+- - 146
+  - 164
+- - 24263
+  - 24278
+sha256: 141abf27230fab124461a1efeca66d608e8b5037fcf49f97caace952e323fc09
+prologo: ''
+sustituciones:
+- - "signon \r\nuser=&sysuserid pass='***';\r\nRSUBMIT server;\r\n\r\n"
+  - "signon\r\nuser=&sysuserid pass='***';\r\nRSUBMIT server;\r\n\r\n"
+- - "signon \r\nuser=&sysuserid pass='***';\r\nRSUBMIT server;\r\n"
+  - "signon\r\nuser=&sysuserid pass='***';\r\nRSUBMIT server;\r\n"
+- - "PROC DOWNLOAD INFILE='\\\\sbcldwpsgf01\\FILE_VSPC_FINANZAS\\Base_datos_Nequi.csv'\
+    \ \r\n"
+  - "PROC DOWNLOAD INFILE='\\\\sbcldwpsgf01\\FILE_VSPC_FINANZAS\\Base_datos_Nequi.csv'\r\
+    \n"
+- - "proc export data=WORK.FA_NO_VIGENTES_AHO outfile=\"/work_sasstudio/pcfiles/FA_NO_VIGENTES_AHO.csv\"\
+    \ \r\n"
+  - "proc export data=WORK.FA_NO_VIGENTES_AHO outfile=\"/work_sasstudio/pcfiles/FA_NO_VIGENTES_AHO.csv\"\
+    \r\n"
+- - "PROC UPLOAD INFILE=\"/work_sasstudio/pcfiles/FA_NO_VIGENTES_AHO.csv\" \r\n"
+  - "PROC UPLOAD INFILE=\"/work_sasstudio/pcfiles/FA_NO_VIGENTES_AHO.csv\"\r\n"

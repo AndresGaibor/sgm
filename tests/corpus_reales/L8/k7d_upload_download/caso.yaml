@@ -1,0 +1,44 @@
+id: k7d_upload_download
+nivel: L8
+tema: copias de archivos con SAS/CONNECT
+construcciones:
+  - PROC DOWNLOAD de archivo
+  - PROC IMPORT DBMS=DLM GETNAMES=NO
+  - PROC EXPORT DBMS=DLM
+  - PROC UPLOAD de archivo
+capa: C
+estado: parcial
+motivo: >-
+  El anillo B comprueba que las copias de archivo conservan las filas sintéticas. El anillo C queda
+  pendiente mientras SAS Studio no esté disponible; el mapa del caso conecta las rutas de contexto
+  con el nombre real del archivo de entrada y la salida exportada.
+salidas:
+  - FA_NO_VIGENTES_AHO
+delimitadores_salida:
+  FA_NO_VIGENTES_AHO: ";"
+tolerancia: 0
+orden_relevante: true
+supuestos:
+  - >-
+    Datos sintéticos: el archivo Base_datos_Nequi.csv tiene seis filas sin cabecera y delimitador
+    punto y coma; WORK.FA_NO_VIGENTES_AHO contiene seis filas de texto. Ninguna fila representa
+    información personal.
+  - >-
+    GETNAMES=NO genera VAR1, VAR2 y VAR3 según proc.pdf, pp. 1387–1388. Las columnas del fixture
+    no demuestran un esquema real de cliente.
+  - >-
+    PROC DOWNLOAD copia un archivo desde INFILE= remoto a OUTFILE= local y PROC UPLOAD lo copia
+    desde INFILE= local a OUTFILE= remoto (connref.pdf, pp. 245–246 y 285–286). El migrador redirige
+    los lectores/escritores a la ruta remota del contexto; no crea un cliente remoto ni ejecuta
+    las copias SAS/CONNECT.
+  - >-
+    BASE_CLIENTES_NEQUI es una tabla intermedia importada y se valida en el anillo B; la única
+    salida física exportada por el fragmento es FA_NO_VIGENTES_AHO.csv.
+  - >-
+    ruta_base_clientes_nequi no coincide con el nombre Base_datos_Nequi.csv; mapa.yaml liga la
+    variable a entradas/Base_datos_Nequi.csv. ruta_fa_no_vigentes_aho se liga a
+    salida/FA_NO_VIGENTES_AHO.csv.
+razonamiento: >-
+  La ruta temporal /work_sasstudio/pcfiles/ es un detalle del entorno SAS que se evita en el Job.
+  El grupo Default conserva las rutas UNC que demuestra el SAS; DEV, QA y PROD quedan vacíos para
+  configuración explícita del entorno, sin credenciales.
