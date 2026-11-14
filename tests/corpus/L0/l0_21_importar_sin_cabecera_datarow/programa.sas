@@ -1,0 +1,11 @@
+PROC IMPORT DATAFILE='.../entradas/datos.csv' OUT=WORK.d DBMS=CSV REPLACE;
+  GETNAMES=NO;
+  DATAROW=2;
+  GUESSINGROWS=MAX;
+RUN;
+
+DATA WORK.s;
+  SET WORK.d;
+  suma = VAR2 + VAR3;
+  KEEP VAR1 suma;
+RUN;

@@ -63,7 +63,10 @@ def _leer_dlm(
     operator: object, caso: Caso
 ) -> tuple[str, list[str], list[dict[str, str]]]:
     params = operator.params
-    separator = params.get("delimiter")
+    dbms = str(params.get("dbms") or "").casefold()
+    separator = params.get("delimiter") or ("," if dbms == "csv" else None)
+    if dbms not in {"csv", "dlm"}:
+        raise ValueError(f"PROC IMPORT DBMS={dbms or '(sin DBMS)'} no es texto delimitado")
     if not isinstance(separator, str) or len(separator) != 1 or separator in '\r\n"':
         raise ValueError("PROC IMPORT DBMS=DLM requiere DELIMITER explícito de un carácter")
     has_header = params.get("getnames")
@@ -98,12 +101,23 @@ def _leer_dlm(
         raise ValueError(f"{name}: archivo delimitado inválido") from error
     if not rows:
         raise ValueError(f"{name}: archivo sin filas; no se puede demostrar el esquema")
+    datarow = params.get("datarow")
+    if datarow is None:
+        datarow = 2 if has_header else 1
+    if isinstance(datarow, bool) or not isinstance(datarow, int):
+        raise ValueError(f"{name}: DATAROW no es un entero literal")
+    if datarow < (2 if has_header else 1):
+        raise ValueError(f"{name}: DATAROW no es válido con GETNAMES; proc.pdf, p. 1385")
+    first_data = datarow - 1
     if has_header:
-        columns, values = rows[0], rows[1:]
+        columns, values = rows[0], rows[first_data:]
         if any(not _IDENTIFICADOR.fullmatch(column) for column in columns):
             raise ValueError(f"{name}: GETNAMES requiere nombres de columna simples en este anillo")
     else:
-        columns, values = [f"VAR{index}" for index in range(1, len(rows[0]) + 1)], rows
+        values = rows[first_data:]
+        if not values:
+            raise ValueError(f"{name}: DATAROW no encuentra una fila para demostrar el ancho")
+        columns = [f"VAR{index}" for index in range(1, len(values[0]) + 1)]
     if not columns or any(len(row) != len(columns) for row in values):
         raise ValueError(f"{name}: cantidad de campos inconsistente")
     if list(ficha.columnas) != columns:
@@ -152,7 +166,7 @@ def entradas_de_archivos(
         dbms = str(operator.params.get("dbms") or "").casefold()
         if dbms == "xls":
             raise ValueError("DBMS=XLS no se ejecuta en el intérprete: P-XLS-SIN-EJECUCION")
-        if dbms not in {"dlm", "xlsx"}:
+        if dbms not in {"csv", "dlm", "xlsx"}:
             raise ValueError(
                 f"{_tabla((operator.params.get('outputs') or [''])[0])}: "
                 f"DBMS={dbms or '(sin DBMS)'} no está soportado en el esperado del anillo B"

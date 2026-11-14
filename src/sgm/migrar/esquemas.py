@@ -169,9 +169,11 @@ def _ruta_de_muestra(muestra: Path | None, datafile: object) -> Path | None:
     return candidata if candidata.is_file() else None
 
 
-def _cabecera(ruta: Path, delimiter: str | None, getnames: bool = True) -> list[str]:
+def _cabecera(
+    ruta: Path, delimiter: str | None, getnames: bool = True, datarow: int | None = None
+) -> list[str]:
     """Nombres de columna del archivo: su primera línea con `GETNAMES=YES`, `VAR1`... con `NO`."""
-    return filas_del_archivo(ruta, delimiter, getnames)[0]
+    return filas_del_archivo(ruta, delimiter, getnames, datarow)[0]
 
 
 def _de_catalogo(tabla: str, catalogo: dict[str, list[Column]]) -> list[Column] | None:
@@ -211,6 +213,20 @@ def esquemas_de_entrada(
             esquemas[tabla] = demostrado
             continue
         ruta = _ruta_de_muestra(muestra, op.params.get("datafile"))
+        datarow = op.params.get("datarow")
+        getnames = op.params.get("getnames") is not False
+        datarow_resuelto = datarow is None or (
+            isinstance(datarow, int) and not isinstance(datarow, bool)
+        )
+        if not datarow_resuelto:
+            pendientes.append(
+                PendienteMigracion(
+                    "P-DATAROW-DINAMICO",
+                    f"{tabla}: DATAROW no es un entero literal; no se infiere el esquema desde "
+                    "una fila que no está determinada.",
+                    _linea(op),
+                )
+            )
         error_xlsx = None
         if ruta and dbms == "xlsx":
             try:
@@ -223,15 +239,21 @@ def esquemas_de_entrada(
                 cabecera = []
                 error_xlsx = error
         else:
-            cabecera = (
-                _cabecera(
-                    ruta,
-                    op.params.get("delimiter"),
-                    op.params.get("getnames") is not False,
+            try:
+                cabecera = (
+                    _cabecera(ruta, op.params.get("delimiter"), getnames, datarow)
+                    if ruta and datarow_resuelto
+                    else []
                 )
-                if ruta
-                else []
-            )
+            except ValueError as error:
+                cabecera = []
+                pendientes.append(
+                    PendienteMigracion(
+                        "P-DATAROW-INVALIDO",
+                        f"{tabla}: {error}",
+                        _linea(op),
+                    )
+                )
         if error_xlsx is not None:
             pendientes.append(
                 PendienteMigracion(
@@ -254,9 +276,11 @@ def esquemas_de_entrada(
                 ruta,
                 op.params.get("delimiter"),
                 nombres,
-                getnames=op.params.get("getnames") is not False,
+                guessingrows=op.params.get("guessingrows") or GUESSINGROWS_POR_OMISION,
+                getnames=getnames,
+                datarow=datarow,
             )
-            if ruta and origen == "file_header" and dbms != "xlsx"
+            if ruta and origen == "file_header" and dbms != "xlsx" and datarow_resuelto
             else {}
         )
         tipos_input = {
@@ -272,6 +296,10 @@ def esquemas_de_entrada(
                     if nombre.lower() in numericas
                     else None
                     if dbms == "xlsx"
+                    else _tipo_de(nombre, numericas, demostrados)
+                    if nombre in demostrados or nombre.lower() in numericas
+                    else None
+                    if op.params.get("guessingrows") is not None
                     else _tipo_de(nombre, numericas, demostrados),
                 ),
                 None,
@@ -284,9 +312,8 @@ def esquemas_de_entrada(
                 pendientes.append(
                     PendienteMigracion(
                         pendiente,
-                        f"{tabla}.{nombre}: hay texto después de las primeras "
-                        f"{GUESSINGROWS_POR_OMISION} filas que SAS no lee; el tipo es "
-                        f"{TIPO_NUMERICO} según la muestra",
+                        f"{tabla}.{nombre}: hay texto fuera de la muestra ({tipo.fuente}); "
+                        f"SAS infiere {TIPO_NUMERICO} con las filas observadas",
                         _linea(op),
                     )
                 )

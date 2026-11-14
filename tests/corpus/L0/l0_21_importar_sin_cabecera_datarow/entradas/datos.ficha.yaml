@@ -1,0 +1,14 @@
+tabla: archivo:datos.csv
+origen: sintetico
+filas: 3
+columnas:
+  VAR1: String
+  VAR2: Double
+  VAR3: Double
+semilla: 20261114
+generador: tests/corpus/L0/l0_21_importar_sin_cabecera_datarow/programa.sas
+nota: >-
+  Fixture sintético escrito para probar DATAROW: la primera fila se ignora en SAS y las dos
+  siguientes son los registros esperados.
+cabecera: false
+delimitador: ','

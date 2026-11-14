@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from sgm.ir.models import Column, Operator
 from sgm.java_identificadores import is_java_identifier
 from sgm.migrar.esquemas import PendienteMigracion
+from sgm.talend_item.desde_plan_cabecera import aviso_guessingrows, lineas_a_saltar
 from sgm.talend_item.desde_plan_excel import nodo_lectura_excel
 from sgm.talend_item.desde_plan_nodos_escritura import nodo_escritura
 from sgm.talend_item.jobs_diseno import java
@@ -161,6 +162,16 @@ def nodo_lectura(
         )
         return resultado
     if dbms in EXCEL:
+        if params.get("datarow") is not None:
+            resultado.pendientes.append(
+                PendienteMigracion(
+                    "P-DATAROW-EXCEL-SIN-SOPORTE",
+                    f"{archivo}: DATAROW en XLSX está documentado por SAS, pero este lector "
+                    "aún no valida su fila de inicio contra una plantilla de Studio.",
+                    _linea(op),
+                )
+            )
+            return resultado
         resultado.nodo, pendientes_excel = nodo_lectura_excel(
             op,
             esquema,
@@ -175,18 +186,47 @@ def nodo_lectura(
         )
         resultado.pendientes.extend(pendientes_excel)
         return resultado
-    guessingrows = params.get("guessingrows")
-    if guessingrows is not None:
+    data_step_input = "infile_statement" in params or "input_statement" in params
+    datarow = params.get("datarow")
+    getnames = params.get("getnames") is not False
+    if datarow is not None and (
+        isinstance(datarow, bool) or not isinstance(datarow, int)
+    ):
         resultado.pendientes.append(
             PendienteMigracion(
-                "P-GUESSINGROWS",
-                f"{archivo}: GUESSINGROWS={guessingrows} afecta la inferencia SAS de tipo y "
-                "longitud; "
-                "Talend requiere tipos explícitos, hay que validar el esquema emitido.",
+                "P-DATAROW-DINAMICO",
+                f"{archivo}: DATAROW no es un entero literal; no se puede fijar la primera fila "
+                "del lector.",
                 _linea(op),
             )
         )
-    data_step_input = "infile_statement" in params or "input_statement" in params
+        return resultado
+    try:
+        header = (
+            _cabecera(
+                max(0, params["firstobs"] - 1)
+                if data_step_input and isinstance(params.get("firstobs"), int)
+                else params.get("getnames")
+            )
+            if data_step_input
+            else str(lineas_a_saltar(getnames, datarow))
+        )
+    except ValueError as error:
+        resultado.pendientes.append(
+            PendienteMigracion("P-DATAROW-INVALIDO", f"{archivo}: {error}", _linea(op))
+        )
+        return resultado
+    pendiente_guessingrows = aviso_guessingrows(
+        esquema,
+        params.get("guessingrows"),
+        _linea(op),
+        datarow=datarow,
+        getnames=getnames,
+    )
+    if pendiente_guessingrows is not None:
+        resultado.pendientes.append(pendiente_guessingrows)
+        if pendiente_guessingrows.codigo.startswith("P-"):
+            return resultado
     if data_step_input and file_format != "delimited":
         resultado.pendientes.append(
             PendienteMigracion(
@@ -251,11 +291,7 @@ def nodo_lectura(
         {
             "FILENAME": java(archivo),
             "FIELDSEPARATOR": java(separa),
-            "HEADER": _cabecera(
-                max(0, params["firstobs"] - 1)
-                if data_step_input and isinstance(params.get("firstobs"), int)
-                else params.get("getnames")
-            ),
+            "HEADER": header,
         },
         columnas=columnas,
         ruta_java=ruta_java,

@@ -1,0 +1,23 @@
+nivel: L0
+tema: Importación delimitada sin cabecera con fila inicial explícita
+construcciones:
+  - PROC IMPORT
+  - GETNAMES=NO
+  - DATAROW
+  - GUESSINGROWS=MAX
+  - DATA
+  - SET
+  - ARITMETICA
+  - KEEP
+capa: C
+estado: revisado
+motivo: >-
+  El resultado del anillo B se calcula con los registros que empiezan en DATAROW=2; SAS documenta
+  esa fila inicial, los nombres VAR1... y el muestreo de tipos hasta MAX.
+salidas: [s]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  proc.pdf, p. 1385: DATAROW=2 empieza a leer en la segunda fila con GETNAMES=NO; p. 1387:
+  GETNAMES=NO genera VAR1, VAR2, ...; p. 1388: GUESSINGROWS=MAX escanea el archivo para inferir
+  tipo y largo. Las filas esperadas se recalculan a mano sobre las filas 2 y 3.

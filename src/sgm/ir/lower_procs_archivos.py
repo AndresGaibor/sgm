@@ -11,7 +11,7 @@ from sgm.ir.models import Evidence
 # Opciones que el PROC IMPORT y el PROC EXPORT escriben como sentencia del cuerpo (`GETNAMES=YES;`)
 # o en la cabecera. Se leen del texto y no se suponen: el valor que falta queda en `None`.
 _OPCION = re.compile(
-    r"(?i)\b(dbms|delimiter|getnames|sheet|guessingrows|putnames)\s*=\s*"
+    r"(?i)\b(dbms|delimiter|getnames|datarow|sheet|guessingrows|putnames)\s*=\s*"
     r"('[^']*'|\"[^\"]*\"|[^\s;]+)"
 )
 
@@ -61,6 +61,8 @@ def _read_file(step: Proc, ev: Evidence, b: Builder, out: str | None) -> None:
         "sheet": _sin_comillas(opciones["sheet"]) if "sheet" in opciones else None,
         "guessingrows": _entero(opciones.get("guessingrows")),
     }
+    if "datarow" in opciones:
+        params["datarow"] = _entero(opciones["datarow"])
     b.op("read_file", params, ev)
 
 

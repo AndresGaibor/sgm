@@ -36,9 +36,9 @@ entries:
   nota: '22 usos; CSV respeta DELIMITER y PUTNAMES (proc, p. 904 y 910); la sección XLS/XLSX documenta SHEET= para exportación (acpcref, inicia p. 93; detalle pp. 97–98), pero la fila de encabezado no tiene equivalencia documentada y queda pendiente antes de emitir.'
 - id: import
   nombre: PROC IMPORT
-  fuente: proc.pdf, p. 1380; acpcref.pdf, p. 93
+  fuente: proc.pdf, p. 1380; proc.pdf, p. 1385; proc.pdf, p. 1387; proc.pdf, p. 1388; acpcref.pdf, p. 93
   estado: reconocida
-  nota: '9 usos; CSV y DLM con esquema condicionado por muestra; XLSX con SHEET= y GETNAMES=; XLS se emite como Excel pero no se ejecuta en el intérprete (P-XLS-SIN-EJECUCION); columnas Excel sin tipo probado dejan P-TIPO-EXCEL.'
+  nota: '10 usos; CSV y DLM respetan GETNAMES, DATAROW y GUESSINGROWS con tipos derivados de la muestra; XLSX con SHEET= y GETNAMES=; DATAROW en XLSX sigue pendiente de validar con plantilla; XLS se emite como Excel pero no se ejecuta en el intérprete (P-XLS-SIN-EJECUCION); columnas Excel sin tipo probado dejan P-TIPO-EXCEL.'
 - id: download
   nombre: PROC DOWNLOAD
   fuente: connref.pdf, p. 287

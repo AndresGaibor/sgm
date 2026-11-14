@@ -38,7 +38,14 @@ LISTA = CORPUS / "migrar_pendientes.yaml"
 # Los tipos sin demostrar no son una pérdida de traducción: sin catálogo del entorno no hay tipo que
 # demostrar, y contarlos como una pérdida de traducción mezclaría dos deudas distintas. Excel tiene
 # su código específico; ambos se excluyen de la lista de construcciones que no se tradujeron.
-NOTAS = frozenset({"P-TIPO-DESCONOCIDO", "P-TIPO-EXCEL", "P-CONFIGURACION-RESUELTA"})
+NOTAS = frozenset(
+    {
+        "P-TIPO-DESCONOCIDO",
+        "P-TIPO-EXCEL",
+        "P-CONFIGURACION-RESUELTA",
+        "A-GUESSINGROWS-TIPOS-FIJADOS",
+    }
+)
 NIVELES = ("L0", "L1", "L2", "L3", "L4", "L5", "L6")
 
 

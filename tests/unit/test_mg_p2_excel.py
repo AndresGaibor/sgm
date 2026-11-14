@@ -116,7 +116,7 @@ def test_export_excel_sin_plantilla_real_queda_pendiente_y_no_se_emite_como_deli
     assert [pending.codigo for pending in result.pendientes] == ["P-COMPONENTE-SIN-PLANTILLA"]
 
 
-def test_guessingrows_explicito_deja_pendiente_la_inferencia_que_no_se_emite():
+def test_guessingrows_sin_tipo_demostrado_bloquea_el_lector_delimitado():
     result = nodo_lectura(
         _op(
             "read_file",
@@ -125,16 +125,17 @@ def test_guessingrows_explicito_deja_pendiente_la_inferencia_que_no_se_emite():
             getnames=True,
             guessingrows=1000,
         ),
-        [Column("id", "String")],
+        [Column("id", None)],
         "tFileInputDelimited_1",
         0,
         0,
     )
 
-    assert any(pending.codigo == "P-GUESSINGROWS" for pending in result.pendientes)
+    assert result.nodo is None
+    assert [pending.codigo for pending in result.pendientes] == ["P-GUESSINGROWS"]
 
 
-def test_guessingrows_max_tambien_deja_pendiente_la_inferencia():
+def test_guessingrows_max_sin_tipo_demostrado_tambien_bloquea_el_lector():
     result = nodo_lectura(
         _op(
             "read_file",
@@ -143,7 +144,7 @@ def test_guessingrows_max_tambien_deja_pendiente_la_inferencia():
             getnames=True,
             guessingrows="max",
         ),
-        [Column("id", "String")],
+        [Column("id", None)],
         "tFileInputDelimited_2",
         0,
         0,
@@ -151,3 +152,4 @@ def test_guessingrows_max_tambien_deja_pendiente_la_inferencia():
 
     pendiente = next(p for p in result.pendientes if p.codigo == "P-GUESSINGROWS")
     assert "max" in pendiente.mensaje
+    assert result.nodo is None

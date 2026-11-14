@@ -394,15 +394,19 @@ RUN;
 
 ### Task D2-8: `GETNAMES`, `DATAROW` y `GUESSINGROWS` sobre archivos delimitados (MG-P2-01, parte 3; serie `n`)
 
-Páginas (`proc.pdf`): `GETNAMES Statement` (p. 1387: `YES` por omisión; con `NO` los nombres son `VAR1`, `VAR2`, ...), `DATAROW Statement` (p. 1385), `GUESSINGROWS Statement` (p. 1388: por omisión 20, valor `n` o `MAX`, «valid only for delimited files»). Hoy `P-GUESSINGROWS` bloquea el Job aunque el tipo ya esté fijado por la muestra, y `DATAROW` no se lee (`_OPCION` de `lower_procs.py` solo recoge `dbms|delimiter|getnames|sheet|guessingrows`).
+Páginas (`proc.pdf`): `GETNAMES Statement` (p. 1387: `YES` por omisión; con `NO` los nombres son `VAR1`, `VAR2`, ...), `DATAROW Statement` (p. 1385), `GUESSINGROWS Statement` (p. 1388: por omisión 20, valor `n` o `MAX`, escanea desde la fila 1 hasta `n` y debe superar `DATAROW`). Hoy `P-GUESSINGROWS` bloquea el Job aunque el tipo ya esté fijado por la muestra, y `DATAROW` no se lee (`_OPCION` de `lower_procs_archivos.py` solo recoge `dbms|delimiter|getnames|sheet|guessingrows`).
 
 **Decisión (se anota en `PROGRESS.md`, «Decisiones»):** `GUESSINGROWS` solo afecta cómo SAS **infiere** tipo y largo de cada columna. Si todas las columnas del esquema tienen tipo demostrado (muestra o `esquemas:` del caso), el pendiente baja a aviso `A-GUESSINGROWS-TIPOS-FIJADOS` y el Job se emite; si alguna columna queda sin tipo, sigue `P-GUESSINGROWS` y no hay Job parcial. *Alternativa:* bloquear siempre. Qué cambia: ningún programa con `GUESSINGROWS=MAX` (muy común) podría migrar, aunque su esquema ya esté fijado por la muestra.
 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs_archivos.py` (creado en D2-6: `datarow`)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_cabecera.py`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_nodos.py` (una llamada: el `HEADER` y el aviso pasan a las funciones nuevas)
+- Modify: `src/sgm/migrar/tipos_import.py` y `src/sgm/migrar/esquemas.py` (muestra y tipos según la fila física y el límite de `GUESSINGROWS`)
+- Modify: `src/sgm/talend_item/desde_plan_nodos.py` y `desde_plan.py` (cabecera, avisos y bloqueo de Jobs incompletos)
+- Modify: `tools/corpus_lib/esperado_archivos.py` y `tests/unit/test_migrar_corpus_anillo_b.py` (entrada CSV/DLM con `DATAROW` en el intérprete de referencia)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_21_importar_sin_cabecera_datarow\{caso.yaml, programa.sas, entradas\datos.csv, esperado\s.csv}`
+- Add: `tests/corpus/L0/l0_21_importar_sin_cabecera_datarow/entradas/datos.ficha.yaml` y `mapa.yaml` (procedencia y ruta de contexto del fixture)
+- Modify: `rules/sas/catalogo/procs-usados.yaml`, `tests/unit/test_mg_p2_excel.py`, `tests/unit/test_tablero.py` y `tests/unit/test_migrar_corpus_aceptacion.py` (el aviso `A-` no cuenta como traducción pendiente)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_importar_cabecera.py`
 
 **Interfaces:**
@@ -434,14 +438,16 @@ DATA WORK.s;
   KEEP VAR1 suma;
 RUN;
 ```
-`entradas/datos.csv`: línea 1 `# exportado el 2026-11-11`, línea 2 `a,1,2`, línea 3 `b,3,4`. Esperado a mano, `esperado/s.csv`: `VAR1,suma` / `a,3` / `b,7` (la línea 1 no es dato porque `DATAROW=2`; los nombres son `VAR1` a `VAR3`). Antes de fijar el esperado, comprobar en p. 1385 que `DATAROW=2` salta exactamente la primera línea y en p. 1387 el nombre `VAR1`; lo que no coincida se ajusta o queda `Pendiente:`.
+`entradas/datos.csv`: línea 1 `# exportado el 2026-11-11,,` (tres campos para conservar la forma del fixture), línea 2 `a,1,2`, línea 3 `b,3,4`. Esperado a mano, `esperado/s.csv`: `VAR1,suma` / `a,3` / `b,7` (la línea 1 no es dato porque `DATAROW=2`; los nombres son `VAR1` a `VAR3`).
 
-- [ ] **Step 1: Write the failing tests.** (a) `lineas_a_saltar(False, 2) == 1`, `lineas_a_saltar(True, None) == 1`, `lineas_a_saltar(False, None) == 0`, `lineas_a_saltar(True, 1)` lanza `ValueError` con «p. 1385»; (b) `nombres_por_omision(3) == ["VAR1","VAR2","VAR3"]`; (c) `aviso_guessingrows` con las tres columnas tipadas da `A-GUESSINGROWS-TIPOS-FIJADOS` y con una sin tipo `P-GUESSINGROWS`; (d) `_read_file` de `PROC IMPORT ... DATAROW=2;` da `datarow == 2`; (e) el caso coincide en el anillo B y el `tFileInputDelimited` migrado lleva `HEADER == "1"`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_importar_cabecera.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** y, en el lector CSV del intérprete, leer `datarow`. Actualizar `procs-usados.yaml` (`import`, nota con `GETNAMES`, `DATAROW` y `GUESSINGROWS`).
-- [ ] **Step 4: Run** los tests, `tests/unit/test_migrar_corpus_anillo_b.py -k L0`, `tests/unit/test_mg_p2_excel.py`, el golden y `uv run ruff check src tests tools`. Los 15 casos de `L0` anteriores siguen idénticos.
-- [ ] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_21_importar_sin_cabecera_datarow`; sin Studio, «lote C pendiente».
-- [ ] **Step 6: Commit.** `hito N n: GETNAMES, DATAROW y GUESSINGROWS en PROC IMPORT delimitado`.
+- [x] **Step 1: Write the failing tests.** Se cubren fila inicial, nombres `VARn`, tipos conocidos/desconocidos, parseo de `DATAROW`, muestreo por filas físicas, renglones vacíos y bloqueo del Job incompleto.
+- [x] **Step 2: Run tests to verify they fail.** La primera ejecución falló por el módulo aún no creado; las pruebas de borde reprodujeron el conteo erróneo de `GUESSINGROWS` y la publicación de un Job vacío antes de corregir ambos.
+- [x] **Step 3: Implement** parseo y muestra CSV/DLM; el intérprete de corpus respeta `DATAROW`; `procs-usados.yaml` incluye las tres opciones.
+- [x] **Step 4: Run** batería de importación, esquemas, anillo B, golden/equivalencia, Excel, Studio harness y tablero: 223 aprobadas y 5 `xfail`; el cierre integral queda en `PROGRESS.md`.
+- [x] **Step 5: Studio.** `uv run python tools/validar_caso_studio.py l0_21_importar_sin_cabecera_datarow` llegó al arnés y confirmó `BRIDGE_DEAD`; el caso quedó en `out/studio-pendientes.json`, lote C pendiente, no validado.
+- [x] **Step 6: Commit.** `hito 255n: GETNAMES, DATAROW y GUESSINGROWS en PROC IMPORT delimitado` (incluido como cierre de este hito tras la validación integral).
+
+**Ruling:** `GUESSINGROWS=n` limita la muestra por número de fila del archivo: el texto de p. 1388 dice que recorre desde la fila 1 hasta `n`; con `DATAROW=d`, quedan `n-d+1` filas de datos para inferir. Ignorar la fila física de cabecera o las filas previas al `DATAROW` inferiría tipos distintos en los límites. Si SAS cuenta esa opción de otro modo, el coste sería una diferencia de tipo en filas cercanas al límite; revisar contra SAS real cuando esté disponible.
 
 ---
 

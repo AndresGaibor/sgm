@@ -119,7 +119,11 @@ def test_el_interprete_da_lo_que_el_sas(caso):
 
     entradas = _entradas(caso)
     if any(
-        operador.kind == "read_file" and operador.params.get("dbms") == "xlsx"
+        operador.kind == "read_file"
+        and (
+            operador.params.get("dbms") == "xlsx"
+            or operador.params.get("datarow") is not None
+        )
         for operador in plan.graph.operators()
     ):
         imports, _ = entradas_de_archivos(plan, caso)

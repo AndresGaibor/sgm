@@ -314,6 +314,19 @@ class _Job:
         resultado = nodo_lectura(op, esquema, unico, x, 0, self.ruta_java)
         self.pendientes += resultado.pendientes
         if resultado.nodo is None:
+            if any(
+                pendiente.codigo
+                in {
+                    "P-GUESSINGROWS",
+                    "P-DATAROW-DINAMICO",
+                    "P-DATAROW-INVALIDO",
+                    "P-DATAROW-EXCEL-SIN-SOPORTE",
+                }
+                for pendiente in resultado.pendientes
+            ):
+                # Sin tipos demostrados o fila de inicio válida, los nodos posteriores serían un
+                # fragmento ejecutable sin la entrada que declara PROC IMPORT.
+                self.bloquea_emision = True
             return
         consumidores = self._consumidores(op.id)
         copias = consumidores if self._reconvergen(consumidores) else [None]
