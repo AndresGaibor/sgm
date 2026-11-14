@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from .interprete_errores import NoSoportadoEnInterprete
+from .interprete_fechas import FUNCIONES as FUNCIONES_FECHAS
 from .interprete_formatos import FUNCIONES as FUNCIONES_FORMATOS
 from .interprete_numerico import FUNCIONES as FUNCIONES_NUMERICAS
 from .interprete_texto import FUNCIONES as FUNCIONES_TEXTO
@@ -13,6 +14,7 @@ Funcion = Callable[[list], object]
 FUNCIONES: dict[str, Funcion] = {
     **FUNCIONES_TEXTO,
     **FUNCIONES_NUMERICAS,
+    **FUNCIONES_FECHAS,
     **FUNCIONES_FORMATOS,
 }
 

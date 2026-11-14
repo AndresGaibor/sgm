@@ -30,17 +30,17 @@ entries:
   nombre: DATE Function
   fuente: lefunctionsref.pdf, p. 637
   estado: reconocida
-  nota: 'usos en client_large.sas: 100; implementada en src/sgm/expressions/talend_tabla.py (date)'
+  nota: 'usos en client_large.sas: 100; intérprete, oráculo y Talend; el resultado SAS numérico se convierte desde la fecha Java usando la época 1960-01-01'
 - id: time-function
   nombre: TIME Function
   fuente: lefunctionsref.pdf, p. 1604
   estado: no_verificada
-  nota: 'usos en client_large.sas: 100; no está en la tabla del traductor (sí today, date y datetime)'
+  nota: 'usos en client_large.sas: 100; sigue sin implementación: SAS Time usa segundos desde medianoche y requiere conversión propia'
 - id: datetime-function
   nombre: DATETIME Function
   fuente: lefunctionsref.pdf, p. 640
-  estado: reconocida
-  nota: 'usos en client_large.sas: 90; implementada en src/sgm/expressions/talend_tabla.py (datetime)'
+  estado: no_verificada
+  nota: 'usos en client_large.sas: 90; queda pendiente: SAS DateTime usa segundos desde 1960 y no equivale a una fecha actual de Talend'
 - id: sum-function
   nombre: SUM Function
   fuente: lefunctionsref.pdf, p. 1580

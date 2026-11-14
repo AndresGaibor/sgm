@@ -119,7 +119,8 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
     assert "l4_135_vec_repeat_0" in specs
     assert "l4_136_vec_trimn_sin_literales" in specs
     assert "l4_137_vec_length_sin_literales" in specs
-    assert tuple(specs)[-33:-21] == (
+    ids = {int(nombre.split("_")[1]): nombre for nombre in specs}
+    assert tuple(ids[numero] for numero in range(138, 150)) == (
         "l4_138_vec_compbl_sin_literales",
         "l4_139_vec_tranwrd_sabc_sx",
         "l4_140_vec_tranwrd_sz_sy",
@@ -133,7 +134,7 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
         "l4_148_vec_lengthc_sin_literales",
         "l4_149_vec_lengthn_sin_literales",
     )
-    assert tuple(specs)[-12:] == (
+    assert tuple(ids[numero] for numero in range(159, 171)) == (
         "l4_159_vec_sum_sin_literales_a2_NN",
         "l4_160_vec_sum_sin_literales_a3_NNN",
         "l4_161_vec_mean_sin_literales_a3_NNN",
@@ -147,7 +148,7 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
         "l4_169_vec_ifc_sin_literales_a3_NTT",
         "l4_170_vec_ifc_sin_literales_a4_NTTT",
     )
-    assert tuple(specs)[-21:-12] == (
+    assert tuple(ids[numero] for numero in range(150, 159)) == (
         "l4_150_vec_int_sin_literales",
         "l4_151_vec_ceil_sin_literales",
         "l4_152_vec_floor_sin_literales",
@@ -157,6 +158,19 @@ def test_funciones_texto_nuevas_no_renumeran_casos_y_omiten_longitudes_ambiguas(
         "l4_156_vec_log_sin_literales",
         "l4_157_vec_exp_sin_literales",
         "l4_158_vec_sign_sin_literales",
+    )
+    assert tuple(ids[numero] for numero in range(171, 182)) == (
+        "l4_171_vec_mdy_1960",
+        "l4_172_vec_mdy_1959",
+        "l4_173_vec_mdy_2000",
+        "l4_174_vec_mdy_2024",
+        "l4_175_vec_mdy_2023",
+        "l4_176_vec_year_sin_literales",
+        "l4_177_vec_month_sin_literales",
+        "l4_178_vec_day_sin_literales",
+        "l4_179_vec_weekday_sin_literales",
+        "l4_180_vec_qtr_sin_literales",
+        "l4_181_vec_datepart_sin_literales",
     )
     assert not any("right" in nombre for nombre in specs)
 

@@ -183,3 +183,43 @@ entries:
     fuente: lefunctionsref.pdf, p. 1238
     estado: reconocida
     nota: 'detecta faltantes numéricos y valores de carácter compuestos solo por blancos; valores especiales SAS quedan pendientes'
+  - id: datepart-function
+    nombre: DATEPART Function
+    fuente: lefunctionsref.pdf, p. 639
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend extraen los días desde el valor SAS DateTime; la representación Java se convierte al serial SAS desde 1960-01-01'
+  - id: day-function
+    nombre: DAY Function
+    fuente: lefunctionsref.pdf, p. 642
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend obtienen el día calendario de un serial de fecha SAS; se descartan fracciones como hora mediante el día calendario'
+  - id: mdy-function
+    nombre: MDY Function
+    fuente: lefunctionsref.pdf, p. 1232
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend componen fechas válidas; fecha inválida o argumentos faltantes producen faltante; años de dos dígitos, dinámicos o de tres cifras quedan pendientes'
+  - id: month-function
+    nombre: MONTH Function
+    fuente: lefunctionsref.pdf, p. 1251
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend devuelven el mes calendario 1–12 de un serial de fecha SAS'
+  - id: qtr-function
+    nombre: QTR Function
+    fuente: lefunctionsref.pdf, p. 1428
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend devuelven el trimestre calendario 1–4 de un serial de fecha SAS'
+  - id: today-function
+    nombre: TODAY Function
+    fuente: lefunctionsref.pdf, p. 1611
+    estado: reconocida
+    nota: 'intérprete y Talend producen el serial SAS de la fecha actual; intérprete con reloj inyectable; la zona horaria del Job debe validarse contra TIMEZONE'
+  - id: weekday-function
+    nombre: WEEKDAY Function
+    fuente: lefunctionsref.pdf, p. 1724
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend usan domingo=1 hasta sábado=7'
+  - id: year-function
+    nombre: YEAR Function
+    fuente: lefunctionsref.pdf, p. 1729
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend devuelven el año calendario de un serial de fecha SAS'

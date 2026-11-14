@@ -281,7 +281,7 @@ El segundo aceptable de MG-P3-01 es «en lote C». Un vector no es un Job: esta 
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\semantica\vectores.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_tabla.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_texto.py`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4_vectores.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4_funciones.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\funciones-guia.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete.py` (COUNT como función de texto sin alterar los agregados SQL)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_funciones.py`, `tests\unit\test_interprete_vectores.py`, `tests\unit\test_migrar_corpus_anillo_b.py`, `tests\unit\test_talend_translator.py`, `tests\unit\test_talend_modulos.py`, `tests\unit\test_corpus_l4_vectores.py`, `tests\unit\test_corpus_semantica.py`, `tests\unit\test_catalogo_sas.py`, `tests\unit\test_esquemas_sincronizados.py` y `tests\unit\test_tablero.py`
@@ -577,13 +577,13 @@ La fecha de SAS es el número de días desde el 1 de enero de 1960 (`lrcon`, p. 
 | `qtr-01` | `qtr` | `[23435]` | `1` | p. 1428 |
 | `datepart-01` | `datepart` | `[2024787661]` | `23435` (23435 días × 86400 s + 3661 s; la parte de hora se descarta) | p. 639 |
 
-`TODAY()` y `DATE()` no tienen vector (dependen del reloj): se prueban inyectando `RELOJ` (`RELOJ = lambda: date(2024, 2, 29)` da `23435`). **Representación en Java:** hoy `_mdy` y `_datepart` emiten `java.util.Date` (`kind="date"`), pero un `DATA` sin formato escribe la fecha SAS como número de días. Cuando el destino es numérico, la plantilla agrega `TalendDate.diffDate(<fecha>, TalendDate.parseDate("yyyy-MM-dd", "1960-01-01"), "dd")` (comprobar la firma con `Grep` en las rutinas de Talend que `src/sgm/talend_item/` ya usa) y, cuando el destino es `PUT` con un formato de fecha, queda como `Date`. Decisión a anotar en `PROGRESS.md` («Decisiones»).
+`TODAY()` y `DATE()` no tienen vector (dependen del reloj): se prueban inyectando `RELOJ` (`RELOJ = lambda: date(2024, 2, 29)` da `23435`). **Representación en Java:** `MDY`, `DATEPART`, `TODAY` y `DATE` usan `java.util.Date` internamente (`kind="date"`), pero las funciones SAS devuelven un número. La API acepta `expected_kind="num"` y lo convierte con `TalendDate.diffDate(<fecha>, TalendDate.parseDate("yyyy-MM-dd", "1960-01-01"), "dd")`; la fachada de expresiones lo solicita para estas funciones. Los `PUT` con formato siguen devolviendo texto. Los años dinámicos/de dos cifras y las formas de año no demostradas quedan como pendientes. Decisión anotada en `PROGRESS.md`.
 
-- [ ] **Step 1: Write the failing tests:** un test por vector con `llamar(...)`; `interprete_fechas.RELOJ` inyectado para `today`; `verificar()` y `verificar(motor="interprete")` en cero fallos; `translate_to_talend("mdy(a, b, c)").java` contiene `diffDate` cuando se pide como número.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_fechas.py tests/unit/test_corpus_semantica.py -q -p no:cacheprovider`; esperado: no existe el módulo.
-- [ ] **Step 3: Implement** el módulo del intérprete, el del oráculo (independiente: usa `datetime.date.toordinal()` con la época `date(1960,1,1).toordinal()`, no el módulo del intérprete) y los traductores a Java; agregar a `FUNCIONES_CON_CASO` `mdy`, `year`, `month`, `day`, `weekday`, `qtr` y regenerar `L4`.
-- [ ] **Step 4: Catálogo.** `date-function` de `funciones-usadas.yaml` ya es `reconocida`; `time-function` (p. 1604) y `datetime-function` (p. 640) siguen `no_verificada` salvo que se agreguen aquí; las nuevas van a `funciones-guia.yaml`. `tests/unit/test_catalogo_sas.py`.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py -q -p no:cacheprovider -k L4`, la tanda del golden, `uv run ruff check src tests tools`, lote C. **Commit** `hito N n: fechas SAS como dias desde 1960 (MDY, YEAR, MONTH, DAY, WEEKDAY, QTR, DATEPART)`.
+- [x] **Step 1: Write the failing tests:** hay pruebas para los 13 vectores, reloj inyectable, serial SAS numérico, `DATETIME()` no verificado y años ambiguos pendientes.
+- [x] **Step 2: Run tests to verify they fail.** La ejecución RED anterior a implementar falló porque no existían el intérprete y el registro de funciones de fecha.
+- [x] **Step 3: Implement** el módulo del intérprete, un oráculo independiente basado en `date.toordinal()`, las funciones Talend con conversión desde la época 1960 y 11 casos L4 (`l4_171`–`l4_181`). El descriptor se agregó a `especificaciones_l4_funciones.py`, módulo vigente después de la extracción.
+- [x] **Step 4: Catálogo.** `date-function`, `datepart`, `day`, `mdy`, `month`, `qtr`, `today`, `weekday` y `year` quedan `reconocidas`; `time-function` y `datetime-function` siguen `no_verificada`. `test_catalogo_sas.py` pasa.
+- [x] **Step 5: Verificación.** Anillo A: 11 casos pasan; anillo B L4: 102 pasan. CI integral: 4.943 pasaron, 372 omitidas y 145 `xfail`; Ruff, 78 cruces, oráculo y tablero en verde. Studio devolvió `BRIDGE_DEAD` en `127.0.0.1:3927`; lote C no se cuenta como validado. **Commit** `hito 266n: fechas SAS como dias desde 1960 (MDY, YEAR, MONTH, DAY, WEEKDAY, QTR, DATEPART)`.
 
 ---
 

@@ -64,6 +64,14 @@ CAMBIOS_DOCUMENTADOS = {
         "pendientes[2].fuente[0].line_start": "hito 110: conservar solo el origen de la expresión fusionada",
         "pendientes[2].fuente[0].line_end": "hito 110: conservar solo el origen de la expresión fusionada",
         "pendientes[2].fuente[1]": "hito 110: quitar evidencia ajena a la expresión fusionada",
+        "operators[9].notes[2]": "hito 266n: TODAY añade advertencia por TIMEZONE de SAS",
+        "operators[9].notes[3]": "hito 266n: candidata TODAY reemplaza nota de traducción previa",
+        "operators[9].params.talend_expression_candidates[0].java": (
+            "hito 266n: normalizar TODAY y convertir su Date al serial SAS"
+        ),
+        "operators[9].params.talend_expression_candidates[0].warnings[1]": (
+            "hito 266n: advertir que la zona horaria debe coincidir con TIMEZONE"
+        ),
     },
     "client__client_poc.plan.json": {
         "operators[74].params.talend_expression_candidates[0].java": (

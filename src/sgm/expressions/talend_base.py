@@ -96,8 +96,13 @@ def _jstr(raw: str) -> str:
 
 
 def _num(e: E) -> str:
-    """El valor numérico de una expresión; los literales van tal cual."""
-    return e.java if e.kind == "num" else f"((Number) {e.java}).doubleValue()"
+    """El valor numérico SAS de una expresión; las fechas Java cuentan días desde 1960."""
+    if e.kind == "num":
+        return e.java
+    if e.kind == "date":
+        epoca = 'TalendDate.parseDate("yyyy-MM-dd", "1960-01-01")'
+        return f'TalendDate.diffDate({e.java}, {epoca}, "dd")'
+    return f"((Number) {e.java}).doubleValue()"
 
 
 def _str(e: E) -> str:

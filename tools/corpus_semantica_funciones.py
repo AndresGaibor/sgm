@@ -14,6 +14,7 @@ import operator
 import re
 import string
 
+from corpus_semantica_fechas import crear_funciones_fechas
 from corpus_semantica_numerico import crear_funciones_numericas
 from corpus_semantica_texto import (
     compbl,
@@ -50,6 +51,7 @@ class Faltante:
 
 FALTANTE = Faltante()
 FUNCIONES_NUMERICAS = crear_funciones_numericas(FALTANTE, lambda valor: isinstance(valor, Faltante))
+FUNCIONES_FECHAS = crear_funciones_fechas(FALTANTE, lambda valor: isinstance(valor, Faltante))
 round_sas = FUNCIONES_NUMERICAS["round"]
 _NUMERO = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$")
 _CLASES = {
@@ -352,6 +354,7 @@ FUNCIONES = {
     ),
     "coalesce": coalesce,
     "coalescec": coalescec,
+    **FUNCIONES_FECHAS,
     **FUNCIONES_NUMERICAS,
     "cmp": cmp,
     "is_missing": is_missing,

@@ -30,7 +30,8 @@ _SOLO_NOMBRE = re.compile(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?")
 _FUNCIONES_NUMERICAS = frozenset(
     {
         "sum", "mean", "avg", "round", "abs", "int", "floor", "ceil", "sqrt", "exp",
-        "log", "nmiss", "n", "min", "max",
+        "log", "nmiss", "n", "min", "max", "mdy", "year", "month", "day", "weekday",
+        "qtr", "datepart", "today", "date",
     }
 )
 _FUNCIONES_MIXTAS = frozenset({"coalesce", "ifn"})

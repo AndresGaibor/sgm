@@ -4,6 +4,7 @@ import pytest
 
 from sgm.expressions.expressions import translate
 from sgm.expressions.talend_translator import Unsupported, translate_to_talend
+from sgm.talend_item.desde_plan_expresiones import expresion
 
 
 def test_intnx_year_begin_returns_calendar_year_boundary():
@@ -149,23 +150,19 @@ def test_intck_metodo_no_discreto_no_se_presenta_como_equivalente(method):
 
 
 def test_otras_funciones_de_fecha_conservan_las_rutinas_disponibles():
-    assert translate_to_talend("today()").java == "TalendDate.getCurrentDate()"
-    assert translate_to_talend("datetime()").java == "TalendDate.getCurrentDate()"
+    assert "TalendDate.getCurrentDate()" in translate_to_talend("today()").java
+    with pytest.raises(Unsupported, match="datetime"):
+        translate_to_talend("datetime()")
     assert translate_to_talend("'01JAN2020'd").java == (
         'TalendDate.parseDateLocale("ddMMMyyyy", "01JAN2020", "en")'
     )
     assert translate_to_talend("put(d,yymmdd10.)").java == (
         'TalendDate.formatDate("yyyy-MM-dd", input_row.d)'
     )
-    assert translate_to_talend("year(d)").java == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("YEAR", input_row.d)))'
-    )
-    assert translate_to_talend("month(d)").java == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("MONTH", input_row.d) + 1))'
-    )
-    assert translate_to_talend("weekday(d)").java == (
-        '(input_row.d == null ? null : (TalendDate.getPartOfDate("DAY_OF_WEEK", input_row.d)))'
-    )
+    for funcion, parte in (("year", "YEAR"), ("month", "MONTH"), ("weekday", "DAY_OF_WEEK")):
+        java = translate_to_talend(f"{funcion}(d)").java
+        assert f'TalendDate.getPartOfDate("{parte}",' in java
+        assert 'TalendDate.parseDate("yyyy-MM-dd", "1960-01-01")' in java
     assert translate_to_talend("intnx('month',fecha,1)").java == (
         "(input_row.fecha == null ? null : TalendDate.getFirstDayOfMonth("
         'TalendDate.addDate(input_row.fecha, (int) 1, "MM")))'
@@ -174,9 +171,32 @@ def test_otras_funciones_de_fecha_conservan_las_rutinas_disponibles():
         "(input_row.d == null ? null : TalendDate.getLastDayOfMonth("
         'TalendDate.addDate(input_row.d, (int) 2, "MM")))'
     )
-    assert translate_to_talend("mdy(1,15,2020)").java == (
-        '(TalendDate.parseDate("yyyy-MM-dd", String.format("%04d-%02d-%02d", (int) 2020, (int) 1, (int) 15)))'
+    mdy = translate_to_talend("mdy(1,15,2020)").java
+    assert 'String.format(java.util.Locale.ROOT, "%04d-%02d-%02d"' in mdy
+    assert "Math.rint(2020)" in mdy
+
+
+def test_guardas_internas_de_conversion_fecha_no_se_confunden_con_comparaciones_sas():
+    java, motivo = expresion(
+        "year(fecha)",
+        {"row1": {"fecha"}},
+        {"row1.fecha": "id_Double"},
     )
+
+    assert motivo is None
+    assert java is not None
+    assert 'TalendDate.getPartOfDate("YEAR",' in java
+
+
+def test_comparacion_de_orden_sas_con_fecha_sigue_pendiente_si_falta_semantica():
+    java, motivo = expresion(
+        "year(fecha) > 2020",
+        {"row1": {"fecha"}},
+        {"row1.fecha": "id_Double"},
+    )
+
+    assert java is None
+    assert "comparación de orden" in (motivo or "")
 
 
 @pytest.mark.parametrize(

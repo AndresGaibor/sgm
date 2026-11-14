@@ -259,4 +259,46 @@ FUNCIONES_CON_CASO: dict[str, dict] = {
         "salida_numerica": False,
         "sas": "ifc({argumentos})",
     },
+    "mdy": {
+        "literales": (2,),
+        "columnas": ("MES", "DIA"),
+        "salida_numerica": True,
+        "sas": "mdy({argumentos})",
+    },
+    "year": {
+        "literales": (),
+        "columnas": ("FECHA_SAS",),
+        "salida_numerica": True,
+        "sas": "year({argumentos})",
+    },
+    "month": {
+        "literales": (),
+        "columnas": ("FECHA_SAS",),
+        "salida_numerica": True,
+        "sas": "month({argumentos})",
+    },
+    "day": {
+        "literales": (),
+        "columnas": ("FECHA_SAS",),
+        "salida_numerica": True,
+        "sas": "day({argumentos})",
+    },
+    "weekday": {
+        "literales": (),
+        "columnas": ("FECHA_SAS",),
+        "salida_numerica": True,
+        "sas": "weekday({argumentos})",
+    },
+    "qtr": {
+        "literales": (),
+        "columnas": ("FECHA_SAS",),
+        "salida_numerica": True,
+        "sas": "qtr({argumentos})",
+    },
+    "datepart": {
+        "literales": (),
+        "columnas": ("SEGUNDOS_SAS",),
+        "salida_numerica": True,
+        "sas": "datepart({argumentos})",
+    },
 }

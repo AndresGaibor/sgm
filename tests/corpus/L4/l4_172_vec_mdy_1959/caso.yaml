@@ -1,0 +1,15 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- MDY
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- RESULTADO_L4
+razonamiento: 'Vectores verificables por el oráculo: mdy-02. Confianza: deducido.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes:
+- filas(RESULTADO_L4) == 1

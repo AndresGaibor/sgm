@@ -53,6 +53,11 @@ _ORDEN_COMPARABLE = re.compile(
 )
 # Comparar la longitud de un arreglo con un literal no depende de una columna ni del faltante.
 _LONGITUD_COMPARADA = re.compile(r"\.(?:length|size\(\))\s*(?:<=|>=|<|>)\s*\d+")
+# Guarda interna de `_numero_a_fecha`: el serial se acota al rango entero que acepta
+# TalendDate.addDate. No es una comparación escrita por el programa SAS.
+_RANGO_DIAS_TALEND = re.compile(
+    r"Math\.floor\(.*?\)\s*(?:>= Integer\.MIN_VALUE|<= Integer\.MAX_VALUE)"
+)
 
 
 def resolver_filas(java: str, filas: dict[str, set[str]]) -> tuple[str | None, str | None]:
@@ -239,6 +244,7 @@ def cubrir_faltante(java: str, tipos: dict[str, str]) -> tuple[str | None, str |
     for comparacion in comparaciones_seguras:
         resto = resto.replace(comparacion, " ")
     resto = _LONGITUD_COMPARADA.sub(" ", resto)
+    resto = _RANGO_DIAS_TALEND.sub(" ", resto)
     # El `>` de una lambda Java (`->`) no es una comparación SAS pendiente.
     sobrante = _OPERADOR_ORDEN.search(resto.replace("->", "  "))
     if sobrante is not None:

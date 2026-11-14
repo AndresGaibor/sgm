@@ -1055,3 +1055,94 @@ vectores:
     fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
     cita: "A character expression is missing if it contains all blanks or has zero length."
     confianza: deducido
+  - id: mdy-01
+    funcion: mdy
+    entrada: [1, 1, 1960]
+    esperado: 0
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "lrcon, p. 157: SAS date values count days from January 1, 1960; that date is zero."
+    confianza: deducido
+  - id: mdy-02
+    funcion: mdy
+    entrada: [12, 31, 1959]
+    esperado: -1
+    fuente_url: "https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm"
+    cita: "lrcon, p. 157: Dates before January 1, 1960 are negative SAS date values."
+    confianza: deducido
+  - id: mdy-03
+    funcion: mdy
+    entrada: [1, 1, 2000]
+    esperado: 14610
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1232: MDY returns a SAS date from month, day, and year values."
+    confianza: deducido
+  - id: mdy-04
+    funcion: mdy
+    entrada: [2, 29, 2024]
+    esperado: 23435
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1232: MDY returns a SAS date from month, day, and year values."
+    confianza: deducido
+  - id: mdy-05
+    funcion: mdy
+    entrada: [2, 29, 2023]
+    esperado: faltante
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1232: MDY requires an integer month from 1 through 12 and a day from 1 through 31."
+    confianza: deducido
+  - id: mdy-06
+    funcion: mdy
+    entrada: [13, 1, 2024]
+    esperado: faltante
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1232: MDY requires an integer month from 1 through 12."
+    confianza: deducido
+  - id: year-01
+    funcion: year
+    entrada: [23435]
+    esperado: 2024
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1729: YEAR returns the four-digit year from a SAS date value."
+    confianza: deducido
+  - id: month-01
+    funcion: month
+    entrada: [23435]
+    esperado: 2
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1251: MONTH returns the month number from a SAS date value."
+    confianza: deducido
+  - id: day-01
+    funcion: day
+    entrada: [23435]
+    esperado: 29
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 642: DAY returns the day of the month from a SAS date value."
+    confianza: deducido
+  - id: weekday-01
+    funcion: weekday
+    entrada: [0]
+    esperado: 6
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1724: WEEKDAY maps Sunday to 1, Monday to 2, and Saturday to 7."
+    confianza: deducido
+  - id: weekday-02
+    funcion: weekday
+    entrada: [23435]
+    esperado: 5
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1724: WEEKDAY maps Sunday to 1, Monday to 2, and Saturday to 7."
+    confianza: deducido
+  - id: qtr-01
+    funcion: qtr
+    entrada: [23435]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1428: QTR returns 1, 2, 3, or 4 for the quarter of a SAS date."
+    confianza: deducido
+  - id: datepart-01
+    funcion: datepart
+    entrada: [2024787661]
+    esperado: 23435
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 639: DATEPART extracts the date from a SAS datetime value."
+    confianza: deducido

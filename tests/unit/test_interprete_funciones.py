@@ -67,6 +67,15 @@ def test_funciones_reune_las_familias_actuales():
         "coalesce",
         "missing",
         "input",
+        "mdy",
+        "year",
+        "month",
+        "day",
+        "weekday",
+        "qtr",
+        "datepart",
+        "today",
+        "date",
     }
 
 

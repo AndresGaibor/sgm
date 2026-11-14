@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
-from sgm.expressions.talend_base import E
 from sgm.expressions.talend_funciones import (
-    _datepart,
-    _mdy,
-    _part,
     _routine,
 )
-from sgm.expressions.talend_funciones_fecha import _intck, _intnx
+from sgm.expressions.talend_funciones_fecha import (
+    _datepart,
+    _intck,
+    _intnx,
+    _mdy,
+    _part,
+    _today,
+)
 from sgm.expressions.talend_funciones_formato import _input, _put
 from sgm.expressions.talend_funciones_numerico import (
     _aggregate,
@@ -68,8 +71,8 @@ _FUNCTIONS = {
     "max": _aggregate("max"), "min": _aggregate("min"), "sum": _aggregate("sum"), "mean": _aggregate("mean"),
     "n": _aggregate("n"), "nmiss": _aggregate("nmiss"), "cmiss": _aggregate("cmiss"),
     "input": _input, "inputn": _input, "inputc": _input, "put": _put, "putn": _put, "putc": _put,
-    "today": lambda p, a: E("TalendDate.getCurrentDate()", "date"), "date": lambda p, a: E("TalendDate.getCurrentDate()", "date"),
-    "datetime": lambda p, a: E("TalendDate.getCurrentDate()", "date"),
+    "today": _today("today"), "date": _today("date"),
     "datepart": _datepart, "mdy": _mdy, "intnx": _intnx, "intck": _intck,
     "year": _part("year"), "month": _part("month"), "day": _part("day"), "weekday": _part("weekday"),
+    "qtr": _part("qtr"),
 }  # fmt: skip
