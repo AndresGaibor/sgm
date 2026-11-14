@@ -101,6 +101,11 @@ entries:
   fuente: sqlproc.pdf, p. 320
   estado: dentro_de_select
   nota: el parser no la separa; se lee dentro de la sentencia
+- id: aggregate-functions
+  nombre: Aggregate Functions
+  fuente: sqlproc.pdf, p. 76
+  estado: reconocida
+  nota: 'El flujo admite SUM, AVG/MEAN, MIN, MAX y COUNT en las formas soportadas; la tabla de la guía enumera más funciones.'
 - id: select-statement
   nombre: SELECT Statement
   fuente: sqlproc.pdf, p. 323

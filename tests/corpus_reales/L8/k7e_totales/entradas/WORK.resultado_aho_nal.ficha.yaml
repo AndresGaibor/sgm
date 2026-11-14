@@ -1,0 +1,20 @@
+tabla: work.resultado_aho_nal
+origen: sintetico
+filas: 2
+columnas:
+  FIN_SALDO_CTA: Double
+  PROM_SALDO_CTA: Double
+  MED_SALDO_CTA: Double
+  MAX_SALDO_CTA: Double
+  MIN_SALDO_CTA: Double
+  VAL_CRED_MES: Double
+  NRO_CRED_MES: Double
+  PROM_CRED_MES: Double
+  MED_CRED_MES: Double
+  VAL_DEB_MES: Double
+  NRO_DEB_MES: Double
+  PROM_DEB_MES: Double
+semilla: 20261113
+generador: tools/datos_sinteticos/manifiesto.py:generar_entradas
+procedencia: null
+nota: Tipos de fixture generado; un String no implica tipo SAS demostrado.

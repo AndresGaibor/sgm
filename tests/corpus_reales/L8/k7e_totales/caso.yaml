@@ -1,0 +1,43 @@
+id: k7e_totales
+nivel: L8
+tema: agregados de totales del programa grande
+construcciones:
+  - PROC SQL CREATE TABLE con doce funciones SUM por tabla
+  - Agregación escalar sin GROUP BY
+  - Formato BEST20. de presentación en el SELECT
+capa: B
+estado: parcial
+motivo: >-
+  El anillo B contrasta localmente las dos agregaciones con datos sintéticos. El anillo A conserva
+  pendientes porque las tablas WORK de entrada se producen fuera de esta rebanada; el anillo C
+  requiere ejecución en SAS Studio y no se declara validado.
+salidas:
+  - TOTAL_EXTERIOR
+  - TOTAL_NACIONAL
+tolerancia: 0
+orden_relevante: true
+supuestos:
+  - >-
+    Cada tabla de entrada tiene dos filas sintéticas con doce valores numéricos fijos para hacer
+    reproducible el cálculo; no representan saldos ni datos de personas o clientes.
+  - >-
+    Las columnas requeridas son las doce que aparecen como argumentos de SUM en el SAS. Los tipos
+    de fixture se derivan de esas expresiones; no se afirma que la salida refleje el esquema real
+    de los productores, ausentes de la rebanada.
+  - >-
+    PROC SQL aplica cada agregado a toda su tabla cuando no hay GROUP BY y produce una fila porque
+    el SELECT solo contiene agregados (sqlproc.pdf, pp. 76, 78–79).
+  - >-
+    FORMAT=BEST20. controla presentación y no cambia el valor almacenado (leforinforref.pdf, p. 19).
+    El esperado compara valores numéricos y no acredita que un formato de salida se conserve en un
+    artefacto posterior.
+  - >-
+    TOTAL_EXTERIOR y TOTAL_NACIONAL son tablas WORK intermedias; el fragmento no las escribe a un
+    archivo físico ni incluye sus productores.
+  - >-
+    El esperado local usa encabezados en minúscula, como la tabla normalizada del intérprete; el
+    plan conserva los alias SAS originales. No se valida la capitalización de un archivo posterior.
+razonamiento: >-
+  El esperado local suma los doce valores de dos filas sintéticas por cada tabla y valida el orden
+  de las columnas de salida. El caso demuestra el anillo B, pero no la disponibilidad de las tablas
+  previas, la emisión ejecutable ni la salida de formatos en un Job Talend.

@@ -1,0 +1,58 @@
+semilla: 20261113
+tablas:
+  WORK.RESULTADO_AHO_EXT:
+    filas: 2
+    columnas:
+      - FIN_SALDO_CTA
+      - PROM_SALDO_CTA
+      - MED_SALDO_CTA
+      - MAX_SALDO_CTA
+      - MIN_SALDO_CTA
+      - VAL_CRED_MES
+      - NRO_CRED_MES
+      - PROM_CRED_MES
+      - MED_CRED_MES
+      - VAL_DEB_MES
+      - NRO_DEB_MES
+      - PROM_DEB_MES
+    fijos:
+      FIN_SALDO_CTA: "1"
+      PROM_SALDO_CTA: "2"
+      MED_SALDO_CTA: "3"
+      MAX_SALDO_CTA: "4"
+      MIN_SALDO_CTA: "5"
+      VAL_CRED_MES: "6"
+      NRO_CRED_MES: "7"
+      PROM_CRED_MES: "8"
+      MED_CRED_MES: "9"
+      VAL_DEB_MES: "10"
+      NRO_DEB_MES: "11"
+      PROM_DEB_MES: "12"
+  WORK.RESULTADO_AHO_NAL:
+    filas: 2
+    columnas:
+      - FIN_SALDO_CTA
+      - PROM_SALDO_CTA
+      - MED_SALDO_CTA
+      - MAX_SALDO_CTA
+      - MIN_SALDO_CTA
+      - VAL_CRED_MES
+      - NRO_CRED_MES
+      - PROM_CRED_MES
+      - MED_CRED_MES
+      - VAL_DEB_MES
+      - NRO_DEB_MES
+      - PROM_DEB_MES
+    fijos:
+      FIN_SALDO_CTA: "10"
+      PROM_SALDO_CTA: "11"
+      MED_SALDO_CTA: "12"
+      MAX_SALDO_CTA: "13"
+      MIN_SALDO_CTA: "14"
+      VAL_CRED_MES: "15"
+      NRO_CRED_MES: "16"
+      PROM_CRED_MES: "17"
+      MED_CRED_MES: "18"
+      VAL_DEB_MES: "19"
+      NRO_DEB_MES: "20"
+      PROM_DEB_MES: "21"
