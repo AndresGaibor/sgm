@@ -32,8 +32,9 @@ from sgm.cli_migrar_contexto import _SECRETO as _SECRETO
 from sgm.cli_migrar_contexto import _contexto_yaml
 from sgm.cli_migrar_fuente import _FECHA_SIN_ARCHIVO as _FECHA_SIN_ARCHIVO
 from sgm.cli_migrar_fuente import _fecha, _nombre
-from sgm.compile import compile_file, project_base
+from sgm.compile import ROOT_DIR, compile_file, project_base
 from sgm.frontend.program import analyze_program
+from sgm.ir.bibliotecas import cargar_decisiones_libnames
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Column, Plan
 from sgm.migrar import informes
@@ -44,6 +45,7 @@ from sgm.seguridad.compuerta_migracion import publicar_con_revision
 from sgm.seguridad.escaner_secretos import Hallazgo
 from sgm.talend_item.desde_plan import plan_a_jobs
 from sgm.talend_item.desde_plan_conexion import cargar_contexto_dev
+from sgm.talend_item.desde_plan_conexiones import conexiones_de_plan
 from sgm.talend_item.desde_plan_contextos import GRUPOS, contextos_de_plan
 from sgm.talend_item.modelo import Job, ParametroContexto
 from sgm.talend_item.validador import validar_job
@@ -109,11 +111,21 @@ def _leer(source: Path, resultado: ResultadoMigrar) -> str | None:
         return None
 
 
-def _plan(texto: str, nombre: str, resultado: ResultadoMigrar) -> Plan | None:
+def _plan(
+    texto: str,
+    nombre: str,
+    resultado: ResultadoMigrar,
+    decisiones_libnames: dict[str, dict] | None = None,
+) -> Plan | None:
     """Plan del programa. Una excepción del análisis no tumba la migración: queda anotada."""
     try:
         analysis = analyze_program({f"{nombre}.sas": texto})
-        return compile_file(analysis, f"{nombre}.sas", project_base()).plan
+        return compile_file(
+            analysis,
+            f"{nombre}.sas",
+            project_base(),
+            libname_decisions=decisiones_libnames,
+        ).plan
     except Exception as error:  # noqa: BLE001 — el comando no falla nunca; la causa va al log
         resultado.pendientes.append(
             PendienteMigracion(
@@ -228,13 +240,33 @@ def migrar(
     backend: str = "archivos",
     tablas_locales: Path | None = None,
     contexto_dev: Path | None = None,
+    libnames_decision: Path | None = None,
 ) -> ResultadoMigrar:
     """Migra un programa a `<out>/<programa>/`. No lanza: lo que falla queda en los informes."""
     locales = cargar_tablas_locales(tablas_locales, raiz_repositorio()) if tablas_locales else {}
     dev = cargar_contexto_dev(contexto_dev) if contexto_dev is not None else None
     resultado = ResultadoMigrar(out / _nombre(source))
     texto = _leer(source, resultado)
-    plan = _plan(texto, resultado.carpeta.name, resultado) if texto is not None else None
+    decision_path = libnames_decision
+    if decision_path is None:
+        candidata = ROOT_DIR / "decisiones" / f"{source.stem}.libnames.yaml"
+        decision_path = candidata if candidata.is_file() else None
+    try:
+        decisiones_libnames = cargar_decisiones_libnames(decision_path)
+    except (OSError, ValueError) as error:
+        decisiones_libnames = {}
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-LIBNAME-DECISION-INVALIDA",
+                f"no se pudo leer la decisión de libnames: {error}",
+                None,
+            )
+        )
+    plan = (
+        _plan(texto, resultado.carpeta.name, resultado, decisiones_libnames)
+        if texto is not None
+        else None
+    )
     contextos: dict[str, list[ParametroContexto]] = {}
     if plan is not None:
         # Las plantillas se escriben en línea: los esquemas y las rutas salen del plan desplegado.
@@ -255,10 +287,11 @@ def migrar(
             )
         tablas, de_esquema = esquemas_con_locales(plan, _catalogo(esquemas), muestra, locales)
         resultado.pendientes += de_esquema
+        usa_contexto_conexion = dev is not None or bool(conexiones_de_plan(plan))
         migracion = (
-            plan_a_jobs(plan, tablas)
-            if dev is None
-            else plan_a_jobs(plan, tablas, conexion_en_contexto=True)
+            plan_a_jobs(plan, tablas, conexion_en_contexto=True)
+            if usa_contexto_conexion
+            else plan_a_jobs(plan, tablas)
         )
         resultado.jobs = migracion.jobs
         resultado.pendientes += migracion.pendientes

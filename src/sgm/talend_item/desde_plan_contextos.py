@@ -89,12 +89,12 @@ def contextos_de_plan(
             )
             for nombre, camino in por_ruta.items()
         ]
-    if dev is not None:
+    if variables_conexion:
         for grupo in GRUPOS:
             grupos[grupo].extend(
                 ParametroContexto(
                     nombre,
-                    valor=dev.get(nombre, "") if grupo == "DEV" else "",
+                    valor=(dev or {}).get(nombre, "") if grupo == "DEV" else "",
                     comentario=f"conexión local: {nombre}",
                 )
                 for nombre in variables_conexion

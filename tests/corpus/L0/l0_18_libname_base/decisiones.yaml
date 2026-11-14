@@ -1,0 +1,4 @@
+libnames:
+  lz:
+    motor: impala
+    base: sgmtest_d2

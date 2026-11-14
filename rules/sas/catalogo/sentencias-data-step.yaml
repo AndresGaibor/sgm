@@ -186,7 +186,10 @@ entries:
 - id: libname-statement
   nombre: LIBNAME Statement
   fuente: lestmtsref.pdf, p. 233
-  estado: no_reconocida
+  estado: reconocida
+  nota: >-
+    Se reconocen rutas literales y los motores Impala/Postgres. La lectura de una base requiere
+    decisión explícita de motor y base; opciones, credenciales y rutas dinámicas no se infieren.
 - id: link-statement
   nombre: LINK Statement
   fuente: lestmtsref.pdf, p. 234

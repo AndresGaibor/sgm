@@ -91,11 +91,16 @@ def _selector_groups(plan: Plan, job: Job, uses: list[SelectorUse]) -> None:
         )
 
 
-def compile_file(analysis: ProgramAnalysis, program: str, ctx_base: dict) -> Compiled:
+def compile_file(
+    analysis: ProgramAnalysis,
+    program: str,
+    ctx_base: dict,
+    libname_decisions: dict[str, dict] | None = None,
+) -> Compiled:
     """Plan de un programa a partir del análisis del proyecto (solo sus pasos)."""
     plan = Plan(program=program)
     items = [item for item in analysis.items if item.file == program]
-    lower_items(items, plan.graph, ctx_base["externals"])
+    lower_items(items, plan.graph, ctx_base["externals"], libname_decisions)
     job = Job(name=render_job_name(DEFAULT_NAME_TEMPLATE, project="proyecto", program=program))
     plan.jobs = [job]
     _declared_contexts(plan, job)

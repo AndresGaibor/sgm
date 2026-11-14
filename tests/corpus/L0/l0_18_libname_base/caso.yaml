@@ -1,0 +1,20 @@
+nivel: L0
+tema: LIBNAME de Impala con base declarada como decisión de migración
+construcciones:
+  - LIBNAME
+  - DATA
+  - SET
+  - WHERE
+  - KEEP
+capa: C
+contenedor: impala
+estado: pendiente_revision
+motivo: >-
+  El resultado se valida con filas sintéticas. La base se declara en decisiones.yaml; el DSN,
+  SCHEMA y el acceso real al motor requieren revisión del componente y la conexión en Studio.
+salidas: [caros]
+tolerancia: 0
+orden_relevante: true
+razonamiento: >-
+  Cinco filas sintéticas producen tres registros con precio mayor que 15 y conservan marca y precio.
+  La base usada por el lector sale de decisiones.yaml, no se infiere de SCHEMA=.

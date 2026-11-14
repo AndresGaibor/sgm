@@ -96,6 +96,15 @@ def _produce(op: Operator) -> list[str]:
     return []
 
 
+def _libname_registrado(statement: str) -> bool:
+    """Distingue la config estática de motor/CLEAR de una biblioteca de ruta."""
+    limpio = statement.strip().rstrip(";").strip()
+    if re.match(r"(?is)^libname\s+(?:_all_\s+)?(?:[A-Za-z_]\w*\s+)?clear$", limpio):
+        return True
+    declaracion = re.match(r"(?is)^libname\s+[A-Za-z_]\w*\s+(.+)$", limpio)
+    return bool(declaracion and not declaracion.group(1).lstrip().startswith(("'", '"')))
+
+
 def _como_paso(op: Operator) -> Operator:
     """Un `filter`, `derive` o `join` suelto, visto como el único paso de un `map`.
 
@@ -136,12 +145,12 @@ class _Job:
         self.conexiones: list[Conexion] = []
         self.pendientes: list[PendienteMigracion] = []
         for conexion_sql in conexiones_de_plan(plan):
-            if conexion_sql.motor == "postgres" and conexion_sql.opciones:
+            if conexion_sql.opciones:
                 self.pendientes.append(
                     PendienteMigracion(
                         "P-CONEXION-OPCIONES",
-                        f"{conexion_sql.alias}: opciones de CONNECT requieren revisión: "
-                        f"{conexion_sql.opciones}",
+                        f"{conexion_sql.alias}: opciones SAS de conexión requieren revisión y no "
+                        f"se aplican al componente: {conexion_sql.opciones}",
                         conexion_sql.linea,
                     )
                 )
@@ -266,6 +275,16 @@ class _Job:
     # -- piezas ------------------------------------------------------------------------------
     def _sin_soporte(self, op: Operator) -> None:
         sentencia = str(op.params.get("statement") or "").strip()
+        if (
+            op.params.get("reason") == "CONFIGURACION"
+            and sentencia.lower().startswith("libname")
+            and _libname_registrado(sentencia)
+        ):
+            # El libref ya se registró durante el lowering; su lectura o su efecto de ruta
+            # generan el pendiente específico cuando un paso los consume. La declaración queda
+            # cubierta como configuración aplicada al registro estático, aunque no sea un nodo Job.
+            self.plegados.add(op.id)
+            return
         if op.params.get("reason") == "CONFIGURACION" and sentencia.lower().startswith("%let"):
             # La macro variable ya está sustituida en el resto del programa: no se pierde nada, pero
             # tampoco queda una variable de contexto que el Job pueda cambiar sin recompilar.
@@ -551,8 +570,8 @@ class _Job:
             PendienteMigracion(
                 "P-CONEXION-BASE",
                 (
-                    f"{unico}: el Job lee host, puerto y base de context.impala_*; DEV apunta al "
-                    "contenedor, QA y PROD quedan vacíos hasta que se configuren"
+                    f"{unico}: host, puerto y base salen de context.impala_*; configure esos "
+                    "valores para cada entorno"
                     if self._conexion_en_contexto
                     else f"{unico}: configure en Studio el host, puerto, base y autenticación de "
                     "Impala; no se infieren del SAS"

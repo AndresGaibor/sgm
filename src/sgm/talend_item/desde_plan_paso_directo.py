@@ -192,7 +192,7 @@ def nodo_paso_directo(
         PendienteMigracion(
             "P-CONEXION-BASE",
             (
-                f"{unico}: host, puerto y base vienen del contexto DEV; configure QA y PROD"
+                f"{unico}: host, puerto y base salen del contexto; configure cada entorno"
                 if en_contexto
                 else f"{unico}: configure la conexión a {motor} en Studio; "
                 "no se copian DSN ni credenciales"

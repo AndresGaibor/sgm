@@ -196,9 +196,18 @@ Hoy `LIBNAME` se lowerea con `_config` (un operador de configuración que no hac
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\frontend\libnames.py`
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\bibliotecas.py`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower.py` (solo la rama `Libname` de la línea 157: registrar la biblioteca en el `Builder` además de `_config`)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\builder.py` (registro secuencial de LIBNAME y lectura de dataset según decisión explícita)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower.py` (registrar librefs en el `Builder` además de la configuración de sesión)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_data.py` (resolver las fuentes de SET y MERGE)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_sql_flow.py` (resolver fuentes de PROC SQL sobre tablas SAS)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\compile.py` (pasar decisiones por programa al lowering)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\cli_migrar.py` y `cli_migrar_comando.py` (cargar `--libnames` y buscar decisión por defecto)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_contextos.py` y `desde_plan.py` (contextos de base siempre declarados; opciones quedan pendientes)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_paso_directo.py` (mensaje de configuración de conexión compartido por entorno)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\sentencias-data-step.yaml` (`libname-statement`: `reconocida` con alcance explícito)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\migrar_pendientes.yaml` (pendiente sin decisión)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_tablero.py` (conteos del corpus L0)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L0\l0_18_libname_base\{caso.yaml, programa.sas, decisiones.yaml, entradas\sgmtest_d2.vehiculos.csv, esperado\caros.csv}`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\sentencias-data-step.yaml` (`libname-statement`: `reconocida`, nota con el alcance)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_libnames.py`
 
 **Interfaces:**
@@ -237,12 +246,12 @@ LIBNAME lz CLEAR;
 ```
 `decisiones.yaml`: `libnames: {lz: {motor: impala, base: sgmtest_d2}}`. Entradas: la misma `sgmtest_d2.vehiculos.csv` de D2-2. Esperado a mano, `esperado/caros.csv`: `marca,precio` / `Acura,30` / `Audi,20` / `Audi,99` (precio mayor que 15; `Acura,10` y `BMW,5` quedan fuera).
 
-- [ ] **Step 1: Write the failing tests.** `info_libname` de `LIBNAME lz IMPALA DSN=IMPALAP SCHEMA=sgmtest_d2;` da `motor == "impala"`, `ruta is None` y `opciones` sin el texto `PASSWORD`; de `LIBNAME datos 'C:\datos';` da `ruta == "C:\\datos"` y `motor is None`; de `LIBNAME x POSTGRES PASSWORD=abc123;` el texto `abc123` no aparece en `opciones` ni en el `repr`; `resolver_biblioteca("lz.vehiculos", {"lz": ...}, {"lz": {"motor": "impala", "base": "sgmtest_d2"}}) == ("impala", "sgmtest_d2.vehiculos")` y sin decisión `None`; el caso migra el `SET lz.vehiculos` a un `tImpalaInput` con `SELECT * FROM sgmtest_d2.vehiculos` y el `WHERE` como filtro del Job, y sin `decisiones.yaml` el pendiente es `P-LIBNAME-BASE`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_libnames.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** `libnames.py` (expresiones regulares sobre el texto de la sentencia; sin interpretar las opciones) y `bibliotecas.py`; leer `decisiones.yaml` con el mismo mecanismo que usan las demás decisiones por programa (`grep -rn "decisiones" src/sgm/cli_migrar.py` para ubicarlo). La lectura de una tabla de base entra por el mismo `tImpalaInput` de D2-2, con el SQL que arma el emisor (`SELECT <columnas usadas> FROM <base>.<tabla>`; las columnas salen de `_columnas_usadas`, `src/sgm/migrar/esquemas.py:69`).
-- [ ] **Step 4: Run** los tests, `tests/unit/test_corpus_l0*.py` si existen, el golden y `uv run ruff check src tests tools`.
-- [ ] **Step 5: Contenedor y Studio.** Igual que D2-2, Step 6, con `l0_18_libname_base`. Sin ellos: «contenedor pendiente» o «lote C pendiente».
-- [ ] **Step 6: Commit.** `hito N n: LIBNAME a bases con la base declarada por decision y conexion compartida`.
+- [x] **Step 1: Write the failing tests.** `info_libname` reconoce motor, ruta y `CLEAR`, redacta credenciales en opciones y `repr`; `resolver_biblioteca` exige una decisión cuyo motor coincida y valida identificadores SQL. El caso migra `SET lz.vehiculos` a `tImpalaInput` con `SELECT * FROM sgmtest_d2.vehiculos`, conserva `WHERE` en el flujo y compara el resultado local. Sin decisión, el fallo inicial mostró que no existía `P-LIBNAME-BASE`.
+- [x] **Step 2: Run tests to verify they fail.** La prueba de migración sin decisión falló antes de implementar porque el parser descartaba el `LIBNAME`; el tablero también falló al registrar el caso L0 número 18.
+- [x] **Step 3: Implement** `libnames.py` (expresiones regulares sobre el texto; las opciones se conservan solo redactadas) y `bibliotecas.py`. `sgm migrar` acepta `--libnames <archivo>` o busca `decisiones/<programa>.libnames.yaml`; el YAML permite exclusivamente motor y base. La lectura entra por `tImpalaInput`; las variables de conexión aparecen vacías en todos los contextos si no hay configuración DEV. Sin decisión queda `P-LIBNAME-BASE`; opciones no aplicadas quedan `P-CONEXION-OPCIONES`.
+- [x] **Step 4: Run** los tests, `tests/unit/test_migrar_corpus_aceptacion.py`, los casos L0, el catálogo SAS y `uv run ruff check src tests tools`. Bloque focal: 344 pruebas aprobadas y 5 `xfail`; Ruff y `git diff --check` verdes.
+- [ ] **Step 5: Contenedor y Studio.** No ejecutado: el repositorio prohíbe conexiones a bases y el caso no tiene autorización para el contenedor. La validación C queda pendiente; la prueba local solo usa filas sintéticas.
+- [ ] **Step 6: Commit.** `hito 250n: LIBNAME a bases con la base declarada por decision y conexion compartida`.
 
 ---
 

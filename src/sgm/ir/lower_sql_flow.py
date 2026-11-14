@@ -100,8 +100,8 @@ class _Chain:
         self.normalized = normalized
 
     def read(self, source: Source) -> Operator:
-        name = qualify(_restore(source.name, self.normalized))
-        return self.b.op("read", {"dataset": name}, self.ev)
+        name = _restore(source.name, self.normalized)
+        return self.b.read_dataset(name, self.ev)
 
     def step(
         self, kind: str, params: dict, previous: Operator, status: str = "soportado"

@@ -7,6 +7,7 @@ from pathlib import PurePosixPath
 
 from sgm.catalog.config import External
 from sgm.frontend.datastep import DataStep
+from sgm.frontend.libnames import info_libname
 from sgm.frontend.macros import MacroDynamic
 from sgm.frontend.steps import (
     Global,
@@ -155,6 +156,7 @@ def _lower_step(item, b: Builder, externals: dict[str, External]) -> None:
             notes=["comando del sistema operativo"],
         )
     elif isinstance(step, Libname):
+        b.registrar_libname(info_libname(step))
         _config(step, ev, b, step.text)
     elif isinstance(step, (Let, Options)):
         _config(step, ev, b, getattr(step, "text", "options"))
@@ -169,10 +171,13 @@ def _lower_step(item, b: Builder, externals: dict[str, External]) -> None:
 
 
 def lower_items(
-    items: Iterable, graph: Graph, externals: dict[str, External] | None = None
+    items: Iterable,
+    graph: Graph,
+    externals: dict[str, External] | None = None,
+    decisiones_libnames: dict[str, dict] | None = None,
 ) -> Builder:
     """Lowering de todo un programa. Devuelve el constructor para seguir numerando operadores."""
-    builder = Builder(graph)
+    builder = Builder(graph, decisiones_libnames)
     for item in items:
         lower_item(item, builder, externals)
     return builder

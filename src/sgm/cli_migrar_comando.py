@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from sgm.cli_migrar import migrar, validate_backend
+from sgm.ir.bibliotecas import cargar_decisiones_libnames
 from sgm.migrar.tablas_locales import cargar_tablas_locales, raiz_repositorio
 from sgm.talend_item.desde_plan_conexion import cargar_contexto_dev
 
@@ -79,10 +80,29 @@ def migrar_command(
             ),
         ),
     ] = None,
+    libnames_decision: Annotated[
+        Path | None,
+        typer.Option(
+            "--libnames",
+            help=(
+                "YAML con la base explícita de cada LIBNAME. Busca "
+                "decisiones/<programa>.libnames.yaml por defecto."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Migra un SAS o cada `.sas` de una carpeta, con un paquete separado por programa."""
     if not source.is_file() and not source.is_dir():
         raise typer.BadParameter(f"no existe el programa o la carpeta: {source}")
+    if libnames_decision is not None:
+        if source.is_dir():
+            raise typer.BadParameter("--libnames se acepta al migrar un solo programa")
+        if not libnames_decision.is_file():
+            raise typer.BadParameter(f"no existe el archivo de decisiones: {libnames_decision}")
+        try:
+            cargar_decisiones_libnames(libnames_decision)
+        except (ValueError, OSError) as error:
+            raise typer.BadParameter(str(error), param_hint="--libnames") from error
     if esquemas is not None and not esquemas.is_dir():
         raise typer.BadParameter(f"no existe la carpeta de esquemas: {esquemas}")
     if muestra is not None and not muestra.is_dir():
@@ -108,6 +128,7 @@ def migrar_command(
             backend=backend,
             tablas_locales=tablas_locales,
             contexto_dev=contexto_dev,
+            libnames_decision=libnames_decision,
         )
         salida = (
             "paquete no publicado por seguridad"

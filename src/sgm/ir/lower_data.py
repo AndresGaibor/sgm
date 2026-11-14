@@ -53,7 +53,7 @@ def _lower_sources(
         if s.kind in ("set", "merge"):
             refs += [dict(r, mode=s.kind) for r in s.fields["sources"]]
     reads = [
-        b.op("read", {"dataset": qualify(r["name"]), "in": (r.get("in") or None)}, ev) for r in refs
+        b.read_dataset(r["name"], ev, r.get("in") or None, include_in=True) for r in refs
     ]
     entradas: list[Operator] = []
     for ref, read in zip(refs, reads, strict=True):
@@ -188,6 +188,13 @@ def _statement_evidence(stmt: DsStatement, ev: Evidence) -> Evidence:
 def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
     stmts = step.statements
     reads, current = _lower_sources(stmts, ev, b)
+    if any(
+        read.status == "hueco"
+        and str(read.params.get("pending_code", "")).startswith("P-LIBNAME-")
+        for read in reads
+    ):
+        # No hay flujo de entrada al que aplicar WHERE/KEEP ni salida que se pueda emitir.
+        return
     file_read = _read_file(stmts, ev, b)
     if file_read is not None and (current is not None or reads):
         file_read.params["reason"] = "LECTURAS_DATA_STEP_MIXTAS"
