@@ -214,6 +214,18 @@ def especificaciones_de_vectores(vectores: list[dict]) -> dict[str, dict]:
                     nombre, nombre_tabla, nombre_salida, texto_sas, columnas, filas, numericas
                 ),
             }
+            if funcion == "yrdif" and literales:
+                base = str(literales[0]).strip().lower()
+                if base in {"act/act", "actual"}:
+                    spec["pendiente"] = (
+                        "P-JAVA-YRDIF-ACTACT: no se emite ACT/ACT sin rutina Java por año."
+                    )
+                    spec["invariantes"] = []
+                elif base == "age":
+                    spec["pendiente"] = (
+                        "P-JAVA-YRDIF-AGE: no se emite AGE sin rutina Java de cumpleaños."
+                    )
+                    spec["invariantes"] = []
             especificaciones[nombre] = spec
     return especificaciones
 

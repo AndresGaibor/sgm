@@ -155,6 +155,23 @@ def _intck(_p: _P, args: list[E]) -> E:
             f'TalendDate.getPartOfDate("MONTH", {start.java})'
         )
         result = f"Long.valueOf(({year_delta}) * 12 + ({month_delta}))"
+    elif unit == "qtr":
+        q_start = f'(TalendDate.getPartOfDate("MONTH", {start.java}) - 1) / 3'
+        q_end = f'(TalendDate.getPartOfDate("MONTH", {end.java}) - 1) / 3'
+        year_delta = (
+            f'TalendDate.getPartOfDate("YEAR", {end.java}) - '
+            f'TalendDate.getPartOfDate("YEAR", {start.java})'
+        )
+        result = f"Long.valueOf(({year_delta}) * 4 + ({q_end}) - ({q_start}))"
+    elif unit == "week":
+        def inicio_semana(fecha: str) -> str:
+            dias = f'TalendDate.diffDate({fecha}, {_EPOCA_JAVA}, "dd")'
+            domingo_cero = f'(TalendDate.getPartOfDate("DAY_OF_WEEK", {fecha}) - 1)'
+            return f"(({dias}) - ({domingo_cero}))"
+
+        inicio_fin = inicio_semana(end.java)
+        inicio_inicio = inicio_semana(start.java)
+        result = f"Long.valueOf((({inicio_fin}) - ({inicio_inicio})) / 7)"
     elif unit == "day":
         result = f'TalendDate.diffDate({end.java}, {start.java}, "dd")'
     else:
@@ -165,3 +182,80 @@ def _intck(_p: _P, args: list[E]) -> E:
         "intck asume intervalos SAS Date discretos; validar época SAS (1960), tipos y semántica en Studio"
     )
     return E(_guard([start, end], result), "num")
+
+
+def _base_literal(argumento: E, nombre: str) -> str:
+    if argumento.kind != "str" or argumento.literal is None:
+        raise Unsupported(f"{nombre} requiere una base literal; queda pendiente")
+    return argumento.literal.strip().lower()
+
+
+def _partes_fecha_dias(inicio: str, fin: str) -> tuple[str, str, str, str, str, str]:
+    def parte(fecha: str, nombre: str) -> str:
+        return f'TalendDate.getPartOfDate("{nombre}", {fecha})'
+
+    return (
+        parte(inicio, "YEAR"), parte(fin, "YEAR"),
+        parte(inicio, "MONTH"), parte(fin, "MONTH"),
+        parte(inicio, "DAY_OF_MONTH"), parte(fin, "DAY_OF_MONTH"),
+    )
+
+
+def _dias_30_360(inicio: str, fin: str) -> str:
+    y1, y2, m1, m2, d1, d2 = _partes_fecha_dias(inicio, fin)
+    fin_mes_1 = f'TalendDate.getPartOfDate("DAY_OF_MONTH", TalendDate.getLastDayOfMonth({inicio}))'
+    fin_mes_2 = f'TalendDate.getPartOfDate("DAY_OF_MONTH", TalendDate.getLastDayOfMonth({fin}))'
+    febrero_fin_1 = f"(({m1}) == 2 && ({d1}) == ({fin_mes_1}))"
+    febrero_fin_2 = f"(({m2}) == 2 && ({d2}) == ({fin_mes_2}))"
+    dia_inicio = f"(({febrero_fin_1} || ({d1}) == 31) ? 30 : ({d1}))"
+    dia_fin = (
+        f"((({febrero_fin_1} && {febrero_fin_2}) || "
+        f"(({d2}) == 31 && (({dia_inicio}) == 30 || ({dia_inicio}) == 31))) "
+        f"? 30 : ({d2}))"
+    )
+    return (
+        f"Long.valueOf((({y2}) - ({y1})) * 360 + "
+        f"(({m2}) - ({m1})) * 30 + ({dia_fin}) - ({dia_inicio}))"
+    )
+
+
+def _fechas_diferencia(args: list[E], nombre: str, max_args: int = 3) -> tuple[str, str, str | None]:
+    _need(args, 2, max_args, nombre)
+    inicio_arg, fin_arg = args[:2]
+    if inicio_arg.kind not in {"date", "any", "num"} or fin_arg.kind not in {"date", "any", "num"}:
+        raise Unsupported(f"{nombre} requiere fechas SAS numéricas")
+    inicio = _fecha_java(inicio_arg, nombre)
+    fin = _fecha_java(fin_arg, nombre)
+    base = _base_literal(args[2], nombre) if len(args) == 3 else None
+    return inicio, fin, base
+
+
+def _datdif(_p: _P, args: list[E]) -> E:
+    inicio, fin, base = _fechas_diferencia(args, "datdif")
+    if base not in {"act/act", "actual", "30/360", "360", "act/360", "act/365"}:
+        raise Unsupported("datdif requiere una base SAS literal admitida")
+    if base in {"30/360", "360"}:
+        resultado = _dias_30_360(inicio, fin)
+    else:
+        resultado = f'Long.valueOf(TalendDate.diffDate({fin}, {inicio}, "dd"))'
+    java = f"({inicio} == null || {fin} == null ? null : {resultado})"
+    return E(java, "num")
+
+
+def _yrdif(_p: _P, args: list[E]) -> E:
+    inicio, fin, base = _fechas_diferencia(args, "yrdif", 3)
+    base = "age" if base is None else base
+    if base == "age":
+        raise Unsupported("Pendiente: P-JAVA-YRDIF-AGE")
+    if base == "act/act" or base == "actual":
+        raise Unsupported("Pendiente: P-JAVA-YRDIF-ACTACT")
+    if base in {"30/360", "360"}:
+        dias = _dias_30_360(inicio, fin)
+        resultado = f"Double.valueOf(({dias}).doubleValue() / 360.0)"
+    elif base == "act/360":
+        resultado = f'TalendDate.diffDate({fin}, {inicio}, "dd") / 360.0'
+    elif base == "act/365":
+        resultado = f'TalendDate.diffDate({fin}, {inicio}, "dd") / 365.0'
+    else:
+        raise Unsupported("yrdif requiere una base literal SAS admitida")
+    return E(f"({inicio} == null || {fin} == null ? null : {resultado})", "num")

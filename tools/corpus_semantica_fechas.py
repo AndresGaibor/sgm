@@ -175,6 +175,127 @@ def crear_funciones_fechas(faltante: object, es_faltante: Callable[[object], boo
         except (OverflowError, ValueError) as error:
             raise ValueError("Pendiente: P-FECHA-FUERA-DE-RANGO") from error
 
+    def intck(
+        intervalo: object,
+        inicio: object,
+        fin: object,
+        metodo: object = None,
+    ) -> int | object:
+        if not isinstance(intervalo, str):
+            raise ValueError("Pendiente: P-INTCK-INTERVALO")
+        nombre = intervalo.strip().lower()
+        if nombre not in {"day", "week", "month", "qtr", "year"}:
+            raise ValueError("Pendiente: P-INTCK-INTERVALO")
+        if metodo is not None and (
+            not isinstance(metodo, str) or metodo.strip().lower() not in {"d", "disc", "discrete"}
+        ):
+            raise ValueError("Pendiente: P-INTCK-CONTINUO")
+        primero_num, segundo_num = numero(inicio), numero(fin)
+        if primero_num is None or segundo_num is None:
+            return faltante
+        primero, segundo = fecha_desde_dias(primero_num), fecha_desde_dias(segundo_num)
+
+        def limite(fecha: date) -> int:
+            if nombre == "year":
+                return fecha.year
+            if nombre == "qtr":
+                return fecha.year * 4 + (fecha.month - 1) // 3
+            if nombre == "month":
+                return fecha.year * 12 + fecha.month - 1
+            if nombre == "week":
+                return fecha.toordinal() // 7
+            return fecha.toordinal()
+
+        return limite(segundo) - limite(primero)
+
+    def dias_30_360(inicio: date, fin: date) -> int:
+        signo = 1
+        if fin < inicio:
+            inicio, fin = fin, inicio
+            signo = -1
+        inicio_febrero_fin = (
+            inicio.month == 2 and inicio.day == monthrange(inicio.year, 2)[1]
+        )
+        fin_febrero_fin = fin.month == 2 and fin.day == monthrange(fin.year, 2)[1]
+        dia_inicio, dia_fin = inicio.day, fin.day
+        if inicio_febrero_fin:
+            dia_inicio = 30
+        if inicio_febrero_fin and fin_febrero_fin:
+            dia_fin = 30
+        if dia_fin == 31 and dia_inicio in (30, 31):
+            dia_fin = 30
+        if dia_inicio == 31:
+            dia_inicio = 30
+        dias = (
+            (fin.year - inicio.year) * 360
+            + (fin.month - inicio.month) * 30
+            + dia_fin
+            - dia_inicio
+        )
+        return signo * dias
+
+    def datdif(inicio: object, fin: object, base: object) -> int | object:
+        if not isinstance(base, str):
+            raise ValueError("Pendiente: P-DATDIF-BASE")
+        nombre = base.strip().lower()
+        if nombre not in {"30/360", "360", "act/act", "actual", "act/360", "act/365"}:
+            raise ValueError("Pendiente: P-DATDIF-BASE")
+        primero_num, segundo_num = numero(inicio), numero(fin)
+        if primero_num is None or segundo_num is None:
+            return faltante
+        primero, segundo = fecha_desde_dias(primero_num), fecha_desde_dias(segundo_num)
+        if nombre in {"30/360", "360"}:
+            return dias_30_360(primero, segundo)
+        return (segundo - primero).days
+
+    def yrdif(inicio: object, fin: object, base: object = "AGE") -> int | float | object:
+        if not isinstance(base, str):
+            raise ValueError("Pendiente: P-YRDIF-BASE")
+        nombre = base.strip().lower()
+        if nombre not in {"30/360", "360", "act/act", "actual", "act/360", "act/365", "age"}:
+            raise ValueError("Pendiente: P-YRDIF-BASE")
+        primero_num, segundo_num = numero(inicio), numero(fin)
+        if primero_num is None or segundo_num is None:
+            return faltante
+        primero, segundo = fecha_desde_dias(primero_num), fecha_desde_dias(segundo_num)
+        if nombre == "age":
+            signo = 1
+            if segundo < primero:
+                primero, segundo = segundo, primero
+                signo = -1
+            if (
+                primero.month == 2
+                and primero.day == 29
+                and segundo.year == primero.year + 1
+                and (segundo.month, segundo.day) == (2, 28)
+            ):
+                raise ValueError("Pendiente: P-YRDIF-AGE-29FEB")
+            anios = segundo.year - primero.year
+            if (segundo.month, segundo.day) < (primero.month, primero.day):
+                anios -= 1
+            return signo * anios
+        if nombre in {"30/360", "360"}:
+            return dias_30_360(primero, segundo) / 360
+        dias = (segundo - primero).days
+        if nombre == "act/360":
+            return dias / 360
+        if nombre == "act/365":
+            return dias / 365
+        signo = 1.0
+        if segundo < primero:
+            primero, segundo = segundo, primero
+            signo = -1.0
+        resultado, cursor = 0.0, primero
+        while cursor < segundo:
+            limite = date(cursor.year + 1, 1, 1) if cursor.year < 9999 else segundo
+            fin_tramo = min(segundo, limite)
+            es_bisiesto = cursor.year % 4 == 0 and (
+                cursor.year % 100 != 0 or cursor.year % 400 == 0
+            )
+            resultado += (fin_tramo - cursor).days / (366 if es_bisiesto else 365)
+            cursor = fin_tramo
+        return signo * resultado
+
     return {
         "mdy": mdy,
         "year": parte("year"),
@@ -186,4 +307,7 @@ def crear_funciones_fechas(faltante: object, es_faltante: Callable[[object], boo
         "today": today,
         "date": today,
         "intnx": intnx,
+        "intck": intck,
+        "datdif": datdif,
+        "yrdif": yrdif,
     }

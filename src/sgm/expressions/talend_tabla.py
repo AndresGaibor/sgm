@@ -6,12 +6,14 @@ from sgm.expressions.talend_funciones import (
     _routine,
 )
 from sgm.expressions.talend_funciones_fecha import (
+    _datdif,
     _datepart,
     _intck,
     _intnx,
     _mdy,
     _part,
     _today,
+    _yrdif,
 )
 from sgm.expressions.talend_funciones_formato import _input, _put
 from sgm.expressions.talend_funciones_numerico import (
@@ -73,6 +75,7 @@ _FUNCTIONS = {
     "input": _input, "inputn": _input, "inputc": _input, "put": _put, "putn": _put, "putc": _put,
     "today": _today("today"), "date": _today("date"),
     "datepart": _datepart, "mdy": _mdy, "intnx": _intnx, "intck": _intck,
+    "datdif": _datdif, "yrdif": _yrdif,
     "year": _part("year"), "month": _part("month"), "day": _part("day"), "weekday": _part("weekday"),
     "qtr": _part("qtr"),
 }  # fmt: skip

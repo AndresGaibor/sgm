@@ -77,6 +77,9 @@ def test_funciones_reune_las_familias_actuales():
         "today",
         "date",
         "intnx",
+        "intck",
+        "datdif",
+        "yrdif",
     }
 
 

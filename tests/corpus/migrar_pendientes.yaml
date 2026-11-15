@@ -60,6 +60,8 @@ l4_146_vec_count_san: P-INFILE-TRUNCOVER-LISTA
 l4_147_vec_count_sa_si: P-INFILE-TRUNCOVER-LISTA
 l4_148_vec_lengthc_sin_literales: P-INFILE-TRUNCOVER-LISTA
 l4_149_vec_lengthn_sin_literales: P-INFILE-TRUNCOVER-LISTA
+l4_203_vec_yrdif_s4143542f414354: P-ASIGNACION-SIN-TRADUCIR
+l4_205_vec_yrdif_sAGE: P-ASIGNACION-SIN-TRADUCIR
 l5_09_into_primer_fila: P-ESQUEMA-NO-PORTABLE
 l0_16_paso_directo_impala: P-CONEXION-BASE
 l0_17_paso_directo_postgres: P-COMPONENTE-SIN-PLANTILLA

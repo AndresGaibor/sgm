@@ -31,8 +31,8 @@ fases:
   tareas:
   - id: MG-P3-04
     horas: 12.0
-    fraccion: 0.5
-  sostiene: "D1-12 y D1-13 aportan evidencia de fechas e INTNX en el anillo B; C pendiente por Studio BRIDGE_DEAD y faltan INTCK/DATDIF/YRDIF; PRX, PROC FORMAT y otras tareas de MG-P3 siguen pendientes"
+    fraccion: 0.75
+  sostiene: "D1-12 a D1-14 aportan evidencia A/B de fechas, INTNX, INTCK, DATDIF y YRDIF; C sigue pendiente por Studio BRIDGE_DEAD; PRX, PROC FORMAT y otras tareas de MG-P3 siguen pendientes"
 - id: MG-P4
   nombre: DATA step
   horas: 90.0

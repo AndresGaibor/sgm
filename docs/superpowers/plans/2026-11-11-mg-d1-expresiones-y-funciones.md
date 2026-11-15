@@ -643,13 +643,16 @@ Fin de año bisiesto: `["month", 23375, 2, "same"]` (31-dic-2023 más 2 meses) d
 `INTCK` cuenta **fronteras** de intervalo, no intervalos completos (`lefunctionsref`, p. 1092; `lrcon`, p. 176): del 31 de enero al 1 de febrero hay una frontera de mes. `DATDIF(inicio, fin, base)` y `YRDIF(inicio, fin, base)` usan una convención de conteo de días: `'30/360'` (un mes siempre de 30 días; si una fecha cae en fin de mes se trata como el día 30), `'ACT/ACT'`, y, para `YRDIF`, `'ACT/360'`, `'ACT/365'` y `'AGE'` (`lefunctionsref`, p. 634 a 636 y 1731 a 1733).
 
 **Files:**
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_intervalos.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_fechas.py`
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete_diferencias.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_semantica_fechas.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\semantica\vectores.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_funciones_fecha.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\talend_tabla.py`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4_vectores.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tools\corpus_lib\especificaciones_l4_funciones.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\expressions\expressions.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_mg_p3_dates.py`
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_talend_modulos.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\funciones-guia.yaml`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_interprete_diferencias.py`
 
@@ -674,26 +677,29 @@ Fin de año bisiesto: `["month", 23375, 2, "same"]` (31-dic-2023 más 2 meses) d
 | `intck-03` | `intck` | `["year", 23375, 23376]` | `1` (31-dic-2023 a 1-ene-2024) | p. 1092 |
 | `intck-04` | `intck` | `["year", 23375, 23375]` | `0` | p. 1092 |
 | `intck-05` | `intck` | `["day", 23435, 23438]` | `3` | p. 1092 |
-| `intck-06` | `intck` | `["week", 23430, 23431]` | `1` (sábado 24 a domingo 25: la semana empieza en domingo) | p. 1092 |
-| `intck-07` | `intck` | `["week", 23431, 23437]` | `0` | p. 1092 |
-| `intck-08` | `intck` | `["month", 23407, 23406]` | `-1` (orden inverso: negativo) | p. 1092 |
+| `intck-06` | `intck` | `["week", 23430, 23431]` | `1` (sábado 24 a domingo 25: la semana empieza en domingo) | p. 1095 |
+| `intck-07` | `intck` | `["week", 23431, 23437]` | `0` | p. 1095 |
+| `intck-08` | `intck` | `["month", 23407, 23406]` | `-1` (orden inverso: negativo) | p. 1095 |
 | `datdif-01` | `datdif` | `[23406, 23436, "ACT/ACT"]` | `30` | p. 634 |
-| `datdif-02` | `datdif` | `[23406, 23436, "30/360"]` | `31` (el 31 se trata como 30: 2 meses × 30 + (1 − 30); deducido, se lee p. 635 antes) | p. 635 |
+| `datdif-02` | `datdif` | `[23406, 23436, "30/360"]` | `31` (el 31 se trata como 30: 2 meses × 30 + (1 − 30)) | p. 636 |
 | `datdif-03` | `datdif` | `[23376, 23742, "ACT/ACT"]` | `366` | p. 634 |
-| `datdif-04` | `datdif` | `[23376, 23742, "30/360"]` | `360` | p. 635 |
+| `datdif-04` | `datdif` | `[23376, 23742, "30/360"]` | `360` | p. 636 |
+| `datdif-05` | `datdif` | `[23376, 23742, "ACT/360"]` | `366` | p. 635 |
+| `datdif-06` | `datdif` | `[23376, 23742, "ACT/365"]` | `366` | p. 635 |
 | `yrdif-01` | `yrdif` | `[14610, 23376, "ACT/ACT"]` | `24` (6 bisiestos: 18 + 6 años exactos) | p. 1732 |
 | `yrdif-02` | `yrdif` | `[14610, 23376, "30/360"]` | `24` | p. 1732 |
 | `yrdif-03` | `yrdif` | `[14610, 23376, "AGE"]` | `24` | p. 1732 |
 | `yrdif-04` | `yrdif` | `[23376, 23742, "ACT/360"]` | `1.0166666667` (366 / 360) | p. 1732 |
 | `yrdif-05` | `yrdif` | `[23192, 23558, "ACT/ACT"]` | `1.0013773486` (184/365 + 182/366; fórmula de p. 1733; tolerancia 1e-9) | p. 1733 |
+| `yrdif-06` | `yrdif` | `[23376, 23742, "ACT/365"]` | `1.002739726` (366/365) | p. 1732 |
 
-El cumpleaños de un 29 de febrero con base `AGE` (`yrdif(21974, 22339, "AGE")`, del 29-feb-2020 al 28-feb-2021) no tiene ejemplo en la guía: vector `yrdif-06` con `confianza: incierto` y la función queda `Pendiente: P-YRDIF-AGE-29FEB` solo para ese caso. `INTCK` con el método continuo (quinto argumento `'C'`) queda `Pendiente: P-INTCK-CONTINUO` hasta leer p. 1092 y fijar un ejemplo. Java: `YRDIF` con `'ACT/ACT'` y `'AGE'` requiere partir los días por año o comparar cumpleaños, que no cabe en una expresión de una línea sin rutina propia: `Unsupported` con `P-JAVA-YRDIF-ACTACT` y `P-JAVA-YRDIF-AGE`.
+El cumpleaños de un 29 de febrero con base `AGE` (`yrdif(21974, 22339, "AGE")`, del 29-feb-2020 al 28-feb-2021) no tiene resultado inequívoco en la guía; no se agrega un valor esperado inventado y esa entrada queda `Pendiente: P-YRDIF-AGE-29FEB`. `INTCK` con el método continuo (cuarto argumento `'C'`) queda `Pendiente: P-INTCK-CONTINUO` (`lefunctionsref`, pp. 1094–1095). Java: `YRDIF` con `'ACT/ACT'` y `'AGE'` requiere partir los días por año o comparar cumpleaños: `Unsupported` con `P-JAVA-YRDIF-ACTACT` y `P-JAVA-YRDIF-AGE`.
 
-- [ ] **Step 1: Write the failing tests:** un test por vector (el intérprete, con `pytest.approx(abs=1e-9)` para los decimales); `intck("month", 23406, 23407, "c")` lanza `NoSoportadoEnInterprete` con `P-INTCK-CONTINUO`; `verificar()` y `verificar(motor="interprete")` en cero fallos; `translate_to_talend("yrdif(a, b, 'AGE')")` lanza `Unsupported` con `P-JAVA-YRDIF-AGE`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_interprete_diferencias.py tests/unit/test_corpus_semantica.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** en los tres motores (en el oráculo, `yrdif` y `datdif` calculados con `datetime.date` y con la fórmula de la página, sin reutilizar `interprete_diferencias`). Agregar a `FUNCIONES_CON_CASO` `intck`, `datdif` y `yrdif` (con el intervalo y la base como literales).
-- [ ] **Step 4: Catálogo** (`intck-function` p. 1092, `datdif-function` p. 634, `yrdif-function` p. 1731) y `tests/unit/test_catalogo_sas.py`.
-- [ ] **Step 5: Run** `uv run python -m pytest tests/unit/test_migrar_corpus_anillo_b.py -q -p no:cacheprovider -k L4`, la tanda del golden, `uv run ruff check src tests tools`, lote C. **Commit** `hito N n: INTCK por fronteras, DATDIF y YRDIF con sus bases de conteo`.
+- [x] **Step 1: Write the failing tests:** un test por vector (tolerancia `1e-9`); método `C` pendiente; oráculo e intérprete cruzados; `YRDIF AGE` y `ACT/ACT` pendientes solo en Java.
+- [x] **Step 2: Run tests to verify they fail.** La corrida RED inicial falló en las 20 pruebas nuevas porque faltaban las tres funciones y sus descriptores.
+- [x] **Step 3: Implement** en intérprete, oráculo independiente y Talend. `INTCK` discreto cubre day/week/month/qtr/year; `DATDIF` cubre ACT/ACT, ACT/360, ACT/365 y 30/360; `YRDIF` cubre esas bases más AGE en Python. El emisor Java conserva pendientes explícitos para `YRDIF ACT/ACT` y `AGE`; sus dos casos L4 quedan estado pendiente, sin esperado inventado. `FUNCIONES_CON_CASO` agrega 13 casos L4 (`l4_195`–`l4_207`), 11 con esperado.
+- [x] **Step 4: Catálogo** (`intck-function` p. 1092, `datdif-function` p. 634, `yrdif-function` p. 1731) y pruebas de páginas.
+- [x] **Step 5: Run** pruebas focales, oráculo (200 vectores verificables, 0 fallos), anillo B L4 y Ruff. Studio devolvió `BRIDGE_DEAD`; sus 11 casos traducibles quedaron en `out/studio-pendientes.json`. **Commit** `hito 269n: INTCK por fronteras, DATDIF y YRDIF con sus bases de conteo`.
 
 ---
 

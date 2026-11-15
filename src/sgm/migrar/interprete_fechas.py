@@ -8,6 +8,7 @@ from datetime import date, timedelta
 
 from sgm.migrar import semantica
 
+from .interprete_diferencias import datdif, intck, yrdif
 from .interprete_errores import NoSoportadoEnInterprete
 from .interprete_intervalos import intnx as _intnx
 
@@ -134,4 +135,7 @@ FUNCIONES = {
     "today": _today,
     "date": _today,
     "intnx": _funcion_intnx,
+    "intck": lambda argumentos: intck(*argumentos),
+    "datdif": lambda argumentos: datdif(*argumentos),
+    "yrdif": lambda argumentos: yrdif(*argumentos),
 }

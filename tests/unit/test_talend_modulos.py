@@ -10,18 +10,18 @@ EXPRESSIONS = Path(__file__).resolve().parents[2] / "src" / "sgm" / "expressions
 # Constructores SAS de D1-6; las utilidades del lexer/base/core quedan fuera del alcance.
 SAS_BUILDERS = {
     "_aggregate", "_cat", "_coalesce", "_compress", "_count", "_datepart", "_find", "_ifv", "_index", "_input",
-    "_ceil_floor", "_int", "_intck", "_intnx", "_mdy", "_mod", "_part", "_put", "_round", "_scan",
+    "_ceil_floor", "_datdif", "_int", "_intck", "_intnx", "_mdy", "_mod", "_part", "_put", "_round", "_scan", "_yrdif",
     "_length", "_lengthc", "_lengthn", "_strfn", "_substr", "_tranwrd", "_translate", "_unary_math",
 }
 # Capturada antes de la refactorización: no se calcula con la tabla bajo prueba.
 FUNCTION_NAMES = (
     "abs", "cat", "cats", "catt", "catx", "ceil", "cmiss", "coalesce", "coalescec", "compbl",
-    "compress", "count", "date", "datepart", "day", "exp", "find", "floor", "ifc",
+    "compress", "count", "datdif", "date", "datepart", "day", "exp", "find", "floor", "ifc",
     "ifn", "index", "input", "inputc", "inputn", "int", "intck", "intnx", "left",
     "length", "lengthc", "lengthn", "log", "lowcase", "max", "mdy", "mean", "min",
     "missing", "mod", "month", "n", "nmiss", "propcase", "put", "putc", "putn", "qtr", "repeat",
     "reverse", "right", "round", "scan", "sign", "sqrt", "strip", "substr", "substrn", "sum",
-    "today", "translate", "tranwrd", "trim", "upcase", "weekday", "year",
+    "today", "translate", "tranwrd", "trim", "upcase", "weekday", "year", "yrdif",
 )
 
 

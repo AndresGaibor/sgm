@@ -1300,3 +1300,143 @@ vectores:
     fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
     cita: "lefunctionsref, p. 1115: INTNX('year', 29FEB2000, 2, 'same') adjusts to 28FEB2002."
     confianza: documentado
+  - id: intck-01
+    funcion: intck
+    entrada: ["month", 23406, 23407]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1095: del 31 de enero al 1 de febrero se cruza una frontera mensual."
+    confianza: documentado
+  - id: intck-02
+    funcion: intck
+    entrada: ["month", 23406, 23435]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1095: cuenta fronteras mensuales y no intervalos completos."
+    confianza: documentado
+  - id: intck-03
+    funcion: intck
+    entrada: ["year", 23375, 23376]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1095: el conteo discreto detecta la frontera de calendario entre años."
+    confianza: deducido
+  - id: intck-04
+    funcion: intck
+    entrada: ["year", 23375, 23375]
+    esperado: 0
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1095: fechas del mismo intervalo discreto no cruzan fronteras."
+    confianza: deducido
+  - id: intck-05
+    funcion: intck
+    entrada: ["day", 23435, 23438]
+    esperado: 3
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1092: INTCK devuelve las fronteras del intervalo indicado."
+    confianza: deducido
+  - id: intck-06
+    funcion: intck
+    entrada: ["week", 23430, 23431]
+    esperado: 1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1095: los intervalos WEEK discretos cuentan domingos."
+    confianza: documentado
+  - id: intck-07
+    funcion: intck
+    entrada: ["week", 23431, 23437]
+    esperado: 0
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1095: se cuenta el domingo que ocurre entre ambas fechas, si lo hay."
+    confianza: deducido
+  - id: intck-08
+    funcion: intck
+    entrada: ["month", 23407, 23406]
+    esperado: -1
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1095: INTCK devuelve valor negativo al recorrer intervalos en orden inverso."
+    confianza: documentado
+  - id: datdif-01
+    funcion: datdif
+    entrada: [23406, 23436, "ACT/ACT"]
+    esperado: 30
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, pp. 634–635: ACT/ACT cuenta los días calendario reales entre fechas."
+    confianza: documentado
+  - id: datdif-02
+    funcion: datdif
+    entrada: [23406, 23436, "30/360"]
+    esperado: 31
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 636: ajuste de fin de mes y fórmula 30/360 aplicada del 31-ene al 1-mar."
+    confianza: documentado
+  - id: datdif-03
+    funcion: datdif
+    entrada: [23376, 23742, "ACT/ACT"]
+    esperado: 366
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 635: ACT/ACT considera el número real de días del año calendario."
+    confianza: documentado
+  - id: datdif-04
+    funcion: datdif
+    entrada: [23376, 23742, "30/360"]
+    esperado: 360
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, pp. 635–636: 30/360 usa meses de 30 días y año de 360 días."
+    confianza: documentado
+  - id: datdif-05
+    funcion: datdif
+    entrada: [23376, 23742, "ACT/360"]
+    esperado: 366
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 635: DATDIF ACT/360 devuelve días calendario reales, no años."
+    confianza: documentado
+  - id: datdif-06
+    funcion: datdif
+    entrada: [23376, 23742, "ACT/365"]
+    esperado: 366
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 635: DATDIF ACT/365 devuelve días calendario reales, no años."
+    confianza: documentado
+  - id: yrdif-01
+    funcion: yrdif
+    entrada: [14610, 23376, "ACT/ACT"]
+    esperado: 24
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1733: suma días de años de 365 días sobre 365 y de bisiestos sobre 366."
+    confianza: documentado
+  - id: yrdif-02
+    funcion: yrdif
+    entrada: [14610, 23376, "30/360"]
+    esperado: 24
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1732: 30/360 cuenta 360 días por año."
+    confianza: documentado
+  - id: yrdif-03
+    funcion: yrdif
+    entrada: [14610, 23376, "AGE"]
+    esperado: 24
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, pp. 1732–1733: AGE calcula edad y toma en cuenta años bisiestos."
+    confianza: documentado
+  - id: yrdif-04
+    funcion: yrdif
+    entrada: [23376, 23742, "ACT/360"]
+    esperado: 1.0166666667
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1732: ACT/360 divide los días reales entre 360."
+    confianza: documentado
+  - id: yrdif-05
+    funcion: yrdif
+    entrada: [23192, 23558, "ACT/ACT"]
+    esperado: 1.0013773486
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1733: ACT/ACT suma 184/365 y 182/366 en este período."
+    confianza: documentado
+  - id: yrdif-06
+    funcion: yrdif
+    entrada: [23376, 23742, "ACT/365"]
+    esperado: 1.002739726
+    fuente_url: "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en"
+    cita: "lefunctionsref, p. 1732: ACT/365 divide los días reales entre 365."
+    confianza: documentado

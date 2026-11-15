@@ -104,6 +104,39 @@ def test_intck_day_usa_fin_menos_inicio_en_unidad_dias():
     assert 'TalendDate.diffDate(input_row.end_date, input_row.start_date, "dd")' in java
 
 
+def test_intck_week_cuenta_fronteras_de_domingo():
+    java = translate_to_talend("intck('week', start_date, end_date)").java
+
+    assert 'TalendDate.getPartOfDate("DAY_OF_WEEK"' in java
+    assert " / 7" in java
+
+
+def test_datdif_act_act_emite_diferencia_real_de_dias():
+    java = translate_to_talend("datdif(start_date, end_date, 'ACT/ACT')").java
+
+    assert "TalendDate.diffDate" in java
+    assert '"dd"' in java
+
+
+def test_datdif_30_360_emite_ajustes_de_fin_de_mes():
+    java = translate_to_talend("datdif(start_date, end_date, '30/360')").java
+
+    assert "TalendDate.getLastDayOfMonth" in java
+    assert "Long.valueOf" in java
+
+
+@pytest.mark.parametrize("base", ["30/360", "ACT/360", "ACT/365"])
+def test_yrdif_admite_bases_con_formula_directa(base):
+    java = translate_to_talend(f"yrdif(start_date, end_date, '{base}')").java
+
+    assert "TalendDate.diffDate" in java or "TalendDate.getLastDayOfMonth" in java
+
+
+def test_yrdif_act_act_java_sigue_pendiente_por_partir_anios():
+    with pytest.raises(Unsupported, match="P-JAVA-YRDIF-ACTACT"):
+        translate_to_talend("yrdif(start_date, end_date, 'ACT/ACT')")
+
+
 @pytest.mark.parametrize(
     "expression",
     [
@@ -215,7 +248,6 @@ def test_comparacion_de_orden_sas_con_fecha_sigue_pendiente_si_falta_semantica()
 @pytest.mark.parametrize(
     "expression",
     [
-        "intck('week', start_date, end_date)",
         "intck('hour', start_date, end_date)",
         "intck('month', start_date, end_date, 'continuous')",
         "intck('month', 20000, 20030)",
@@ -226,7 +258,6 @@ def test_intck_no_inventa_semantica_de_metodo_o_intervalo(expression):
         translate_to_talend(expression)
 
 
-@pytest.mark.parametrize("function", ["datdif", "yrdif"])
-def test_diferencias_financieras_siguen_pendientes_hasta_modelar_basis(function):
-    with pytest.raises(Unsupported):
-        translate_to_talend(f"{function}(start_date, end_date, 'act/act')")
+def test_yrdif_age_sigue_pendiente_en_talend():
+    with pytest.raises(Unsupported, match="P-JAVA-YRDIF-AGE"):
+        translate_to_talend("yrdif(start_date, end_date, 'AGE')")

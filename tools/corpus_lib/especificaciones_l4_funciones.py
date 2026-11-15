@@ -307,4 +307,22 @@ FUNCIONES_CON_CASO: dict[str, dict] = {
         "salida_numerica": True,
         "sas": "intnx({argumentos})",
     },
+    "intck": {
+        "literales": (0,),
+        "columnas": ("FECHA_INICIO", "FECHA_FIN"),
+        "salida_numerica": True,
+        "sas": "intck({argumentos})",
+    },
+    "datdif": {
+        "literales": (2,),
+        "columnas": ("FECHA_INICIO", "FECHA_FIN"),
+        "salida_numerica": True,
+        "sas": "datdif({argumentos})",
+    },
+    "yrdif": {
+        "literales": (2,),
+        "columnas": ("FECHA_INICIO", "FECHA_FIN"),
+        "salida_numerica": True,
+        "sas": "yrdif({argumentos})",
+    },
 }

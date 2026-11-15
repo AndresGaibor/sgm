@@ -572,6 +572,13 @@ que no se interprete como comparación escrita en SAS. `INTCK`, `DATDIF` y `YRDI
 El puente sigue en `BRIDGE_DEAD`: los 13 casos están en la cola de Studio y no cuentan como C. Según
 la regla de crédito de §11b, MG-P3-04 queda parcial con 0,5 (6 de 12 h); MG-P3 sube a 20,5 h.
 
+**Actualización (hito 269n, 14 de noviembre de 2026).** D1-14 incorpora `INTCK` discreto,
+`DATDIF` y `YRDIF` al intérprete y al oráculo, y emite las variantes documentadas compatibles con
+Talend. Veinte vectores se verifican entre ambos motores y se generan 13 casos L4; once cuentan con
+esperado y dos (`YRDIF ACT/ACT` y `AGE`) quedan pendientes de rutina Java sin valor supuesto. El
+anillo B pasa 126 casos L4. Studio sigue en `BRIDGE_DEAD`; los once casos con emisión están en cola y
+no cuentan como compilados. MG-P3-04 sube a 0,75 (9 de 12 h); MG-P3 queda en 23,5 h.
+
 ### MG-P4. DATA step (90 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -905,7 +912,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P0 Preparación | 37 | 25,0 | 68 % | Backend, salud, lote, ciclo rápido hechos; faltan MG-P0-01 y 06, y las mediciones de tiempo |
 | MG-P1 Modelo y plan lógico | 70 | 37,5 | 54 % | Pendientes, propiedad y tabla de símbolos hechos; tipos de `LENGTH` demostrados en 3 casos (bloque `esquemas` en L0 a L2); 14 operadores con constructor validado y pruebas de forma en L1 a L3, sin que ningún pase los use; `PROC TRANSPOSE` como hueco |
 | MG-P2 Entrada y salida | 50 | 15,0 | 30 % | CSV, DLM, XLSX y rutas locales `FILENAME` para `INFILE`, `FILE` y `PROC IMPORT DATAFILE=`; PIPE queda pendiente con motivo, al igual que FTP, bases y RSUBMIT |
-| MG-P3 Expresiones y funciones | 80 | 20,5 | 26 % | D1-12 y D1-13 aportan evidencia de fechas e INTNX en el anillo B; C pendiente por Studio BRIDGE_DEAD y faltan INTCK/DATDIF/YRDIF; PRX, PROC FORMAT y otras tareas de MG-P3 siguen pendientes |
+| MG-P3 Expresiones y funciones | 80 | 23,5 | 29 % | D1-12 a D1-14 aportan evidencia A/B de fechas, INTNX, INTCK, DATDIF y YRDIF; C sigue pendiente por Studio BRIDGE_DEAD; PRX, PROC FORMAT y otras tareas de MG-P3 siguen pendientes |
 | MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
 | MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos), `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
 | MG-P6 Procedimientos | 50 | 4,0 | 8 % | `PROC SORT` con `NODUP`/`NODUPKEY` y `BY _ALL_`; sin `FREQ`, `MEANS`, `TRANSPOSE` |
@@ -917,7 +924,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | La compuerta de liberación quedó verde en el hito 126m, pero no se acredita: su aceptación incluye el lote de Studio sobre toda la salida y eso sigue pendiente; la parte de personas tampoco cuenta aquí |
-| **Total** | **895** | **246,25** | **27,5 %** | |
+| **Total** | **895** | **249,25** | **27,8 %** | |
 <!-- avance:fin -->
 
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`

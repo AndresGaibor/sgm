@@ -213,6 +213,21 @@ entries:
     fuente: lefunctionsref.pdf, p. 1131
     estado: reconocida
     nota: 'intérprete, oráculo y Talend cubren day, week, month, qtr y year con alineaciones B, E y S; fin de mes y años bisiestos; otras alineaciones e intervalos quedan Pendiente'
+  - id: intck-function
+    nombre: INTCK Function
+    fuente: lefunctionsref.pdf, p. 1092
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend cuentan fronteras discretas de day, week, month, qtr y year; continuous, múltiplos y desplazamientos quedan pendientes'
+  - id: datdif-function
+    nombre: DATDIF Function
+    fuente: lefunctionsref.pdf, p. 634
+    estado: reconocida
+    nota: 'intérprete, oráculo y Talend cuentan días con bases ACT/ACT, ACT/360, ACT/365 y 30/360; otras bases quedan pendientes'
+  - id: yrdif-function
+    nombre: YRDIF Function
+    fuente: lefunctionsref.pdf, p. 1731
+    estado: reconocida
+    nota: 'intérprete y oráculo cubren ACT/ACT, ACT/360, ACT/365, 30/360 y AGE salvo el borde de cumpleaños 29-feb; Talend cubre 30/360, ACT/360 y ACT/365; ACT/ACT y AGE quedan pendientes en Java'
   - id: today-function
     nombre: TODAY Function
     fuente: lefunctionsref.pdf, p. 1611

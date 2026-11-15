@@ -52,9 +52,9 @@ def translate(sas: str) -> Translation:
     """
     numericas = re.sub(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", "''", sas)
     usa_talend = re.match(
-        r"(?is)^\s*(?:intnx|intck|input|inputn|inputc|put|putn|putc|date|today|datepart|mdy|year|month|day|weekday|qtr|datetime)\s*\(", sas
+        r"(?is)^\s*(?:intnx|intck|datdif|yrdif|input|inputn|inputc|put|putn|putc|date|today|datepart|mdy|year|month|day|weekday|qtr|datetime)\s*\(", sas
     ) or re.search(
-        r"(?is)\b(?:round|int|ceil|floor|mod|abs|sqrt|log|exp|sign|sum|mean|min|max|n|nmiss|cmiss|coalesce|coalescec|ifn|ifc|missing|date|today|datepart|mdy|year|month|day|weekday|qtr|datetime)\s*\(",
+        r"(?is)\b(?:round|int|ceil|floor|mod|abs|sqrt|log|exp|sign|sum|mean|min|max|n|nmiss|cmiss|coalesce|coalescec|ifn|ifc|missing|date|today|datepart|mdy|year|month|day|weekday|qtr|datdif|yrdif|datetime)\s*\(",
         numericas,
     )
     if usa_talend and talend_expressions_enabled():
