@@ -8436,3 +8436,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Ahora sí lee `engines.json`; `project.json` sigue sin aplicarse en el CLI.
 - Pruebas dirigidas: `test_pendientes_sql_l1_l2.py`, `test_push_db.py`, `test_migrar_corpus_aceptacion.py`
   (926 pasan con `-n 8`). El cierre completo con `tools/ci.py` queda en el historial de validación.
+
+## Hito 275m (2026-11-17). C-1: línea base medida de SQL y procedimientos (plan C)
+
+- Qué se hizo: `tools/linea_base_sql_procs.py` cuenta, por construcción de SQL o de procedimiento del corpus, los
+  casos que la usan y sus pendientes por código (según `tests/corpus/migrar_pendientes.yaml`). Salida en
+  `out/linea_base_sql_procs.json` (no versionada). Pruebas en `tests/unit/test_linea_base_sql_procs.py` (3).
+- Línea base medida sobre el corpus de hoy: 64 construcciones (37 de SQL o con JOIN, 58 de `PROC`; algunas cuentan
+  en las dos). 53 de los 58 `PROC` no tienen ningún caso pendiente. Pendientes por código, sumados por construcción:
+  `P-AGREGADO-SIN-TRADUCIR` 3, `P-COMPONENTE-SIN-PLANTILLA` 3, `P-FILTRO-SIN-TRADUCIR` 2, `P-CONEXION-BASE` 2,
+  `P-UNION-TIPO-SIN-SOPORTE` 1, `P-ESQUEMA-NO-PORTABLE` 1.
+- Pruebas: dirigidas (`test_linea_base_sql_procs.py`, `test_pendientes_sql_l1_l2.py`). El cierre completo con
+  `tools/ci.py` queda en el historial de validación.
+- Pendiente del plan C: C-2 a C-15 (SQL) siguen sin empezar.
