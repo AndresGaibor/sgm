@@ -42,11 +42,50 @@ def _null_tests(text: str) -> str:
     return _IS_NULL.sub(lambda m: f"missing({m.group(1)})", text)
 
 
+_SUBCONSULTA = re.compile(r"(?i)\(\s*select\b")
+
+
+def _trozos(text: str) -> list[tuple[str, bool]]:
+    """Parte el texto en trozos; un `(SELECT ...)` va en un trozo marcado (True)."""
+    trozos: list[tuple[str, bool]] = []
+    pos = 0
+    while True:
+        inicio = _SUBCONSULTA.search(text, pos)
+        if inicio is None:
+            trozos.append((text[pos:], False))
+            return trozos
+        trozos.append((text[pos : inicio.start()], False))
+        profundidad = 0
+        fin = inicio.start()
+        while fin < len(text):
+            if text[fin] == "(":
+                profundidad += 1
+            elif text[fin] == ")":
+                profundidad -= 1
+                if profundidad == 0:
+                    break
+            fin += 1
+        trozos.append((text[inicio.start() : fin + 1], True))
+        pos = fin + 1
+
+
 def _column(text: str, aliases: set[str]) -> str:
-    """Nombre de columna de una referencia (`a.k` -> `k`) si el prefijo es un alias de fuente."""
-    return _null_tests(
-        _DOTTED.sub(lambda m: m.group(2) if m.group(1).lower() in aliases else m.group(0), text)
-    )
+    """Nombre de columna de una referencia (`a.k` -> `k`) si el prefijo es un alias de fuente.
+
+    Dentro de una subconsulta `(SELECT ...)` no se quita el prefijo: un alias de la consulta de
+    fuera es una referencia correlacionada; sin su prefijo se resolvería contra la tabla de dentro.
+    """
+    partes = [
+        _null_tests(trozo)
+        if en_subconsulta
+        else _null_tests(
+            _DOTTED.sub(
+                lambda m: m.group(2) if m.group(1).lower() in aliases else m.group(0), trozo
+            )
+        )
+        for trozo, en_subconsulta in _trozos(text)
+    ]
+    return "".join(partes)
 
 
 def _tablas(spec: SelectSpec) -> dict[str, str]:

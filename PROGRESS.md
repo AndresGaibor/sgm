@@ -8661,3 +8661,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pendiente de C-8: la subconsulta en FROM (la forma de la fuente), y el defecto del lowering con alias.
 - Studio: sin cambio. La creación del job de referencia para C-4 sigue bloqueada porque el hilo de interfaz de Studio
   está ocupado (HTTP 500 de la API del IDE), aunque `sgm studio salud` responda READY.
+
+## Hito 291m (2026-11-17). Defecto del lowering corregido: no se quita el alias externo dentro de una subconsulta (plan C, C-8)
+
+- Causa: `_column` (`src/sgm/ir/lower_sql_texto.py`) quitaba el prefijo de alias sobre todo el texto del filtro, también
+  dentro de `(SELECT ...)`. Una referencia correlacionada (`w.id = v.id`) pasaba a `w.id = id`, que SQL resolvía contra la
+  tabla de dentro: la subconsulta se calculaba como si no dependiera de la fila externa, con un resultado falso.
+- Corrección: dentro de un `(SELECT ...)` el prefijo se conserva; fuera sigue igual. `IS NULL` se convierte en ambos sitios.
+- Efecto: el intérprete rechaza la correlación con el motivo `referencia correlacionada no soportada: v.id` (antes daba un
+  resultado falso). El emisor no cambia.
+- Pruebas: 3016 pasan en las pruebas de SQL, subconsultas, golden y anillo B. `ruff` limpio.
