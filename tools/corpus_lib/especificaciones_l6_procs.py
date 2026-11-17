@@ -1,8 +1,14 @@
 """Casos L6 para procedimientos con efectos laterales y alcance de biblioteca explícito."""
 
+from .referencia_datastep import proc_sort, proc_sort_noduprec_por_llave
+
 URL_PROC = (
     "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/proc/"
     "content/proc.pdf?locale=en"
+)
+URL_LRCON = (
+    "https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lrcon/"
+    "content/lrcon.pdf?locale=en"
 )
 
 
@@ -22,7 +28,96 @@ def _append_repetido(entradas: dict[str, list[dict]]) -> dict[str, list[dict]]:
     return {"ACUM": acumulada, "OTRA": nueva}
 
 
+def _nodupkey_dupout(entradas: dict[str, list[dict]]) -> dict[str, list[dict]]:
+    """Conserva la primera fila por llave y devuelve el resto como salida duplicada."""
+    ordenadas = proc_sort(entradas["R"], ["id"])
+    vistas: set[tuple] = set()
+    unicas: list[dict] = []
+    duplicadas: list[dict] = []
+    for fila in ordenadas:
+        llave = (fila["id"],)
+        if llave in vistas:
+            duplicadas.append(fila)
+        else:
+            vistas.add(llave)
+            unicas.append(fila)
+    return {"U": unicas, "D": duplicadas}
+
+
 ESPECIFICACIONES_L6_PROCS: dict[str, dict] = {
+    "l6_60_noduprec_por_llave": {
+        "construcciones": ["PROC SORT", "NODUPREC", "BY PARCIAL"],
+        "entradas": {
+            "R": (["id", "v"], [(1, "a"), (1, "b"), (1, "a"), (2, "c")]),
+        },
+        "calculo": lambda entradas: proc_sort_noduprec_por_llave(entradas["R"], ["id"]),
+        "columnas": ["id", "v"],
+        "salida": "R_SIN",
+        "programa": (
+            "PROC IMPORT DATAFILE='.../entradas/R.csv' OUT=WORK.R DBMS=CSV REPLACE;\n"
+            "GETNAMES=YES;\nRUN;\n"
+            "PROC SORT DATA=WORK.R OUT=WORK.R_SIN NODUPREC; BY id; RUN;\n"
+        ),
+        "fuentes": [URL_LRCON, URL_PROC],
+        "invariantes": ["filas(R_SIN) == 4"],
+        "estado": "revisado",
+        "motivo": "El caso limita la traducción a las filas cuya adyacencia se demuestra.",
+        "razonamiento": (
+            "El sort indicator identifica con NODUPREC la propiedad de no tener observaciones "
+            "duplicadas adyacentes (lrcon.pdf, p. 714). Con BY id, la segunda fila distinta "
+            "mantiene separadas las dos observaciones (1,a); no se deben tratar como DISTINCT. "
+            "El lowering conserva el orden y deja P-NODUPREC-NO-ADYACENTE para llaves parciales."
+        ),
+    },
+    "l6_61_nodupkey_dupout": {
+        "construcciones": ["PROC SORT", "NODUPKEY", "DUPOUT", "EQUALS"],
+        "entradas": {
+            "R": (["id", "v"], [(2, "x"), (1, "a"), (2, "y"), (1, "b")]),
+        },
+        "calculo_salidas": _nodupkey_dupout,
+        "columnas": ["id", "v"],
+        "salidas": ["U", "D"],
+        "programa": (
+            "PROC IMPORT DATAFILE='.../entradas/R.csv' OUT=WORK.R DBMS=CSV REPLACE;\n"
+            "GETNAMES=YES;\nRUN;\n"
+            "PROC SORT DATA=WORK.R OUT=WORK.U NODUPKEY DUPOUT=WORK.D; BY id; RUN;\n"
+        ),
+        "fuentes": [URL_PROC],
+        "invariantes": ["filas(U) == 2", "filas(D) == 2"],
+        "estado": "revisado",
+        "motivo": "DUPOUT y EQUALS contrastados con la guía de PROC SORT.",
+        "razonamiento": (
+            "DUPOUT= guarda las observaciones duplicadas que se eliminan (proc.pdf, p. 2461); "
+            "con NODUPKEY es una salida válida. EQUALS conserva el orden relativo de entrada "
+            "dentro de cada llave y es el valor predeterminado (proc.pdf, p. 2471)."
+        ),
+    },
+    "l6_62_sort_descending_noequals": {
+        "construcciones": ["PROC SORT", "DESCENDING", "NOEQUALS"],
+        "entradas": {
+            "R": (["id", "v"], [(1, "a"), (3, "c"), (2, "b"), (3, "d")]),
+        },
+        "calculo": lambda entradas: proc_sort(entradas["R"], ["id"], descending=[True]),
+        "columnas": ["id", "v"],
+        "salida": "S",
+        "programa": (
+            "PROC IMPORT DATAFILE='.../entradas/R.csv' OUT=WORK.R DBMS=CSV REPLACE;\n"
+            "GETNAMES=YES;\nRUN;\n"
+            "PROC SORT DATA=WORK.R OUT=WORK.S NOEQUALS; BY DESCENDING id; RUN;\n"
+        ),
+        "fuentes": [URL_PROC],
+        "invariantes": ["filas(S) == 4"],
+        "estado": "revisado",
+        "motivo": "El sentido de BY y el orden no garantizado de NOEQUALS están documentados.",
+        "orden_relevante": False,
+        "orden_grupo": [{"columna": "id", "descendente": True}],
+        "razonamiento": (
+            "DESCENDING aplica el orden inverso a la variable BY siguiente (proc.pdf, p. 2479). "
+            "NOEQUALS no preserva necesariamente el orden de observaciones con la misma llave "
+            "y puede variar entre ejecuciones (proc.pdf, p. 2471); se compara el orden de grupos, "
+            "no el orden interno de id=3."
+        ),
+    },
     "l6_63_limpieza_work": {
         "construcciones": [
             "PROC IMPORT",

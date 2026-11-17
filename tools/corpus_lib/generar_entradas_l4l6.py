@@ -122,6 +122,8 @@ def _estado(spec: dict) -> tuple[str, str | None]:
         return "pendiente", spec["pendiente"]
     if spec.get("pendiente_revision"):
         return "pendiente_revision", "Regla sin fuente oficial consultada; ver razonamiento."
+    if "estado" in spec:
+        return spec["estado"], spec.get("motivo")
     return "traducible", None
 
 
@@ -133,7 +135,7 @@ def _caso_yaml(nivel: str, spec: dict) -> dict:
         "construcciones": spec["construcciones"],
         "capa": capa,
         "tolerancia": 0 if nivel == "L5" else TOLERANCIA_EXACTA,
-        "orden_relevante": nivel != "L5",
+        "orden_relevante": spec.get("orden_relevante", nivel != "L5"),
         "estado": estado,
         "salidas": spec["salida"] if "salida" in spec else spec["salidas"],
         "razonamiento": spec["razonamiento"],
@@ -144,6 +146,8 @@ def _caso_yaml(nivel: str, spec: dict) -> dict:
         datos["salidas"] = [datos["salidas"]]
     if motivo is not None:
         datos["motivo"] = motivo
+    if "orden_grupo" in spec:
+        datos["orden_grupo"] = spec["orden_grupo"]
     return datos
 
 

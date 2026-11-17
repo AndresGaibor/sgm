@@ -628,25 +628,34 @@ El catálogo (`procs-usados.yaml`, entrada `sort`) ya dice: `BY`, `NODUPKEY`, `D
 **Casos (`capa: B`, generados por `especificaciones_l6_procs.py`).**
 `l6_60_noduprec_por_llave` (`estado: pendiente_revision` hasta que se lea `lrcon`, p. 714 y se anote su texto en `razonamiento`; después `revisado`):
 ```sas
+PROC IMPORT DATAFILE='.../entradas/R.csv' OUT=WORK.R DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
 PROC SORT DATA=WORK.R OUT=WORK.R_SIN NODUPREC; BY id; RUN;
 ```
 Entrada `R` (`id,v`): `1,a` / `1,b` / `1,a` / `2,c`. Orden estable por `id`: `1,a`, `1,b`, `1,a`, `2,c`. Ningún registro es idéntico a su **anterior**, así que no se quita ninguno. Esperado: las 4 filas en ese orden (`orden_relevante: true`). Es la prueba de que `NODUPREC` con una llave **no** equivale a `DISTINCT`: el traductor que quite la tercera fila (duplicada de la primera, pero no adyacente) falla.
 `l6_61_nodupkey_dupout`:
 ```sas
+PROC IMPORT DATAFILE='.../entradas/R.csv' OUT=WORK.R DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
 PROC SORT DATA=WORK.R OUT=WORK.U NODUPKEY DUPOUT=WORK.D; BY id; RUN;
 ```
 Entrada `R` (`id,v`): `2,x` / `1,a` / `2,y` / `1,b`. Esperado (conservando la primera por llave en el orden de entrada, que es el `EQUALS` por omisión): `U` = `1,a` / `2,x`; `D` = `1,b` / `2,y` (`orden_relevante: false` en `D`). Razonamiento: `proc.pdf`, p. 2461.
 `l6_62_sort_descending_noequals`:
 ```sas
+PROC IMPORT DATAFILE='.../entradas/R.csv' OUT=WORK.R DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
 PROC SORT DATA=WORK.R OUT=WORK.S NOEQUALS; BY DESCENDING id; RUN;
 ```
 Entrada `R` (`id,v`): `1,a` / `3,c` / `2,b` / `3,d`. Esperado como **conjunto** por llave: `3,c` y `3,d` primero (en cualquier orden entre sí, `NOEQUALS`), luego `2,b`, luego `1,a`; `orden_relevante: false` y la comparación del anillo B agrupa por llave descendente (usar el comparador por grupos de `corpus_lib.csv_tabla`; si no existe, agregarlo ahí con su prueba).
 
-- [ ] **Step 1: Write the failing tests.** (a) `proc_sort_noduprec_por_llave` sobre `R` de `l6_60` devuelve 4 filas; con `[(1,a),(1,a),(2,c)]` devuelve 2; (b) el lowering de `NODUPREC` con `BY id` produce `P-NODUPREC-NO-ADYACENTE` (hoy lo deja pasar como `deduplicar` por `id`, que quitaría registros distintos: este es el defecto que el caso cubre); (c) `DUPOUT=` crea una segunda salida con los quitados; (d) los tres casos coinciden en el anillo B. Leer `lrcon.txt` p. 714 y `proc.txt` p. 2461 y 2471 para fijar el texto del `razonamiento`.
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_proc_sort_completo.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement.** El emisor usa `tUniqRow` para `NODUPKEY` (plantilla ya validada) y no para `NODUPREC` con llave; `DESCENDING` lleva el sentido por clave a `tSortRow`. La estabilidad de `tSortRow` se mide en el lote de C-Gate con `l6_61` (si no es estable, `NODUPKEY` sigue `parcial`, como dice el catálogo, y se anota).
-- [ ] **Step 4: Run** `uv run python tools/corpus.py oraculo L6` solo para los tres casos nuevos, `tests/unit/test_corpus_l4l6.py`, `tests/unit/test_proc_sort_integracion.py`, el golden y `tests/unit/test_catalogo_sas.py`.
-- [ ] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito N n: PROC SORT con NODUPREC por llave, DUPOUT y NOEQUALS`.
+- [x] **Step 1: Write the failing tests.** (a) `proc_sort_noduprec_por_llave` sobre `R` de `l6_60` devuelve 4 filas; con `[(1,a),(1,a),(2,c)]` devuelve 2; (b) el lowering de `NODUPREC` con `BY id` produce `P-NODUPREC-NO-ADYACENTE`; (c) `DUPOUT=` crea una segunda salida con los quitados; (d) los tres casos coinciden en el anillo B; (e) la CLI publica los pendientes de `NODUPREC` y de estabilidad de `NODUPKEY`. Los tres programas cargan `entradas/R.csv` mediante `PROC IMPORT` para que se puedan migrar de punta a punta. Leer `lrcon.txt` p. 714 y `proc.txt` p. 2461 y 2471 para fijar el texto del `razonamiento`.
+- [x] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_proc_sort_completo.py -q -p no:cacheprovider`; los primeros tests del informe de pendientes fallaron antes de conectar esa señal a la CLI.
+- [x] **Step 3: Implement.** El emisor usa `tUniqRow` para `NODUPKEY` (plantilla ya validada) y no para `NODUPREC` con llave; `DESCENDING` lleva el sentido por clave a `tSortRow`. Las opciones semánticamente parciales conservan un código `Pendiente:` que la CLI publica junto al Job candidato. La estabilidad de `tSortRow` se mide en el lote de C-Gate con `l6_61`; hasta entonces `NODUPKEY` sigue `parcial`.
+- [x] **Step 4: Run** los tres casos con `uv run python tools/corpus.py oraculo <id> --verificar` (la capa B informa `OMITIDO` por K06, así que esa salida no cuenta como validación); validar la semántica con `tests/unit/test_corpus_l4l6.py` y `tests/unit/test_migrar_corpus_anillo_b.py`, además de `tests/unit/test_proc_sort_integracion.py`, `tests/unit/test_golden_equivalencia.py` y `tests/unit/test_catalogo_sas.py`.
+- [x] **Step 5: Run** `uv run ruff check .` y `uv run python tools/ci.py`. **Commit** `hito 272n: PROC SORT con NODUPREC por llave, DUPOUT y NOEQUALS`.
 
 ---
 

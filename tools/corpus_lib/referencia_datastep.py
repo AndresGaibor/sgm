@@ -192,14 +192,21 @@ def ultima_de_grupo(filas: list[Fila], by: list[str]) -> list[Fila]:
     ]
 
 
-def proc_sort(filas: list[Fila], by: list[str], nodupkey: bool = False) -> list[Fila]:
+def proc_sort(
+    filas: list[Fila],
+    by: list[str],
+    nodupkey: bool = False,
+    descending: list[bool] | None = None,
+) -> list[Fila]:
     """`PROC SORT BY by; [NODUPKEY]`. La ordenación es estable: dentro de una llave se mantiene el
     orden de entrada.
 
     Con `NODUPKEY` se conserva la primera fila de cada llave en el orden de salida. Esa regla de
     conservación viene de fuentes secundarias (ver `pendiente_revision` en los casos L6).
     """
-    ordenadas = sorted(filas, key=lambda fila: _clave_orden(fila, by))
+    ordenadas = _ordenar_por_by(
+        filas, by, [False] * len(by) if descending is None else descending
+    )
     if not nodupkey:
         return ordenadas
     salida: list[Fila] = []
@@ -210,6 +217,36 @@ def proc_sort(filas: list[Fila], by: list[str], nodupkey: bool = False) -> list[
             vistas.add(llave)
             salida.append(fila)
     return salida
+
+
+def proc_sort_noduprec_por_llave(filas: list[Fila], by: list[str]) -> list[Fila]:
+    """Ordena por `BY` y quita solo filas completas iguales a la anterior de la salida.
+
+    La referencia local para `NODUPREC` conserva repeticiones no adyacentes; no equivale a
+    `DISTINCT` cuando `BY` no contiene todas las columnas.
+    """
+    ordenadas = _ordenar_por_by(filas, by, [False] * len(by))
+    columnas = list(filas[0]) if filas else []
+    salida: list[Fila] = []
+    for fila in ordenadas:
+        if not salida or any(fila.get(col) != salida[-1].get(col) for col in columnas):
+            salida.append(fila)
+    return salida
+
+
+def _ordenar_por_by(
+    filas: list[Fila], by: list[str], descending: list[bool]
+) -> list[Fila]:
+    """Orden estable por varias llaves, aplicando cada sentido solo a su columna."""
+    if len(by) != len(descending):
+        raise ValueError("cada variable BY necesita un sentido ascendente o descendente")
+    ordenadas = list(filas)
+    for columna, descendente in reversed(list(zip(by, descending, strict=True))):
+        ordenadas.sort(
+            key=lambda fila, columna=columna: _orden(fila.get(columna)),
+            reverse=descendente,
+        )
+    return ordenadas
 
 
 def proc_sort_nodup(filas: list[Fila], columnas: Iterable[str]) -> list[Fila]:

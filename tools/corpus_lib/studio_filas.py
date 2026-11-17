@@ -16,6 +16,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from .studio_filas_grupos import comparar_por_grupos
+
 _NUMERO = re.compile(r"-?\d+(\.\d+)?([eE][-+]?\d+)?$")
 Fila = list[str]
 
@@ -188,6 +190,7 @@ def comparar_tablas(
     tolerancia: float = 0.0,
     orden_relevante: bool = False,
     ignorar_orden_columnas: bool = False,
+    orden_grupo: list[dict[str, object]] | None = None,
 ) -> list[Diferencia]:
     """Compara dos tablas `(columnas, filas)` tal como las devuelve `csv_tabla.leer_csv`.
 
@@ -205,7 +208,20 @@ def comparar_tablas(
         diferencias.append(
             Diferencia("filas", f"filas: esperado {len(esperadas)}, obtenido {len(obtenidas)}")
         )
-    if orden_relevante:
+    if orden_grupo is not None:
+        diferencias += comparar_por_grupos(
+            esperadas,
+            obtenidas,
+            columnas_esperadas,
+            tolerancia,
+            orden_grupo,
+            diferencia=Diferencia,
+            comparar_conjunto=_como_conjunto,
+            iguales=iguales,
+            clave_celda=_clave_celda,
+            unir=_unir,
+        )
+    elif orden_relevante:
         diferencias += _por_posicion(esperadas, obtenidas, columnas_esperadas, tolerancia)
     else:
         diferencias += _como_conjunto(esperadas, obtenidas, columnas_esperadas, tolerancia)

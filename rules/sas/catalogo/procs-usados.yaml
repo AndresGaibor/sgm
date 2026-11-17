@@ -18,7 +18,7 @@ entries:
   nombre: PROC SORT
   fuente: proc.pdf, p. 2460
   estado: reconocida
-  nota: "31 usos; BY, NODUPKEY, DUPOUT= y NOEQUALS; DESCENDING (proc.pdf, p. 2479). NODUPREC solo se traduce con BY _ALL_ por adyacencia (lrcon.pdf, p. 714). NODUPKEY queda parcial hasta validar la estabilidad de tSortRow; las demás opciones no declaradas siguen pendientes"
+  nota: "31 usos; BY, NODUPKEY, DUPOUT= y NOEQUALS; DESCENDING (proc.pdf, p. 2479). NODUPREC se deduplica con BY _ALL_; con BY parcial conserva la ordenación y publica P-NODUPREC-NO-ADYACENTE porque no se demuestra que las filas completas iguales queden juntas (lrcon.pdf, p. 714). DUPOUT= y NOEQUALS (proc.pdf, pp. 2461, 2471). NODUPKEY publica P-NODUPKEY-ESTABILIDAD-NO-VALIDADA hasta validar la estabilidad de tSortRow; las demás opciones no declaradas siguen pendientes"
 - id: contents
   nombre: PROC CONTENTS
   fuente: proc.pdf, p. 541

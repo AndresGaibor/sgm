@@ -49,6 +49,7 @@ def comparar_caso(
         ignorar_orden_columnas=ignorar_orden_columnas,
         delimitadores=caso.delimitadores_salida,
         archivos_salida=caso.extra.get("archivos_salida", ()),
+        orden_grupo=caso.extra.get("orden_grupo"),
     )
     if not archivos:
         return ResultadoCaso(

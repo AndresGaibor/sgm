@@ -53,9 +53,13 @@ fases:
   nombre: Procedimientos
   horas: 50.0
   credito_sin_desglosar: 4.0
-  tareas: []
-  sostiene: '`PROC SORT` con `NODUP`/`NODUPKEY` y `BY _ALL_`; sin `FREQ`, `MEANS`,
-    `TRANSPOSE`'
+  tareas:
+  - id: MG-P6-01
+    horas: 10.0
+    fraccion: 0.5
+  sostiene: '`PROC SORT` con `NODUP`/`NODUPKEY`, `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`,
+    con evidencia A/B; la estabilidad de `tSortRow` queda pendiente de lote C; faltan `FREQ`,
+    `MEANS` y `TRANSPOSE`'
 - id: MG-P7
   nombre: Macros
   horas: 60.0

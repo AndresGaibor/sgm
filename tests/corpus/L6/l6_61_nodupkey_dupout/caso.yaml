@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- PROC SORT
+- NODUPKEY
+- DUPOUT
+- EQUALS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: revisado
+salidas:
+- U
+- D
+razonamiento: DUPOUT= guarda las observaciones duplicadas que se eliminan (proc.pdf, p. 2461); con NODUPKEY es una salida válida. EQUALS conserva el orden relativo de entrada dentro de cada llave y es el valor predeterminado (proc.pdf, p. 2471).
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/proc/content/proc.pdf?locale=en
+invariantes:
+- filas(U) == 2
+- filas(D) == 2
+motivo: DUPOUT y EQUALS contrastados con la guía de PROC SORT.

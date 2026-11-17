@@ -48,6 +48,7 @@ def comparar_archivos(
     ignorar_orden_columnas: bool = False,
     delimitador: str = ",",
     nombre: str | None = None,
+    orden_grupo: list[dict[str, object]] | None = None,
 ) -> ResultadoArchivo:
     """Compara dos CSV del disco. Un archivo que no se puede leer queda como `ilegible`."""
     nombre = nombre or esperado.name
@@ -64,6 +65,7 @@ def comparar_archivos(
         tolerancia=tolerancia,
         orden_relevante=orden_relevante,
         ignorar_orden_columnas=ignorar_orden_columnas,
+        orden_grupo=orden_grupo,
     )
     return ResultadoArchivo(nombre, "diferente" if diferencias else "coincide", diferencias)
 
@@ -124,6 +126,7 @@ def comparar_carpetas(
     ignorar_orden_columnas: bool = False,
     delimitadores: dict[str, str] | None = None,
     archivos_salida: tuple[str, ...] | list[str] = (),
+    orden_grupo: list[dict[str, object]] | None = None,
 ) -> list[ResultadoArchivo]:
     """Empareja cada CSV de `esperado/` con el de la salida con el mismo nombre (sin mayúsculas).
 
@@ -148,6 +151,7 @@ def comparar_carpetas(
                 ignorar_orden_columnas=ignorar_orden_columnas,
                 delimitador=formatos.get(clave, ","),
                 nombre=ruta.name,
+                orden_grupo=orden_grupo,
             )
         )
     for clave, ruta in obtenidos.items():

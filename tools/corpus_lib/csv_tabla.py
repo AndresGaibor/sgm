@@ -167,6 +167,7 @@ def comparar_con_guardado(
     orden_relevante: bool,
     *,
     delimitador: str = ",",
+    orden_grupo: list[dict[str, object]] | None = None,
 ) -> list[str]:
     """Compara la tabla calculada con el CSV guardado. Devuelve las diferencias en texto legible."""
     if not ruta.exists():
@@ -181,6 +182,17 @@ def comparar_con_guardado(
     obtenidas = [[celda_texto(valor) for valor in fila] for fila in tabla.filas]
     if len(esperadas) != len(obtenidas):
         return [f"filas: esperado {len(esperadas)}, obtenido {len(obtenidas)}"]
+    if orden_grupo is not None:
+        from .studio_filas import comparar_tablas
+
+        diferencias = comparar_tablas(
+            (guardado[0], esperadas),
+            (tabla.columnas, obtenidas),
+            tolerancia=tolerancia,
+            orden_relevante=orden_relevante,
+            orden_grupo=orden_grupo,
+        )
+        return [diferencia.texto() for diferencia in diferencias]
     if not orden_relevante:
         esperadas.sort(key=lambda fila: tuple(_clave_texto(celda) for celda in fila))
         obtenidas.sort(key=lambda fila: tuple(_clave_texto(celda) for celda in fila))

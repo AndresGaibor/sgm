@@ -84,7 +84,7 @@ def test_caso_carga_y_coincide_con_su_especificacion(nivel: str, nombre: str) ->
         assert caso.estado == "pendiente_revision"
         assert caso.razonamiento
     else:
-        assert caso.estado == "traducible"
+        assert caso.estado == spec.get("estado", "traducible")
 
 
 @pytest.mark.parametrize(("nivel", "nombre"), _todos_los_casos())

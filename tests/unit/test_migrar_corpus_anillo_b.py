@@ -114,7 +114,11 @@ def _esperado(caso, tabla: str, filas: list[dict]) -> list[str]:
         ],
     )
     return diferencias_columnas + comparar_con_guardado(
-        ruta, calculada, caso.tolerancia, caso.orden_relevante
+        ruta,
+        calculada,
+        caso.tolerancia,
+        caso.orden_relevante,
+        orden_grupo=getattr(caso, "extra", {}).get("orden_grupo"),
     )
 
 

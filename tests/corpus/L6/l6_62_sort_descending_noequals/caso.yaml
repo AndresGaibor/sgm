@@ -1,0 +1,20 @@
+nivel: L6
+construcciones:
+- PROC SORT
+- DESCENDING
+- NOEQUALS
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: false
+estado: revisado
+salidas:
+- S
+razonamiento: DESCENDING aplica el orden inverso a la variable BY siguiente (proc.pdf, p. 2479). NOEQUALS no preserva necesariamente el orden de observaciones con la misma llave y puede variar entre ejecuciones (proc.pdf, p. 2471); se compara el orden de grupos, no el orden interno de id=3.
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/proc/content/proc.pdf?locale=en
+invariantes:
+- filas(S) == 4
+motivo: El sentido de BY y el orden no garantizado de NOEQUALS están documentados.
+orden_grupo:
+- columna: id
+  descendente: true

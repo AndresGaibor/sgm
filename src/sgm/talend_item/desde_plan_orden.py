@@ -15,6 +15,7 @@ entrada no tiene, o una entrada de la que no se conoce ni una columna.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from sgm.ir.models import Operator
@@ -28,6 +29,7 @@ ORDEN_SIN_ESQUEMA = "P-ORDEN-SIN-ESQUEMA"
 _NUMERICOS = frozenset(
     {"id_Integer", "id_Long", "id_Short", "id_Byte", "id_Double", "id_Float", "id_BigDecimal"}
 )
+_PENDIENTE_EXPLICITO = re.compile(r"^Pendiente:\s*(P-[A-Z0-9-]+);\s*(.+)$")
 
 
 @dataclass
@@ -40,6 +42,18 @@ class ResultadoOrden:
     alineados: dict[int, Nodo] = field(default_factory=dict)
     # Columnas que sale del nodo: las de la unión cuando hay alineación, si no las de la entrada.
     columnas: list[Columna] = field(default_factory=list)
+
+
+def _pendientes_semanticos(op: Operator, linea: int | None) -> list[PendienteMigracion]:
+    """Publica los límites semánticos explícitos sin impedir el nodo candidato."""
+    if op.status != "parcial":
+        return []
+    pendientes = []
+    for nota in op.notes:
+        detalle = _PENDIENTE_EXPLICITO.match(nota)
+        if detalle:
+            pendientes.append(PendienteMigracion(detalle.group(1), detalle.group(2), linea))
+    return pendientes
 
 
 def _tipo_de_orden(columna: Columna) -> str:
@@ -82,7 +96,12 @@ def _sin_entrada(op: Operator, linea: int | None, columnas: list[Columna]) -> Re
     if columnas:
         return None
     motivo = f"el operador '{op.kind}' no tiene columnas de entrada demostradas: no se escribe"
-    return ResultadoOrden(pendientes=[PendienteMigracion(ORDEN_SIN_ESQUEMA, motivo, linea)])
+    return ResultadoOrden(
+        pendientes=[
+            *_pendientes_semanticos(op, linea),
+            PendienteMigracion(ORDEN_SIN_ESQUEMA, motivo, linea),
+        ]
+    )
 
 
 def nodo_orden(
@@ -97,6 +116,7 @@ def nodo_orden(
     vacio = _sin_entrada(op, linea, columnas)
     if vacio is not None:
         return vacio
+    avisos_semanticos = _pendientes_semanticos(op, linea)
     nombres = _llaves(op, columnas)
     descendentes = list(op.params.get("descending") or [])
     by = list(op.params.get("by") or [])
@@ -105,12 +125,12 @@ def nodo_orden(
         nombres = [columna.nombre for columna in columnas]
         descendentes = [descendente] * len(nombres)
     celdas: list[tuple[str, str]] = []
-    pendientes: list[PendienteMigracion] = []
+    pendientes_columna: list[PendienteMigracion] = []
     for posicion, nombre in enumerate(nombres):
         columna = _resolver(nombre, columnas)
         if columna is None:
             motivo = f"ORDER BY {nombre}: la entrada no tiene esa columna ni esa posición"
-            pendientes.append(PendienteMigracion(ORDEN_SIN_COLUMNA, motivo, linea))
+            pendientes_columna.append(PendienteMigracion(ORDEN_SIN_COLUMNA, motivo, linea))
             continue
         descendente = posicion < len(descendentes) and bool(descendentes[posicion])
         celdas += [
@@ -118,9 +138,9 @@ def nodo_orden(
             ("SORT", _tipo_de_orden(columna)),
             ("ORDER", "desc" if descendente else "asc"),
         ]
-    if pendientes or not celdas:
+    if pendientes_columna or not celdas:
         # Un orden a medias da un resultado distinto sin avisar: o todo el criterio, o nada.
-        return ResultadoOrden(pendientes=pendientes)
+        return ResultadoOrden(pendientes=[*avisos_semanticos, *pendientes_columna])
     nodo = nodo_desde_plantilla(
         "tSortRow",
         unico,
@@ -130,7 +150,7 @@ def nodo_orden(
         columnas=list(columnas),
         ruta_java=ruta_java,
     )
-    return ResultadoOrden(nodo=nodo)
+    return ResultadoOrden(nodo=nodo, pendientes=avisos_semanticos)
 
 
 def nodo_unicos(
@@ -146,17 +166,18 @@ def nodo_unicos(
     vacio = _sin_entrada(op, linea, columnas)
     if vacio is not None:
         return vacio
+    avisos_semanticos = _pendientes_semanticos(op, linea)
     llaves: set[str] = set()
-    pendientes: list[PendienteMigracion] = []
+    pendientes_columna: list[PendienteMigracion] = []
     for nombre in _llaves(op, columnas):
         columna = _resolver(nombre, columnas)
         if columna is None:
             motivo = f"DISTINCT {nombre}: la entrada no tiene esa columna"
-            pendientes.append(PendienteMigracion(ORDEN_SIN_COLUMNA, motivo, linea))
+            pendientes_columna.append(PendienteMigracion(ORDEN_SIN_COLUMNA, motivo, linea))
         else:
             llaves.add(columna.nombre.lower())
-    if pendientes or not llaves:
-        return ResultadoOrden(pendientes=pendientes)
+    if pendientes_columna or not llaves:
+        return ResultadoOrden(pendientes=[*avisos_semanticos, *pendientes_columna])
     celdas: list[tuple[str, str]] = []
     for columna in columnas:
         es_llave = columna.nombre.lower() in llaves
@@ -182,7 +203,7 @@ def nodo_unicos(
         Metadata("UNIQUE", "UNIQUE", tuple(columnas)),
         Metadata("DUPLICATE", "DUPLICATE", tuple(columnas)),
     ]
-    return ResultadoOrden(nodo=nodo)
+    return ResultadoOrden(nodo=nodo, pendientes=avisos_semanticos)
 
 
 __all__ = ["ResultadoOrden", "nodo_orden", "nodo_unicos"]

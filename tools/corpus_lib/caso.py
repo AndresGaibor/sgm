@@ -20,11 +20,11 @@ CAPAS = ("A", "B", "C")
 ESTADOS = (
     "traducible", "parcial", "pendiente", "pendiente_revision", "revisado", "sin_esperado"
 )
-# Metadatos de los casos de L8 que el cargador acepta y guarda en `Caso.extra` sin usarlos.
+# Metadatos adicionales que el cargador conserva en `Caso.extra` para las herramientas del corpus.
 METADATOS = frozenset(
     {
         "id", "productos", "supuestos", "anomalias_plantadas", "salidas_esperadas", "tema",
-        "fuentes_url", "origen",
+        "fuentes_url", "origen", "orden_grupo",
     }
 )
 CAMPOS = frozenset(

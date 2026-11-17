@@ -242,7 +242,7 @@
         }
       ],
       "notes": [
-        "EQUALS conserva empates en orden de entrada; la estabilidad de tSortRow no está verificada para identificar la misma fila"
+        "Pendiente: P-NODUPKEY-ESTABILIDAD-NO-VALIDADA; EQUALS conserva el orden de entrada, pero la estabilidad de tSortRow no está verificada para identificar la observación retenida"
       ],
       "component": {
         "name": "tUniqRow",

@@ -64,8 +64,8 @@ def lower_sort(step: Proc, evidence: Evidence, builder: Builder) -> None:
     es_by_all = by == ["_all_"]
     if noduprec and not es_by_all:
         notes = [
-            "NODUPREC solo elimina duplicados adyacentes; sin BY _ALL_ no se demuestra "
-            "que todos queden juntos"
+            "Pendiente: P-NODUPREC-NO-ADYACENTE; NODUPREC compara observaciones adyacentes y "
+            "con este BY no se demuestra que las filas completas iguales queden juntas"
         ]
         salida_orden = [qualify(out or data)] if (out or data) else []
         op_validado(
@@ -81,7 +81,10 @@ def lower_sort(step: Proc, evidence: Evidence, builder: Builder) -> None:
                 evidence=[evidence],
             ),
             "sort",
-            {**_sort_params(by, descending, flags, data), "outputs": salida_orden},
+            {
+                **_sort_params(by, descending, flags, data),
+                "outputs": salida_orden,
+            },
             evidence,
             status="parcial",
             notes=notes,
@@ -114,13 +117,19 @@ def lower_sort(step: Proc, evidence: Evidence, builder: Builder) -> None:
         dedup_status = "soportado" if by else "parcial"
         if nodupkey and by:
             dedup_status = "parcial"
+            pending_code = "P-NODUPKEY-ESTABILIDAD-NO-VALIDADA"
             notes.append(
-                "EQUALS conserva empates en orden de entrada; la estabilidad de tSortRow "
-                "no está verificada para identificar la misma fila"
+                f"Pendiente: {pending_code}; EQUALS conserva el orden de entrada, pero la "
+                "estabilidad de tSortRow no está verificada para identificar la observación "
+                "retenida"
             )
         if nodupkey and "noequals" in flags:
             dedup_status = "parcial"
-            notes.append("NOEQUALS permite cambiar qué observación queda por cada clave duplicada")
+            pending_code = "P-NODUPKEY-NOEQUALS-FILA-NO-DETERMINADA"
+            notes.append(
+                f"Pendiente: {pending_code}; NOEQUALS puede cambiar qué observación queda por "
+                "cada clave duplicada"
+            )
         params = {"by": by, "keep": "first"}
         if dupout:
             params["duplicate_outputs"] = [qualify(dupout)]

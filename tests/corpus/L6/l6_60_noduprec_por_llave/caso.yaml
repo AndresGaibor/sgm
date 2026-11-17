@@ -1,0 +1,18 @@
+nivel: L6
+construcciones:
+- PROC SORT
+- NODUPREC
+- BY PARCIAL
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: revisado
+salidas:
+- R_SIN
+razonamiento: El sort indicator identifica con NODUPREC la propiedad de no tener observaciones duplicadas adyacentes (lrcon.pdf, p. 714). Con BY id, la segunda fila distinta mantiene separadas las dos observaciones (1,a); no se deben tratar como DISTINCT. El lowering conserva el orden y deja P-NODUPREC-NO-ADYACENTE para llaves parciales.
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lrcon/content/lrcon.pdf?locale=en
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/proc/content/proc.pdf?locale=en
+invariantes:
+- filas(R_SIN) == 4
+motivo: El caso limita la traducción a las filas cuya adyacencia se demuestra.
