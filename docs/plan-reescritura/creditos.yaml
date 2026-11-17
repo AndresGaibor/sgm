@@ -63,7 +63,8 @@ fases:
   sostiene: '`PROC SORT` con `NODUP`/`NODUPKEY`, `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`,
     con evidencia A/B; MEANS/SUMMARY explícitos pasan dos casos L3 en B y emiten agregados en A;
     NMISS queda pendiente de emisión; la estabilidad de `tSortRow` y estos Jobs esperan C;
-    faltan `FREQ`, el resto de MEANS/SUMMARY y `TRANSPOSE`'
+    FREQ sin OUT= aplica reports y con OUT= queda P-FREQ-OUT-SIN-PAGINA (C-18, sin esperado);
+    faltan la equivalencia de FREQ OUT=, el resto de MEANS/SUMMARY y `TRANSPOSE`'
 - id: MG-P7
   nombre: Macros
   horas: 60.0

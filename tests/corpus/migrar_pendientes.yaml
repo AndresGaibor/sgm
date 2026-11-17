@@ -94,3 +94,4 @@ l2_16_sql_en_misma_base: P-OPERADOR-SIN-SOPORTE
 l6_08_nodupkey_llave: P-NODUPKEY-ESTABILIDAD-NO-VALIDADA
 l6_60_noduprec_por_llave: P-NODUPREC-NO-ADYACENTE
 l6_61_nodupkey_dupout: P-NODUPKEY-ESTABILIDAD-NO-VALIDADA
+l3_32_freq_out_sin_pagina: P-FREQ-OUT-SIN-PAGINA

@@ -1,0 +1,10 @@
+nivel: L3
+construcciones: [PROC IMPORT, PROC FREQ, TABLES OUT]
+capa: B
+estado: sin_esperado
+motivo: P-FREQ-OUT-SIN-PAGINA
+salidas: [fr]
+invariantes: []
+razonamiento: >-
+  proc.pdf, p. 89 solo documenta MISSPRINT y los niveles faltantes,
+  no el contrato del dataset TABLES OUT=. Sin página no se infieren COUNT/PERCENT.

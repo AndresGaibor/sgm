@@ -3,6 +3,11 @@ kind: catalogo
 version: 1
 description: Procedimientos con tratamiento general documentado en el migrador.
 entries:
+  - id: freq
+    nombre: PROC FREQ
+    fuente: proc.pdf, p. 89
+    estado: no_verificada
+    nota: 'La página solo documenta MISSPRINT: muestra niveles faltantes sin usarlos en los estadísticos; no demuestra OUT= ni COUNT/PERCENT. Sin OUT= se aplica reports; TABLES OUT= conserva P-FREQ-OUT-SIN-PAGINA. No es un uso del programa cliente.'
   - id: means
     nombre: PROC MEANS
     fuente: proc.pdf, p. 1521

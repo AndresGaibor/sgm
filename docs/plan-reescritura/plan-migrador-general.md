@@ -713,6 +713,8 @@ MG-P5-03 en adelante, sin empezar.
 
 **Estado C-17 (hito 273n, 17 de noviembre de 2026).** MEANS/SUMMARY con VAR y OUTPUT explícitos: SUM/MEAN/MIN/MAX/N/NMISS se calculan por variable con faltantes; CLASS exige NWAY y DROP de _TYPE_/_FREQ_, y el caso sin CLASS produce una fila global. Los dos L3 coinciden en B y emiten tAggregateRow en A; NMISS conserva pendiente de emisión Talend y STD queda pendiente. Sin OUTPUT se conserva el YAML. MG-P6-02 recibe 0,5 (5 de 10 h) por implementación parcial con ejecución B: C-18/FREQ y el resto de la aceptación siguen abiertos; no hay validación Studio.
 
+**Estado C-18 (hito 274n, 17 de noviembre de 2026).** FREQ sin TABLES OUT= es reporte sujeto a reports; con OUT= queda P-FREQ-OUT-SIN-PAGINA. Se retira el agregado falso y L3-32 queda sin_esperado: proc.pdf, p.89 solo demuestra MISSPRINT, no COUNT/PERCENT ni el contrato de OUT=. La clasificación se prueba, pero no equivale a ejecutar una traducción de FREQ contra un esperado. MG-P6-02 conserva 0,5 (5/10 h), MG-P6 14/50 h (28 %) y el global 259,25/895 h (29,0 %). No hay crédito de Studio.
+
 ### MG-P7. Macros (60 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -918,7 +920,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P3 Expresiones y funciones | 80 | 23,5 | 29 % | D1-12 a D1-14 aportan evidencia A/B de fechas, INTNX, INTCK, DATDIF y YRDIF; C sigue pendiente por Studio BRIDGE_DEAD; PRX, PROC FORMAT y otras tareas de MG-P3 siguen pendientes |
 | MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
 | MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos), `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
-| MG-P6 Procedimientos | 50 | 14,0 | 28 % | `PROC SORT` con `NODUP`/`NODUPKEY`, `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`, con evidencia A/B; MEANS/SUMMARY explícitos pasan dos casos L3 en B y emiten agregados en A; NMISS queda pendiente de emisión; la estabilidad de `tSortRow` y estos Jobs esperan C; faltan `FREQ`, el resto de MEANS/SUMMARY y `TRANSPOSE` |
+| MG-P6 Procedimientos | 50 | 14,0 | 28 % | `PROC SORT` con `NODUP`/`NODUPKEY`, `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`, con evidencia A/B; MEANS/SUMMARY explícitos pasan dos casos L3 en B y emiten agregados en A; NMISS queda pendiente de emisión; la estabilidad de `tSortRow` y estos Jobs esperan C; FREQ sin OUT= aplica reports y con OUT= queda P-FREQ-OUT-SIN-PAGINA (C-18, sin esperado); faltan la equivalencia de FREQ OUT=, el resto de MEANS/SUMMARY y `TRANSPOSE` |
 | MG-P7 Macros | 60 | 8,0 | 13 % | `L5`: 8 de 12 casos pasan en el anillo B (`%let`, macro con parámetros, `%eval`); sin `%sysfunc` ni `SELECT INTO` |
 | MG-P8 Planificador | 70 | 15,0 | 21 % | Contextos DEV/QA/PROD; `trace.json` parcial; plantillas repetidas desplegadas en línea (provisional); sin segmentación ni límite de tamaño |
 | MG-P9 Emisor | 108 | 34,5 | 32 % | 29 de 40 plantillas con nodo emitido (`tSortRow`, `tUniqRow`, `tAggregateRow`, `tUnite` nuevos, sin Studio), contextos y conexiones; joblets sin validar |

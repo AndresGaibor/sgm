@@ -5,6 +5,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 from typer.testing import CliRunner
 
@@ -53,6 +54,27 @@ def test_el_repositorio_real_valida():
 
 def test_un_arbol_correcto_no_tiene_problemas(tmp_path: Path):
     assert rules_validate.validate(_tree(tmp_path)) == []
+
+
+@pytest.mark.parametrize("status,fallback,valid", [
+    ("parcial", {"reason": "PROC_NO_SOPORTADO", "note": "Pendiente: falta página"}, True),
+    ("soportado", {"reason": "PROC_NO_SOPORTADO", "note": "Pendiente"}, False),
+    ("parcial", None, False),
+    ("parcial", {}, False),
+    ("parcial", {"reason": "", "note": ""}, False),
+])
+def test_proc_sin_ops_exige_parcial_y_fallback_explicito(tmp_path, status, fallback, valid):
+    root = _tree(tmp_path)
+    folder = root / "rules/sas/procs"
+    folder.mkdir(parents=True)
+    rule = {
+        "id": "demo", "kind": "proc", "version": 1, "status": status,
+        "proc": "demo", "ops": [], "tests": ["tests/cases/02-demo"],
+    }
+    if fallback is not None:
+        rule["fallback"] = fallback
+    (folder / "demo.yaml").write_text(yaml.safe_dump(rule), encoding="utf-8")
+    assert (rules_validate.validate(root) == []) is valid
 
 
 def test_componente_fuera_del_catalogo_se_reporta(tmp_path: Path):

@@ -1,7 +1,7 @@
-description: "PROC FREQ: se migra como agregación tAggregateRow."
+description: "PROC FREQ sin OUT=: reporte pendiente con reports=log."
 input: input.sas
-env: default
+env: reports_log
 expect:
   operators:
-    - { kind: aggregate, component: tAggregateRow }
-  gaps: []
+    - { kind: unsupported, component: none }
+  gaps: [REPORTE]

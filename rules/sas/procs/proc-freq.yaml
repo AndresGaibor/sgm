@@ -1,17 +1,13 @@
 id: proc-freq
 kind: proc
 version: 1
-status: soportado
+status: parcial
 proc: freq
-description: "PROC FREQ: frecuencias; se migra como agregación."
+description: "PROC FREQ: sin OUT= es reporte; TABLES OUT= queda pendiente por falta de página."
 when_options: []
-ops:
-  - kind: aggregate
-    params:
-      procedure: "{proc}"
-      inputs: "{data}"
-      class: "{clause:class}"
-      var: "{clause:var}"
-      outputs: "{out}"
+ops: []
+fallback:
+  reason: PROC_NO_SOPORTADO
+  note: "Pendiente: P-FREQ-OUT-SIN-PAGINA; la referencia local no demuestra el dataset de TABLES OUT= ni sus columnas COUNT/PERCENT; proc.pdf, p. 89 solo documenta MISSPRINT."
 tests:
   - tests/cases/proc-freq

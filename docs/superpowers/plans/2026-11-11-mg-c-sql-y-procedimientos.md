@@ -711,7 +711,7 @@ Mismo `ventas.csv`. Esperado: `tot.csv` = `total,minimo,maximo,n` / `22,5,10,3` 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\procs\proc-freq.yaml` (`status: parcial`; `fallback.reason: PROC_NO_SOPORTADO`, nota con `P-FREQ-OUT-SIN-PAGINA`; el `ops` actual, un `aggregate` sin `count` ni `percent`, se quita: declara soportado algo que no lo está)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs.py` (`REPORT_PROCS` pasa a incluir `freq` solo cuando no hay `OUT=`)
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\procs-usados.yaml` (entrada `freq`: `fuente: proc.pdf, p. 89`, `estado: no_verificada`, nota con el pendiente)
+- Modify: `rules/sas/catalogo/procedimientos-migrador.yaml` (entrada general `freq`: `fuente: proc.pdf, p. 89`, `estado: no_verificada`; la página solo demuestra MISSPRINT, no OUT=. El programa cliente no usa FREQ: no se agrega a `procs-usados.yaml`.)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L3\l3_32_freq_out_sin_pagina\{caso.yaml, programa.sas, entradas\ventas.csv}` (`estado: sin_esperado`, `motivo: P-FREQ-OUT-SIN-PAGINA`)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_proc_freq.py`
 

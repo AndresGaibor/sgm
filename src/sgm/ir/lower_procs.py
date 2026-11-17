@@ -18,7 +18,7 @@ from sgm.ir.proc_rules import declared, lower_declared, names_of
 
 _names = names_of
 
-REPORT_PROCS = frozenset({"print", "report", "tabulate", "contents"})
+REPORT_PROCS = frozenset({"print", "report", "tabulate", "contents", "freq"})
 P_WORK_INTROSPECCION = "P-WORK-INTROSPECCION"
 P_APPEND_MISMA_TABLA = "P-APPEND-MISMA-TABLA"
 P_APPEND_OPCION_NO_SOPORTADA = "P-APPEND-OPCION-NO-SOPORTADA"
@@ -105,6 +105,16 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
         )
     elif name in {"delete", "datasets", "copy"}:
         lower_limpieza(step, ev, b)
+    elif name == "freq" and (
+        out or any(re.search(r"(?is)^tables\b[^/]*?/.*?\bout\s*=", statement.strip())
+                   for statement in step.body)
+    ):
+        # TABLES lleva su propio OUT=; no está en las opciones de la cabecera PROC.
+        _unsupported(
+            step, ev, b, declared("freq")["fallback"]["note"],
+            pending_code="P-FREQ-OUT-SIN-PAGINA",
+            inputs=[qualify(data)] if data else [],
+        )
     elif name in REPORT_PROCS and not out:  # con OUT= produce un dataset que otros pasos leen
         _report(step, ev, b, data)
     elif name == "append":
@@ -125,7 +135,7 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
         lower_sort(step, ev, b)
     elif name in {"means", "summary"} and "output" in step.clauses:
         lower_means(step, ev, b, data, out)
-    elif (spec := declared(name)) is not None:  # append, means, summary, freq: en YAML (F1.4)
+    elif (spec := declared(name)) is not None:  # append, means, summary: en YAML (F1.4)
         if not lower_declared(spec, step, ev, b, data, out):
             _unsupported(step, ev, b, spec["fallback"]["note"])
     elif name == "transpose":
