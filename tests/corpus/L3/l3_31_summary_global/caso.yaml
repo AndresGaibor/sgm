@@ -1,0 +1,14 @@
+nivel: L3
+construcciones: [PROC IMPORT, PROC SUMMARY, VAR, OUTPUT OUT, SUM, MIN, MAX, N, FALTANTES]
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: false
+estado: revisado
+motivo: Esperado independiente revisado a mano contra la semántica documentada de SUMMARY.
+salidas: [tot]
+invariantes: []
+razonamiento: >-
+  Esperado calculado a mano: 10+5+7=22, mínimo 5, máximo 10 y tres montos no faltantes.
+  proc.pdf, p. 2549 remite SUMMARY a MEANS; pp. 1555–1558 definen OUTPUT;
+  p. 1571 excluye los faltantes por variable; p. 1572 abre Output Data Set y p. 1573
+  demuestra la fila global sin CLASS y las columnas _TYPE_/_FREQ_ que DROP excluye.

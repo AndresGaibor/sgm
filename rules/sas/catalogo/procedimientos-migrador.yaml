@@ -3,6 +3,16 @@ kind: catalogo
 version: 1
 description: Procedimientos con tratamiento general documentado en el migrador.
 entries:
+  - id: means
+    nombre: PROC MEANS
+    fuente: proc.pdf, p. 1521
+    estado: reconocida
+    nota: 'CLASS/VAR/OUTPUT con SUM, MEAN, MIN, MAX, N y NMISS (pp. 1555–1558); faltantes por variable (p. 1571). CLASS exige NWAY y DROP=_TYPE_ _FREQ_ (pp. 1536, 1572–1573). Sin CLASS produce una fila global. STD y opciones no modeladas quedan pendientes; sin OUTPUT conserva la forma declarativa. NMISS se ejecuta en el intérprete; su emisión Talend queda pendiente sin equivalencia de componente demostrada.'
+  - id: summary
+    nombre: PROC SUMMARY
+    fuente: proc.pdf, p. 2549
+    estado: reconocida
+    nota: 'Comparte el lowering explícito y los límites de MEANS conforme a la remisión de p. 2549; agregado global sin CLASS con nombres explícitos y DROP de las columnas automáticas.'
   - id: datasets
     nombre: PROC DATASETS
     fuente: proc.pdf, p. 613

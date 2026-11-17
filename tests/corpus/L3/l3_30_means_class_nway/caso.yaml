@@ -1,0 +1,14 @@
+nivel: L3
+construcciones: [PROC IMPORT, PROC MEANS, CLASS, VAR, OUTPUT OUT, NWAY, SUM, MEAN, N, FALTANTES]
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: false
+estado: revisado
+motivo: Esperado independiente revisado a mano contra la semántica documentada de MEANS.
+salidas: [res]
+invariantes: []
+razonamiento: >-
+  Esperado calculado a mano: N suma 10, media 10 y N=1 porque se excluye el monto faltante;
+  S suma 12, media 6 y N=2. proc.pdf, p. 1534 (PROC), pp. 1555–1558 (OUTPUT),
+  p. 1571 (faltantes), p. 1572 (Output Data Set) y p. 1573 (columnas _TYPE_/_FREQ_).
+  NWAY conserva la combinación completa de CLASS (p. 1536); DROP excluye ambas columnas automáticas.

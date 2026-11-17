@@ -6,6 +6,7 @@ import re
 
 from sgm.frontend.steps import Proc
 from sgm.ir.builder import Builder, qualify
+from sgm.ir.lower_procs_agregados import lower_means
 from sgm.ir.lower_procs_append import lower_append
 from sgm.ir.lower_procs_archivos import _read_file, _write_file
 from sgm.ir.lower_procs_common import unsupported as _unsupported
@@ -122,6 +123,8 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
             _unsupported(step, ev, b, "PROC APPEND sin BASE= y DATA=")
     elif name == "sort":
         lower_sort(step, ev, b)
+    elif name in {"means", "summary"} and "output" in step.clauses:
+        lower_means(step, ev, b, data, out)
     elif (spec := declared(name)) is not None:  # append, means, summary, freq: en YAML (F1.4)
         if not lower_declared(spec, step, ev, b, data, out):
             _unsupported(step, ev, b, spec["fallback"]["note"])

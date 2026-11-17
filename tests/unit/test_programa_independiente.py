@@ -58,10 +58,15 @@ def test_merge_con_in_se_compila_como_join(plan):
     assert tipo == "inner"  # `if en_stock and en_precio;` filtra a interior
 
 
-def test_proc_means_con_class_se_compila_como_agregacion(plan):
-    (agregado,) = _operadores(plan, "aggregate")
-    assert agregado.status == "soportado"
-    assert agregado.params["class"] == ["sucursal"]
+def test_proc_means_sin_nway_ni_drop_conserva_pendiente_de_esquema(plan):
+    # proc.pdf, pp. 1572–1573: CLASS genera tipos y columnas automáticas aún no modelados.
+    assert _operadores(plan, "aggregate") == []
+    (pendiente,) = [op for op in _operadores(plan, "unsupported")
+                   if op.params.get("procedure") == "means"]
+    assert pendiente.status == "hueco"
+    assert pendiente.params["pending_code"] == "P-MEANS-TYPE-NO-DEMOSTRADO"
+    assert pendiente.params["inputs"] == ["WORK.precios_vigentes"]
+    assert not pendiente.params.get("outputs")
 
 
 def test_macrovariable_del_nombre_de_salida_se_resuelve(plan):
@@ -72,7 +77,9 @@ def test_macrovariable_del_nombre_de_salida_se_resuelve(plan):
 def test_tablas_sin_esquema_quedan_como_huecos_de_tipo_desconocido(plan):
     """El repositorio no trae el DESCRIBE de `src.*`: sin tipos no se migra, no se adivina."""
     assert plan.gaps, "debe haber huecos porque no hay esquema de origen"
-    assert {gap.reason for gap in plan.gaps} == {"TIPO_DESCONOCIDO"}
+    assert {gap.reason for gap in plan.gaps} == {"TIPO_DESCONOCIDO", "PROC_NO_SOPORTADO"}
+    (proc_gap,) = [gap for gap in plan.gaps if gap.reason == "PROC_NO_SOPORTADO"]
+    assert proc_gap.evidence[0].line_start == 22
 
 
 def test_la_guia_pide_confirmar_el_tipo_del_map_parcial(plan):

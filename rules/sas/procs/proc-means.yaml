@@ -3,7 +3,7 @@ kind: proc
 version: 1
 status: soportado
 proc: means
-description: "PROC MEANS: agregación de CLASS y VAR a un dataset de salida."
+description: "PROC MEANS sin OUTPUT: forma declarativa heredada. OUTPUT explícito se baja en lower_procs_agregados.py (proc.pdf, pp. 1555–1558, 1571–1573)."
 when_options: []
 ops:
   - kind: aggregate

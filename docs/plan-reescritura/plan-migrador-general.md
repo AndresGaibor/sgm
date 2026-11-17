@@ -711,6 +711,8 @@ MG-P5-03 en adelante, sin empezar.
 | MG-P6-06 | Lista de procedimientos fuera de alcance con motivo en `docs/cobertura.md` | H | generada | 2 |
 | MG-P6-07 | `PROC FORMAT` y `PROC SQL` avanzadas que falten | S | según corpus real | 10 |
 
+**Estado C-17 (hito 273n, 17 de noviembre de 2026).** MEANS/SUMMARY con VAR y OUTPUT explícitos: SUM/MEAN/MIN/MAX/N/NMISS se calculan por variable con faltantes; CLASS exige NWAY y DROP de _TYPE_/_FREQ_, y el caso sin CLASS produce una fila global. Los dos L3 coinciden en B y emiten tAggregateRow en A; NMISS conserva pendiente de emisión Talend y STD queda pendiente. Sin OUTPUT se conserva el YAML. MG-P6-02 recibe 0,5 (5 de 10 h) por implementación parcial con ejecución B: C-18/FREQ y el resto de la aceptación siguen abiertos; no hay validación Studio.
+
 ### MG-P7. Macros (60 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|
@@ -891,10 +893,10 @@ Con cuatro carriles de agentes y el lote de Studio como cuello de botella, el ca
 semanas de trabajo de agentes hasta GM6, más el calendario de personas de P14 (piloto, UAT, corrida paralela de
 un ciclo completo del negocio, estabilización), que depende de los ciclos del cliente y no del código.
 
-## 11b. Avance medido (17 de noviembre de 2026, hito 272n)
+## 11b. Avance medido (17 de noviembre de 2026, hito 273n)
 
-**Avance global: 28,4 % de las 895 horas de agente (254,25 h)**, calculado desde `creditos.yaml` y actualizado
-en el hito 272n. La cifra histórica de 26,5 % fue corregida en el hito 141m (MG-P1 pasó de 43,0 a 37,5 h);
+**Avance global: 29,0 % de las 895 horas de agente (259,25 h)**, calculado desde `creditos.yaml` y actualizado
+en el hito 273n. La cifra histórica de 26,5 % fue corregida en el hito 141m (MG-P1 pasó de 43,0 a 37,5 h);
 era 27,1 % en el hito 126m y 19,6 % en el hito 107. C7 (producción con personas) está en 0 %; ningún criterio C1 a C6 está cumplido todavía. Ojo:
 los hitos 108m a 126m se apoyan en los anillos A y B; **el hito 125m compiló 85 de 85 Jobs de L0 a L6
 en Studio, pero ninguno se ejecutó**, y por eso el crédito de P9 y P5 se cuenta con 0,25 y no con 0,5 en
@@ -916,7 +918,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P3 Expresiones y funciones | 80 | 23,5 | 29 % | D1-12 a D1-14 aportan evidencia A/B de fechas, INTNX, INTCK, DATDIF y YRDIF; C sigue pendiente por Studio BRIDGE_DEAD; PRX, PROC FORMAT y otras tareas de MG-P3 siguen pendientes |
 | MG-P4 DATA step | 90 | 21,0 | 23 % | `IF/ELSE` con `DO/END`, `SET` de varias tablas, `MERGE` (intérprete; emisor solo `inner`/`left`), `BY` con `FIRST.`/`LAST.`/`RETAIN`/suma (plan e intérprete, sin emisor); sin `OUTPUT` múltiple ni `ARRAY` |
 | MG-P5 `PROC SQL` | 80 | 37,0 | 46 % | `ORDER BY`, `DISTINCT`, `GROUP BY` y agregados (también compuestos), `UNION ALL`, `IN`/`NOT IN` con subconsulta simple, cruces de tres tablas; sin auto-`JOIN`, subconsulta escalar ni `full`/`right` |
-| MG-P6 Procedimientos | 50 | 9,0 | 18 % | `PROC SORT` con `NODUP`/`NODUPKEY`, `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`, con evidencia A/B; la estabilidad de `tSortRow` queda pendiente de lote C; faltan `FREQ`, `MEANS` y `TRANSPOSE` |
+| MG-P6 Procedimientos | 50 | 14,0 | 28 % | `PROC SORT` con `NODUP`/`NODUPKEY`, `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`, con evidencia A/B; MEANS/SUMMARY explícitos pasan dos casos L3 en B y emiten agregados en A; NMISS queda pendiente de emisión; la estabilidad de `tSortRow` y estos Jobs esperan C; faltan `FREQ`, el resto de MEANS/SUMMARY y `TRANSPOSE` |
 | MG-P7 Macros | 60 | 8,0 | 13 % | `L5`: 8 de 12 casos pasan en el anillo B (`%let`, macro con parámetros, `%eval`); sin `%sysfunc` ni `SELECT INTO` |
 | MG-P8 Planificador | 70 | 15,0 | 21 % | Contextos DEV/QA/PROD; `trace.json` parcial; plantillas repetidas desplegadas en línea (provisional); sin segmentación ni límite de tamaño |
 | MG-P9 Emisor | 108 | 34,5 | 32 % | 29 de 40 plantillas con nodo emitido (`tSortRow`, `tUniqRow`, `tAggregateRow`, `tUnite` nuevos, sin Studio), contextos y conexiones; joblets sin validar |
@@ -925,7 +927,7 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | MG-P12 Rendimiento | 30 | 0,0 | 0 % | Sin empezar |
 | MG-P13 Seguridad | 20 | 0,75 | 4 % | `sgm secretos` existe, sin integrar en `sgm migrar` |
 | MG-P14 Producción | 40 | 0,0 | 0 % | La compuerta de liberación quedó verde en el hito 126m, pero no se acredita: su aceptación incluye el lote de Studio sobre toda la salida y eso sigue pendiente; la parte de personas tampoco cuenta aquí |
-| **Total** | **895** | **254,25** | **28,4 %** | |
+| **Total** | **895** | **259,25** | **29,0 %** | |
 <!-- avance:fin -->
 
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`

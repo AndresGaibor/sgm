@@ -69,15 +69,16 @@ def test_pendientes_del_modelo_tienen_motivo(pendientes):
 
 def test_corpus_por_nivel_y_estado(datos_corpus):
     # El corpus integra las series de main y Byron: casos de clases de equivalencia y vectores L4,
-    # además de los escenarios L6 de DATA step y las tres regresiones de PROC SORT.
-    assert datos_corpus["casos"] == 382
+    # además de los escenarios L6 de DATA step, SORT y los dos L3 de MEANS/SUMMARY.
+    assert datos_corpus["casos"] == 384
     assert datos_corpus["por_nivel"]["L0"] == 27
+    assert datos_corpus["por_nivel"]["L3"] == 14
     assert datos_corpus["por_nivel"]["L4"] == 132
     assert datos_corpus["por_nivel"]["L6"] == 151
     assert datos_corpus["por_nivel"]["L8"] == 16
-    assert sum(datos_corpus["por_nivel"].values()) == 382
-    assert sum(datos_corpus["por_estado"].values()) == 382
-    assert datos_corpus["con_esperado"] == 366
+    assert sum(datos_corpus["por_nivel"].values()) == 384
+    assert sum(datos_corpus["por_estado"].values()) == 384
+    assert datos_corpus["con_esperado"] == 368
     assert datos_corpus["construcciones"] > datos_corpus["construcciones_traducibles"] > 0
 
 

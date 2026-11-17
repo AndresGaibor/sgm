@@ -661,21 +661,25 @@ Entrada `R` (`id,v`): `1,a` / `3,c` / `2,b` / `3,d`. Esperado como **conjunto** 
 
 ### Task C-17: `PROC MEANS` y `PROC SUMMARY` con `CLASS`, `VAR` y `OUTPUT OUT=` (MG-P6-02, parte 1; serie `n`)
 
-Hoy `rules/sas/procs/proc-means.yaml` y `proc-summary.yaml` emiten un `aggregate` con `class`, `var` y `outputs` sin estadísticos. Páginas (`proc.pdf`): `MEANS Procedure` (p. 1521), `PROC MEANS Statement` (p. 1534), `OUTPUT Statement` (p. 1555), «Missing Values» (p. 1571) y «Output Data Set» (p. 1572); `SUMMARY Procedure` (p. 2549, que remite a `MEANS`). `MEANS` descarta los faltantes de las variables `VAR` en cada estadístico (p. 1571); `N` cuenta los no faltantes y `_FREQ_` las observaciones del grupo.
+Antes del hito 273n, `rules/sas/procs/proc-means.yaml` y `proc-summary.yaml` emitían un `aggregate` con `class`, `var` y `outputs` sin estadísticos. Páginas (`proc.pdf`): `MEANS Procedure` (p. 1521), `PROC MEANS Statement` (p. 1534), `OUTPUT Statement` (p. 1555), «Missing Values» (p. 1571) y «Output Data Set» (p. 1572, listado de variables en p. 1573); `SUMMARY Procedure` (p. 2549, que remite a `MEANS`). `MEANS` descarta los faltantes de las variables `VAR` en cada estadístico (p. 1571); `N` cuenta los no faltantes y `_FREQ_` las observaciones del grupo.
+
+**Correcciones verificadas en C-17:** el listado de variables continúa en p. 1573; p. 1572 sigue siendo el comienzo indexado de Output Data Set. Se usa `procedimientos-migrador.yaml` porque MEANS/SUMMARY no aparecen en el programa cliente y `procs-usados.yaml` conserva exclusivamente sus usos observados. La página 122 demuestra los estadísticos missing cuando no hay ninguna observación no faltante; N/NMISS no requieren una.
+
+El cierre integral corrigió los contratos anteriores que trataban `OUTPUT OUT=` sin estadísticos como un agregado vacío: p. 1558 documenta cinco observaciones por grupo, incluida STD, por lo que esa forma conserva pendiente. CLASS sin NWAY ni DROP tampoco se declara soportado en el programa independiente; su SAS se conserva y se exige el pendiente exacto. Las firmas usan los constructores existentes y el linaje se representa con lecturas/aristas explícitas, también cuando la conversión queda pendiente.
 
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\procs\proc-means.yaml` y `proc-summary.yaml`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs.py` o `lower_procs_agregados.py` (el que cree el Plan B, tarea B-8: leer primero si existe; si no, crearlo aquí) con el reconocimiento de `OUTPUT OUT=ds STAT=nombre ...`
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L3\l3_30_means_class_nway\{caso.yaml, programa.sas, entradas\ventas.csv, esperado\res.csv}`
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L3\l3_31_summary_global\{caso.yaml, programa.sas, entradas\ventas.csv, esperado\tot.csv}`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\procs-usados.yaml` (entradas nuevas `means` p. 1521 y `summary` p. 2549, `estado: reconocida`)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\procedimientos-migrador.yaml` (entradas nuevas `means` p. 1521 y `summary` p. 2549, `estado: reconocida`)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_proc_means.py`
 
 **Interfaces:**
 - Consumes: `agregar(op_id, group_by, aggregations, outputs=None, pendiente=None, status="soportado", evidence=None, group_outputs=None, output_order=None) -> Operator`, `lower_declared(spec, step, ev, b, data, out) -> bool` (`proc_rules.py:79`), `names_of(clause)`.
-- Produces: `def lower_means(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str | None) -> None`: `STAT=nombre` para `SUM`, `MEAN`, `MIN`, `MAX`, `N` y `NMISS` (las que `proc.pdf` p. 1555 a 1563 define); con `NWAY` solo la combinación completa de `CLASS`; sin `NWAY`, `_TYPE_` y `_FREQ_` y la fila global quedan `Pendiente: P-MEANS-TYPE-NO-DEMOSTRADO` salvo que el `OUTPUT` los quite con `DROP=_TYPE_ _FREQ_` (los casos usan `NWAY` y `DROP=`); estadísticos fuera de esa lista (`STD`, `VAR`, percentiles): `P-MEANS-ESTADISTICO-SIN-SOPORTE`.
+- Produces: `def lower_means(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str | None) -> None`: `STAT=nombre` para `SUM`, `MEAN`, `MIN`, `MAX`, `N` y `NMISS` (las que `proc.pdf` pp. 1555–1558 y 122 definen); con `NWAY` solo la combinación completa de `CLASS`; con `CLASS` sin `NWAY`, o sin quitar ambas columnas `_TYPE_`/`_FREQ_` con `DROP=`, queda `Pendiente: P-MEANS-TYPE-NO-DEMOSTRADO`; sin `CLASS` y con ese `DROP=` se produce una fila global; estadísticos fuera de esa lista (`STD`, `VAR`, percentiles): `P-MEANS-ESTADISTICO-SIN-SOPORTE`.
 
-**Caso `L3/l3_30_means_class_nway` (`capa: B`, `estado: revisado`, `tolerancia: 1.0e-06`, razonamiento: «proc, p. 1534, 1555, 1571 y 1572»).**
+**Caso `L3/l3_30_means_class_nway` (`capa: B`, `estado: revisado`, `tolerancia: 1.0e-06`, razonamiento: «proc, p. 1534, 1555, 1571, 1572 y 1573»).**
 ```sas
 PROC IMPORT DATAFILE='.../entradas/ventas.csv' OUT=WORK.VENTAS DBMS=CSV REPLACE; GETNAMES=YES; RUN;
 PROC MEANS DATA=WORK.ventas NOPRINT NWAY;
@@ -684,7 +688,7 @@ PROC MEANS DATA=WORK.ventas NOPRINT NWAY;
 RUN;
 ```
 `ventas.csv`: `region,monto` / `N,10` / `N,` / `S,5` / `S,7`. Esperado a mano: `res.csv` = `region,total,prom,n` / `N,10,10,1` / `S,12,6,2` (`N`: el faltante no entra en ningún estadístico, `n = 1`; `S`: 5+7, media 6).
-**Caso `L3/l3_31_summary_global` (`capa: B`, `estado: revisado`, razonamiento: «proc, p. 2549 y 1572»).**
+**Caso `L3/l3_31_summary_global` (`capa: B`, `estado: revisado`, razonamiento: «proc, p. 2549, 1572 y 1573»).**
 ```sas
 PROC SUMMARY DATA=WORK.ventas;
   VAR monto; OUTPUT OUT=WORK.tot(DROP=_TYPE_ _FREQ_) SUM=total MIN=minimo MAX=maximo N=n;
@@ -692,11 +696,11 @@ RUN;
 ```
 Mismo `ventas.csv`. Esperado: `tot.csv` = `total,minimo,maximo,n` / `22,5,10,3` (10+5+7; el faltante fuera).
 
-- [ ] **Step 1: Write the failing tests.** Los dos casos coinciden en el anillo B (hoy: `aggregate` sin estadísticos, `P-AGREGADO-SIN-TRADUCIR`); `STD=` da `P-MEANS-ESTADISTICO-SIN-SOPORTE`; sin `NWAY` ni `DROP=` da `P-MEANS-TYPE-NO-DEMOSTRADO`. Verificar en `proc.txt` que p. 1572 describe `_TYPE_` y `_FREQ_` como se usa (`grep -n "<!-- página 1572 -->"`).
-- [ ] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_proc_means.py -q -p no:cacheprovider`.
-- [ ] **Step 3: Implement** `lower_means` sobre `agregar` y enganchar en `lower_proc` (`elif name in {"means","summary"}`) antes de `declared(name)`. El emisor reusa `desde_plan_agregado.py` (C-6).
-- [ ] **Step 4: Run** los tests, `tests/unit/test_proc_rules.py`, `tests/unit/test_migrar_corpus_anillo_b.py` y el golden; el YAML declarativo se conserva para la forma sin `OUTPUT`.
-- [ ] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito N n: PROC MEANS y SUMMARY con CLASS, VAR y OUTPUT OUT=`.
+- [x] **Step 1: Write the failing tests.** Los dos casos coinciden en el anillo B (hoy: `aggregate` sin estadísticos, `P-AGREGADO-SIN-TRADUCIR`); `STD=` da `P-MEANS-ESTADISTICO-SIN-SOPORTE`; sin `NWAY` ni `DROP=` da `P-MEANS-TYPE-NO-DEMOSTRADO`. Verificar en `proc.txt` que p. 1572 inicia Output Data Set y p. 1573 enumera `_TYPE_` y `_FREQ_` (`rg -n "<!-- página 1573 -->" docs/referencia/sas/proc.txt`).
+- [x] **Step 2: Run tests to verify they fail.** `uv run python -m pytest tests/unit/test_proc_means.py -q -p no:cacheprovider`.
+- [x] **Step 3: Implement** `lower_means` sobre `agregar` y enganchar en `lower_proc` (`elif name in {"means","summary"}`) antes de `declared(name)`. El emisor reusa `talend_item/desde_plan_agregado.py` (C-6); NMISS conserva `P-AGREGADO-SIN-TRADUCIR` hasta demostrar una equivalencia Talend, sin inventar componentes.
+- [x] **Step 4: Run** los tests, `tests/unit/test_proc_rules.py`, `tests/unit/test_migrar_corpus_anillo_b.py` y el golden; el YAML declarativo se conserva para la forma sin `OUTPUT`.
+- [x] **Step 5: Run** `uv run ruff check src tests tools`. **Commit** `hito N n: PROC MEANS y SUMMARY con CLASS, VAR y OUTPUT OUT=`.
 
 ---
 

@@ -57,9 +57,13 @@ fases:
   - id: MG-P6-01
     horas: 10.0
     fraccion: 0.5
+  - id: MG-P6-02
+    horas: 10.0
+    fraccion: 0.5
   sostiene: '`PROC SORT` con `NODUP`/`NODUPKEY`, `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`,
-    con evidencia A/B; la estabilidad de `tSortRow` queda pendiente de lote C; faltan `FREQ`,
-    `MEANS` y `TRANSPOSE`'
+    con evidencia A/B; MEANS/SUMMARY explícitos pasan dos casos L3 en B y emiten agregados en A;
+    NMISS queda pendiente de emisión; la estabilidad de `tSortRow` y estos Jobs esperan C;
+    faltan `FREQ`, el resto de MEANS/SUMMARY y `TRANSPOSE`'
 - id: MG-P7
   nombre: Macros
   horas: 60.0

@@ -1,4 +1,4 @@
-"""Evaluación acotada de agregados PROC SQL para el intérprete de referencia."""
+"""Agregados de PROC SQL y MEANS/SUMMARY para el intérprete de referencia."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from sqlglot import exp
 
 from sgm.migrar import semantica
 
-_AGREGADO = re.compile(r"(?is)^\s*(count|sum|avg|mean|min|max)\s*\((.*)\)\s*$")
+_AGREGADO = re.compile(r"(?is)^\s*(count|sum|avg|mean|min|max|nmiss)\s*\((.*)\)\s*$")
 _COLUMNA_SIMPLE = re.compile(r"(?i)^(?:[a-z_]\w*\.)*([a-z_]\w*)$")
 _ALIAS_SIMPLE = re.compile(r"(?i)^[a-z_]\w*$")
 
@@ -34,6 +34,14 @@ def agregar(
     agregaciones = params.get("aggregations") or []
     if not agregaciones:
         raise AgregadoNoSoportado("GROUP BY sin agregado no está implementado")
+
+    def es_faltante(valor: object) -> bool:
+        # Las VAR de MEANS/SUMMARY son numéricas: incluye los faltantes especiales de SAS.
+        return semantica.es_faltante(valor) or (
+            params.get("procedure") in {"means", "summary"}
+            and isinstance(valor, str)
+            and re.fullmatch(r"\.[a-z_]?", valor.strip(), re.I) is not None
+        )
 
     columnas_grupo = []
     for expresion in params.get("group_by") or []:
@@ -142,7 +150,7 @@ def agregar(
             grupos[clave][1].append(fila)
 
     def numero(valor: object, expresion: str) -> Decimal | None:
-        if semantica.es_faltante(valor):
+        if es_faltante(valor):
             return None
         convertido = semantica.como_numero(valor)
         if convertido is None:
@@ -177,8 +185,11 @@ def agregar(
                             f"falta la columna '{columna_exp.name}' en '{expresion}'"
                         )
                 valor = evaluar(arbol, fila)
-                if funcion == "count":
-                    if not semantica.es_faltante(valor):
+                if funcion == "nmiss":
+                    if es_faltante(valor):
+                        valores.append(valor)
+                elif funcion == "count":
+                    if not es_faltante(valor):
                         if not distinto:
                             valores.append(valor)
                         else:
@@ -190,7 +201,7 @@ def agregar(
                     convertido = numero(valor, expresion)
                     if convertido is not None:
                         valores.append(convertido)
-            if funcion == "count":
+            if funcion in {"count", "nmiss"}:
                 salida[destino] = str(len(valores))
             elif not valores:
                 salida[destino] = None

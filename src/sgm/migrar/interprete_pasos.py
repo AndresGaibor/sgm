@@ -22,6 +22,7 @@ from sgm.migrar.interprete_filas import (
     _unir,
     _validar_subconsulta_de_union,
 )
+from sgm.migrar.interprete_means import exclude_special_class_missing
 from sgm.migrar.interprete_update import _actualizar
 from sgm.migrar.interprete_valores import (
     NoSoportadoEnInterprete,
@@ -118,7 +119,10 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
                 )
             actual = _unir(actual, por_tabla[tabla], params)
         elif clase == "filter":
-            actual = _filtrar(actual, str(params.get("expression") or ""), por_tabla)
+            expression = str(params.get("expression") or "")
+            if op.origin in {"proc_means", "proc_summary"}:
+                actual = exclude_special_class_missing(actual, expression, op, plan)
+            actual = _filtrar(actual, expression, por_tabla)
         elif clase == "derive":
             if params.get("conditional") and not params.get("assignments"):
                 # Asignación condicional sin partes: sin efecto daría filas sin la columna (lrcon,
@@ -139,7 +143,10 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
         elif clase == "dedup":
             actual = _unicos(actual, params)
         elif clase == "aggregate":
-            actual = _agregar(actual, params)
+            # VAR en MEANS/SUMMARY es numérica; el origen ya conserva esa evidencia en la IR.
+            numeric_proc = op.origin in {"proc_means", "proc_summary"}
+            aggregate_params = {**params, "procedure": op.origin[5:]} if numeric_proc else params
+            actual = _agregar(actual, aggregate_params)
         elif clase == "stateful_row" and params.get("reason") == "by_group":
             actual = _por_grupo(actual, params)
         elif clase == "stateful_row" and params.get("reason") == "suma":
