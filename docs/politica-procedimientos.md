@@ -55,12 +55,55 @@ unión genérica.
 
 ## Reportes y `PROC CONTENTS`
 
-El valor predeterminado `reports=discard` omite la salida impresa con un aviso. Solo `PROC PRINT`
-tiene equivalencia implementada para los modos `log` y `csv`; `REPORT`, `TABULATE` y las salidas
-`OUT=` de `CONTENTS` permanecen pendientes cuando no se demuestra que el resultado coincide.
-Alternativa: escoger `reports=log` o `reports=csv` para `PROC PRINT`; el cambio es materializar las
-filas o escribirlas a un archivo configurado. Los demás formatos requieren una regla respaldada por
-la documentación SAS y pruebas con un resultado verificable.
+Decisión C-22: la política predeterminada `reports=discard` omite `PRINT`, `REPORT`, `TABULATE`
+y `FREQ` sin `OUT=` con `A-REPORTE-OMITIDO`. El aviso conserva archivo y líneas del SAS en
+`not_migrated`; el reporte no se convierte en una transformación. PRINT imprime observaciones
+(`proc.pdf`, p. 1810); REPORT combina presentación y cálculos (p. 2140); TABULATE presenta
+estadísticos en tablas (p. 2554). Las páginas 1809, 2139 y 2553 localizan los capítulos, pero son
+sus índices, no evidencia de cada opción.
+
+La alternativa es un `tLogRow` por reporte: con miles de filas por ejecución, aumenta el volumen
+y el coste del log y dificulta usarlo para diagnóstico. Se mantiene como opción explícita
+`"reports": "log"` en `env/project.json`; solo `PROC PRINT` tiene equivalencia de filas implementada.
+`reports=csv` también existe solo para PRINT. REPORT, TABULATE, FREQ y CONTENTS conservan el hueco
+`REPORTE` con log/csv; sus resultados no se sustituyen por filas crudas. FREQ con `TABLES OUT=`
+conserva `P-FREQ-OUT-SIN-PAGINA`: p. 89 no demuestra sus columnas ni su contenido.
+
+`CONTENTS` sin OUT= se descarta con la misma política; sobre un miembro explícito de WORK
+conserva el aviso específico `A-PROC-LIMPIEZA-OMITIDO`. Las salidas OUT= no se consideran
+reportes descartables; `WORK._ALL_ OUT=` conserva `P-WORK-INTROSPECCION`.
+
+## ODS, títulos y opciones
+
+ODS es una sentencia global (`proc.pdf`, p. 75). La guía describe su presentación de resultados
+(p. 122) y demuestra que ODS OUTPUT puede crear un dataset (p. 1525); esa página no demuestra
+el esquema de una tabla arbitraria. Por eso `ODS OUTPUT tabla=dataset` siempre conserva
+`Pendiente: P-ODS-OUTPUT-DATASET`, sus líneas de origen y ninguna salida inventada, incluso con
+`reports=discard`. Si está dentro de un PROC, PROC SQL o DATA step, se conserva el bloque
+completo como pendiente con su rango de líneas: el AST no mantiene todas las posiciones individuales.
+No se materializa una parte del bloque suponiendo que la salida ODS no importa. Un signo igual dentro de un literal no prueba una asignación.
+
+Con discard, los destinos de presentación conocidos HTML/HTML5/RTF/PDF/LISTING, SELECT/EXCLUDE,
+RESULTS y OUTPUT CLOSE/CLEAR se registran como avisos, sin generar componentes. `lepg.pdf`, p. 707,
+demuestra HTML y LISTING como destinos; las demás formas mantienen la política de omisión de
+presentación, sin equivalencia de filas. Con log/csv se mantiene el comportamiento conservador:
+ODS no se declara reproducido por Talend. Un ODS desconocido queda pendiente. TITLE y FOOTNOTE
+se registran como presentación (`lestmtsref.pdf`, pp. 362, 123).
+
+Esta decisión **no omite globalmente OPTIONS**. `docs/opciones-de-sistema.md` sigue siendo
+la fuente autoritativa: MERGENOBY, MISSING, VALIDVARNAME y YEARCUTOFF pueden cambiar resultados.
+La detección general de estas cuatro sigue pendiente de MG-P7-07; C-22 no la implementa ni le
+atribuye equivalencia. Hoy YEARCUTOFF sigue como CONFIGURACION/reemplazado, sin aviso ni pendiente
+específico; se conserva ese límite existente y no se cuenta como aceptación de OPTIONS.
+
+## Inventario generado
+
+`uv run python tools/cobertura_procs.py` escribe `docs/cobertura-procedimientos.md`. Clasifica los
+65 capítulos reales del índice local y separa las menciones sin capítulo, sin inflar el denominador.
+La prueba de frescura obliga a regenerarlo al cambiar sus fuentes. Una familia desconocida queda
+`no_verificado`; `fuera_de_alcance` exige motivo de familia y página verificable. El inventario no
+es una orden de omisión ni una afirmación de equivalencia completa o de ejecución en Studio.
+G-17 lo integra en `docs/cobertura.md`; este generador nunca escribe el documento general.
 
 ## `DROP` y `DELETE FROM`
 

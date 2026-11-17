@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12 (`uv`, pytest, ruff), OpenSpec 2.1.0.
 
-**Spec:** `openspec/changes/paralelizar-pruebas-largas/` y `openspec/changes/cerrar-b7-lz-y-avance-real/`. El change `generar-cobertura-procedimientos` **no se hace**: lo supera `C-22` de Byron (`tools/cobertura_procs.py`).
+**Spec:** `openspec/changes/paralelizar-pruebas-largas/` y `openspec/changes/cerrar-b7-lz-y-avance-real/`. El change `generar-cobertura-procedimientos` **no se hace**: lo supera `C-22` de Byron (`tools/cobertura_procs.py` genera `docs/cobertura-procedimientos.md`, que G-17 integra en `docs/cobertura.md`).
 
 ## Global Constraints
 

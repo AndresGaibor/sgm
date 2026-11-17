@@ -708,12 +708,14 @@ MG-P5-03 en adelante, sin empezar.
 | MG-P6-03 | `PROC TRANSPOSE` | S | casos nuevos | 8 |
 | MG-P6-04 | `PROC APPEND`, `COPY`, `DATASETS`, `DELETE`, `CONTENTS` | H | casos nuevos | 6 |
 | MG-P6-05 | `PROC PRINT/REPORT/TABULATE/ODS`: política (omitir con aviso o `tLogRow`) | H | decisión documentada | 4 |
-| MG-P6-06 | Lista de procedimientos fuera de alcance con motivo en `docs/cobertura.md` | H | generada | 2 |
+| MG-P6-06 | Inventario de PROC con motivo en `docs/cobertura-procedimientos.md` (C-22); G-17 lo integra en `docs/cobertura.md` | H | generada | 2 |
 | MG-P6-07 | `PROC FORMAT` y `PROC SQL` avanzadas que falten | S | según corpus real | 10 |
 
 **Estado C-17 (hito 273n, 17 de noviembre de 2026).** MEANS/SUMMARY con VAR y OUTPUT explícitos: SUM/MEAN/MIN/MAX/N/NMISS se calculan por variable con faltantes; CLASS exige NWAY y DROP de _TYPE_/_FREQ_, y el caso sin CLASS produce una fila global. Los dos L3 coinciden en B y emiten tAggregateRow en A; NMISS conserva pendiente de emisión Talend y STD queda pendiente. Sin OUTPUT se conserva el YAML. MG-P6-02 recibe 0,5 (5 de 10 h) por implementación parcial con ejecución B: C-18/FREQ y el resto de la aceptación siguen abiertos; no hay validación Studio.
 
 **Estado C-18 (hito 274n, 17 de noviembre de 2026).** FREQ sin TABLES OUT= es reporte sujeto a reports; con OUT= queda P-FREQ-OUT-SIN-PAGINA. Se retira el agregado falso y L3-32 queda sin_esperado: proc.pdf, p.89 solo demuestra MISSPRINT, no COUNT/PERCENT ni el contrato de OUT=. La clasificación se prueba, pero no equivale a ejecutar una traducción de FREQ contra un esperado. MG-P6-02 conserva 0,5 (5/10 h), MG-P6 14/50 h (28 %) y el global 259,25/895 h (29,0 %). No hay crédito de Studio.
+
+**Estado C-22 (hito 275n, 17 de noviembre de 2026).** MG-P6-05 queda documentada y probada con A-REPORTE-OMITIDO y P-ODS-OUTPUT-DATASET; solo PRINT materializa log/csv. MG-P6-06 entrega el inventario reproducible de 65 capítulos, más FREQ como mención sin capítulo ni crédito de traducción. El subinforme se integra por G-17; OPTIONS conserva su deuda de MG-P7-07. Se mantienen los créditos vigentes (14/50 h en P6 y 259,25/895 h globales): las 4 h heredadas sin desglose ya preceden a C-22 y el hito 241n cubría parte de MG-P6-05; no se suman de nuevo horas cuya atribución no está demostrada. La aceptación documental/generada de C-22 no equivale a validar nuevos Jobs en Studio.
 
 ### MG-P7. Macros (60 h)
 | Id | Tarea | Tipo | Aceptación | Horas |

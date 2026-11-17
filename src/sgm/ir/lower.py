@@ -24,6 +24,7 @@ from sgm.frontend.steps import (
 )
 from sgm.ir.builder import Builder
 from sgm.ir.lower_data import lower_data
+from sgm.ir.lower_ods import ODS_OUTPUT_NOTE, P_ODS_OUTPUT_DATASET, writes_dataset
 from sgm.ir.lower_procs import lower_proc
 from sgm.ir.lower_sql import lower_proc_sql
 from sgm.ir.models import Evidence, Graph
@@ -108,7 +109,22 @@ def lower_item(item, b: Builder, externals: dict[str, External] | None = None) -
 def _lower_step(item, b: Builder, externals: dict[str, External]) -> None:
     ev = _evidence(item)
     step = item.item
-    if isinstance(step, DataStep):
+    if isinstance(step, (DataStep, ProcSql)) and any(
+        writes_dataset(statement.text) for statement in step.statements
+    ):
+        # El bloque conserva su rango completo: las líneas individuales no están en todos los AST.
+        b.op(
+            "unsupported",
+            {
+                "statement": "; ".join([step.text, *(s.text for s in step.statements)]),
+                "reason": "SENTENCIA_NO_SOPORTADA",
+                "pending_code": P_ODS_OUTPUT_DATASET,
+            },
+            ev,
+            status="hueco",
+            notes=[ODS_OUTPUT_NOTE],
+        )
+    elif isinstance(step, DataStep):
         lower_data(step, ev, b)
     elif isinstance(step, ProcSql):
         lower_proc_sql(step, ev, b)
@@ -172,12 +188,17 @@ def _lower_step(item, b: Builder, externals: dict[str, External]) -> None:
     elif isinstance(step, (Let, Options)):
         _config(step, ev, b, getattr(step, "text", "options"))
     elif isinstance(step, Global):
+        ods_dataset = writes_dataset(step.text)
         b.op(
             "unsupported",
-            {"statement": step.text, "reason": "SENTENCIA_NO_SOPORTADA"},
+            {
+                "statement": step.text,
+                "reason": "SENTENCIA_NO_SOPORTADA",
+                **({"pending_code": P_ODS_OUTPUT_DATASET} if ods_dataset else {}),
+            },
             ev,
             status="hueco",
-            notes=["sentencia global sin regla de migración"],
+            notes=[ODS_OUTPUT_NOTE if ods_dataset else "sentencia global sin regla de migración"],
         )
 
 

@@ -14499,8 +14499,8 @@
     },
     {
       "op": "op00054",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -14513,8 +14513,8 @@
     },
     {
       "op": "op00055",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -14527,8 +14527,8 @@
     },
     {
       "op": "op00056",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -14541,8 +14541,8 @@
     },
     {
       "op": "op00057",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -14821,8 +14821,8 @@
     },
     {
       "op": "op00294",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -14835,8 +14835,8 @@
     },
     {
       "op": "op00295",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -14849,8 +14849,8 @@
     },
     {
       "op": "op00296",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -14863,8 +14863,8 @@
     },
     {
       "op": "op00297",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -15101,8 +15101,8 @@
     },
     {
       "op": "op00498",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -15115,8 +15115,8 @@
     },
     {
       "op": "op00499",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -15129,8 +15129,8 @@
     },
     {
       "op": "op00500",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",
@@ -15143,8 +15143,8 @@
     },
     {
       "op": "op00501",
-      "what": "cierre de destinos de reporte SAS (ODS HTML, HTML5, RTF o PDF)",
-      "talend": "No hace falta; el Job no mantiene destinos ODS de SAS.",
+      "what": "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+      "talend": "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
       "evidence": [
         {
           "file": "client/client_poc.sas",

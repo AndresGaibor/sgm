@@ -21,7 +21,7 @@
 ## Review Focus
 
 - **Estado real (17 de noviembre de 2026, tras integrar `origin/main` hasta el hito 270n):** Byron ya hizo `C-20`, `C-21`, `D2-2` a `D2-13`, `D2-15`, `D2-18`, `D1-7` a `D1-15` y parte de `K`. Esta cola solo debe pedirle lo que falta.
-- `C-22` genera la lista de cobertura de procedimientos (`tools/cobertura_procs.py`); el change `generar-cobertura-procedimientos` quedó **superado** por ella: no se hace aparte.
+- `C-22` genera la lista de cobertura de procedimientos (`tools/cobertura_procs.py` → `docs/cobertura-procedimientos.md`, integrado por G-17 en `docs/cobertura.md`); el change `generar-cobertura-procedimientos` quedó **superado** por ella: no se hace aparte.
 - `G` necesita los verificadores Q1 a Q15 de Andres (`F1-1` a `F1-5`): hasta que existan, las tareas que los integran esperan.
 - Una mención de Studio suele ser «lote C»: se hace sin Studio y la validación queda en `out/studio-pendientes.json`.
 

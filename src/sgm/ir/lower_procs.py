@@ -6,6 +6,7 @@ import re
 
 from sgm.frontend.steps import Proc
 from sgm.ir.builder import Builder, qualify
+from sgm.ir.lower_ods import ODS_OUTPUT_NOTE, P_ODS_OUTPUT_DATASET, writes_dataset
 from sgm.ir.lower_procs_agregados import lower_means
 from sgm.ir.lower_procs_append import lower_append
 from sgm.ir.lower_procs_archivos import _read_file, _write_file
@@ -94,7 +95,12 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
     name = step.name
     data = step.options.get("data")
     out = step.options.get("out")
-    if name == "contents" and out and _work_all(data):
+    if any(writes_dataset(statement) for statement in step.body):
+        _unsupported(
+            step, ev, b, ODS_OUTPUT_NOTE, pending_code=P_ODS_OUTPUT_DATASET,
+            inputs=[qualify(data)] if data else [],
+        )
+    elif name == "contents" and out and _work_all(data):
         _unsupported(
             step,
             ev,

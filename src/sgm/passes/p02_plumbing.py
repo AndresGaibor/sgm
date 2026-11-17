@@ -56,6 +56,22 @@ def classify(op: Operator, report_policy: str = "discard") -> tuple[str, str, st
     """(categoría, qué hace, equivalente en Talend) si el operador es fontanería; None si no."""
     if op.status == "reemplazado" and op.params.get("reason") == "CONFIGURACION":
         return None
+    if op.params.get("pending_code") == "P-ODS-OUTPUT-DATASET":
+        return None
+    if (
+        report_policy == "discard"
+        and op.params.get("reason") == "SENTENCIA_NO_SOPORTADA"
+        and re.match(
+            r"(?is)^\s*ods\s+(?:html5?|rtf|pdf|listing|select|exclude|results)\b"
+            r"|^\s*ods\s+output\s+(?:close|clear)\s*$",
+            primary_text(op),
+        )
+    ):
+        return (
+            "presentacion_ods",
+            "A-REPORTE-OMITIDO: presentación ODS descartada (reports=discard)",
+            "No se migra el destino de presentación; ODS OUTPUT con dataset permanece pendiente.",
+        )
     if _work_cleanup(primary_text(op)):
         return (
             "limpieza_work",
@@ -115,7 +131,7 @@ def _report(op: Operator, ctx: PassContext) -> bool:
             talend = "No aplica: reports=discard omite la salida diagnóstica del miembro de WORK."
         else:
             op.params["plumbing"] = "reporte_diagnostico"
-            what = f"PROC {procedure} de diagnóstico: reporte impreso"
+            what = f"A-REPORTE-OMITIDO: PROC {procedure} de diagnóstico: reporte impreso"
             talend = "No se migra: reporte de diagnóstico (reports = discard)"
         ctx.plan.not_migrated.append(
             NotMigrated(

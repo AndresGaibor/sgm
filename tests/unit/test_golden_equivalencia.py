@@ -135,9 +135,10 @@ CAMBIOS_DOCUMENTADOS = {
 # 263n baja `SUBSTR` como pseudovariable en 182 asignaciones del fixture; hito 267n conserva
 # `FILENAME` como configuración redactada y resuelve sus rutas en la preparación del plan. Estos
 # cambios alteran operadores/firmas; se fija el plan revisado por hash canónico y `test_golden.py`
-# conserva igualdad exacta.
+# conserva igualdad exacta. Hito 275n añade A-REPORTE-OMITIDO y el aviso ODS;
+# solo cambian what/talend de not_migrated, con las mismas líneas y sin modificar operadores.
 CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
-    "client__client_poc.plan.json": "cc490021d4ec1fdd8baa7e284bd464a71c754740bdcfbaea6976064774bf3ac3",
+    "client__client_poc.plan.json": "870b0907c9806d081e7ac2af15f46091846f2b9b44e1957fe10563e32f696bab",
     # Hito 249m: la suma `acumulado + coalesce(...)` deja de ser una sentencia sin traducción (que el
     # intérprete ignoraba) y pasa a `stateful_row` `suma` en hueco (lestmtsref, p. 360). Cambia la lista
     # de pendientes y los identificadores de operador; no se repite el cambio campo por campo.
