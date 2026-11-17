@@ -9,7 +9,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 | Bloqueo | Estado | Qué lo cierra |
 |---|---|---|
 | Decisiones del dueño (B-7, B-8, B-11 a B-14, B-17, B-20, B-21) | **Resueltas** (13 y 17 de noviembre, ver abajo) | Nada: solo falta ejecutar el código |
-| B-7 (`LZ` como base de datos) | Decidido; el código ya lo soporta | Change `cerrar-b7-lz-y-avance-real`, sin Studio |
+| B-7 (`LZ` como base de datos) | **Cerrado** (hito 274m): `sgm migrar` aplica `push_to_db` solo a los programas que leen `LZ`; `l2_16` queda con `P-CONEXION-BASE` | Nada. La activación de `push_to_db` para todo el migrador sigue siendo decisión del dueño |
 | B-12 y B-14 (`MERGE` muchos a muchos, `LAST.`) | Decididos: pendiente, sin emisor; pocos componentes | Nada |
 | B-16 (`DO WHILE`/`UNTIL`) y B-20 (`_N_`, `CALL SYMPUT`) | Sin dueño en duda; se escribe el código sin Studio | Plan B de la cola de Andres; la validación va a la cola de Studio |
 | Memoria libre menor de 4 GB | **Resuelto como bloqueo** (los hitos 252m y 255m están commiteados). La regla de 4 GB no está en el repositorio: era de un bucle de agente | Si falta memoria, cerrar Talend Studio (unos 2 GB) y las pestañas de Chrome antes de `tools/ci.py` |
@@ -298,3 +298,47 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   `JOB_NO_EN_REPOSITORIO`. No se cuenta nada como compilado.
 - **Qué hace falta:** que Studio vea la carpeta `process/` (por ejemplo, recargar el proyecto desde su interfaz),
   o que el lote pase por el flujo de `validar` que ya funcionó (hito 143m). Decisión tomada: no inventar resultados.
+
+## C-11: OUTER UNION y OUTER UNION CORR (plan C, 17 de noviembre de 2026)
+
+- **Estado medido:** `OUTER UNION` y `OUTER UNION CORR` dan `P-OPERADOR-SIN-SOPORTE` con el motivo «OUTER UNION de SAS
+  alinea las ramas por nombre; reescribirlo como UNION ALL cambia el resultado si el orden de columnas difiere. Requiere
+  decisión».
+- **Por qué no se implementa hoy:** la guía (`sqlproc`, p. 135) dice que `OUTER UNION` concatena las consultas sin
+  superponer columnas, y que `CORRESPONDING` superpone las del mismo nombre. Con filas como diccionarios, dos columnas
+  `id` (una por rama) no se pueden representar sin inventar un nombre. Y el emisor de Talend no tiene forma verificada
+  de hacer una unión con columnas distintas.
+- **Decisión que falta (dueño):** para `OUTER UNION` sin CORR, ¿qué nombre dar a una columna repetida entre ramas (`id` y
+  `id_1`, o dejar el caso pendiente)? Para `OUTER UNION CORR`, basta con confirmar que se alinea por nombre y las
+  columnas que una rama no tiene salen en faltante.
+- **Desbloqueo:** esa decisión. El intérprete para CORR se puede hacer después con la misma función de conjuntos de C-10.
+
+## C-4: LEFT JOIN con llaves nulas y con el mismo nombre de columna, medido en Studio (17 de noviembre de 2026)
+
+- **Evidencia:** `docs/evidencia-studio-l2_19.md` (informe de `tools/corpus_studio.py`, sufijo `len3`).
+- **Qué se hizo:** un LEFT JOIN de `WORK.A` (k = 1, 2, nulo) con `WORK.B` (k = 2, nulo, nulo, 3) por `x.k = y.k`,
+  emitido por el migrador (un `tMap` LEFT) y ejecutado en Studio.
+- **Resultado:** `no coincide`, 12 filas en vez de 4. Es un producto cartesiano (3 × 4): la condición de unión no se
+  aplica en el Job. Las claves salen como `2.0`, `1.0`: tipadas como número, aunque el CSV es texto.
+- **Defecto 1 (emisor, Studio):** un LEFT JOIN cuyas dos entradas tienen una columna con el mismo nombre (`k`) no se
+  reproduce con `tMap`. Hay que mirar cómo se nombran las llaves de cada entrada en el `.item`.
+- **Defecto 2 (intérprete, `src/sgm/migrar/interprete_filas.py`):** las filas se aplanan en un diccionario. En un LEFT
+  JOIN sin pareja, la columna `kb` (de la derecha) recibe el valor de `k` de la izquierda: sale `1` en vez de nulo. Es el
+  mismo problema de nombres repetidos que C-5, y se arregla con columnas calificadas por alias.
+- **Lo que sí queda demostrado:** en el intérprete, un nulo casa con todos los nulos (las filas `,x3` con `y4` e `y5`
+  salen). Eso confirma la regla de sqlproc p. 102 para este caso, pero el emisor no lo reproduce todavía.
+- **Decisión tomada:** el caso `l2_19` no entra en el corpus (fallaría el oráculo y Studio). Se queda como evidencia.
+- **Desbloqueo de C-4:** arreglar el nombre de las llaves en el `.item` y volver a medir con este mismo caso.
+
+## LEFT JOIN del emisor: producto cartesiano en Studio (medido el 17 de noviembre de 2026)
+
+- **Evidencia:** `docs/evidencia-studio-l2_02.md`. El caso de corpus `l2_02_left_join_con_faltantes` (estado «traducible»,
+  nunca validado en Studio) sale con **100 filas en vez de 14**. El caso temporal de C-4 sale con 12 en vez de 4.
+- **Qué se descartó:** no es el nombre repetido de las llaves (con `ka` y `kb` distintos sigue cartesiano), ni el tipo
+  numérico (con llaves de texto también). Las llaves se emiten igual que en el caso validado de `l2_02`: la expresión
+  `row1.k` en la columna del lookup, con `matchingMode="ALL_ROWS"`.
+- **Qué falta saber:** cómo declara Studio la condición de un lookup en el `.item`. No está en `docs/referencia/talend`.
+  Hay que mirar un `.item` que Studio guarde con un LEFT JOIN hecho a mano, y comparar.
+- **Riesgo:** cualquier LEFT JOIN que el migrador emite hoy como `tMap` es un Job incorrecto. El corpus no lo detectaba
+  porque ese caso nunca se validó. **Decisión que pido al dueño:** mientras no se arregle, ¿los LEFT JOIN se dejan como
+  pendiente (no se emiten) o se emiten con la advertencia?

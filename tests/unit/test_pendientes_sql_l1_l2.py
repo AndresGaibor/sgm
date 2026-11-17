@@ -28,12 +28,12 @@ from sgm.cli_migrar import migrar  # noqa: E402
 NOTAS = frozenset({"P-TIPO-DESCONOCIDO", "P-CONFIGURACION-RESUELTA"})
 
 CLASIFICACION: dict[tuple[str, str], tuple[str, str]] = {
-    # `LIBNAME LZ '/data/lz'` no dice qué motor sirve LZ, y `env/engines.json` no lo declara
-    # (`libraries` está vacío). Sin ese dato no se puede poner `read` en `db:impala`. Decisión pendiente
-    # del dueño: ver docs/BLOQUEOS.md (B-7).
-    ("l2_16_sql_en_misma_base", "P-OPERADOR-SIN-SOPORTE"): (
+    # `LZ` es una base de datos (decisión del dueño, 17 de noviembre de 2026; docs/BLOQUEOS.md, B-7).
+    # Con `LZ` declarada en env/engines.json y `push_to_db` (los programas que la leen), queda un único
+    # pendiente de configuración: el host, el puerto y la base del componente.
+    ("l2_16_sql_en_misma_base", "P-CONEXION-BASE"): (
         "entorno",
-        "LZ no tiene motor en env/engines.json; el read de LZ.origen no tiene componente",
+        "LZ es una base declarada en env/engines.json; host, puerto y base se configuran por entorno",
     ),
 }
 

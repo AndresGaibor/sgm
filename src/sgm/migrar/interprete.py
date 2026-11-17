@@ -23,6 +23,7 @@ import copy
 
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Operator, Plan
+from sgm.migrar.interprete_conjuntos import conjunto
 from sgm.migrar.interprete_filas import _clave, _filtrar, _llaves, _proyectar, _unicos
 from sgm.migrar.interprete_pasos import _PASOS_SUELTOS, _nombres, _pasos, _ramas
 from sgm.migrar.interprete_subconsultas import (
@@ -83,6 +84,8 @@ def _apilar(op: Operator, plan: Plan, tablas: dict, por_operador: dict) -> list[
     for filas in entradas:
         for fila in filas:
             columnas += [c for c in fila if c not in columnas]
+    if op.params.get("op") in ("except", "intersect"):
+        return conjunto(str(op.params["op"]), entradas)
     apiladas = [{c: fila.get(c) for c in columnas} for filas in entradas for fila in filas]
     if op.params.get("all", True):
         return apiladas

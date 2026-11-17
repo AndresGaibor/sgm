@@ -110,18 +110,24 @@ def planes() -> Callable[[Path], Plan]:
     return obtener
 
 
-def test_robustez_sobre_todo_el_repositorio(tmp_path):
-    programas = sorted(FIXTURES.rglob("*.sas"))
+PROGRAMAS = sorted(FIXTURES.rglob("*.sas"))
 
-    assert len(programas) >= 190, "los programas de referencia del repositorio desaparecieron"
-    for posicion, programa in enumerate(programas):
-        inicio = time.perf_counter()
-        resultado = migrar(programa, tmp_path / str(posicion))
-        assert time.perf_counter() - inicio < 60, f"{programa} tardó más de un minuto"
-        if resultado.fallo_seguridad is None and not resultado.hallazgos_seguridad:
-            assert (resultado.carpeta / "pendientes.md").is_file(), programa
-        else:
-            assert not resultado.escritos, programa
+
+def test_los_programas_de_referencia_siguen_en_el_repositorio():
+    assert len(PROGRAMAS) >= 190, "los programas de referencia del repositorio desaparecieron"
+
+
+@pytest.mark.parametrize(
+    "programa", PROGRAMAS, ids=[p.relative_to(FIXTURES).as_posix() for p in PROGRAMAS]
+)
+def test_robustez_sobre_todo_el_repositorio(programa, tmp_path):
+    inicio = time.perf_counter()
+    resultado = migrar(programa, tmp_path / "salida")
+    assert time.perf_counter() - inicio < 60, f"{programa} tardó más de un minuto"
+    if resultado.fallo_seguridad is None and not resultado.hallazgos_seguridad:
+        assert (resultado.carpeta / "pendientes.md").is_file(), programa
+    else:
+        assert not resultado.escritos, programa
 
 
 @pytest.mark.parametrize("caso", CASOS, ids=[caso.name for caso in CASOS])
@@ -145,16 +151,11 @@ def test_ningun_operador_se_pierde(caso, migrados, planes):
     assert sueltos == []
 
 
-def test_solo_los_casos_listados_tienen_pendientes(migrados):
-    lista = _lista()
-    con_pendientes = {}
-    for caso in CASOS:
-        reales = _reales(migrados(caso))
-        if reales:
-            con_pendientes[caso.name] = reales[0].codigo
-
-    assert {nombre: codigo for nombre, codigo in con_pendientes.items() if nombre not in lista} == {}
-    assert con_pendientes == {nombre: lista[nombre] for nombre in con_pendientes}
+@pytest.mark.parametrize("caso", CASOS, ids=[caso.name for caso in CASOS])
+def test_solo_los_casos_listados_tienen_pendientes(caso, migrados):
+    reales = _reales(migrados(caso))
+    if reales:
+        assert _lista().get(caso.name) == reales[0].codigo
 
 
 def test_la_lista_no_tiene_casos_resueltos(migrados):

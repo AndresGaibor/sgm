@@ -8393,6 +8393,284 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   repite el número entre series; no se renumera (una entrada publicada no se renumera).
 - Bloqueos: Studio sigue en `MODAL_BLOCKING` con 108 casos en la cola de pendientes; no cuenta nada como validado.
 
+## Hito 272m (2026-11-17). Versiona el gancho de commit de Claude Code
+
+- Qué se hizo: se añaden `.claude/settings.json` y `.claude/hooks/validar-commit.sh` al repositorio, a pedido del
+  usuario («súbelo todo»), para que Byron tenga el mismo gancho que Andres. El gancho solo descarta con un `case`
+  los comandos de Bash que no mencionan `commit` y, si lo mencionan, `tools/validacion.py guardia` comprueba que
+  haya cierre verde (misma regla que `.githooks/pre-commit`, sin cambiarla).
+- Decisión: revierte la del hito 271m de dejar estos dos archivos fuera. `.agents/` y
+  `.claude/scheduled_tasks.lock` siguen fuera (ya están en `.gitignore`).
+- Pruebas: cierre completo con `tools/ci.py`; el resultado queda en `uv run python tools/validacion.py historial`.
+
+## Hito 273m (2026-11-17). Pruebas del corpus por caso y LZ declarada como impala (parcial)
+
+- Qué se hizo:
+  - `tests/unit/test_migrar_corpus_aceptacion.py`: la robustez sobre los programas de referencia pasa a una prueba por
+    programa (`test_robustez_sobre_todo_el_repositorio`, parametrizada) y la comprobación de «al menos 190» a
+    `test_los_programas_de_referencia_siguen_en_el_repositorio`. `test_solo_los_casos_listados_tienen_pendientes` pasa a
+    una prueba por caso. Las aserciones son las mismas; el límite de 60 s por programa se mantiene.
+  - `env/engines.json`: `"libraries": { "LZ": "impala" }` (B-7; `LZ` es una base de datos, pruebas con datos inventados).
+- Hallazgo (no resuelto hoy): `sgm migrar` llama a `project_base()` sin argumentos (`src/sgm/cli_migrar.py`, línea 129),
+  así que no lee `env/engines.json` ni `env/project.json`. Con `LZ` declarada, el CLI sigue dando
+  `P-OPERADOR-SIN-SOPORTE`: la lectura de `LZ` necesita la ubicación `push_to_db`, que solo está en `env/project.json`.
+  Pasar solo los motores de bibliotecas da `P-MOTOR-SIN-SOPORTE` (peor mensaje), así que el cambio se revirtió.
+  Activar `push_to_db` cambia la ubicación de todo el corpus: es una decisión del dueño, no de este hito.
+- Pruebas: dirigidas `test_push_db.py`, `test_pendientes_sql_l1_l2.py` y las de `migrar_corpus_aceptacion` (15 pasan).
+  El cierre completo con `tools/ci.py` queda en el historial de validación.
+- Métricas: `test_migrar_corpus_aceptacion.py` recolecta 919 pruebas; el número del plan (unas 290) estaba mal calculado.
+  La medición de tiempo después del cambio queda para el siguiente hito.
+
+## Hito 274m (2026-11-17). B-7 cerrado: `sgm migrar` aplica `push_to_db` a los programas que leen `LZ`
+
+- Qué se hizo: `src/sgm/cli_migrar.py` elige la base de compilación por programa. Si el texto lee una biblioteca
+  declarada en `env/engines.json` (`LZ`, con la búsqueda `_lee_biblioteca`: `LZ.` sin letra antes, sin distinguir
+  mayúsculas), usa la estrategia `push_to_db`; si no, conserva `flow` como antes. El resto del corpus no cambia.
+- Resultado: `l2_16` deja de tener `P-OPERADOR-SIN-SOPORTE` y queda con un solo componente (`tImpalaRow`) y el
+  único pendiente de configuración `P-CONEXION-BASE`. Se actualizan `tests/corpus/migrar_pendientes.yaml` y la
+  clasificación de `tests/unit/test_pendientes_sql_l1_l2.py`.
+- Por qué no se activó para todo el migrador: con `push_to_db` global, el corpus pasó de 487 pruebas en verde a
+  432 fallos (`test_solo_los_casos_listados_tienen_pendientes` en casos L5 y L6). Esa activación global sigue siendo
+  una decisión del dueño.
+- Hallazgo: `sgm migrar` no leía `env/engines.json` ni `env/project.json` (llamaba a `project_base()` sin argumentos).
+  Ahora sí lee `engines.json`; `project.json` sigue sin aplicarse en el CLI.
+- Pruebas dirigidas: `test_pendientes_sql_l1_l2.py`, `test_push_db.py`, `test_migrar_corpus_aceptacion.py`
+  (926 pasan con `-n 8`). El cierre completo con `tools/ci.py` queda en el historial de validación.
+
+## Hito 275m (2026-11-17). C-1: línea base medida de SQL y procedimientos (plan C)
+
+- Qué se hizo: `tools/linea_base_sql_procs.py` cuenta, por construcción de SQL o de procedimiento del corpus, los
+  casos que la usan y sus pendientes por código (según `tests/corpus/migrar_pendientes.yaml`). Salida en
+  `out/linea_base_sql_procs.json` (no versionada). Pruebas en `tests/unit/test_linea_base_sql_procs.py` (3).
+- Línea base medida sobre el corpus de hoy: 64 construcciones (37 de SQL o con JOIN, 58 de `PROC`; algunas cuentan
+  en las dos). 53 de los 58 `PROC` no tienen ningún caso pendiente. Pendientes por código, sumados por construcción:
+  `P-AGREGADO-SIN-TRADUCIR` 3, `P-COMPONENTE-SIN-PLANTILLA` 3, `P-FILTRO-SIN-TRADUCIR` 2, `P-CONEXION-BASE` 2,
+  `P-UNION-TIPO-SIN-SOPORTE` 1, `P-ESQUEMA-NO-PORTABLE` 1.
+- Pruebas: dirigidas (`test_linea_base_sql_procs.py`, `test_pendientes_sql_l1_l2.py`). El cierre completo con
+  `tools/ci.py` queda en el historial de validación.
+- Pendiente del plan C: C-2 a C-15 (SQL) siguen sin empezar.
+
+## Hito 276m (2026-11-17). C-2: el orden de ejecución de las subconsultas sale a su propio módulo (plan C)
+
+- Hallazgo: la tarea C-2 del plan C describía `_unir` en `interprete.py:519` y `lower_sql_flow.py` como módulos de más
+  de 300 líneas. Eso ya no es cierto: los hitos 241m y 242m partieron el intérprete, y `interprete.py` mide 276 líneas.
+  Los archivos que sí pasan de 300 y son de SQL eran `interprete_subconsultas.py` (345) y `sql_tree.py` (322).
+- Qué se hizo: `src/sgm/migrar/interprete_subconsultas_orden.py` (nuevo, 207 líneas) recibe `SubconsultaNoSoportada`,
+  `_expresiones_filtro`, `_subconsultas_de_join`, `_fuentes`, `_intervalo_fuente`, `_agregar_dependencias_versionadas` y
+  `orden_de_ejecucion`. `interprete_subconsultas.py` baja a 162 líneas y los reexporta, así que `interprete.py` e
+  `interprete_filas.py` no cambian de import. Sin cambio de comportamiento.
+- Pruebas: 453 pasan en golden, equivalencia, intérprete, anillo B e ir de operadores; 688 pasan en las pruebas que
+  mencionan subconsultas, uniones o `interprete_filas` (14 `xfail` como antes).
+- Pendiente del plan C: `sql_tree.py` (322 líneas) y `desde_plan_map.py` (833) siguen sobre 300. C-3 a C-15 no empezados.
+
+## Hito 277m (2026-11-17). C-3: RIGHT y FULL JOIN en el intérprete, con nulos que casan (plan C)
+
+- Qué se hizo: `_unir` en `src/sgm/migrar/interprete_filas.py` acepta `right`, `full` (y sus formas `outer`).
+  Las filas de la izquierda sin pareja salen con las columnas de la derecha en nulo (`full` y `left`); las de la
+  derecha sin pareja salen al final, con las de la izquierda en nulo (`full` y `right`). Un nulo casa con todos los
+  nulos del mismo tipo (ya era así en `_clave`).
+- Corrección al catálogo: `rules/sas/catalogo/sql-nulos.yaml`, entrada `the-effects-of-null-values-on-joins` (p. 102).
+  Decía «un join con nulos no empareja esas filas», y la guía dice lo contrario: PROC SQL sí casa los nulos. Se corrige
+  la nota; el estado sigue `no_verificada` porque el emisor de Talend no traduce RIGHT ni FULL.
+- Lo que no se hizo de C-3: el caso `L2/l2_17_full_right_join_llaves_nulas` con su `esperado/`. Queda pendiente: no
+  está en el corpus, así que los conteos del tablero no cambian en este hito.
+- Emisión: el emisor de Talend deja RIGHT y FULL como `P-UNION-TIPO-SIN-SOPORTE`, así que no sale un Job incorrecto.
+  Esa parte es C-4.
+- Pruebas: `tests/unit/test_interprete_uniones.py` (4, nuevo), `test_catalogo_sas.py`, `test_migrar_interprete.py`,
+  `test_golden.py`: 110 pasan.
+
+## Hito 278m (2026-11-17). C-5: un JOIN con condición residual ya no sale como resultado incorrecto (plan C, parcial)
+
+- Hallazgo: el auto-JOIN del plan C-5 (`FROM WORK.p m INNER JOIN WORK.p n ON m.a = n.a AND m.v < n.v`) daba 5 filas
+  donde SAS da 1. El intérprete (`_unir` en `src/sgm/migrar/interprete_filas.py`) descartaba `m.v < n.v` en silencio, y
+  el emisor de Talend también (el Job no tenía ningún filtro de `v`). Era un error de resultado, no un pendiente.
+- Qué se hizo:
+  - Intérprete: un join con condición residual se rechaza como `NoSoportadoEnInterprete` («condición residual del ON
+    sin evaluar»), en vez de ignorar la condición.
+  - Emisor: `_tipo_soportado` en `src/sgm/talend_item/desde_plan_map.py` devuelve pendiente `P-UNION-TIPO-SIN-SOPORTE`
+    para un cruce con condición residual. El Job no se emite con el cruce incorrecto.
+- Lo que sí daba bien: la llave compuesta con texto en blanco (`b = ''` casa con `b = ''`, p. 102) y el LEFT JOIN de
+  ese caso producen `izquierda` como el plan lo espera.
+- Pendiente de C-5: implementar la condición residual de verdad (necesita columnas calificadas por alias para el
+  auto-JOIN), y el caso `L2/l2_18` con su `esperado/`. No se hace hoy: el cambio toca el modelo de filas del intérprete.
+- Pruebas: `tests/unit/test_interprete_uniones.py` (6) y `tests/unit/test_interprete_uniones_emision.py` (1, nuevo).
+  Suite de joins, uniones y `talend_item` (4030 pasan, 17 xfail).
+
+## Hito 279m (2026-11-17). C-6: semántica de faltantes en GROUP BY, verificada en el intérprete (plan C, parcial)
+
+- Hallazgo: el intérprete ya cumplía las reglas del plan. Con el programa de `l3_13` (grupo `N` con un monto faltante,
+  región en blanco como un solo grupo), da `N` con n=2, n_monto=1, total 10, promedio 10; `S` con total 12 y promedio 6;
+  el grupo en blanco con total 10 y promedio 5. Coincide con el esperado a mano del plan.
+- Qué se hizo: `tests/unit/test_interprete_agregados.py` (4 pruebas nuevas) fija esas reglas: un solo grupo para los
+  faltantes de la clave (p. 88), COUNT(col) frente a COUNT(*) (p. 82), AVG solo de presentes (p. 83), SUM/MIN/MAX.
+- Lo que no se hizo de C-6:
+  - Los casos de corpus `L3/l3_13` y `L3/l3_14` con su `esperado/`. Los casos de corpus de capa B tienen reglas de
+    formato (salidas, invariantes, esquemas) que no se han verificado en este hito; añadirlos sin comprobarlas sería
+    adivinar. Si se añaden, `test_tablero.py` fija 379 casos y habría que actualizarlo.
+  - La suma de un grupo todo faltante (`P-SUM-TODO-FALTANTE`): el plan pide dejarlo pendiente; no está implementado
+    todavía, y el caso no aparece en los datos de hoy.
+  - El emisor: el programa se emite como `tAggregateRow`, pero no se puede verificar sin Studio que ese componente trate
+    igual los faltantes en `COUNT(monto)` y en `AVG`. Queda sin verificar.
+- Pruebas: `test_interprete_agregados.py` (4) y `test_emisor_orden_y_agregado.py` pasan.
+
+## Hito 280m (2026-11-17). C-7: remezcla de estadísticos sin GROUP BY en el intérprete (plan C, parcial)
+
+- Hallazgo: `SELECT id, monto, MAX(monto) AS maximo FROM WORK.ventas` daba `P-AGREGADO-SIN-TRADUCIR` en las dos columnas
+  simples. La página `sqlproc` p. 79 demuestra el resultado: el agregado global se repite en cada fila.
+- Qué se hizo: `src/sgm/migrar/interprete_agregados.py` calcula el agregado global y lo añade a cada fila, con las
+  columnas simples de la propia fila (`_remezclar`). Con `GROUP BY`, la remezcla sigue sin implementarse y el error
+  de antes se mantiene. El emisor de Talend no cambia: el caso sigue como `P-AGREGADO-SIN-TRADUCIR`, así que no sale
+  un Job que haga la remezcla sin verificar.
+- Prueba: `tests/unit/test_interprete_agregados.py` (nueva, máximo global en tres filas). El programa de `l3_15` da
+  `maximo = 30` en las tres filas, como espera SAS.
+- Lo que no se hizo de C-7: la regla `agregado-sin-group-by` de `rules/sas/sql-semantica.yaml` sigue `pendiente`, sin el
+  tratamiento `remezcla` que pide el plan; el caso de corpus `L3/l3_15` con su `esperado/`, y el `migrar_pendientes.yaml`
+  (la entrada de `l3_09` no se ha revisado). El emisor de la remezcla (`tAggregateRow` más un cruce con la base) no
+  está hecho: sin Studio no se puede verificar.
+- Pruebas: 3019 pasan en agregados, intérprete, golden, anillo B y SQL.
+
+## Hito 281m (2026-11-17). C-8 y C-9: subconsultas escalares, en FROM y EXISTS quedan pendientes, fijado con pruebas (plan C, parcial)
+
+- Estado medido antes de tocar código:
+  - Escalar en WHERE (`monto > (SELECT AVG(monto) ...)`): `P-FILTRO-SIN-TRADUCIR`. El intérprete lanza error al
+    evaluarla.
+  - Subconsulta en FROM (`FROM (SELECT ... ) s`): `P-OPERADOR-SIN-SOPORTE` («origen que no es una tabla»; lo lanza
+    `_source` en `src/sgm/ir/sql_tree.py`).
+  - `EXISTS` correlacionado (`WHERE EXISTS (SELECT 1 FROM T p WHERE p.id = v.id)`): `P-FILTRO-SIN-TRADUCIR`.
+- Por qué no se implementaron hoy:
+  - FROM con subconsulta exige un paso intermedio encadenado en el lowering y su emisor. Es cambio de diseño, no un
+    arreglo chico.
+  - EXISTS correlacionado como semijoin (`IN`) tiene un riesgo de semántica con nulos: en SAS, un faltante comparado
+    con un faltante puede dar verdadero, y reescribirlo como IN podría dar filas que SAS no da. No se improvisa.
+  - La escalar necesita evaluar la subconsulta antes del filtro, por el mecanismo de `preparar` de
+    `interprete_subconsultas.py`, que hoy solo cubre `IN`.
+- Prueba nueva: `tests/unit/test_subconsultas_pendientes.py` (3). Fija que las tres formas siguen pendientes, de modo
+  que ningún cambio futuro las convierta en un resultado silencioso sin verificación.
+- Pendiente: C-8 y C-9 completos. Sin Studio, C-9 necesita primero la regla de nulos en comparaciones de SAS, con su
+  página, antes de implementarla.
+
+## Hito 282m (2026-11-17). C-10: EXCEPT e INTERSECT en el intérprete (plan C, parcial)
+
+- Estado medido antes: `EXCEPT` e `INTERSECT` daban `P-OPERADOR-SIN-SOPORTE` («consulta fuera de SELECT: Except»),
+  porque `_branches` solo aceptaba `UNION`. El intérprete ya deduplicaba `UNION` sin ALL: no había que tocarlo.
+- Qué se hizo:
+  - `src/sgm/ir/sql_tree.py`: `SqlTree.set_op` y `_operacion_de_conjuntos`. `EXCEPT` e `INTERSECT` de dos SELECT se
+    reconocen; `ALL` y ramas que no son SELECT siguen siendo `SqlNotSelect`.
+  - `src/sgm/ir/lower_sql_flow.py`: `_rama_final` guarda `op` en el operador de unión (sin ALL).
+  - `src/sgm/migrar/interprete_conjuntos.py` (nuevo): compara filas por posición, sin repetidos, con faltante casando
+    con faltante (p. 102). `src/sgm/migrar/interprete.py` lo llama cuando el operador trae `op`.
+- Resultado verificado con el programa de prueba (A = 1,2,3; B = 2,3,4): `UNION` 1 a 4, `INTERSECT` 2 y 3, `EXCEPT` 1.
+- El emisor de Talend no cambia: un operador sin ALL sigue pendiente. El texto del pendiente (`P-UNION-SIN-ALL`) dice
+  «UNION», aunque la operación sea EXCEPT o INTERSECT. Es un texto que conviene corregir más adelante.
+- Pruebas: `tests/unit/test_interprete_conjuntos.py` (4, nuevo).
+- Pendiente de C-10: `INTERSECT ALL` y `EXCEPT ALL` quedan fuera (sin página que lo demuestre, según el plan). Los
+  casos de corpus con esperado no se han añadido.
+
+## Hito 283m (2026-11-17). C-11 bloqueado por decisión del dueño; diagnóstico de la prueba de rendimiento inestable (plan C)
+
+- C-11 (`OUTER UNION` y `OUTER UNION CORR`): se midió el estado actual (pendiente `P-OPERADOR-SIN-SOPORTE` con motivo
+  explícito) y no se implementa. Falta decidir qué nombre dar a una columna repetida entre ramas en `OUTER UNION` sin
+  CORR. La pregunta queda en `docs/BLOQUEOS.md`, sección C-11.
+- Prueba inestable: `tests/unit/test_performance_benchmark.py::test_measure_command_captures_wall_time_and_child_peak_memory`
+  falló en tres corridas del cierre y pasó en las demás. Se intentó reproducir lanzando 8 hijos en paralelo con el mismo
+  código: los 8 salen con código 0. El hijo escribe su error en `DEVNULL` (`tools/performance/medicion.py`), así que el
+  código 1 no deja rastro. Causa sin confirmar. No se cambió la prueba ni su medición; queda como deuda, con la
+  propuesta de capturar el stderr del hijo para ver el error la próxima vez.
+- Pruebas: no hay cambio de código en este hito. Solo documentación (`PROGRESS.md`, `docs/BLOQUEOS.md`).
+
+## Hito 284m (2026-11-17). Diagnóstico de la prueba de rendimiento inestable (plan C, sin cambio de resultados)
+
+- Causa de la inestabilidad: no confirmada. La prueba `test_measure_command_captures_wall_time_and_child_peak_memory`
+  falló cuatro veces en cierres recientes con código 1 del proceso hijo. El hijo escribía su error en `DEVNULL`, así
+  que no había rastro.
+- Qué se hizo: `tools/performance/medicion.py` guarda el stderr del hijo en un archivo temporal y lo devuelve en
+  `stderr_tail` (los últimos 2000 caracteres). `tests/unit/test_performance_benchmark.py` muestra ese texto si el código
+  de salida no es 0. No cambian los tiempos, la memoria ni las aserciones.
+- Próximo paso: si la prueba vuelve a fallar, el mensaje dirá la causa; con eso se decide el arreglo.
+- Pruebas: `test_performance_benchmark.py` (5) pasa; cierre completo con `tools/ci.py` en verde en esta corrida.
+
+## Hito 285m (2026-11-17). C-12: estado medido de CREATE TABLE LIKE, CREATE VIEW y DROP (plan C, sin cambio de código)
+
+- `CREATE TABLE molde LIKE ventas`: hoy queda pendiente `P-OPERADOR-SIN-SOPORTE` («sentencia create_like de PROC SQL: no
+  es una consulta, no se traduce»). No se implementa: el resultado es una tabla vacía con las columnas de la otra, y el
+  Job tendría que escribir ese dataset vacío. Es un diseño de salida que no está hecho.
+- `DROP TABLE molde`: no deja pendiente. Es intencional: `rules/sas/plumbing.yaml` lo clasifica como fontanería porque el
+  componente de salida (DROP_CREATE o CLEAR) reemplaza la tabla antes de cargar. No es un pendiente silencioso.
+- `CREATE VIEW`: el plan ya decide que cada lectura de la vista se expande en línea a su cadena de operadores (como una
+  vista en línea de C-8). C-8 no está hecho, así que la vista tampoco.
+- Sin cambio de código ni de resultados en este hito. El cierre completo queda en el historial de validación.
+- Pendiente de C-12: `CREATE TABLE ... LIKE` (salida de tabla vacía), `CREATE VIEW` (depende de C-8), y el caso de corpus
+  `L3/l3_22` con su `esperado/`.
+
+## Hito 286m (2026-11-17). C-15: página en la guía para cada función de PROC SQL (plan C, parcial)
+
+- Qué se hizo: `rules/sas/sql-functions.json` tiene ahora `pagina` en las 31 funciones. 23 citan `lefunctionsref.pdf` con su
+  página, comprobada contra `docs/referencia/sas/lefunctionsref.INDEX.md`. Las 8 restantes llevan `pagina: null` y un
+  `nota_pagina`: 6 son `Pendiente:` (AVG, CAST, CONCAT, MONOTONIC, SYSFUNC, CALCULATED) y 2 dicen que no son función SAS
+  (UPPER y LOWER, con su equivalente UPCASE y LOWCASE). `substr` usa la forma de llamada (`SUBSTR (right of =)`).
+- Prueba nueva: `tests/unit/test_sql_functions_regla.py` (3). Comprueba que toda función tiene página o motivo, que cada
+  página citada aparece en el índice de la guía, y que cada motivo empieza por `Pendiente:` o `No es función`.
+- No se cambia `sql_portability.py`: la API de `status` sigue igual y las 13 pruebas de portabilidad pasan.
+- Pendiente de C-15: `pagina_de(nombre)` en `sql_portability.py` (expuesto en el plan), el caso `L3/l3_24` con su
+  `esperado/`, y que una función `sas_only` en un flujo se traduzca con la tabla de expresiones.
+
+## Hito 287m (2026-11-17). C-15: `pagina_de` en `sql_portability.py` (plan C, parcial)
+
+- Qué se hizo: `pagina_de(nombre)` devuelve la página de la guía de una función de PROC SQL, o `None` si no tiene una
+  verificada. Lo lee de `rules/sas/sql-functions.json`. Tres pruebas más en `tests/unit/test_sql_functions_regla.py`
+  (ahora 4 en ese archivo).
+- Pendiente de C-15: el caso de corpus `L3/l3_24` con su `esperado/`, y la traducción de funciones `sas_only` en flujos
+  con la tabla de expresiones.
+
+## Hito 288m (2026-11-17). Studio validado: C-6 (GROUP BY con faltantes) coincide; C-4 medido y no cierra (plan C)
+
+- Studio: el usuario abrió Talend Studio. El puente (3930) escuchaba y `talend-mcp` (3927) no; se arrancó
+  `talend-mcp` según `docs/guia-validacion-studio.md` sección 7 (con `TALEND_MCP_ALLOW_WRITE` y `TALEND_MCP_ALLOW_EXECUTE`).
+  `sgm studio salud` dio `READY`.
+- C-6 validado en Studio: caso nuevo `tests/corpus/L3/l3_13_group_by_clave_y_valor_faltante` (capa A, `esperado/`
+  calculado a mano con la regla de sqlproc p. 82, 83 y 88). El oráculo lo verifica. Studio (`tAggregateRow`):
+  `coincide`, 0 diferencias. El emisor de `tAggregateRow` trata bien los faltantes de `COUNT(monto)`, `AVG` y la clave
+  en blanco. Informe: `docs/evidencia-studio-l3_13.md`.
+- `tests/unit/test_tablero.py`: 379 → 380 casos y 363 → 364 con esperado (el caso nuevo).
+- C-4 medido y no cerrado: un LEFT JOIN con llaves nulas y columnas de igual nombre sale en Studio como 12 filas (producto
+  cartesiano) en vez de 4. Defecto del emisor, y un defecto del intérprete (`kb` recibe el valor de `k`). Detalle y
+  evidencia en `docs/BLOQUEOS.md` (sección C-4) y `docs/evidencia-studio-l2_19.md`. El caso no entra en el corpus.
+- `talend-mcp` quedó corriendo en segundo plano (puerto 3927) para esta sesión.
+
+## Hito 289m (2026-11-17). Defecto del emisor: LEFT JOIN sale como producto cartesiano en Studio (plan C, C-4)
+
+- Hipótesis descartadas con Studio: el nombre repetido de las llaves (`k` en las dos tablas) y el tipo numérico. Con
+  claves distintas y con texto el resultado es el mismo: 12 filas donde SAS da 4.
+- Hallazgo mayor: el caso de corpus `l2_02_left_join_con_faltantes` (estado «traducible», nunca validado) sale en Studio
+  con 100 filas en vez de 14. El LEFT JOIN de `tMap` que emite el migrador no une por llave. Evidencia:
+  `docs/evidencia-studio-l2_02.md`. Detalle y decisión pendiente en `docs/BLOQUEOS.md`.
+- No se cambia el emisor: falta saber cómo declara Studio la condición del lookup. El caso temporal se retiró del corpus.
+- Pruebas: sin cambio de código ni de resultados; cierre completo en la validación.
+
+## Hito 290m (2026-11-17). C-8: subconsulta escalar del WHERE en el intérprete (plan C, parcial)
+
+- Qué se hizo: `src/sgm/migrar/interprete_escalares.py` calcula AVG, SUM, MIN, MAX y COUNT de una subconsulta escalar
+  sin correlación antes del filtro, y `preparar` (`interprete_subconsultas.py`) la sustituye por su valor. Sin filas o
+  sin valores presentes da faltante (sqlproc, p. 83 y 84). El emisor no cambia: el filtro sigue pendiente.
+- Defecto encontrado y acotado: el lowering quita el alias externo de una referencia correlacionada (`v.id` pasa a
+  `id`). Sin tratarlo, la subconsulta correlacionada se calculaba como si no lo fuera y daba un resultado falso.
+  Ahora una subconsulta con alias y una columna sin calificar en su WHERE se rechaza. La causa de fondo está en el
+  lowering y queda pendiente.
+- Pruebas: `tests/unit/test_interprete_escalares.py` (4): promedio, máximo, correlacionada (rechazada) y GROUP BY
+  (rechazada). Los tests de subconsultas y de intérprete pasan (72).
+- Pendiente de C-8: la subconsulta en FROM (la forma de la fuente), y el defecto del lowering con alias.
+- Studio: sin cambio. La creación del job de referencia para C-4 sigue bloqueada porque el hilo de interfaz de Studio
+  está ocupado (HTTP 500 de la API del IDE), aunque `sgm studio salud` responda READY.
+
+## Hito 291m (2026-11-17). Defecto del lowering corregido: no se quita el alias externo dentro de una subconsulta (plan C, C-8)
+
+- Causa: `_column` (`src/sgm/ir/lower_sql_texto.py`) quitaba el prefijo de alias sobre todo el texto del filtro, también
+  dentro de `(SELECT ...)`. Una referencia correlacionada (`w.id = v.id`) pasaba a `w.id = id`, que SQL resolvía contra la
+  tabla de dentro: la subconsulta se calculaba como si no dependiera de la fila externa, con un resultado falso.
+- Corrección: dentro de un `(SELECT ...)` el prefijo se conserva; fuera sigue igual. `IS NULL` se convierte en ambos sitios.
+- Efecto: el intérprete rechaza la correlación con el motivo `referencia correlacionada no soportada: v.id` (antes daba un
+  resultado falso). El emisor no cambia.
+- Pruebas: 3016 pasan en las pruebas de SQL, subconsultas, golden y anillo B. `ruff` limpio.
 ## Hito 272n (2026-11-17). `PROC SORT`: `NODUPREC`, `DUPOUT=`, `NOEQUALS` y `DESCENDING`
 
 - Base: `f3fc3d5` (`origin/main` integrado por fast-forward), rama `codex/integrar-main-preflight`.

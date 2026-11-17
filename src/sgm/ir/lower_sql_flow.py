@@ -185,6 +185,14 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     return current
 
 
+def _rama_final(tree: SqlTree) -> Operator:
+    """Operador que une las ramas: UNION ALL, o EXCEPT/INTERSECT (`op` en params, sin ALL)."""
+    final = operadores.ramas_union("_", tree.union_all)
+    if tree.set_op:
+        final.params["op"] = tree.set_op
+    return final
+
+
 def lower_query(tree: SqlTree, normalized: NormalizedSql, ev: Evidence, b: Builder) -> None:
     """Operadores de una consulta (CREATE TABLE ... AS SELECT o SELECT) en flujo."""
     chain = _Chain(ev, b, normalized)
@@ -192,9 +200,9 @@ def lower_query(tree: SqlTree, normalized: NormalizedSql, ev: Evidence, b: Build
     if len(ends) > 1:
         final = op_validado(
             b,
-            lambda: operadores.ramas_union("_", tree.union_all),
+            lambda: _rama_final(tree),
             "union",
-            {"sources": [], "all": tree.union_all},
+            {"sources": [], "all": tree.union_all, "op": tree.set_op},
             ev,
         )
         for end in ends:

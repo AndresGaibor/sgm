@@ -245,6 +245,15 @@ def _tipo_soportado(join: dict | None, armado: Armado, op: Operator) -> bool:
     """
     if not join:
         return True
+    if str(join.get("condition") or "").strip():
+        # El tMap no lleva el resto del ON; sin esta guarda el Job daba más filas que SAS (C-5).
+        armado.pendientes.append(PendienteMigracion(
+            "P-UNION-TIPO-SIN-SOPORTE",
+            "unión con condición residual en el ON (p. ej. a.v < b.v): el tMap solo cruza por "
+            "igualdad de llaves; la condición no se reproduce",
+            _linea(op),
+        ))
+        return False
     # Un MERGE tiene `by` y no `keys`; un JOIN de SQL, al revés.
     if "keys" not in join and "by" in join:
         armado.pendientes.append(PendienteMigracion(

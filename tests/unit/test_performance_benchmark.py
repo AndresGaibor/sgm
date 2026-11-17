@@ -50,7 +50,7 @@ def test_measure_command_captures_wall_time_and_child_peak_memory(tmp_path):
 
     result = measure_command(command, cwd=tmp_path, timeout_seconds=5.0)
 
-    assert result["exit_code"] == 0
+    assert result["exit_code"] == 0, result["stderr_tail"]
     assert result["timed_out"] is False
     assert 0 < result["elapsed_seconds"] < 5.0
     assert result["peak_memory_bytes"] >= 32_000_000

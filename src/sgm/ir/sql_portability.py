@@ -40,6 +40,13 @@ def portable_names() -> frozenset[str]:
     return load_sql_portable()
 
 
+def pagina_de(nombre: str) -> str | None:
+    """Página de la guía de una función de PROC SQL, o None si no tiene una verificada (C-15)."""
+    data = json.loads(SQL_FUNCTIONS_PATH.read_text(encoding="utf-8"))
+    entrada = data["functions"].get(nombre.lower())
+    return entrada.get("pagina") if entrada else None
+
+
 def function_names(sql: str) -> list[str]:
     """Nombres (en minúsculas) de las funciones de una expresión SQL, anidadas incluidas.
 
