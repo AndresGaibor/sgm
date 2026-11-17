@@ -118,7 +118,10 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
                 )
             actual = _unir(actual, por_tabla[tabla], params)
         elif clase == "filter":
-            actual = _filtrar(actual, str(params.get("expression") or ""), por_tabla)
+            # Las subconsultas del filtro leen tablas del programa que no son entradas directas.
+            actual = _filtrar(
+                actual, str(params.get("expression") or ""), {**(tablas or {}), **por_tabla}
+            )
         elif clase == "derive":
             if params.get("conditional") and not params.get("assignments"):
                 # Asignación condicional sin partes: sin efecto daría filas sin la columna (lrcon,

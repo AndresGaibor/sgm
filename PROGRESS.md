@@ -8687,3 +8687,14 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `tests/unit/test_subconsulta_from.py` (4), más 421 de subconsultas, golden e intérprete que pasan.
 - Pendiente: la traducción de la subconsulta en FROM al emisor (necesita Studio). Studio sigue con el hilo de interfaz
   ocupado: la creación del job de referencia de C-4 no se pudo hacer.
+
+## Hito 293m (2026-11-17). C-9: EXISTS y NOT EXISTS correlacionados de una igualdad en el intérprete (plan C, parcial)
+
+- Qué se hizo: `src/sgm/migrar/interprete_exists.py` sustituye `EXISTS (SELECT ... WHERE p.k = v.k)` por `v.k IN (valores de p.k)`.
+  `NOT EXISTS` queda igual, porque el NOT envuelve al nodo sustituido. El filtro de los `map` recibe ahora todas las
+  tablas del programa, no solo sus entradas directas, para que la subconsulta encuentre su fuente.
+- Regla que falta en la guía: la página lrcon p. 154 dice que los faltantes son los más bajos en cualquier comparación,
+  pero no dice si un faltante es igual a otro. Por eso, con un faltante en una llave, la subconsulta se rechaza.
+- Lo verificado: `EXISTS` deja el id 2; `NOT EXISTS` deja 1 y 3, con los datos de prueba.
+- Emisor: el EXISTS sigue sin traducirse; el programa deja un pendiente y no se traduce en silencio.
+- Pruebas: `tests/unit/test_interprete_exists.py` (5, nuevo). 2636 pasan en intérprete, golden, anillo B y filtros.
