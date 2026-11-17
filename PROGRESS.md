@@ -8528,3 +8528,23 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   (la entrada de `l3_09` no se ha revisado). El emisor de la remezcla (`tAggregateRow` más un cruce con la base) no
   está hecho: sin Studio no se puede verificar.
 - Pruebas: 3019 pasan en agregados, intérprete, golden, anillo B y SQL.
+
+## Hito 281m (2026-11-17). C-8 y C-9: subconsultas escalares, en FROM y EXISTS quedan pendientes, fijado con pruebas (plan C, parcial)
+
+- Estado medido antes de tocar código:
+  - Escalar en WHERE (`monto > (SELECT AVG(monto) ...)`): `P-FILTRO-SIN-TRADUCIR`. El intérprete lanza error al
+    evaluarla.
+  - Subconsulta en FROM (`FROM (SELECT ... ) s`): `P-OPERADOR-SIN-SOPORTE` («origen que no es una tabla»; lo lanza
+    `_source` en `src/sgm/ir/sql_tree.py`).
+  - `EXISTS` correlacionado (`WHERE EXISTS (SELECT 1 FROM T p WHERE p.id = v.id)`): `P-FILTRO-SIN-TRADUCIR`.
+- Por qué no se implementaron hoy:
+  - FROM con subconsulta exige un paso intermedio encadenado en el lowering y su emisor. Es cambio de diseño, no un
+    arreglo chico.
+  - EXISTS correlacionado como semijoin (`IN`) tiene un riesgo de semántica con nulos: en SAS, un faltante comparado
+    con un faltante puede dar verdadero, y reescribirlo como IN podría dar filas que SAS no da. No se improvisa.
+  - La escalar necesita evaluar la subconsulta antes del filtro, por el mecanismo de `preparar` de
+    `interprete_subconsultas.py`, que hoy solo cubre `IN`.
+- Prueba nueva: `tests/unit/test_subconsultas_pendientes.py` (3). Fija que las tres formas siguen pendientes, de modo
+  que ningún cambio futuro las convierta en un resultado silencioso sin verificación.
+- Pendiente: C-8 y C-9 completos. Sin Studio, C-9 necesita primero la regla de nulos en comparaciones de SAS, con su
+  página, antes de implementarla.
