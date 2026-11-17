@@ -8392,3 +8392,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   copia de trabajo, como dice el hito 258m); sí los skills de OpenSpec, por el hito 259m. La numeración 259m y 259n
   repite el número entre series; no se renumera (una entrada publicada no se renumera).
 - Bloqueos: Studio sigue en `MODAL_BLOCKING` con 108 casos en la cola de pendientes; no cuenta nada como validado.
+
+## Hito 272m (2026-11-17). Versiona el gancho de commit de Claude Code
+
+- Qué se hizo: se añaden `.claude/settings.json` y `.claude/hooks/validar-commit.sh` al repositorio, a pedido del
+  usuario («súbelo todo»), para que Byron tenga el mismo gancho que Andres. El gancho solo descarta con un `case`
+  los comandos de Bash que no mencionan `commit` y, si lo mencionan, `tools/validacion.py guardia` comprueba que
+  haya cierre verde (misma regla que `.githooks/pre-commit`, sin cambiarla).
+- Decisión: revierte la del hito 271m de dejar estos dos archivos fuera. `.agents/` y
+  `.claude/scheduled_tasks.lock` siguen fuera (ya están en `.gitignore`).
+- Pruebas: cierre completo con `tools/ci.py`; el resultado queda en `uv run python tools/validacion.py historial`.
