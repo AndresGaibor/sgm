@@ -8548,3 +8548,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   que ningún cambio futuro las convierta en un resultado silencioso sin verificación.
 - Pendiente: C-8 y C-9 completos. Sin Studio, C-9 necesita primero la regla de nulos en comparaciones de SAS, con su
   página, antes de implementarla.
+
+## Hito 282m (2026-11-17). C-10: EXCEPT e INTERSECT en el intérprete (plan C, parcial)
+
+- Estado medido antes: `EXCEPT` e `INTERSECT` daban `P-OPERADOR-SIN-SOPORTE` («consulta fuera de SELECT: Except»),
+  porque `_branches` solo aceptaba `UNION`. El intérprete ya deduplicaba `UNION` sin ALL: no había que tocarlo.
+- Qué se hizo:
+  - `src/sgm/ir/sql_tree.py`: `SqlTree.set_op` y `_operacion_de_conjuntos`. `EXCEPT` e `INTERSECT` de dos SELECT se
+    reconocen; `ALL` y ramas que no son SELECT siguen siendo `SqlNotSelect`.
+  - `src/sgm/ir/lower_sql_flow.py`: `_rama_final` guarda `op` en el operador de unión (sin ALL).
+  - `src/sgm/migrar/interprete_conjuntos.py` (nuevo): compara filas por posición, sin repetidos, con faltante casando
+    con faltante (p. 102). `src/sgm/migrar/interprete.py` lo llama cuando el operador trae `op`.
+- Resultado verificado con el programa de prueba (A = 1,2,3; B = 2,3,4): `UNION` 1 a 4, `INTERSECT` 2 y 3, `EXCEPT` 1.
+- El emisor de Talend no cambia: un operador sin ALL sigue pendiente. El texto del pendiente (`P-UNION-SIN-ALL`) dice
+  «UNION», aunque la operación sea EXCEPT o INTERSECT. Es un texto que conviene corregir más adelante.
+- Pruebas: `tests/unit/test_interprete_conjuntos.py` (4, nuevo).
+- Pendiente de C-10: `INTERSECT ALL` y `EXCEPT ALL` quedan fuera (sin página que lo demuestre, según el plan). Los
+  casos de corpus con esperado no se han añadido.

@@ -95,6 +95,7 @@ class SqlTree:
     selects: list[SelectSpec]  # una por rama de UNION; una sola si no hay unión
     union_all: bool = False  # las ramas se unen con UNION ALL (sin quitar duplicados)
     identifiers_portable: bool = True
+    set_op: str | None = None  # "except" o "intersect" (dos ramas, por posición de columnas)
 
 
 def validate_portable_identifiers(tree: SqlTree) -> None:
@@ -313,6 +314,18 @@ def build(sql: str) -> SqlTree:
             raise SqlNotSelect("CREATE que no es CREATE TABLE ... AS SELECT")
         target = _name(tree.this) if isinstance(tree.this, exp.Table) else tree.this.sql()
         body = tree.expression
+    operacion = _operacion_de_conjuntos(body)
+    if operacion is not None:
+        ramas = [body.this, body.expression]
+        if not all(isinstance(rama, exp.Select) for rama in ramas):
+            raise SqlNotSelect(f"{operacion.upper()} con ramas que no son SELECT")
+        return SqlTree(
+            target,
+            [_select(rama) for rama in ramas],
+            union_all=False,
+            identifiers_portable=identifiers_portable,
+            set_op=operacion,
+        )
     branches, union_all = _branches(body)
     return SqlTree(
         target,
@@ -320,3 +333,13 @@ def build(sql: str) -> SqlTree:
         union_all=union_all,
         identifiers_portable=identifiers_portable,
     )
+
+
+def _operacion_de_conjuntos(node: exp.Expression) -> str | None:
+    """`except` o `intersect` de dos SELECT (sin ALL). Otra forma de conjuntos no se traduce."""
+    for clase, nombre in ((exp.Except, "except"), (exp.Intersect, "intersect")):
+        if isinstance(node, clase):
+            if not node.args.get("distinct", True):
+                raise SqlNotSelect(f"{nombre.upper()} ALL no se traduce")
+            return nombre
+    return None
