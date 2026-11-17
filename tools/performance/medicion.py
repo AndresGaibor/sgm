@@ -6,6 +6,7 @@ import os
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -92,11 +93,13 @@ def measure_command(
     popen_options: dict[str, Any] = {}
     if os.name != "nt":
         popen_options["start_new_session"] = True
+    # El error del hijo se guarda: sin él, un fallo intermitente (exit 1) no deja rastro.
+    errores = tempfile.TemporaryFile()
     process = subprocess.Popen(
         command,
         cwd=cwd,
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stderr=errores,
         **popen_options,
     )
     monitor: _ProcessPeakMemory | None = None
@@ -121,6 +124,9 @@ def measure_command(
             process.wait()
         if monitor is not None:
             monitor.close()
+        errores.seek(0)
+        stderr_tail = errores.read()[-2000:].decode("utf-8", errors="replace")
+        errores.close()
 
     return {
         "elapsed_seconds": round(time.perf_counter() - started, 3),
@@ -128,6 +134,7 @@ def measure_command(
         "timed_out": timed_out,
         "peak_memory_bytes": peak_memory_bytes,
         "memory_metric": memory_metric,
+        "stderr_tail": stderr_tail,
     }
 
 

@@ -8565,3 +8565,26 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `tests/unit/test_interprete_conjuntos.py` (4, nuevo).
 - Pendiente de C-10: `INTERSECT ALL` y `EXCEPT ALL` quedan fuera (sin página que lo demuestre, según el plan). Los
   casos de corpus con esperado no se han añadido.
+
+## Hito 283m (2026-11-17). C-11 bloqueado por decisión del dueño; diagnóstico de la prueba de rendimiento inestable (plan C)
+
+- C-11 (`OUTER UNION` y `OUTER UNION CORR`): se midió el estado actual (pendiente `P-OPERADOR-SIN-SOPORTE` con motivo
+  explícito) y no se implementa. Falta decidir qué nombre dar a una columna repetida entre ramas en `OUTER UNION` sin
+  CORR. La pregunta queda en `docs/BLOQUEOS.md`, sección C-11.
+- Prueba inestable: `tests/unit/test_performance_benchmark.py::test_measure_command_captures_wall_time_and_child_peak_memory`
+  falló en tres corridas del cierre y pasó en las demás. Se intentó reproducir lanzando 8 hijos en paralelo con el mismo
+  código: los 8 salen con código 0. El hijo escribe su error en `DEVNULL` (`tools/performance/medicion.py`), así que el
+  código 1 no deja rastro. Causa sin confirmar. No se cambió la prueba ni su medición; queda como deuda, con la
+  propuesta de capturar el stderr del hijo para ver el error la próxima vez.
+- Pruebas: no hay cambio de código en este hito. Solo documentación (`PROGRESS.md`, `docs/BLOQUEOS.md`).
+
+## Hito 284m (2026-11-17). Diagnóstico de la prueba de rendimiento inestable (plan C, sin cambio de resultados)
+
+- Causa de la inestabilidad: no confirmada. La prueba `test_measure_command_captures_wall_time_and_child_peak_memory`
+  falló cuatro veces en cierres recientes con código 1 del proceso hijo. El hijo escribía su error en `DEVNULL`, así
+  que no había rastro.
+- Qué se hizo: `tools/performance/medicion.py` guarda el stderr del hijo en un archivo temporal y lo devuelve en
+  `stderr_tail` (los últimos 2000 caracteres). `tests/unit/test_performance_benchmark.py` muestra ese texto si el código
+  de salida no es 0. No cambian los tiempos, la memoria ni las aserciones.
+- Próximo paso: si la prueba vuelve a fallar, el mensaje dirá la causa; con eso se decide el arreglo.
+- Pruebas: `test_performance_benchmark.py` (5) pasa; cierre completo con `tools/ci.py` en verde en esta corrida.

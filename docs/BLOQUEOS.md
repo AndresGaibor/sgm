@@ -298,3 +298,18 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   `JOB_NO_EN_REPOSITORIO`. No se cuenta nada como compilado.
 - **Qué hace falta:** que Studio vea la carpeta `process/` (por ejemplo, recargar el proyecto desde su interfaz),
   o que el lote pase por el flujo de `validar` que ya funcionó (hito 143m). Decisión tomada: no inventar resultados.
+
+## C-11: OUTER UNION y OUTER UNION CORR (plan C, 17 de noviembre de 2026)
+
+- **Estado medido:** `OUTER UNION` y `OUTER UNION CORR` dan `P-OPERADOR-SIN-SOPORTE` con el motivo «OUTER UNION de SAS
+  alinea las ramas por nombre; reescribirlo como UNION ALL cambia el resultado si el orden de columnas difiere. Requiere
+  decisión».
+- **Por qué no se implementa hoy:** la guía (`sqlproc`, p. 135) dice que `OUTER UNION` concatena las consultas sin
+  superponer columnas, y que `CORRESPONDING` superpone las del mismo nombre. Con filas como diccionarios, dos columnas
+  `id` (una por rama) no se pueden representar sin inventar un nombre. Y el emisor de Talend no tiene forma verificada
+  de hacer una unión con columnas distintas.
+- **Decisión que falta (dueño):** para `OUTER UNION` sin CORR, ¿qué nombre dar a una columna repetida entre ramas (`id` y
+  `id_1`, o dejar el caso pendiente)? Para `OUTER UNION CORR`, basta con confirmar que se alinea por nombre y las
+  columnas que una rama no tiene salen en faltante.
+- **Desbloqueo:** esa decisión. El intérprete para CORR se puede hacer después con la misma función de conjuntos de C-10.
+
