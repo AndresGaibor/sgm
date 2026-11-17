@@ -6820,6 +6820,154 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: `tests/unit/test_linea_base_plan_logico.py`, 2 pasan.
 - Nota: esta entrada llegó en un commit posterior al código del mismo hito (el primero se subió sin ella).
 
+## Hito 209m. `paso` pasa a `ir/pasos.py` sin cambio de comportamiento (B-5, parte 1)
+
+- Que se hizo: `_paso` de `lower_sql_flow.py` pasa a `src/sgm/ir/pasos.py` como `paso`, con el mismo cuerpo. Se importa
+  como `_paso` en `lower_sql_flow.py`, así que sus llamadas no cambian. Ese archivo baja de 608 a 595 líneas.
+- Pruebas: `tests/unit/test_ir_pasos.py` (2 pasan). Los golden de SQL y del plan (`test_ir_operadores_corpus`,
+  `test_golden*`, `test_sql*`) pasan sin cambios: 182 pruebas.
+- Pendiente de B-5: `lower_data_statements.py`, `lower_data_grupos.py` y `lower_procs.py` todavía construyen con
+  `Builder.op` directamente; pasan a `paso` con su constructor en un hito propio.
+
+## Hito 210m. A-4, paso 1 medido en Studio sin resultado válido
+
+- Que se hizo: se generaron los Jobs de `l1_14_expresion_compuesta` y `l1_15_distinct_tildes` con `sgm migrar`
+  (backend archivos) y se mandaron en un lote con `tools/corpus_studio.py lote --backend mcp` (sufijo `a4c`).
+- Resultado literal: `Lote de 2 Jobs (sufijo a4c) en 29.6 s: 0 compilan, 2 no` con
+  `job_programa_a4c00: El job no existe en el repositorio` y lo mismo para `a4c01`.
+- Lectura: el lote tardó más de 25 s (el límite del puente) y no hubo error de puente, pero Studio no vio los Jobs
+  copiados a `process/` del proyecto `C:/Talend/8.0.1/studio/workspace/talendbancolombia-963626413/PRJ_BANCOLOMBIA`.
+  Con `--backend talend_cli` el refresco falla con `source: unavailable`.
+- No se cierra A-4: falta saber si Studio tiene abierto ese proyecto y repetir el lote. Decisión (a) o (b) pendiente.
+- A-6 no se empezó: su spike de carga necesita el repositorio de `talend-mcp` y un joblet escrito a mano.
+- Nota: `validar_en_studio.py` no sirve para casos del corpus; pide `decisiones/<programa>.jobs.yaml`.
+
+## Hito 211m. A-4 medido en Studio: el límite de 25 s no corta el lote (cierra el spike)
+
+- Causa de los fallos del hito 210m, corregida: Studio tiene abierto el workspace `C:/Talend/8.0.1/studio/workspace3`
+  (lo dice `talend_bridge_workspace_state`), no `workspace`. Y faltaban los `.properties` de cada Job; sin ellos
+  Studio responde «El job no existe en el repositorio».
+- Mediciones literales (`tools/corpus_studio.py lote --backend mcp`, proyecto `workspace3`):
+  - 2 Jobs (`l1_14`, `l1_15`): `Lote de 2 Jobs (sufijo a4d) en 26.6 s: 2 compilan, 0 no`.
+  - 8 Jobs (L1 de los 8 primeros casos): `Lote de 8 Jobs (sufijo a4h) en 20.1 s: 8 compilan, 0 no`.
+  - 16 Jobs (todo L1): `Lote de 16 Jobs (sufijo a4i) en 25.4 s: 16 compilan, 0 no`.
+  - 32 Jobs (L1 dos veces): `Lote de 32 Jobs (sufijo a4j) en 31.6 s: 32 compilan, 0 no`.
+- Lectura con la regla de A-4: un Job tarda unos 1,0 s en compilar, no 20 s, y la respuesta es pequeña. El puente no
+  corta ninguno de los lotes, ni siquiera de 31,6 s. No hace falta (a) ni (b); el plazo propio de 180 s y 300 s del
+  hito 195 de `talend-mcp` cubre `build` y `build-batch`.
+- Pendiente de A-4: la prueba del paso 3 (respuesta de 40 s) vive en `talend-mcp`, no en `sgm-v2`, y no se corrió aquí.
+- Resultado para el plan: A-4 cerrada con evidencia de medición en `sgm-v2`; la prueba del repositorio de `talend-mcp`
+  queda por verificar allá.
+
+## Hito 212m. A-6, spike de joblets: bloqueado por falta de una referencia de Studio
+
+- Paso 1 del plan (escribir un joblet mínimo y ver si Studio lo lista) no se puede hacer aún, por dos razones medidas:
+  - `componentVersion` de `tJobletInput` y `tJobletOutput` no está en el repositorio (`rules/`, `docs/`, `talend-mcp`).
+    Sin ella Studio no resuelve el componente (lo dice `talend-mcp/src/talend/job-generator/types.ts`). No se inventa.
+  - `PRJ_BANCOLOMBIA/joblets/` está vacío (solo `.gitkeep`): no hay un joblet de Studio que copiar como modelo.
+- Lo que desbloquea el spike: un joblet creado a mano en Studio (`tJobletInput` a `tJobletOutput`, guardado). Con ese
+  `.item` se lee la versión y la estructura real.
+- A-4 quedó cerrada en el hito 211m. A-6 queda abierta hasta tener ese joblet.
+
+## Hito 213m. El DATA step usa los constructores para WHERE, KEEP/DROP y RENAME (B-5, parte 2)
+
+- Que se hizo: `op_validado` en `ir/pasos.py` (la variante de `paso` para `Builder`). `lower_data_statements.py`
+  construye `filter`, `select` y `rename` con `operadores.filtrar`, `proyectar` y `renombrar`. Si el constructor
+  rechaza el valor (por ejemplo, un WHERE vacío), usa la forma anterior.
+- Verificado: los parámetros que dan los constructores son los mismos que la forma anterior en los casos válidos.
+- Pruebas: 366 pasan en golden, IR, DATA step y desde-plan; `tests/unit/test_ir_pasos.py` (3 pasan).
+- Pendiente de B-5: `split`, `derive` condicional, `stateful_row`, `unsupported` en `lower_data_statements.py`;
+  `lower_data_grupos.py` y `lower_procs.py`.
+
+## Hito 214m. B-5 parada: `PROC SORT` no se puede pasar a `ordenar` sin cambiar firmas
+
+- Medido: `lower_procs._sort_params` guarda solo las opciones no predeterminadas (`by`, `inputs`, y `descending`
+  o `equals` si aplican). `operadores.ordenar` siempre emite `descending` y no tiene `inputs`. El `dedup` de
+  `PROC SORT` además añade `duplicate_outputs`, que `deduplicar` no tiene.
+- Consecuencia: convertir `PROC SORT` cambia las firmas de todos los `PROC SORT` del corpus, y el plan prohíbe
+  cambiar las de L0 a L3.
+- Decisión pendiente: (a) que `ordenar` y `deduplicar` acepten un modo compacto que reproduzca la forma actual, o
+  (b) aceptar firmas nuevas y actualizar los golden en un hito propio. No se elige en silencio.
+- Lo que sí quedó de B-5: WHERE, KEEP/DROP y RENAME del DATA step (hito 213m).
+
+## Hito 215m. B-5: PROC SORT por constructores (opción a) y corrección del hito 213m
+
+- Decisión: opción (a) de la parada del hito 214m. `operadores.ordenar` y `operadores.deduplicar` aceptan un modo
+  compacto (`compacto=True`, `inputs`, `equals`, `duplicate_outputs`) que reproduce la forma de `PROC SORT`.
+  `lower_procs._sort` construye su `sort` y su `dedup` con `op_validado`. Las firmas no cambian: 617 pruebas de
+  golden, IR, SORT y desde-plan pasan.
+- Corrección del hito 213m: el cambio de WHERE, KEEP/DROP y RENAME se hizo en `lower_data_statements.py`, pero ese
+  archivo no lo llama nadie. El lowering vivo está en `lower_data.py` (`_statement_op`). Ahora el cambio está también
+  ahí, con la evidencia como lista. Antes de este hito, `op_validado` recibía una `Evidence` suelta y los constructores
+  no la aceptan (`list(evidence)`): el error no se vio porque la rama no se recorría en las pruebas.
+- Prueba de regresión: `test_sentencias_where_keep_y_rename_del_data_step_pasan_por_los_constructores` llama a
+  `_statement_op` con sentencias construidas a mano.
+- Pendiente, decisión del dueño: `statement_op` de `lower_data_statements.py` es código muerto duplicado de
+  `lower_data._statement_op`. Propongo borrarlo en un hito propio.
+- Pendiente de B-5: `lower_data.py` pasa de 300 líneas (770): antes de tocarlo más hay que extraer bloques a módulos
+  nuevos, como piden las Global Constraints del plan B.
+
+## Hito 216m. `lower_data.py` extrae las salidas condicionales (B-5, parte de la división)
+
+- Que se hizo: el bloque de salidas (`OUTPUT` dentro de `IF`, cadenas de salidas, destinos repetidos o sin declarar)
+  pasa de `lower_data.py` a `src/sgm/ir/lower_data_salidas.py`, sin cambio de comportamiento. `lower_data.py` baja de
+  770 a 599 líneas; `lower_data_salidas.py` tiene 214.
+- Verificado: `ruff` limpio en `src/sgm/ir`; 853 pruebas de golden, IR, DATA step y salidas pasan. Los saltos de la
+  corrida son los de siempre (columnas sin Job en el corpus, falta de JDK, expresiones no aplicables).
+- Pendiente: `lower_data.py` sigue por encima de 300 líneas (599). Quedan por extraer los bloques de estado por fila
+  y de asignaciones condicionales.
+- Decisión sin tomar: `lower_data_statements.py` es casi código muerto (solo `conditional_do_assignments` lo usa un
+  test). Borrarlo implica borrar o reescribir `tests/unit/test_lower_data_do_else.py`, y no se hace sin confirmarlo.
+
+## Hito 217m. `lower_data.py` extrae las asignaciones condicionales y el operador por sentencia (B-5)
+
+- Que se hizo: `_conditional_assignment`, `_statement_op` y las tres expresiones regulares de IF/ELSE pasan a
+  `src/sgm/ir/lower_data_asignaciones.py`, sin cambio de comportamiento. `lower_data.py` baja de 599 a 467 líneas;
+  el módulo nuevo tiene 150.
+- Verificado: `ruff` limpio en `src/sgm/ir`; 861 pruebas de golden, IR, DATA step, salidas y desde-plan pasan.
+- Pendiente: `lower_data.py` sigue por encima de 300 líneas (467). Falta `_lower_data_steps` (unas 275 líneas), que
+  hay que partir en estado por fila y en el resto del recorrido.
+
+## Hito 218m. `lower_data.py` baja de 300 líneas: el recorrido del DATA step pasa a una clase (B-5)
+
+- Que se hizo: el bucle de `_lower_data_steps` pasa a `src/sgm/ir/lower_data_recorrido.py` como la clase `_Recorrido`.
+  El estado que el bucle reasignaba (`current`, `pending_derive`, `loose`, `prev`, `omit`) vive en la clase, y cada
+  rama es un método que dice si la sentencia ya quedó resuelta. Mismo orden de ramas que antes.
+- `lower_data.py` baja de 467 a 286 líneas (dentro del límite de 300). `lower_data_recorrido.py` tiene 243.
+- Verificado: `ruff` limpio en `src/sgm/ir`; 880 pruebas de golden, IR, DATA step, salidas y desde-plan pasan.
+- Cambio de prueba: `test_sentencias_where_keep_y_rename_del_data_step_pasan_por_los_constructores` importa
+  `_statement_op` desde `lower_data_asignaciones`, porque ya no lo reexporta `lower_data`.
+- Pendiente: `lower_data_statements.py` sigue siendo código muerto (decisión del dueño, ver hito 216m).
+
+## Hito 219m. B-5: filter, lectura y escritura de archivos, y el SORT con salida por los constructores
+
+- Que se hizo: los dos `filter` de `lower_data.py` y `lower_data_asignaciones.py` usan `operadores.filtrar`; `read_file`
+  y `write_file` de `PROC IMPORT` y `PROC EXPORT` usan `leer_archivo` y `escribir_archivo`; `escribir_archivo` gana
+  `sheet` opcional (solo aparece si se da); el `sort` de la rama NODUPREC con salida usa `ordenar` en modo compacto.
+- Guardia: `tests/unit/test_ir_sin_forma_directa.py` cuenta, por archivo y por tipo, las llamadas directas a
+  `Builder.op` de `filter`, `select`, `rename`, `sort`, `dedup`, `read_file`, `write_file` y `derive`. Solo se permiten
+  las excepciones listadas con su motivo.
+- Excepciones que quedan (con motivo en la prueba): `read_file` de INFILE/INPUT en `lower_data.py` (sus parámetros
+  `reason` y `multiple_io_statements` no caben en `leer_archivo`); `derive` pendientes del DATA step y el derive
+  condicional (no hay constructor para una lista vacía ni para `conditional`).
+- Verificado: `ruff` limpio en `src/sgm/ir`; 928 pruebas de golden, IR, DATA step, SORT, lectura y escritura pasan.
+- Pendiente de B-5: el contador de formas anteriores en `Plan.resumen` (lo pide el paso 3 del plan, para B-6), y las
+  excepciones de arriba si se quieren cerrar del todo.
+
+## Hito 220m. Contador de forma legado y agregados de SQL por `agregar` (B-5 paso 3, B-6 parcial)
+
+- Contador: `ir/pasos.py` cuenta cada vez que `paso` u `op_validado` usan la forma legado (el constructor rechazó los
+  datos), con `contador_legado()` y `reiniciar_contador_legado()`. Desviación del plan: el contador no va en `Plan.resumen`,
+  porque añadir un campo a `Plan` cambiaría la serialización de todos los planes.
+- Agregados de SQL: `lower_sql_flow._agregado` construye el paso `aggregate` con `operadores.agregar` (los dos caminos,
+  con y sin `pendiente`). Los golden de SQL y del plan pasan sin cambios.
+- Medición: los 43 casos `traducible` de L1 a L3 no usan la forma legado (contador vacío). La prueba
+  `tests/unit/test_ir_sin_forma_legado.py` lo exige.
+- Pendiente de B-6: `lower_sql_flow.py` (595 líneas) sigue por encima de 300 y no se ha extraído `lower_sql_agregados.py`;
+  quedan `join`, `union` y `derive` construidos con `Builder.op` directo (el contador no los ve, por eso la guardia de
+  B-5 no los cubre todavía).
+- Verificado: `ruff` limpio en `src/sgm/ir`; 570 pruebas de IR, SQL, golden, desde-plan y las nuevas pasan.
+
 ## Hito 209n. Inventario de funciones por motor y línea base de MG-P3
 
 - Base: `544d1f1` (`origin/main`, hito 208m).

@@ -5,8 +5,10 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.steps import Proc
+from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.models import Evidence
+from sgm.ir.pasos import op_validado
 
 # Opciones que el PROC IMPORT y el PROC EXPORT escriben como sentencia del cuerpo (`GETNAMES=YES;`)
 # o en la cabecera. Se leen del texto y no se suponen: el valor que falta queda en `None`.
@@ -67,7 +69,26 @@ def _read_file(step: Proc, ev: Evidence, b: Builder, out: str | None) -> None:
         params["datafile"] = None
     if "datarow" in opciones:
         params["datarow"] = _entero(opciones["datarow"])
-    b.op("read_file", params, ev)
+    def construir():
+        lectura = operadores.leer_archivo(
+            "_",
+            params["datafile"],
+            params["outputs"],
+            dbms=params["dbms"],
+            delimiter=params["delimiter"],
+            getnames=params["getnames"],
+            sheet=params["sheet"],
+            guessingrows=params["guessingrows"],
+            evidence=[ev],
+        )
+        lectura.params.update(
+            {key: value for key, value in params.items() if key not in {
+                "datafile", "outputs", "dbms", "delimiter", "getnames", "sheet", "guessingrows"
+            }}
+        )
+        return lectura
+
+    op_validado(b, construir, "read_file", params, ev)
 
 
 def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
@@ -83,4 +104,21 @@ def _write_file(step: Proc, ev: Evidence, b: Builder, data: str | None) -> None:
         params["sheet"] = _sin_comillas(opciones["sheet"])
     if "putnames" in opciones:
         params["putnames"] = _putnames(opciones["putnames"])
-    b.op("write_file", params, ev)
+    def construir():
+        escritura = operadores.escribir_archivo(
+            "_",
+            params["inputs"],
+            params["outfile"],
+            dbms=params["dbms"],
+            delimiter=params["delimiter"],
+            sheet=params.get("sheet"),
+            evidence=[ev],
+        )
+        escritura.params.update(
+            {key: value for key, value in params.items() if key not in {
+                "inputs", "outfile", "dbms", "delimiter", "sheet"
+            }}
+        )
+        return escritura
+
+    op_validado(b, construir, "write_file", params, ev)

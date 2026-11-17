@@ -5,9 +5,11 @@ from __future__ import annotations
 import re
 
 from sgm.frontend.steps import Proc
+from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_procs_common import unsupported
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 
 
 def lower_sort(step: Proc, evidence: Evidence, builder: Builder) -> None:
@@ -65,12 +67,21 @@ def lower_sort(step: Proc, evidence: Evidence, builder: Builder) -> None:
             "NODUPREC solo elimina duplicados adyacentes; sin BY _ALL_ no se demuestra "
             "que todos queden juntos"
         ]
-        builder.op(
+        salida_orden = [qualify(out or data)] if (out or data) else []
+        op_validado(
+            builder,
+            lambda: operadores.ordenar(
+                "_",
+                by,
+                descending,
+                outputs=salida_orden,
+                compacto=True,
+                inputs=[qualify(data)] if data else [],
+                equals=False if "noequals" in flags else None,
+                evidence=[evidence],
+            ),
             "sort",
-            {
-                **_sort_params(by, descending, flags, data),
-                "outputs": [qualify(out or data)] if (out or data) else [],
-            },
+            {**_sort_params(by, descending, flags, data), "outputs": salida_orden},
             evidence,
             status="parcial",
             notes=notes,
@@ -79,9 +90,20 @@ def lower_sort(step: Proc, evidence: Evidence, builder: Builder) -> None:
     nodup = nodupkey or noduprec
     sort_status = "soportado" if by else "parcial"
     sort_notes = [] if by else ["PROC SORT sin BY: no se puede deducir la clave"]
-    sort = builder.op(
+    params_sort = _sort_params(by, descending, flags, data)
+    sort = op_validado(
+        builder,
+        lambda: operadores.ordenar(
+            "_",
+            by,
+            descending,
+            compacto=True,
+            inputs=[qualify(data)] if data else [],
+            equals=False if "noequals" in flags else None,
+            evidence=[evidence],
+        ),
         "sort",
-        _sort_params(by, descending, flags, data),
+        params_sort,
         evidence,
         status=sort_status,
         notes=sort_notes,
@@ -102,7 +124,22 @@ def lower_sort(step: Proc, evidence: Evidence, builder: Builder) -> None:
         params = {"by": by, "keep": "first"}
         if dupout:
             params["duplicate_outputs"] = [qualify(dupout)]
-        dedup = builder.op("dedup", params, evidence, status=dedup_status, notes=notes)
+        duplicate_outputs = [qualify(dupout)] if dupout else None
+        dedup = op_validado(
+            builder,
+            lambda: operadores.deduplicar(
+                "_",
+                by,
+                "first",
+                duplicate_outputs=duplicate_outputs,
+                evidence=[evidence],
+            ),
+            "dedup",
+            params,
+            evidence,
+            status=dedup_status,
+            notes=notes,
+        )
         builder.link(sort, dedup)
         current = dedup
     target = out or data
