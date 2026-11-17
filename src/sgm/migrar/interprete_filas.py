@@ -21,7 +21,11 @@ from sgm.migrar.interprete_valores import (
     _verdad,
 )
 
-_TIPOS_DE_UNION = frozenset({"inner", "left", "left outer", "cross"})
+_TIPOS_DE_UNION = frozenset(
+    {"inner", "left", "left outer", "right", "right outer", "full", "full outer", "cross"}
+)
+_CON_IZQUIERDA_SIN_PAREJA = frozenset({"left", "left outer", "full", "full outer"})
+_CON_DERECHA_SIN_PAREJA = frozenset({"right", "right outer", "full", "full outer"})
 def _filtrar(
     filas: list[dict], expresion: str, tablas: dict[str, list[dict]] | None = None
 ) -> list[dict]:
@@ -201,14 +205,21 @@ def _unir(izquierda: list[dict], derecha: list[dict], params: dict) -> list[dict
         llave = tuple(_clave(_valor(arbol, fila)) for _, arbol in arboles)
         indice.setdefault(llave, []).append(fila)
     vacia = dict.fromkeys(derecha[0], None) if derecha else {}
+    vacia_izquierda = dict.fromkeys(izquierda[0], None) if izquierda else {}
+    emparejadas: set[int] = set()
     resultado: list[dict] = []
     for fila in izquierda:
         llave = tuple(_clave(_valor(arbol, fila)) for arbol, _ in arboles)
         parejas = indice.get(llave)
         if parejas:
+            emparejadas.update(id(otra) for otra in parejas)
             resultado += [{**fila, **otra} for otra in parejas]
-        elif tipo in ("left", "left outer"):
+        elif tipo in _CON_IZQUIERDA_SIN_PAREJA:
             resultado.append({**vacia, **fila})
+    if tipo in _CON_DERECHA_SIN_PAREJA:
+        resultado += [
+            {**vacia_izquierda, **otra} for otra in derecha if id(otra) not in emparejadas
+        ]
     return resultado
 
 

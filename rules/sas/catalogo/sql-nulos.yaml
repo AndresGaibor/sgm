@@ -22,4 +22,4 @@ entries:
   nombre: The Effects of Null Values on Joins
   fuente: sqlproc.pdf, p. 102
   estado: no_verificada
-  nota: Un join con nulos no empareja esas filas. Sin regla en el repo.
+  nota: 'PROC SQL trata los nulos como coincidentes en un join: un nulo casa con todos los nulos del mismo tipo (p. 102). El intérprete del anillo B ya lo aplica en INNER, LEFT, RIGHT y FULL; el emisor de Talend aún no traduce RIGHT ni FULL (pendiente P-UNION-TIPO-SIN-SOPORTE).'

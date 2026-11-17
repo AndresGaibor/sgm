@@ -8462,3 +8462,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: 453 pasan en golden, equivalencia, intérprete, anillo B e ir de operadores; 688 pasan en las pruebas que
   mencionan subconsultas, uniones o `interprete_filas` (14 `xfail` como antes).
 - Pendiente del plan C: `sql_tree.py` (322 líneas) y `desde_plan_map.py` (833) siguen sobre 300. C-3 a C-15 no empezados.
+
+## Hito 277m (2026-11-17). C-3: RIGHT y FULL JOIN en el intérprete, con nulos que casan (plan C)
+
+- Qué se hizo: `_unir` en `src/sgm/migrar/interprete_filas.py` acepta `right`, `full` (y sus formas `outer`).
+  Las filas de la izquierda sin pareja salen con las columnas de la derecha en nulo (`full` y `left`); las de la
+  derecha sin pareja salen al final, con las de la izquierda en nulo (`full` y `right`). Un nulo casa con todos los
+  nulos del mismo tipo (ya era así en `_clave`).
+- Corrección al catálogo: `rules/sas/catalogo/sql-nulos.yaml`, entrada `the-effects-of-null-values-on-joins` (p. 102).
+  Decía «un join con nulos no empareja esas filas», y la guía dice lo contrario: PROC SQL sí casa los nulos. Se corrige
+  la nota; el estado sigue `no_verificada` porque el emisor de Talend no traduce RIGHT ni FULL.
+- Lo que no se hizo de C-3: el caso `L2/l2_17_full_right_join_llaves_nulas` con su `esperado/`. Queda pendiente: no
+  está en el corpus, así que los conteos del tablero no cambian en este hito.
+- Emisión: el emisor de Talend deja RIGHT y FULL como `P-UNION-TIPO-SIN-SOPORTE`, así que no sale un Job incorrecto.
+  Esa parte es C-4.
+- Pruebas: `tests/unit/test_interprete_uniones.py` (4, nuevo), `test_catalogo_sas.py`, `test_migrar_interprete.py`,
+  `test_golden.py`: 110 pasan.
