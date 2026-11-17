@@ -55,3 +55,16 @@ def test_left_join_sigue_igual_que_antes():
     resultado = _unir(izquierda, derecha, _llaves("left"))
 
     assert [(f["va"], f.get("vb")) for f in resultado] == [("x1", None), ("x2", "y2")]
+
+
+def test_una_condicion_residual_no_se_ignora_en_silencio():
+    """Antes el join descartaba `m.v < n.v` y devolvía 5 filas donde SAS da 1 (plan C-5)."""
+    import pytest
+
+    from sgm.migrar.interprete_base import NoSoportadoEnInterprete
+
+    params = {"join_type": "inner", "keys": [["m.a", "n.a"]], "condition": "m.v < n.v"}
+    with pytest.raises(NoSoportadoEnInterprete, match="condición residual"):
+        _unir([{"a": "A", "v": "1"}], [{"a": "A", "v": "2"}], params)
+
+

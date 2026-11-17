@@ -194,6 +194,9 @@ def _unir(izquierda: list[dict], derecha: list[dict], params: dict) -> list[dict
     tipo = str(params.get("join_type") or "inner").strip().lower()
     if tipo not in _TIPOS_DE_UNION:
         raise NoSoportadoEnInterprete("join", f"tipo '{tipo}'")
+    if str(params.get("condition") or "").strip():
+        # Sin esta guarda el join descartaba la condición y daba más filas que SAS (plan C-5).
+        raise NoSoportadoEnInterprete("join", "condición residual del ON sin evaluar")
     pares = [list(par) for par in params.get("keys") or [] if len(list(par)) == 2]
     if tipo == "cross" or not pares:
         if tipo == "cross":

@@ -8478,3 +8478,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   Esa parte es C-4.
 - Pruebas: `tests/unit/test_interprete_uniones.py` (4, nuevo), `test_catalogo_sas.py`, `test_migrar_interprete.py`,
   `test_golden.py`: 110 pasan.
+
+## Hito 278m (2026-11-17). C-5: un JOIN con condición residual ya no sale como resultado incorrecto (plan C, parcial)
+
+- Hallazgo: el auto-JOIN del plan C-5 (`FROM WORK.p m INNER JOIN WORK.p n ON m.a = n.a AND m.v < n.v`) daba 5 filas
+  donde SAS da 1. El intérprete (`_unir` en `src/sgm/migrar/interprete_filas.py`) descartaba `m.v < n.v` en silencio, y
+  el emisor de Talend también (el Job no tenía ningún filtro de `v`). Era un error de resultado, no un pendiente.
+- Qué se hizo:
+  - Intérprete: un join con condición residual se rechaza como `NoSoportadoEnInterprete` («condición residual del ON
+    sin evaluar»), en vez de ignorar la condición.
+  - Emisor: `_tipo_soportado` en `src/sgm/talend_item/desde_plan_map.py` devuelve pendiente `P-UNION-TIPO-SIN-SOPORTE`
+    para un cruce con condición residual. El Job no se emite con el cruce incorrecto.
+- Lo que sí daba bien: la llave compuesta con texto en blanco (`b = ''` casa con `b = ''`, p. 102) y el LEFT JOIN de
+  ese caso producen `izquierda` como el plan lo espera.
+- Pendiente de C-5: implementar la condición residual de verdad (necesita columnas calificadas por alias para el
+  auto-JOIN), y el caso `L2/l2_18` con su `esperado/`. No se hace hoy: el cambio toca el modelo de filas del intérprete.
+- Pruebas: `tests/unit/test_interprete_uniones.py` (6) y `tests/unit/test_interprete_uniones_emision.py` (1, nuevo).
+  Suite de joins, uniones y `talend_item` (4030 pasan, 17 xfail).
