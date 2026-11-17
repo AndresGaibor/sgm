@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Any
 
 from sgm import motivos
@@ -161,6 +162,10 @@ def plan_to_dict(plan: Plan) -> dict[str, Any]:
     datos["joblets"] = list(plan.joblets)
     datos["residuos_bloques"] = list(plan.residuos_bloques)
     datos["fronteras"] = list(plan.fronteras)
+    if plan.formatos:
+        datos["user_formats"] = [
+            {**asdict(fmt), "rangos": [list(pair) for pair in fmt.rangos]} for fmt in plan.formatos
+        ]
     return datos
 
 

@@ -11,6 +11,7 @@ from sgm.ir.lower_procs_agregados import lower_means
 from sgm.ir.lower_procs_append import lower_append
 from sgm.ir.lower_procs_archivos import _read_file, _write_file
 from sgm.ir.lower_procs_common import unsupported as _unsupported
+from sgm.ir.lower_procs_format import lower_format
 from sgm.ir.lower_procs_limpieza import lower_limpieza
 from sgm.ir.lower_procs_sort import lower_sort
 from sgm.ir.lower_procs_transpose import transpose_hueco
@@ -139,6 +140,8 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
             _unsupported(step, ev, b, "PROC APPEND sin BASE= y DATA=")
     elif name == "sort":
         lower_sort(step, ev, b)
+    elif name == "format":
+        b.formatos.extend(lower_format(step, ev, b))
     elif name in {"means", "summary"} and "output" in step.clauses:
         lower_means(step, ev, b, data, out)
     elif (spec := declared(name)) is not None:  # append, means, summary: en YAML (F1.4)

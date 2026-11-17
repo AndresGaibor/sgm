@@ -100,7 +100,8 @@ def compile_file(
     """Plan de un programa a partir del análisis del proyecto (solo sus pasos)."""
     plan = Plan(program=program)
     items = [item for item in analysis.items if item.file == program]
-    lower_items(items, plan.graph, ctx_base["externals"], libname_decisions)
+    builder = lower_items(items, plan.graph, ctx_base["externals"], libname_decisions)
+    plan.formatos = list(builder.formatos)
     job = Job(name=render_job_name(DEFAULT_NAME_TEMPLATE, project="proyecto", program=program))
     plan.jobs = [job]
     _declared_contexts(plan, job)

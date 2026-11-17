@@ -3,6 +3,11 @@ kind: catalogo
 version: 1
 description: Procedimientos con tratamiento general documentado en el migrador.
 entries:
+  - id: format
+    nombre: PROC FORMAT VALUE
+    fuente: proc.pdf, p. 1173
+    estado: reconocida
+    nota: 'Solo VALUE discreto de carácter y OTHER (pp. 1178, 1181); registro inmutable en Plan.formatos y aplicación B de PUT (lefunctionsref.pdf, pp. 1417–1418; leforinforref.pdf, p. 22). Rangos numéricos: P-FORMATO-RANGO-SIN-SOPORTE; otras formas: P-FORMATO-SIN-SOPORTE. La emisión Talend conserva P-FORMATO-USUARIO-SIN-EMISOR; no implementa el alcance general de D1-20.'
   - id: freq
     nombre: PROC FREQ
     fuente: proc.pdf, p. 89

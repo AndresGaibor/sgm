@@ -1,0 +1,10 @@
+PROC IMPORT DATAFILE='.../entradas/clientes.csv' OUT=WORK.clientes DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+PROC FORMAT;
+  VALUE $estf 'A'='Activo' 'I'='Inactivo' OTHER='Otro';
+RUN;
+DATA WORK.con_estado;
+  SET WORK.clientes;
+  desc = PUT(estado, $estf.);
+RUN;

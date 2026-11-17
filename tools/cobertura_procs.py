@@ -53,6 +53,8 @@ FAMILIES = {
     ),
 }
 BRANCHES = {
+    "format": "VALUE discreto de carácter y OTHER en el plan/intérprete B (pp. 1173, 1178, "
+    "1181); rangos: P-FORMATO-RANGO-SIN-SOPORTE; Talend: P-FORMATO-USUARIO-SIN-EMISOR.",
     "sort": "BY/NODUPKEY/NODUPREC/DUPOUT/NOEQUALS; conserva sus pendientes de estabilidad.",
     "copy": "SELECT estático con IN distinto de OUT=WORK; otras formas conservan pendientes.",
     "import": "Lectura de archivos; formato, esquema y opciones deben estar demostrados.",
@@ -119,6 +121,11 @@ def clasificar(indice: Path, catalogo: Path, reglas: Path) -> list[dict]:
     for name in sorted(chapters.keys() | entries.keys() | specs.keys()):
         entry = entries.get(name, {})
         page = chapters.get(name)
+        if name == "format" and entry.get("estado") == "reconocida":
+            # VALUE es la equivalencia; el encabezado de capítulo p.1127 solo la localiza.
+            citation = re.search(r"proc\.pdf, p\. (\d+)", entry.get("fuente", ""))
+            if citation and citation[1] in pages:
+                page = int(citation[1])
         if page is None:
             citation = re.search(r"proc\.pdf, p\. (\d+)", entry.get("fuente", ""))
             page = int(citation[1]) if citation and citation[1] in pages else None

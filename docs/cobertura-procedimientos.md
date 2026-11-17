@@ -14,10 +14,10 @@ Fuentes: `docs/referencia/sas/proc.INDEX.md`, `rules/sas/catalogo/procs-usados.y
 |---|---|
 | fuera_de_alcance | 23 |
 | limpieza | 2 |
-| no_verificado | 27 |
+| no_verificado | 26 |
 | pendiente | 1 |
 | reporte | 4 |
-| traducido | 8 |
+| traducido | 9 |
 
 ## Procedimientos de la guía
 
@@ -44,7 +44,7 @@ Fuentes: `docs/referencia/sas/proc.INDEX.md`, `rules/sas/catalogo/procs-usados.y
 | FEDSQL | no_verificado | 1053 | Sin regla de traducción ni familia de alcance verificada. |
 | FMTC2ITM | no_verificado | 1101 | Sin regla de traducción ni familia de alcance verificada. |
 | FONTREG | fuera_de_alcance | 1109 | administración de la sesión: Configuración, diagnóstico, impresión o ventanas de la sesión SAS fuera del Job de datos (proc.pdf, pp. 60–63); PROC OPTIONS no es la sentencia OPTIONS. |
-| FORMAT | no_verificado | 1127 | Sin regla de traducción ni familia de alcance verificada. |
+| FORMAT | traducido | 1173 | VALUE discreto de carácter y OTHER en el plan/intérprete B (pp. 1173, 1178, 1181); rangos: P-FORMATO-RANGO-SIN-SOPORTE; Talend: P-FORMATO-USUARIO-SIN-EMISOR. |
 | FSLIST | no_verificado | 1257 | Sin regla de traducción ni familia de alcance verificada. |
 | GROOVY | no_verificado | 1271 | Sin regla de traducción ni familia de alcance verificada. |
 | HADOOP | no_verificado | 1285 | Sin regla de traducción ni familia de alcance verificada. |

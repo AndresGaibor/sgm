@@ -13,6 +13,7 @@ from sqlglot.errors import ParseError
 
 from sgm.migrar import semantica
 from sgm.migrar.interprete_base import NoSoportadoEnInterprete, _numero
+from sgm.migrar.interprete_formatos_usuario import apply_user_format, normalize
 from sgm.migrar.interprete_funciones import _funcion
 from sgm.migrar.interprete_funciones_sql import normalizar_funciones_sas
 from sgm.migrar.interprete_operadores import concatenar, parecido
@@ -32,7 +33,7 @@ def _primero(params: dict, clave: str) -> str:
 def _arbol(expresion: str):
     """Árbol de una expresión SQL; lo que no se puede leer no se adivina."""
     try:
-        preparada = normalizar_funciones_sas(expresion)
+        preparada = normalizar_funciones_sas(normalize(expresion))
         return sqlglot.parse_one(preparada)
     except ParseError as error:
         raise NoSoportadoEnInterprete("expresion", f"'{expresion}': {error}") from None
@@ -165,6 +166,9 @@ def _valor(nodo, fila: dict) -> object:
         return semantica.como_texto(_valor(nodo.this, fila)).lower()
     if isinstance(nodo, exp.Anonymous):
         argumentos = [_valor(arg, fila) for arg in nodo.expressions]
+        if (nodo.name.lower() in {"put", "sgm_put"} and len(argumentos) == 2
+                and isinstance(argumentos[1], str) and argumentos[1].startswith("$")):
+            return apply_user_format(argumentos[0], argumentos[1])
         if (
             nodo.name.lower() in {"input", "sgm_input"}
             and len(argumentos) == 2

@@ -142,7 +142,9 @@ CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
     # Hito 249m: la suma `acumulado + coalesce(...)` deja de ser una sentencia sin traducción (que el
     # intérprete ignoraba) y pasa a `stateful_row` `suma` en hueco (lestmtsref, p. 360). Cambia la lista
     # de pendientes y los identificadores de operador; no se repite el cambio campo por campo.
-    "p1_merge_first_last.plan.json": "66c9381d368780941bf5ae5ee430d07dbd6798f543599cb75bdfce52b802993d",
+    # Hito 276n: el VALUE con LOW/rangos sigue unsupported; se precisa el código
+    # P-FORMATO-SIN-SOPORTE y la nota documental, con su firma derivada. Sin cambio de filas.
+    "p1_merge_first_last.plan.json": "31c00890ce29e13e15d040feecc6073e7187c0fb73d995ec6c287beae4afa00d",
 }
 
 CASES = [

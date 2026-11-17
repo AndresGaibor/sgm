@@ -1098,6 +1098,12 @@ def plan_a_jobs(
 ) -> ResultadoMigracion:
     """Un Job de Talend por cada Job del plan, con sus nodos, conexiones y pendientes."""
     resultado = ResultadoMigracion()
+    for gap in plan.gaps:
+        if gap.text.startswith("Pendiente: P-FORMATO-USUARIO-SIN-EMISOR;"):
+            resultado.pendientes.append(PendienteMigracion(
+                "P-FORMATO-USUARIO-SIN-EMISOR", gap.text,
+                gap.evidence[0].line_start if gap.evidence else None,
+            ))
     # Cada instancia de una plantilla se escribe en línea hasta que haya Jobs hijos (`tRunJob`).
     plan, desplegados = plan_desplegado(plan)
     resultado.visitados |= desplegados

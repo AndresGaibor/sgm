@@ -1,0 +1,15 @@
+nivel: L3
+construcciones: [PROC IMPORT, PROC FORMAT VALUE, VALUE con formato de carácter, PUT, OTHER]
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: false
+estado: revisado
+motivo: Mapa discreto comprobado con valores explícitos y OTHER.
+salidas: [con_estado]
+invariantes: []
+razonamiento: >-
+  Esperado calculado a mano: A se transforma en Activo, I en Inactivo; X, el vacío
+  de carácter y a minúscula se transforman en Otro (comparación sensible a mayúsculas).
+  proc.pdf, p. 1173 documenta VALUE; p. 1181 documenta OTHER como valor que cubre
+  los valores no enumerados e incluye faltantes. lefunctionsref.pdf, pp. 1417–1418
+  documenta PUT y el uso del formato con el tipo de origen correspondiente.

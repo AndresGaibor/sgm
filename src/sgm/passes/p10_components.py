@@ -20,6 +20,7 @@ from __future__ import annotations
 import re
 
 from sgm.expressions.expressions import translate
+from sgm.formatos.usuario import normalize_user_put
 from sgm.ir.models import Gap, Graph, Operator, Pending
 from sgm.passes import join_match
 from sgm.passes.base import PassContext, PassLog
@@ -78,12 +79,13 @@ def _expressions(op: Operator) -> list[tuple[str, tuple[str | int, ...]]]:
     return [(text, path) for text, path in found if text.strip()]
 
 
-def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
+def _unmapped(op: Operator, gaps: list[Gap], formats: tuple[str, ...] = ()) -> bool:
     """Registra huecos y advertencias de expresiones. True si algo requiere revisión."""
     found = False
     for text, path in _expressions(op):
+        custom_format = normalize_user_put(text, formats) != text
         result = translate(text)
-        if result.talend is not None:
+        if result.talend is not None and not custom_format:
             for warning in result.warnings:
                 if warning not in op.notes:
                     op.notes.append(warning)
@@ -114,7 +116,8 @@ def _unmapped(op: Operator, gaps: list[Gap]) -> bool:
                 signature=f"{op.signature}/{name}",
                 reason="FUNCION_NO_MAPEADA",
                 evidence=list(op.expression_evidence.get(path) or op.evidence),
-                text=" ".join(text.split())[:120],
+                text=("Pendiente: P-FORMATO-USUARIO-SIN-EMISOR; " if custom_format else "")
+                + " ".join(text.split())[:120],
             )
         )
         op.notes.append(f"expresión sin equivalente Talend: {text.strip()[:80]}")
@@ -164,7 +167,7 @@ def run(graph: Graph, ctx: PassContext) -> PassLog:
         )
         if rule.rung == 5:
             op.params["sas_source"] = op.params.get("statement") or op.signature
-        if _unmapped(op, ctx.plan.gaps):
+        if _unmapped(op, ctx.plan.gaps, tuple(fmt.nombre for fmt in ctx.plan.formatos)):
             op.status = "parcial"
             needs_review = True
         op.component = {

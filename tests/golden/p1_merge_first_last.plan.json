@@ -6,11 +6,12 @@
       "kind": "unsupported",
       "status": "hueco",
       "placement": "flow",
-      "signature": "4f1a74160ba1651b",
+      "signature": "9949eb1775468472",
       "params": {
         "statement": "proc format; value $tramo low-<30='Joven' 30-<60='Adulto' 60-high='Mayor'",
         "procedure": "format",
-        "reason": "PROC_NO_SOPORTADO"
+        "reason": "PROC_NO_SOPORTADO",
+        "pending_code": "P-FORMATO-SIN-SOPORTE"
       },
       "evidence": [
         {
@@ -22,7 +23,7 @@
         }
       ],
       "notes": [
-        "PROC FORMAT sin regla de migración"
+        "Pendiente: P-FORMATO-SIN-SOPORTE; PROC FORMAT fuera del mapa discreto de carácter documentado en proc.pdf, pp. 1173, 1178 y 1181"
       ],
       "component": null,
       "valor_componente": null
@@ -811,7 +812,7 @@
   ],
   "gaps": [
     {
-      "signature": "4f1a74160ba1651b",
+      "signature": "9949eb1775468472",
       "reason": "PROC_NO_SOPORTADO",
       "evidence": [
         {
@@ -898,7 +899,7 @@
         "se_cierra_con": "rules/sas/procs/",
         "nota": "proc format; value $tramo low-<30='Joven' 30-<60='Adulto' 60-high='Mayor'"
       },
-      "signature": "4f1a74160ba1651b",
+      "signature": "9949eb1775468472",
       "fuente": [
         {
           "file": "p1_merge_first_last.sas",

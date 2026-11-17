@@ -16,6 +16,8 @@ from typing import Any
 
 import networkx as nx
 
+from sgm.ir.formatos_usuario import FormatoUsuario
+
 OPERATOR_KINDS = frozenset(
     {
         "read",
@@ -344,3 +346,4 @@ class Plan:
     # `iterate` -> lo que sustituyó (operadores y aristas originales). No se serializa: es lo que
     # permite desplegar la plantilla de nuevo cuando el emisor escribe cada instancia en línea.
     iteraciones: dict[str, dict[str, Any]] = field(default_factory=dict)
+    formatos: list[FormatoUsuario] = field(default_factory=list)

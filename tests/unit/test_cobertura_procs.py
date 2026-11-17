@@ -97,6 +97,9 @@ def test_todos_los_capitulos_y_fuera_de_alcance_con_pagina(monkeypatch):
     transpose = next(r for r in rows if r["procedimiento"] == "TRANSPOSE")
     assert transpose["estado"] == "pendiente"
     assert "P-OPERADOR-PIVOTAR" in transpose["motivo"]
+    format_row = next(r for r in rows if r["procedimiento"] == "FORMAT")
+    assert format_row["estado"] == "traducido"
+    assert "P-FORMATO-USUARIO-SIN-EMISOR" in format_row["motivo"]
 
 
 def test_documento_generado_esta_al_dia(tmp_path, monkeypatch):

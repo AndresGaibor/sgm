@@ -8,6 +8,7 @@ from typing import Any
 
 from sgm.frontend.libnames import InfoLibname
 from sgm.ir.bibliotecas import resolver_biblioteca
+from sgm.ir.formatos_usuario import FormatoUsuario
 from sgm.ir.models import Edge, Evidence, Graph, Operator
 from sgm.ir.signature import signature
 
@@ -31,6 +32,7 @@ class Builder:
         self, graph: Graph, decisiones_libnames: Mapping[str, dict] | None = None
     ) -> None:
         self.graph = graph
+        self.formatos: list[FormatoUsuario] = []
         self.bibliotecas: dict[str, InfoLibname] = {}
         self.decisiones_libnames = {
             nombre.casefold(): dict(decision)

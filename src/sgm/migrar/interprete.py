@@ -25,6 +25,7 @@ from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Operator, Plan
 from sgm.migrar.interprete_conjuntos import conjunto
 from sgm.migrar.interprete_filas import _clave, _filtrar, _llaves, _proyectar, _unicos
+from sgm.migrar.interprete_formatos_usuario import user_formats
 from sgm.migrar.interprete_pasos import _PASOS_SUELTOS, _nombres, _pasos, _ramas
 from sgm.migrar.interprete_subconsultas import (
     SubconsultaNoSoportada,
@@ -241,6 +242,14 @@ def _ejecutar(
 
 
 def ejecutar_plan(
+    plan: Plan, entradas: dict[str, list[dict[str, str | None]]]
+) -> dict[str, list[dict[str, str | None]]]:
+    """Ejecuta el plan con sus formatos, sin contaminar otras ejecuciones."""
+    with user_formats(plan.formatos):
+        return _execute_plan(plan, entradas)
+
+
+def _execute_plan(
     plan: Plan, entradas: dict[str, list[dict[str, str | None]]]
 ) -> dict[str, list[dict[str, str | None]]]:
     """Ejecuta el plan y devuelve las tablas de `WORK` que produce, por nombre sin biblioteca.
