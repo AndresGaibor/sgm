@@ -8495,3 +8495,20 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   auto-JOIN), y el caso `L2/l2_18` con su `esperado/`. No se hace hoy: el cambio toca el modelo de filas del intérprete.
 - Pruebas: `tests/unit/test_interprete_uniones.py` (6) y `tests/unit/test_interprete_uniones_emision.py` (1, nuevo).
   Suite de joins, uniones y `talend_item` (4030 pasan, 17 xfail).
+
+## Hito 279m (2026-11-17). C-6: semántica de faltantes en GROUP BY, verificada en el intérprete (plan C, parcial)
+
+- Hallazgo: el intérprete ya cumplía las reglas del plan. Con el programa de `l3_13` (grupo `N` con un monto faltante,
+  región en blanco como un solo grupo), da `N` con n=2, n_monto=1, total 10, promedio 10; `S` con total 12 y promedio 6;
+  el grupo en blanco con total 10 y promedio 5. Coincide con el esperado a mano del plan.
+- Qué se hizo: `tests/unit/test_interprete_agregados.py` (4 pruebas nuevas) fija esas reglas: un solo grupo para los
+  faltantes de la clave (p. 88), COUNT(col) frente a COUNT(*) (p. 82), AVG solo de presentes (p. 83), SUM/MIN/MAX.
+- Lo que no se hizo de C-6:
+  - Los casos de corpus `L3/l3_13` y `L3/l3_14` con su `esperado/`. Los casos de corpus de capa B tienen reglas de
+    formato (salidas, invariantes, esquemas) que no se han verificado en este hito; añadirlos sin comprobarlas sería
+    adivinar. Si se añaden, `test_tablero.py` fija 379 casos y habría que actualizarlo.
+  - La suma de un grupo todo faltante (`P-SUM-TODO-FALTANTE`): el plan pide dejarlo pendiente; no está implementado
+    todavía, y el caso no aparece en los datos de hoy.
+  - El emisor: el programa se emite como `tAggregateRow`, pero no se puede verificar sin Studio que ese componente trate
+    igual los faltantes en `COUNT(monto)` y en `AVG`. Queda sin verificar.
+- Pruebas: `test_interprete_agregados.py` (4) y `test_emisor_orden_y_agregado.py` pasan.
