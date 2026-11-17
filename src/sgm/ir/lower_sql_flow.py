@@ -91,7 +91,13 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
     aliases = {s.alias.lower() for s in [spec.base] if s and s.alias}
     aliases |= {j.source.alias.lower() for j in spec.joins if j.source.alias}
     tablas = _tablas(spec)
-    if spec.base is None:
+    if spec.derived is not None:
+        # Subconsulta en FROM: su rama se lowera primero y la consulta de fuera lee su salida.
+        current = _branch(spec.derived, chain, normalized)
+        current.params["subconsulta_from"] = spec.derived_alias
+        if spec.derived_alias:
+            aliases.add(spec.derived_alias)
+    elif spec.base is None:
         current = chain.b.op("derive", {"assignments": []}, chain.ev)
     else:
         current = chain.read(spec.base)
@@ -197,6 +203,11 @@ def lower_query(tree: SqlTree, normalized: NormalizedSql, ev: Evidence, b: Build
     """Operadores de una consulta (CREATE TABLE ... AS SELECT o SELECT) en flujo."""
     chain = _Chain(ev, b, normalized)
     ends = [_branch(spec, chain, normalized) for spec in tree.selects]
+    if any(spec.derived is not None for spec in tree.selects):
+        # Subconsulta en FROM sin verificar en Studio: se marca lo creado por la sentencia, para que
+        # el emisor no genere Job (C-8). Un solo operador no basta: la rama externa lo fusiona.
+        for creado in b.created:
+            creado.params["subconsulta_from"] = True
     if len(ends) > 1:
         final = op_validado(
             b,

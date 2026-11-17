@@ -8671,3 +8671,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Efecto: el intérprete rechaza la correlación con el motivo `referencia correlacionada no soportada: v.id` (antes daba un
   resultado falso). El emisor no cambia.
 - Pruebas: 3016 pasan en las pruebas de SQL, subconsultas, golden y anillo B. `ruff` limpio.
+
+## Hito 292m (2026-11-17). C-8: subconsulta en FROM calculada en el intérprete; el emisor no la emite (plan C, parcial)
+
+- Change de OpenSpec `subconsulta-from-y-escalares`: propuesta, spec, diseño y tareas (tareas 1 a 4 hechas; sección 5
+  es el cierre). El change no se commitea sin pedido.
+- Qué se hizo:
+  - `src/sgm/ir/sql_tree.py`: `SelectSpec.derived` y `derived_alias`. Una subconsulta en FROM con alias se representa
+    como una consulta anidada. Con JOIN o sin alias se rechaza.
+  - `src/sgm/ir/lower_sql_flow.py`: la rama anidada se lowera primero y la consulta de fuera lee su salida. Toda la
+    sentencia queda marcada `subconsulta_from` para que el emisor no genere Job.
+  - `src/sgm/talend_item/desde_plan.py`: un programa con esa marca no emite Job; deja pendiente `P-OPERADOR-SIN-SOPORTE`.
+- Lo verificado: `SELECT s.id FROM (SELECT id, monto FROM WORK.ventas WHERE monto > 15) s` da los ids con monto mayor
+  que 15 en el intérprete. Una correlación desde la subconsulta de FROM queda rechazada.
+- Pruebas: `tests/unit/test_subconsulta_from.py` (4), más 421 de subconsultas, golden e intérprete que pasan.
+- Pendiente: la traducción de la subconsulta en FROM al emisor (necesita Studio). Studio sigue con el hilo de interfaz
+  ocupado: la creación del job de referencia de C-4 no se pudo hacer.
