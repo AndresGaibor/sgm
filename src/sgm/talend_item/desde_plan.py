@@ -1098,14 +1098,21 @@ def plan_a_jobs(
 ) -> ResultadoMigracion:
     """Un Job de Talend por cada Job del plan, con sus nodos, conexiones y pendientes."""
     resultado = ResultadoMigracion()
-    marcado = next((op for op in plan.graph.operators() if op.params.get("subconsulta_from")), None)
+    marcado = next(
+        (
+            op
+            for op in plan.graph.operators()
+            if op.params.get("subconsulta_from") or op.params.get("create_like")
+        ),
+        None,
+    )
     if marcado is not None:
         # Una subconsulta en FROM no está verificada en Studio: el programa no se emite (C-8).
         resultado.visitados = {op.id for op in plan.graph.operators()}
         resultado.pendientes.append(
             PendienteMigracion(
                 "P-OPERADOR-SIN-SOPORTE",
-                "subconsulta en FROM sin verificar en Studio; el Job no se emite",
+                "subconsulta en FROM o CREATE LIKE sin verificar en Studio; el Job no se emite",
                 _linea(marcado),
             )
         )

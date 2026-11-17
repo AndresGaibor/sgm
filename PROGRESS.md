@@ -8698,3 +8698,17 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Lo verificado: `EXISTS` deja el id 2; `NOT EXISTS` deja 1 y 3, con los datos de prueba.
 - Emisor: el EXISTS sigue sin traducirse; el programa deja un pendiente y no se traduce en silencio.
 - Pruebas: `tests/unit/test_interprete_exists.py` (5, nuevo). 2636 pasan en intérprete, golden, anillo B y filtros.
+
+## Hito 294m (2026-11-17). C-12: CREATE TABLE ... LIKE en el intérprete; espera automática de Studio en talend-mcp (plan C)
+
+- C-12, `CREATE TABLE molde LIKE origen`: el lowering crea una lectura del origen, un filtro `1 = 0` y una escritura
+  del molde (`src/sgm/ir/lower_sql_ddl.py`). El molde sale vacío en el intérprete. El emisor no lo traduce: el paso
+  queda marcado `create_like` y el programa deja pendiente (`P-OPERADOR-SIN-SOPORTE`). `CREATE VIEW` sigue pendiente.
+  Pruebas: `tests/unit/test_create_like.py` (2). 83 pasan en SQL, intérprete y golden.
+- `talend-mcp` (repositorio aparte, autorizado en AGENTS.md): `talend_job_create_in_studio` espera a que la interfaz
+  de Studio esté libre (`esperarInterfazLibre`) y reintenta si falla por «ocupado» (hasta 3 veces). Antes fallaba
+  siempre. Typecheck limpio; servidor reiniciado. Cambio sin commit en ese repositorio.
+- Referencia de C-4 (LEFT JOIN en Studio): se creó el job `TEST_RefLeftJoin`, se añadieron dos entradas, el `tMap` y
+  sus conexiones de entrada, y el esquema de las entradas. Studio no acepta la conexión de salida del `tMap` hacia un
+  `tLogRow` (error «revisa que el conector exista en el origen»), y por eso el `.item` no tiene `outputTables`. El job
+  de prueba se borró del proyecto. Pendiente: crear esa salida a mano en Studio o investigar el conector de salida.
