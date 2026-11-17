@@ -8449,3 +8449,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Pruebas: dirigidas (`test_linea_base_sql_procs.py`, `test_pendientes_sql_l1_l2.py`). El cierre completo con
   `tools/ci.py` queda en el historial de validación.
 - Pendiente del plan C: C-2 a C-15 (SQL) siguen sin empezar.
+
+## Hito 276m (2026-11-17). C-2: el orden de ejecución de las subconsultas sale a su propio módulo (plan C)
+
+- Hallazgo: la tarea C-2 del plan C describía `_unir` en `interprete.py:519` y `lower_sql_flow.py` como módulos de más
+  de 300 líneas. Eso ya no es cierto: los hitos 241m y 242m partieron el intérprete, y `interprete.py` mide 276 líneas.
+  Los archivos que sí pasan de 300 y son de SQL eran `interprete_subconsultas.py` (345) y `sql_tree.py` (322).
+- Qué se hizo: `src/sgm/migrar/interprete_subconsultas_orden.py` (nuevo, 207 líneas) recibe `SubconsultaNoSoportada`,
+  `_expresiones_filtro`, `_subconsultas_de_join`, `_fuentes`, `_intervalo_fuente`, `_agregar_dependencias_versionadas` y
+  `orden_de_ejecucion`. `interprete_subconsultas.py` baja a 162 líneas y los reexporta, así que `interprete.py` e
+  `interprete_filas.py` no cambian de import. Sin cambio de comportamiento.
+- Pruebas: 453 pasan en golden, equivalencia, intérprete, anillo B e ir de operadores; 688 pasan en las pruebas que
+  mencionan subconsultas, uniones o `interprete_filas` (14 `xfail` como antes).
+- Pendiente del plan C: `sql_tree.py` (322 líneas) y `desde_plan_map.py` (833) siguen sobre 300. C-3 a C-15 no empezados.
