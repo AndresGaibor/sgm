@@ -8512,3 +8512,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   - El emisor: el programa se emite como `tAggregateRow`, pero no se puede verificar sin Studio que ese componente trate
     igual los faltantes en `COUNT(monto)` y en `AVG`. Queda sin verificar.
 - Pruebas: `test_interprete_agregados.py` (4) y `test_emisor_orden_y_agregado.py` pasan.
+
+## Hito 280m (2026-11-17). C-7: remezcla de estadísticos sin GROUP BY en el intérprete (plan C, parcial)
+
+- Hallazgo: `SELECT id, monto, MAX(monto) AS maximo FROM WORK.ventas` daba `P-AGREGADO-SIN-TRADUCIR` en las dos columnas
+  simples. La página `sqlproc` p. 79 demuestra el resultado: el agregado global se repite en cada fila.
+- Qué se hizo: `src/sgm/migrar/interprete_agregados.py` calcula el agregado global y lo añade a cada fila, con las
+  columnas simples de la propia fila (`_remezclar`). Con `GROUP BY`, la remezcla sigue sin implementarse y el error
+  de antes se mantiene. El emisor de Talend no cambia: el caso sigue como `P-AGREGADO-SIN-TRADUCIR`, así que no sale
+  un Job que haga la remezcla sin verificar.
+- Prueba: `tests/unit/test_interprete_agregados.py` (nueva, máximo global en tres filas). El programa de `l3_15` da
+  `maximo = 30` en las tres filas, como espera SAS.
+- Lo que no se hizo de C-7: la regla `agregado-sin-group-by` de `rules/sas/sql-semantica.yaml` sigue `pendiente`, sin el
+  tratamiento `remezcla` que pide el plan; el caso de corpus `L3/l3_15` con su `esperado/`, y el `migrar_pendientes.yaml`
+  (la entrada de `l3_09` no se ha revisado). El emisor de la remezcla (`tAggregateRow` más un cruce con la base) no
+  está hecho: sin Studio no se puede verificar.
+- Pruebas: 3019 pasan en agregados, intérprete, golden, anillo B y SQL.

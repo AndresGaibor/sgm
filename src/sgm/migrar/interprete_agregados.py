@@ -19,6 +19,32 @@ class AgregadoNoSoportado(ValueError):
     """Forma de agregado que esta implementación no puede interpretar con seguridad."""
 
 
+def _remezclar(
+    filas: list[dict],
+    params: dict,
+    *,
+    parsear: Callable[[str], exp.Expression],
+    evaluar: Callable[[exp.Expression, dict], object],
+    columna: Callable[[dict, str], object],
+    clave: Callable[[object], tuple],
+) -> list[dict]:
+    """Cada fila con sus columnas simples y el agregado global, que se repite en todas las filas."""
+    agregado = agregar(
+        filas,
+        {**params, "pendiente": None, "output_order": None},
+        parsear=parsear,
+        evaluar=evaluar,
+        columna=columna,
+        clave=clave,
+    )
+    global_fila = agregado[0] if agregado else {}
+    simples = [str(nombre) for nombre in params["pendiente"]]
+    return [
+        {**{nombre: columna(fila, nombre) for nombre in simples}, **global_fila}
+        for fila in filas
+    ]
+
+
 def agregar(
     filas: list[dict],
     params: dict,
@@ -30,7 +56,12 @@ def agregar(
 ) -> list[dict]:
     """Ejecuta los agregados demostrados por la IR sin adivinar tipos de grupo."""
     if params.get("pendiente"):
-        raise AgregadoNoSoportado("columnas sin agregar en el SELECT")
+        if params.get("group_by"):
+            raise AgregadoNoSoportado("columnas sin agregar en el SELECT")
+        # Sin GROUP BY, SAS remezcla: el agregado global se repite en cada fila (sqlproc, p. 79).
+        return _remezclar(
+            filas, params, parsear=parsear, evaluar=evaluar, columna=columna, clave=clave
+        )
     agregaciones = params.get("aggregations") or []
     if not agregaciones:
         raise AgregadoNoSoportado("GROUP BY sin agregado no está implementado")

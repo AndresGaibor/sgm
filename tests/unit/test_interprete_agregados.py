@@ -63,3 +63,25 @@ def test_sum_min_max_del_grupo_con_faltante(tmp_path):
 
     assert (grupos["N"]["total"], grupos["N"]["minimo"], grupos["N"]["maximo"]) == ("10", "10", "10")
     assert (grupos["S"]["total"], grupos["S"]["minimo"], grupos["S"]["maximo"]) == ("12", "5", "7")
+
+
+MAXIMO_GLOBAL = """\
+PROC SQL;
+  CREATE TABLE WORK.con_maximo AS
+  SELECT id, monto, MAX(monto) AS maximo FROM WORK.ventas;
+QUIT;
+"""
+
+
+def test_sin_group_by_el_agregado_global_se_repite_en_cada_fila(tmp_path):
+    """SAS remezcla las columnas sin agregar (sqlproc, p. 79): el máximo global sale en cada fila."""
+    filas = [{"id": "1", "monto": "10"}, {"id": "2", "monto": "30"}, {"id": "3", "monto": "20"}]
+    plan = _plan(MAXIMO_GLOBAL, "programa", ResultadoMigrar(carpeta=tmp_path))
+
+    resultado = ejecutar_plan(plan, {"ventas": [dict(f) for f in filas]})["con_maximo"]
+
+    assert [(f["id"], f["monto"], f["maximo"]) for f in resultado] == [
+        ("1", "10", "30"),
+        ("2", "30", "30"),
+        ("3", "20", "30"),
+    ]
