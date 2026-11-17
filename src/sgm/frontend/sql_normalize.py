@@ -20,7 +20,9 @@ Lo que quita o cambia se anota, para que la traducción no lo pierda en silencio
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 _QUOTED = "'[^']*'|\"[^\"]*\""  # literal entre comillas simples o dobles
 _INTO = re.compile(
@@ -92,8 +94,13 @@ def _strip_options(text: str, notes: list[str]) -> str:
     return out
 
 
-def _protected_ranges(text: str) -> list[tuple[int, int]]:
-    """Rangos de literales y comentarios; primero reconoce comentario, luego sus comillas."""
+@lru_cache(maxsize=2048)
+def _protected_ranges(text: str) -> tuple[tuple[int, int], ...]:
+    """Rangos de literales y comentarios; primero reconoce comentario, luego sus comillas.
+
+    Es determinista sobre el texto y la misma consulta se analiza varias veces por compilación:
+    se memoriza para no recorrerla cuatro veces.
+    """
     ranges: list[tuple[int, int]] = []
     i = 0
     while i < len(text):
@@ -123,10 +130,10 @@ def _protected_ranges(text: str) -> list[tuple[int, int]]:
             ranges.append((start, i))
             continue
         i += 1
-    return ranges
+    return tuple(ranges)
 
 
-def _inside(pos: int, ranges: list[tuple[int, int]]) -> bool:
+def _inside(pos: int, ranges: Iterable[tuple[int, int]]) -> bool:
     return any(start <= pos < end for start, end in ranges)
 
 

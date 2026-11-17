@@ -13,7 +13,9 @@ from pathlib import Path
 from sgm.cli_migrar import migrar
 from sgm.talend_item.validador import validar_job
 
-CASO = Path("tests/corpus/L6/l6_18_output_condicional_sin_destino_con_continuacion")
+# l6_15: su `row2` es una salida viva. En l6_18 la asignación tras el OUTPUT es un sumidero muerto
+# (B-17, hito 236m) y su conexión ya no se emite.
+CASO = Path("tests/corpus/L6/l6_15_output_condicional_con_continuacion")
 
 
 def _tmaps(texto: str) -> dict[str, tuple[set[str], set[str]]]:

@@ -1037,7 +1037,7 @@ Pendiente de F1: F1.4 (reglas fuera del código: fontanería, sentencias, inform
 - Fecha: 2026-11-03
 - Qu� se hizo: el �rbol llevaba cambios sin confirmar desde antes de la fase 0. Se verific� la suite y se confirmaron en dos commits. El usuario decidi� incluirlos (paso 0.1).
   - hito 28: sql_normalize.py (m�s reglas de sqlglot: nombres con espacios, LABEL, informatos, literal ., ^=, NOT =, CONTAINS), lower_sql.py (OUTER UNION pasa a SEMANTICA_DUDOSA en vez de parsearse mal), metrics/baseline.json (PARSE_ERROR 42 -> 8, FUNCION_NO_MAPEADA 394 -> 177, componentes 1328 -> 1383), 	ests/unit/test_sql_normalize.py.
-  - hito 29: divisi�n de los archivos de m�s de 300 l�neas (R9, fase 3.10): cli.py queda en 276 (comandos a cli_decisiones.py y cli_util.py), expressions.py en 131 (m�s expressions_base.py, expressions_funciones.py, expressions_parser.py), 	alend_translator.py en 43 (m�s 	alend_base.py, 	alend_parser.py, 	alend_funciones.py, 	alend_tabla.py), macros.py en 163 (m�s macros_modelo.py, macros_control.py, macros_llamadas.py), steps.py en 216 (m�s steps_tipos.py), p10_components.py en 194 (m�s 
+  - hito 29: divisi�n de los archivos de m�s de 300 l�neas (R9, fase 3.10): cli.py queda en 276 (comandos a cli_decisiones.py y cli_util.py), expressions.py en 131 (m�s expressions_base.py, expressions_funciones.py, expressions_parser.py), 	alend_translator.py en 43 (m�s 	alend_base.py, 	alend_parser.py, 	alend_funciones.py, 	alend_tabla.py), macros.py en 163 (m�s macros_modelo.py, macros_control.py, macros_llamadas.py), steps.py en 216 (m�s steps_tipos.py), p10_components.py en 194 (m�s
 eglas_mapeo.py). La salida no cambia: goldens id�nticos.
 - Reparaci�n incluida en hito 29: el trabajo de divisi�n ven�a sin terminar y la suite no importaba (	alend_parser.py con un import vac�o y un error de sintaxis; _FUNCTIONS a medio mover a 	alend_tabla.py). Se complet� el movimiento y se dej� el �rbol en verde.
 - Verificaci�n: uv run pytest -q: 428 pasan, 1 se salta; uv run ruff check .: limpio; metrics --check: sin empeorar. Ning�n archivo de src/ supera 300 l�neas.
@@ -3475,7 +3475,7 @@ mec_c_hijo fija resultado=HIJO_AHO
 2|120.50
 mec_c_padre tras AHO: resultado=SIN_VALOR globalMap=null
 --- fallo mecanismo a (mec_a_padre_v97i) código de salida 1
-mart-2.4.11.jar;../lib/commons-beanutils-1.11.0.jar;../lib/commons-text-1.14.0.jar;../lib/javassist-3.30.2-GA.jar;../lib/dom4j-2.1.3.jar;../lib/crypto-utils-7.1.28.jar;../lib/job-audit-1.6.1.jar;../lib/system-routines-dq.jar;../lib/accessors-smart-2.4.11.jar;../lib/talendCBP-1.1.9.jar;../lib/antlr-runtime-3.5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_a_padre_v97i_0_1.jar;mec_a_hijo_v97i_0_1.jar; prj_bancolombia.mec_a_padre_v97i_0_1.mec_a_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_a_fallo_v97i/" --context_param "sufijo=v97i" 
+mart-2.4.11.jar;../lib/commons-beanutils-1.11.0.jar;../lib/commons-text-1.14.0.jar;../lib/javassist-3.30.2-GA.jar;../lib/dom4j-2.1.3.jar;../lib/crypto-utils-7.1.28.jar;../lib/job-audit-1.6.1.jar;../lib/system-routines-dq.jar;../lib/accessors-smart-2.4.11.jar;../lib/talendCBP-1.1.9.jar;../lib/antlr-runtime-3.5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_a_padre_v97i_0_1.jar;mec_a_hijo_v97i_0_1.jar; prj_bancolombia.mec_a_padre_v97i_0_1.mec_a_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_a_fallo_v97i/" --context_param "sufijo=v97i"
 mec_a_padre arranca
 mec_a_hijo arranca, sufijo=CTE
 mec_a_hijo arranca, sufijo=AHO
@@ -3492,7 +3492,7 @@ Exception in component tRunJob_2 (mec_a_padre_v97i)
 java.lang.RuntimeException: Child job running failed.
 java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
 --- fallo mecanismo b (mec_b_padre_v97i) código de salida 1
-ons-beanutils-1.11.0.jar;../lib/commons-text-1.14.0.jar;../lib/javassist-3.30.2-GA.jar;../lib/dom4j-2.1.3.jar;../lib/crypto-utils-7.1.28.jar;../lib/job-audit-1.6.1.jar;../lib/system-routines-dq.jar;../lib/accessors-smart-2.4.11.jar;../lib/talendCBP-1.1.9.jar;../lib/antlr-runtime-3.5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_b_padre_v97i_0_1.jar;mec_b_totales_v97i_0_1.jar;mec_b_hijo_v97i_0_1.jar; prj_bancolombia.mec_b_padre_v97i_0_1.mec_b_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_b_fallo_v97i/" --context_param "sufijo=v97i" 
+ons-beanutils-1.11.0.jar;../lib/commons-text-1.14.0.jar;../lib/javassist-3.30.2-GA.jar;../lib/dom4j-2.1.3.jar;../lib/crypto-utils-7.1.28.jar;../lib/job-audit-1.6.1.jar;../lib/system-routines-dq.jar;../lib/accessors-smart-2.4.11.jar;../lib/talendCBP-1.1.9.jar;../lib/antlr-runtime-3.5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_b_padre_v97i_0_1.jar;mec_b_totales_v97i_0_1.jar;mec_b_hijo_v97i_0_1.jar; prj_bancolombia.mec_b_padre_v97i_0_1.mec_b_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_b_fallo_v97i/" --context_param "sufijo=v97i"
 mec_b_padre arranca
 mec_b_hijo arranca, sufijo=CTE
 mec_b_hijo arranca, sufijo=AHO
@@ -3509,7 +3509,7 @@ Exception in component tRunJob_2 (mec_b_padre_v97i)
 java.lang.RuntimeException: Child job running failed.
 java.io.FileNotFoundException: C:\Users\USUARI~1\AppData\Local\Temp\scratch\r2_01_v97i\entradas\no_existe_aho.csv (El sistema no puede encontrar el archivo especificado)
 --- fallo mecanismo c (mec_c_padre_v97i) código de salida 1
-5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_c_padre_v97i_0_1.jar;mec_c_hijo_v97i_0_1.jar; prj_bancolombia.mec_c_padre_v97i_0_1.mec_c_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_c_fallo_v97i/" --context_param "sufijo=v97i" 
+5.2.jar;../lib/log4j-slf4j2-impl-2.19.0.jar;../lib/talendagent-1.0.2.jar;../lib/audit-log4j2-1.16.1.jar;../lib/logging-event-layout-1.16.1.jar;../lib/org.talend.dataquality.parser.jar;../lib/asm-9.5.jar;../lib/system-routines.jar;../lib/commons-lang3-3.18.0.jar;../lib/talendcsv-1.1.0.jar;../lib/talendboot-1.0.10.jar;../lib/slf4j-api-2.0.16.jar;../lib/audit-common-1.16.1.jar;mec_c_padre_v97i_0_1.jar;mec_c_hijo_v97i_0_1.jar; prj_bancolombia.mec_c_padre_v97i_0_1.mec_c_padre_v97i --context=Default --context="Default" --context_param "ruta_origen_cte=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/origen_cte.csv" --context_param "ruta_origen_aho=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/entradas/no_existe_aho.csv" --context_param "ruta_trabajo=C:/Users/USUARI~1/AppData/Local/Temp/scratch/r2_01_v97i/salida_c_fallo_v97i/" --context_param "sufijo=v97i"
 mec_c_padre antes: resultado=SIN_VALOR globalMap=null
 mec_c_hijo fija resultado=HIJO_CTE
 3|15.00
@@ -6968,6 +6968,708 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   B-5 no los cubre todavía).
 - Verificado: `ruff` limpio en `src/sgm/ir`; 570 pruebas de IR, SQL, golden, desde-plan y las nuevas pasan.
 
+## Hito 221m. `lower_sql_flow.py` baja de 300 líneas: texto, agregados y cruces pasan a módulos propios (B-6)
+
+- Que se hizo: sin cambio de comportamiento, `lower_sql_flow.py` (617 líneas) se parte en cuatro módulos:
+  `lower_sql_texto.py` (macros, alias, columnas y nombres de salida), `lower_sql_agregados.py` (GROUP BY, agregados,
+  HAVING y el `derive` de expresiones sobre agregados, ahora en `lower_agregado`), `lower_sql_cruces.py`
+  (subconsultas `IN`/`NOT IN` y `_params_de_union`) y `lower_sql_flow.py` (229 líneas: la rama de SELECT y el
+  `lower_query`). `lower_agregado` devuelve también el orden de `ORDER BY` ya resuelto, que antes era una variable
+  local de `_branch`.
+- Decisión: el bloque de agregados de `_branch` se extrae como función entera y no se reescribe; es el paso mínimo
+  que deja el archivo bajo 300 líneas sin tocar la lógica.
+- Verificado: `ruff check src/sgm/ir/` limpio; 516 pruebas de IR, SQL, golden y desde-plan pasan; suite completa
+  3 541 pasadas, 316 omitidas, 142 xfail.
+- Pendiente de B-6: `join`, `union` y `derive` de `lower_sql_flow.py` siguen con `Builder.op` directo (el contador
+  de forma legado no los cuenta). Es el siguiente paso (hito 222m).
+- Nota de saneamiento: al empezar, `lower_sql_flow.py` y `pasos.py` estaban en el índice con finales de línea LF
+  (churn de CRLF, sin cambio de contenido). Se quitaron del índice sin tocar su contenido; `pasos.py` vuelve a CRLF
+  igual que `HEAD`.
+
+## Hito 222m. B-6: `join`, `union`, `derive` y filtros de SQL pasan por los constructores; cierra MG-P1-03 para L1 a L3
+
+- Que se hizo:
+  - `operadores.ramas_union` (operador `union` del UNION de SQL, con `all` booleano). `lower_query` lo usa con `op_validado`.
+  - `ir/pasos.params_validados`: parámetros del constructor con el contador de forma legado. `_params_de_union`
+    (joins de SQL y cruces `IN`/`NOT IN`) lo usa, así que un `unir` rechazado ya no pasa en silencio.
+  - WHERE y HAVING pasan por `filtrar` con `_paso`; las asignaciones de la rama pasan por `calcular` con `_paso`
+    cuando hay al menos una.
+- Excepciones que quedan, con motivo en `tests/unit/test_ir_sin_forma_sql.py`: `derive` de `SELECT` sin FROM
+  (`calcular` exige asignaciones), `derive` con lista vacía (`SELECT *` sobre un cruce) y los dos `join` cuyos
+  parámetros ya vienen de `unir` (solo se añade el operador con sus enlaces).
+- Paso 1 de B-6: las pruebas de constructor con entrada inválida ya existían en `test_ir_operadores.py` (una por
+  operador) y el contador de L1 a L3 en `test_ir_sin_forma_legado.py` (hito 220m). Esta vez se añadieron las de
+  `ramas_union` y `params_validados`. No se vio fallar la prueba antes del cambio: el paso 2 no aplica como
+  observación, porque las pruebas ya estaban en verde.
+- `pivotar`: el constructor existe como hueco (`test_pivotar_queda_como_hueco`) y el lowering todavía no lo usa; el
+  `P-OPERADOR-PIVOTAR` con motivo y página se hace en B-8, donde entra `PROC TRANSPOSE`.
+- Verificado: `ruff check .` limpio; 89 pruebas de golden, IR, constructores, contador y guardia pasan; suite
+  completa antes del cierre (ver abajo).
+
+## Hito 223m. B-7: pendientes de L1 y L2 clasificados; `l2_16` queda bloqueada por un dato del entorno
+
+- Qué se hizo: `tests/unit/test_pendientes_sql_l1_l2.py` migra todos los casos de L1 y L2 y exige que cada
+  pendiente real esté clasificado. `alcance` (SQL fuera del dialecto, con página de `sqlproc`) o `entorno`
+  (falta un dato que el repositorio no tiene). Un pendiente sin clasificar es un defecto y rompe la prueba.
+  La prueba también falla si queda una clasificación que ya no corresponde.
+- Medición: `l2_12_auto_join_misma_ciudad` ya no tiene pendientes; no hacía falta el cambio de `sql_semantics.py`
+  del plan. En L1 no hay pendientes. El único caso que queda es `l2_16_sql_en_misma_base`, con 4 pendientes
+  `P-OPERADOR-SIN-SOPORTE`.
+- `l2_16`: el `LIBNAME LZ '/data/lz'` no dice qué motor sirve `LZ`, y `env/engines.json` tiene `libraries` vacío.
+  Cerrarlo con un `read` con `sql` literal en `db:impala` sería inventar el motor (regla 6). Queda en
+  `docs/BLOQUEOS.md` como decisión del dueño. `l0_12` y `l3_09` no están en el alcance de L1 y L2.
+- No se quitó ninguna entrada de `migrar_pendientes.yaml`: ningún caso de L1 y L2 se resolvió en esta tarea.
+- Verificado: la prueba nueva pasa (2 pruebas); ver el cierre de CI en el commit.
+
+## Hito 224m. B-8: `calcular` con estado y `combinar` con `in_flags` y `modo`; TRANSPOSE como pivote hueco (parcial)
+
+- Qué se hizo:
+  - `operadores.calcular` acepta `estado` (`retain` y `sum`, con nombre e `init` faltante, número o texto). Se
+    rechazan otros `op`, `init` booleanos o compuestos y nombres vacíos. Que `init` tenga el tipo de la columna
+    queda para la propagación de tipos (B-3).
+  - `operadores.combinar` acepta `in_flags` (una variable por fuente) y `modo="merge"`. `por` del plan es `by` en el
+    código.
+  - `PROC TRANSPOSE` ya no es `unsupported` genérico: sale como `pivot` en estado `hueco` (`lower_procs_transpose.py`,
+    página 2745) y el emisor lo reporta como `P-OPERADOR-PIVOTAR` (`desde_plan.py`). Cambia la expectativa de
+    `test_proc_transpose_es_no_soportado_con_motivo` a `test_proc_transpose_es_pivote_hueco_con_motivo`: mismo estado
+    `hueco` y mismo motivo, con el tipo nuevo.
+- Sin hacer, con motivo en `docs/BLOQUEOS.md`: `PROC FREQ` y `PROC MEANS` no tienen página verificada en el
+  índice, y sus reglas YAML emiten `aggregate` sin `aggregations`. Espera decisión del dueño.
+- `PROC APPEND` ya era `union` por `rules/sas/procs/proc-append.yaml` (p. 161): no se cambia.
+- Verificado: `ruff` limpio; 167 pruebas de reglas PROC, golden, aceptación y TRANSPOSE; constructores pasan.
+
+## Hito 225m. B-15: `SELECT/WHEN/OTHERWISE` y `IF ... THEN DELETE` en el DATA step; bloqueos de Studio y del intérprete
+
+- Qué se hizo:
+  - `ir/lower_data_select.py`: `SELECT (expr)` con `WHEN` y `OTHERWISE` se reduce a la cadena `IF / ELSE IF / ELSE`
+    que ya existe (`_como_asignaciones`). Sin `OTHERWISE` no se traduce: la sentencia queda sin traducción.
+  - `IF cond THEN DELETE;` sin `OUTPUT` antes del paso es un `filter` con `not (cond)`. Con `OUTPUT` antes queda
+    como sentencia sin traducción con la nota `P-DELETE-CON-OUTPUT`.
+  - `lower_data_recorrido.py` llama a los dos casos (36 líneas nuevas).
+- Pruebas: `tests/unit/test_lower_data_select.py` corre el intérprete: el `SELECT` coincide con la cadena de `IF`
+  (incluido el faltante, que cae en `OTHERWISE`); sin `OTHERWISE` queda sin traducir; el `DELETE` deja las filas
+  con `k <= 2` y el `z` calculado antes; con `OUTPUT` antes no hay `filter` y hay nota.
+- Límite: el código `P-SELECT-SIN-OTHERWISE` todavía no sale: hoy es una sentencia sin traducción. Pendiente de B-15.
+  El corpus L4 a L6 no tiene `SELECT (WHEN)` ni `DELETE` condicional; por eso las pruebas usan programas propios.
+- Bloqueos registrados en `docs/BLOQUEOS.md`: B-9 y B-18/B-Gate (Studio), B-10 y B-12 y B-14 (dependen de B-9 o de
+  B-11/B-13), y B-11, B-13 y B-19 (dueño de `src/sgm/migrar/interprete.py`, punto 1 de la sección 8.3).
+
+## Hito 226m. B-16: `ARRAY` con lista explícita y `DO` con límites constantes se desenrollan en el DATA step (parcial)
+
+- Qué se hizo: `ir/lower_data_arreglos.py` lee las `ARRAY a{n} x1 ... xn` con lista explícita (si la cuenta no
+  coincide con `n`, no se declara). Un `DO i = a TO b;` con límites constantes, sin `DO` anidado y con solo
+  asignaciones dentro, se desenrolla: cada vuelta es el cuerpo con `i` y `a{i}` sustituidos (fuera de literales de
+  texto). Al terminar se emite `i = b + 1`, que es lo que deja SAS. `lower_data_recorrido.py` llama a esto antes
+  de la asignación condicional (36 líneas nuevas en total con B-15 y B-16).
+- Pruebas: `tests/unit/test_lower_data_arreglos.py` corre el intérprete: `DO` de tres vueltas sobre tres
+  columnas da los valores esperados y `i = 4`; índice fuera de rango, límite no constante y `OUTPUT` dentro del
+  bucle quedan sin desenrollar (nota `do no traducido`).
+- Pendiente de B-16: (1) el código `P-ARRAY-FUERA-DE-RANGO` no sale todavía (hoy es `do no traducido`);
+  (2) `DO WHILE`/`DO UNTIL` y `DO` anidado no se tratan (quedan sin traducir); (3) `ARRAY` con rango de
+  nombres (`x1-x3`) y `a{*}` no se declaran; (4) los casos `l6_30` a `l6_34` que cita el plan no existen en el
+  corpus: hay que escribirlos con su `razonamiento` y páginas antes de cerrar la tarea; (5) `l0_13` no se revisó.
+
+## Hito 227m. B-17: espacio de combinaciones de `OUTPUT` y oráculo independiente (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: 51 combinaciones (ramas `incondicional`, `IF`, `IF/ELSE`, `IF/ELSE IF`,
+    `IF/ELSE IF/ELSE`; cada `OUTPUT` nombra 0, 1 o 2 de tres datasets). Las ramas independientes con destino
+    repetido no se generan (caso negativo, aparte).
+  - `tools/corpus_output/oraculo.py`: simula el PDV sin importar `sgm.ir` ni `sgm.migrar`. Regla de SAS: si el paso
+    tiene algún `OUTPUT` explícito, no hay escritura implícita al final de la iteración en ninguna vuelta
+    (`lrcon`, p. 498). Un faltante cumple «menor que» y no cumple «mayor o igual».
+  - `tools/generar_combinaciones_output.py --listar`: migra las 51 con `sgm migrar` y una muestra CSV. Resultado:
+    51 se migran sin pendiente de traducción.
+- Pruebas (`tests/unit/test_combinaciones_output.py`, 54 pasan): el espacio tiene 51 combinaciones; el oráculo
+  coincide con el intérprete del plan en cada una (cinco filas: valor < 0, = 0, 3, 5 y faltante); mutar un
+  esperado a mano rompe la comparación; cada combinación da Jobs que pasan `validar_job`.
+- Corrección de diseño: la primera versión del oráculo aplicaba la escritura implícita por iteración y el
+  intérprete no coincidía. La regla de SAS es por paso, no por vuelta; el oráculo se corrigió a eso.
+- Pendiente de B-17: (1) `OUTPUT` seguido de una continuación del paso y captura del PDV entre dos `OUTPUT`, que
+  están fuera del espacio; (2) no se comprobó que el espacio cubra cada uno de `l6_13` a `l6_24` (paso 1a); (3) la
+  escritura de casos nuevos en `tests/corpus/L6/` con `--escribir` (paso 4); (4) los casos negativos de
+  `OUTPUT_DESTINO_REPETIDO`.
+
+## Hito 228m. B-20: `_N_` y `_ERROR_` salen como operador hueco con su motivo, no como columnas (parcial)
+
+- Qué se hizo: `ir/lower_data_automaticas.py` detecta `_n_` y `_error_` fuera de literales de texto. Una sentencia
+  que los lee (asignación, condición, `IF ... THEN`) sale como operador `unsupported` en estado `hueco`, con el
+  código `P-VARIABLE-AUTOMATICA` o `P-ERROR-AUTOMATICA` en la nota. Antes salía como `n = _n_`: una columna que el
+  Job no tiene, sin ningún aviso. `lower_data_recorrido.py` llama a esto antes del resto de ramas.
+- Verificado: `tests/unit/test_lower_data_automaticas.py` (4 pruebas: asignación, condición, texto entre
+  comillas y un nombre que solo contiene `n` no cuentan). Los golden, de DATA step y del corpus L4 a L6 pasan.
+- Pendiente de B-20 (no hecho, y con motivo en `docs/BLOQUEOS.md`): `_N_` como contador antes del filtro (requiere
+  tocar el intérprete, decisión pendiente sobre `interprete.py`); `CALL SYMPUTX` con recorte de blancos y la emisión
+  del `globalMap` (requiere Studio para validar); el `_ERROR_` leído como constante en `KEEP`/`DROP` no se separó
+  todavía del caso general (hoy sale hueco también ahí).
+
+## Hito 229m. B-21: guardia de los objetos hash (parcial; el lookup queda pendiente)
+
+- Qué se hizo: `tests/unit/test_hash_sin_equivalencia_silenciosa.py`. Un `h.find()` sale como `derive` no soportado
+  con la nota de expresión sin equivalente, y el `declare hash` queda como sentencia sin traducción. Así un objeto hash
+  no pasa como si fuera un paso soportado.
+- Lectura de la guía (`lrcon`, pp. 628-638) para B-21: la clave duplicada por defecto conserva la **primera** fila; con
+  `DUPLICATE` gana la última y se escribe un error en el log; con `MULTIDATA` hay una lista por clave. Un lookup tipo
+  `tMap` solo es equivalente con clave única demostrada.
+- Pendiente de B-21: (a) el patrón `find` como `unir` por la izquierda con `rc` (no hecho: requiere el constructor y la
+  emisión del tMap, y la clave única demostrada); (b) la regla de duplicados según las páginas; (c) `h.ADD()` con
+  `P-HASH-MUTABLE` (hoy sale como sentencia sin traducción, que ya es pendiente).
+
+## Hito 230m. B-22 bloqueada en BLOQUEOS; marca en el plan
+
+- Qué se hizo: B-22 (catálogo y plan maestro) queda bloqueada por Studio: sus correcciones del plan maestro dependen de
+  B-9, B-18 y B-Gate. Se anota en `docs/BLOQUEOS.md` y en el plan. Sin cambio de código.
+- Estado del carril m al cerrar esta entrada: B-6 cerrada (222m); B-7, B-8, B-15, B-16, B-17, B-20 y B-21 parciales
+  (ver sus entradas); B-9, B-10, B-12, B-14, B-18, B-22 y B-Gate bloqueadas por Studio; B-11, B-13 y B-19 bloqueadas por
+  la decisión sobre `interprete.py`.
+
+## Hito 231m. B-15: `P-SELECT-SIN-OTHERWISE` se emite con su página (parcial)
+
+- Qué se hizo: un `SELECT` con `WHEN` y sin `OTHERWISE` ya no sale sin código. `select_sin_otherwise`
+  (`src/sgm/ir/lower_data_select.py`) lo detecta y el recorrido (`lower_data_recorrido.py`) anota
+  `P-SELECT-SIN-OTHERWISE` como parcial. La sentencia sigue sin traducir, como antes: no se inventa valor por omisión.
+- Prueba: `test_select_sin_otherwise_lleva_el_codigo_p_select_sin_otherwise` (primero en rojo, luego en verde).
+- Cita: `lestmtsref`, p. 340 (si ningún `WHEN` coincide y no hay `OTHERWISE`, SAS emite error y detiene el paso).
+- Decisión: la instrucción pedía citar `lrcon`. El índice de `lrcon` no tiene entrada para `SELECT`, así que la regla
+  se cita a `lestmtsref`, p. 340. No se cita una página de `lrcon` inventada.
+- Pruebas: `tests/unit/test_lower_data_select.py` y `tests/unit/test_corpus_l4l6.py` (156 pasan, 37 omitidas);
+  suite completa `uv run python -m pytest -q`: 3624 pasan, 316 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): los casos `l4_21`, `l4_22` y `l4_23` del plan no existen en `tests/corpus/L4/`; el lote de Studio es de B-Gate.
+
+## Hito 232m. B-16: `P-ARRAY-FUERA-DE-RANGO` y `P-DO-WHILE-UNTIL` como hueco; corrige el patrón `espera` (parcial)
+
+- Qué se hizo:
+  - `P-ARRAY-FUERA-DE-RANGO`: un `DO` cuyo índice constante sale del arreglo (`a{4}` con tres elementos) pasa a hueco con
+    su código en vez de quedar como sentencia sin traducir. Cita: `lrcon`, p. 192 («Execution-Time Errors», ejemplo de
+    «Subscript Out of Range»: SAS imprime el error y detiene el proceso). Funciones: `indice_fuera_de_rango` y
+    `_partes_del_bucle`/`_expandir` en `lower_data_arreglos.py`.
+  - `P-DO-WHILE-UNTIL`: `DO WHILE`/`DO UNTIL` pasa a hueco con su código y su cuerpo no genera operadores. Cita:
+    `lrcon`, p. 675 («DO WHILE and DO UNTIL Expressions»). El bucle en `tJavaRow` queda en `docs/BLOQUEOS.md` (B-16).
+  - `desde_plan.py` (`_sin_soporte`): un hueco puede declarar su código en `params["codigo"]`; sin él, sigue
+    `P-OPERADOR-SIN-SOPORTE`. Antes, el código de un hueco no llegaba a `pendientes`.
+  - Corrección de un defecto: el patrón `espera` de `rules/sas/plumbing.yaml` tomaba cualquier `while`/`until` por
+    sondeo de procesos. Un `DO WHILE` de datos se quitaba del plan sin aviso (el Job salía sin el bucle). Ahora el
+    patrón exige que `until`/`while` no vayan seguidos de `(`; los `while`/`until` del shell siguen cubiertos.
+- Casos nuevos (pendientes, sin `esperado/`): `tests/corpus/L6/l6_33_do_while` (P-DO-WHILE-UNTIL) y
+  `tests/corpus/L6/l6_34_array_indice_fuera_de_rango` (P-ARRAY-FUERA-DE-RANGO). Se listan en
+  `tests/corpus/migrar_pendientes.yaml`. El conteo del corpus pasa de 131 a 133 casos y L6 de 24 a 26 en
+  `tests/unit/test_tablero.py`: es crecimiento del corpus, no un test relajado. `con_esperado` sigue en 129.
+- Pruebas: `test_lower_data_arreglos.py` (6 y luego 9 con los nuevos), `test_plumbing_do_while.py` (nuevo),
+  `test_migrar_corpus_aceptacion.py`, `test_tablero.py`, `test_corpus_l4l6.py`: 285 pasan, 37 omitidas; `ruff check .` limpio.
+- Pendiente (parcial): `l6_32` (traducible, con `esperado/` a mano) no existe; `l6_30` y `l6_31` no los define el plan
+  (queda decidir su contenido); el bucle `DO WHILE` en `tJavaRow` está bloqueado por la decisión sobre `interprete.py`
+  y por Studio (ver `docs/BLOQUEOS.md`, B-16).
+
+## Hito 233m. B-16: caso `l6_32` (ARRAY y DO con límites constantes, traducible) (parcial)
+
+- Qué se hizo: `tests/corpus/L6/l6_32_array_do_constante`, traducible. `ARRAY a{3} x1 x2 x3` y `DO I = 1 TO 3; a{I} = a{I} * 2`
+  se desenrollan (B-16 paso 3). Al salir, `I` vale 4: `lestmtsref`, DO Statement: Iterative, p. 84 (la regla no
+  aparece en el índice de `lrcon`, así que se cita la guía de sentencias; ver la decisión de 231m). `esperado/`
+  se escribió a mano desde la regla, no con el traductor: 2 filas, `X1` = 2 y 8, `I` = 4.
+- Hallazgo: `tests/unit/test_corpus_l4l6.py` solo comprueba invariantes de los casos en `ESPECIFICACIONES`, así que
+  `l6_32` no tenía ninguna. Se añadió `tests/unit/test_invariantes_l6_todos.py`, que recorre todo L6 (25 pasan, 2
+  sin invariantes). Al escribir `l6_32` la invariante `suma(X1) == 12` falló contra el cálculo a mano (10): se
+  corrigió a 10 (el error era de la invariante, no del traductor).
+- Conteo del tablero: 134 casos, L6 27, con `esperado` 130 (`tests/unit/test_tablero.py`).
+- Pendiente (parcial): `l6_30` y `l6_31` no los define el plan; el bucle `DO WHILE` en `tJavaRow` está en BLOQUEOS (B-16).
+
+## Hito 234m. B-16: casos l6_30 y l6_31 y código `P-DO-LIMITE-NO-CONSTANTE` (parcial en la emisión)
+
+- Qué se hizo:
+  - `P-DO-LIMITE-NO-CONSTANTE`: un `DO i = a TO b` cuyo límite no es entero literal sale como hueco con su código
+    (`es_do_limite_no_constante` en `lower_data_arreglos.py`; cita `lrcon`, p. 671: el DO iterativo repite el cuerpo
+    según su índice). Antes no tenía código: el paso no se marcaba como pendiente.
+  - Casos pendientes nuevos: `l6_30_do_until` (P-DO-WHILE-UNTIL, DO UNTIL, `lrcon` p. 675) y
+    `l6_31_do_limite_no_constante` (P-DO-LIMITE-NO-CONSTANTE, `lrcon` p. 671). Se listan en `migrar_pendientes.yaml`.
+  - El test `test_limite_no_constante_queda_sin_desenrollar` pasa a `test_limite_no_constante_lleva_el_codigo_p_do_limite_no_constante`:
+    antes solo miraba la nota genérica «do no traducido»; ahora exige el código y que no salga ninguna asignación.
+- Conteo: 136 casos, L6 29, `esperado/` 130 (`tests/unit/test_tablero.py`). Los casos nuevos son pendientes sin `esperado/`.
+- Pruebas: `test_lower_data_arreglos.py` (7), `test_migrar_corpus_aceptacion.py`, `test_corpus_l4l6.py`,
+  `test_esquemas_sincronizados.py`, `test_corpus_esquemas.py`, `test_tablero.py`: pasan; `ruff check .` limpio.
+- Pendiente (parcial): el bucle `DO WHILE`/`UNTIL` y el `DO` con límite variable en `tJavaRow` (paso 1 b y 3) están
+  bloqueados por `interprete.py` y Studio: ver `docs/BLOQUEOS.md`, B-16. `P-DO-OUTPUT-EN-BUCLE` tampoco se emite.
+
+## Hito 235m. B-17: casos negativos de destino repetido y regla «un Job parcial nunca se emite» (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: nueva estructura `dos_if_independientes` (dos `IF` sin cadena). Con los
+    destinos S1, S2 no hay ninguna combinación sin destino repetido, así que las 9 son negativos (`negativos()`).
+    El espacio positivo sigue en 51 combinaciones.
+  - `src/sgm/talend_item/desde_plan.py` y `jobs_parciales.py` (nuevo): dos problemas.
+    1. Un hueco de `OUTPUT` (destino repetido o no declarado) salía como `P-OPERADOR-SIN-SOPORTE`. Ahora sale
+       `P-OUTPUT-DESTINO-REPETIDO` o `P-OUTPUT-DESTINO-NO-DECLARADO` (tabla `CODIGO_DETALLE`).
+    2. **Defecto que causé en 232m-234m:** los casos con hueco (`l6_33`, `l6_34`) emitían un Job `job_programa` con
+       solo la lectura. Y el negativo emitía un Job con solo la lectura. `tiene_hueco` sigue la componente conexa
+       del grafo: si alcanza un hueco, el Job no se escribe, pero sus pendientes sí se informan. La partición del
+       plan no siempre pone el hueco dentro del Job (queda entre la lectura y la escritura), por eso no basta con
+       mirar `subjobs`.
+  - Cita: el PDV se escribe como observación en cada `OUTPUT` (`lrcon`, p. 498). SAS acepta dos `OUTPUT` al mismo
+    dataset; el traductor no tiene operador de unión para ello, así que es limitación del traductor, no error de SAS.
+- Pruebas: `test_combinaciones_output.py` (64: negativos 9 + espacio + oráculo + Anillo A); `test_desde_plan.py`
+  (dos aserciones pasan del código genérico al específico); suite completa: 3680 pasan, 332 omitidas, 142 xfail;
+  `ruff check .` limpio.
+- Decisión y deuda: `desde_plan.py` ya pasaba de 300 líneas (MG-B pide extraer antes de tocarlo). La
+  lógica nueva va a `jobs_parciales.py` para no añadir a ese archivo; la extracción del resto queda como deuda
+  de la fase, no se hace aquí. Mientras se editaba, el archivo perdió sus finales de línea mixtos: se reconstruyó
+  desde HEAD con solo las líneas cambiadas (diff de 9 líneas).
+- Pendiente (parcial): la continuación y la captura del PDV entre dos `OUTPUT` (no están en el espacio), `--escribir`
+  para generar casos en `tests/corpus/L6/`, y la cobertura explícita de `l6_13` a `l6_24` como combinaciones.
+
+## Hito 236m. B-17: continuación en el espacio y sumidero muerto tras el último OUTPUT (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: cada combinación tiene un campo `continuacion`. Con él, una asignación
+    `CONT = 1;` va después de la cadena de `OUTPUT`. El espacio pasa de 51 a 102 combinaciones positivas y los
+    negativos de 9 a 18. Cita: `lrcon`, p. 498 (la fila se escribe al ejecutarse el `OUTPUT`; lo que la
+    asignación cambia después no entra en lo escrito).
+  - `src/sgm/optimizar/sumideros.py` (nuevo): un `derive` sin sucesores ni `outputs` se quita, con la decisión
+    `sumidero_muerto`, si el paso tiene alguna escritura. Antes, las dos combinaciones `incondicional` con
+    continuación (`incondicional__S1__cont`, `incondicional__S1-S2__cont`) fallaban `validar_job`: la conexión
+    `row2` salía de un `tMap` sin esa salida, y un `tMap` quedaba sin entrada. Ahora pasan.
+    - `optimizar/__init__.py`: la regla entra en el bucle de reescritura, y `optimizar` devuelve la copia si hubo
+      decisiones (no solo si hubo absorbidos). Los `Job` que nombraban el operador quitado se actualizan.
+  - `tests/unit/test_optimizar_sumideros.py` (nuevo): dos casos, con y sin escritura implícita.
+- Pruebas: `test_combinaciones_output.py` (102 combinaciones, 18 negativos, oráculo, Anillo A), optimizador:
+  126 pasan en total con `test_optimizar_sumideros.py`.
+- Bloqueado (B-17 en BLOQUEOS): la captura del PDV y `--escribir`. Un hallazgo sin resolver: el intérprete
+  distingue `VALOR` de `valor` (SAS no), y su arreglo toca `interprete.py`.
+- Pendiente sin bloqueo: la cobertura explícita de `l6_13` a `l6_24` como combinaciones del espacio.
+- Test repuntado: `test_metadatos_salidas_tmap.py` usaba `l6_18` para comprobar el `row2` de un `tMap`; ese `row2` era el sumidero muerto. Ahora usa `l6_15`, cuyo `row2` es una salida viva. El sumidero quitado queda en `Informe.absorbidos` apuntando a su predecesor, para que `test_ningun_operador_se_pierde` siga cuadrando.
+
+## Hito 237m. B-20: motivo de recorte en `CALL SYMPUT`/`SYMPUTX` y decisión de diseño pendiente (parcial)
+
+- Qué se hizo: `src/sgm/frontend/macros.py` (`_detalle_symput`): el motivo de cada `CALL SYMPUT`/`SYMPUTX` dinámico
+  dice si el valor se recorta. `SYMPUTX` quita los blancos (`mcrolref`, p. 322); la rutina `SYMPUT` (p. 315) no lo
+  indica, y su ejemplo (p. 317) usa `trim(left(...))` a mano. Prueba: `test_call_symputx_declara_que_recorta_blancos_y_symput_no_lo_declara`.
+- Cita: la regla pedía `lrcon`, pero el índice de `lrcon` no tiene ninguna entrada para `CALL SYMPUT`/`SYMPUTX`
+  (ni el texto las menciona). Se cita `mcrolref`, la guía de macros que sí las documenta.
+- Hallazgos que no se corrigen en este hito (decisiones en BLOQUEOS, B-20):
+  1. `plumbing.yaml` clasifica `call symputx` como fontanería (no migrar); el plan B-20 quiere `tJavaRow`.
+  2. La macro dinámica de `CALL SYMPUT` no llega a los pendientes de `sgm migrar`: la pérdida no se informa.
+  3. Un paso que escribe sin columnas demostradas sale como Job con solo la lectura. Cambiarlo rompe tests que
+     fijan que un pendiente no impide el Job; es decisión de diseño.
+- Verificado y descartado en este hito: un `DATA` sin `PROC EXPORT` produce un Job solo con la lectura (la salida
+  queda en `WORK`, sin archivo). Es el mismo caso del punto 3 y no es un defecto nuevo: ya ocurría en 4b72fad.
+- Pruebas: `test_macros.py`, `test_frontend.py`, `test_plumbing_categorias.py`: 86 pasan; suite completa: 3745 pasan,
+  332 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): `_N_` (intérprete) y la emisión de `CALL SYMPUT` (BLOQUEOS, B-20).
+
+## Hito 238m. B-21: objetos hash como huecos con su código; sin Job con hash (parcial)
+
+- Qué se hizo:
+  - `src/sgm/ir/lower_data_hash.py` (nuevo): detecta los objetos `DECLARE HASH` / `DECLARE HITER` del paso y cada
+    sentencia que llama a uno de sus métodos. Cada método tiene código y página de `lrcon`: `FIND`/`CHECK`
+    `P-HASH-LOOKUP-SIN-SOPORTE` (p. 634), `ADD`/`REF`/`REMOVE`/`REPLACE` `P-HASH-MUTABLE` (p. 633, 638), `OUTPUT`
+    `P-HASH-OUTPUT` (p. 639), iterador `P-HASH-ITERADOR` (p. 642). `DEFINEKEY`/`DEFINEDATA`/`DEFINEDONE` forman la
+    declaración y no llevan código.
+  - `lower_data_recorrido.py`: cada sentencia de hash es un `unsupported` con `codigo`, en vez de un `derive` que
+    contenía `h.find()` o una sentencia `declare` ignorada. Sin Job: `tiene_hueco` lo bloquea (regla de 235m).
+- Antes, un programa con `DECLARE HASH` y `rc = h.find()` migraba a un Job con un `tMap` que no hacía el lookup,
+  con solo un pendiente de columna (`P-ASIGNACION-SIN-TRADUCIR`). Eso era un Job parcial que se escribía.
+- Pruebas: `test_lower_data_hash.py` (4, nuevo), `test_hash_sin_equivalencia_silenciosa.py` (la guardia pasa a
+  comprobar el hueco en vez de un `derive`); suite completa: 3749 pasan, 332 omitidas, 142 xfail; ruff limpio.
+- Citas: todas de `lrcon` (pp. 628, 629, 632, 633, 634, 638, 639, 642), comprobadas contra `lrcon.INDEX.md`.
+- Pendiente (parcial): el lookup `FIND` con tMap y su `rc`, y la llave duplicada con el primero (BLOQUEOS, B-21).
+  Deuda: `lower_data_recorrido.py` ya pasaba de 300 líneas; el cambio se añade sin extraer antes (regla de MG-B).
+
+## Hito 239m. B-15: SELECT sin expresión y casos l4_21 a l4_23 (parcial en Studio)
+
+- Qué se hizo:
+  - `src/sgm/ir/lower_data_select.py`: `SELECT;` (sin select-expression) se reduce a la cadena `IF`, con cada `WHEN`
+    como condición booleana. Cita: `lestmtsref`, p. 340 (sin select-expression, cada `WHEN` se evalúa como
+    condición y gana la primera verdadera). Prueba: `test_select_sin_expresion_evalua_cada_when_como_condicion`.
+  - Casos nuevos en `tests/corpus/L4/`: `l4_21_select_when_con_otherwise` (SELECT con lista y OTHERWISE),
+    `l4_22_select_sin_expresion` y `l4_23_delete_condicional` (IF ... THEN DELETE, `lestmtsref`, p. 77). Cada uno con
+    `esperado/` escrito a mano desde la regla y su bloque `esquemas` de `proponer_esquemas_caso.py`.
+  - `tests/unit/test_casos_b15_select.py` (nuevo): invariantes de los tres casos y comparación del intérprete con
+    `esperado/`. Pasan 6 pruebas.
+- Decisión de diseño de `l4_23`: la entrada no lleva la columna `Z` que el caso calcula. Con `Z` en la entrada el
+  intérprete escribe la columna nueva con otra mayúscula y el caso falla por un defecto de `interprete.py` (ver
+  BLOQUEOS, B-17). El caso prueba `DELETE`, no esa mayúscula.
+- Citas: el índice de `lrcon` no tiene entrada para `SELECT` ni para `DELETE`; las citas van a `lestmtsref`. Es la
+  misma desviación de 231m.
+- Conteo: 139 casos, 133 con `esperado/` (`tests/unit/test_tablero.py`).
+- Pruebas: `test_lower_data_select.py` (7), `test_casos_b15_select.py` (6), `test_tablero.py`; suite completa:
+  3777 pasan, 332 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): el lote de Studio de estos casos es parte de B-Gate (BLOQUEOS).
+
+## Hito 240m. B-17: destinos de un dataset y cobertura explícita de l6_13 a l6_24 (parcial)
+
+- Qué se hizo:
+  - `tools/corpus_output/gramatica.py`: `DESTINOS` pasa de tres valores a cinco: omitido, `S1`, `S2`, `S3` y `S1,S2`.
+    El espacio pasa de 102 a 386 combinaciones positivas (las 386 migran a Jobs válidos y sin pendiente) y los
+    negativos de 18 a 34. Con dos `IF` sin cadena y destinos disjuntos ahora hay combinaciones positivas, y el
+    comentario de `dos_if_independientes` se corrige.
+  - `tests/unit/test_cobertura_l6_13_24.py` (nuevo): tabla explícita. Nueve casos cubiertos de forma (`l6_13`,
+    `l6_16` a `l6_20`, `l6_22` a `l6_24`); `l6_14` y `l6_15` quedan fuera por captura del PDV, `l6_21` por el par
+    `S2,S3`. Cita de cada caso: la regla de `OUTPUT` de `lestmtsref`, p. 273-274, y la escritura del PDV de `lrcon`,
+    p. 498, con las mismas citas que el oráculo.
+  - `tests/unit/test_combinaciones_output.py`: los conteos pasan a 386 y 34.
+- Límite declarado: la cobertura es de forma, no de valores. El espacio fija sus condiciones (`VALOR <= 2`,
+  `VALOR >= 4`) y los casos usan otras (`valor = 1`, ...), y el número de datasets del encabezado puede diferir. El
+  `esperado/` de los casos no se compara aquí.
+- Pruebas: `test_cobertura_l6_13_24.py` (13), `test_combinaciones_output.py` (con el oráculo y el Anillo A), suite
+  completa: 4090 pasan, 332 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): la captura del PDV y `--escribir` (BLOQUEOS, B-17).
+
+## Hito 241m. interprete.py: primer corte sin cambio de comportamiento (decisión del dueño)
+
+- Decisión tomada por el dueño: `interprete.py` se parte sin cambiar comportamiento, con la suite como red; el defecto de
+  mayúsculas `Z`/`z` va en un commit aparte.
+- Qué se hizo: el bloque de valores de las expresiones (`NoSoportadoEnInterprete`, `_arbol`, `_numero`, `_funcion`,
+  `_compress`, `_scan`, `_aritmetica`, `_columna`, `_valor`, y la constante `_FUNCIONES_SAS`) pasa a
+  `src/sgm/migrar/interprete_valores.py`. `interprete.py` los importa, y `NoSoportadoEnInterprete` sigue
+  importable desde `sgm.migrar.interprete`. Movido tal cual: 310 líneas.
+- Pruebas: `test_migrar_interprete.py`, `test_lower_data_select.py`, `test_casos_b15_select.py`,
+  `test_combinaciones_output.py`, `test_migrar_corpus_anillo_b.py`: 608 pasan, 5 xfail. Suite completa: 4090 pasan,
+  332 omitidas, 142 xfail (igual que antes del corte). `ruff check` limpio.
+- Pendiente: `interprete.py` sigue por encima de 300 líneas. Los siguientes cortes (relaciones y pasos) van en
+  iteraciones separadas.
+
+## Hito 242m. interprete.py partido por completo; todos los módulos bajo 300 líneas (decisión 1 del dueño)
+
+- Qué se hizo: el intérprete queda en 10 módulos, todos bajo 300 líneas. `interprete.py` (212): `_apilar`, `_base`,
+  `_ejecutar` y `ejecutar_plan`. `interprete_base.py`: `NoSoportadoEnInterprete`, `_numero`, `_clave`,
+  `_nombre_de_columna`. `interprete_valores.py`: valores de expresiones. `interprete_funciones.py`: funciones SAS
+  (`input`, `substr`, `compress`, `scan`). `interprete_filas.py`: filtrar, proyectar, seleccionar, renombrar, unir,
+  mezclar. `interprete_orden.py`: ordenar, quitar duplicados y llaves. `interprete_agrupado.py`: agregados por grupo.
+  `interprete_pasos.py`: pasos, entradas y ramas.
+- Sin cambio de comportamiento. Los nombres privados que las pruebas importaban siguen importables desde el módulo
+  original (reexportados con `# noqa: F401`).
+- Cambio de forma: un import circular entre `interprete_filas` y `interprete_orden` se rompió moviendo `_clave` y
+  `_nombre_de_columna` a `interprete_base`.
+- Pruebas: suite completa 4090 pasan, 332 omitidas, 142 xfail (igual que antes del corte). `ruff check` limpio.
+- Estado de la decisión 1: el corte está hecho. Falta el defecto de mayúsculas `Z`/`z`, en un commit aparte.
+
+## Hito 243m. Defecto de mayúsculas Z/z corregido en el intérprete (decisión 1 del dueño, commit aparte)
+
+- Defecto: una asignación con otra mayúscula que una columna existente (`VALOR = VALOR + 10` sobre la columna `valor`)
+  creaba una segunda columna. El intérprete dejaba `valor` y `VALOR` en la misma fila.
+- Regla de SAS: los nombres de variable no distinguen mayúsculas; se guarda la forma de la primera referencia
+  (`lrcon`, p. 49: `cat`, `Cat` y `CAT` son la misma variable).
+- Corrección: `_proyectar` (`interprete_filas.py`) cambia el nombre de cada columna nueva por el de la fila si ya existe
+  con otra mayúscula (`_con_clave_existente`).
+- Pruebas: `test_interprete_mayusculas.py` (2, nuevos). Antes: la primera fallaba con `['id', 'valor', 'VALOR']`.
+  Suite completa: 4092 pasan, 332 omitidas, 142 xfail. `ruff check` limpio.
+- Efecto en otras tareas: la captura del PDV (B-17) ya no está bloqueada por el intérprete. Queda su validación en
+  Studio (B-18). El caso `l4_23` conserva su entrada sin `Z`; no hace falta cambiarla.
+
+## Hito 244m. B-20 (a): `_N_` en el intérprete cuenta iteraciones, no filas escritas (parcial)
+
+- Regla de SAS: `_N_` es una variable automática que cuenta las iteraciones del DATA step, incluidas las filas que
+  luego descarta un filtro (`lrcon`, p. 79, «Automatic Variables»; el orden de ejecución, p. 500).
+- Qué se hizo: `_proyectar` (`interprete_filas.py`) da a cada fila su posición en la lista que recibe la asignación
+  como clave auxiliar `_n_`, solo para evaluar. La clave no sale como columna. Con cuatro filas y un `IF valor > 0`
+  después, las dos que quedan tienen `_N_` 2 y 4, como pide B-20 (a).
+- Lo que no hay: la emisión en Talend. El traductor sigue dejando `_N_` como hueco `P-VARIABLE-AUTOMATICA`. El
+  contador en Talend (un `tJavaRow` antes del `tFilterRow`, o un `Numeric.sequence`) necesita Studio para validarse.
+  Queda pendiente en BLOQUEOS.
+- Pruebas: `test_interprete_n_automatica.py` (2, nuevos). Suite completa: 4094 pasan, 332 omitidas, 142 xfail;
+  `ruff check` limpio.
+
+## Hito 245m. B-17: --escribir añade un caso por clase de equivalencia (decisión 3 del dueño)
+
+- Clase de equivalencia (definida en `tools/corpus_output/gramatica.py`, `clase`): la rama, la forma del destino de
+  cada bloque (todos, uno o par) y la continuación. El espacio de 386 combinaciones tiene 108 clases.
+- Qué se hizo: `tools/generar_combinaciones_output.py --escribir` escribe una combinación por clase (la primera del
+  orden de `combinaciones()`) en `tests/corpus/L6/l6_gNNN_*`, con `programa.sas`, `entradas/REGISTROS.csv`, `esperado/`
+  y `caso.yaml` (`origen: generado`). El `esperado/` sale del oráculo independiente, no del traductor. Citas: `lestmtsref`,
+  p. 273-274 (OUTPUT) y `lrcon`, p. 498 (la observación se escribe con el PDV).
+- Los casos de coincidencia estructural (`l6_13` a `l6_24`) ya están en el corpus desde 240m; no se duplican.
+- `tools/corpus_lib/caso.py`: `origen` pasa a ser un campo de metadatos permitido.
+- Pruebas: suite completa 4580 pasan, 440 omitidas, 142 xfail. `test_tablero.py` pasa a 247 casos, L6 137, con `esperado`
+  241. `ruff check .` limpio.
+- Pendiente: los casos de la clase de los negativos (dos `IF` que repiten dataset) no se escriben: no son migrables y
+  quedan como `P-OUTPUT-DESTINO-REPETIDO` (244m y antes).
+
+## Hito 246m. B-21: FIND como unir izquierdo con la tabla de búsqueda (decisión 6 del dueño; parcial)
+
+- Regla de decisión 6: `rc` solo se traduce en comparaciones con 0 y con `DROP rc`. Un `rc` que sobrevive a la salida o se
+  usa de otra forma queda pendiente (`P-HASH-RC-SIN-SOPORTE`, `lrcon`, p. 634).
+- Qué se hizo: `src/sgm/ir/lower_data_lookup.py` (nuevo) detecta el patrón: un `DECLARE HASH` con `DATASET:`, un
+  `DEFINEKEY` de una llave, `DEFINEDATA`, `DEFINEDONE`, un `rc = h.FIND()`, `IF rc = 0` / `IF rc ne 0` y `DROP rc`, sobre un
+  único `SET` sin `WHERE`. Lo traduce a: tabla de búsqueda con una marca `_hit_ = 1`, `deduplicar` por la llave conservando la
+  primera observación (`lrcon`, p. 632), y `unir` izquierdo por la llave. `rc = 0` pasa a `_hit_ = 1`, y `DROP rc` a
+  `DROP _hit_`. El resto de hash sigue como hueco (`lower_data_hash.py`).
+- `lower_data.py`: cuatro líneas que llaman al detector. El archivo ya pasaba de 300 líneas (deuda previa).
+- Pruebas: `test_lookup_hash.py` (2, nuevos): llave repetida con la primera (`a`), coincidencia y sin coincidencia, y `rc`
+  fuera de la comparación deja pendiente sin Job. Suite completa: 4582 pasan, 440 omitidas, 142 xfail; `ruff check .` limpio.
+- Pendiente (parcial): la emisión del `unir` izquierdo y del `deduplicar` en Talend (tMap de lookup) necesita validarse en
+  Studio (B-18 y B-Gate). `rc` usado de otra forma sigue pendiente.
+
+## Hito 247m. B-11 (intérprete): MERGE con IN= por iteración y rechazo de entradas desordenadas (parcial)
+
+- Qué se hizo, en `interprete_filas.py` (`_mezclar`), zona de Byron (se avisa): (a) `IN=` vale 1 solo en la observación que
+  la entrada aporta (`lrcon`, p. 75), no en todo el grupo; (b) una entrada no ordenada por BY se rechaza con
+  `NoSoportadoEnInterprete` (`lrcon`, p. 584), sin ordenarla sola. El resto del MERGE ya cumplía `lrcon` pp. 593, 594, 600
+  y 601, y `lestmtsref` p. 243 (gana la última entrada).
+- Prueba nueva: `test_interprete_merge.py` (7 casos, con su página). Antes de cambiar `_mezclar`, dos fallaban (IN= y orden).
+- Corrección de una prueba existente: `test_merge_y_all.py::test_merge_con_if_de_la_bandera...` esperaba `eb=1` en la segunda
+  fila de `id=2`. Con `lrcon` p. 75, en esa iteración B ya no tiene observaciones: `eb=0`. Se cambió la expectativa y la razón
+  quedó en el comentario.
+- `l6_11` (paso 4 de B-11): la regla de la sentencia suma está verificada (`lestmtsref`, p. 360; `lrcon`, p. 598). El
+  intérprete da 10, 25 y 7 (suma 42), y eso lo fija `test_l6_11_merge_acumulado.py`. El caso pasa de `pendiente_revision` a
+  `pendiente`: la sentencia suma no tiene estado por fila en el traductor (B-13 y B-14), así que no puede ser `traducible`.
+  Un caso `pendiente` no lleva `esperado/`: el generador ya no lo escribe para L6 pendientes (igual que para L4), y se quitó
+  el de `l6_11`. Sus invariantes pasan a su test.
+- Límite del generador: `generar_todo` no escribe el bloque `esquemas`; regenerar el corpus entero lo borra. Pasó en este
+  hito y se revirtió con `git checkout`. Desde ahora se regenera un caso a la vez y se reinserta su bloque.
+- Pruebas: suite completa 4587 pasan, 442 omitidas, 142 xfail. `ruff check .` limpio.
+- Pendiente (parcial): B-12 (emisión de MERGE en Talend) y B-13/B-14 (estado por fila) necesitan Studio.
+
+## Hito 248m. B-13 (intérprete): el intérprete se detiene ante lo que no traduce (parcial)
+
+- Defecto que se corrige: el intérprete ignoraba las sentencias sin traducción (`untranslated`) y las asignaciones
+  condicionales sin partes (`derive` con `conditional` y sin `assignments`). El resultado salía sin la columna y la
+  prueba pasaba. Con la suma `acum + x` la salida no tenía `acum`; con `IF x > 0 THEN prev = LAG(x)` no tenía `prev`.
+- Corrección: `interprete.py` (`_ejecutar`) y `interprete_pasos.py` (derive de un `map`) detienen la ejecución con
+  `NoSoportadoEnInterprete`. La regla es `lrcon`, p. 500: el DATA step ejecuta cada sentencia en orden.
+- Pruebas: `test_interprete_sin_traducir.py` (2, nuevos). Suite completa: 4587 pasan (las pruebas existentes del intérprete
+  no dependían del defecto), `ruff check .` limpio.
+- Pendiente (parcial, B-13): la suma `x + expr` (`lestmtsref`, p. 360), `RETAIN x valor` (`lestmtsref`, p. 331), `LAG` y
+  `DIF` (`lefunctionsref`, pp. 1163 y 663). Esto necesita la representación en el lowering y el estado por fila. `FIRST.`/`LAST.`
+  y el acumulado por grupo ya coinciden en `l6_05`, `l6_06`, `l6_07` y `l6_10`.
+- Conflicto de numeración: el plan B-13 pide `l6_27` a `l6_31`, pero esos números ya son casos (`l6_27` a `l6_29`
+  pendientes de otra tarea, `l6_30` y `l6_31` del caso DO). Los casos nuevos de B-13 van a `l6_39` en adelante.
+
+## Hito 249m. B-13: sentencia suma `x + expr;` (lestmtsref, p. 360): intérprete y hueco sin emisor (parcial)
+
+- Regla: la suma equivale a `RETAIN x 0; x = SUM(x, expr);`. `x` empieza en 0, se retiene entre filas, y un faltante en `expr`
+  cuenta como cero, así que `x` nunca queda faltante (`lestmtsref`, p. 360).
+- Qué se hizo: `datastep.py` reconoce `x + expr;` como `sum` (con una lista de palabras de sentencia que no son variable).
+  `lower_data_asignaciones.py` la lowera a `stateful_row` `suma` en HUECO con `codigo` `P-SUMA-SIN-EMISOR`: sin emisor en
+  Talend el Job no se escribe (decisión 5). `interprete_pasos.py` (`_sumar`) la calcula para probar la regla.
+  `lower_data_grupos.py` acepta el nuevo kind en la rama de grupos BY, que ya tenía la suma.
+- Defecto que se corrige: antes, `acum + x;` quedaba como sentencia sin traducción y el intérprete la ignoraba (la salida no
+  tenía `acum`). Ahora calcula 2, 2 y 7 para x = 2, faltante, 5 (`test_interprete_suma.py`). La prueba de la guardia pasa a
+  `SELECT` sin `OTHERWISE` (`lestmtsref`, p. 340), que sigue sin traducir.
+- Golden `p1_merge_first_last.plan.json`: cambia de forma estructural (la suma pasa de sentencia sin traducción a hueco). Se
+  regeneró solo ese archivo y su huella se fija en `CAMBIOS_ESTRUCTURALES_DOCUMENTADOS` con el motivo. `p0` y `client_poc`
+  se restauraron: su única diferencia era el orden de las claves al serializar, no el contenido.
+- Caso nuevo `tests/corpus/L6/l6_39_suma_con_faltante` (pendiente, sin `esperado/`). Tablero: 248 casos, L6 138.
+- Pruebas: `test_interprete_suma.py` (2), `test_golden*`, `test_migrar_corpus_aceptacion`, `test_tablero`. Suite completa:
+  4591 pasan, 442 omitidas, 142 xfail. `ruff check .` limpio.
+- Pendiente (parcial, B-13): `RETAIN` con valor (`lestmtsref`, p. 331), `LAG` y `DIF` (`lefunctionsref`, pp. 1163 y 663). La
+  emisión de la suma en Talend necesita Studio.
+
+## Hito 250m. B-13: RETAIN sin BY y estado por grupo como hueco; un stateful_row sin emisor bloquea el Job (decisión 5)
+
+- Regla: `RETAIN x valor;` inicializa `x` una sola vez y `x` conserva su valor de una observación a la siguiente
+  (`lestmtsref`, p. 331). Sin BY, todo el conjunto es un solo grupo (`lrcon`, p. 498: el DATA step procesa las observaciones en
+  orden). `FIRST.`/`LAST.` no existen sin BY.
+- Qué se hizo:
+  - `lower_data_grupos.py`: un paso sin BY con `RETAIN` o suma entra en el programa por grupo (un solo grupo). Con
+    `FIRST.`/`LAST.` y sin BY se rechaza.
+  - `talend_item/jobs_parciales.py`: un `stateful_row` cuenta como hueco. Antes el Job salía sin la lógica de estado.
+    Es la decisión 5 aplicada a los operadores de estado.
+  - `talend_item/desde_plan.py`: un operador sin emisor lleva su `codigo` al pendiente
+    (`P-POR-GRUPO-SIN-EMISOR`), en vez del genérico `P-OPERADOR-SIN-SOPORTE`.
+  - `migrar_pendientes.yaml`: seis casos cambian de código (l6_05, l6_06, l6_07, l6_10, l6_11, l6_39). Son el mismo
+    problema, más preciso.
+- Pruebas: `test_retain_valor_inicial.py` (2, nuevos; el valor 10 da 11, 12, 13 con p. 331), `test_interprete_suma.py`
+  (los dos casos ahora van por la migración completa: sin Job y con el código). Un caso declarativo de `tests/cases/04`
+  (RETAIN, `tJavaRow`) sigue pasando: el `stateful_row` conserva su componente.
+- Prueba de robustez `test_robustez_sobre_todo_el_repositorio`: falló una vez con carga alta (límite de 60 s por programa);
+  pasó aislada en 37 s. Se anota como inestable por tiempo, no por lógica.
+- Pendiente (parcial, B-13): `LAG` y `DIF` (`lefunctionsref`, pp. 1163 y 663). La emisión del estado por grupo en Talend
+  necesita Studio.
+
+## Hito 251m. B-13: LAG y DIF como estado entre filas en el intérprete; hueco `P-LAG-SIN-EMISOR` (parcial)
+
+- Regla: `LAGn(x)` devuelve el valor de hace `n` ejecuciones de esa misma aparición. Cada aparición tiene
+  su cola, inicializada con `n` faltantes, y la cola avanza solo cuando la función se ejecuta
+  (`lefunctionsref`, pp. 1163–1164). `DIFn(x) = x - LAGn(x)` (`lefunctionsref`, p. 663), así que el primer
+  valor falta.
+- Qué se hizo:
+  - `src/sgm/migrar/interprete_pasos.py`: `_retardar(filas, params)` con la cola; con `IF cond THEN`, las
+    filas que no cumplen la condición no tocan la cola ni reciben valor. Forma reconocida:
+    `LAG`/`DIF` (con `n`) como expresión exacta; `LAG(x) + 1` y `LAG(x) + DIF(x)` se detienen con
+    `NoSoportadoEnInterprete`.
+  - `src/sgm/ir/lower_data_lag.py` (nuevo): `estado_de_lag(texto)` reconoce `x = LAG/DIF(e);` y
+    `IF c THEN x = LAG/DIF(e);`. `src/sgm/ir/lower_data_recorrido.py`: el operador de estado entra como
+    `stateful_row` hueco con `P-LAG-SIN-EMISOR` (decisión 5: el Job no se escribe).
+  - Casos corpus pendientes, sin `esperado/`: `l6_40_lag_dentro_de_if` (trampa de la cola con `IF`) y
+    `l6_41_dif_primer_valor_faltante`. Se numeran después de `l6_39` porque `l6_30` a `l6_34` ya son otros
+    casos. Se registran en `tests/corpus/migrar_pendientes.yaml`.
+- Pruebas: `tests/unit/test_interprete_lag.py` (7: LAG simple, LAG dentro de `IF`, DIF, DIF2, no sale
+  como Job, expresiones compuestas se detienen). Tablero: `test_tablero.py` pasa a 250 casos y L6 a 140.
+- Decisión registrada: el número de la cola usa la sección 1163 del índice y la regla en la página 1164.
+- Pendiente (parcial, B-13): la emisión de `LAG` y `DIF` en Talend necesita Studio. Sin Studio no se
+  valida el Job. `UPDATE` (B-19) queda como siguiente paso del carril.
+
+## Hito 252m. B-19: UPDATE en el intérprete (lrcon, pp. 604 a 609) y hueco P-UPDATE-SIN-EMISOR; MODIFY y UPDATEMODE como pendientes (parcial)
+
+- Regla: `UPDATE` deja una observación por llave BY. La transacción se aplica a la primera observación del
+  maestro con esa llave; los faltantes de la transacción no sobrescriben (lrcon, p. 604); una llave que
+  solo está en la transacción se agrega (p. 604); con llave repetida en el maestro, solo se actualiza la
+  primera (ejemplo 2, p. 608). `MODIFY` modifica el dataset en el sitio (lestmtsref, p. 252).
+- Qué se hizo:
+  - `src/sgm/migrar/interprete_update.py` (nuevo): `_actualizar`, con la semántica anterior.
+  - `src/sgm/ir/lower_data_update.py` (nuevo): `UPDATE` como `join` con `modo="update"` en hueco
+    `P-UPDATE-SIN-EMISOR`; con `UPDATEMODE=` el código es `P-UPDATEMODE`; `MODIFY` como `P-MODIFY-EN-SITIO`.
+  - `src/sgm/ir/lower_data_union.py` (nuevo): `_join_type` de `lower_data.py` movido sin cambio de lógica
+    (`tipo_de_union`) para que `lower_data.py` quede en 277 líneas.
+  - `frontend/datastep.py`, `lower_data_recorrido.py`, `lower_data_grupos.py`: sentencias `update` y `modify`.
+  - `src/sgm/migrar/interprete_pasos.py` (Byron): solo la rama de despacho del `UPDATE` y su import.
+- Casos: `l6_35_update_basico`, `l6_36_update_faltante_no_sobrescribe`, `l6_37_update_llave_nueva`,
+  `l6_38_update_dos_transacciones`, pendientes y sin `esperado/`; los valores de lrcon pp. 607 a 610 se
+  fijan en `tests/unit/test_interprete_update.py` (9 tests).
+- Ajustes de tests que fijaban el comportamiento anterior: `test_ir_rules` (LAG es hueco),
+  `test_interprete_sin_traducir` (el caso LAG en IF pasa a `test_interprete_lag`), `test_catalogo_sas`
+  (`update` y `modify` son sentencias propias con hueco, sin convertirse), `test_tablero` (254 casos, L6 144).
+- Pruebas: `tools/ci.py` en verde (ruff, suite, cruces, oráculo, tablero).
+- Pendiente (parcial, B-19): emisión de `UPDATE` en `desde_plan_merge.py` (tJavaRow), que necesita Studio.
+
+## Hito 253m. B-9: `SET a b;` con `tUnite` y conexiones `MERGE` conserva el orden de SAS en Studio (decisión a)
+
+- Regla: `SET a b;` concatena en el orden de la lista: todas las observaciones de `a` y luego las de `b`
+  (`lrcon`, p. 579, «Concatenating»; `lestmtsref`, `SET Statement`, p. 343). Las variables del resultado son
+  las de todos los datasets, y las filas quedan faltantes en las que no tienen (`lrcon`, p. 579).
+- Investigación (B-9): `tools/validar_caso_studio.py l6_25_set_dos_datasets_orden l6_09_nodup_registros_identicos`,
+  una sola vez, con Studio en `READY` (`sgm studio salud`). Resultado devuelto por el puente:
+  - `l6_25_set_dos_datasets_orden`: `coincide`, 0 diferencias. El Job tiene `tUnite_1` con dos conexiones
+    `MERGE` (`lineStyle` 10), `in1` = A e `in2` = B, en ese orden.
+  - `l6_09_nodup_registros_identicos` (testigo): `coincide`, 0 diferencias.
+- Decisión: se usa la opción (a). `tUnite` con conexiones `MERGE` compila y conserva el orden. `APPEND`
+  secuencial queda como alternativa, no como requisito. Se corrigieron tres frases obsoletas del plan maestro
+  (`docs/plan-reescritura/plan-migrador-general.md`, líneas 137, 276 y 561) que decían que `tUnite` no compila.
+- Casos: `l6_25_set_dos_datasets_orden` pasa a `traducible` (esperado de lrcon p. 579, validado en Studio).
+  `l6_26_set_columnas_distintas` queda `pendiente`, sin `esperado/`, y su Job emite
+  `P-UNION-ESQUEMAS-DISTINTOS`; lo cierra B-10.
+- Pendiente: B-10 (`SET` con columnas distintas y faltante, `l6_26`).
+
+## Hito 254m. B-10: `SET` con columnas distintas se alinea por nombre con un `tMap` por entrada (lestmtsref, p. 343; lrcon, p. 579) (parcial)
+
+- Regla: `SET a b;` junta por nombre: el esquema de salida es la unión de columnas, en el orden de la primera
+  aparición; cada entrada que no trae una columna sale con faltante en ella (`lrcon`, p. 579). El tipo y la
+  longitud los fija la primera aparición (`lestmtsref`, p. 343). Un tipo distinto para la misma columna sigue
+  en `P-UNION-TIPO-CONFLICTO` (detectado antes, en `esquemas_propagacion`).
+- Qué se hizo:
+  - `src/sgm/talend_item/desde_plan_union.py`: si las entradas no tienen el mismo esquema, cada una desalineada
+    pasa por un `tMap` (`row1` a la salida `tUnite_1_inN`) que emite el esquema de la unión, con `null` donde la
+    entrada no trae la columna. Con el mismo esquema, `tUnite` directo, como antes.
+  - `src/sgm/talend_item/desde_plan_orden.py`: `ResultadoOrden` lleva `alineados` y `columnas`.
+  - `src/sgm/talend_item/desde_plan.py`: crea los `tMap`, sus conexiones `MERGE` a `tUnite` y redirige la arista
+    origen a `tMap` en `_conectar`. Las entradas repartidas (`tReplicate`) no están cableadas: caen al camino de
+    antes (ver BLOQUEOS, B-10).
+  - `intérprete` (`_apilar` en `interprete.py`): ya concatena por nombre con faltante; no se tocó (archivo de Byron).
+- Studio (puente `READY`): `l6_26_set_columnas_distintas` coincide, 0 diferencias. La primera ejecución no tenía
+  `esperado/` y el arnés la marcó como «archivo de más»; se restauró el esperado de lrcon p. 579 y se validó de nuevo
+  el mismo caso. El Job tiene dos `tMap`, un `tUnite` y la salida `ID,X,Y`.
+- Casos: `l6_26` pasa a `traducible` con esperado; sale de `migrar_pendientes.yaml`.
+- Pruebas: `test_desde_plan_union.py` (3 nuevos). `test_emisor_union.py::test_columnas_distintas_...` fijaba el
+  comportamiento anterior (la unión queda pendiente); se reescribió para exigir la alineación, no se debilitó.
+- Pendiente (parcial, B-10): (c) `SET a b; BY k;` intercalado (`lrcon`, p. 583) debe quedar como pendiente
+  `P-SET-INTERCALADO`; no se verificó en esta iteración. Entradas repartidas (`tReplicate`) con alineación.
+
+## Hito 255m. B-13: LAG y DIF se emiten como tJavaRow en la forma verificada (lefunctionsref, pp. 1163-1164 y 663) (parcial)
+
+- Regla: `LAGn(x)` devuelve el valor de hace `n` ejecuciones de su propia cola, inicializada con `n` faltantes, y la cola avanza solo cuando la función se ejecuta; con `IF` las filas que no cumplen la condición no tocan la cola (`lefunctionsref`, p. 1164). `DIFn(x) = x - LAGn(x)`, y el primer valor falta (`lefunctionsref`, p. 663).
+- Qué se hizo:
+  - `src/sgm/talend_item/java_lag.py` (nuevo): genera el cuerpo del `tJavaRow`. La cola vive en `globalMap` (`cola_<único>`), porque un `tJavaRow` no tiene campos de clase.
+  - `src/sgm/talend_item/desde_plan_lag.py` (nuevo): reconoce solo `x = LAGn(col);`/`DIFn(col);` con `col` numérica y `IF col OP número THEN`. Cualquier otra forma devuelve None y sigue como hueco.
+  - `desde_plan.py`: `_lag` se llama antes del camino de huecos; los operadores emitidos van a `self.emitidos`; el orden de recorrido es topológico, para que la escritura vea las columnas del productor.
+  - `jobs_parciales.tiene_hueco` recibe `emitidos`: un operador emitido no cuenta como hueco. Los no emitidos siguen bloqueando el Job (decisión 5).
+  - `validador.py`: `tJavaRow` pasa a `ENTRADA_PROPIA`; su esquema de entrada lo da la conexión, y su bloque declara la salida (con una columna nueva).
+  - `lower_data_recorrido.py`: el operador `stateful_row` de LAG declara sus `outputs` (la tabla del paso), para que la escritura lo encuentre.
+- Verificación: `tests/unit/test_java_lag.py` compila y ejecuta el código con `javac` y `java` del JDK de Studio: `IF x>0` da `null, null, 2` (p. 1164); DIF da `null, 1, 2` (p. 663); LAG2 da `null, null, 1`; una columna entera funciona con `doubleValue()`. `test_desde_plan_lag.py` cubre las formas que quedan como hueco.
+- Migración end-to-end: un programa con `prev = LAG(x)` genera el `tJavaRow`, pero la escritura de `WORK.r` se emite antes que el LAG y no ve sus columnas (`P-ESCRITURA-SIN-COLUMNAS`). Decisión 5: ese pendiente impide escribir el Job, así que el caso queda bloqueado.
+- Intento descartado: ordenar el recorrido de `armar` por orden topológico para que la escritura viera el LAG. Cambió Jobs que antes se bloqueaban (`v03_pais_dane` pasó a emitir un Job con 48 pendientes), así que se revirtió. Antes de volver a tocar el orden hay que demostrar que no cambia los Jobs existentes.
+- Decisión 5 implementada: `_Job.escritura_sin_columnas` y `plan_a_jobs` no escriben un Job con ese pendiente.
+- Tests que la decisión 5 cambia: `test_merge_y_all.py::test_el_merge_con_if_de_la_primera_queda_pendiente_y_no_sale_como_tmap` esperaba un Job sin `tMap`; el MERGE pendiente deja `WORK.t` sin columnas, así que ahora el Job no se escribe (se mantiene la aserción de que no hay `tMap`). `migrar_pendientes.yaml` registra `l6_40` y `l6_41` con `P-ESCRITURA-SIN-COLUMNAS`.
+- Tests que fijaban el comportamiento anterior: `test_interprete_lag.py::test_lag_no_sale_como_job` afirmaba que LAG nunca sale como Job. Se reescribió como `test_lag_simple_queda_bloqueado_por_la_escritura` (el `tJavaRow` existe, pero el pendiente de escritura impide el Job) y se añadió `test_lag_no_verificado_sigue_sin_job` (la forma compuesta sigue sin Job). `migrar_pendientes.yaml` pierde `l6_40` y `l6_41`, que ya no tienen pendiente.
+- Studio: `l6_41` no se pudo validar. `sgm studio salud` devolvió `MODAL_BLOCKING` (diálogo `Confirm` abierto); no se reinició Studio para no perder trabajo sin guardar. Queda en `out/studio-pendientes.json` y en BLOQUEOS (B-Studio, 255m). Ningún resultado de Studio de este hito cuenta como validado.
+- Pendiente (parcial, B-13): validación en Studio de `l6_40` y `l6_41` (lote B-Gate). Estado por fila de `RETAIN`, la suma y `FIRST.` (B-14) y `LAST.` (bloqueado, ver BLOQUEOS B-14).
+
+## Hito 258m (2026-11-13). Rendimiento: la suite completa baja de 326 s a 194 s, la colecta de 54 s a 11 s y el gancho de 1,4 s a 0,7 s
+
+- De dónde sale el número: de los registros de las sesiones de Claude Code en este repositorio. 3 576
+  comandos de Bash y unas 20,6 h de tiempo real de comando; `pytest` se llevó 745 min en 663
+  ejecuciones (114 de suite completa, ~200 s cada una; 549 dirigidas, ~32 s cada una), `tools/ci.py`
+  410 min en 93 ejecuciones, Studio 167 min, herramientas del corpus 90 min y `ruff` 46 min.
+  El objetivo del hito era ese: que la misma validación cueste menos, no cambiar lo que valida.
+- Lo que se midió primero, con perfil, no a ojo:
+  - La colecta sola costaba 53 s, y 6 839 llamadas a `yaml.safe_load` (72,7 s perfiladas) venían de
+    `load_rules()` (5 798) y de `cargar_caso` (992): las mismas reglas y el mismo `caso.yaml` leídos
+    cientos de veces.
+  - `addopts` trae `-n auto`: en este equipo son 16 procesos, y montarlos cuesta 14 s. Una prueba
+    dirigida de un archivo tardaba 19,4 s con 16 workers y 5,4 s en serie. Una ruta mal escrita
+    costaba 67 s con `-n auto` y 0,05 s en serie.
+  - El gancho `PreToolUse` (valida el commit) arrancaba Python en cada comando de Bash: 1 437 ms por
+    comando, aunque el comando fuera un `ls`.
+  - `tools/ci.py` no ponía límite de tiempo a ningún paso: dos cuelgues de dos horas quedaron
+    registrados sin que nada los cortara.
+- Qué se hizo:
+  - `src/sgm/yaml_io.py` (nuevo): un solo cargador para todo el proyecto,
+    `cargar_yaml`/`cargar_texto`, con `CSafeLoader` (libyaml está disponible:
+    `yaml.__with_libyaml__` es `True`). Se migraron los 13 puntos que llamaban a `yaml.safe_load`
+    (`motivos`, `agrupacion`, `conformidad.referencia`, `expressions_base`, `ir.proc_rules`,
+    `ir.types_code`, `passes.plumbing_patterns`, `passes.reglas_mapeo`, `proceso.etapas`,
+    `proceso.secciones_decisiones`, `proceso.secciones_entrada`, `talend_item.arquitectura` y
+    `tools/corpus_lib/caso.py`).
+  - `@lru_cache` sobre lo que es configuración y no cambia en caliente: `load_rules` y `load_engines`
+    (`src/sgm/passes/reglas_mapeo.py`), `cargar_secciones`
+    (`src/sgm/conformidad/referencia.py`) y una caché con `mtime_ns` y tamaño en la clave para
+    `cargar_caso` (`tools/corpus_lib/caso.py`), de modo que editar un `caso.yaml` lo vuelve a leer.
+  - `Graph.edges()` memoriza la lista de aristas (`src/sgm/ir/models.py`) y la invalida en cada
+    mutador (`add_edge`, `remove_operator`, `set_edge_materialize`, `bypass`, `replace`, `expand`,
+    `rewire_inputs`, `split_edge`, `merge`). Se devuelve una copia de la lista, así que quien la
+    reciba no puede ensuciar la caché, y una copia profunda del grafo (`__deepcopy__`) nace sin
+    caché para no arrastrar aristas de otro grafo.
+  - `_protected_ranges` (`src/sgm/frontend/sql_normalize.py`) pasa a `lru_cache(maxsize=2048)` y
+    devuelve una tupla, no una lista: el mismo texto se analizaba cuatro veces por compilación.
+  - `tests/conftest.py`: cuando la selección es de ocho módulos o menos, la prueba se corre en serie
+    aunque `addopts` pida `-n auto`. No basta con `numprocesses = 0`: xdist sigue levantando un
+    `DSession` si `dist` y `tx` quedan puestos, así que se apagan los tres. Si el usuario escribe
+    `-n` en la línea de comandos, se respeta.
+  - `tools/ci.py`: cada paso lleva su límite de segundos (`Paso.limite`) y se corta al llegar; el
+    informe dice que se cortó y el cierre falla. La suite va con `-n 8`, no con `-n auto`: medido, 16
+    workers sobre 8 núcleos tardan lo mismo porque el muro son las pruebas largas.
+  - `.claude/hooks/validar-commit.sh`: se descarta con `case` el evento que no menciona `commit`
+    antes de arrancar Python; el filtro es grueso a propósito y `validacion.py guardia` vuelve a
+    comprobar el comando de verdad. `.claude/` no se versiona: el cambio vale en la copia de trabajo.
+  - `tests/unit/test_optimizar_corpus.py`: el plan desplegado de cada caso se compila una vez por
+    proceso y se copia antes de optimizar, porque `optimizar` modifica el plan. El caso se usaba dos
+    veces (al recolectar y en su prueba) y se compilaba las dos.
+- Métricas, antes y después, en este equipo:
+  - Suite completa: 326 s, 194 s con `-n auto` y 214 s con `-n 8` (el cierre). 40 % menos.
+  - Colecta (`--collect-only`): 53,8 s, 10,7 s. Los módulos que más tardan ahora son
+    `test_optimizar_corpus.py` y `test_corpus_esquemas_migrar.py`, con menos de 1 s cada uno.
+  - Un archivo de pruebas dirigido: 19,4 s, 7,0 s. Tres archivos: 4,1 s.
+  - `compile_project` de `client_large.sas`: 26,8 s, y ahora 7 a 12 s según la carga del equipo
+    (mediana cerca de 8 s; el equipo mete ruido de varios segundos en la misma medición).
+  - `yaml.safe_load`: 6 839 llamadas por colecta, 0.
+  - Gancho de cada comando de Bash: 1 437 ms, 734 ms (el resto es el arranque del shell del gancho,
+    que no depende del repositorio).
+- Pruebas: suite completa `4584 passed, 538 skipped, 142 xfailed` en 194 s con `-n auto`; `ruff check .`
+  limpio. `tests/unit/test_tools_ci.py::test_un_paso_que_se_cuelga_se_corta_y_falla` es nueva y cubre
+  el corte por límite. No se borró ni se debilitó ninguna prueba: las que fallaban por las cachés
+  nuevas se arreglaron en el código (el `_tocar()` de `models.py` había quedado delante del docstring
+  de cinco métodos; ahora va después y solo en los caminos que mutan).
+- Decisiones:
+  - Un solo cargador de YAML (`sgm.yaml_io`) en vez de `yaml.safe_load` repartido: con `CSafeLoader`
+    se paga una vez y se puede auditar en un archivo. No es una dependencia nueva, libyaml ya venía
+    con `pyyaml`.
+  - Se memoriza lo que es configuración (reglas, motores, referencia, `caso.yaml`, aristas del grafo)
+    y no lo que depende del programa que se compila. Nada de caché en disco de planes compilados: un
+    resultado viejo en la traducción es peor que unos segundos de más, y la clave tendría que incluir
+    la versión del código.
+  - No se añade `pytest-timeout`: el corte por paso en `ci.py` cubre el cuelgue que se quiere evitar
+    sin otra dependencia.
+  - `--testmon` está instalado pero no selecciona nada (con `-n auto` imprime «no tests ran»; con
+    `-n0` corre todo). No se usa y `AGENTS.md` lo dice.
+  - Los 108 `programa.sas` de `tests/corpus/L6/` con bloques `PROC EXPORT` añadidos, y
+    `tools/validar_caso_studio.py`, estaban modificados sin commitear cuando empezó el hito (16:41;
+    no son de este trabajo). No se tocaron ni se commitearon: se apartaron en un `git stash` mientras
+    corría el cierre y se repusieron después. Con ellos puestos, 64 pruebas del intérprete fallan con
+    `write_file: sin operador de origen`; es un asunto de esos casos, no del rendimiento.
+- Bloqueos: ninguno de rendimiento. Queda pendiente, fuera de este hito, decidir qué se hace con esos
+  casos de L6 y su `PROC EXPORT`.
+- Lo que no se hizo, y por qué: la prueba más larga (`test_robustez_sobre_todo_el_repositorio`, 69 s)
+  migra los más de 190 programas de referencia uno tras otro, y ese es su trabajo; paralelizarla por
+  dentro con `-n 8` encima serían 64 procesos. Tampoco se cachean los planes compilados entre
+  procesos: el ahorro no paga el riesgo de traducir con un plan viejo.
+
 ## Hito 209n. Inventario de funciones por motor y línea base de MG-P3
 
 - Base: `544d1f1` (`origin/main`, hito 208m).
@@ -7632,3 +8334,11 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Verificación focal: 126 casos L4 pasan el anillo B, 200 vectores verificables sin diferencias entre oráculo e intérprete, catálogo y Ruff limpios. Cierre integral: `uv run python tools/ci.py`.
 - Studio C devolvió `BRIDGE_DEAD` (MCP `127.0.0.1:3927` rechazó la conexión). Los 11 casos con emisión candidata están en `out/studio-pendientes.json`; no cuentan como compilados ni ejecutados.
 - Crédito MG-P3-04: 0,75 (9 de 12 h); MG-P3 suma 23,5 h y el total 249,25/895 h (27,8 %). Decisiones: se corrige la fórmula 30/360 según `lefunctionsref`, p. 636; el caso de cumpleaños de 29-feb queda pendiente porque la guía no fija una convención. Sin nuevas dependencias, acceso a bases, secretos ni push. Siguiente tarea: D1-15.
+
+## Hito 270n. Integra `origin/main` hasta el hito 258m con la serie de Byron
+
+- Fecha: 2026-11-17. Base local: `13ea9e4`; `origin/main` integrado: `f5245cde`.
+- Se integran los cambios remotos posteriores a la base compartida y se conserva la serie local hasta 269n. La refactorización del intérprete de `main` se mantiene modular; se conectan el catálogo ampliado de funciones y los adaptadores existentes, preservando `INPUT w.d`, concatenación SAS, `LIKE` con faltantes y agregados. Se unen también las reglas nuevas de DATA step/PROC/SQL, el alineamiento de `SET`, los escenarios L6 y sus entradas generadas.
+- El corpus combinado queda en 379 casos (132 L4, 148 L6 y 363 con esperado). No se renumeran los hitos previos ni se reemplazan cambios remotos.
+- Verificación focal: 385 pruebas de intérprete, IR, emisor, reglas, golden y tablero pasan; las 14 regresiones encontradas en el primer cierre se corrigieron y pasan; las 196 pruebas de funciones y vectores pasan bajo ejecución paralela. Cierre integral `uv run python tools/ci.py`: 6.263 pasan, 645 omitidas y 145 `xfail`; Ruff, cruces, oráculo y tablero en verde.
+- Decisiones: sin dependencias nuevas, conexión a bases, secretos ni force-push; la rama `main` solo recibirá un avance rápido después de comprobar la punta remota.

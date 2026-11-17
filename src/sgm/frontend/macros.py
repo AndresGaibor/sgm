@@ -156,13 +156,28 @@ class Expander(ControlMixin, LlamadasMixin):
     def _ordinary(self, s: Stmt, env: dict) -> list[object]:
         text = s.text
         if _SYMPUT.search(text):
-            return [self._dynamic(s, "call symput: el valor se calcula al ejecutar")]
+            return [self._dynamic(s, _detalle_symput(text))]
         if _INTO.search(text) and not _SQL_SELECT.match(text):
             # `select ... into :var` de PROC SQL lo traduce el lowering de SQL (set_variable).
             return [self._dynamic(s, "into :variable: el valor sale de los datos")]
         if _DYNAMIC_FN.search(text):
             return [self._dynamic(s, "%sysfunc sobre datos o valores de ejecución")]
         return [replace(s, text=self._subst(text, env))]
+
+
+_SYMPUTX = re.compile(r"(?i)\bcall\s+symputx\s*\(")
+
+
+def _detalle_symput(texto: str) -> str:
+    """Motivo de un `CALL SYMPUT(X)`: qué hace con los blancos del valor (B-20, `mcrolref`).
+
+    `SYMPUTX` quita los blancos (p. 322); la rutina `SYMPUT` (p. 315) no lo indica.
+    """
+    if _SYMPUTX.search(texto):
+        recorte = "recorta blancos (mcrolref, p. 322)"
+    else:
+        recorte = "no quita blancos (mcrolref, p. 315)"
+    return f"call symput: el valor se calcula al ejecutar; {recorte}"
 
 
 def _selectors(index: MacroIndex) -> dict[str, Selector]:

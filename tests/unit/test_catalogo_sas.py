@@ -142,7 +142,8 @@ def test_las_sentencias_no_reconocidas_quedan_como_other():
         if palabra.startswith("%") or palabra.endswith(":"):
             continue  # formas de macro y etiquetas: fuera de esta muestra
         muestra = f"{palabra.lower()} x;"
-        assert classify_statement(muestra, 1).kind == "other", muestra
+        # UPDATE y MODIFY tienen su sentencia propia con hueco (B-19); siguen sin convertirse.
+        assert classify_statement(muestra, 1).kind in {"other", "update", "modify"}, muestra
 
 
 @pytest.mark.parametrize(

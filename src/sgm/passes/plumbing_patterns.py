@@ -16,9 +16,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
-
 from sgm.sas_scope import is_work_delete
+from sgm.yaml_io import cargar_yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 PLUMBING_YAML = ROOT / "rules" / "sas" / "plumbing.yaml"
@@ -36,7 +35,7 @@ class PlumbingPattern:
 
 def cargar(path: Path = PLUMBING_YAML) -> tuple[PlumbingPattern, ...]:
     """Patrones de `plumbing.yaml`, en el orden del archivo (el primero que coincide gana)."""
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data = cargar_yaml(path)
     patrones = []
     for entrada in data["entries"]:
         banderas = 0

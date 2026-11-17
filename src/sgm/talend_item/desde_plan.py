@@ -38,6 +38,7 @@ from sgm.talend_item.desde_plan_contextos import (
     reemplazar_rutas,
     rutas_de_plan,
 )
+from sgm.talend_item.desde_plan_lag import nodo_lag
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
 from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
@@ -47,12 +48,14 @@ from sgm.talend_item.desde_plan_paso_directo import (
 )
 from sgm.talend_item.desde_plan_union import nodo_union
 from sgm.talend_item.jobs_diseno import java
+from sgm.talend_item.jobs_parciales import CODIGO_DETALLE, tiene_hueco
 from sgm.talend_item.modelo import Columna, Conexion, Fila, Job, Nodo, Tabla
 from sgm.talend_item.plantillas import nodo_desde_plantilla
 
 CONFIG_RESUELTA = "P-CONFIGURACION-RESUELTA"
 PASO = 192  # separación de la rejilla del lienzo, en píxeles
 SIN_SOPORTE = "P-OPERADOR-SIN-SOPORTE"
+PIVOTAR = "P-OPERADOR-PIVOTAR"  # PROC TRANSPOSE: el pivote sin componente (B-8)
 RECONVERGE = "P-REPARTO-RECONVERGE"
 # Operadores que el emisor sabe traducir a un componente del Job.
 CON_NODO = frozenset(
@@ -88,7 +91,7 @@ def _tabla(dataset: str) -> str:
 
 
 def _produce(op: Operator) -> list[str]:
-    producen = ("read_file", "map", "filter", "derive", "select", "rename", "join")
+    producen = ("read_file", "map", "filter", "derive", "select", "rename", "join", "stateful_row")
     if op.kind in (*producen, "sort", "dedup", "aggregate", "union"):
         return [str(d).lower() for d in op.params.get("outputs", [])]
     if op.kind == "read" and (op.placement or "").startswith("db:"):
@@ -172,6 +175,9 @@ class _Job:
         self._salidas_map: dict[str, str] = {}  # id de operador -> nombre de su salida
         self._entradas_map: dict[str, dict[str, str]] = {}  # id de operador -> origen -> fila
         self._uniones: dict[str, list[str]] = {}  # `union` -> sus entradas, en orden
+        self._alineados: dict[str, dict[int, str]] = {}  # `union` -> tMap por entrada desalineada
+        self.emitidos: set[str] = set()  # operadores de estado con componente (LAG como tJavaRow)
+        self.escritura_sin_columnas = False
         self._pasos: set[str] = set()  # operadores `sort` y `dedup` que sí dejaron nodo
         self._conector_de: dict[str, str] = {}  # UNIQUE_NAME -> conector de su salida principal
         self._ramas: dict[str, dict[str, str]] = {}  # `map` con ramas -> consumidor -> salida
@@ -315,7 +321,13 @@ class _Job:
             self.pendientes.append(PendienteMigracion(CONFIG_RESUELTA, motivo, _linea(op)))
             return
         motivo = op.notes[0] if op.notes else f"el operador '{op.kind}' no tiene componente"
-        codigo = str(op.params.get("pending_code") or SIN_SOPORTE)
+        # `codigo`: un hueco que ya sabe su pendiente (p. ej. P-ARRAY-FUERA-DE-RANGO) lo declara.
+        codigo = (
+            op.params.get("pending_code")
+            or op.params.get("codigo")
+            or CODIGO_DETALLE.get(op.params.get("reason_detail"))
+        )
+        codigo = codigo or (PIVOTAR if op.kind == "pivot" else SIN_SOPORTE)
         self.pendientes.append(PendienteMigracion(codigo, motivo, _linea(op)))
 
     def _lectura(self, op: Operator, x: int) -> None:
@@ -495,6 +507,8 @@ class _Job:
             representante = self._resolver(productor)
             columnas = self._salida.get(representante or productor, [])
         if not columnas:
+            # Decisión 5: sin columnas no hay archivo; un pendiente de escritura impide el Job.
+            self.escritura_sin_columnas = True
             self.pendientes.append(
                 PendienteMigracion(
                     "P-ESCRITURA-SIN-COLUMNAS",
@@ -674,16 +688,23 @@ class _Job:
         fuentes = self._fuentes(op)
         unico = self._unico("tUnite")
         resultado = nodo_union(
-            op, [f.columnas for f in fuentes], unico, x, _linea(op), self.ruta_java
+            op, [f.columnas for f in fuentes], unico, x, _linea(op), self.ruta_java,
+            lambda: self._unico("tMap"),
         )
         self.pendientes += resultado.pendientes
         self._salida[op.id] = []
         if resultado.nodo is None:
             return
         tabla = _tabla(str((op.params.get("outputs") or ["WORK.sin_nombre"])[0]))
-        self._registrar(op, resultado.nodo, fuentes[0].columnas, tabla)
+        self._registrar(op, resultado.nodo, resultado.columnas, tabla)
         self._pasos.add(op.id)
         self._uniones[op.id] = [f.origen for f in fuentes]
+        # Entrada desalineada: sale de su `tMap`, cuya salida se llama como su entrada del tUnite.
+        for i, alineado in resultado.alineados.items():
+            self.nodos.append(alineado)
+            self._alineados.setdefault(op.id, {})[i] = alineado.unico
+            nombre_salida = f"{unico}_in{i + 1}"
+            self.conexiones.append(Conexion(alineado.unico, unico, nombre_salida, "MERGE", 10))
 
     def _sql_impala(self, op: Operator, x: int) -> None:
         """`exec_sql` como `tImpalaRow`; la conexión solo sale del contexto DEV explícito."""
@@ -876,6 +897,16 @@ class _Job:
             if nodo_origen is None or nodo_destino is None:
                 continue
             origen, destino = nodo_origen.unico, nodo_destino.unico
+            entradas_union = self._uniones.get(hasta, [])
+            indice = entradas_union.index(desde) if desde in entradas_union else -1
+            if not repartido and indice in self._alineados.get(hasta, {}):
+                # Entrada desalineada: entra por la `row1` de su `tMap`, no directo al tUnite.
+                destino = self._alineados[hasta][indice]
+                if (origen, destino, "row1") not in vistas:
+                    vistas.add((origen, destino, "row1"))
+                    conector = self._conector_de.get(origen, "FLOW")
+                    self.conexiones.append(Conexion(origen, destino, "row1", conector=conector))
+                continue
             clave = (origen, destino, nombre)
             if clave in vistas:
                 continue
@@ -996,7 +1027,23 @@ class _Job:
             contextos=contextos_de_plan(self.plan, dev={} if self._conexion_en_contexto else None),
         )
 
+    def _lag(self, op: Operator, x: int) -> bool:
+        """`LAG`/`DIF` como `tJavaRow` si la forma es la que se sabe emitir (desde_plan_lag)."""
+        fuentes = self._fuentes(op)
+        if len(fuentes) != 1:
+            return False
+        unico = self._unico("tJavaRow")
+        resultado = nodo_lag(op, fuentes[0].columnas, unico, x, _linea(op), self.ruta_java)
+        if resultado is None or resultado.nodo is None:
+            return False
+        self._registrar(op, resultado.nodo, resultado.columnas, "")
+        self._pasos.add(op.id)
+        self.emitidos.add(op.id)
+        return True
+
     def _traducir(self, op: Operator, x: int) -> None:
+        if op.kind == "stateful_row" and self._lag(op, x):
+            return
         if op.status == "hueco" or op.kind == "unsupported":
             self._sin_soporte(op)
             return
@@ -1033,9 +1080,10 @@ class _Job:
         elif componente == "none":
             self._sin_soporte(op)
         else:
+            # `codigo`: el operador sin emisor declara su pendiente (P-POR-GRUPO-SIN-EMISOR, ...).
             self.pendientes.append(
                 PendienteMigracion(
-                    SIN_SOPORTE,
+                    str(op.params.get("codigo") or SIN_SOPORTE),
                     f"el operador '{op.kind}' todavía no tiene emisor para {componente}",
                     _linea(op),
                 )
@@ -1061,9 +1109,14 @@ def plan_a_jobs(
     resultado.plegados |= set(informe.absorbidos)
     for job in plan.jobs:
         armado = _Job(plan, esquemas, ruta_java, conexion_en_contexto)
-        trabajo = armado.armar(job)
-        if not armado.bloquea_emision:
-            resultado.jobs.append(trabajo)
+        construido = armado.armar(job)
+        # Un Job con un hueco es parcial: sus pendientes se informan, pero el Job no se escribe.
+        if (
+            not armado.bloquea_emision
+            and not tiene_hueco(plan, job, armado.emitidos)
+            and not armado.escritura_sin_columnas
+        ):
+            resultado.jobs.append(construido)
         resultado.pendientes += armado.pendientes
         resultado.traza.update(armado.traza)
         resultado.visitados |= armado.visitados

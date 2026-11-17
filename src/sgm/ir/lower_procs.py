@@ -11,6 +11,7 @@ from sgm.ir.lower_procs_archivos import _read_file, _write_file
 from sgm.ir.lower_procs_common import unsupported as _unsupported
 from sgm.ir.lower_procs_limpieza import lower_limpieza
 from sgm.ir.lower_procs_sort import lower_sort
+from sgm.ir.lower_procs_transpose import transpose_hueco
 from sgm.ir.models import Evidence
 from sgm.ir.proc_rules import declared, lower_declared, names_of
 
@@ -124,6 +125,8 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
     elif (spec := declared(name)) is not None:  # append, means, summary, freq: en YAML (F1.4)
         if not lower_declared(spec, step, ev, b, data, out):
             _unsupported(step, ev, b, spec["fallback"]["note"])
+    elif name == "transpose":
+        transpose_hueco(step, ev, b, data, out)
     elif name == "import":
         _read_file(step, ev, b, out)
     elif name == "export":

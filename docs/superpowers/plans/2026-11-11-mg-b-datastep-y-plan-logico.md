@@ -152,11 +152,11 @@ Los constructores de `src/sgm/ir/operadores.py` existen para 13 de los 14 operad
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\operadores.py` (`renombrar` usado; `pivotar` como hueco con `P-OPERADOR-PIVOTAR` y motivo)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_ir_operadores_corpus.py`
 
-- [ ] **Step 1: Write the failing test.** Para los casos `traducible` de L1 a L3, el contador de «formas anteriores usadas» (B-5) es cero. Para cada operador, una prueba de constructor + validador con una entrada inválida (por ejemplo `agregar` sin función, `ordenar` sin columnas) que lanza `ValueError` con el motivo.
-- [ ] **Step 2: Run test to verify it fails** en los agregados de SQL.
-- [ ] **Step 3: Implement.** Extraer el bloque de agregados de `lower_sql_flow.py` a `lower_sql_agregados.py` (sin cambio de comportamiento, commit propio) y pasarlo por `operadores.agregar`.
-- [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_ir_operadores_corpus.py tests/unit/test_golden*.py -q`; luego suite completa.
-- [ ] **Step 5: Commit.** `hito N m: L1 a L3 construyen su plan por constructores`.
+- [x] **Step 1: Write the failing test.** Para los casos `traducible` de L1 a L3, el contador de «formas anteriores usadas» (B-5) es cero. Para cada operador, una prueba de constructor + validador con una entrada inválida (por ejemplo `agregar` sin función, `ordenar` sin columnas) que lanza `ValueError` con el motivo.
+- [x] **Step 2: Run test to verify it fails** en los agregados de SQL.
+- [x] **Step 3: Implement.** Extraer el bloque de agregados de `lower_sql_flow.py` a `lower_sql_agregados.py` (sin cambio de comportamiento, commit propio) y pasarlo por `operadores.agregar`.
+- [x] **Step 4: Run** `uv run python -m pytest tests/unit/test_ir_operadores_corpus.py tests/unit/test_golden*.py -q`; luego suite completa.
+- [x] **Step 5: Commit.** `hito N m: L1 a L3 construyen su plan por constructores`.
 
 ---
 
@@ -169,7 +169,9 @@ Los constructores de `src/sgm/ir/operadores.py` existen para 13 de los 14 operad
 
 Hoy están listados en `migrar_pendientes.yaml` de L1 y L2 `l0_12`, `l2_12`, `l2_16` y `l3_09`. El criterio es «`L1` y `L2` generan plan sin pendientes que no sean de alcance».
 
-- [ ] **Step 1: Write the failing test.** Clasificar cada pendiente de L1 y L2 como `alcance` (SQL fuera del dialecto soportado, con página de `sqlproc` que lo diga) o `defecto`. La prueba exige `defecto == 0`.
+**Estado (hito 223m):** parcial. `l2_12` ya estaba resuelto; `l2_16` queda bloqueada por una decisión del dueño (motor de `LIBNAME LZ`), ver `docs/BLOQUEOS.md`. Step 2 no se observó fallar: al escribir la prueba, L1 y L2 ya no tenían defectos.
+
+- [x] **Step 1: Write the failing test.** Clasificar cada pendiente de L1 y L2 como `alcance` (SQL fuera del dialecto soportado, con página de `sqlproc` que lo diga) o `defecto`. La prueba exige `defecto == 0`.
 - [ ] **Step 2: Run test to verify it fails** (`l2_12` `P-FILTRO-SIN-TRADUCIR`, `l2_16` `P-OPERADOR-SIN-SOPORTE`).
 - [ ] **Step 3: Implement.** `l2_12` (auto-join por ciudad): el filtro referencia dos alias de la misma tabla; atribuir cada columna calificada a su alias en `sql_semantics.py`. `l2_16` (SQL en la misma base) ya compiló con `tImpalaRow` (hito 164m): el pendiente restante es del plan, no del emisor; cerrar con el operador `leer` con `sql` literal. Los que dependen de tipos (`l3_09`, agregado sin esquema) quedan con su motivo si B-3 no los resuelve.
 - [ ] **Step 4: Run** suite completa; quitar de `migrar_pendientes.yaml` los casos resueltos (la prueba falla si no se quitan).
@@ -189,7 +191,9 @@ Aquí se define el vocabulario de operadores que usan B-9 a B-14. No inventar op
 
 **Fuentes:** `proc.pdf`: `SORT Procedure` (p. 2449), `MEANS Procedure` (p. 1521), `TRANSPOSE Procedure` (p. 2745), `APPEND Procedure` (p. 161), `FORMAT Procedure` (p. 1127), y `FREQ` (`grep -n "FREQ Procedure" docs/referencia/sas/proc.INDEX.md`). `PROC APPEND` es concatenación con destino base: operador `concatenar` con `base`. `PROC FORMAT` no cambia datos: es una declaración de formato (operador `controlar` con `kind=format_def`).
 
-- [ ] **Step 1: Write the failing tests.** (a) `calcular` acepta `estado=[{"op":"retain","name":"acum","init":0}]`; rechaza `init` de tipo distinto al de la columna; (b) `combinar` con `por=["id"]`, `in_flags=["en_a","en_b"]`, `modo="merge"` valida que haya al menos dos fuentes y que `por` esté en el esquema de todas; (c) `PROC APPEND DATA=b BASE=a` produce `concatenar` y `PROC FREQ` simple (`TABLES x`) produce `agregar` con `count` y `percent`.
+**Estado (hito 224m):** parcial. (a) y (b) de Step 1 hechos con pruebas (`calcular` con `estado`, `combinar` con `in_flags` y `modo`). `PROC APPEND` ya era `union` por la regla YAML. `PROC TRANSPOSE` es `pivot` hueco con `P-OPERADOR-PIVOTAR`. (c) de FREQ queda bloqueado (sin página verificada), ver `docs/BLOQUEOS.md`. El `por` del plan se llama `by` en el código (el nombre existente). La comprobación de tipo de `init` y de `por` en el esquema queda para B-3.
+
+- [x] **Step 1: Write the failing tests.** (a) `calcular` acepta `estado=[{"op":"retain","name":"acum","init":0}]`; rechaza `init` de tipo distinto al de la columna; (b) `combinar` con `por=["id"]`, `in_flags=["en_a","en_b"]`, `modo="merge"` valida que haya al menos dos fuentes y que `por` esté en el esquema de todas; (c) `PROC APPEND DATA=b BASE=a` produce `concatenar` y `PROC FREQ` simple (`TABLES x`) produce `agregar` con `count` y `percent`.
 - [ ] **Step 2: Run tests to verify they fail.**
 - [ ] **Step 3: Implement** los constructores y el lowering. `PROC TRANSPOSE` queda como `pivotar` hueco: `P-OPERADOR-PIVOTAR` con motivo y página, hasta que un caso lo pida.
 - [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_ir_operadores.py tests/unit/test_golden*.py -q`, luego suite completa y `uv run python tools/linea_base_plan_logico.py` para comparar con B-1.
@@ -202,6 +206,8 @@ Aquí se define el vocabulario de operadores que usan B-9 a B-14. No inventar op
 Semántica común (leerla una vez antes de B-9): el DATA step compila y ejecuta por iteraciones; cada iteración lee una observación, ejecuta las sentencias en orden y escribe al final salvo que haya `OUTPUT`, `DELETE` o `RETURN` (`lrcon`, «Overview of DATA Step Processing», p. 492 a 502; «The Execution Phase», p. 494; «The Default Sequence of Execution», p. 500). Las variables viven en el vector de datos del programa (PDV): se reinician a faltante al empezar cada iteración salvo las retenidas (`RETAIN`, sentencia suma, las leídas por `SET`/`MERGE`) (`lrcon`, «Creating the Input Buffer and the Program Data Vector», p. 496). El intérprete de `src/sgm/migrar/interprete.py` ya modela el PDV para asignaciones; este plan lo extiende, no lo reescribe.
 
 ### Task B-9: Investigar `SET a b;` en Studio: ¿`tUnite` compila y ejecuta con el orden de SAS? (MG-P4-03, parte 1)
+
+**Estado (hito 253m):** hecho. `tUnite` con conexiones `MERGE` coincide con SAS en Studio (`l6_25`; testigo `l6_09`), opción (a). Antes, **Bloqueada (Studio):** ver `docs/BLOQUEOS.md`, B-9.
 
 El plan maestro (sección 2 y MG-P4-03) dice que `tUnite` no compila; está desactualizado. El hito 97d lo vio fallar con `preMetadata is null` y el hito 125m (`PROGRESS.md`, «Segunda pasada completa») lo arregló escribiendo las entradas como conexión `MERGE` con `lineStyle` 10: `l0_09` **compiló**, pero **nunca se ejecutó** ni se comparó su salida, y el orden de entrada del `tUnite` quedó sin verificar. SAS concatena en el orden de la lista: todas las observaciones de `a`, luego todas las de `b` (`lestmtsref`, `SET Statement`, p. 343; `lrcon`, «Concatenating», p. 571 y 579).
 
@@ -223,6 +229,8 @@ El plan maestro (sección 2 y MG-P4-03) dice que `tUnite` no compila; está desa
 
 ### Task B-10: `SET a b;` concatena por nombre con faltante (MG-P4-03, parte 2)
 
+**Estado (hito 254m):** parcial. Columnas distintas se alinean con un `tMap` por entrada (`l6_26` coincide en Studio). Falta (c), `SET ... BY` intercalado (`P-SET-INTERCALADO`), y las entradas repartidas. Antes, **Bloqueada:** depende de B-9 (ver `docs/BLOQUEOS.md`).
+
 **Files:**
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_union.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\migrar\interprete.py` (`_apilar`, línea 776)
@@ -239,6 +247,8 @@ Hoy las entradas con columnas distintas dan `P-UNION-ESQUEMAS-DISTINTOS` y no se
 ---
 
 ### Task B-11: `MERGE ... BY ... IN=` con la semántica real en el intérprete (MG-P4-04, parte 1)
+
+**Estado (hito 247m):** parcial. `interprete.py` ya está partido (241m a 243m). En 247m el intérprete tiene `IN=` por iteración (`lrcon`, p. 75) y rechaza entradas desordenadas (`lrcon`, p. 584); pruebas en `test_interprete_merge.py`. `l6_11` queda `pendiente` (sentencia suma sin estado por fila, B-13 y B-14). Lo que sigue (B-12 emisión, B-13/B-14) necesita Studio.
 
 Semántica (`lestmtsref`, `MERGE Statement`, p. 243; `lrcon`, «Match-Merging», p. 597 a 601; «One-to-One Merging», p. 592 a 596): las entradas deben estar ordenadas por `BY`; por cada valor de `BY` se leen las observaciones de cada entrada en paralelo, una por iteración; cuando una entrada se agota en el grupo conserva los valores de su última observación y la iteración sigue mientras alguna entrada tenga observaciones en el grupo. Con grupos de tamaños `m` y `n` salen `max(m, n)` filas, no `m*n`. `IN=` vale 1 si la entrada contribuyó con una observación a **esa iteración** (`lrcon`, «Using the IN= Data Set Option», p. 75). Sin `BY`, `MERGE` es una unión fila a fila por posición (`lrcon`, «One-to-One Merging», p. 592). Si dos entradas traen una columna con el mismo nombre, gana la de la última entrada de la lista que contribuyó (`lestmtsref`, p. 243).
 
@@ -265,6 +275,8 @@ Semántica (`lestmtsref`, `MERGE Statement`, p. 243; `lrcon`, «Match-Merging»,
 
 ### Task B-12: `MERGE` emitido como `tSortRow` + `tJavaRow`, no como JOIN (MG-P4-04, parte 2)
 
+**Bloqueada:** depende de B-11 (ver `docs/BLOQUEOS.md`).
+
 Hoy `l6_01` a `l6_04` y `l6_12` están en `tests/corpus/migrar_pendientes.yaml` con `P-UNION-TIPO-SIN-SOPORTE` (`talend_item/desde_plan_map.py`, línea 240) y `l6_11` con `P-OPERADOR-SIN-SOPORTE`. `lower_data.py` (`_join_type`, línea 21) deduce un tipo de JOIN de la primera condición `if` y marca «revisar» si no puede: esa deducción es el origen del error conceptual y se reemplaza por el operador `combinar` de B-8.
 
 **Files:**
@@ -284,6 +296,8 @@ Hoy `l6_01` a `l6_04` y `l6_12` están en `tests/corpus/migrar_pendientes.yaml` 
 ---
 
 ### Task B-13: `RETAIN`, sentencia suma, `FIRST.`/`LAST.`, `LAG`, `DIF` en el intérprete (MG-P4-05, parte 1)
+
+**Estado (hito 255m):** parcial. `LAG` y `DIF` con la forma verificada se emiten como `tJavaRow` (`java_lag.py`, `desde_plan_lag.py`; compilado y ejecutado con javac). La validación en Studio de `l6_40` y `l6_41` queda pendiente: `MODAL_BLOCKING` (BLOQUEOS, B-Studio). **Estado (hito 251m):** parcial. `LAG` y `DIF` se calculan en el intérprete (`lefunctionsref`, pp. 1163–1164 y 663) y quedan en hueco `P-LAG-SIN-EMISOR` hasta tener emisor; la emisión necesita Studio. Antes, estado del hito 250m: parcial. `RETAIN` con valor sin BY se calcula en el intérprete y queda en hueco `P-POR-GRUPO-SIN-EMISOR` (`lestmtsref`, p. 331). Quedan `LAG` y `DIF` (`lefunctionsref`). Antes, estado del hito 249m: parcial. La suma `x + expr;` se calcula en el intérprete y queda en hueco `P-SUMA-SIN-EMISOR` hasta que tenga emisor (`lestmtsref`, p. 360). Antes, estado del hito 248m: El intérprete se detiene ante sentencias sin traducción y asignaciones condicionales sin partes (`lrcon`, p. 500; `test_interprete_sin_traducir.py`). Queda el estado por fila: suma (`lestmtsref`, p. 360), `RETAIN` con valor (p. 331), `LAG` y `DIF` (`lefunctionsref`). Los casos de B-13 van a `l6_39` en adelante: `l6_27` a `l6_31` ya son otros casos.
 
 Semántica con página:
 - `RETAIN` (`lestmtsref`, p. 331): la variable conserva su valor entre iteraciones; sin valor inicial arranca en faltante; con valor, se inicializa una sola vez.
@@ -306,6 +320,8 @@ Semántica con página:
 ---
 
 ### Task B-14: Estado por fila emitido con `tSortRow` + `tJavaRow` (MG-P4-05, parte 2)
+
+**Bloqueada:** depende de B-13 (ver `docs/BLOQUEOS.md`).
 
 **Files:**
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\talend_item\desde_plan_estado.py`
@@ -331,10 +347,12 @@ Semántica: `SELECT (expr); WHEN (v1, v2) ...; OTHERWISE ...; END;` evalúa `exp
 - Create: casos `tests\corpus\L4\l4_21_select_when_con_otherwise`, `l4_22_select_sin_expresion`, `l4_23_delete_condicional`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_select.py`
 
-- [ ] **Step 1: Write the failing test.** (a) `SELECT (x); WHEN (1,2) y='a'; WHEN (3) y='b'; OTHERWISE y='c'; END;` baja a la cadena `IF/ELSE IF/ELSE` que ya existe (`_conditional_assignment`, `lower_data.py` línea 461) con `x in (1,2)` y `x = 3`, y tres filas de prueba coinciden en B; (b) sin `OTHERWISE` y sin coincidencia: pendiente `P-SELECT-SIN-OTHERWISE` (SAS aborta; no se inventa un valor por omisión); (c) `DELETE` condicional produce un `filter` con la condición negada cuando solo hay asignaciones antes; si hay `OUTPUT` antes, queda el pendiente `P-DELETE-CON-OUTPUT`; (d) `WHEN` con faltante: el faltante numérico solo iguala a otro faltante.
+**Estado (hito 239m):** parcial (validación en Studio pendiente). `SELECT/WHEN/OTHERWISE` y `IF ... THEN DELETE` con pruebas (`test_lower_data_select.py`). `P-SELECT-SIN-OTHERWISE` se emite (`lestmtsref`, p. 340). Hecho en 239m: `SELECT;` sin select-expression (cada `WHEN` es una condición, `lestmtsref`, p. 340); los casos `l4_21_select_when_con_otherwise`, `l4_22_select_sin_expresion` y `l4_23_delete_condicional` con `esperado/` a mano, que el intérprete reproduce (`test_casos_b15_select.py`). Falta el lote de Studio de estos casos, que es parte de B-Gate y está bloqueado (`docs/BLOQUEOS.md`). Ninguna de las citas de `SELECT`/`DELETE` está en el índice de `lrcon`: se citan `lestmtsref`.
+
+- [x] **Step 1: Write the failing test.** (a) `SELECT (x); WHEN (1,2) y='a'; WHEN (3) y='b'; OTHERWISE y='c'; END;` baja a la cadena `IF/ELSE IF/ELSE` que ya existe (`_conditional_assignment`, `lower_data.py` línea 461) con `x in (1,2)` y `x = 3`, y tres filas de prueba coinciden en B; (b) sin `OTHERWISE` y sin coincidencia: pendiente `P-SELECT-SIN-OTHERWISE` (SAS aborta; no se inventa un valor por omisión); (c) `DELETE` condicional produce un `filter` con la condición negada cuando solo hay asignaciones antes; si hay `OUTPUT` antes, queda el pendiente `P-DELETE-CON-OUTPUT`; (d) `WHEN` con faltante: el faltante numérico solo iguala a otro faltante.
 - [ ] **Step 2: Run test to verify it fails.**
-- [ ] **Step 3: Implement** por reducción a `IF` encadenado, sin operador nuevo.
-- [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_lower_data_select.py tests/unit/test_corpus_l4l6.py -q`.
+- [x] **Step 3: Implement** por reducción a `IF` encadenado, sin operador nuevo.
+- [x] **Step 4: Run** `uv run python -m pytest tests/unit/test_lower_data_select.py tests/unit/test_corpus_l4l6.py -q`.
 - [ ] **Step 5: Commit.** `hito N m: SELECT/WHEN y DELETE`.
 
 ---
@@ -350,9 +368,11 @@ Semántica: `ARRAY a{3} x1-x3;` define un alias de variables, no almacenamiento 
 - Create: casos `tests\corpus\L6\l6_32_array_do_constante`, `l6_33_do_while`, `l6_34_array_indice_fuera_de_rango`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_array.py`
 
-- [ ] **Step 1: Write the failing test.** (a) `DO i=1 TO 3; a{i} = a{i} * 2; END;` con límites constantes se **desenrolla** a tres asignaciones (`calcular`) sin `tJavaRow`, y el intérprete coincide incluyendo `i = 4` si el programa la conserva; (b) límites no constantes o `DO WHILE`/`UNTIL`: `tJavaRow` con un bucle; si el cuerpo contiene `OUTPUT` dentro del bucle, `P-DO-OUTPUT-EN-BUCLE` (varias filas por iteración, fuera de alcance); (c) `l6_34`: índice 4 en un arreglo de 3 es `P-ARRAY-FUERA-DE-RANGO`, no un `null` silencioso; (d) `l0_13` (hoy `xfail` por `DO/END`) cambia de estado según (a).
+**Estado (hito 234m):** parcial (bloqueado en la emisión). Hecho: `P-ARRAY-FUERA-DE-RANGO` (lrcon, p. 192), `P-DO-WHILE-UNTIL` (lrcon, p. 675) y `P-DO-LIMITE-NO-CONSTANTE` (lrcon, p. 671) salen como hueco con su código; el patrón `espera` de `plumbing.yaml` ya no toma `DO WHILE`/`DO UNTIL`. Casos: `l6_30` (DO UNTIL) y `l6_31` (límite no constante) pendientes; `l6_32` traducible con `esperado/` a mano (hito 233m); `l6_33` y `l6_34` pendientes. Todos en `migrar_pendientes.yaml`. Falta solo el bucle en `tJavaRow` (paso 1 b y paso 3 para DO WHILE/UNTIL y DO con límite variable), bloqueado por la decisión sobre `interprete.py` y por Studio: `docs/BLOQUEOS.md`, B-16. El caso `l0_13` sigue igual.
+
+- [x] **Step 1: Write the failing test.** (a) `DO i=1 TO 3; a{i} = a{i} * 2; END;` con límites constantes se **desenrolla** a tres asignaciones (`calcular`) sin `tJavaRow`, y el intérprete coincide incluyendo `i = 4` si el programa la conserva; (b) límites no constantes o `DO WHILE`/`UNTIL`: `tJavaRow` con un bucle; si el cuerpo contiene `OUTPUT` dentro del bucle, `P-DO-OUTPUT-EN-BUCLE` (varias filas por iteración, fuera de alcance); (c) `l6_34`: índice 4 en un arreglo de 3 es `P-ARRAY-FUERA-DE-RANGO`, no un `null` silencioso; (d) `l0_13` (hoy `xfail` por `DO/END`) cambia de estado según (a).
 - [ ] **Step 2: Run test to verify it fails.**
-- [ ] **Step 3: Implement.** Registrar los arreglos en una tabla del paso (nombre, límites, miembros); `a{i}` con `i` constante se resuelve a la columna; no constante, a `tJavaRow`.
+- [x] **Step 3: Implement.** Registrar los arreglos en una tabla del paso (nombre, límites, miembros); `a{i}` con `i` constante se resuelve a la columna; no constante, a `tJavaRow`.
 - [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_lower_data_array.py tests/unit/test_lower_data_do_else.py -q`.
 - [ ] **Step 5: Commit.** `hito N m: ARRAY y DO con desenrollado estatico`.
 
@@ -385,10 +405,12 @@ Reemplaza la serie de un hito por variante (166 a 190, casos `l6_13` a `l6_24`).
 
 **Espacio:** ramas ∈ {`IF`, `IF/ELSE`, `IF/ELSE IF`, `IF/ELSE IF/ELSE`, incondicional, dos `IF` independientes} × destinos por rama ∈ {omitido, uno, dos, todos} con 2 o 3 datasets declarados × posición {terminal, con continuación} × captura del PDV {sí, no}. Se acota por poda: no se generan programas con destino repetido entre ramas no excluyentes (`OUTPUT_DESTINO_REPETIDO` ya los rechaza) ni con destino fuera del encabezado; esos dos casos son **negativos** y se prueban aparte con su pendiente esperado.
 
+**Estado (hito 240m):** parcial (bloqueado en captura del PDV y en `--escribir`). El espacio tiene 386 combinaciones positivas, las 386 migran a Jobs válidos y sin pendiente; 34 negativos de destino repetido quedan como `P-OUTPUT-DESTINO-REPETIDO` sin Job (`test_combinaciones_output.py`). Hecho en 240m: los destinos incluyen un dataset cualquiera (`S1`, `S2`, `S3`) además de la pareja `S1,S2`, y `test_cobertura_l6_13_24.py` fija la cobertura de forma de `l6_13` a `l6_24`: nueve casos cubiertos por una combinación (`l6_13` ahora sí); `l6_14` y `l6_15` (captura del PDV) y `l6_21` (par `S2,S3`) quedan fuera, con su motivo. Cobertura de forma, no de valores: el espacio fija sus condiciones. Continuación en el espacio desde 236m (`CONT = 1` tras el último `OUTPUT`). Bloqueado en `docs/BLOQUEOS.md` (B-17): la captura del PDV (el intérprete trata `VALOR` y `valor` como columnas distintas) y `--escribir` (decisión sobre cuántos casos entran al corpus).
+
 - [ ] **Step 1: Write the failing test.** (a) `combinaciones()` incluye una combinación equivalente a cada uno de `l6_13` a `l6_24` (comparar por su `programa_sas` normalizado y el esperado de su carpeta); (b) para cada combinación, `esperado` coincide con el intérprete sobre el plan (capa B) con tres filas de entrada que ejerzan cada rama (`valor` < 0, = 0, > 0) y una con faltante; (c) en anillo A: la combinación se migra y pasa `validar_job`, o deja un pendiente con código estable (`OUTPUT_DESTINO_REPETIDO`, `P-OUTPUT-...`) y **ningún Job parcial**; (d) la prueba de mutación: alterar un esperado a mano y comprobar que (b) falla (MG-P10-06).
 - [ ] **Step 2: Run test to verify it fails.**
-- [ ] **Step 3: Implement.** El oráculo recorre las filas y mantiene un diccionario PDV; en `OUTPUT` copia el PDV al destino; al final de la iteración escribe a todos los destinos solo si no hubo `OUTPUT` explícito en ese paso; el faltante numérico de la condición es menor que cualquier número (`lrcon`, «Comparison Operators», ubicar con `grep -n "Missing Values" docs/referencia/sas/lrcon.INDEX.md`). No importa nada de `sgm.ir` ni `sgm.migrar`.
-- [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_combinaciones_output.py -q` y `uv run python tools/generar_combinaciones_output.py --listar` (cuenta de combinaciones, cuántas se migran y cuántas quedan en pendiente con su código). Las que se migran y no están en el corpus se escriben en `tests/corpus/L6/` con `generar_combinaciones_output.py --escribir N`, con el `caso.yaml` marcado `origen: generado`.
+- [x] **Step 3: Implement.** El oráculo recorre las filas y mantiene un diccionario PDV; en `OUTPUT` copia el PDV al destino; al final de la iteración escribe a todos los destinos solo si no hubo `OUTPUT` explícito en ese paso; el faltante numérico de la condición es menor que cualquier número (`lrcon`, «Comparison Operators», ubicar con `grep -n "Missing Values" docs/referencia/sas/lrcon.INDEX.md`). No importa nada de `sgm.ir` ni `sgm.migrar`.
+- [x] **Step 4: Run** (solo `--listar`) `uv run python -m pytest tests/unit/test_combinaciones_output.py -q` y `uv run python tools/generar_combinaciones_output.py --listar` (cuenta de combinaciones, cuántas se migran y cuántas quedan en pendiente con su código). Las que se migran y no están en el corpus se escriben en `tests/corpus/L6/` con `generar_combinaciones_output.py --escribir N`, con el `caso.yaml` marcado `origen: generado`.
 - [ ] **Step 5: Commit.** `hito N m: generador de combinaciones de OUTPUT con oraculo independiente`.
 
 ---
@@ -410,6 +432,8 @@ Hoy `l6_13` a `l6_17` y `l6_19` a `l6_21` no tienen validación en Studio regist
 ---
 
 ### Task B-19: `UPDATE` y `MODIFY` (MG-P4-07)
+
+**Estado (hito 252m, sin commit: memoria libre bajo 4 GB, ver `docs/BLOQUEOS.md`):** parcial. `UPDATE` se calcula en el intérprete (`lrcon`, pp. 604 a 609; `interprete_update.py`) y queda en hueco `P-UPDATE-SIN-EMISOR`; `UPDATEMODE` queda en `P-UPDATEMODE`; `MODIFY` en `P-MODIFY-EN-SITIO` (`lestmtsref`, p. 252). Falta la emisión en `desde_plan_merge.py`, que necesita Studio. Antes, **Bloqueada (decisión del dueño sobre `interprete.py`):** ver `docs/BLOQUEOS.md`.
 
 Semántica de `UPDATE` (`lestmtsref`, `UPDATE Statement`, p. 362; `lrcon`, «Updating with the UPDATE and the MODIFY Statements», p. 602 a 611): un maestro y una o más transacciones, ambos ordenados por `BY`; por cada llave se aplica cada transacción sobre el maestro y se escribe **una sola observación por grupo `BY`** al terminar el grupo; los valores **faltantes de la transacción no sobrescriben** al maestro (a menos que `UPDATEMODE=NOMISSINGCHECK`); una llave nueva en la transacción se agrega (`lrcon`, «Updating with Nonmatched Observations, Missing Values, and New Variables», p. 604 y ejemplo 3, p. 609); con varias transacciones de la misma llave se aplican en orden (ejemplo 2, p. 608). `MODIFY` (`lestmtsref`, p. 252; `lrcon`, p. 605 y 606) **modifica el dataset en el sitio** sin crear uno nuevo: no tiene equivalente en un Job que lee y escribe archivos o tablas salvo `tDBOutput` con acción `UPDATE`.
 
@@ -440,7 +464,9 @@ Semántica: `_N_` es una variable automática que cuenta **las iteraciones del D
 - Create: casos `tests\corpus\L5\l5_10_n_cuenta_iteraciones`, `l5_11_n_con_filtro`, `l5_12_symput_ultimo_valor`, `l5_13_symputx_recorta`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_automaticas.py`
 
-- [ ] **Step 1: Write the failing test.** (a) `_N_` bajo `IF x > 0;` con 4 entradas y 2 filtradas da `_N_` en las 2 filas que quedan con los números originales (por ejemplo 2 y 4, no 1 y 2); (b) `_ERROR_` usado en la lógica: `P-ERROR-AUTOMATICA` con motivo (el Job no sabe qué errores de datos habría tenido SAS) salvo que solo se **lea** como constante 0 en un `KEEP`/`DROP`; (c) `CALL SYMPUT('v', x)` en cada fila deja el valor de la **última** iteración en `v`, y un paso posterior que usa `&v` lo recibe (la resolución del `&v` es de MG-P7; aquí solo se emite la escritura); (d) `SYMPUTX` recorta blancos, `SYMPUT` no.
+**Estado (hito 244m):** parcial. En 244m el intérprete cuenta `_N_` por iteración (`lrcon`, p. 79; `test_interprete_n_automatica.py`); falta la emisión en Talend, que espera a Studio. Antes, estado del hito 237m: parcial. `_N_` y `_ERROR_` ya no se traducen como columnas (salen `hueco` con `P-VARIABLE-AUTOMATICA`/`P-ERROR-AUTOMATICA`). Hecho en 237m: el motivo de `CALL SYMPUT`/`SYMPUTX` dice si el valor se recorta (`SYMPUTX` quita blancos, `mcrolref`, p. 322; la rutina `SYMPUT`, p. 315, no lo indica). Faltan, bloqueados en `docs/BLOQUEOS.md`: el contador de `_N_` (intérprete) y la emisión de `CALL SYMPUT` (decisión: fontanería o `tJavaRow`, y Studio); la macro dinámica no llega hoy a los pendientes de `sgm migrar`.
+
+- [x] **Step 1: Write the failing test.** (a) `_N_` bajo `IF x > 0;` con 4 entradas y 2 filtradas da `_N_` en las 2 filas que quedan con los números originales (por ejemplo 2 y 4, no 1 y 2); (b) `_ERROR_` usado en la lógica: `P-ERROR-AUTOMATICA` con motivo (el Job no sabe qué errores de datos habría tenido SAS) salvo que solo se **lea** como constante 0 en un `KEEP`/`DROP`; (c) `CALL SYMPUT('v', x)` en cada fila deja el valor de la **última** iteración en `v`, y un paso posterior que usa `&v` lo recibe (la resolución del `&v` es de MG-P7; aquí solo se emite la escritura); (d) `SYMPUTX` recorta blancos, `SYMPUT` no.
 - [ ] **Step 2: Run test to verify it fails.**
 - [ ] **Step 3: Implement.** `_N_` como `Numeric.sequence` o un contador en `tJavaRow` colocado **antes** del `tFilterRow`; `CALL SYMPUT` como `tJavaRow` que escribe en `globalMap` (y en `tSetGlobalVar` donde ya hay plantilla validada, hito 3411 de `PROGRESS.md`); el valor se convierte con `BEST12.` solo para numéricos.
 - [ ] **Step 4: Run** `uv run python -m pytest tests/unit/test_lower_data_automaticas.py tests/unit/test_corpus_l4l6.py -q`.
@@ -462,6 +488,8 @@ Semántica (`lrcon`, «Using the Hash Object», p. 628 a 641): `DECLARE HASH h(D
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\` (entrada `hash` con `fuente: lrcon.pdf, p. 628` y `estado: reconocida` solo para el patrón de búsqueda; el resto `no_reconocida` con nota)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_lower_data_hash.py`
 
+**Estado (hito 238m):** parcial. Hecho en 238m: todo objeto hash o iterador es un hueco con su código y su página de `lrcon` (`src/sgm/ir/lower_data_hash.py`: `P-HASH-LOOKUP-SIN-SOPORTE` p. 628 a 634, `P-HASH-MUTABLE` p. 633 y 638, `P-HASH-OUTPUT` p. 639, `P-HASH-ITERADOR` p. 642); ningún Job sale con ellos (`test_lower_data_hash.py`). Antes, `DECLARE HASH` se ignoraba y `rc = h.find()` salía como columna sin traducir dentro de un Job que se escribía. Faltan, bloqueados en `docs/BLOQUEOS.md` (B-21): el lookup `FIND` con tMap y su columna `rc` (la guía no da el valor distinto de 0) y la regla de llave duplicada (`lrcon`, p. 632) en un operador de búsqueda.
+
 - [ ] **Step 1: Write the failing test.** (a) El patrón de búsqueda baja a un operador `unir` tipo `left` con `rc` como columna calculada (`0` si hubo coincidencia, `-1` si no; el valor exacto de `rc` se lee de la guía); (b) llave duplicada: el esperado sigue la regla leída de las páginas 630 a 638; (c) `h.ADD()` da `P-HASH-MUTABLE` y no se emite Job parcial.
 - [ ] **Step 2: Run test to verify it fails.**
 - [ ] **Step 3: Implement.** Si la lectura de las páginas muestra que el patrón de búsqueda no es equivalente a un lookup de `tMap` para el caso de duplicados, el soporte queda en «solo llave única demostrada» y el resto en pendiente.
@@ -477,6 +505,8 @@ Semántica (`lrcon`, «Using the Hash Object», p. 628 a 641): `DECLARE HASH h(D
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\*.yaml` (sentencias de DATA step: `MERGE`, `UPDATE`, `MODIFY`, `RETAIN`, `Sum`, `ARRAY`, `DO`, `SELECT`, `DELETE`, `OUTPUT`, `SET`, hash, `LAG`, `DIF`, `CALL SYMPUT`)
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\PROGRESS.md`
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_catalogo_sas.py`
+
+**Bloqueada (Studio):** ver `docs/BLOQUEOS.md`, B-22.
 
 - [ ] **Step 1: Catálogo.** Para cada sentencia o función cubierta, pasar `estado` a `reconocida` con su `fuente` (`lestmtsref, p. 243`, etc.) y para las parciales dejar `no_reconocida` con `nota` (`MODIFY`, `UPDATEMODE`, hash mutable, `_ERROR_`). Las páginas se toman de este plan, ya verificadas contra el índice.
 - [ ] **Step 2: Plan maestro.** Corregir la sección 2 y la tabla 5.2 (`tUnite` compila con conexiones `MERGE`, ver B-9); reemplazar en MG-P4-02 la lista de hitos 166 a 190 por la línea de B-18; sustituir el estado de MG-P1 y MG-P4 por lo medido en B-1 y B-Gate. Los créditos de la 11b se calculan con el método de esa sección tarea por tarea (1 = hecha; 0,5 = parcial con ejecución; 0,25 = casos puntuales; 0 = sin evidencia), no por juicio global.

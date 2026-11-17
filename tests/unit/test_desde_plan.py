@@ -275,7 +275,7 @@ def test_output_no_declarado_no_emite_escritura_parcial():
 
     resultado = plan_a_jobs(plan, esquema)
 
-    assert any(p.codigo == "P-OPERADOR-SIN-SOPORTE" for p in resultado.pendientes)
+    assert any(p.codigo == "P-OUTPUT-DESTINO-NO-DECLARADO" for p in resultado.pendientes)
     assert not any(
         nodo.componente == "tFileOutputDelimited" for job in resultado.jobs for nodo in job.nodos
     )
@@ -380,7 +380,7 @@ def test_output_repetido_al_mismo_destino_sigue_pendiente():
     resultado = plan_a_jobs(plan, esquema)
 
     assert any(
-        pendiente.codigo == "P-OPERADOR-SIN-SOPORTE"
+        pendiente.codigo == "P-OUTPUT-DESTINO-REPETIDO"
         and "OUTPUT escribe más de una vez" in pendiente.mensaje
         for pendiente in resultado.pendientes
     )

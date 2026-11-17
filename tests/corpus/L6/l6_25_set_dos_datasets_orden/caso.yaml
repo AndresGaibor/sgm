@@ -1,0 +1,15 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- SET
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- TODO_ORDEN
+razonamiento: 'SET con dos datasets concatena en el orden de la lista: todas las observaciones de A y luego las de B (lestmtsref, p. 343; lrcon, p. 579). Studio (B-9): tUnite con conexiones MERGE, in1=A e in2=B, coincide con esperado, 0 diferencias.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes:
+- filas(TODO_ORDEN) == 5

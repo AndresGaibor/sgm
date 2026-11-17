@@ -10,9 +10,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import yaml
-
 from sgm.proceso.entradas_salidas import EntradasSalidas, Fuente, nombre_archivo
+from sgm.yaml_io import cargar_yaml
 
 Fila = dict[str, str]
 Seccion = dict[str, Fila]
@@ -31,7 +30,7 @@ _TIPO_DE_FUENTE = {
 
 def cargar_declaradas(path: Path, clave: str) -> list[dict[str, str]]:
     """Lista declarada bajo `clave` en el YAML. Cada elemento necesita su propia `clave`."""
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    data = cargar_yaml(path) or {}
     filas: list[dict[str, str]] = []
     vistas: set[str] = set()
     for item in data.get(clave) or []:

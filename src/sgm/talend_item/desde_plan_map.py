@@ -637,6 +637,7 @@ def _salidas(
         longitud = largos.get(destino.lower(), -1)
         existente = next((c for c in columnas if c.nombre.lower() == destino.lower()), None)
         if existente is not None:
+            expresiones.pop(existente.nombre, None)
             columnas = [
                 (
                     Columna(destino, tipo, longitud=longitud)

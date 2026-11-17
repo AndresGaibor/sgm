@@ -36,6 +36,10 @@ class ResultadoOrden:
 
     nodo: Nodo | None = None
     pendientes: list[PendienteMigracion] = field(default_factory=list)
+    # Entradas de una unión que pasan por un `tMap` de alineación, por índice de entrada.
+    alineados: dict[int, Nodo] = field(default_factory=dict)
+    # Columnas que sale del nodo: las de la unión cuando hay alineación, si no las de la entrada.
+    columnas: list[Columna] = field(default_factory=list)
 
 
 def _tipo_de_orden(columna: Columna) -> str:

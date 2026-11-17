@@ -1,0 +1,33 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- ARRAY
+- DO
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- ARREGLO_L6_34
+razonamiento: 'Caso reservado: el índice 4 sale del arreglo de tres elementos. SAS detiene el paso con error de ejecución (lrcon, p. 192); la traducción no inventa un valor para a{4}.'
+fuentes_url: []
+invariantes: []
+motivo: Un índice fuera de rango es un error de ejecución que detiene el paso; no hay valor que la traducción pueda fijar sin inventarlo. Queda como pendiente P-ARRAY-FUERA-DE-RANGO hasta que exista su semántica de error.
+esquemas:
+  WORK.VALORES_L6_34:
+    ID:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    X1:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    X2:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    X3:
+      tipo: Double
+      linea: 6
+      fuente: muestra

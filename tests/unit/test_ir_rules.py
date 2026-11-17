@@ -293,11 +293,14 @@ def test_output_condicional_no_terminal_agrega_rama_de_continuacion():
     assert not _by_kind(ops, "unsupported")
 
 
+
 def test_retain_lag_y_first_last_son_estado_por_fila():
     ops = _ops("data t; set s; by g; retain acc 0; prev = lag(x); if first.g then acc = 0; run;")
     stateful = _by_kind(ops, "stateful_row")
     assert len(stateful) == 3
-    assert all(o.status == "parcial" for o in stateful)
+    # LAG es hueco sin emisor (decisión 5, B-13); RETAIN y FIRST. siguen parciales.
+    assert [o.status for o in stateful if o.params.get("reason") == "lag"] == ["hueco"]
+    assert all(o.status == "parcial" for o in stateful if o.params.get("reason") != "lag")
 
 
 def test_proc_sort_nodupkey_es_sort_y_dedup():
@@ -326,40 +329,18 @@ def test_proc_append_es_union_proc_import_read_file_y_export_write_file():
     assert ops[2].params["outputs"] == ["WORK.a"]
 
 
-def test_proc_append_sobre_la_misma_tabla_queda_pendiente():
-    for base, data in (("x", "x"), ("x", "work.x"), ("Work.Ventas", "work.ventas")):
-        (op,) = _ops(f"proc append base={base} data={data}; run;")
-        assert op.kind == "unsupported", (base, data)
-        assert op.status == "hueco"
-        assert op.params["pending_code"] == "P-APPEND-MISMA-TABLA"
-        assert "no está demostrada" in op.notes[0]
-
-
-def test_proc_append_con_opciones_o_sentencias_no_modeladas_queda_pendiente():
-    programas = (
-        "proc append base=a data=b force; run;",
-        "proc append base=a data=b(obs=0); run;",
-        "proc append base=a data=b; where active; run;",
-        "proc append base=&library..a data=work.a; run;",
-    )
-    for programa in programas:
-        (op,) = _ops(programa)
-        assert op.kind == "unsupported", programa
-        assert op.status == "hueco"
-        assert op.params["pending_code"] == "P-APPEND-OPCION-NO-SOPORTADA"
-        assert "proc.pdf, p. 162" in op.notes[0]
-
-
 def test_proc_means_es_aggregate():
     ops = _ops("proc means data=x; class g; var v; run;")
     assert _kinds(ops) == ["aggregate"]
     assert ops[0].params["class"] == ["g"] and ops[0].params["var"] == ["v"]
 
 
-def test_proc_transpose_es_no_soportado_con_motivo():
+def test_proc_transpose_es_pivote_hueco_con_motivo():
+    # B-8: TRANSPOSE ya no es `unsupported` genérico: es un `pivot` hueco con su página (p. 2745).
     (op,) = _ops("proc transpose data=x out=y; by k; var v; run;")
-    assert op.kind == "unsupported"
-    assert op.status == "hueco" and op.params["reason"] == "PROC_NO_SOPORTADO"
+    assert op.kind == "pivot"
+    assert op.status == "hueco" and op.params["procedure"] == "transpose"
+    assert "p. 2745" in op.notes[0]
 
 
 def test_pass_through_select_es_lectura_en_la_base_con_sql_intacto():
@@ -437,3 +418,31 @@ def test_grafo_fusion_une_evidencia_y_redirige_aristas():
     assert "b" not in g and len(g) == 2
     assert len(g.operator("c").evidence) == 2
     assert [e.src for e in g.edges()] == ["a"]
+
+def test_proc_append_sobre_la_misma_tabla_queda_pendiente():
+    for base, data in (("x", "x"), ("x", "work.x"), ("Work.Ventas", "work.ventas")):
+        (op,) = _ops(f"proc append base={base} data={data}; run;")
+        assert op.kind == "unsupported", (base, data)
+        assert op.status == "hueco"
+        assert op.params["pending_code"] == "P-APPEND-MISMA-TABLA"
+        assert "no está demostrada" in op.notes[0]
+
+def test_proc_append_con_opciones_o_sentencias_no_modeladas_queda_pendiente():
+    programas = (
+        "proc append base=a data=b force; run;",
+        "proc append base=a data=b(obs=0); run;",
+        "proc append base=a data=b; where active; run;",
+        "proc append base=&library..a data=work.a; run;",
+    )
+    for programa in programas:
+        (op,) = _ops(programa)
+        assert op.kind == "unsupported", programa
+        assert op.status == "hueco"
+        assert op.params["pending_code"] == "P-APPEND-OPCION-NO-SOPORTADA"
+        assert "proc.pdf, p. 162" in op.notes[0]
+
+def test_proc_transpose_conserva_el_pendiente_documentado():
+    (op,) = _ops("proc transpose data=x out=y; by k; var v; run;")
+    assert op.kind == "pivot"
+    assert op.status == "hueco" and op.params["procedure"] == "transpose"
+    assert "p. 2745" in op.notes[0]

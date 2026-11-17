@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 
-import yaml
+from sgm.yaml_io import cargar_yaml
 
 from . import esquemas_caso, invariantes, preparacion
 
@@ -23,7 +24,7 @@ ESTADOS = (
 METADATOS = frozenset(
     {
         "id", "productos", "supuestos", "anomalias_plantadas", "salidas_esperadas", "tema",
-        "fuentes_url",
+        "fuentes_url", "origen",
     }
 )
 CAMPOS = frozenset(
@@ -77,10 +78,30 @@ class Caso:
         return self.directorio / "esperado"
 
 
+@lru_cache(maxsize=None)
+def _leer_caso(ruta: Path, mtime_ns: int, tamano: int) -> dict:
+    """YAML del caso memorizado por archivo y por su huella en disco.
+
+    `mtime_ns` y `tamano` no se usan: están en la clave para que editar un `caso.yaml` lo relea. El
+    diccionario que devuelve lo comparten las llamadas siguientes, así que es de solo lectura.
+    """
+    del mtime_ns, tamano
+    return cargar_yaml(ruta)
+
+
+def _datos_de_caso(ruta: Path) -> dict:
+    """Contenido del `caso.yaml`, releído solo si el archivo cambió."""
+    try:
+        info = ruta.stat()
+    except OSError:
+        return cargar_yaml(ruta)
+    return _leer_caso(ruta, info.st_mtime_ns, info.st_size)
+
+
 def cargar_caso(directorio: Path) -> Caso:
     """Lee y valida `caso.yaml`. Un campo desconocido o un valor fuera de rango es un error."""
     ruta = directorio / "caso.yaml"
-    datos = yaml.safe_load(ruta.read_text(encoding="utf-8"))
+    datos = _datos_de_caso(ruta)
     if not isinstance(datos, dict):
         raise ValueError(f"{ruta}: se esperaba un mapa YAML")
     desconocidos = sorted(set(datos) - CAMPOS)

@@ -9,6 +9,7 @@ Reglas de estos modelos:
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any
@@ -103,6 +104,18 @@ class Graph:
 
     def __init__(self) -> None:
         self._g: nx.MultiDiGraph = nx.MultiDiGraph()
+        self._edges: list[Edge] | None = None
+
+    def _tocar(self) -> None:
+        """Marca la lista de aristas como vieja; se rearma en la próxima llamada a `edges`."""
+        self._edges = None
+
+    def __deepcopy__(self, memo: dict) -> Graph:
+        """Copia profunda sin la caché de aristas: la copia la rearma desde su propio grafo."""
+        copia = Graph()
+        memo[id(self)] = copia
+        copia._g = copy.deepcopy(self._g, memo)
+        return copia
 
     def add_operator(self, op: Operator) -> None:
         if op.kind not in OPERATOR_KINDS:
@@ -124,20 +137,26 @@ class Graph:
         return self._g.number_of_nodes()
 
     def remove_operator(self, op_id: str) -> None:
+        self._tocar()
         self._g.remove_node(op_id)
 
     def add_edge(self, edge: Edge) -> None:
         if edge.materialize is not None and edge.materialize not in MATERIALIZE:
             raise ValueError(f"materialización desconocida: {edge.materialize}")
+        self._tocar()
         self._g.add_edge(edge.src, edge.dst, edge=edge)
 
     def edges(self) -> list[Edge]:
-        return [data["edge"] for _, _, data in self._g.edges(data=True)]
+        """Aristas del grafo. Se arman una vez y se reusan hasta que el grafo cambia."""
+        if self._edges is None:
+            self._edges = [data["edge"] for _, _, data in self._g.edges(data=True)]
+        return list(self._edges)
 
     def set_edge_materialize(self, edge: Edge, materialize: str) -> None:
         """Marca una arista como materializada (la decide la pasada de particionado)."""
         for key, data in self._g[edge.src][edge.dst].items():
             if data["edge"] == edge:
+                self._tocar()
                 self._g[edge.src][edge.dst][key]["edge"] = Edge(
                     edge.src, edge.dst, edge.dataset, materialize
                 )
@@ -145,8 +164,9 @@ class Graph:
         raise KeyError(f"arista no encontrada: {edge.src}->{edge.dst} {edge.dataset}")
 
     def bypass(self, op_id: str) -> None:
-        """Quita un operador y conecta cada predecesor con cada sucesor (con el dataset de entrada).
-        Quita un operador y conecta cada predecesor con cada sucesor (con el dataset de entrada)."""
+        """Quita un operador y conecta cada predecesor con cada sucesor (con el dataset de
+        entrada)."""
+        self._tocar()
         for pred in list(self._g.predecessors(op_id)):
             for data in list(self._g[pred][op_id].values()):
                 for succ in list(self._g.successors(op_id)):
@@ -165,6 +185,7 @@ class Graph:
     def replace(self, op_ids: list[str], new: Operator) -> None:
         """Sustituye un conjunto de operadores por `new`, reconectando las aristas que cruzan el
         borde."""
+        self._tocar()
         group = set(op_ids)
         self.add_operator(new)  # antes de las aristas: el nodo nuevo tiene que existir
         for op_id in op_ids:
@@ -183,6 +204,7 @@ class Graph:
 
     def expand(self, iterate_id: str, operators: list[Operator], edges: list[Edge]) -> None:
         """Deshace `replace`: quita el `iterate` y repone los operadores y aristas originales."""
+        self._tocar()
         self._g.remove_node(iterate_id)
         for op in operators:
             self.add_operator(op)
@@ -196,6 +218,7 @@ class Graph:
         El orden importa: la primera entrada es la fila principal de un `tMap` cuando el paso no
         dice de qué tabla parte, y un lookup solo puede usar como llave uno que llegó antes.
         """
+        self._tocar()
         for pred in list(self._g.predecessors(op_id)):
             while self._g.has_edge(pred, op_id):
                 self._g.remove_edge(pred, op_id)
@@ -209,6 +232,7 @@ class Graph:
 
     def split_edge(self, src: str, dst: str, dataset: str, new: Operator) -> None:
         """Inserta `new` entre `src` y `dst`: la arista con ese dataset pasa por `new`."""
+        self._tocar()
         for key, data in list(self._g[src][dst].items()):
             if data["edge"].dataset == dataset:
                 self._g.remove_edge(src, dst, key=key)
@@ -243,6 +267,7 @@ class Graph:
 
     def merge(self, keep: str, drop: str) -> None:
         """Fusiona `drop` en `keep`: une la evidencia y redirige sus aristas."""
+        self._tocar()
         kept, dropped = self.operator(keep), self.operator(drop)
         kept.inherit_expression_evidence(dropped)
         for ev in dropped.evidence:

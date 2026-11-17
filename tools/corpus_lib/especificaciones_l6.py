@@ -362,11 +362,19 @@ ESPECIFICACIONES_L6: dict[str, dict] = {
         "columnas": ["ZONA", "NOMBRE", "MONTO", "ACUM"],
         "salida": "VENTAS_ZONA",
         "fuentes": [URL_MERGE, URL_BY_GROUPS],
-        "invariantes": ["filas(VENTAS_ZONA) == 3", "suma(VENTAS_ZONA.ACUM) == 42"],
-        "pendiente_revision": True,
+        # Sin `esperado/` (caso pendiente): las invariantes están en test_l6_11_merge_acumulado.py.
+        "invariantes": [],
+        "pendiente": (
+            "La sentencia suma (ACUM+MONTO) no tiene todavía su estado por fila en el traductor "
+            "(B-13 y B-14, con Studio). Las reglas de MERGE y de la suma están verificadas."
+        ),
         "razonamiento": (
-            "Combina dos reglas: la fila de MERGE (ZONAS aporta NOMBRE a sus dos filas) y el "
-            "acumulado con la sentencia suma, cuya retención no se consultó."
+            "MERGE por ZONA: una observación de cada entrada por iteración dentro del grupo "
+            "(lrcon, p. 598), así que ZONAS aporta NOMBRE a sus dos filas. ACUM+MONTO es la "
+            "sentencia suma: el valor se retiene de una iteración a la siguiente y un faltante "
+            "cuenta como cero (lestmtsref, p. 360). IF FIRST.ZONA THEN ACUM=0 reinicia el "
+            "acumulado en cada grupo (lrcon, p. 598). El intérprete reproduce el esperado "
+            "(10, 25, 7; suma 42)."
         ),
     },
     "l6_12_ordenar_antes_de_merge": {

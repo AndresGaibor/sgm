@@ -1,0 +1,26 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- LAG
+- IF
+capa: C
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- LAG_L6_40
+razonamiento: 'LAG tiene su propia cola, inicializada con un faltante. La cola avanza solo cuando LAG se ejecuta: dentro de IF, la observación que no cumple la condición no entra (lefunctionsref, p. 1164). El intérprete da faltante, faltante y 2.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lefunctionsref/content/lefunctionsref.pdf?locale=en
+invariantes: []
+motivo: LAG tiene tJavaRow (desde_plan_lag.py, verificado con javac en test_java_lag.py); sin esperado/ hasta validarlo en Studio (lote B-Gate).
+esquemas:
+  WORK.VALORES_L6_40:
+    ID:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    X:
+      tipo: Double
+      linea: 6
+      fuente: muestra

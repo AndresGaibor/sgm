@@ -16,9 +16,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
-
 from sgm.facts.model import Fact
+from sgm.yaml_io import cargar_yaml
 
 _PALABRA = re.compile(r"[_.]")
 
@@ -96,7 +95,7 @@ class Declaracion:
 
 def cargar_declaracion(path: Path) -> Declaracion:
     """Lee la agrupación declarada. Un archivo mal formado falla con su nombre y el motivo."""
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    data = cargar_yaml(path) or {}
     marcador = str(data.get("region_marcador") or "").strip()
     if not marcador:
         raise ValueError(f"{path}: falta region_marcador")

@@ -250,13 +250,10 @@
       "kind": "stateful_row",
       "status": "parcial",
       "placement": "flow",
-      "signature": "1cfbde066a0f6469",
+      "signature": "f090630d715328ac",
       "params": {
         "reason": "first_last",
-        "text": "if first.cliente_id then acumulado = 0",
-        "untranslated": [
-          "acumulado + coalesce(monto, 0)"
-        ]
+        "text": "if first.cliente_id then acumulado = 0"
       },
       "evidence": [
         {
@@ -268,8 +265,7 @@
         }
       ],
       "notes": [
-        "lógica de grupo por first./last.: revisar",
-        "sentencia sin traducción: acumulado + coalesce(monto, 0)"
+        "lógica de grupo por first./last.: revisar"
       ],
       "component": {
         "name": "tJavaRow",
@@ -300,7 +296,35 @@
       }
     },
     {
-      "id": "op00012",
+      "id": "op00010",
+      "kind": "stateful_row",
+      "status": "hueco",
+      "placement": "flow",
+      "signature": "201793437c33ab72",
+      "params": {
+        "reason": "suma",
+        "target": "acumulado",
+        "expression": "coalesce(monto, 0)",
+        "text": "acumulado + coalesce(monto, 0)",
+        "codigo": "P-SUMA-SIN-EMISOR"
+      },
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 16,
+          "line_end": 16,
+          "label": null,
+          "call": null
+        }
+      ],
+      "notes": [
+        "suma sin emisor en Talend todavía (lestmtsref, p. 360; B-13)"
+      ],
+      "component": null,
+      "valor_componente": null
+    },
+    {
+      "id": "op00013",
       "kind": "stateful_row",
       "status": "parcial",
       "placement": "flow",
@@ -353,7 +377,7 @@
       }
     },
     {
-      "id": "op00013",
+      "id": "op00014",
       "kind": "map",
       "status": "soportado",
       "placement": "flow",
@@ -444,7 +468,7 @@
       }
     },
     {
-      "id": "op00014",
+      "id": "op00015",
       "kind": "map",
       "status": "parcial",
       "placement": "flow",
@@ -607,7 +631,7 @@
     },
     {
       "src": "op00002",
-      "dst": "op00013",
+      "dst": "op00014",
       "dataset": "WORK.pagos",
       "materialize": null
     },
@@ -619,19 +643,19 @@
     },
     {
       "src": "op00003",
-      "dst": "op00013",
+      "dst": "op00014",
       "dataset": "WORK.clientes",
       "materialize": null
     },
     {
       "src": "op00004",
-      "dst": "op00013",
+      "dst": "op00014",
       "dataset": "(interno)",
       "materialize": null
     },
     {
       "src": "op00005",
-      "dst": "op00013",
+      "dst": "op00014",
       "dataset": "(interno)",
       "materialize": null
     },
@@ -643,25 +667,31 @@
     },
     {
       "src": "op00009",
-      "dst": "op00014",
+      "dst": "op00010",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00012",
+      "src": "op00010",
+      "dst": "op00015",
+      "dataset": "(interno)",
+      "materialize": null
+    },
+    {
+      "src": "op00013",
       "dst": "w00003",
       "dataset": "WORK.pagos_cliente",
       "materialize": null
     },
     {
-      "src": "op00013",
+      "src": "op00014",
       "dst": "op00008",
       "dataset": "(interno)",
       "materialize": null
     },
     {
-      "src": "op00014",
-      "dst": "op00012",
+      "src": "op00015",
+      "dst": "op00013",
       "dataset": "(interno)",
       "materialize": null
     }
@@ -743,7 +773,7 @@
       "occurrences": 1
     },
     {
-      "signature": "1cfbde066a0f6469",
+      "signature": "f090630d715328ac",
       "options": [
         {
           "opcion": "tJavaRow",
@@ -794,6 +824,19 @@
       ]
     },
     {
+      "signature": "201793437c33ab72",
+      "reason": "suma",
+      "evidence": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 16,
+          "line_end": 16,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
       "signature": "4839172da4ba3576",
       "reason": "TIPO_DESCONOCIDO",
       "evidence": [
@@ -834,11 +877,11 @@
         [
           "op00002",
           "op00003",
-          "op00013",
+          "op00014",
           "op00008",
           "op00009",
-          "op00014",
-          "op00012"
+          "op00015",
+          "op00013"
         ]
       ],
       "contexts": {},
@@ -861,6 +904,25 @@
           "file": "p1_merge_first_last.sas",
           "line_start": 2,
           "line_end": 4,
+          "label": null,
+          "call": null
+        }
+      ]
+    },
+    {
+      "valor": null,
+      "pendiente": {
+        "motivo": "suma",
+        "dueno": "sin_dueno",
+        "se_cierra_con": "por definir",
+        "nota": "stateful_row"
+      },
+      "signature": "201793437c33ab72",
+      "fuente": [
+        {
+          "file": "p1_merge_first_last.sas",
+          "line_start": 16,
+          "line_end": 16,
           "label": null,
           "call": null
         }
@@ -963,7 +1025,7 @@
         "se_cierra_con": "sgm decisions set",
         "nota": "sugerido tJavaRow; no aplicado"
       },
-      "signature": "1cfbde066a0f6469",
+      "signature": "f090630d715328ac",
       "fuente": []
     },
     {

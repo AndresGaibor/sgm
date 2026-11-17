@@ -1,0 +1,25 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- SUMA
+capa: C
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- SUMA_L6_39
+razonamiento: 'La sentencia suma equivale a RETAIN acum 0 y acum = SUM(acum, x): un faltante en x cuenta como cero y acum nunca queda faltante (lestmtsref, p. 360). El intérprete da 2, 2 y 7.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes: []
+motivo: La sentencia suma no tiene emisor en Talend todavía (B-13, Studio). Sin esperado/ hasta que el emisor exista.
+esquemas:
+  WORK.VALORES_L6_39:
+    ID:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    X:
+      tipo: Double
+      linea: 6
+      fuente: muestra

@@ -1,0 +1,32 @@
+nivel: L4
+construcciones:
+- DATA STEP
+- SELECT
+- WHEN
+- OTHERWISE
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: traducible
+salidas:
+- SELECT_L4_21
+razonamiento: 'SELECT (X) evalúa X una vez y compara con cada WHEN en orden; gana la primera coincidencia y OTHERWISE cubre el resto (lestmtsref, p. 340). Se reduce a IF encadenado.'
+fuentes_url:
+- https://documentation.sas.com/api/collections/pgmsascdc/9.4_3.5/docsets/lestmtsref/content/lestmtsref.pdf?locale=en
+invariantes:
+- filas(SELECT_L4_21) == 4
+- filas(SELECT_L4_21) == filas(VALORES_L4_21)
+esquemas:
+  WORK.VALORES_L4_21:
+    ID:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+    X:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+  WORK.SELECT_L4_21:
+    y:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

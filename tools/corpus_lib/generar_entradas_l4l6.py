@@ -191,15 +191,11 @@ def generar_caso(nivel: str, nombre: str, spec: dict, corpus: Path = CORPUS) -> 
         ruta = directorio / "esperado" / f"{spec['salida']}.csv"
         escribir_csv(ruta, calcular_l4(spec))
         escritos.append(ruta)
-    if nivel == "L4" and "programa" in spec:
+    if nivel in {"L4", "L6"} and "programa" in spec:
         ruta = directorio / "programa.sas"
         ruta.write_text(spec["programa"], encoding="utf-8", newline="\n")
         escritos.append(ruta)
-    if nivel == "L6" and "programa" in spec:
-        ruta = directorio / "programa.sas"
-        ruta.write_text(spec["programa"], encoding="utf-8", newline="\n")
-        escritos.append(ruta)
-    if nivel == "L6":
+    if nivel == "L6" and estado != "pendiente":
         if "calculo_salidas" in spec:
             for nombre, tabla in calcular_l6_salidas(spec).items():
                 ruta = directorio / "esperado" / f"{nombre}.csv"

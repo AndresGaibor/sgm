@@ -17,6 +17,14 @@ _OUTPUT_NAME = re.compile(r"([A-Za-z_&][\w.&]*)\s*(\([^)]*\))?")
 _SOURCE = re.compile(r"([A-Za-z_&][\w.&]*)\s*(\(([^)]*)\))?")
 _ASSIGN = re.compile(r"^([A-Za-z_][\w.]*(?:\s*\([^)]*\))?)\s*=\s*(.+)$", re.DOTALL)
 _LAG = re.compile(r"\blag\d*\s*\(", re.IGNORECASE)
+# Sentencia suma `x + expr;` (lestmtsref, p. 360): la primera palabra es la variable, no una sentencia.
+_SUMA = re.compile(r"^([A-Za-z_]\w*)\s*\+\s*(.+)$", re.DOTALL)
+_PALABRAS_DE_SENTENCIA = frozenset(
+    {"if", "else", "do", "end", "output", "put", "select", "when", "otherwise", "delete",
+     "retain", "keep", "drop", "set", "merge", "by", "where", "link", "return", "stop",
+     "abort", "array", "call", "file", "infile", "input", "label", "length", "format",
+     "informat", "attrib", "rename", "data", "run", "update", "modify"}
+)
 _FIRST_LAST = re.compile(r"\b(first|last)\.(\w+)", re.IGNORECASE)
 _SYMPUT = re.compile(r"(?i)^call\s+symputx?\s*\(\s*['\"]?(\w+)['\"]?")
 _IN_OPTION = re.compile(r"(?i)\bin\s*=\s*(\w+)")
@@ -112,10 +120,16 @@ def classify_statement(text: str, line: int, rows: tuple[str, ...] = ()) -> DsSt
         target, expression = m.group(1).strip(), m.group(2).strip()
         kind = "lag" if _LAG.search(expression) else "assign"
         return DsStatement(kind, body, line, {"target": target, "expression": expression})
+    if (m := _SUMA.match(body)) and m.group(1).lower() not in _PALABRAS_DE_SENTENCIA:
+        return DsStatement(
+            "sum", body, line, {"target": m.group(1), "expression": m.group(2).strip()}
+        )
     if head == "set":
         return DsStatement("set", body, line, {"sources": _dataset_refs(body[3:])})
     if head == "merge":
         return DsStatement("merge", body, line, {"sources": _dataset_refs(body[5:])})
+    if head in ("update", "modify"):
+        return DsStatement(head, body, line, {"sources": _dataset_refs(body[len(head):])})
     if head == "by":
         return DsStatement(
             "by", body, line, {"names": [n.strip() for n in body[2:].split() if n.strip()]}

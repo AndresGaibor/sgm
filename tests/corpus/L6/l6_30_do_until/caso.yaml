@@ -1,0 +1,24 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- DO UNTIL
+capa: B
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- ACUMULA_L6_30
+razonamiento: 'Caso reservado: DO UNTIL evalúa la condición después de cada vuelta, así que el cuerpo corre al menos una vez (lrcon, p. 675). Sin tJavaRow validado en Studio no se emite el bucle.'
+fuentes_url: []
+invariantes: []
+motivo: El bucle DO UNTIL no tiene su emisión en tJavaRow validada. Queda como pendiente P-DO-WHILE-UNTIL hasta que Studio confirme el bucle.
+esquemas:
+  WORK.VALORES_L6_30:
+    ID:
+      tipo: Double
+      linea: 6
+      fuente: muestra
+    X1:
+      tipo: Double
+      linea: 6
+      fuente: muestra

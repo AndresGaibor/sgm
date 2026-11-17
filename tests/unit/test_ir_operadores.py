@@ -72,6 +72,7 @@ def test_los_nombres_se_normalizan_a_minusculas():
         (lambda: op.concatenar("1", ["solo"]), "al menos 2"),
         (lambda: op.iterar("1", "p", []), "instancia"),
         (lambda: op.controlar("1", ""), "reason"),
+        (lambda: op.ramas_union("1", "si"), "verdadero o falso"),
     ],
 )
 def test_parametros_invalidos_se_rechazan(construir, error):
@@ -137,3 +138,53 @@ def test_escribir_archivo_y_leer_archivo_llevan_todas_sus_opciones():
     escritura = op.escribir_archivo("2", ["WORK.a"], "s.csv", dbms="csv")
     assert escritura.kind == "write_file"
     assert escritura.params["dbms"] == "csv"
+
+
+def test_calcular_con_estado_retain_y_suma_se_valida():
+    # B-8: RETAIN y la sentencia suma son `calcular` con `estado`; la forma es la de la especificación.
+    operador = op.calcular(
+        "1",
+        [{"target": "acum", "expression": "acum + x", "origin": "expresion"}],
+        estado=[
+            {"op": "retain", "name": "Acum", "init": 0},
+            {"op": "sum", "name": "total", "init": None},
+        ],
+    )
+    assert operador.params["estado"] == [
+        {"op": "retain", "name": "acum", "init": 0},
+        {"op": "sum", "name": "total", "init": None},
+    ]
+
+
+@pytest.mark.parametrize(
+    "estado, error",
+    [
+        ([{"op": "lag", "name": "x", "init": 0}], "op debe ser"),
+        ([{"op": "retain", "name": "x", "init": True}], "init debe ser"),
+        ([{"op": "retain", "name": "x", "init": [1]}], "init debe ser"),
+        ([{"op": "retain", "name": " ", "init": 0}], "name del estado"),
+    ],
+)
+def test_calcular_rechaza_estado_mal_formado(estado, error):
+    with pytest.raises(ValueError, match=error):
+        op.calcular("1", [{"target": "a", "expression": "1"}], estado=estado)
+
+
+def test_combinar_con_in_flags_y_modo_merge():
+    operador = op.combinar(
+        "1", "inner", ["id"], ["WORK.a", "WORK.b"], in_flags=["en_a", "en_b"], modo="merge"
+    )
+    assert operador.params["in_flags"] == ["en_a", "en_b"]
+    assert operador.params["modo"] == "merge"
+
+
+@pytest.mark.parametrize(
+    "construir, error",
+    [
+        (lambda: op.combinar("1", "inner", ["id"], ["a", "b"], in_flags=["solo"]), "una variable"),
+        (lambda: op.combinar("1", "inner", ["id"], ["a", "b"], modo="join"), "modo de combinar"),
+    ],
+)
+def test_combinar_rechaza_in_flags_y_modo_invalidos(construir, error):
+    with pytest.raises(ValueError, match=error):
+        construir()

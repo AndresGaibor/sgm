@@ -2,48 +2,23 @@
 
 from __future__ import annotations
 
-import re
-
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_grupos import programa_por_grupo
 from sgm.ir.lower_data_lectura import _read_file
+from sgm.ir.lower_data_lookup import detectar_busqueda
 from sgm.ir.lower_data_recorrido import _Recorrido, _statement_evidence
 from sgm.ir.lower_data_salidas import (
     _conditional_output,
     _repeated_output_targets,
     _undeclared_output_targets,
 )
+from sgm.ir.lower_data_union import tipo_de_union
+from sgm.ir.lower_data_update import lower_actualizacion
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.pasos import op_validado
 from sgm.ir.types_code import declared_types
-
-
-def _join_type(stmts: list[DsStatement], refs: list[dict]) -> str | None:
-    """Tipo de unión de un MERGE según la primera condición `if`. None si no se puede deducir."""
-    conditions = [s for s in stmts if s.kind == "if" and s.text.lower().startswith("if ")]
-    if not conditions:
-        # MERGE sin condición: une todas las filas por llave. No es un JOIN de producto: el
-        # intérprete empareja fila con fila dentro de cada grupo (migrar/interprete.py, _mezclar).
-        return "full"
-    expr = re.sub(r"(?i)^if\s+", "", conditions[0].text).strip()
-    expr = re.sub(r"(?i)\s+then\b.*$", "", expr)
-    expr = re.sub(r"\s+", " ", expr).strip().lower()
-    if len(refs) < 2:
-        return None
-    first, second = refs[0].get("in"), refs[1].get("in")
-    if not first or not second:
-        return None
-    if expr in (f"{first} and {second}", f"{second} and {first}"):
-        return "inner"
-    if expr == first:
-        return "left"
-    if expr == second:
-        return "right"
-    if expr in (f"{first} or {second}", f"{second} or {first}"):
-        return "full"
-    return None
 
 
 def _lower_sources(
@@ -52,7 +27,7 @@ def _lower_sources(
     """Lecturas de entrada y la operación que las combina (join, union) si hay más de una."""
     refs: list[dict] = []
     for s in stmts:
-        if s.kind in ("set", "merge"):
+        if s.kind in ("set", "merge", "update", "modify"):
             refs += [dict(r, mode=s.kind) for r in s.fields["sources"]]
     reads = [
         b.read_dataset(r["name"], ev, r.get("in") or None, include_in=True) for r in refs
@@ -72,9 +47,12 @@ def _lower_sources(
             entradas.append(filtrado)
         else:
             entradas.append(read)
+    if any(s.kind in ("update", "modify") for s in stmts):
+        fuentes = [qualify(r["name"]) for r in refs]
+        return reads, lower_actualizacion(stmts, fuentes, entradas, ev, b)
     if any(s.kind == "merge" for s in stmts):
         by = next((s.fields["names"] for s in stmts if s.kind == "by"), [])
-        join_type = _join_type(stmts, refs)
+        join_type = tipo_de_union(stmts, refs)
         notes = (
             [] if join_type and by else ["tipo de unión o clave no deducible del MERGE: revisar"]
         )
@@ -120,6 +98,9 @@ def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
 
 
 def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
+    busqueda = detectar_busqueda(step.statements)  # FIND de un hash como unir izquierdo (B-21)
+    if busqueda is not None:
+        step = busqueda.paso(step)
     stmts = step.statements
     reads, current = _lower_sources(stmts, ev, b)
     if any(
@@ -141,6 +122,8 @@ def _lower_data_steps(step: DataStep, ev: Evidence, b: Builder) -> None:
         current = file_read
     elif current is None:
         current = file_read or (reads[0] if reads else None)
+    if busqueda is not None and current is not None:
+        current = busqueda.unir(current, ev, b)
     pending_derive: Operator | None = None
     loose: list[str] = []
     prev: DsStatement | None = None

@@ -138,6 +138,10 @@ CAMBIOS_DOCUMENTADOS = {
 # conserva igualdad exacta.
 CAMBIOS_ESTRUCTURALES_DOCUMENTADOS = {
     "client__client_poc.plan.json": "cc490021d4ec1fdd8baa7e284bd464a71c754740bdcfbaea6976064774bf3ac3",
+    # Hito 249m: la suma `acumulado + coalesce(...)` deja de ser una sentencia sin traducción (que el
+    # intérprete ignoraba) y pasa a `stateful_row` `suma` en hueco (lestmtsref, p. 360). Cambia la lista
+    # de pendientes y los identificadores de operador; no se repite el cambio campo por campo.
+    "p1_merge_first_last.plan.json": "66c9381d368780941bf5ae5ee430d07dbd6798f543599cb75bdfce52b802993d",
 }
 
 CASES = [

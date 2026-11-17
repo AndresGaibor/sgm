@@ -1,0 +1,38 @@
+nivel: L6
+construcciones:
+- DATA STEP
+- UPDATE
+capa: C
+tolerancia: 1.0e-06
+orden_relevante: true
+estado: pendiente
+salidas:
+- UPDATE_L6_35
+razonamiento: 'UPDATE aplica cada transaccion al maestro por BY y escribe una observacion por grupo (lrcon, p. 604; Output 23.14, p. 607). El intérprete da Apricot, Barley, Cactus, Date, Escarole, Fennel.'
+fuentes_url:
+- https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/p00iah2thp63bmn1lt20esag14lh.htm
+invariantes: []
+motivo: UPDATE sin emisor en Talend todavía (B-19, Studio). Sin esperado/ hasta que el emisor exista; el resultado se fija en tests/unit/test_interprete_update.py.
+esquemas:
+  WORK.MASTER:
+    COMMON:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    ANIMAL:
+      tipo: String
+      linea: 4
+      fuente: muestra
+    PLANT:
+      tipo: String
+      linea: 4
+      fuente: muestra
+  WORK.TRANS:
+    COMMON:
+      tipo: String
+      linea: 8
+      fuente: muestra
+    PLANT:
+      tipo: String
+      linea: 8
+      fuente: muestra

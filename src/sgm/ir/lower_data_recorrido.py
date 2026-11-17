@@ -11,19 +11,36 @@ from __future__ import annotations
 from dataclasses import replace
 
 from sgm.frontend.datastep import DataStep, DsStatement
+from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_data_archivos import (
     escribir_file_put,
     file_put_lista_null,
     registrar_file_put_pendiente,
 )
+from sgm.ir.lower_data_arreglos import _ARRAY as _ARRAY_DECLARA
+from sgm.ir.lower_data_arreglos import (
+    arreglos_declarados,
+    bucle_desenrollado,
+    es_do_condicional,
+    es_do_limite_no_constante,
+    fin_de_bloque,
+    indice_fuera_de_rango,
+)
 from sgm.ir.lower_data_asignaciones import _conditional_assignment, _statement_op
+from sgm.ir.lower_data_automaticas import automaticas_en, motivo
 from sgm.ir.lower_data_bloques import bloque_condicional
+from sgm.ir.lower_data_hash import pendientes_hash
+from sgm.ir.lower_data_lag import estado_de_lag
 from sgm.ir.lower_data_salidas import _conditional_output_chain, _note, _output_sequence
+from sgm.ir.lower_data_select import bloque_select, condicion_de_borrado, select_sin_otherwise
 from sgm.ir.lower_data_substr import es_objetivo_substr_izquierda, reescribir_substr_izquierda
 from sgm.ir.models import Evidence, Operator
+from sgm.ir.pasos import op_validado
 
-_HEAD_KINDS = frozenset({"set", "merge", "by", "infile", "input", "datalines"})
+_HEAD_KINDS = frozenset(
+    {"set", "merge", "update", "modify", "by", "infile", "input", "datalines"}
+)
 
 
 def _statement_evidence(stmt: DsStatement, ev: Evidence) -> Evidence:
@@ -58,16 +75,27 @@ class _Recorrido:
         self.file_put = file_put_lista_null(step)
 
     def ejecutar(self) -> None:
+        # Objetos hash e iteradores: cada sentencia que los usa es un hueco con su código (B-21).
+        hash_pendientes = {p.indice: p for p in pendientes_hash(self.stmts)}
         for index, s in enumerate(self.stmts):
             if index in self.omit:
                 continue
             statement_ev = Evidence(self.ev.file, s.line, s.line, self.ev.label, self.ev.call)
             before, self.prev = self.prev, s
+            if index in hash_pendientes:
+                self._hueco_hash(index, statement_ev, hash_pendientes[index])
+                continue
             if s.kind in _HEAD_KINDS:
+                continue
+            if self._automatica_sin_traduccion(index, statement_ev):
                 continue
             if self._secuencia_output(index, statement_ev):
                 continue
             if self._salida_condicional(index, statement_ev):
+                continue
+            if self._borrado_condicional(index, statement_ev):
+                continue
+            if self._arreglo_o_bucle(index, statement_ev):
                 continue
             if self._asignacion_condicional(index, statement_ev):
                 continue
@@ -130,13 +158,188 @@ class _Recorrido:
         self.prev = self.stmts[siguiente]
         return True
 
+    def _automatica_sin_traduccion(self, index: int, statement_ev: Evidence) -> bool:
+        """Una sentencia que lee `_N_` o `_ERROR_` sale como operador `hueco` (B-20)."""
+        s = self.stmts[index]
+        variables = automaticas_en(s.text)
+        if not variables:
+            return False
+        operador = self.b.op(
+            "unsupported",
+            {"statement": s.text, "reason": "VARIABLE_AUTOMATICA"},
+            statement_ev,
+            status="hueco",
+            notes=[motivo(variables[0])],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
+        self.prev = s
+        return True
+
+    def _arreglo_o_bucle(self, index: int, statement_ev: Evidence) -> bool:
+        """`ARRAY` con lista explícita (sin operador) y `DO` con límites constantes (B-16)."""
+        s = self.stmts[index]
+        arreglos = arreglos_declarados(self.stmts)
+        if s.kind == "array":
+            declara = _ARRAY_DECLARA.fullmatch(s.text.strip())
+            return declara is not None and declara.group(1).lower() in arreglos
+        if s.kind != "do":
+            return False
+        if es_do_condicional(s.text):
+            fin = fin_de_bloque(self.stmts, index)
+            if fin is None:
+                return False
+            self._hueco_de_bucle(
+                index,
+                statement_ev,
+                "P-DO-WHILE-UNTIL: DO WHILE/UNTIL no se desenrolla y aún no tiene su bucle en "
+                "tJavaRow (lrcon, p. 675)",
+                "DO_WHILE_UNTIL",
+                "P-DO-WHILE-UNTIL",
+                fin,
+            )
+            return True
+        desenrollado = bucle_desenrollado(self.stmts, index, arreglos)
+        if desenrollado is None:
+            fuera = indice_fuera_de_rango(self.stmts, index, arreglos)
+            if fuera is None:
+                if es_do_limite_no_constante(s.text):
+                    fin = fin_de_bloque(self.stmts, index)
+                    if fin is None:
+                        return False
+                    self._hueco_de_bucle(
+                        index,
+                        statement_ev,
+                        "P-DO-LIMITE-NO-CONSTANTE: el DO iterativo tiene un límite que no es "
+                        "constante; el bucle necesita tJavaRow, pendiente (lrcon, p. 671)",
+                        "DO_LIMITE_NO_CONSTANTE",
+                        "P-DO-LIMITE-NO-CONSTANTE",
+                        fin,
+                    )
+                    return True
+                return False
+            elemento, fin = fuera
+            self._hueco_de_bucle(
+                index,
+                statement_ev,
+                f"P-ARRAY-FUERA-DE-RANGO: {elemento} está fuera del arreglo; SAS detiene el paso "
+                "(lrcon, p. 192)",
+                "ARRAY_FUERA_DE_RANGO",
+                "P-ARRAY-FUERA-DE-RANGO",
+                fin,
+            )
+            return True
+        asignaciones, fin = desenrollado
+        for destino, expresion in asignaciones:
+            texto = f"{destino} = {expresion}"
+            campos = {"target": destino, "expression": expresion}
+            self._asignacion(DsStatement("assign", texto, s.line, campos), statement_ev)
+        self.omit.update(range(index + 1, fin + 1))
+        self.prev = self.stmts[fin]
+        return True
+
+    def _hueco_hash(self, index: int, statement_ev: Evidence, pendiente) -> None:
+        """Hueco con el código del objeto hash o iterador (`lrcon`, pp. 628 a 642)."""
+        operador = self.b.op(
+            "unsupported",
+            {
+                "statement": self.stmts[index].text,
+                "reason": "HASH_SIN_EQUIVALENCIA",
+                "codigo": pendiente.codigo,
+            },
+            statement_ev,
+            status="hueco",
+            notes=[pendiente.motivo],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
+
+    def _hueco_de_bucle(
+        self, index: int, statement_ev: Evidence, motivo: str, reason: str, codigo: str, fin: int
+    ) -> None:
+        """Hueco con su pendiente para un `DO` que no se traduce. El Job no se emite, y el cuerpo
+        del bucle (hasta su `END`, en `fin`) no genera operadores aparte."""
+        operador = self.b.op(
+            "unsupported",
+            {"statement": self.stmts[index].text, "reason": reason, "codigo": codigo},
+            statement_ev,
+            status="hueco",
+            notes=[motivo],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
+        self.omit.update(range(index + 1, fin + 1))
+        self.prev = self.stmts[fin]
+
+    def _borrado_condicional(self, index: int, statement_ev: Evidence) -> bool:
+        """`IF cond THEN DELETE;` como `filter` con la condición negada (B-15). Con `OUTPUT` antes
+        no se traduce: queda como sentencia sin traducción."""
+        condicion = condicion_de_borrado(self.stmts, index)
+        if condicion is None:
+            return False
+        if any(s.kind == "output" for s in self.stmts[:index]):
+            _note(
+                self.current,
+                "P-DELETE-CON-OUTPUT: DELETE condicional tras un OUTPUT; una fila puede "
+                "salir varias veces y el filtro no lo representa",
+                status="parcial",
+            )
+            return False
+        expresion = f"not ({condicion})"
+        filtro = op_validado(
+            self.b,
+            lambda: operadores.filtrar("_", expresion),
+            "filter",
+            {"expression": expresion},
+            statement_ev,
+        )
+        self._enlazar(filtro)
+        self.pending_derive = None
+        self.prev = self.stmts[index]
+        return True
+
+    def _estado_lag(self, index: int, statement_ev: Evidence) -> bool:
+        """`LAG`/`DIF` como estado entre filas: hueco con su cola (lefunctionsref, p. 1164)."""
+        s = self.stmts[index]
+        params = estado_de_lag(s.text)
+        if params is None:
+            return False
+        # Un `ELSE` detrás asignaría la variable sin pasar por la cola: se deja como antes.
+        if index + 1 < len(self.stmts) and self.stmts[index + 1].text.strip().lower().startswith(
+            "else"
+        ):
+            return False
+        salidas = [qualify(n) for n in self.step.outputs if n.lower() != "_null_"]
+        operador = self.b.op(
+            "stateful_row",
+            {**params, "outputs": salidas},
+            statement_ev,
+            status="hueco",
+            notes=["LAG/DIF sin emisor en Talend todavía (lefunctionsref, p. 1164; B-13)"],
+        )
+        self._enlazar(operador)
+        self.pending_derive = None
+        self.prev = s
+        return True
+
     def _asignacion_condicional(self, index: int, statement_ev: Evidence) -> bool:
+        if self._estado_lag(index, statement_ev):
+            return True
         conditional = _conditional_assignment(self.stmts, index)
         if conditional is not None:
             conditional = ([conditional[0]], conditional[1])
         else:
-            conditional = bloque_condicional(self.stmts, index)
+            conditional = bloque_condicional(self.stmts, index) or bloque_select(
+                self.stmts, index
+            )
         if conditional is None:
+            if select_sin_otherwise(self.stmts, index):
+                _note(
+                    self.current,
+                    "P-SELECT-SIN-OTHERWISE: SELECT sin OTHERWISE; si ningún WHEN coincide SAS "
+                    "detiene el paso (lestmtsref, p. 340)",
+                    status="parcial",
+                )
             return False
         asignaciones, siguiente = conditional
         if self.pending_derive is None:

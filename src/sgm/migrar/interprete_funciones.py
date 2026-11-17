@@ -1,4 +1,4 @@
-"""Despacho único de las funciones que ejecuta el intérprete."""
+"""Despacho único de funciones SAS usadas por el intérprete de referencia."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ FUNCIONES: dict[str, Funcion] = {
 
 
 def llamar(nombre: str, argumentos: list) -> object:
-    """Quita los prefijos del árbol o la fila y despacha a la función correspondiente."""
+    """Quita prefijos sintácticos y ejecuta una función del catálogo implementado."""
     if nombre.startswith("sgm_"):
         nombre = nombre[4:]
     if nombre.startswith("row_"):
@@ -30,3 +30,8 @@ def llamar(nombre: str, argumentos: list) -> object:
     except KeyError:
         raise NoSoportadoEnInterprete("funcion", nombre) from None
     return funcion(argumentos)
+
+
+def _funcion(nombre: str, argumentos: list) -> object:
+    """Compatibilidad con el evaluador modular de valores."""
+    return llamar(nombre, argumentos)
