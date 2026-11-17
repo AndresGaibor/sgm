@@ -9,6 +9,7 @@ from sqlglot import exp
 
 from sgm.ir.models import Operator
 from sgm.migrar import semantica
+from sgm.migrar.interprete_escalares import SubconsultaEscalarNoSoportada, escalar
 from sgm.migrar.interprete_subconsultas_orden import (  # noqa: F401 (reexportados)
     SubconsultaNoSoportada,
     _agregar_dependencias_versionadas,
@@ -158,5 +159,17 @@ def preparar(
             raise SubconsultaNoSoportada("la columna de la subconsulta contiene un valor faltante")
         nodo.set("expressions", [_literal(valor) for valor in valores])
         nodo.set("query", None)
+
+    # Subconsultas escalares (no son IN ni EXISTS): se calculan y se sustituyen por su valor.
+    for nodo in list(preparado.find_all(exp.Subquery)):
+        if isinstance(nodo.parent, (exp.In, exp.Exists)):
+            continue
+        if tablas is None:
+            raise SubconsultaNoSoportada("subconsulta escalar requiere el contexto de tablas")
+        try:
+            valor = escalar(nodo, tablas, filtrar=filtrar, evaluar=evaluar, columna=columna)
+        except SubconsultaEscalarNoSoportada as error:
+            raise SubconsultaNoSoportada(str(error)) from error
+        nodo.replace(_literal(valor))
 
     return preparado

@@ -8646,3 +8646,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   `docs/evidencia-studio-l2_02.md`. Detalle y decisión pendiente en `docs/BLOQUEOS.md`.
 - No se cambia el emisor: falta saber cómo declara Studio la condición del lookup. El caso temporal se retiró del corpus.
 - Pruebas: sin cambio de código ni de resultados; cierre completo en la validación.
+
+## Hito 290m (2026-11-17). C-8: subconsulta escalar del WHERE en el intérprete (plan C, parcial)
+
+- Qué se hizo: `src/sgm/migrar/interprete_escalares.py` calcula AVG, SUM, MIN, MAX y COUNT de una subconsulta escalar
+  sin correlación antes del filtro, y `preparar` (`interprete_subconsultas.py`) la sustituye por su valor. Sin filas o
+  sin valores presentes da faltante (sqlproc, p. 83 y 84). El emisor no cambia: el filtro sigue pendiente.
+- Defecto encontrado y acotado: el lowering quita el alias externo de una referencia correlacionada (`v.id` pasa a
+  `id`). Sin tratarlo, la subconsulta correlacionada se calculaba como si no lo fuera y daba un resultado falso.
+  Ahora una subconsulta con alias y una columna sin calificar en su WHERE se rechaza. La causa de fondo está en el
+  lowering y queda pendiente.
+- Pruebas: `tests/unit/test_interprete_escalares.py` (4): promedio, máximo, correlacionada (rechazada) y GROUP BY
+  (rechazada). Los tests de subconsultas y de intérprete pasan (72).
+- Pendiente de C-8: la subconsulta en FROM (la forma de la fuente), y el defecto del lowering con alias.
+- Studio: sin cambio. La creación del job de referencia para C-4 sigue bloqueada porque el hilo de interfaz de Studio
+  está ocupado (HTTP 500 de la API del IDE), aunque `sgm studio salud` responda READY.
