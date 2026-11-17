@@ -8621,3 +8621,18 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   (ahora 4 en ese archivo).
 - Pendiente de C-15: el caso de corpus `L3/l3_24` con su `esperado/`, y la traducción de funciones `sas_only` en flujos
   con la tabla de expresiones.
+
+## Hito 288m (2026-11-17). Studio validado: C-6 (GROUP BY con faltantes) coincide; C-4 medido y no cierra (plan C)
+
+- Studio: el usuario abrió Talend Studio. El puente (3930) escuchaba y `talend-mcp` (3927) no; se arrancó
+  `talend-mcp` según `docs/guia-validacion-studio.md` sección 7 (con `TALEND_MCP_ALLOW_WRITE` y `TALEND_MCP_ALLOW_EXECUTE`).
+  `sgm studio salud` dio `READY`.
+- C-6 validado en Studio: caso nuevo `tests/corpus/L3/l3_13_group_by_clave_y_valor_faltante` (capa A, `esperado/`
+  calculado a mano con la regla de sqlproc p. 82, 83 y 88). El oráculo lo verifica. Studio (`tAggregateRow`):
+  `coincide`, 0 diferencias. El emisor de `tAggregateRow` trata bien los faltantes de `COUNT(monto)`, `AVG` y la clave
+  en blanco. Informe: `docs/evidencia-studio-l3_13.md`.
+- `tests/unit/test_tablero.py`: 379 → 380 casos y 363 → 364 con esperado (el caso nuevo).
+- C-4 medido y no cerrado: un LEFT JOIN con llaves nulas y columnas de igual nombre sale en Studio como 12 filas (producto
+  cartesiano) en vez de 4. Defecto del emisor, y un defecto del intérprete (`kb` recibe el valor de `k`). Detalle y
+  evidencia en `docs/BLOQUEOS.md` (sección C-4) y `docs/evidencia-studio-l2_19.md`. El caso no entra en el corpus.
+- `talend-mcp` quedó corriendo en segundo plano (puerto 3927) para esta sesión.

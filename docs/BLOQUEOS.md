@@ -313,3 +313,20 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   columnas que una rama no tiene salen en faltante.
 - **Desbloqueo:** esa decisión. El intérprete para CORR se puede hacer después con la misma función de conjuntos de C-10.
 
+## C-4: LEFT JOIN con llaves nulas y con el mismo nombre de columna, medido en Studio (17 de noviembre de 2026)
+
+- **Evidencia:** `docs/evidencia-studio-l2_19.md` (informe de `tools/corpus_studio.py`, sufijo `len3`).
+- **Qué se hizo:** un LEFT JOIN de `WORK.A` (k = 1, 2, nulo) con `WORK.B` (k = 2, nulo, nulo, 3) por `x.k = y.k`,
+  emitido por el migrador (un `tMap` LEFT) y ejecutado en Studio.
+- **Resultado:** `no coincide`, 12 filas en vez de 4. Es un producto cartesiano (3 × 4): la condición de unión no se
+  aplica en el Job. Las claves salen como `2.0`, `1.0`: tipadas como número, aunque el CSV es texto.
+- **Defecto 1 (emisor, Studio):** un LEFT JOIN cuyas dos entradas tienen una columna con el mismo nombre (`k`) no se
+  reproduce con `tMap`. Hay que mirar cómo se nombran las llaves de cada entrada en el `.item`.
+- **Defecto 2 (intérprete, `src/sgm/migrar/interprete_filas.py`):** las filas se aplanan en un diccionario. En un LEFT
+  JOIN sin pareja, la columna `kb` (de la derecha) recibe el valor de `k` de la izquierda: sale `1` en vez de nulo. Es el
+  mismo problema de nombres repetidos que C-5, y se arregla con columnas calificadas por alias.
+- **Lo que sí queda demostrado:** en el intérprete, un nulo casa con todos los nulos (las filas `,x3` con `y4` e `y5`
+  salen). Eso confirma la regla de sqlproc p. 102 para este caso, pero el emisor no lo reproduce todavía.
+- **Decisión tomada:** el caso `l2_19` no entra en el corpus (fallaría el oráculo y Studio). Se queda como evidencia.
+- **Desbloqueo de C-4:** arreglar el nombre de las llaves en el `.item` y volver a medir con este mismo caso.
+

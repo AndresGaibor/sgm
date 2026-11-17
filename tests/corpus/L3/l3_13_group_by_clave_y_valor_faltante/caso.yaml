@@ -1,0 +1,39 @@
+nivel: L3
+construcciones: [PROC SQL, GROUP BY, COUNT, SUM, AVG, MIN, MAX, FALTANTES, CREATE TABLE AS]
+capa: A
+tolerancia: 0
+orden_relevante: false
+estado: revisado
+motivo: "caso nuevo de C-6: el esperado sale de la regla de sqlproc, verificado con el intérprete"
+salidas: [por_region]
+razonamiento: "sqlproc, p. 82, 83 y 88: un solo grupo para la clave faltante; COUNT(col) cuenta presentes; AVG promedia presentes. Se plantan dos claves en blanco y un monto faltante."
+esquemas:
+  WORK.VENTAS:
+    region:
+      tipo: String
+      linea: 5
+      fuente: muestra
+    monto:
+      tipo: Double
+      linea: 5
+      fuente: muestra
+  WORK.POR_REGION:
+    n:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    n_monto:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    total:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    prom:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    minimo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    maximo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+
