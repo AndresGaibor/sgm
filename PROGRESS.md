@@ -8402,3 +8402,21 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Decisión: revierte la del hito 271m de dejar estos dos archivos fuera. `.agents/` y
   `.claude/scheduled_tasks.lock` siguen fuera (ya están en `.gitignore`).
 - Pruebas: cierre completo con `tools/ci.py`; el resultado queda en `uv run python tools/validacion.py historial`.
+
+## Hito 273m (2026-11-17). Pruebas del corpus por caso y LZ declarada como impala (parcial)
+
+- Qué se hizo:
+  - `tests/unit/test_migrar_corpus_aceptacion.py`: la robustez sobre los programas de referencia pasa a una prueba por
+    programa (`test_robustez_sobre_todo_el_repositorio`, parametrizada) y la comprobación de «al menos 190» a
+    `test_los_programas_de_referencia_siguen_en_el_repositorio`. `test_solo_los_casos_listados_tienen_pendientes` pasa a
+    una prueba por caso. Las aserciones son las mismas; el límite de 60 s por programa se mantiene.
+  - `env/engines.json`: `"libraries": { "LZ": "impala" }` (B-7; `LZ` es una base de datos, pruebas con datos inventados).
+- Hallazgo (no resuelto hoy): `sgm migrar` llama a `project_base()` sin argumentos (`src/sgm/cli_migrar.py`, línea 129),
+  así que no lee `env/engines.json` ni `env/project.json`. Con `LZ` declarada, el CLI sigue dando
+  `P-OPERADOR-SIN-SOPORTE`: la lectura de `LZ` necesita la ubicación `push_to_db`, que solo está en `env/project.json`.
+  Pasar solo los motores de bibliotecas da `P-MOTOR-SIN-SOPORTE` (peor mensaje), así que el cambio se revirtió.
+  Activar `push_to_db` cambia la ubicación de todo el corpus: es una decisión del dueño, no de este hito.
+- Pruebas: dirigidas `test_push_db.py`, `test_pendientes_sql_l1_l2.py` y las de `migrar_corpus_aceptacion` (15 pasan).
+  El cierre completo con `tools/ci.py` queda en el historial de validación.
+- Métricas: `test_migrar_corpus_aceptacion.py` recolecta 919 pruebas; el número del plan (unas 290) estaba mal calculado.
+  La medición de tiempo después del cambio queda para el siguiente hito.
