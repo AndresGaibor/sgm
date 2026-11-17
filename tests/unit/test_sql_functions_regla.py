@@ -39,3 +39,11 @@ def test_las_sin_pagina_dicen_por_que():
     assert sin_pagina, "se esperaba al menos una función sin página verificada"
     for nombre, motivo in sin_pagina.items():
         assert motivo.startswith(("Pendiente:", "No es función")), nombre
+
+
+def test_pagina_de_devuelve_la_pagina_o_none():
+    from sgm.ir.sql_portability import pagina_de
+
+    assert pagina_de("sum") == "lefunctionsref.pdf, p. 1580"
+    assert pagina_de("AVG") is None
+    assert pagina_de("no_existe") is None

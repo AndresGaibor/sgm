@@ -8613,3 +8613,11 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - No se cambia `sql_portability.py`: la API de `status` sigue igual y las 13 pruebas de portabilidad pasan.
 - Pendiente de C-15: `pagina_de(nombre)` en `sql_portability.py` (expuesto en el plan), el caso `L3/l3_24` con su
   `esperado/`, y que una función `sas_only` en un flujo se traduzca con la tabla de expresiones.
+
+## Hito 287m (2026-11-17). C-15: `pagina_de` en `sql_portability.py` (plan C, parcial)
+
+- Qué se hizo: `pagina_de(nombre)` devuelve la página de la guía de una función de PROC SQL, o `None` si no tiene una
+  verificada. Lo lee de `rules/sas/sql-functions.json`. Tres pruebas más en `tests/unit/test_sql_functions_regla.py`
+  (ahora 4 en ese archivo).
+- Pendiente de C-15: el caso de corpus `L3/l3_24` con su `esperado/`, y la traducción de funciones `sas_only` en flujos
+  con la tabla de expresiones.
