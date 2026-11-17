@@ -8636,3 +8636,13 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   cartesiano) en vez de 4. Defecto del emisor, y un defecto del intérprete (`kb` recibe el valor de `k`). Detalle y
   evidencia en `docs/BLOQUEOS.md` (sección C-4) y `docs/evidencia-studio-l2_19.md`. El caso no entra en el corpus.
 - `talend-mcp` quedó corriendo en segundo plano (puerto 3927) para esta sesión.
+
+## Hito 289m (2026-11-17). Defecto del emisor: LEFT JOIN sale como producto cartesiano en Studio (plan C, C-4)
+
+- Hipótesis descartadas con Studio: el nombre repetido de las llaves (`k` en las dos tablas) y el tipo numérico. Con
+  claves distintas y con texto el resultado es el mismo: 12 filas donde SAS da 4.
+- Hallazgo mayor: el caso de corpus `l2_02_left_join_con_faltantes` (estado «traducible», nunca validado) sale en Studio
+  con 100 filas en vez de 14. El LEFT JOIN de `tMap` que emite el migrador no une por llave. Evidencia:
+  `docs/evidencia-studio-l2_02.md`. Detalle y decisión pendiente en `docs/BLOQUEOS.md`.
+- No se cambia el emisor: falta saber cómo declara Studio la condición del lookup. El caso temporal se retiró del corpus.
+- Pruebas: sin cambio de código ni de resultados; cierre completo en la validación.

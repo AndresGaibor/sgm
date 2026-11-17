@@ -330,3 +330,16 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Decisión tomada:** el caso `l2_19` no entra en el corpus (fallaría el oráculo y Studio). Se queda como evidencia.
 - **Desbloqueo de C-4:** arreglar el nombre de las llaves en el `.item` y volver a medir con este mismo caso.
 
+## LEFT JOIN del emisor: producto cartesiano en Studio (medido el 17 de noviembre de 2026)
+
+- **Evidencia:** `docs/evidencia-studio-l2_02.md`. El caso de corpus `l2_02_left_join_con_faltantes` (estado «traducible»,
+  nunca validado en Studio) sale con **100 filas en vez de 14**. El caso temporal de C-4 sale con 12 en vez de 4.
+- **Qué se descartó:** no es el nombre repetido de las llaves (con `ka` y `kb` distintos sigue cartesiano), ni el tipo
+  numérico (con llaves de texto también). Las llaves se emiten igual que en el caso validado de `l2_02`: la expresión
+  `row1.k` en la columna del lookup, con `matchingMode="ALL_ROWS"`.
+- **Qué falta saber:** cómo declara Studio la condición de un lookup en el `.item`. No está en `docs/referencia/talend`.
+  Hay que mirar un `.item` que Studio guarde con un LEFT JOIN hecho a mano, y comparar.
+- **Riesgo:** cualquier LEFT JOIN que el migrador emite hoy como `tMap` es un Job incorrecto. El corpus no lo detectaba
+  porque ese caso nunca se validó. **Decisión que pido al dueño:** mientras no se arregle, ¿los LEFT JOIN se dejan como
+  pendiente (no se emiten) o se emiten con la advertencia?
+
