@@ -8420,3 +8420,19 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   El cierre completo con `tools/ci.py` queda en el historial de validación.
 - Métricas: `test_migrar_corpus_aceptacion.py` recolecta 919 pruebas; el número del plan (unas 290) estaba mal calculado.
   La medición de tiempo después del cambio queda para el siguiente hito.
+
+## Hito 274m (2026-11-17). B-7 cerrado: `sgm migrar` aplica `push_to_db` a los programas que leen `LZ`
+
+- Qué se hizo: `src/sgm/cli_migrar.py` elige la base de compilación por programa. Si el texto lee una biblioteca
+  declarada en `env/engines.json` (`LZ`, con la búsqueda `_lee_biblioteca`: `LZ.` sin letra antes, sin distinguir
+  mayúsculas), usa la estrategia `push_to_db`; si no, conserva `flow` como antes. El resto del corpus no cambia.
+- Resultado: `l2_16` deja de tener `P-OPERADOR-SIN-SOPORTE` y queda con un solo componente (`tImpalaRow`) y el
+  único pendiente de configuración `P-CONEXION-BASE`. Se actualizan `tests/corpus/migrar_pendientes.yaml` y la
+  clasificación de `tests/unit/test_pendientes_sql_l1_l2.py`.
+- Por qué no se activó para todo el migrador: con `push_to_db` global, el corpus pasó de 487 pruebas en verde a
+  432 fallos (`test_solo_los_casos_listados_tienen_pendientes` en casos L5 y L6). Esa activación global sigue siendo
+  una decisión del dueño.
+- Hallazgo: `sgm migrar` no leía `env/engines.json` ni `env/project.json` (llamaba a `project_base()` sin argumentos).
+  Ahora sí lee `engines.json`; `project.json` sigue sin aplicarse en el CLI.
+- Pruebas dirigidas: `test_pendientes_sql_l1_l2.py`, `test_push_db.py`, `test_migrar_corpus_aceptacion.py`
+  (926 pasan con `-n 8`). El cierre completo con `tools/ci.py` queda en el historial de validación.

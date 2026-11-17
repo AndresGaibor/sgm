@@ -21,12 +21,13 @@ que no existe o un `--backend` que no existe.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import typer
 
 from sgm.backend_talend import ArchivosBackend, BackendTalend, TalendCliBackend
+from sgm.catalog.config import Env, load_env
 from sgm.catalog.schemas import load_schemas
 from sgm.cli_migrar_contexto import _SECRETO as _SECRETO
 from sgm.cli_migrar_contexto import _contexto_yaml
@@ -111,6 +112,38 @@ def _leer(source: Path, resultado: ResultadoMigrar) -> str | None:
         return None
 
 
+def _lee_biblioteca(texto: str, nombre: str) -> bool:
+    """Si el texto usa `NOMBRE.` como tabla: sin letra antes y sin distinguir mayúsculas."""
+    mayus = texto.upper()
+    marca = nombre.upper() + "."
+    pos = mayus.find(marca)
+    while pos != -1:
+        if pos == 0 or not (mayus[pos - 1].isalnum() or mayus[pos - 1] == "_"):
+            return True
+        pos = mayus.find(marca, pos + 1)
+    return False
+
+
+def _base_del_programa(texto: str, decididas: set[str]) -> dict:
+    """Base de compilación del programa. Solo usa `push_to_db` si lee una biblioteca declarada en
+    `env/engines.json` (hoy `LZ`): el resto del corpus conserva la ubicación por flujo."""
+    env = load_env()
+    libs = {n: m for n, m in env.engines.library_engines().items() if n not in decididas}
+    if any(_lee_biblioteca(texto, nombre) for nombre in libs):
+        motores = replace(
+            env.engines,
+            libraries={n: m for n, m in env.engines.libraries.items() if n not in decididas},
+        )
+        env = Env(
+            engines=motores,
+            project=replace(env.project, placement_strategy="push_to_db"),
+            externals=env.externals,
+            external_files=env.external_files,
+        )
+        return project_base(env=env)
+    return project_base(library_engines=libs)
+
+
 def _plan(
     texto: str,
     nombre: str,
@@ -126,7 +159,7 @@ def _plan(
         return compile_file(
             analysis,
             f"{nombre}.sas",
-            project_base(),
+            _base_del_programa(texto, {n.upper() for n in (decisiones_libnames or {})}),
             libname_decisions=decisiones_libnames,
         ).plan
     except Exception as error:  # noqa: BLE001 — el comando no falla nunca; la causa va al log

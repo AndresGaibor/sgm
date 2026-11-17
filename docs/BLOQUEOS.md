@@ -9,7 +9,7 @@ desbloquea. Se quita la entrada cuando la tarea se cierra.
 | Bloqueo | Estado | Qué lo cierra |
 |---|---|---|
 | Decisiones del dueño (B-7, B-8, B-11 a B-14, B-17, B-20, B-21) | **Resueltas** (13 y 17 de noviembre, ver abajo) | Nada: solo falta ejecutar el código |
-| B-7 (`LZ` como base de datos) | Decidido. `LZ` declarada en `env/engines.json`; **el CLI `sgm migrar` no aplica `push_to_db`** (`env/project.json`), así que `l2_16` sigue con `P-OPERADOR-SIN-SOPORTE` | Decisión del dueño: activar `push_to_db` para el migrador (cambia la ubicación de todo el corpus) |
+| B-7 (`LZ` como base de datos) | **Cerrado** (hito 274m): `sgm migrar` aplica `push_to_db` solo a los programas que leen `LZ`; `l2_16` queda con `P-CONEXION-BASE` | Nada. La activación de `push_to_db` para todo el migrador sigue siendo decisión del dueño |
 | B-12 y B-14 (`MERGE` muchos a muchos, `LAST.`) | Decididos: pendiente, sin emisor; pocos componentes | Nada |
 | B-16 (`DO WHILE`/`UNTIL`) y B-20 (`_N_`, `CALL SYMPUT`) | Sin dueño en duda; se escribe el código sin Studio | Plan B de la cola de Andres; la validación va a la cola de Studio |
 | Memoria libre menor de 4 GB | **Resuelto como bloqueo** (los hitos 252m y 255m están commiteados). La regla de 4 GB no está en el repositorio: era de un bucle de agente | Si falta memoria, cerrar Talend Studio (unos 2 GB) y las pestañas de Chrome antes de `tools/ci.py` |
