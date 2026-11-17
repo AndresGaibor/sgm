@@ -1,40 +1,151 @@
 {
   "_doc": "Funciones que pueden aparecer en una sentencia PROC SQL y su tratamiento al componer consultas (migration_planner/sql_compose.py). status: portable = sintaxis SQL estándar que todos los motores aceptan; translated = equivalente dialectal claro por motor (engines); sas_only = no existe en SQL: la sentencia que la usa NO se compone. Las palabras clave de SQL (select, in, between, case...) no están aquí: el compositor las reconoce aparte.",
   "functions": {
-    "sum": {"status": "portable"},
-    "count": {"status": "portable"},
-    "avg": {"status": "portable"},
-    "min": {"status": "portable"},
-    "max": {"status": "portable"},
-    "coalesce": {"status": "portable"},
-    "cast": {"status": "portable"},
-    "substr": {"status": "portable"},
-    "upper": {"status": "portable"},
-    "lower": {"status": "portable"},
-    "trim": {"status": "portable"},
-    "concat": {"status": "portable"},
-    "round": {"status": "portable"},
-    "abs": {"status": "portable"},
+    "sum": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 1580"
+    },
+    "count": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 608"
+    },
+    "avg": {
+      "status": "portable",
+      "pagina": null,
+      "nota_pagina": "Pendiente: AVG no tiene entrada en lefunctionsref.INDEX.md; la guía de PROC SQL la trata en sqlproc (no verificado aquí)"
+    },
+    "min": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 1236"
+    },
+    "max": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 1230"
+    },
+    "coalesce": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 560"
+    },
+    "cast": {
+      "status": "portable",
+      "pagina": null,
+      "nota_pagina": "Pendiente: CAST no tiene entrada en lefunctionsref.INDEX.md"
+    },
+    "substr": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 1574",
+      "etiqueta_indice": "SUBSTR (right of =)"
+    },
+    "upper": {
+      "status": "portable",
+      "pagina": null,
+      "nota_pagina": "No es función SAS: el equivalente es UPCASE (lefunctionsref.pdf, p. 1638)"
+    },
+    "lower": {
+      "status": "portable",
+      "pagina": null,
+      "nota_pagina": "No es función SAS: el equivalente es LOWCASE (lefunctionsref.pdf, p. 1219)"
+    },
+    "trim": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 1624"
+    },
+    "concat": {
+      "status": "portable",
+      "pagina": null,
+      "nota_pagina": "Pendiente: CONCAT no tiene entrada en lefunctionsref.INDEX.md"
+    },
+    "round": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 1486"
+    },
+    "abs": {
+      "status": "portable",
+      "pagina": "lefunctionsref.pdf, p. 230"
+    },
     "substrn": {
       "status": "translated",
-      "engines": {"oracle": "substr", "impala": "substr", "postgres": "substr", "teradata": "substr"},
-      "note": "SAS SUBSTRN no lanza error fuera de rango; el equivalente SUBSTR de cada motor sí puede hacerlo en algunos casos."
+      "engines": {
+        "oracle": "substr",
+        "impala": "substr",
+        "postgres": "substr",
+        "teradata": "substr"
+      },
+      "note": "SAS SUBSTRN no lanza error fuera de rango; el equivalente SUBSTR de cada motor sí puede hacerlo en algunos casos.",
+      "pagina": "lefunctionsref.pdf, p. 1576"
     },
-    "cats": {"status": "sas_only", "note": "Concatenación con recorte de blancos a la derecha de SAS; no hay equivalente verificado."},
-    "cat": {"status": "sas_only"},
-    "catt": {"status": "sas_only"},
-    "catx": {"status": "sas_only"},
-    "input": {"status": "sas_only", "note": "Conversión con informato SAS."},
-    "put": {"status": "sas_only", "note": "Conversión con formato SAS."},
-    "ifn": {"status": "sas_only"},
-    "ifc": {"status": "sas_only"},
-    "intnx": {"status": "sas_only", "note": "Aritmética de fechas con calendario SAS."},
-    "intck": {"status": "sas_only"},
-    "mdy": {"status": "sas_only"},
-    "today": {"status": "sas_only"},
-    "datetime": {"status": "sas_only"},
-    "monotonic": {"status": "sas_only", "note": "Contador de filas SAS dentro del PROC SQL."},
-    "sysfunc": {"status": "sas_only"},
-    "calculated": {"status": "sas_only", "note": "Referencia a un alias calculado en el mismo SELECT: SQL estándar no lo admite."}
+    "cats": {
+      "status": "sas_only",
+      "note": "Concatenación con recorte de blancos a la derecha de SAS; no hay equivalente verificado.",
+      "pagina": "lefunctionsref.pdf, p. 503"
+    },
+    "cat": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 495"
+    },
+    "catt": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 506"
+    },
+    "catx": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 508"
+    },
+    "input": {
+      "status": "sas_only",
+      "note": "Conversión con informato SAS.",
+      "pagina": "lefunctionsref.pdf, p. 1080"
+    },
+    "put": {
+      "status": "sas_only",
+      "note": "Conversión con formato SAS.",
+      "pagina": "lefunctionsref.pdf, p. 1417"
+    },
+    "ifn": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 1067"
+    },
+    "ifc": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 1065"
+    },
+    "intnx": {
+      "status": "sas_only",
+      "note": "Aritmética de fechas con calendario SAS.",
+      "pagina": "lefunctionsref.pdf, p. 60"
+    },
+    "intck": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 63"
+    },
+    "mdy": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 1232"
+    },
+    "today": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 1611"
+    },
+    "datetime": {
+      "status": "sas_only",
+      "pagina": "lefunctionsref.pdf, p. 640"
+    },
+    "monotonic": {
+      "status": "sas_only",
+      "note": "Contador de filas SAS dentro del PROC SQL.",
+      "pagina": null,
+      "nota_pagina": "Pendiente: MONOTONIC no es función de lefunctionsref; es un contador de PROC SQL sin página verificada"
+    },
+    "sysfunc": {
+      "status": "sas_only",
+      "pagina": null,
+      "nota_pagina": "Pendiente: SYSFUNC es una función de macro (mcrolref.pdf), no de lefunctionsref"
+    },
+    "calculated": {
+      "status": "sas_only",
+      "note": "Referencia a un alias calculado en el mismo SELECT: SQL estándar no lo admite.",
+      "pagina": null,
+      "nota_pagina": "Pendiente: CALCULATED es una palabra clave de referencia a alias, no una función"
+    }
   }
 }

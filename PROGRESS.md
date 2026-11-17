@@ -8601,3 +8601,15 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - Sin cambio de código ni de resultados en este hito. El cierre completo queda en el historial de validación.
 - Pendiente de C-12: `CREATE TABLE ... LIKE` (salida de tabla vacía), `CREATE VIEW` (depende de C-8), y el caso de corpus
   `L3/l3_22` con su `esperado/`.
+
+## Hito 286m (2026-11-17). C-15: página en la guía para cada función de PROC SQL (plan C, parcial)
+
+- Qué se hizo: `rules/sas/sql-functions.json` tiene ahora `pagina` en las 31 funciones. 23 citan `lefunctionsref.pdf` con su
+  página, comprobada contra `docs/referencia/sas/lefunctionsref.INDEX.md`. Las 8 restantes llevan `pagina: null` y un
+  `nota_pagina`: 6 son `Pendiente:` (AVG, CAST, CONCAT, MONOTONIC, SYSFUNC, CALCULATED) y 2 dicen que no son función SAS
+  (UPPER y LOWER, con su equivalente UPCASE y LOWCASE). `substr` usa la forma de llamada (`SUBSTR (right of =)`).
+- Prueba nueva: `tests/unit/test_sql_functions_regla.py` (3). Comprueba que toda función tiene página o motivo, que cada
+  página citada aparece en el índice de la guía, y que cada motivo empieza por `Pendiente:` o `No es función`.
+- No se cambia `sql_portability.py`: la API de `status` sigue igual y las 13 pruebas de portabilidad pasan.
+- Pendiente de C-15: `pagina_de(nombre)` en `sql_portability.py` (expuesto en el plan), el caso `L3/l3_24` con su
+  `esperado/`, y que una función `sas_only` en un flujo se traduzca con la tabla de expresiones.
