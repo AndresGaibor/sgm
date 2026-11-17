@@ -8342,3 +8342,53 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 - El corpus combinado queda en 379 casos (132 L4, 148 L6 y 363 con esperado). No se renumeran los hitos previos ni se reemplazan cambios remotos.
 - Verificación focal: 385 pruebas de intérprete, IR, emisor, reglas, golden y tablero pasan; las 14 regresiones encontradas en el primer cierre se corrigieron y pasan; las 196 pruebas de funciones y vectores pasan bajo ejecución paralela. Cierre integral `uv run python tools/ci.py`: 6.263 pasan, 645 omitidas y 145 `xfail`; Ruff, cruces, oráculo y tablero en verde.
 - Decisiones: sin dependencias nuevas, conexión a bases, secretos ni force-push; la rama `main` solo recibirá un avance rápido después de comprobar la punta remota.
+
+## Hito 259m (2026-11-17). Flujo de desarrollo: OpenSpec en español y Superpowers obligatorio
+
+- Qué se hizo: se instaló `@fission-ai/openspec` 2.1.0 en global y se inicializó el repositorio para
+  Claude Code (`openspec init --tools claude --scope project`). Quedan `openspec/` (config y specs),
+  `.claude/skills/` y `.agents/skills/` (generados por OpenSpec). La telemetría de OpenSpec quedó
+  desactivada. Superpowers 7.0.2 ya estaba habilitado como plugin.
+- `openspec/config.yaml`: contexto en español con las tres líneas que escribe `--language Spanish`,
+  reglas por artefacto (historias de usuario con criterios de aceptación; sección «Ingeniería» y
+  «Pruebas» en el diseño; tareas agrupadas en implementación, pruebas, documentación y cierre).
+- `AGENTS.md`: sección «Flujo obligatorio: OpenSpec + Superpowers» con los cinco pasos y la regla de
+  que el change no sustituye al hito.
+- Primer change de prueba, validado y borrado; `openspec validate` pasa sobre el esquema
+  `spec-driven`.
+- Pruebas: `openspec validate --all` sin errores; el YAML de `config.yaml` se comprobó con el
+  parser de OpenSpec tras corregir dos listas con `: ` dentro.
+- Decisiones: los skills de OpenSpec viven en `.claude/skills/` y `.agents/skills/` y se commitean
+  porque el repo los necesita para que la herramienta funcione. El `worktrees/` y el
+  `scheduled_tasks.lock` quedan fuera (ya ignorados).
+
+## Hito 271m (2026-11-17). Integra la serie de Byron y deja listas las colas de trabajo sin Studio
+
+- Qué se hizo:
+  - `git pull` de `origin/main` (avance directo, 63 commits de Byron, hitos 242n a 270n, 12 a 17 de noviembre).
+    Solo chocó `PROGRESS.md` (los dos añadimos entradas al final): se conservaron las dos. Sin dependencias nuevas.
+  - Corrección de lo dicho antes del `fetch`: Byron **sí** está activo (el último commit es de hoy).
+  - `docs/BLOQUEOS.md`: resumen «Estado de un vistazo», decisiones del dueño del 17 de noviembre (`LZ` es una base de
+    datos con tablas de prueba inventadas; pocos componentes; el agente decide lo demás), y se quitaron las dos
+    entradas de memoria de los hitos 252m y 255m, que ya están commiteados.
+  - `AGENTS.md`: «Cuándo usar Studio» (solo al cerrar un hito, cada error de Studio se vuelve prueba estática,
+    validación por lotes), esperar con `run_in_background` o `Monitor` y no con `sleep`, y la regla de pocos componentes.
+  - Dos changes de OpenSpec con pasos exactos y comandos de ciclo rápido: `paralelizar-pruebas-largas` y
+    `cerrar-b7-lz-y-avance-real`. El tercero, `generar-cobertura-procedimientos`, queda **superado** por `C-22`
+    de Byron (`tools/cobertura_procs.py` genera el mismo documento con los 77 procedimientos): no se ejecuta.
+  - Colas por persona (`docs/superpowers/plans/2026-11-17-*-cola-sin-studio.md`) y plan del día, con lo ya
+    citado en `PROGRESS.md` marcado para verificar. Pendientes sin Studio ni personas: 63 tareas de Byron (292
+    pasos) y 31 de Andres (157 pasos). El plan B de Andres está citado casi entero en los hitos 201m a 255m.
+- Hallazgos:
+  - B-7 es más corto de lo esperado: con `LZ` declarada como `impala` y `push_to_db`, `l2_16` queda en un solo
+    componente (`tImpalaRow`) y un pendiente de configuración, `P-CONEXION-BASE`; la sentencia `LIBNAME` ya la pliega
+    el código de Byron (`_libname_registrado`).
+  - La huella de `tools/validacion.py` incluye `PROGRESS.md` y el estado de git de cada archivo: `git add` y la
+    entrada de hito van antes de `tools/ci.py`.
+- Pruebas: suite completa sobre el `main` integrado con Byron, antes de estos cambios de documentación:
+  `6262 passed, 646 skipped, 145 xfailed` en 235,75 s con `-n 8`. El resultado de `tools/ci.py` de este hito
+  queda en `uv run python tools/validacion.py historial`.
+- Decisiones: no se versionan `.claude/settings.json` ni el gancho `.claude/hooks/validar-commit.sh` (valen en la
+  copia de trabajo, como dice el hito 258m); sí los skills de OpenSpec, por el hito 259m. La numeración 259m y 259n
+  repite el número entre series; no se renumera (una entrada publicada no se renumera).
+- Bloqueos: Studio sigue en `MODAL_BLOCKING` con 108 casos en la cola de pendientes; no cuenta nada como validado.

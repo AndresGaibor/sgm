@@ -1,0 +1,34 @@
+schema: spec-driven
+
+# Contexto del proyecto. Las tres primeras líneas son las que OpenSpec escribe con
+# `--language Spanish`; no las cambies sin cambiar también `openspec init`.
+context: |
+  Language: Spanish
+  All artifacts must be written in Spanish.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Todo cambio pasa por un change de OpenSpec antes de tocar código.
+  El plan vigente es docs/plan-reescritura/plan-migrador-general.md (§0 y su fase);
+  PROGRESS.md registra lo hecho. Un change no reemplaza al hito: al cerrarlo se
+  sigue AGENTS.md (número de hito único, tools/ci.py en verde, commit `hito N: <resumen>`).
+  Prohibido en el alcance de cualquier change: API web, frontend, conexión a Impala
+  o bases, nombres de scripts de ejemplo dentro de src/ y rules/, tocar el repo viejo.
+
+# Reglas por artefacto: lo que se suma a la plantilla de cada uno.
+rules:
+  proposal:
+    - 'Incluye la sección "## Historias de usuario". Cada historia va como "Como <rol>, quiero <acción>, para <beneficio>", seguida de sus criterios de aceptación.'
+    - 'Cada criterio de aceptación debe poder convertirse en un escenario de la spec.'
+    - 'En "Capacidades", indica qué historia cubre cada capacidad.'
+  design:
+    - 'Incluye la sección "## Ingeniería" con: alternativas consideradas y por qué se descartaron, riesgos, dependencias y la frontera con el backend de Talend (src/sgm/backend_talend/).'
+    - 'Incluye la sección "## Pruebas": qué pruebas unitarias y de corpus cubren el cambio, y cómo se verifica que no hay regresiones con tools/ci.py.'
+  specs:
+    - 'En el cuerpo de cada requisito usa SHALL o MUST (en inglés, lo exige el validador) y el resto del texto en español.'
+    - 'Cada requisito tiene al menos un escenario WHEN/THEN, y los escenarios salen de los criterios de aceptación de la propuesta.'
+  tasks:
+    - 'Agrupa las tareas en: implementación, pruebas (primero, con TDD), documentación (PROGRESS.md) y cierre (ruff, tools/ci.py, commit `hito N: <resumen>`).'
+    - 'Cada tarea se puede terminar en una sesión; si no, se divide.'
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.

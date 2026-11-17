@@ -43,3 +43,13 @@ cierre. Cada plan se expande a pasos cuando empieza su ola. Ya expandido: Plan A
 Regla de oro de todos los planes (instrucción del usuario): el migrador **no falla nunca**. Si algo no se puede
 traducir o falta configuración o credenciales, se omite, se documenta en `pendientes.md` y
 `configuracion-pendiente.md`, y el resto se genera al máximo.
+
+## Colas de trabajo por persona (17 de noviembre de 2026)
+
+No repiten los pasos de los planes de arriba: los ordenan por olas y separan lo que necesita Studio, Docker o personas.
+
+| Cola | Persona | Contenido |
+|---|---|---|
+| `2026-11-17-andres-cola-sin-studio.md` | Andres (`m`) | B, C-1 a C-15, F1, F2 e I |
+| `2026-11-17-byron-cola-sin-studio.md` | Byron (`n`) | C-16 a C-23, D1, D2, E, G, H y K |
+| `2026-11-17-plan-del-dia.md` | Andres | Plan del día: paralelizar pruebas y B-7 con `LZ`, en un solo hito |

@@ -25,3 +25,7 @@ docs/referencia/sas/*.pdf
 
 # Build Jobs de Talend exportados dentro del repositorio (por omision se exportan a %TEMP%).
 build-*/
+
+# Local o generado por herramientas: no se versiona.
+/.agents/
+/.claude/scheduled_tasks.lock

@@ -108,6 +108,22 @@ Studio, supervisor, diálogos autónomos y `talend_studio_ensure_ready`). La fro
 núcleo de `sgm` no importa el MCP ni la CLI fuera de `src/sgm/backend_talend/`, y lo vigila
 `tests/unit/test_backend_aislado.py`.
 
+### Cuándo usar Studio (decisión del usuario, 17 de noviembre de 2026)
+
+Studio es la compuerta final de un hito, no parte del ciclo diario. «Permitido» no significa «úsalo
+en cada paso»: en las sesiones registradas, Studio y `talend-mcp` sumaron 5 112 llamadas y más de 12 h.
+
+- **No abras Studio ni llames a `talend-mcp` mientras iteras.** Se usan solo al cerrar un hito o
+  cuando el usuario lo pida. El ciclo diario es `--backend archivos`, `ruff` y las pruebas dirigidas.
+- **Cada error que Studio encuentre se convierte, antes de arreglarlo, en una prueba estática**
+  (XML bien formado, parámetros obligatorios del componente según `rules/talend/components.json`,
+  conexiones coherentes, esquemas de columnas). Se vigila en `tests/unit/test_talend_humo.py` o en la
+  prueba del componente. Studio no debe descubrir dos veces el mismo error.
+- **Valida en lote:** junta los Jobs cambiados del hito y pásalos en una sola sesión con
+  `tools/corpus_studio.py`, no uno por uno. Si Studio no está listo (`sgm studio salud`), el trabajo
+  va a la cola de pendientes y el hito sigue; un pendiente nunca cuenta como validado.
+- Cierra Studio al terminar la sesión de validación.
+
 ## Forma de trabajar
 
 - Lee antes de escribir. Los archivos grandes (`client_large.sas`, unos 800 KB) no se leen enteros: usa búsqueda y lecturas por rango de líneas.
@@ -120,6 +136,8 @@ núcleo de `sgm` no importa el MCP ni la CLI fuera de `src/sgm/backend_talend/`,
   Un hito termina solo con `uv run python tools/ci.py` en verde: ese comando corre `ruff`, la suite
   completa, los cruces y el oráculo, y deja el estado que exige el gancho `pre-commit`. Cada paso
   del cierre tiene su límite de tiempo: un test colgado se corta y el informe lo dice.
+- Para esperar a algo largo (la suite, `tools/ci.py`, Studio) usa `run_in_background` o `Monitor`;
+  no hagas bucles de `sleep`: en las sesiones registradas sumaron unas 10 h de espera.
 - **El commit está bloqueado sin cierre verde.** `.githooks/pre-commit` compara la huella del árbol
   con la que se validó y rechaza el commit si falta la suite completa, `ruff`, los cruces o el
   oráculo, o si se editó algo después del cierre. Se instala una vez por copia con
@@ -128,4 +146,29 @@ núcleo de `sgm` no importa el MCP ni la CLI fuera de `src/sgm/backend_talend/`,
   `git commit --no-verify`.
 - `PROGRESS.md` se actualiza al cerrar cada hito: fecha, qué se hizo, pruebas, métricas, bloqueos y decisiones.
 - Si una decisión de diseño no está en el prompt, elige la opción más simple que respete las reglas y anótala en `PROGRESS.md` bajo "Decisiones".
+- **Pocos componentes (decisión del usuario, 17 de noviembre de 2026).** Un Job emite los menos componentes de Talend que pueda: un `tMap` o un `tJavaRow` antes que una cadena de varios. Lo que no cabe así queda como `Pendiente:` con su motivo; no se inventa una cadena de componentes.
 - Dependencias permitidas: `networkx`, `typer`, `pyyaml`, `pydantic` (opcional). Dev: `pytest`, `pytest-xdist`, `ruff`. Cualquier otra se anota en "Decisiones".
+
+## Flujo obligatorio: OpenSpec + Superpowers
+
+Todo trabajo de código se hace con las dos herramientas, sin excepción. OpenSpec está configurado en
+español (`openspec/config.yaml`): los artefactos se escriben en español, y los títulos estructurales
+y las palabras SHALL/MUST quedan en inglés porque el validador los exige.
+
+1. **OpenSpec** (`openspec/`, `@fission-ai/openspec` 2.1.0): el change lleva propuesta, diseño, specs
+   y tareas. Se crea con `/openspec-propose "<idea>"`, se valida con `openspec validate <change>`,
+   se implementa con `/openspec-apply-change` y se archiva con `/openspec-archive-change`, que
+   actualiza `openspec/specs/`.
+2. **Historias de usuario**: la propuesta trae las historias ("Como <rol>, quiero <acción>, para
+   <beneficio>") con sus criterios de aceptación. Cada criterio se convierte en un escenario WHEN/THEN
+   de la spec. Si no hay historia de usuario, el cambio no sale de la fase de propuesta.
+3. **Ingeniería**: el diseño dice qué alternativas se descartaron, qué riesgos hay y dónde queda la
+   frontera con `src/sgm/backend_talend/`. Las pruebas se nombran en el diseño, no al final.
+4. **Superpowers** (plugin `superpowers@superpowers-marketplace`): `superpowers:brainstorming` si hay
+   que diseñar algo nuevo, `superpowers:writing-plans` para las tareas,
+   `superpowers:test-driven-development` al implementar, `superpowers:systematic-debugging` ante un
+   fallo y `superpowers:verification-before-completion` antes de declarar algo terminado.
+5. **Cierre**: `uv run ruff check .` y `uv run python tools/ci.py` en verde, luego el hito en
+   `PROGRESS.md` y el commit `hito N: <resumen>`. Un change no sustituye al hito.
+
+No se commitean `openspec/changes/` ni `.claude/`/`.agents/` sin que el usuario lo pida.

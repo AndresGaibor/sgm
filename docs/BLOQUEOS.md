@@ -4,6 +4,37 @@ Tareas del plan `docs/superpowers/plans/2026-11-11-ruta-al-100.md` (sección 8.3
 porque necesitan Studio, una decisión del dueño o algo de Byron. Cada entrada dice qué falta y qué
 desbloquea. Se quita la entrada cuando la tarea se cierra.
 
+## Estado de un vistazo (17 de noviembre de 2026)
+
+| Bloqueo | Estado | Qué lo cierra |
+|---|---|---|
+| Decisiones del dueño (B-7, B-8, B-11 a B-14, B-17, B-20, B-21) | **Resueltas** (13 y 17 de noviembre, ver abajo) | Nada: solo falta ejecutar el código |
+| B-7 (`LZ` como base de datos) | Decidido; el código ya lo soporta | Change `cerrar-b7-lz-y-avance-real`, sin Studio |
+| B-12 y B-14 (`MERGE` muchos a muchos, `LAST.`) | Decididos: pendiente, sin emisor; pocos componentes | Nada |
+| B-16 (`DO WHILE`/`UNTIL`) y B-20 (`_N_`, `CALL SYMPUT`) | Sin dueño en duda; se escribe el código sin Studio | Plan B de la cola de Andres; la validación va a la cola de Studio |
+| Memoria libre menor de 4 GB | **Resuelto como bloqueo** (los hitos 252m y 255m están commiteados). La regla de 4 GB no está en el repositorio: era de un bucle de agente | Si falta memoria, cerrar Talend Studio (unos 2 GB) y las pestañas de Chrome antes de `tools/ci.py` |
+| Studio: `MODAL_BLOCKING`, dos instancias, `JOB_NO_EN_REPOSITORIO` (B-18, B-Gate, B-22, `l6_40`, `l6_41`) | **Abierto, pero fuera de hoy**: no cuenta nada como validado | Una persona cierra el diálogo `Confirm` y recarga el proyecto; luego una sola sesión de lotes con `tools/corpus_studio.py` (108 casos en `out/studio-pendientes.json`) |
+| Carril de Byron | **Activo**: 63 commits entre el 12 y el 17 de noviembre (hitos 242n a 270n); ya hizo `C-20`, `C-21`, `D2-2` a `D2-13`, `D2-15`, `D1-7` a `D1-14` y `K-4`, `K-6` | Nada. Su cola se actualizó (`2026-11-17-byron-cola-sin-studio.md`) |
+
+**Decisión del agente (17 de noviembre), por instrucción del dueño de decidir lo mejor:** la validación en Studio se
+difiere a una única sesión por lotes, fuera del ciclo de desarrollo. Mientras tanto no se abre Studio, los casos
+que lo necesitan quedan en la cola de pendientes y ninguno se cuenta como validado.
+
+## Decisiones del dueño (17 de noviembre de 2026)
+
+Dichas por el usuario en la conversación; cierran lo que sigue y mandan sobre las decisiones del agente del 256m.
+
+1. **B-7: `LZ` es una base de datos.** No habrá acceso a ella. Las pruebas usan tablas **inventadas** de
+   prueba (esquema y filas de ejemplo dentro del caso del corpus). Eso vale solo para pruebas: el
+   esquema real de producción sigue sin inventarse (regla 6 de `AGENTS.md`). Supuesto del agente: el
+   motor es Impala, como `dsn` y `db_schemas` de `env/engines.json`; si es otro, se cambia una línea.
+2. **Pocos componentes.** El Job emitido usa los menos componentes de Talend posibles. Un `tMap` o un
+   `tJavaRow` antes que una cadena de componentes; lo que no cabe en pocos componentes queda como
+   pendiente con su motivo y no se inventa una cadena. Confirma B-12 (opción a) y B-14 (`LAST.` pendiente,
+   `P-POR-GRUPO-SIN-EMISOR`) del 256m: ya no son «a revisar».
+3. **Todo lo demás lo decide el agente** con la opción más simple que respete `AGENTS.md`, anotada en
+   `PROGRESS.md` bajo «Decisiones».
+
 ## Decisiones tomadas (13 de noviembre de 2026)
 
 Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afectada lleva una línea «Decidido».
@@ -26,7 +57,8 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Motivo:** `LIBNAME LZ '/data/lz';` no dice qué motor sirve la biblioteca `LZ`, y
   `env/engines.json` tiene `"libraries": {}`. Sin ese dato el `read` de `LZ.origen` no se puede poner en
   `db:impala`, y cerrarlo con `sql` literal sería inventar el motor (regla 6 de `AGENTS.md`).
-- **Decisión que falta (dueño):** ¿`LZ` es una biblioteca de Impala? Si sí, declararla en
+- **Decidido (17 nov, punto 1):** `LZ` es una base de datos; pruebas con tablas inventadas.
+- **Decisión que falta (dueño) [cerrada arriba]:** ¿`LZ` es una biblioteca de Impala? Si sí, declararla en
   `env/engines.json` (`libraries`) con el motor que corresponda; si no, el caso se queda como `entorno`
   y el plan debe decir que `l2_16` no es parte del 100 %.
 - **Lo que se hace al tener la decisión:** declarar el motor, quitar la entrada de `CLASIFICACION`,
@@ -171,43 +203,6 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   resto del cierre.
 - **Desbloqueo:** Studio en `READY` y el lote de B-18 y B-Gate ejecutados.
 
-## Bloqueo 252m: memoria libre por debajo de 4 GB (ralph-loop, B-19)
-
-- **Qué pasó:** al cerrar B-19 (`UPDATE` en el intérprete, hueco sin emisor, casos l6_35 a l6_38) la memoria libre
-  era de 2,77 GB (`Get-CimInstance Win32_OperatingSystem`, `FreePhysicalMemory`). El bucle exige 4 GB antes de
-  `tools/ci.py`, así que no se corrió el gate y no hay commit de 252m.
-- **Estado en disco, sin commit:** `src/sgm/migrar/interprete_update.py` (nuevo), `src/sgm/ir/lower_data_update.py`
-  (nuevo), `tests/unit/test_interprete_update.py` (nuevo, 9 tests), casos `tests/corpus/L6/l6_35` a `l6_38` (pendientes,
-  sin `esperado/`), `src/sgm/frontend/datastep.py` (`update` y `modify`), `src/sgm/ir/lower_data.py` y
-  `lower_data_recorrido.py` y `lower_data_grupos.py` (cabeceras), `src/sgm/migrar/interprete_pasos.py` (una rama de
-  despacho y el import), y ajustes de tests: `test_ir_rules.py` (LAG es hueco), `test_interprete_sin_traducir.py` (se
-  quitó el caso LAG en IF, cubierto en `test_interprete_lag.py`), `test_catalogo_sas.py` (`update`/`modify` son
-  sentencias propias con hueco), `test_tablero.py` (254 casos, L6 144), `migrar_pendientes.yaml`.
-- **Por revisar al commitear:** `interprete_pasos.py` figura como de Byron en `reparto-andres-byron.md`; se tocó solo
-  para el despacho del `join` con `modo="update"`. `lower_data.py` queda en 304 líneas (sobre el límite de 300).
-- **Qué falta:** `tools/ci.py` con memoria libre (o por tandas), y el commit `hito 252m: ...` con la nota anterior.
-  Emisión de `UPDATE` en `desde_plan_merge.py` (tJavaRow) y validación en Studio: pendientes hasta que el puente
-  responda. `operadores.combinar` con `modo="update"` no se añadió: el hueco se construye con `b.op`.
-- **Segunda comprobación (iteración siguiente del bucle):** memoria libre 2,76 GB. Los mayores consumidores son
-  procesos de Chrome y de Claude (no hay ejecuciones de `tools/ci.py` ni de pytest del repo). No se cerraron
-  procesos ajenos. Sin commit de 252m hasta que haya 4 GB libres.
-- **Tercera comprobación (tras reiniciar):** memoria libre 1,07 GB de 13,35 GB. Consumen Chrome (6,6 GB) y
-  Talend Studio (1,97 GB, abierto por el usuario, no por este bucle). No se corrió `tools/ci.py` ni se commiteó.
-- **Cambios hechos sin gate:** `lower_data.py` pasó de 304 a 277 líneas: `_join_type` (MERGE) se movió a
-  `src/sgm/ir/lower_data_union.py` como `tipo_de_union`, sin cambio de lógica; `import re` huérfano quitado.
-  El despacho de `UPDATE` sigue en `lower_data_update.py`. Finales de línea restaurados con
-  `.cache/restaura_eol.py` en `datastep.py` e `interprete_pasos.py` (sin churn: diff igual con y sin ignorar CR).
-  `interprete_pasos.py` (Byron): el diff contra HEAD son solo el import de `_actualizar` y la rama `elif` del
-  despacho de `UPDATE` (8 líneas).
-- **Prueba dirigida (un proceso):** `test_interprete_update.py` y `test_interprete_lag.py`, 16 pasan. Ruff limpio.
-
-- **Resuelto en 253m (B-9):** `tUnite` con conexiones `MERGE` compila y conserva el orden de SAS
-  (`l6_25_set_dos_datasets_orden` coincide en Studio, 0 diferencias; testigo `l6_09` también coincide). Decisión (a).
-  Queda B-10 para `l6_26` (columnas distintas, `P-UNION-ESQUEMAS-DISTINTOS`).
-
-- **B-10 (254m, parcial):** `l6_26` coincide en Studio. Quedan (c), `SET a b; BY k;` intercalado con su pendiente
-  `P-SET-INTERCALADO` (no verificado) y las entradas repartidas por `tReplicate` con alineación, que caen al camino anterior.
-
 ## B-12: `MERGE` muchos-a-muchos no cabe en un solo `tJavaRow` (decisión del dueño, diseño del plan)
 
 - **Qué dice el plan:** `MERGE` de tres o más entradas, o con llave repetida, va como `tUnite` + `tSortRow` por
@@ -250,22 +245,6 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   Después se reintenta `sgm studio salud` y se valida `l6_41`. Su esperado (lefunctionsref p. 663, DIFn(x) = x - LAGn(x), primer valor faltante) es `ID,X,D` con las filas `1,2,` `2,3,1` `3,5,2`; se escribe en `esperado/DIF_L6_41.csv` al validar, no antes (el caso queda pendiente sin esperado).
 - **Resultado:** ninguna validación de Studio de esta iteración cuenta. No hay ningún resultado inventado.
 
-## Bloqueo 255m: memoria libre por debajo de 4 GB; hito 255m sin commit
-
-- **Qué pasó:** la comprobación de memoria dio 1,56 GB libres al lanzar `tools/ci.py`. Ese arranque fue un error: se
-  inició el gate con la memoria por debajo del mínimo. Se detuvo a los pocos segundos (TaskStop) y se comprobó que no
-  quedó ningún proceso de pytest ni de `ci.py`. La memoria después estaba en 2,5 GB.
-- **Estado en disco, con staging y sin commit:** LAG y DIF como `tJavaRow` (`java_lag.py`, `desde_plan_lag.py`), el
-  cableado en `desde_plan.py`, `tiene_hueco` con `emitidos`, `tJavaRow` en `ENTRADA_PROPIA` y las pruebas nuevas.
-  Pruebas verificadas en un solo proceso antes del incidente: `test_java_lag.py` y `test_desde_plan_lag.py`
-  (9 pasan) y los tests de LAG, unión, emisor y golden (367 pasan).
-- **Qué falta:** correr `tools/ci.py` con 4 GB libres o más (o por tandas) y comitear `hito 255m`. Antes, subir el
-  Job de LAG a validar en Studio (`l6_41`, bloqueado por `MODAL_BLOCKING`, ver la sección anterior).
-- **Comprobación siguiente (iteración del bucle):** memoria libre 2,41 GB. Por la regla no se corrió la suite, no se
-  comprobó Studio y no se commiteó. El hito 255m sigue en staging, sin commit, y el diálogo `Confirm` de Studio también
-  sigue pendiente de cierre por el usuario.
-- **Comprobación del bucle:** memoria libre 2,48 GB (< 4 GB). Sin suite, sin commit, sin consulta a Studio. Hito 255m en staging.
-
 ## B-Studio (iteración con puente caído): recuperación en dos intentos, sin READY
 
 - **Qué se vio:** `sgm studio salud` dio `BRIDGE_DEAD` (`BRIDGE_UNAVAILABLE`). Talend Studio no estaba en ejecución: se
@@ -299,7 +278,7 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
   y avise. Después se arranca Studio una sola vez, se espera el puerto 3930 y se reinicia `talend-mcp` (3927).
 - **Iteración posterior:** `sgm studio salud --recuperar` (un intento) sigue en `MODAL_BLOCKING` con el diálogo `Confirm`. El puerto 3930 ya escucha (una sola instancia de Studio, PID 19632). No se reinició Studio: la guía (sección 7) prohíbe matar un proceso con diálogo modal, por el trabajo sin guardar. Hace falta que cierres el diálogo `Confirm` en Talend Studio y avises.
 
-## Decisiones tomadas por el agente (256m), a revisar por el dueño
+## Decisiones tomadas por el agente (256m), confirmadas por el dueño el 17 de noviembre
 
 - **B-12, `MERGE` muchos-a-muchos: opción (a).** Solo se emite el `MERGE` con llave única demostrada (ver la tarea
   B-12 del plan). Todo lo demás queda como pendiente de unión (`P-UNION-TIPO-SIN-SOPORTE`, ya en el código). No hay
