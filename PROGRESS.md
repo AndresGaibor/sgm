@@ -8588,3 +8588,16 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
   de salida no es 0. No cambian los tiempos, la memoria ni las aserciones.
 - Próximo paso: si la prueba vuelve a fallar, el mensaje dirá la causa; con eso se decide el arreglo.
 - Pruebas: `test_performance_benchmark.py` (5) pasa; cierre completo con `tools/ci.py` en verde en esta corrida.
+
+## Hito 285m (2026-11-17). C-12: estado medido de CREATE TABLE LIKE, CREATE VIEW y DROP (plan C, sin cambio de código)
+
+- `CREATE TABLE molde LIKE ventas`: hoy queda pendiente `P-OPERADOR-SIN-SOPORTE` («sentencia create_like de PROC SQL: no
+  es una consulta, no se traduce»). No se implementa: el resultado es una tabla vacía con las columnas de la otra, y el
+  Job tendría que escribir ese dataset vacío. Es un diseño de salida que no está hecho.
+- `DROP TABLE molde`: no deja pendiente. Es intencional: `rules/sas/plumbing.yaml` lo clasifica como fontanería porque el
+  componente de salida (DROP_CREATE o CLEAR) reemplaza la tabla antes de cargar. No es un pendiente silencioso.
+- `CREATE VIEW`: el plan ya decide que cada lectura de la vista se expande en línea a su cadena de operadores (como una
+  vista en línea de C-8). C-8 no está hecho, así que la vista tampoco.
+- Sin cambio de código ni de resultados en este hito. El cierre completo queda en el historial de validación.
+- Pendiente de C-12: `CREATE TABLE ... LIKE` (salida de tabla vacía), `CREATE VIEW` (depende de C-8), y el caso de corpus
+  `L3/l3_22` con su `esperado/`.
