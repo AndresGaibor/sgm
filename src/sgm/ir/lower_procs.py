@@ -113,10 +113,9 @@ def lower_proc(step: Proc, ev: Evidence, b: Builder) -> None:
     elif name in {"delete", "datasets", "copy"}:
         lower_limpieza(step, ev, b)
     elif name == "freq" and (
-        out or any(re.search(r"(?is)^tables\b[^/]*?/.*?\bout\s*=", statement.strip())
+        out or any(re.search(r"(?is)^(?:tables\b[^/]*?/|output\b).*?\bout\s*=", statement.strip())
                    for statement in step.body)
     ):
-        # TABLES lleva su propio OUT=; no está en las opciones de la cabecera PROC.
         _unsupported(
             step, ev, b, declared("freq")["fallback"]["note"],
             pending_code="P-FREQ-OUT-SIN-PAGINA",

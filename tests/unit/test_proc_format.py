@@ -4,17 +4,25 @@ from __future__ import annotations
 
 import json
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 
 import pytest
 
 from sgm.compile import compile_file, project_base
 from sgm.emit.plan_json import plan_to_dict
 from sgm.frontend.program import analyze_program
+from sgm.ir.models import Column
 from sgm.migrar.interprete import NoSoportadoEnInterprete, ejecutar_plan
 
 
-def _plan(text: str):
-    return compile_file(analyze_program({"p.sas": text}), "p.sas", project_base()).plan
+def _plan(text: str, estado: str | None = "String"):
+    context = project_base()
+    if estado:
+        context["schemas"] = {
+            f"work.{table}": [Column("estado", estado, source="catalog")]
+            for table in ("origen", "clientes")
+        }
+    return compile_file(analyze_program({"p.sas": text}), "p.sas", context).plan
 
 
 def test_value_character_map_is_kept_in_plan_and_applied_by_reference_interpreter():
@@ -63,8 +71,38 @@ def test_value_character_map_is_kept_in_plan_and_applied_by_reference_interprete
     ) == formato
     with pytest.raises(FrozenInstanceError):
         formato.nombre = "$otro"
-    with pytest.raises(NoSoportadoEnInterprete, match="tipo del valor faltante"):
-        ejecutar_plan(plan, {"clientes": [{"id": "6", "estado": None}]})
+    with pytest.raises(NoSoportadoEnInterprete, match="tipo SAS sin demostrar"):
+        ejecutar_plan(_plan(text, estado=None), {"clientes": [{"id": "6", "estado": None}]})
+
+
+@pytest.mark.parametrize("separator", [" ", "\n"])
+def test_value_posterior_al_put_queda_pendiente_incluso_en_la_misma_linea(separator):
+    plan = _plan(separator.join([
+        "DATA destino; SET origen; desc=PUT(estado,$estf.); RUN;",
+        "PROC FORMAT; VALUE $estf '1'='Uno' OTHER='Otro'; RUN;",
+    ]))
+    with pytest.raises(NoSoportadoEnInterprete, match="P-FORMATO-NO-DISPONIBLE"):
+        ejecutar_plan(plan, {"origen": [{"estado": "1"}]})
+
+
+@pytest.mark.parametrize("estado", ["String", "Double", None])
+def test_put_tipa_la_columna_sas_sin_inferir_desde_la_celda_csv(estado):
+    plan = _plan("PROC IMPORT DATAFILE='origen.csv' OUT=origen DBMS=CSV; GETNAMES=YES; RUN; "
+                 "PROC FORMAT; VALUE $estf '1'='Uno' OTHER='Otro'; RUN; "
+                 "DATA destino; SET origen; desc=PUT(estado,$estf.); RUN;", estado)
+    rows = {"origen": [{"estado": "1"}]}
+    if estado == "String":
+        assert ejecutar_plan(plan, rows)["destino"][0]["desc"] == "Uno"
+    else:
+        with pytest.raises(NoSoportadoEnInterprete, match="P-FORMATO-TIPO"):
+            ejecutar_plan(plan, rows)
+
+
+def test_l3_34_conserva_pendiente_si_proc_import_no_prueba_tipo():
+    directory = Path(__file__).resolve().parents[1] / "corpus/L3/l3_34_format_value_y_put"
+    plan = _plan((directory / "programa.sas").read_text(encoding="utf-8"), estado=None)
+    with pytest.raises(NoSoportadoEnInterprete, match="P-FORMATO-TIPO"):
+        ejecutar_plan(plan, {"clientes": [{"estado": "A"}]})
 
 
 def test_numeric_ranges_stay_pending_until_d1_supports_them():

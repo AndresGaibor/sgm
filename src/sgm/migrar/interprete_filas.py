@@ -10,6 +10,7 @@ from __future__ import annotations
 from sgm.ir.models import Plan
 from sgm.migrar import semantica
 from sgm.migrar.interprete_base import _clave, _nombre_de_columna  # noqa: F401 - reexportado
+from sgm.migrar.interprete_formatos_usuario import input_types, sas_type, user_format_types
 from sgm.migrar.interprete_orden import _llaves, _ordenar, _unicos  # noqa: F401 - reexportado
 from sgm.migrar.interprete_subconsultas import SubconsultaNoSoportada, _fuentes, preparar
 from sgm.migrar.interprete_valores import (
@@ -107,7 +108,9 @@ def _con_clave_existente(fila: dict, nuevos: dict) -> dict:
     return {existentes.get(k.lower(), k): v for k, v in nuevos.items()}
 
 
-def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> list[dict]:
+def _proyectar(
+    filas: list[dict], asignaciones: list[dict], aditivo: bool, declared: dict | None = None,
+) -> list[dict]:
     """Cada asignación es una columna de la salida.
 
     Un `SELECT` reemplaza la fila —solo salen sus columnas— y una asignación de DATA step le agrega
@@ -116,6 +119,25 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
     """
     if not asignaciones:
         return filas
+    types = input_types()
+    if types is not None:
+        types = {**{name.casefold(): value[0] for name, value in (declared or {}).items()}, **types}
+        with user_format_types(types):
+            pairs = _pares(asignaciones, aditivo, types)
+    else:
+        pairs = _pares(asignaciones, aditivo, None)
+    # `_N_` (lrcon, p. 79): el número de iteración va como clave auxiliar, no sale como columna.
+    contexto = [{**fila, _CLAVE_N: i + 1} for i, fila in enumerate(filas)]
+    if aditivo:
+        # SAS no distingue mayúsculas: una asignación a VALOR sobre valor sustituye la columna.
+        return [
+            {**fila, **_con_clave_existente(fila, _fila_de(pairs, ctx, secuencial=True))}
+            for fila, ctx in zip(filas, contexto, strict=True)
+        ]
+    return [_fila_de(pairs, ctx) for ctx in contexto]
+
+
+def _pares(asignaciones: list[dict], aditivo: bool, types: dict[str, str | None] | None) -> list:
     pares = []
     for asignacion in asignaciones:
         condicion = asignacion.get("conditional")
@@ -137,24 +159,12 @@ def _proyectar(filas: list[dict], asignaciones: list[dict], aditivo: bool) -> li
                     _arbol(str(condicion.get("condition") or "")),
                     _arbol(str(condicion.get("otherwise") or "")),
                 )
-        pares.append(
-            (
-                str(asignacion.get("target") or ""),
-                _arbol(str(asignacion.get("expression") or "")),
-                condicional,
-            )
-        )
-    # `_N_` (lrcon, p. 79): el número de iteración es la posición de la fila en la lista que recibe
-    # esta asignación. Va como clave auxiliar solo para evaluar; no sale como columna.
-    contexto = [{**fila, _CLAVE_N: i + 1} for i, fila in enumerate(filas)]
-    if aditivo:
-        # SAS no distingue mayúsculas en los nombres de variable (`lrcon`, p. 49): una asignación
-        # a `VALOR` sobre una columna `valor` la sustituye, no añade una segunda.
-        return [
-            {**fila, **_con_clave_existente(fila, _fila_de(pares, ctx, secuencial=True))}
-            for fila, ctx in zip(filas, contexto, strict=True)
-        ]
-    return [_fila_de(pares, ctx) for ctx in contexto]
+        target = str(asignacion.get("target") or "")
+        arbol = _arbol(str(asignacion.get("expression") or ""))
+        pares.append((target, arbol, condicional))
+        if aditivo and types is not None and condicional is None:
+            types.setdefault(target.casefold(), sas_type(arbol))
+    return pares
 
 
 _CLAVE_N = "_n_"

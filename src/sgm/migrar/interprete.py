@@ -20,12 +20,14 @@ comparten nombre de columna y la última en entrar gana. Es una limitación cono
 from __future__ import annotations
 
 import copy
+from contextlib import nullcontext
 
 from sgm.ir.desplegar import plan_desplegado
 from sgm.ir.models import Operator, Plan
 from sgm.migrar.interprete_conjuntos import conjunto
+from sgm.migrar.interprete_esquema import output_types
 from sgm.migrar.interprete_filas import _clave, _filtrar, _llaves, _proyectar, _unicos
-from sgm.migrar.interprete_formatos_usuario import user_formats
+from sgm.migrar.interprete_formatos_usuario import user_format_types, user_formats
 from sgm.migrar.interprete_pasos import _PASOS_SUELTOS, _nombres, _pasos, _ramas
 from sgm.migrar.interprete_subconsultas import (
     SubconsultaNoSoportada,
@@ -84,6 +86,19 @@ def _apilar(op: Operator, plan: Plan, tablas: dict, por_operador: dict) -> list[
     columnas: list[str] = []
     declared = op.params.get("columns_by_branch") or []
     if op.params.get("outer_union_corr"):
+        shared_types: dict[str, str] = {}
+        for prev, names in zip(plan.graph.predecessors(op.id), declared, strict=True):
+            types = output_types(plan.graph, plan.graph.operator(prev))
+            for name in names if names is not None else types:
+                column = name.casefold()
+                if (known := types.get(column)) is None:
+                    continue
+                previous = shared_types.setdefault(column, known)
+                if previous != known:
+                    raise NoSoportadoEnInterprete(
+                        "union",
+                        f"Pendiente: P-UNION-TIPO-CONFLICTO; {column}: {previous} y {known}",
+                    )
         entradas = [
             [{c.casefold(): v for c, v in fila.items()} for fila in rows] for rows in entradas
         ]
@@ -282,7 +297,16 @@ def _execute_plan(
         raise NoSoportadoEnInterprete("subconsulta", str(error)) from error
     for op_id in orden:
         op = plan.graph.operator(op_id)
-        filas, propias = _ejecutar(op, plan, tablas, por_operador)
+        scope = nullcontext()
+        if plan.formatos:
+            parents = plan.graph.predecessors(op_id)
+            types = (
+                output_types(plan.graph, plan.graph.operator(parents[0]))
+                if len(parents) == 1 else {}
+            )
+            scope = user_format_types(types)
+        with scope:
+            filas, propias = _ejecutar(op, plan, tablas, por_operador)
         por_operador[op.id] = filas
         tablas.update(propias)
     return tablas

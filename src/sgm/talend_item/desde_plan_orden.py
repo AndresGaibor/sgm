@@ -18,7 +18,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from sgm.ir.models import Operator
+from sgm.ir.lower_procs_agregados import (
+    CLASS_ORDER_PENDING,
+    CLASS_ORDER_REASON,
+    MEANS_ORIGINS,
+    NUMERIC_TYPES,
+    class_type,
+)
+from sgm.ir.models import Column, Graph, Operator
 from sgm.migrar.esquemas import PendienteMigracion
 from sgm.talend_item.modelo import Columna, Metadata, Nodo
 from sgm.talend_item.plantillas import nodo_desde_plantilla
@@ -78,6 +85,23 @@ def _resolver(nombre: str, columnas: list[Columna]) -> Columna | None:
     for columna in columnas:
         if columna.nombre.lower() == texto.lower():
             return columna
+    return None
+
+
+def unproved_class_order(
+    graph: Graph, op: Operator, columns: list[Columna],
+    schemas: dict[str, list[Column]], line: int | None,
+) -> PendienteMigracion | None:
+    """Exige el tipo SAS probado y un comparador numérico en el flujo del Job."""
+    if op.origin in MEANS_ORIGINS:
+        for name in op.params["by"]:
+            column = _resolver(name, columns)
+            if class_type(graph, op, name, schemas) not in NUMERIC_TYPES or (
+                column is None or _tipo_de_orden(column) != "num"
+            ):
+                return PendienteMigracion(
+                    CLASS_ORDER_PENDING, f"CLASS {name}: {CLASS_ORDER_REASON}", line,
+                )
     return None
 
 

@@ -717,6 +717,8 @@ MG-P5-03 en adelante, sin empezar.
 
 **Estado C-22 (hito 275n, 17 de noviembre de 2026).** MG-P6-05 queda documentada y probada con A-REPORTE-OMITIDO y P-ODS-OUTPUT-DATASET; solo PRINT materializa log/csv. MG-P6-06 entrega el inventario reproducible de 65 capítulos, más FREQ como mención sin capítulo ni crédito de traducción. El subinforme se integra por G-17; OPTIONS conserva su deuda de MG-P7-07. Se mantienen los créditos vigentes (14/50 h en P6 y 259,25/895 h globales): las 4 h heredadas sin desglose ya preceden a C-22 y el hito 241n cubría parte de MG-P6-05; no se suman de nuevo horas cuya atribución no está demostrada. La aceptación documental/generada de C-22 no equivale a validar nuevos Jobs en Studio.
 
+**Estado de la revisión final de C-23 (hito 279n, 18 de noviembre de 2026).** FREQ conserva el pendiente con `OUTPUT OUT=` en una sentencia independiente. MEANS/SUMMARY aplica `ORDER=INTERNAL` con claves numéricas demostradas. L3-30 queda pendiente por falta de tipo y comparador y L3-31 sigue ejecutable en B. FORMAT solo aplica el mapa declarado antes de `PUT` con argumento SAS de carácter demostrado. L3-34 queda pendiente por falta de tipo. En MG-P5-05, B rechaza `OUTER UNION CORR` si las ramas demuestran tipos incompatibles. Esta revisión no añade crédito.
+
 ### MG-P7. Macros (60 h)
 | Id | Tarea | Tipo | Aceptación | Horas |
 |---|---|---|---|---|

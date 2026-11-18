@@ -49,18 +49,23 @@ def test_freq_out_en_tables_conserva_pendiente(body):
 
 
 @pytest.mark.parametrize("policy", ["discard", "log", "csv"])
-@pytest.mark.parametrize("out", [False, True])
-def test_freq_respeta_politica_solo_sin_out(policy, out):
-    body = "TABLES region / OUT=fr;" if out else "TABLES region;"
+@pytest.mark.parametrize("body", [
+    "TABLES region;",
+    "TABLES region / OUT=fr;",
+    "TABLES region; OUTPUT OUT=stats PCHI;",
+])
+def test_freq_respeta_politica_solo_sin_out(policy, body):
     compiled, _ = compile_project(
         {"p.sas": f"PROC FREQ DATA=ventas; {body} RUN;"},
         env=Env(project=Project(reports=policy)),
     )
     plan = compiled["p.sas"].plan
     assert not any(op.kind == "aggregate" for op in plan.graph.operators())
-    if out:
+    if "OUT=" in body:
         assert any(g.reason == "PROC_NO_SOPORTADO" for g in plan.gaps)
-        assert any(CODE in note for op in plan.graph.operators() for note in op.notes)
+        pending = next(op for op in plan.graph.operators() if op.params.get("pending_code") == CODE)
+        assert not pending.params.get("outputs")
+        assert not pending.schema
     elif policy == "discard":
         assert any("PROC FREQ" in item.what for item in plan.not_migrated)
         assert not plan.gaps

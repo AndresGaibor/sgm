@@ -9,7 +9,7 @@ from sgm.frontend.steps import Proc
 from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
 from sgm.ir.lower_procs_common import unsupported
-from sgm.ir.models import Evidence
+from sgm.ir.models import Column, Evidence, Graph, Operator
 from sgm.ir.proc_rules import names_of
 
 _NAME = r"[a-z_]\w*"
@@ -22,6 +22,30 @@ _FUNCTIONS = {"sum": "sum", "mean": "avg", "min": "min", "max": "max",
               "n": "count", "nmiss": "nmiss"}
 _TYPE_PENDING = "P-MEANS-TYPE-NO-DEMOSTRADO"
 _STAT_PENDING = "P-MEANS-ESTADISTICO-SIN-SOPORTE"
+CLASS_ORDER_PENDING = "P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO"
+CLASS_ORDER_REASON = "ORDER=INTERNAL requiere un comparador demostrado (proc.pdf, p. 1548)"
+NUMERIC_TYPES = frozenset({"Double", "Float", "BigDecimal", "Long", "Integer", "Short", "Byte"})
+MEANS_ORIGINS = frozenset({"proc_means", "proc_summary"})
+_TRANSPARENT = frozenset({"read", "filter", "sort", "dedup", "write"})
+
+
+def class_type(
+    graph: Graph, op: Operator, name: str, schemas: dict[str, list[Column]] | None = None,
+) -> str | None:
+    """Busca el tipo demostrado de una clave de CLASS, también después del agregado."""
+    columns = op.schema or []
+    if op.kind == "read_file" and schemas:
+        table = (op.params.get("outputs") or [""])[0].lower()
+        columns = schemas.get(table, columns)
+    for column in columns:
+        if column.name.casefold() == name.casefold():
+            return column.type if column.source in {"catalog", "code"} else None
+    grouped = op.kind == "aggregate" and name in (op.params.get("group_by") or [])
+    if op.kind not in _TRANSPARENT and not grouped:
+        return None
+    types = {class_type(graph, graph.operator(parent), name, schemas)
+             for parent in graph.predecessors(op.id)}
+    return types.pop() if len(types) == 1 else None
 
 
 def _names(clause: str | None) -> list[str] | None:
@@ -99,8 +123,11 @@ def lower_means(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str
         b.link(previous, filtered)
         previous = filtered
     params = operadores.agregar(
-        "_", groups, aggregations, outputs=[qualify(destination)],
+        "_", groups, aggregations, outputs=None if groups else [qualify(destination)],
         output_order=[*groups, *aliases], evidence=[ev],
     ).params
     aggregate = b.op("aggregate", params, ev)
     b.link(previous, aggregate)
+    if groups:
+        order = operadores.ordenar("_", groups, outputs=[qualify(destination)], evidence=[ev])
+        b.link(aggregate, b.op("sort", order.params, ev))

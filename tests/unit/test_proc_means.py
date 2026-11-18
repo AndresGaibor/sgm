@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from sgm.cli_migrar import migrar
@@ -15,12 +17,17 @@ from sgm.talend_item.modelo import Columna, Tabla
 from sgm.talend_item.validador import validar_job
 
 
-def _plan(text: str):
-    return compile_file(analyze_program({"p.sas": text}), "p.sas", project_base()).plan
+def _plan(text: str, **types):
+    context = project_base()
+    if types:
+        context["schemas"] = {"work.ventas": [
+            Column(name, kind, source="catalog") for name, kind in types.items()
+        ]}
+    return compile_file(analyze_program({"p.sas": text}), "p.sas", context).plan
 
 
-def _run(text: str, rows: list[dict]):
-    return ejecutar_plan(_plan(text), {"ventas": rows})
+def _run(text: str, rows: list[dict], **types):
+    return ejecutar_plan(_plan(text, **types), {"ventas": rows})
 
 
 ROWS = [
@@ -31,13 +38,64 @@ ROWS = [
 ]
 
 
+@pytest.mark.parametrize("procedure", ["MEANS", "SUMMARY"])
+def test_class_numerica_ordena_por_valor_interno(procedure):
+    text = f"""PROC {procedure} DATA=ventas NWAY; CLASS region; VAR monto;
+    OUTPUT OUT=res(DROP=_TYPE_ _FREQ_) SUM=total; RUN;"""
+    rows = [{"region": "10", "monto": "3"}, {"region": "2", "monto": "7"}]
+    assert _run(text, rows, region="Double")["res"] == [
+        {"region": "2", "total": "7"}, {"region": "10", "total": "3"},
+    ]
+
+
+@pytest.mark.parametrize("column_type", [None, "String"])
+def test_class_sin_comparador_demostrado_queda_pendiente(column_type):
+    text = """PROC MEANS DATA=ventas NWAY; CLASS region; VAR monto;
+    OUTPUT OUT=res(DROP=_TYPE_ _FREQ_) SUM=total; RUN;"""
+    with pytest.raises(NoSoportadoEnInterprete, match="P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO"):
+        _run(text, ROWS, region=column_type)
+
+
+def test_class_sin_comparador_demostrado_no_emite_salida_ordenada(tmp_path):
+    directory = Path(__file__).resolve().parents[1] / "corpus/L3/l3_30_means_class_nway"
+    result = migrar(directory / "programa.sas", tmp_path / "out", muestra=directory / "entradas")
+    assert any(p.codigo == "P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO" for p in result.pendientes)
+    assert not any(node.componente == "tSortRow" for job in result.jobs for node in job.nodos)
+    plan = _plan((directory / "programa.sas").read_text(encoding="utf-8"))
+    with pytest.raises(NoSoportadoEnInterprete, match="P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO"):
+        ejecutar_plan(plan, {"ventas": ROWS})
+
+
+def test_class_numerica_emite_orden_despues_del_agregado(tmp_path):
+    source = tmp_path / "p.sas"
+    source.write_text("""PROC IMPORT DATAFILE='ventas.csv' OUT=ventas DBMS=CSV; RUN;
+    PROC MEANS DATA=ventas NWAY; CLASS region; VAR monto;
+    OUTPUT OUT=res(DROP=_TYPE_ _FREQ_) SUM=total; RUN;""", encoding="utf-8")
+    (tmp_path / "work.json").write_text(
+        '{"tables":{"ventas":[{"name":"region","type":"Double"},{"name":"monto","type":"Double"}]}}',
+        encoding="utf-8",
+    )
+    result = migrar(source, tmp_path / "out", esquemas=tmp_path)
+    assert not any(p.codigo == "P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO" for p in result.pendientes)
+    [job] = result.jobs
+    [aggregate] = [node for node in job.nodos if node.componente == "tAggregateRow"]
+    [order] = [node for node in job.nodos if node.componente == "tSortRow"]
+    assert any(edge.origen == aggregate.unico and edge.destino == order.unico
+               for edge in job.conexiones)
+    criteria = next(param for param in order.parametros
+                    if isinstance(param, Tabla) and param.nombre == "CRITERIA")
+    assert criteria.celdas == (("COLNAME", "region"), ("SORT", "num"), ("ORDER", "asc"))
+    assert validar_job(job) == []
+
+
 def test_means_nway_preserva_esquema_y_omite_faltantes():
     text = """PROC MEANS DATA=WORK.ventas NOPRINT NWAY;
     CLASS region; VAR monto;
     OUTPUT OUT=WORK.res(DROP=_TYPE_ _FREQ_) SUM=total MEAN=prom N=n; RUN;"""
-    assert _run(text, ROWS)["res"] == [
-        {"region": "N", "total": "10", "prom": "10", "n": "1"},
-        {"region": "S", "total": "12", "prom": "6", "n": "2"},
+    rows = [{**row, "region": "1" if row["region"] == "N" else "2"} for row in ROWS]
+    assert _run(text, rows, region="Double")["res"] == [
+        {"region": "1", "total": "10", "prom": "10", "n": "1"},
+        {"region": "2", "total": "12", "prom": "6", "n": "2"},
     ]
 
 
@@ -61,14 +119,14 @@ def test_nway_dos_clases_excluye_faltantes_de_class():
     text = """PROC MEANS DATA=ventas NWAY; CLASS region canal; VAR monto;
     OUTPUT OUT=res(DROP=_TYPE_ _FREQ_) SUM=total N=n NMISS=nm; RUN;"""
     rows = [
-        {"region": "N", "canal": "a", "monto": "2"},
-        {"region": "N", "canal": "b", "monto": "4"},
-        {"region": "N", "canal": "a", "monto": None},
-        {"region": None, "canal": "a", "monto": "100"},
+        {"region": "1", "canal": "2", "monto": "2"},
+        {"region": "1", "canal": "3", "monto": "4"},
+        {"region": "1", "canal": "2", "monto": None},
+        {"region": None, "canal": "2", "monto": "100"},
     ]
-    assert _run(text, rows)["res"] == [
-        {"region": "N", "canal": "a", "total": "2", "n": "1", "nm": "1"},
-        {"region": "N", "canal": "b", "total": "4", "n": "1", "nm": "0"},
+    assert _run(text, rows, region="Double", canal="Double")["res"] == [
+        {"region": "1", "canal": "2", "total": "2", "n": "1", "nm": "1"},
+        {"region": "1", "canal": "3", "total": "4", "n": "1", "nm": "0"},
     ]
 
 
@@ -145,8 +203,6 @@ def test_sin_output_conserva_regla_declarativa():
     ("l3_31_summary_global", ["total", "minimo", "maximo", "n"], ["sum", "min", "max", "count"]),
 ])
 def test_corpus_emite_un_agregado_con_esquema_de_output(tmp_path, case, columns, functions):
-    from pathlib import Path
-
     directory = Path(__file__).resolve().parents[1] / "corpus" / "L3" / case
     result = migrar(directory / "programa.sas", tmp_path / "out", muestra=directory / "entradas")
     aggregates = [node for job in result.jobs for node in job.nodos

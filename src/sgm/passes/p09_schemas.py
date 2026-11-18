@@ -93,6 +93,9 @@ def _apply(kind: str, params: dict, base: list[Column] | None) -> list[Column] |
 def _schema_of(graph: Graph, op: Operator, schemas: dict[str, list[Column]]) -> list[Column] | None:
     if op.kind == "read":
         return _copy(schemas.get(str(op.params.get("dataset", "")).lower()))
+    if op.kind == "read_file":
+        output = (op.params.get("outputs") or [""])[0]
+        return _copy(schemas.get(output.lower()))
     if op.kind in ("filter", "sort", "dedup", "write", "split", "iterate", "external_load"):
         return _from_inputs(graph, op)
     if op.kind == "map" and "steps" in op.params:

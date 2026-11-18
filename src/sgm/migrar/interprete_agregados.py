@@ -8,6 +8,7 @@ from decimal import Decimal, InvalidOperation
 
 from sqlglot import exp
 
+from sgm.ir.lower_procs_agregados import NUMERIC_TYPES
 from sgm.migrar import semantica
 
 _AGREGADO = re.compile(r"(?is)^\s*(count|sum|avg|mean|min|max|nmiss)\s*\((.*)\)\s*$")
@@ -150,6 +151,20 @@ def agregar(
     def tiene_columna(fila: dict, nombre: str) -> bool:
         return any(str(clave).lower() == nombre.lower() for clave in fila)
 
+    def numero(valor: object, expresion: str) -> Decimal | None:
+        if es_faltante(valor):
+            return None
+        convertido = semantica.como_numero(valor)
+        if convertido is None:
+            raise AgregadoNoSoportado(
+                f"la expresión numérica '{expresion}' contiene un valor no numérico"
+            )
+        try:
+            return Decimal(str(valor).strip())
+        except InvalidOperation:
+            return Decimal(str(convertido))
+
+    class_types = params.get("class_types", {})
     grupos: dict[tuple, tuple[dict, list[dict]]] = {}
     if not columnas_grupo:
         grupos[()] = ({}, list(filas))
@@ -164,6 +179,10 @@ def agregar(
                 valores_grupo[nombre] = semantica.a_texto(valor)
                 if semantica.es_faltante(valor):
                     llave.append(("faltante",))
+                elif class_types.get(nombre) in NUMERIC_TYPES:
+                    llave.append(("numero", numero(valor, nombre)))
+                elif class_types.get(nombre) == "String":
+                    llave.append(("texto", semantica.como_texto(valor)))
                 elif isinstance(valor, (int, float, Decimal)) and not isinstance(valor, bool):
                     llave.append(("numero", Decimal(str(valor))))
                 elif isinstance(valor, str):
@@ -179,19 +198,6 @@ def agregar(
             if clave not in grupos:
                 grupos[clave] = (valores_grupo, [])
             grupos[clave][1].append(fila)
-
-    def numero(valor: object, expresion: str) -> Decimal | None:
-        if es_faltante(valor):
-            return None
-        convertido = semantica.como_numero(valor)
-        if convertido is None:
-            raise AgregadoNoSoportado(
-                f"la expresión numérica '{expresion}' contiene un valor no numérico"
-            )
-        try:
-            return Decimal(str(valor).strip())
-        except InvalidOperation:
-            return Decimal(str(convertido))
 
     def texto_decimal(valor: Decimal | None) -> str | None:
         if valor is None:

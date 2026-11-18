@@ -95,4 +95,5 @@ l6_08_nodupkey_llave: P-NODUPKEY-ESTABILIDAD-NO-VALIDADA
 l6_60_noduprec_por_llave: P-NODUPREC-NO-ADYACENTE
 l6_61_nodupkey_dupout: P-NODUPKEY-ESTABILIDAD-NO-VALIDADA
 l3_32_freq_out_sin_pagina: P-FREQ-OUT-SIN-PAGINA
+l3_30_means_class_nway: P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO
 l3_34_format_value_y_put: P-FORMATO-USUARIO-SIN-EMISOR

@@ -23,6 +23,7 @@ from sgm.frontend.steps import (
     XCommand,
 )
 from sgm.ir.builder import Builder
+from sgm.ir.formatos_usuario import uses_user_formats
 from sgm.ir.lower_data import lower_data
 from sgm.ir.lower_ods import ODS_OUTPUT_NOTE, P_ODS_OUTPUT_DATASET, writes_dataset
 from sgm.ir.lower_procs import lower_proc
@@ -210,6 +211,25 @@ def lower_items(
 ) -> Builder:
     """Lowering de todo un programa. Devuelve el constructor para seguir numerando operadores."""
     builder = Builder(graph, decisiones_libnames)
+    format_counts: list[int] = []
     for item in items:
+        start = len(builder.created)
+        visible = len(builder.formatos)
         lower_item(item, builder, externals)
+        format_counts.extend([visible] * (len(builder.created) - start))
+    if builder.formatos:
+        for op, visible in zip(builder.created, format_counts, strict=True):
+            later = {fmt.nombre for fmt in builder.formatos[visible:]}
+            if later and uses_user_formats(op.params, later):
+                code = "P-FORMATO-NO-DISPONIBLE"
+                note = (f"Pendiente: {code}; PUT precede a la declaración del formato "
+                        "(proc.pdf, p. 1181)")
+                op.kind = "unsupported"
+                op.status = "hueco"
+                op.params.update(
+                    pending_code=code, reason="FUNCION_NO_MAPEADA", statement=note,
+                    untranslated=[note],
+                )
+                op.notes.append(note)
+                builder.refresh(op)
     return builder

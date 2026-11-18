@@ -3,8 +3,8 @@ construcciones: [PROC IMPORT, PROC FORMAT VALUE, VALUE con formato de carácter,
 capa: B
 tolerancia: 1.0e-06
 orden_relevante: false
-estado: revisado
-motivo: Mapa discreto comprobado con valores explícitos y OTHER.
+estado: pendiente
+motivo: P-FORMATO-TIPO. PROC IMPORT no demuestra que estado sea de carácter.
 salidas: [con_estado]
 invariantes: []
 razonamiento: >-
@@ -13,3 +13,4 @@ razonamiento: >-
   proc.pdf, p. 1173 documenta VALUE; p. 1181 documenta OTHER como valor que cubre
   los valores no enumerados e incluye faltantes. lefunctionsref.pdf, pp. 1417–1418
   documenta PUT y el uso del formato con el tipo de origen correspondiente.
+  Se conserva el esperado previo. La representación de estado en CSV no demuestra su tipo SAS.

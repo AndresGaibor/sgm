@@ -13,7 +13,7 @@ from sqlglot.errors import ParseError
 
 from sgm.migrar import semantica
 from sgm.migrar.interprete_base import NoSoportadoEnInterprete, _numero
-from sgm.migrar.interprete_formatos_usuario import apply_user_format, normalize
+from sgm.migrar.interprete_formatos_usuario import apply_user_format, normalize, sas_type
 from sgm.migrar.interprete_funciones import _funcion
 from sgm.migrar.interprete_funciones_sql import normalizar_funciones_sas
 from sgm.migrar.interprete_operadores import concatenar, parecido
@@ -34,7 +34,13 @@ def _arbol(expresion: str):
     """Árbol de una expresión SQL; lo que no se puede leer no se adivina."""
     try:
         preparada = normalizar_funciones_sas(normalize(expresion))
-        return sqlglot.parse_one(preparada)
+        arbol = sqlglot.parse_one(preparada)
+        for function in arbol.find_all(exp.Anonymous):
+            if (function.name.casefold() in {"put", "sgm_put"} and len(function.expressions) == 2
+                    and isinstance(format_arg := function.expressions[1], exp.Literal)
+                    and format_arg.is_string and format_arg.this.startswith("$")):
+                function.meta["sas_put_type"] = sas_type(function.expressions[0])
+        return arbol
     except ParseError as error:
         raise NoSoportadoEnInterprete("expresion", f"'{expresion}': {error}") from None
 
@@ -168,7 +174,7 @@ def _valor(nodo, fila: dict) -> object:
         argumentos = [_valor(arg, fila) for arg in nodo.expressions]
         if (nodo.name.lower() in {"put", "sgm_put"} and len(argumentos) == 2
                 and isinstance(argumentos[1], str) and argumentos[1].startswith("$")):
-            return apply_user_format(argumentos[0], argumentos[1])
+            return apply_user_format(argumentos[0], argumentos[1], nodo.meta.get("sas_put_type"))
         if (
             nodo.name.lower() in {"input", "sgm_input"}
             and len(argumentos) == 2

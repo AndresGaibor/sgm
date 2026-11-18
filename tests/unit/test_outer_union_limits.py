@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
+import pytest
+
 from sgm.cli_migrar import migrar
 from sgm.compile import compile_file, project_base
 from sgm.frontend.program import analyze_program
+from sgm.ir.models import Column
+from sgm.migrar.interprete import NoSoportadoEnInterprete, ejecutar_plan
 from sgm.talend_item.validador import validar_job
 
 
-def _plan(query):
+def _plan(query, schemas=None):
     text = f"PROC SQL; CREATE TABLE WORK.r AS {query}; QUIT;"
-    return compile_file(analyze_program({"p.sas": text}), "p.sas", project_base()).plan
+    context = project_base()
+    if schemas:
+        context["schemas"] = schemas
+    return compile_file(analyze_program({"p.sas": text}), "p.sas", context).plan
 
 
 def _pending(query, code):
@@ -50,6 +57,25 @@ def test_shared_name_with_incompatible_types_does_not_emit_a_union(tmp_path):
     )
     assert any(p.codigo == "P-UNION-TIPO-CONFLICTO" for p in result.pendientes)
     assert not any(node.componente == "tUnite" for job in result.jobs for node in job.nodos)
+
+
+@pytest.mark.parametrize("right_type", ["String", "Double"])
+@pytest.mark.parametrize("left_select", ["SELECT code AS id FROM a", "SELECT * FROM a"])
+def test_reference_union_checks_explicit_types_before_appending(right_type, left_select):
+    left_name = "code" if " AS " in left_select else "id"
+    plan = _plan(left_select + " OUTER UNION CORR SELECT id,y FROM b", {
+        "work.a": [Column(left_name, "Double", source="catalog")],
+        "work.b": [Column("id", right_type, source="catalog"),
+                   Column("y", "String", source="catalog")],
+    })
+    rows = {"a": [{left_name: "1"}], "b": [{"id": "1", "y": "dato"}]}
+    if right_type == "String":
+        with pytest.raises(NoSoportadoEnInterprete, match="P-UNION-TIPO-CONFLICTO"):
+            ejecutar_plan(plan, rows)
+    else:
+        assert ejecutar_plan(plan, rows)["r"] == [
+            {"id": "1", "y": None}, {"id": "1", "y": "dato"},
+        ]
 
 
 def test_grouped_branch_keeps_declared_select_order_in_the_union_schema(tmp_path):

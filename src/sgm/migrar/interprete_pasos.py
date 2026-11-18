@@ -7,9 +7,17 @@ from __future__ import annotations
 
 import re
 
+from sgm.ir.lower_procs_agregados import (
+    CLASS_ORDER_PENDING,
+    CLASS_ORDER_REASON,
+    MEANS_ORIGINS,
+    NUMERIC_TYPES,
+    class_type,
+)
 from sgm.ir.models import Operator, Plan
 from sgm.migrar.interprete_agrupado import _agregar, _por_grupo
 from sgm.migrar.interprete_base import _numero
+from sgm.migrar.interprete_esquema import step_types
 from sgm.migrar.interprete_filas import (
     _derecha,
     _filtrar,
@@ -22,6 +30,7 @@ from sgm.migrar.interprete_filas import (
     _unir,
     _validar_subconsulta_de_union,
 )
+from sgm.migrar.interprete_formatos_usuario import input_types
 from sgm.migrar.interprete_means import exclude_special_class_missing
 from sgm.migrar.interprete_update import _actualizar
 from sgm.migrar.interprete_valores import (
@@ -88,6 +97,7 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
     if entrada_declarada:
         nombre_entrada = _tabla(entrada_declarada)
         actual = por_tabla.get(nombre_entrada, (tablas or {}).get(nombre_entrada, actual))
+    types = input_types()
     for paso in pasos:
         clase = str(paso.get("kind") or "")
         params = paso.get("params") or {}
@@ -132,21 +142,43 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
                 )
             asignaciones = _expandir_estrellas(params.get("assignments") or [], por_tabla)
             actual = _proyectar(
-                actual, asignaciones, aditivo=params.get("modo") == "agrega"
+                actual, asignaciones, aditivo=params.get("modo") == "agrega",
+                declared=params.get("declared"),
             )
         elif clase == "select":
             actual = _seleccionar(actual, params)
         elif clase == "rename":
             actual = _renombrar(actual, params)
         elif clase == "sort":
+            if op.origin in MEANS_ORIGINS:
+                for name in params["by"]:
+                    column_type = class_type(plan.graph, op, name)
+                    if column_type == "String" and len(actual) > 1:
+                        raise NoSoportadoEnInterprete(
+                            "sort",
+                            f"Pendiente: {CLASS_ORDER_PENDING}; CLASS {name}: {CLASS_ORDER_REASON}",
+                        )
             actual = _ordenar(actual, params)
         elif clase == "dedup":
             actual = _unicos(actual, params)
         elif clase == "aggregate":
             # VAR en MEANS/SUMMARY es numérica; el origen ya conserva esa evidencia en la IR.
-            numeric_proc = op.origin in {"proc_means", "proc_summary"}
-            aggregate_params = {**params, "procedure": op.origin[5:]} if numeric_proc else params
-            actual = _agregar(actual, aggregate_params)
+            if op.origin in MEANS_ORIGINS:
+                class_types = {
+                    name: class_type(plan.graph, op, name) for name in params.get("group_by", [])
+                }
+                for name, column_type in class_types.items():
+                    if column_type not in NUMERIC_TYPES and column_type != "String":
+                        raise NoSoportadoEnInterprete(
+                            "aggregate",
+                            f"Pendiente: {CLASS_ORDER_PENDING}; CLASS {name}: {CLASS_ORDER_REASON}",
+                        )
+                params = {
+                    **params,
+                    "procedure": op.origin[5:],
+                    "class_types": class_types,
+                }
+            actual = _agregar(actual, params)
         elif clase == "stateful_row" and params.get("reason") == "by_group":
             actual = _por_grupo(actual, params)
         elif clase == "stateful_row" and params.get("reason") == "suma":
@@ -155,6 +187,9 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
             actual = _retardar(actual, params)
         else:
             raise NoSoportadoEnInterprete(clase or "paso", "el intérprete no lo ejecuta")
+        if types is not None and (updated := step_types(clase, params, types)) is not types:
+            types.clear()
+            types.update(updated)
     return actual
 
 

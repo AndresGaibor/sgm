@@ -41,7 +41,7 @@ from sgm.talend_item.desde_plan_contextos import (
 from sgm.talend_item.desde_plan_lag import nodo_lag
 from sgm.talend_item.desde_plan_map import FALLO, Fuente, construir
 from sgm.talend_item.desde_plan_nodos import nodo_escritura, nodo_lectura
-from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos
+from sgm.talend_item.desde_plan_orden import nodo_orden, nodo_unicos, unproved_class_order
 from sgm.talend_item.desde_plan_paso_directo import (
     esquema_paso_directo,
     nodo_paso_directo,
@@ -638,6 +638,13 @@ class _Job:
     def _orden(self, op: Operator, x: int) -> None:
         """`sort` a `tSortRow` y `dedup` a `tUniqRow`: pasan el esquema de su entrada tal cual."""
         fuentes = self._fuentes(op)
+        if op.kind == "sort" and (pending := unproved_class_order(
+            self.plan.graph, op, fuentes[0].columnas if len(fuentes) == 1 else [],
+            self.esquemas, _linea(op),
+        )):
+            self.pendientes.append(pending)
+            self._salida[op.id] = []
+            return
         if len(fuentes) != 1:
             motivo = f"el operador '{op.kind}' espera una sola entrada y tiene {len(fuentes)}"
             self.pendientes.append(PendienteMigracion(SIN_SOPORTE, motivo, _linea(op)))
