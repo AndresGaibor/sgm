@@ -132,7 +132,8 @@ def _pasos(op: Operator, plan: Plan, por_operador: dict, tablas: dict | None = N
             expression = str(params.get("expression") or "")
             if op.origin in {"proc_means", "proc_summary"}:
                 actual = exclude_special_class_missing(actual, expression, op, plan)
-            actual = _filtrar(actual, expression, por_tabla)
+            # Las subconsultas pueden leer tablas del programa que no son entradas directas.
+            actual = _filtrar(actual, expression, {**(tablas or {}), **por_tabla})
         elif clase == "derive":
             if params.get("conditional") and not params.get("assignments"):
                 # Asignación condicional sin partes: sin efecto daría filas sin la columna (lrcon,

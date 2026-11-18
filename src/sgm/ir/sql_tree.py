@@ -91,6 +91,9 @@ class SelectSpec:
     subqueries: bool = False  # hay subconsultas sin traducir
     semis: list[SemiSpec] = field(default_factory=list)  # IN / NOT IN con subconsulta simple
     windows: bool = False  # hay funciones de ventana: no se traducen todavía
+    # Subconsulta en FROM; si existe, `base` queda vacío.
+    derived: SelectSpec | None = None
+    derived_alias: str | None = None
 
 
 @dataclass
@@ -255,7 +258,17 @@ def _semi(conjunto: exp.Expression) -> SemiSpec | None:
 def _select(node: exp.Select) -> SelectSpec:
     spec = SelectSpec()
     from_ = node.args.get("from_")
-    if from_ is not None:
+    if from_ is not None and isinstance(from_.this, exp.Subquery):
+        if node.args.get("joins"):
+            raise SqlNotSelect("subconsulta en FROM con JOIN no soportada")
+        derivada = from_.this
+        if not isinstance(derivada.this, exp.Select):
+            raise SqlNotSelect("subconsulta en FROM que no es un SELECT")
+        spec.derived = _select(derivada.this)
+        spec.derived_alias = derivada.alias.lower() if derivada.alias else None
+        if not spec.derived_alias:
+            raise SqlNotSelect("subconsulta en FROM sin alias")
+    elif from_ is not None:
         spec.base = _source(from_.this)
     spec.joins = [_join(j) for j in node.args.get("joins") or []]
     spec.items = [_item(e) for e in node.expressions]

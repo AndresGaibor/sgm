@@ -8,6 +8,7 @@ from sgm.frontend.sql import SqlStatement, parse_sql_statement
 from sgm.frontend.sql_normalize import normalize
 from sgm.frontend.steps import ProcSql
 from sgm.ir.builder import Builder
+from sgm.ir.lower_sql_ddl import lower_create_like
 from sgm.ir.lower_sql_flow import lower_query
 from sgm.ir.models import Evidence
 from sgm.ir.sql_outer_union import SqlOuterUnionError
@@ -40,6 +41,10 @@ def lower_proc_sql(step: ProcSql, ev: Evidence, b: Builder) -> None:
             alias = str(st.engine or "").casefold()
             motores_por_alias.pop(alias, None)
             opciones_por_alias.pop(alias, None)
+
+
+def _lower_create_like(st, ev, b) -> None:
+    lower_create_like(st.target, st.sources[0], ev, b)
 
 
 def _lower_statement(
@@ -75,6 +80,8 @@ def _lower_statement(
         b.op("exec_sql", params, ev, placement=f"db:{motor}")
     elif kind in ("create_table", "select"):
         _lower_query(st, ev, b)
+    elif kind == "create_like" and st.sources and st.target:
+        _lower_create_like(st, ev, b)
     elif kind in ("insert", "delete", "drop_table", "create_like"):
         b.op(
             "unsupported",

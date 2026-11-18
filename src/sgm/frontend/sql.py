@@ -14,7 +14,7 @@ from sgm.frontend.sql_fuentes import extract_sources
 from sgm.redaction import redact
 
 _CREATE = re.compile(r"(?is)^create\s+table\s+([\w.&]+)\s+as\s+(.+)$")
-_CREATE_LIKE = re.compile(r"(?is)^create\s+table\s+([\w.&]+)\s+like\s+")
+_CREATE_LIKE = re.compile(r"(?is)^create\s+table\s+([\w.&]+)\s+like\s+([\w.&]+)")
 _INSERT = re.compile(r"(?is)^insert\s+into\s+([\w.&]+)")
 _DELETE = re.compile(r"(?is)^delete\s+from\s+([\w.&]+)")
 _DROP = re.compile(r"(?is)^drop\s+table\s+([\w.&]+)")
@@ -70,7 +70,10 @@ def parse_sql_statement(text: str, line: int) -> SqlStatement:
             "create_table", body, line, target=target, sources=extract_sources(query)
         )
     if _CREATE_LIKE.match(body):
-        return SqlStatement("create_like", body, line, target=_CREATE_LIKE.match(body).group(1))
+        casado = _CREATE_LIKE.match(body)
+        return SqlStatement(
+            "create_like", body, line, target=casado.group(1), sources=(casado.group(2),)
+        )
     if body.lower().startswith("select") or body.lower().startswith("("):
         if pt := _PASSTHROUGH.search(body):
             return SqlStatement(

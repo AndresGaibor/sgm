@@ -8800,3 +8800,44 @@ La medición previa también detectó subconsulta/ventana en dos programas y fun
 - **TDD y pruebas:** las reproducciones de formato, precisión, tipo de `PUT` y CORR fallaron antes de las correcciones. La prueba de firmas del corpus detectó inicialmente un metadato temporal que alteraba la firma canónica de `read`; se retiró del IR y se mantuvo en el registro de construcción. Después, 264 pruebas dirigidas pasaron, incluidos lowerings DATA, `PROC MEANS`, formatos, CORR y firmas canónicas L1–L3. `uv run ruff check .`, `openspec validate corregir-hallazgos-revision-final --strict` y `git diff --check` pasaron.
 - **Medición y decisiones:** no se modificaron casos ni esperados: siguen 388 casos, 371 con `esperado/`. Las claves `CLASS` con formato explícito o precisión que no cabe en `BEST12.` quedan pendientes; no se aproxima el formato con otro formateador. El tipo del lado cualificado del `JOIN` se conserva solo si la proyección directa y su esquema están demostrados.
 - **Cierre integral final:** `uv run python tools/ci.py`: 7123 pasaron, 655 omitidas, 145 xfail; 78 cruces, oráculo 388 y tablero en verde. `uv run python tools/validacion.py estado` confirma la misma huella antes del commit `hito 280n: conserva tipos y precisión del intérprete`. Studio no se abrió: el caso de formato explícito queda pendiente y no produce Job para validar. No hubo cambios de corpus, dependencias ni push.
+
+## Hito 292m (2026-11-17). C-8: subconsulta en FROM calculada en el intérprete; el emisor no la emite (plan C, parcial)
+
+- Change de OpenSpec `subconsulta-from-y-escalares`: propuesta, spec, diseño y tareas (tareas 1 a 4 hechas; sección 5
+  es el cierre). El change no se commitea sin pedido.
+- Qué se hizo:
+  - `src/sgm/ir/sql_tree.py`: `SelectSpec.derived` y `derived_alias`. Una subconsulta en FROM con alias se representa
+    como una consulta anidada. Con JOIN o sin alias se rechaza.
+  - `src/sgm/ir/lower_sql_flow.py`: la rama anidada se lowera primero y la consulta de fuera lee su salida. Toda la
+    sentencia queda marcada `subconsulta_from` para que el emisor no genere Job.
+  - `src/sgm/talend_item/desde_plan.py`: un programa con esa marca no emite Job; deja pendiente `P-OPERADOR-SIN-SOPORTE`.
+- Lo verificado: `SELECT s.id FROM (SELECT id, monto FROM WORK.ventas WHERE monto > 15) s` da los ids con monto mayor
+  que 15 en el intérprete. Una correlación desde la subconsulta de FROM queda rechazada.
+- Pruebas: `tests/unit/test_subconsulta_from.py` (4), más 421 de subconsultas, golden e intérprete que pasan.
+- Pendiente: la traducción de la subconsulta en FROM al emisor (necesita Studio). Studio sigue con el hilo de interfaz
+  ocupado: la creación del job de referencia de C-4 no se pudo hacer.
+
+## Hito 293m (2026-11-17). C-9: EXISTS y NOT EXISTS correlacionados de una igualdad en el intérprete (plan C, parcial)
+
+- Qué se hizo: `src/sgm/migrar/interprete_exists.py` sustituye `EXISTS (SELECT ... WHERE p.k = v.k)` por `v.k IN (valores de p.k)`.
+  `NOT EXISTS` queda igual, porque el NOT envuelve al nodo sustituido. El filtro de los `map` recibe ahora todas las
+  tablas del programa, no solo sus entradas directas, para que la subconsulta encuentre su fuente.
+- Regla que falta en la guía: la página lrcon p. 154 dice que los faltantes son los más bajos en cualquier comparación,
+  pero no dice si un faltante es igual a otro. Por eso, con un faltante en una llave, la subconsulta se rechaza.
+- Lo verificado: `EXISTS` deja el id 2; `NOT EXISTS` deja 1 y 3, con los datos de prueba.
+- Emisor: el EXISTS sigue sin traducirse; el programa deja un pendiente y no se traduce en silencio.
+- Pruebas: `tests/unit/test_interprete_exists.py` (5, nuevo). 2636 pasan en intérprete, golden, anillo B y filtros.
+
+## Hito 294m (2026-11-17). C-12: CREATE TABLE ... LIKE en el intérprete; espera automática de Studio en talend-mcp (plan C)
+
+- C-12, `CREATE TABLE molde LIKE origen`: el lowering crea una lectura del origen, un filtro `1 = 0` y una escritura
+  del molde (`src/sgm/ir/lower_sql_ddl.py`). El molde sale vacío en el intérprete. El emisor no lo traduce: el paso
+  queda marcado `create_like` y el programa deja pendiente (`P-OPERADOR-SIN-SOPORTE`). `CREATE VIEW` sigue pendiente.
+  Pruebas: `tests/unit/test_create_like.py` (2). 83 pasan en SQL, intérprete y golden.
+- `talend-mcp` (repositorio aparte, autorizado en AGENTS.md): `talend_job_create_in_studio` espera a que la interfaz
+  de Studio esté libre (`esperarInterfazLibre`) y reintenta si falla por «ocupado» (hasta 3 veces). Antes fallaba
+  siempre. Typecheck limpio; servidor reiniciado. Cambio sin commit en ese repositorio.
+- Referencia de C-4 (LEFT JOIN en Studio): se creó el job `TEST_RefLeftJoin`, se añadieron dos entradas, el `tMap` y
+  sus conexiones de entrada, y el esquema de las entradas. Studio no acepta la conexión de salida del `tMap` hacia un
+  `tLogRow` (error «revisa que el conector exista en el origen»), y por eso el `.item` no tiene `outputTables`. El job
+  de prueba se borró del proyecto. Pendiente: crear esa salida a mano en Studio o investigar el conector de salida.

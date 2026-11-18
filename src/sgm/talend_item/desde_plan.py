@@ -907,7 +907,7 @@ class _Job:
             entradas_union = self._uniones.get(hasta, [])
             indice = entradas_union.index(desde) if desde in entradas_union else -1
             if not repartido and indice in self._alineados.get(hasta, {}):
-                # El alineador debe consumir el nombre real de la salida del tMap anterior.
+                # El alineador consume el nombre real de la salida del tMap anterior.
                 destino = self._alineados[hasta][indice]
                 alineado = next(n for n in self.nodos if n.unico == destino)
                 alineado.datos = alineado.datos.replace(
@@ -1115,6 +1115,25 @@ def plan_a_jobs(
                 "P-FORMATO-USUARIO-SIN-EMISOR", gap.text,
                 gap.evidence[0].line_start if gap.evidence else None,
             ))
+    marcado = next(
+        (
+            op
+            for op in plan.graph.operators()
+            if op.params.get("subconsulta_from") or op.params.get("create_like")
+        ),
+        None,
+    )
+    if marcado is not None:
+        # Estas operaciones aún no están verificadas en Studio; no se emite un Job incompleto.
+        resultado.visitados = {op.id for op in plan.graph.operators()}
+        resultado.pendientes.append(
+            PendienteMigracion(
+                "P-OPERADOR-SIN-SOPORTE",
+                "subconsulta en FROM o CREATE LIKE sin verificar en Studio; el Job no se emite",
+                _linea(marcado),
+            )
+        )
+        return resultado
     # Cada instancia de una plantilla se escribe en línea hasta que haya Jobs hijos (`tRunJob`).
     plan, desplegados = plan_desplegado(plan)
     resultado.visitados |= desplegados

@@ -10,6 +10,7 @@ from sqlglot import exp
 from sgm.ir.models import Operator
 from sgm.migrar import semantica
 from sgm.migrar.interprete_escalares import SubconsultaEscalarNoSoportada, escalar
+from sgm.migrar.interprete_exists import reescribir_exists
 from sgm.migrar.interprete_subconsultas_orden import (  # noqa: F401 (reexportados)
     SubconsultaNoSoportada,
     _agregar_dependencias_versionadas,
@@ -159,6 +160,12 @@ def preparar(
             raise SubconsultaNoSoportada("la columna de la subconsulta contiene un valor faltante")
         nodo.set("expressions", [_literal(valor) for valor in valores])
         nodo.set("query", None)
+
+    # EXISTS correlacionado de una igualdad: se sustituye por un IN sobre la columna externa.
+    if preparado.find(exp.Exists) is not None:
+        preparado = reescribir_exists(
+            preparado, filas, tablas, filtrar=filtrar, columna=columna, literal=_literal
+        )
 
     # Subconsultas escalares (no son IN ni EXISTS): se calculan y se sustituyen por su valor.
     for nodo in list(preparado.find_all(exp.Subquery)):
