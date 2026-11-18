@@ -50,25 +50,32 @@ def prepare(sql: str) -> tuple[str, str | None]:
 
 def validate(selects, mode: str) -> None:
     """Exige nombres demostrados por SELECT; no asigna alias a expresiones anónimas."""
-    seen = set()
-    for spec in selects:
-        names = [(item.alias or item.column or "").casefold() for item in spec.items]
-        explicit = [name for name, item in zip(names, spec.items, strict=True) if not item.star]
-        if mode == "plain" and seen.intersection(explicit):
-            raise SqlOuterUnionError(
-                "OUTER UNION sin CORR repite nombres entre ramas; no se inventan alias",
-                "P-OUTER-UNION-COLUMNAS-REPETIDAS",
-            )
-        seen.update(explicit)
-        if (
-            any(not name for name in explicit)
-            or len(explicit) != len(set(explicit))
-            or (any(item.star for item in spec.items) and len(spec.items) != 1)
-            or spec.order_by or spec.distinct or spec.subqueries or spec.windows
-        ):
-            raise SqlOuterUnionError("rama con nombres o cláusulas fuera del alcance demostrado")
     if mode == "plain":
+        seen = set()
+        for spec in selects:
+            explicit = {
+                (item.alias or item.column).casefold() for item in spec.items
+                if not item.star and item.column != "*" and (item.alias or item.column)
+            }
+            if seen.intersection(explicit):
+                raise SqlOuterUnionError(
+                    "OUTER UNION sin CORR repite nombres entre ramas; no se inventan alias",
+                    "P-OUTER-UNION-COLUMNAS-REPETIDAS",
+                )
+            seen.update(explicit)
         raise SqlOuterUnionError(
             "OUTER UNION sin CORR conserva columnas separadas y sigue pendiente",
             "P-OUTER-UNION-SIN-CORR",
         )
+    for spec in selects:
+        explicit = [
+            (item.alias or item.column or "").casefold() for item in spec.items if not item.star
+        ]
+        if (
+            any(not name for name in explicit)
+            or len(explicit) != len(set(explicit))
+            or any(item.column == "*" for item in spec.items)
+            or (any(item.star for item in spec.items) and len(spec.items) != 1)
+            or spec.order_by or spec.distinct or spec.subqueries or spec.semis or spec.windows
+        ):
+            raise SqlOuterUnionError("rama con nombres o cláusulas fuera del alcance demostrado")

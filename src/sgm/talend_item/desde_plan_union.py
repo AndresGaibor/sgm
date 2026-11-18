@@ -5,8 +5,8 @@ Un `SET a b` del DATA step y un `UNION ALL` de `PROC SQL` apilan las filas de va
 junta por nombre y rellena con faltante lo que una entrada no tiene (lestmtsref, p. 343; lrcon,
 p. 579). Por eso cada entrada cuyo esquema no es el de la unión pasa por un `tMap` que lo alinea:
 las columnas de la unión, en el orden de la primera aparición, y `null` donde la entrada no trae la
-columna. El tipo y la longitud los fija la primera aparición; un tipo distinto para la misma columna
-ya se detecta antes, en `esquemas_propagacion` (`P-UNION-TIPO-CONFLICTO`).
+columna. El tipo y la longitud los fija la primera aparición; CORR también verifica aquí los tipos
+reales de sus entradas y conserva el orden declarado por SELECT, incluso después de un agregado.
 
 Lo que no se puede demostrar queda pendiente con su motivo y no se escribe:
 
@@ -80,6 +80,32 @@ def nodo_union(
                     pendientes=[PendienteMigracion(APPEND_ATRIBUTOS_DISTINTOS, motivo, linea)]
                 )
     union = _union_de(entradas)
+    if op.params.get("outer_union_corr"):
+        declared = op.params.get("columns_by_branch") or []
+        if len(declared) != len(entradas):
+            motivo = "OUTER UNION CORR sin proyección demostrada para cada rama"
+            return ResultadoOrden(pendientes=[PendienteMigracion(UNION_SIN_ESQUEMA, motivo, linea)])
+        ordered: dict[str, Columna] = {}
+        for entrada, names in zip(entradas, declared, strict=True):
+            columns = {c.nombre.casefold(): c for c in entrada}
+            names = list(columns) if names is None else [name.casefold() for name in names]
+            if set(names) != set(columns):
+                motivo = "la proyección CORR no coincide con las columnas demostradas de su rama"
+                return ResultadoOrden(
+                    pendientes=[PendienteMigracion(UNION_SIN_ESQUEMA, motivo, linea)]
+                )
+            for name in names:
+                column = columns[name]
+                if name in ordered and ordered[name].tipo != column.tipo:
+                    motivo = (
+                        f"OUTER UNION CORR: {name} tiene tipos incompatibles "
+                        f"{ordered[name].tipo} y {column.tipo}; no se convierte el tipo"
+                    )
+                    return ResultadoOrden(pendientes=[
+                        PendienteMigracion("P-UNION-TIPO-CONFLICTO", motivo, linea)
+                    ])
+                ordered.setdefault(name, replace(column, nulable=True))
+        union = list(ordered.values())
     if nuevo_tmap is None:
         contador = 0
 
