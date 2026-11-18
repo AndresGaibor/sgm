@@ -4,6 +4,15 @@ version: 1
 description: 'PROC SQL de SAS 9.4: sentencias y cláusulas con su página. ''reconocida'' = sql.py la clasifica; ''no_reconocida''
   = queda como ''other''; ''dentro_de_select'' = parte de un SELECT.'
 entries:
+- id: outer-union-corr
+  nombre: OUTER UNION CORR
+  fuente: sqlproc.pdf, p. 135
+  estado: dentro_de_select
+  nota: >-
+    Concatenación por nombre, orden de primera aparición, faltantes y todas las filas;
+    lowering e intérprete B y emisión estática con alineación existente de union.
+    Sin CORR con nombres repetidos: P-OUTER-UNION-COLUMNAS-REPETIDAS.
+    Mezclas de operadores, orden global y ramas sin nombres demostrados siguen pendientes.
 - id: order-by-clause
   nombre: ORDER BY Clause
   fuente: sqlproc.pdf, p. 37

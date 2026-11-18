@@ -10,6 +10,7 @@ from sgm.frontend.steps import ProcSql
 from sgm.ir.builder import Builder
 from sgm.ir.lower_sql_flow import lower_query
 from sgm.ir.models import Evidence
+from sgm.ir.sql_outer_union import SqlOuterUnionError
 from sgm.ir.sql_tree import (
     SqlNotSelect,
     SqlParseError,
@@ -19,7 +20,6 @@ from sgm.ir.sql_tree import (
 )
 
 _CREATE_TARGET = re.compile(r"(?is)^create\s+table\s+([\w.&]+)")
-_OUTER_UNION = re.compile(r"(?i)\bouter\s+union\b")
 
 
 def _base_name(engine: str, table: str) -> str:
@@ -119,22 +119,20 @@ def _anotar_conexion(params: dict, alias: str, motor: str, opciones: str) -> Non
 
 def _lower_query(st: SqlStatement, ev: Evidence, b: Builder) -> None:
     """Consulta de PROC SQL sobre flujo. Un texto que `sqlglot` no lee es PARSE_ERROR."""
-    if _OUTER_UNION.search(st.text):
-        b.op(
-            "unsupported",
-            {"statement": st.text, "reason": "SEMANTICA_DUDOSA", "sql": st.text},
-            ev,
-            status="hueco",
-            notes=[
-                "OUTER UNION de SAS alinea las ramas por nombre; reescribirlo como UNION ALL "
-                "cambia el resultado si el orden de columnas difiere. Requiere decisión del usuario"
-            ],
-        )
-        return
     normalized = normalize(st.text)
     try:
         tree = build(normalized.text)
         validate_portable_identifiers(tree)
+    except SqlOuterUnionError as error:
+        b.op(
+            "unsupported",
+            {"statement": st.text, "reason": "SEMANTICA_DUDOSA", "sql": st.text,
+             "pending_code": error.code},
+            ev,
+            status="hueco",
+            notes=[f"Pendiente: {error.code}; {error}"],
+        )
+        return
     except SqlUnsafeIdentifier:
         b.op(
             "unsupported",

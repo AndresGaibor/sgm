@@ -82,7 +82,19 @@ def _apilar(op: Operator, plan: Plan, tablas: dict, por_operador: dict) -> list[
     else:
         entradas = [por_operador.get(previo, []) for previo in plan.graph.predecessors(op.id)]
     columnas: list[str] = []
-    for filas in entradas:
+    declared = op.params.get("columns_by_branch") or []
+    if op.params.get("outer_union_corr"):
+        entradas = [
+            [{c.casefold(): v for c, v in fila.items()} for fila in rows] for rows in entradas
+        ]
+    for index, filas in enumerate(entradas):
+        if declared:
+            names = declared[index]
+            if names is None and not filas:
+                raise NoSoportadoEnInterprete(
+                    "union", "OUTER UNION CORR con SELECT * vacío sin esquema demostrado"
+                )
+            columnas += [c for c in names or [] if c not in columnas]
         for fila in filas:
             columnas += [c for c in fila if c not in columnas]
     if op.params.get("op") in ("except", "intersect"):

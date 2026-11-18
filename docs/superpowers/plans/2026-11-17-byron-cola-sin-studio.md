@@ -43,7 +43,7 @@
 | `C-17` | `PROC MEANS` y `PROC SUMMARY` con `CLASS`, `VAR` y `OUTPUT OUT=` | 5 |  |
 | `C-18` | `PROC FREQ`: lo que las guías demuestran y lo que no | 5 |  |
 | `C-22` | Política de `PRINT`, `REPORT`, `TABULATE` y `ODS`, y lista de procedimientos fuera de alcance genera | 5 |  |
-| `C-23` | `PROC FORMAT` y `PROC SQL` avanzado que falte | 5 |  |
+| `C-23` | FORMAT acotado en 276n; OUTER UNION CORR en 277n (A estático/B); rangos y emisión FORMAT siguen en D1-20, C pendiente | 5 |  |
 
 **Pendientes que mencionan Studio, Docker o personas (1):**
 

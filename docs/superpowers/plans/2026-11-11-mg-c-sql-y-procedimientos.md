@@ -882,6 +882,8 @@ Entradas: `acum` (`id,v`): `1,a` / `2,b`; `n1`: `3,c`; `n2`: `4,d` / `5,e`. Espe
 
 **Entrega FORMAT (hito 276n).** Registro, evaluación B acotada y caso L3-34; SQL queda para el hito independiente 277n. La medición desglosó `PARSER_ERROR`/`parse_error` en 17 sentencias de 10 programas, todas `CREATE TABLE ... OUTER UNION CORR`: totales 02/05/08 (1 cada uno), validaciones v01/v02/v03 (2 cada uno), v04 (4), v05/v06 (1 cada uno) y v08 (2). Ver rutas y límites de medición en `PROGRESS.md`, hito 276n. No se afirma cobertura general de SQL avanzado ni validación en Studio.
 
+**Entrega SQL (hito 277n, 18 de noviembre).** `OUTER UNION CORR` concatena por nombre, conserva columnas en orden de primera aparición y todas las filas, y rellena ausencias con faltante (`sqlproc.pdf`, p. 135). El caso L3-21 pasa en B y emite un Job válido estáticamente con el alineador existente. Las 17 sentencias ya se analizan: seis son concatenaciones de flujo y once conservan el límite de agregado sin GROUP BY; esto no valida los diez programas completos. El helper `linea_base_sql_procs.py` sigue contando etiquetas por caso, no texto SAS. Sin CORR, nombres repetidos producen `P-OUTER-UNION-COLUMNAS-REPETIDAS`; demás formas no demostradas siguen pendientes. C-11 permanece parcial y no hay validación C. Catálogo del operador: `rules/sas/catalogo/sentencias-proc-sql.yaml`; no se altera el inventario generado de procedimientos.
+
 **`PROC SQL` avanzado que falte.** No se enumera a ciegas: se mide. `uv run python tools/linea_base_sql_procs.py tests/corpus` más `uv run python tools/medir_sql_portable.py` sobre los programas reales del repositorio dan las construcciones de `PROC SQL` que siguen sin traducir. Criterio: se implementa la que aparezca en **5 programas o más** y tenga página en `sqlproc`; las demás alimentan la sección SQL de `docs/cobertura.md` en G-17 con su código `P-` y su página. `docs/cobertura-procedimientos.md` sigue siendo el inventario generado de PROC de C-22 y se regenera al cambiar sus fuentes; no se edita a mano para añadir construcciones SQL.
 
 **Files:**
@@ -889,7 +891,7 @@ Entradas: `acum` (`id,v`): `1,a` / `2,b`; `n1`: `3,c`; `n2`: `4,d` / `5,e`. Espe
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs_format.py`
 - Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\src\sgm\ir\lower_procs.py` (rama `format`)
 - Create: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\corpus\L3\l3_34_format_value_y_put\{caso.yaml, programa.sas, entradas\clientes.csv, esperado\con_estado.csv}`
-- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\procs-usados.yaml` (`format`, p. 1127)
+- Modify: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\rules\sas\catalogo\procedimientos-migrador.yaml` (`format`, VALUE p. 1173)
 - Test: `C:\Users\USUARIO_BISOLUTION1\code\sgm-v2\tests\unit\test_proc_format.py`
 
 **Interfaces:**

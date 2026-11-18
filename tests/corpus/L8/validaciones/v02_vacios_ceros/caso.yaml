@@ -71,3 +71,11 @@ esquemas:
     suma_saldo_final_cte:
       tipo: pendiente
       motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTEO_NRO_DOC_TIT_COT:
+    nro_rechazos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTEO_NRO_DOC_FA:
+    nro_rechazos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

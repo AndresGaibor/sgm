@@ -71,3 +71,7 @@ esquemas:
     nro_filas:
       tipo: pendiente
       motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.SUMA_VALOR_NORM:
+    suma_val_cred:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

@@ -187,7 +187,15 @@ def _branch(spec: SelectSpec, chain: _Chain, normalized: NormalizedSql) -> Opera
 
 def _rama_final(tree: SqlTree) -> Operator:
     """Operador que une las ramas: UNION ALL, o EXCEPT/INTERSECT (`op` en params, sin ALL)."""
-    final = operadores.ramas_union("_", tree.union_all)
+    columns_by_branch = None
+    if tree.outer_union_corr:
+        columns_by_branch = [
+            None if any(item.star for item in spec.items) else [
+                (item.alias or item.column).casefold() for item in spec.items
+            ]
+            for spec in tree.selects
+        ]
+    final = operadores.ramas_union("_", tree.union_all, columns_by_branch=columns_by_branch)
     if tree.set_op:
         final.params["op"] = tree.set_op
     return final

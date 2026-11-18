@@ -174,10 +174,10 @@ def _sql(body: str) -> str:
     return _SQL.format(body)
 
 
-def test_outer_union_corr_es_semantica_dudosa_no_parse_error():
+def test_outer_union_corr_se_traduce_sin_parse_error():
     program = _sql("create table t as select a from s outer union corr select a from r;")
-    assert "unsupported" in _kinds(program)
-    assert "SEMANTICA_DUDOSA" in _gaps(program)
+    assert "union" in _kinds(program)
+    assert "SEMANTICA_DUDOSA" not in _gaps(program)
     assert "PARSE_ERROR" not in _gaps(program)
 
 

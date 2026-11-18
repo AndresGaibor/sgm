@@ -432,3 +432,44 @@ esquemas:
     fin_saldo_cta:
       tipo: pendiente
       motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.RECHAZOS_NEQUI:
+    anio_proceso:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    mes_proceso:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    relacion:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    tipo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    llave_nombre:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    tipo_doc:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_doc_txt:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    gmf_txt:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    fin_saldo_cta:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_doc:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    motivo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTEO_NEQUI:
+    nro_filas:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

@@ -18,6 +18,10 @@ from dataclasses import dataclass, field
 import sqlglot
 from sqlglot import exp
 
+from sgm.ir.sql_outer_union import SqlOuterUnionError
+from sgm.ir.sql_outer_union import prepare as prepare_outer_union
+from sgm.ir.sql_outer_union import validate as validate_outer_union
+
 # `sqlglot` avisa por el log cuando cae a un comando; aquí el resultado ya lo trata el lowering.
 logging.getLogger("sqlglot").setLevel(logging.ERROR)
 
@@ -96,6 +100,7 @@ class SqlTree:
     union_all: bool = False  # las ramas se unen con UNION ALL (sin quitar duplicados)
     identifiers_portable: bool = True
     set_op: str | None = None  # "except" o "intersect" (dos ramas, por posición de columnas)
+    outer_union_corr: bool = False  # concatenación SAS por nombre, nunca UNION ALL por posición
 
 
 def validate_portable_identifiers(tree: SqlTree) -> None:
@@ -300,6 +305,7 @@ def _branches(node: exp.Expression) -> tuple[list[exp.Select], bool]:
 def build(sql: str) -> SqlTree:
     """Árbol de un SELECT o de un CREATE TABLE ... AS SELECT (texto ya normalizado)."""
     try:
+        sql, outer_mode = prepare_outer_union(sql)
         tree = sqlglot.parse_one(sql)
     except sqlglot.errors.ParseError as error:
         raise SqlParseError(str(error)) from error
@@ -327,11 +333,19 @@ def build(sql: str) -> SqlTree:
             set_op=operacion,
         )
     branches, union_all = _branches(body)
+    if outer_mode and any(body.args.get(key) for key in ("order", "limit", "offset")):
+        raise SqlOuterUnionError(
+            "orden o límite global de OUTER UNION fuera del alcance demostrado"
+        )
+    selects = [_select(b) for b in branches]
+    if outer_mode:
+        validate_outer_union(selects, outer_mode)
     return SqlTree(
         target,
-        [_select(b) for b in branches],
+        selects,
         union_all=union_all,
         identifiers_portable=identifiers_portable,
+        outer_union_corr=outer_mode == "corr",
     )
 
 

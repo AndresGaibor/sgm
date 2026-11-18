@@ -50,6 +50,11 @@ def _reconstruir(operador):
     if operador.kind == "dedup":
         return op.deduplicar(operador.id, p["by"], p.get("keep", "first"), p.get("outputs"))
     if operador.kind == "union":
+        if "all" in p:
+            return op.ramas_union(
+                operador.id, p["all"], columns_by_branch=p.get("columns_by_branch"),
+                outputs=p.get("outputs"),
+            )
         return op.concatenar(operador.id, p["sources"])
     if operador.kind == "read":
         return op.leer(operador.id, p["dataset"], p.get("in"), "in" in p)

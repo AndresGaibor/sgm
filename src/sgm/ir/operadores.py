@@ -413,14 +413,29 @@ def concatenar(op_id: str, sources: list[str], evidence=None) -> Operator:
     )
 
 
-def ramas_union(op_id: str, union_all: bool, evidence=None) -> Operator:
+def ramas_union(
+    op_id: str, union_all: bool, evidence=None, *,
+    columns_by_branch: list[list[str] | None] | None = None,
+    outputs: list[str] | None = None,
+) -> Operator:
     """Ramas de un UNION de SQL: el operador une las ramas que se enlazan después (sin `sources`).
 
     `union_all` dice si conserva los duplicados (UNION ALL), como el lowering de `PROC SQL`.
     """
     if not isinstance(union_all, bool):
         raise ValueError(f"union_all debe ser verdadero o falso, no {union_all!r}")
-    return _operador(op_id, "union", {"sources": [], "all": union_all}, evidence)
+    params: dict[str, Any] = {"sources": [], "all": union_all}
+    if columns_by_branch is not None:
+        if not union_all or not isinstance(columns_by_branch, list) or len(columns_by_branch) < 2:
+            raise ValueError("OUTER UNION CORR exige todas las filas y al menos dos ramas")
+        params["outer_union_corr"] = True
+        params["columns_by_branch"] = [
+            None if names is None else _lista(names, "columns_by_branch")
+            for names in columns_by_branch
+        ]
+    if outputs is not None:
+        params["outputs"] = _lista(outputs, "outputs")
+    return _operador(op_id, "union", params, evidence)
 
 
 def pivotar(

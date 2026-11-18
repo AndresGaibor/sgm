@@ -900,12 +900,16 @@ class _Job:
             entradas_union = self._uniones.get(hasta, [])
             indice = entradas_union.index(desde) if desde in entradas_union else -1
             if not repartido and indice in self._alineados.get(hasta, {}):
-                # Entrada desalineada: entra por la `row1` de su `tMap`, no directo al tUnite.
+                # El alineador debe consumir el nombre real de la salida del tMap anterior.
                 destino = self._alineados[hasta][indice]
-                if (origen, destino, "row1") not in vistas:
-                    vistas.add((origen, destino, "row1"))
+                alineado = next(n for n in self.nodos if n.unico == destino)
+                alineado.datos = alineado.datos.replace(
+                    'name="row1"', f'name="{nombre}"'
+                ).replace('expression="row1.', f'expression="{nombre}.')
+                if (origen, destino, nombre) not in vistas:
+                    vistas.add((origen, destino, nombre))
                     conector = self._conector_de.get(origen, "FLOW")
-                    self.conexiones.append(Conexion(origen, destino, "row1", conector=conector))
+                    self.conexiones.append(Conexion(origen, destino, nombre, conector=conector))
                 continue
             clave = (origen, destino, nombre)
             if clave in vistas:

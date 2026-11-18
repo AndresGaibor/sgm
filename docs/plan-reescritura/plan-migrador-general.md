@@ -934,6 +934,12 @@ la pista del programa grande que nadie midió contra el corpus (por ejemplo, el 
 | **Total** | **895** | **259,25** | **29,0 %** | |
 <!-- avance:fin -->
 
+**Evidencia 277n (18 de noviembre).** `OUTER UNION CORR` añade un caso L3-21 que
+coincide en B y emite un Job válido estáticamente. Los créditos MG-P5 permanecen en
+37/80 h: este subconjunto no completa MG-P5-05 ni aporta validación C. Las 17
+sentencias medidas dejan de ser errores de parseo; once conservan el pendiente
+independiente de agregado sin GROUP BY.
+
 **Reparto del trabajo restante (719,25 h) entre Andres y Byron:** `reparto-andres-byron.md`
 (359,0 h y 360,25 h). **Ojo (G-4):** 895 − 237,25 = 657,75 h, que es lo que imprime `tools/avance_creditos.py --imprimir`; la cifra de 719,25 h no sale de esta tabla. La decisión sobre cuál es la vigente queda pendiente y el reparto por persona se revisa con ella.
 

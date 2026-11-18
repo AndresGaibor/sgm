@@ -489,3 +489,31 @@ esquemas:
     dif_saldo:
       tipo: pendiente
       motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONCILIACION_FINAL:
+    nro_origen:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_validos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_rechazados:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    suma_origen:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    suma_validos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    suma_rechazados:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    dif_filas:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    dif_saldo:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    producto:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

@@ -64,6 +64,8 @@ def render(tree: SqlTree, normalized: NormalizedSql, dialect: str = "hive") -> s
     un nombre (`&tabla`), que solo se resuelve al ejecutar.
     """
     validate_portable_identifiers(tree)
+    if tree.outer_union_corr:
+        raise ValueError("OUTER UNION CORR exige alinear columnas por nombre antes de emitir SQL")
     joiner = " UNION ALL " if tree.union_all else " UNION "
     body = joiner.join(_select(spec, normalized) for spec in tree.selects)
     if tree.target:

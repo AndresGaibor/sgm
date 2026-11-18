@@ -288,3 +288,11 @@ esquemas:
     codigo_dane:
       tipo: pendiente
       motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTEO_UBICACION:
+    nro_rechazos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.CONTEO_UBICACION_VALIDA:
+    nro_validos:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

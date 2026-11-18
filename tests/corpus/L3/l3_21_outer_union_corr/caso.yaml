@@ -1,0 +1,24 @@
+nivel: L3
+construcciones: [PROC SQL, OUTER UNION CORR, CREATE TABLE AS]
+capa: B
+tolerancia: 0
+orden_relevante: false
+estado: revisado
+motivo: Concatenación por nombre comprobada con esperado manual.
+salidas: [r]
+invariantes: []
+razonamiento: >-
+  sqlproc.pdf, p. 135: OUTER UNION concatena y CORRESPONDING superpone las
+  columnas correspondientes. A aporta id,x y B id,y; salen id,x,y con
+  faltantes para columnas ausentes. Dos filas más una dan tres, sin deduplicar.
+esquemas:
+  WORK.A:
+    id: {tipo: Double, linea: 2, fuente: muestra}
+    x: {tipo: Double, linea: 2, fuente: muestra}
+  WORK.B:
+    id: {tipo: Double, linea: 5, fuente: muestra}
+    y: {tipo: Double, linea: 5, fuente: muestra}
+  WORK.R:
+    id: {tipo: pendiente, motivo: sin tipo demostrado en el programa ni en la muestra de entradas}
+    x: {tipo: pendiente, motivo: sin tipo demostrado en el programa ni en la muestra de entradas}
+    y: {tipo: pendiente, motivo: sin tipo demostrado en el programa ni en la muestra de entradas}

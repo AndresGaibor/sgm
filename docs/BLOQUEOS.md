@@ -299,19 +299,20 @@ Las decisiones del dueño que cierran entradas de este archivo. Cada entrada afe
 - **Qué hace falta:** que Studio vea la carpeta `process/` (por ejemplo, recargar el proyecto desde su interfaz),
   o que el lote pase por el flujo de `validar` que ya funcionó (hito 143m). Decisión tomada: no inventar resultados.
 
-## C-11: OUTER UNION y OUTER UNION CORR (plan C, 17 de noviembre de 2026)
+## C-11: OUTER UNION sin CORR y formas fuera de alcance (actualizado en 277n)
 
-- **Estado medido:** `OUTER UNION` y `OUTER UNION CORR` dan `P-OPERADOR-SIN-SOPORTE` con el motivo «OUTER UNION de SAS
-  alinea las ramas por nombre; reescribirlo como UNION ALL cambia el resultado si el orden de columnas difiere. Requiere
-  decisión».
-- **Por qué no se implementa hoy:** la guía (`sqlproc`, p. 135) dice que `OUTER UNION` concatena las consultas sin
-  superponer columnas, y que `CORRESPONDING` superpone las del mismo nombre. Con filas como diccionarios, dos columnas
-  `id` (una por rama) no se pueden representar sin inventar un nombre. Y el emisor de Talend no tiene forma verificada
-  de hacer una unión con columnas distintas.
-- **Decisión que falta (dueño):** para `OUTER UNION` sin CORR, ¿qué nombre dar a una columna repetida entre ramas (`id` y
-  `id_1`, o dejar el caso pendiente)? Para `OUTER UNION CORR`, basta con confirmar que se alinea por nombre y las
-  columnas que una rama no tiene salen en faltante.
-- **Desbloqueo:** esa decisión. El intérprete para CORR se puede hacer después con la misma función de conjuntos de C-10.
+- **Resuelto en A estático/B:** `OUTER UNION CORR` concatena por nombre y completa columnas ausentes;
+  `sqlproc.pdf`, p. 135, verificada en índice y texto local. Caso `L3/l3_21_outer_union_corr`:
+  `id,x,y`, tres filas (2+1), sin deduplicar. No se ejecutó Studio.
+- **Pendiente sin CORR:** nombres repetidos entre ramas explícitas producen
+  `P-OUTER-UNION-COLUMNAS-REPETIDAS`; no se inventan alias. Otras formas sin CORR conservan
+  `P-OUTER-UNION-SIN-CORR` y no se concatenan por nombre.
+- **Límites de CORR:** operadores mixtos/anidados, orden global, DISTINCT, subconsultas/ventanas,
+  nombres repetidos dentro de una rama y expresiones sin alias: `P-OUTER-UNION-CORR-SIN-SOPORTE`.
+  `SELECT *` sin filas ni esquema demostrado detiene B con motivo explícito.
+- **Medición:** las 17 sentencias de diez programas ya se analizan; seis quedan como concatenaciones
+  de flujo y once mantienen el límite preexistente de agregado sin GROUP BY. No equivale a diez
+  programas traducidos ni a validación de Talend. C-11 sigue parcial.
 
 ## C-4: LEFT JOIN con llaves nulas y con el mismo nombre de columna, medido en Studio (17 de noviembre de 2026)
 

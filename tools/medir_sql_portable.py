@@ -12,6 +12,8 @@ Clasifica cada sentencia de PROC SQL con las mismas reglas del código:
 - `agregado_sin_group_by`: columnas sin agregar junto a agregados (pendiente).
 - `funcion_no_portable`: alguna función sin status portable en sql-functions.json.
 - `portable`: el resto.
+- `outer_union_corr_flujo`: concatenación SAS por nombre; no se empuja como SQL por posición.
+- `outer_union_pendiente`: forma OUTER UNION sin equivalencia demostrada.
 
 Imprime el recuento por clase y por función no portable. No escribe archivos.
 """
@@ -27,6 +29,7 @@ from sgm.frontend.splitter import split_nodes
 from sgm.frontend.sql import SqlStatement
 from sgm.frontend.sql_normalize import normalize
 from sgm.frontend.steps import ProcSql, parse_node
+from sgm.ir.sql_outer_union import SqlOuterUnionError
 from sgm.ir.sql_portability import unportable_functions
 from sgm.ir.sql_tree import SqlNotSelect, SqlParseError, build
 
@@ -50,6 +53,8 @@ def _clasificar(st: SqlStatement) -> tuple[str, list[str]]:
         return "parse_error", []
     except SqlNotSelect:
         return "no_consulta", []
+    except SqlOuterUnionError:
+        return "outer_union_pendiente", []
     if any(spec.subqueries or spec.windows for spec in tree.selects):
         return "subconsulta_o_ventana", []
     for spec in tree.selects:
@@ -68,7 +73,7 @@ def _clasificar(st: SqlStatement) -> tuple[str, list[str]]:
                 nombres += unportable_functions(texto)
     if nombres:
         return "funcion_no_portable", sorted(set(nombres))
-    return "portable", []
+    return ("outer_union_corr_flujo" if tree.outer_union_corr else "portable"), []
 
 
 def medir(texto: str) -> tuple[Counter, Counter]:

@@ -288,3 +288,13 @@ esquemas:
     dia_txt:
       tipo: pendiente
       motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+  WORK.RESUMEN_CADENA:
+    producto:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    nro_sabana:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas
+    suma_sabana:
+      tipo: pendiente
+      motivo: sin tipo demostrado en el programa ni en la muestra de entradas

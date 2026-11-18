@@ -8747,3 +8747,30 @@ originales 20 a 33 chocaban con los de la serie principal. Ver docs/plan-reescri
 | **Total** | **17** |
 
 La medición previa también detectó subconsulta/ventana en dos programas y función no portable SPEDIS en uno, sin atribuirles estas 17 sentencias. Solo OUTER UNION CORR alcanzó la frecuencia comprobada de 10 programas con referencia local (`sqlproc.pdf`, p.135); queda como candidata de 277n. No se modificó código SQL aquí.
+
+## Hito 277n (2026-11-18). SQL avanzado: OUTER UNION CORR
+
+- **Alcance:** segunda entrega C-23, base `0f99309`. Solo `OUTER UNION CORR`/`CORRESPONDING`: unión por nombre sin deduplicar, columnas en orden de primera aparición y faltantes para las ausencias. Se verificó `sqlproc.INDEX.md`, sección «Concatenating Query Results», y el marcador de p.135 del texto local. Catálogo SQL actualizado en `rules/sas/catalogo/sentencias-proc-sql.yaml`; el inventario generado de procedimientos no cambia. Se corrigió la antigua fila Files de FORMAT: `procedimientos-migrador.yaml`, VALUE p.1173.
+- **Implementación:** reconocimiento mediante tokens de sqlglot, sin sustituir palabras dentro de literales/comentarios; lowering a la unión existente con marca por nombre. La emisión SQL de base rechaza esa marca para impedir una traducción por posición. B conserva columnas explícitas aunque una rama esté vacía. El Job usa la alineación existente; la prueba estática reprodujo el nombre `row1` incorrecto al recibir una proyección `out1` y motivó la corrección de esa conexión, sin añadir componentes nuevos.
+- **Pendientes y límites:** sin CORR con nombres repetidos explícitos, `P-OUTER-UNION-COLUMNAS-REPETIDAS`; otras formas sin CORR, `P-OUTER-UNION-SIN-CORR`. Mezclas/anidamiento de operadores, orden global, DISTINCT, subconsultas/ventanas, expresiones sin alias y nombres duplicados por rama conservan `P-OUTER-UNION-CORR-SIN-SOPORTE`. `SELECT *` vacío sin esquema demostrado se detiene explícitamente en B. No se amplía SQL ajeno al operador. C-11 sigue parcial; no se usaron Studio, Talend MCP/CLI, bases, API web, dependencias nuevas ni el repositorio viejo.
+- **TDD:** antes del código, seis fallos unitarios por operador rechazado, `pending_code` ausente y parser sin soporte; seis pruebas de límites ya pasaban. El caso L3-21 también falló antes de implementar. Después, pruebas de filas, orden, duplicados, alias, cadenas, límites y emisión estática. Integración inicial: `P-JOB-INVALIDO` por conexión del alineador; la corrección pasa junto con las regresiones de unión (21 pruebas). Regresión ampliada: 1080 pasaron, 219 omitidas y 5 xfail; sus seis fallos fueron únicamente tablas derivadas nuevas en L8. Se revisaron y añadieron nueve tablas en seis casos, todas con tipos pendientes y sin cambiar columnas existentes ni esperados.
+- **Corpus:** `L3/l3_21_outer_union_corr`: entradas `id,x` con 1/10 y 2/20, e `id,y` con 3/30; esperado manual `id,x,y` con tres filas, suma 2+1. B coincide; Job válido estáticamente. Corpus: 388 casos, L3=18 y 371 con esperado. Los créditos MG-P5/globales no cambian (37/80 h y 259,25/895 h): este subconjunto no completa MG-P5-05 ni aporta validación C.
+- **Medición de texto SAS:** las mismas 17 sentencias en diez programas dejan de ser `parse_error`. Seis se clasifican como `outer_union_corr_flujo`; once mantienen `agregado_sin_group_by`, límite preexistente independiente del operador. No se afirman diez programas migrados ni ausencia de otros pendientes. `linea_base_sql_procs.py` cuenta 68 etiquetas de construcciones de casos (el caso nuevo ya existía al medir antes y después); no analiza ni cuenta estas sentencias. Desglose:
+
+| Programa bajo `tests/corpus/L8/` | Antes: parse_error | Después: flujo CORR | Después: agregado sin GROUP BY |
+|---|---:|---:|---:|
+| `totales/02_inconsistencias_correccion` | 1 | 1 | 0 |
+| `totales/05_conciliacion` | 1 | 1 | 0 |
+| `totales/08_cadena_completa_macros` | 1 | 1 | 0 |
+| `validaciones/v01_tipo_doc` | 2 | 0 | 2 |
+| `validaciones/v02_vacios_ceros` | 2 | 0 | 2 |
+| `validaciones/v03_pais_dane` | 2 | 0 | 2 |
+| `validaciones/v04_tipo_cta_gmf` | 4 | 2 | 2 |
+| `validaciones/v05_codex_saldos` | 1 | 0 | 1 |
+| `validaciones/v06_normalizacion` | 1 | 0 | 1 |
+| `validaciones/v08_nequi_cadena` | 2 | 1 | 1 |
+| **Total** | **17** | **6** | **11** |
+
+- **Decisiones:** reutilizar el alineador existente en vez de crear un backend o componentes; mantener los casos sin página/equivalencia como pendientes. Conservar el límite del agregado, sin resolverlo en esta entrega. La clase nueva de la medición evita llamar «portable a SQL de base» a una concatenación que solo se permite en flujo.
+- **Cierre:** `uv run ruff check .` y `uv run python tools/ci.py` son la compuerta del árbol exacto, seguidos de `uv run python tools/validacion.py estado` inmediatamente antes del commit normal. El resultado y las cifras finales quedan en `.cache/validacion/` y en el reporte local `task-C-23-sql-report.md`; no se permite commit con un paso rojo ni se atribuye validación a Studio. OpenSpec y `.superpowers` quedan fuera del commit; sin push.
+- **Primer CI integral:** 7090 pruebas pasaron, 655 omitidas, 145 xfail y tres fallos de integración: reconstrucción canónica de `union`, celda editada dentro de la tabla generada de créditos y contador L3 antiguo. Ruff, 78 cruces, oráculo (388 casos) y tablero pasaron. RED focal confirmó los tres fallos antes de corregirlos. El constructor `ramas_union` conserva ahora columnas por rama y salida; el reconstructor usa ese contrato para uniones SQL y `concatenar` para SET, manteniendo la igualdad estricta de firmas. La evidencia de créditos se movió fuera de los marcadores generados, sin cambiar YAML ni cifras; L3 se actualizó a 18. Se repite el cierre completo después de estas correcciones, sin aceptar la huella anterior ni omitir pruebas.

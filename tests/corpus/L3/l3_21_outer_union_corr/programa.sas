@@ -1,0 +1,13 @@
+/* sqlproc.pdf, p. 135: concatenación con columnas correspondientes. */
+PROC IMPORT DATAFILE='.../entradas/a.csv' OUT=WORK.a DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+PROC IMPORT DATAFILE='.../entradas/b.csv' OUT=WORK.b DBMS=CSV REPLACE;
+  GETNAMES=YES;
+RUN;
+PROC SQL;
+  CREATE TABLE WORK.r AS
+  SELECT id,x FROM WORK.a OUTER UNION CORR SELECT id,y FROM WORK.b;
+QUIT;
+PROC EXPORT DATA=WORK.r OUTFILE='.../salida/r.csv' DBMS=CSV REPLACE;
+RUN;
