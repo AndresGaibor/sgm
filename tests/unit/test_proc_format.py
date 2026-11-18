@@ -98,6 +98,17 @@ def test_put_tipa_la_columna_sas_sin_inferir_desde_la_celda_csv(estado):
             ejecutar_plan(plan, rows)
 
 
+def test_put_prioriza_tipo_del_productor_sobre_catalogo_obsoleto():
+    text = """DATA tmp; SET a; LENGTH id 8; id=1; RUN;
+    PROC FORMAT; VALUE $estf '1'='Uno'; RUN;
+    DATA destino; SET tmp; desc=PUT(id,$estf.); RUN;"""
+    context = project_base()
+    context["schemas"] = {"work.tmp": [Column("id", "String", source="catalog")]}
+    plan = compile_file(analyze_program({"p.sas": text}), "p.sas", context).plan
+    with pytest.raises(NoSoportadoEnInterprete, match="P-FORMATO-TIPO"):
+        ejecutar_plan(plan, {"a": [{"id": "cualquiera"}]})
+
+
 def test_l3_34_conserva_pendiente_si_proc_import_no_prueba_tipo():
     directory = Path(__file__).resolve().parents[1] / "corpus/L3/l3_34_format_value_y_put"
     plan = _plan((directory / "programa.sas").read_text(encoding="utf-8"), estado=None)

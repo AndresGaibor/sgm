@@ -180,7 +180,13 @@ def agregar(
                 if semantica.es_faltante(valor):
                     llave.append(("faltante",))
                 elif class_types.get(nombre) in NUMERIC_TYPES:
-                    llave.append(("numero", numero(valor, nombre)))
+                    numerico = numero(valor, nombre)
+                    if len(format(numerico.normalize(), "f")) > 12:
+                        raise AgregadoNoSoportado(
+                            "Pendiente: P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO; "
+                            f"BEST12 no está reproducido con precisión para CLASS {nombre}"
+                        )
+                    llave.append(("numero", numerico))
                 elif class_types.get(nombre) == "String":
                     llave.append(("texto", semantica.como_texto(valor)))
                 elif isinstance(valor, (int, float, Decimal)) and not isinstance(valor, bool):

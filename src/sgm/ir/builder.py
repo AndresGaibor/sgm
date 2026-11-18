@@ -33,6 +33,7 @@ class Builder:
     ) -> None:
         self.graph = graph
         self.formatos: list[FormatoUsuario] = []
+        self.sas_formats_by_dataset: dict[str, set[str]] = {}
         self.bibliotecas: dict[str, InfoLibname] = {}
         self.decisiones_libnames = {
             nombre.casefold(): dict(decision)

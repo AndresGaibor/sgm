@@ -78,6 +78,41 @@ def test_reference_union_checks_explicit_types_before_appending(right_type, left
         ]
 
 
+def test_reference_union_keeps_projected_type_after_join():
+    query = (
+        "SELECT a.id FROM a INNER JOIN c ON a.key=c.key "
+        "OUTER UNION CORR SELECT id FROM b"
+    )
+    plan = _plan(query, {
+        "work.a": [Column("id", "Double", source="catalog"),
+                   Column("key", "Double", source="catalog")],
+        "work.c": [Column("key", "Double", source="catalog")],
+        "work.b": [Column("id", "String", source="catalog")],
+    })
+    rows = {"a": [{"id": "1", "key": "1"}], "c": [{"key": "1"}],
+            "b": [{"id": "1"}]}
+    with pytest.raises(NoSoportadoEnInterprete, match="P-UNION-TIPO-CONFLICTO"):
+        ejecutar_plan(plan, rows)
+
+
+def test_reference_union_resolves_qualified_projection_when_join_names_conflict():
+    query = (
+        "SELECT a.id FROM a INNER JOIN c ON a.key=c.key "
+        "OUTER UNION CORR SELECT id FROM b"
+    )
+    plan = _plan(query, {
+        "work.a": [Column("id", "Double", source="catalog"),
+                   Column("key", "Double", source="catalog")],
+        "work.c": [Column("id", "String", source="catalog"),
+                   Column("key", "Double", source="catalog")],
+        "work.b": [Column("id", "String", source="catalog")],
+    })
+    rows = {"a": [{"id": "1", "key": "1"}],
+            "c": [{"id": "otro", "key": "1"}], "b": [{"id": "1"}]}
+    with pytest.raises(NoSoportadoEnInterprete, match="P-UNION-TIPO-CONFLICTO"):
+        ejecutar_plan(plan, rows)
+
+
 def test_grouped_branch_keeps_declared_select_order_in_the_union_schema(tmp_path):
     result = _migrate(
         tmp_path, "SELECT COUNT(*) AS n,id FROM a GROUP BY id "

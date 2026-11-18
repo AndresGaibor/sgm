@@ -8,7 +8,7 @@ from sgm.ir.models import Graph, Operator
 from sgm.ir.types_code import expression_type
 
 _COLUMN = re.compile(r"(?:[a-z_]\w*\.)*([a-z_]\w*)", re.I)
-_PASSTHROUGH = frozenset({"filter", "sort", "dedup", "write"})
+_PASSTHROUGH = frozenset({"filter", "sort", "dedup", "write", "join"})
 
 
 def _expression_type(text: str, types: dict[str, str]) -> str | None:
@@ -60,12 +60,38 @@ def output_types(graph: Graph, op: Operator) -> dict[str, str]:
     """Aplica la lista de columnas proyectadas de cada rama a su propia fuente."""
     parents = graph.predecessors(op.id)
     if op.kind == "map" or op.kind in {"derive", "aggregate", "select", "rename", *_PASSTHROUGH}:
-        types = output_types(graph, graph.operator(parents[0])) if len(parents) == 1 else {}
-        for step in op.params.get("steps") or [{"kind": op.kind, "params": op.params}]:
+        if len(parents) == 1:
+            types = output_types(graph, graph.operator(parents[0]))
+        elif op.kind == "map":
+            types = {}
+            ambiguous = set()
+            for parent in parents:
+                for name, kind in output_types(graph, graph.operator(parent)).items():
+                    if name in types and types[name] != kind:
+                        ambiguous.add(name)
+                        types.pop(name)
+                    elif name not in ambiguous:
+                        types[name] = kind
+        else:
+            types = {}
+        steps = op.params.get("steps") or [{"kind": op.kind, "params": op.params}]
+        for step in steps:
             types = step_types(step["kind"], step["params"], types)
+        if op.kind == "map" and len(parents) > 1:
+            schema = {column.name.casefold(): column.type for column in op.schema or []
+                      if column.type and column.source in {"catalog", "code"}}
+            projected = {
+                assignment["target"].casefold()
+                for step in steps if step["kind"] == "derive"
+                for assignment in step["params"].get("assignments", [])
+                if assignment.get("origin") == "columna"
+                and _COLUMN.fullmatch(str(assignment.get("expression") or "").strip())
+            }
+            for name in projected & schema.keys():
+                types.setdefault(name, schema[name])
         return types
     explicit = {column.name.casefold(): column.type for column in op.schema or []
                 if column.type and column.source in {"catalog", "code"}}
-    if not explicit and op.kind == "read" and len(parents) == 1:
-        return output_types(graph, graph.operator(parents[0]))
+    if op.kind == "read" and len(parents) == 1:
+        return {**explicit, **output_types(graph, graph.operator(parents[0]))}
     return explicit if op.kind in {"read", "read_file"} else {}

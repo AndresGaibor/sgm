@@ -56,6 +56,39 @@ def test_class_sin_comparador_demostrado_queda_pendiente(column_type):
         _run(text, ROWS, region=column_type)
 
 
+@pytest.mark.parametrize("format_clause", ["region 1.", "_ALL_ 1.", "region: 1."])
+def test_class_con_formato_explicito_queda_pendiente(format_clause):
+    text = f"""DATA etapa; SET ventas; FORMAT {format_clause}; RUN;
+    DATA copia; SET etapa; RUN;
+    PROC MEANS DATA=copia NWAY; CLASS region; VAR monto;
+    OUTPUT OUT=res(DROP=_TYPE_ _FREQ_) SUM=total; RUN;"""
+    plan = _plan(text, region="Double", monto="Double")
+    assert any(
+        op.params.get("pending_code") == "P-MEANS-CLASS-FORMATO-NO-SOPORTADO"
+        for op in plan.graph.operators()
+    )
+    assert not any(op.kind == "aggregate" for op in plan.graph.operators())
+    with pytest.raises(NoSoportadoEnInterprete):
+        ejecutar_plan(plan, {"ventas": [
+            {"region": "1.1", "monto": "3"}, {"region": "1.2", "monto": "7"},
+        ]})
+
+
+@pytest.mark.parametrize("keys", [
+    ("9007199254740993", "9007199254740992"),
+    ("1.000000000001", "1.000000000002"),
+])
+def test_class_numerica_fuera_de_precision_demostrada_queda_pendiente(keys):
+    text = """PROC MEANS DATA=ventas NWAY; CLASS region; VAR monto;
+    OUTPUT OUT=res(DROP=_TYPE_ _FREQ_) SUM=total; RUN;"""
+    rows = [
+        {"region": keys[0], "monto": "3"},
+        {"region": keys[1], "monto": "7"},
+    ]
+    with pytest.raises(NoSoportadoEnInterprete, match="P-MEANS-CLASS-ORDEN-NO-DEMOSTRADO"):
+        _run(text, rows, region="BigDecimal")
+
+
 def test_class_sin_comparador_demostrado_no_emite_salida_ordenada(tmp_path):
     directory = Path(__file__).resolve().parents[1] / "corpus/L3/l3_30_means_class_nway"
     result = migrar(directory / "programa.sas", tmp_path / "out", muestra=directory / "entradas")

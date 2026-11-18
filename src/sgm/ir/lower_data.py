@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from sgm.frontend.datastep import DataStep, DsStatement
 from sgm.ir import operadores
 from sgm.ir.builder import Builder, qualify
@@ -19,6 +21,31 @@ from sgm.ir.lower_data_update import lower_actualizacion
 from sgm.ir.models import Evidence, Operator
 from sgm.ir.pasos import op_validado
 from sgm.ir.types_code import declared_types
+
+_FORMAT_SPEC = re.compile(r"(?i)^(?:\$?[a-z_]\w*|\$?\d+)\.\d*$")
+_IDENTIFIER = re.compile(r"[a-z_]\w*", re.I)
+
+
+def _formatted_columns(declarations: list[tuple[str, str]]) -> list[str]:
+    names = set()
+    for kind, body in declarations:
+        if kind != "format":
+            continue
+        variables = []
+        for token in body.split():
+            if _FORMAT_SPEC.fullmatch(token):
+                for variable in variables:
+                    if variable.casefold() in {"_all_", "_numeric_", "_character_"}:
+                        names.add("*")
+                    elif ":" in variable or "-" in variable:
+                        # shortcut: range lists block all CLASS until SAS list expansion is modeled.
+                        names.add("*")
+                    else:
+                        names.update(name.casefold() for name in _IDENTIFIER.findall(variable))
+                variables = []
+            else:
+                variables.append(token)
+    return sorted(names)
 
 
 def _lower_sources(
@@ -90,6 +117,24 @@ def lower_data(step: DataStep, ev: Evidence, b: Builder) -> None:
         if s.kind == "declare"
     ]
     declared = declared_types(declarations)
+    inherited = {
+        name
+        for statement in step.statements
+        if statement.kind in {"set", "merge", "update", "modify"}
+        for source in statement.fields.get("sources", [])
+        for name in b.sas_formats_by_dataset.get(qualify(source["name"]), set())
+    }
+    renames = {
+        old.casefold(): new.casefold()
+        for statement in step.statements if statement.kind == "rename"
+        for old, new in statement.fields.get("pairs", [])
+    }
+    formatted = sorted(
+        {renames.get(name, name) for name in inherited} | set(_formatted_columns(declarations))
+    )
+    for output in step.outputs:
+        if output.casefold() != "_null_":
+            b.sas_formats_by_dataset[qualify(output)] = set(formatted)
     if declared:
         for op in b.created[start:]:
             if op.kind == "derive":

@@ -112,6 +112,14 @@ def lower_means(step: Proc, ev: Evidence, b: Builder, data: str | None, out: str
             or dropped.intersection([*groups, *aliases])):
         pending(_STAT_PENDING, "nombres de salida repetidos, eliminados por DROP o en conflicto")
         return
+    formats = b.sas_formats_by_dataset.get(qualify(data), set())
+    if "*" in formats or set(groups).intersection(formats):
+        pending(
+            "P-MEANS-CLASS-FORMATO-NO-SOPORTADO",
+            "B y el Job aún no reproducen el formato de agrupación de CLASS "
+            "(proc.pdf, p. 1554)",
+        )
+        return
 
     previous = b.read_dataset(data, ev)
     if groups:
