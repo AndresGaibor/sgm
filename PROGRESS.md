@@ -8841,3 +8841,14 @@ La medición previa también detectó subconsulta/ventana en dos programas y fun
   sus conexiones de entrada, y el esquema de las entradas. Studio no acepta la conexión de salida del `tMap` hacia un
   `tLogRow` (error «revisa que el conector exista en el origen»), y por eso el `.item` no tiene `outputTables`. El job
   de prueba se borró del proyecto. Pendiente: crear esa salida a mano en Studio o investigar el conector de salida.
+
+## Hito 295 (2026-11-19). Aislar y diseñar la línea Qlik Cloud Analytics DataFlow
+
+- Rama `feature/sgm-sas-to-qlik-dataflow`, en worktree separado basado en `origin/main`. No se modificaron `main` ni la rama Talend.
+- Se revisó el parser y la IR existentes: el SAS mínimo produce `read → filter → aggregate → write`. Se prepararon el diseño, la propuesta/spec/tareas OpenSpec y el plan de implementación para reutilizar esa IR sin consumir `Operator.component` ni el estado Talend.
+- La documentación oficial consultada permite crear el lienzo por interfaz y exportar/importar `.dfw`; no se encontró contrato público para construir programáticamente el grafo visual. El mapeo lógico queda separado y la generación visual en NO-GO hasta hallar evidencia oficial.
+- Pruebas base: `uv run python -m pytest -q`: 7134 aprobadas, 655 omitidas, 145 xfail; `uv run ruff check .` limpio. `openspec validate mapear-sas-a-qlik-dataflow --strict` válido. La validación integral de cierre se registra antes del commit.
+- Cierre integral: `uv run python tools/ci.py` verde: ruff, 7134 pruebas, 78 cruces, oráculo (388 casos) y tablero. La misma validación final se repite en el árbol con esta entrada antes del commit.
+- Métricas: 0 archivos de código, 0 casos de corpus y 0 dependencias nuevas; 4 artefactos OpenSpec y 2 documentos de diseño/plan.
+- Decisiones: primera implementación prevista para el hito 296, limitada al grafo lógico y estados parciales/pendientes; Qlik Script solo se reevalúa con una instrucción posterior.
+- Bloqueos: falta una API oficial documentada para crear/importar nodos DataFlow; el tipo de `total` sigue sin demostrarse en el SAS de ejemplo.
